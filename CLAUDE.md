@@ -91,7 +91,15 @@ must still pass.
   already-projected key/value pairs; it knows nothing about MusicBrainz.
 - **Drizzle is the sole owner of the schema.** Python never touches the database.
 - Python: `ruff`, `pyright` strict, `pydantic` v2, `structlog` for JSON logs.
-- Conventional commits, scoped by phase: `feat(P03): …`. One branch per phase.
+- **Commits follow the Angular convention**: `type(scope): subject` (`feat`, `fix`, `chore`,
+  `docs`, `test`, `refactor`…), scope is the phase (`feat(P03): …`), body explains the why
+  when it's not obvious. One branch per phase (`phase/PNN-nom`); squashing is not required.
+- **Browser-driven tests use only the `agent-browser` CLI** installed on the machine
+  (`agent-browser open/snapshot/click/fill/screenshot…`). **Never** use an agent's built-in
+  browser tool or an MCP browser/navigation tool for these — an agent doing so is a mistake,
+  not a valid alternative. `@playwright/test` is for non-regression scenarios only, reusing
+  the same Chromium `agent-browser` already has installed (`executablePath`), never a
+  separate Playwright browser install.
 
 ## Machine setup
 
