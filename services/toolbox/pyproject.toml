@@ -10,6 +10,15 @@ dependencies = [
     "pydantic>=2.12.0",
     "structlog>=25.4.0",
     "yt-dlp>=2026.1.1",
+    # Tag writing. Picard's own library: the reference for Vorbis comments, Opus pictures
+    # and ID3v2.4 frames that are not plain text (TIPL, TMCL, UFID, SYLT).
+    "mutagen>=1.47.0",
+    # Artwork: crop to square, resize, re-encode as JPEG.
+    "pillow>=11.0.0",
+    # YouTube Music search (OLAK5uy_… album playlists).
+    "ytmusicapi>=1.9.0",
+    # The HTTP client starlette itself uses; AcoustID lookups and artwork fetches.
+    "httpx2>=2.12.0",
 ]
 
 [dependency-groups]
@@ -49,4 +58,10 @@ reportMissingTypeStubs = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "-q"
+# The conformance suite needs the Navidrome container, so it is opt-in: `bun run check` and
+# a bare `pytest` stay host-only and offline. A command-line `-m` overrides this one.
+addopts = "-q -m 'not conformance'"
+markers = [
+    "conformance: reads back a placed album through a real Navidrome (needs docker compose)",
+    "container: needs the media binaries, so it only passes inside the toolbox image",
+]
