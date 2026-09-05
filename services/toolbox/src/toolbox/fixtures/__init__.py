@@ -22,7 +22,10 @@ Recognised URLs:
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
+import uuid
 from pathlib import Path
 from typing import Any, Final, cast
 
@@ -179,6 +182,31 @@ def _recorded_url(path: Path) -> str | None:
     return entries.get(path.name)
 
 
+def _derived_fingerprint(entry: dict[str, Any]) -> FingerprintResult:
+    """A fingerprint that identifies *this* entry, derived from it deterministically.
+
+    The recorded ``fingerprint`` block describes the first entry of a fixture. Returning it for
+    every file of a fifteen-video playlist would make an orchestrator that compares the result
+    with its mapping see thirteen disagreements on a run where nothing is wrong. So every other
+    entry gets a fingerprint of its own: the same shape, the same kind of ids (a UUIDv5, as the
+    rest of the recorded data uses), seeded by the video id so it never moves.
+    """
+    seed = str(entry["id"])
+    digest = hashlib.sha256(f"mm-fixture-fingerprint:{seed}".encode()).digest()
+    return FingerprintResult(
+        fingerprint=base64.b64encode(digest * 4).decode("ascii"),
+        duration=float(entry.get("duration") or 0.0),
+        candidates=[
+            FingerprintCandidate(
+                recording_mbid=str(uuid.uuid5(uuid.NAMESPACE_URL, f"mm-fixture-recording:{seed}")),
+                score=0.98,
+                title=str(entry.get("track") or entry.get("title") or ""),
+                artist=str(entry.get("artist") or entry.get("uploader") or ""),
+            )
+        ],
+    )
+
+
 def fingerprint_for(path: Path) -> FingerprintResult:
     """The recorded fingerprint of a downloaded fixture file.
 
@@ -191,10 +219,15 @@ def fingerprint_for(path: Path) -> FingerprintResult:
     name = ref.name if ref else "discovery"
     payload = load(name)
     mismatch = bool(ref and ref.params.get("fp") == "mismatch")
-    key = "fingerprint"
+
     if mismatch and "fingerprint_mismatch" in payload:
-        key = "fingerprint_mismatch"
-    raw = cast(dict[str, Any], payload[key])
+        raw = cast(dict[str, Any], payload["fingerprint_mismatch"])
+    elif ref is not None and ref.index:
+        # Entry 0 keeps the recorded block; the rest are derived from the entry itself.
+        return _derived_fingerprint(select_entry(ref.canonical + f"#{ref.index}"))
+    else:
+        raw = cast(dict[str, Any], payload["fingerprint"])
+
     return FingerprintResult(
         fingerprint=str(raw["fingerprint"]),
         duration=float(raw["duration"]),

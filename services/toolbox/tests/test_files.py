@@ -187,3 +187,52 @@ def test_artwork_rejects_something_that_is_not_an_image(client: TestClient, tmp_
     source.write_text("not a picture", encoding="utf-8")
     response = client.post("/artwork/prepare", json={"path": str(source)})
     assert response.status_code == 422
+
+
+def test_the_fixture_fingerprint_identifies_the_entry_that_was_downloaded(
+    fixture_client: TestClient, tmp_path: Path
+):
+    """One recorded block would make thirteen of fourteen tracks look like a mismatch.
+
+    `/download` notes which fixture URL produced each file; `/fingerprint` reads that note and
+    answers about *that* entry. Without this, an orchestrator comparing the fingerprint with
+    its mapping sees a disagreement on every track but the first.
+    """
+    for index in (0, 1, 5):
+        fixture_client.post(
+            "/download",
+            json={
+                "url": f"fixture://discovery#{index}",
+                "dest_dir": str(tmp_path),
+                "id": f"track-{index}",
+            },
+        )
+
+    titles = {}
+    for index in (0, 1, 5):
+        payload = fixture_client.post(
+            "/fingerprint", json={"path": str(tmp_path / f"track-{index}.opus")}
+        ).json()
+        titles[index] = payload["candidates"][0]["title"]
+        assert payload["candidates"][0]["score"] > 0.9
+
+    assert titles[0] == "One More Time"
+    assert titles[1] == "Aerodynamic"
+    assert titles[5] == "Nightvision"
+
+
+def test_the_mismatch_fixture_still_names_another_recording(
+    fixture_client: TestClient, tmp_path: Path
+):
+    fixture_client.post(
+        "/download",
+        json={
+            "url": "fixture://discovery?fp=mismatch#0",
+            "dest_dir": str(tmp_path),
+            "id": "wrong",
+        },
+    )
+    payload = fixture_client.post(
+        "/fingerprint", json={"path": str(tmp_path / "wrong.opus")}
+    ).json()
+    assert payload["candidates"][0]["title"] != "One More Time"
