@@ -27,9 +27,12 @@
     "db-reset": "bun run scripts/db.ts reset",
     "toolbox:openapi": "bun run scripts/toolbox-openapi.ts",
     "toolbox-openapi": "bun run scripts/toolbox-openapi.ts",
-    "e2e": "bun run scripts/e2e.ts",
+    "e2e": "bun run scripts/e2e-fixture.ts",
     "compose:up": "docker compose -f docker-compose.dev.yml up -d",
-    "compose:down": "docker compose -f docker-compose.dev.yml down"
+    "compose:down": "docker compose -f docker-compose.dev.yml down",
+    "worker": "bun run apps/web/src/worker/index.ts",
+    "mm": "bun run apps/web/bin/mm.ts",
+    "e2e-fixture": "bun run scripts/e2e-fixture.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
