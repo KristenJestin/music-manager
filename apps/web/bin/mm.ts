@@ -279,41 +279,69 @@ async function cmdInbox(args: Args): Promise<number> {
   }
 
   if (sub === "resolve") {
-    const id = args.positional[2];
-    if (id === undefined) {
-      throw new MMError("INVALID_INPUT", "usage: mm inbox resolve <id> --accept");
-    }
-    const item = await getInboxItem(id);
-    if (item === null) throw new MMError("NOT_FOUND", `No Inbox item with id ${id}.`);
-
     const accept = flagBoolean(args, "accept");
-    const resolution = accept
-      ? { accepted: true, ...(item.preselected ?? {}) }
-      : { accepted: false, action: "dismiss" };
-    await resolveInboxItem(id, {
-      resolution,
-      decidedBy: "cli",
-      status: accept ? "resolved" : "dismissed",
-    });
-    line(`${accept ? "accepted" : "dismissed"} ${item.type} — ${item.title}`);
+    const id = args.positional[2];
+    const importFilter = flagString(args, "import");
 
-    // The job was parked waiting for exactly this. Put it back on the queue.
-    if (item.importId !== null) {
+    // `--all` answers every open item the same way. An album whose fingerprints all disagree
+    // raises one item per track, and answering fourteen identical questions one at a time is
+    // not a decision, it is typing.
+    const items =
+      id === undefined
+        ? flagBoolean(args, "all")
+          ? await listInbox({
+              status: "open",
+              ...(importFilter === undefined ? {} : { importId: importFilter }),
+            })
+          : []
+        : [await getInboxItem(id)].filter((item) => item !== null);
+
+    if (id !== undefined && items.length === 0) {
+      throw new MMError("NOT_FOUND", `No Inbox item with id ${id}.`);
+    }
+    if (items.length === 0) {
+      throw new MMError(
+        "INVALID_INPUT",
+        "usage: mm inbox resolve <id> --accept | mm inbox resolve --all --accept [--import <id>]",
+      );
+    }
+
+    const affected = new Set<string>();
+    for (const item of items) {
+      await resolveInboxItem(item.id, {
+        resolution: accept
+          ? { accepted: true, ...(item.preselected ?? {}) }
+          : { accepted: false, action: "dismiss" },
+        decidedBy: "cli",
+        status: accept ? "resolved" : "dismissed",
+      });
+      line(`${accept ? "accepted" : "dismissed"} ${item.type} — ${item.title}`);
+      if (item.importId !== null) affected.add(item.importId);
+    }
+
+    // The jobs were parked waiting for exactly this. Put them back on the queue.
+    if (affected.size > 0) {
       const boss = createBoss({ producer: true });
       await boss.start();
-      await enqueueImportStep(boss, { importId: item.importId, reason: "inbox resolved" });
+      for (const importId of affected) {
+        await enqueueImportStep(boss, { importId, reason: "inbox resolved" });
+        line(`resumed ${importId}`);
+      }
       await stopBoss(boss);
-      line(`resumed ${item.importId}`);
-      if (flagBoolean(args, "follow")) {
-        const code = await followImport(item.importId);
-        await printJob(item.importId);
+      const first = [...affected][0];
+      if (flagBoolean(args, "follow") && affected.size === 1 && first !== undefined) {
+        const code = await followImport(first);
+        await printJob(first);
         return code;
       }
     }
     return 0;
   }
 
-  throw new MMError("INVALID_INPUT", "usage: mm inbox list | mm inbox resolve <id> --accept");
+  throw new MMError(
+    "INVALID_INPUT",
+    "usage: mm inbox list | mm inbox resolve <id> --accept | mm inbox resolve --all --accept",
+  );
 }
 
 async function cmdSettings(args: Args): Promise<number> {
@@ -377,6 +405,7 @@ const USAGE = `mm — Music Manager
   mm retry <id> --step <${STEP_ORDER.join("|")}>
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
+  mm inbox resolve --all --accept [--import <id>]
   mm settings get [key] | set <key> <value> | list
   mm pause <id> | mm cancel <id> | mm bump <id>
 

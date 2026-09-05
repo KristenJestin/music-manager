@@ -1,0 +1,22 @@
+# Fixtures overlay: the whole stack, fully offline.
+#
+#   docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d postgres toolbox
+#
+# This is what `bun run e2e-fixture` brings up, and what a demo runs on. The toolbox answers
+# every endpoint from `services/toolbox/src/toolbox/fixtures/data/`, so nothing reaches the
+# network — `CLAUDE.md` requires fixtures mode to stay offline, and the end-to-end run is the
+# proof of it.
+#
+# Give the orchestrator the matching switch: `MM_FIXTURES=1`.
+
+name: mm-dev
+
+services:
+  toolbox:
+    environment:
+      MM_TOOLBOX_FIXTURES: "1"
+      # Milliseconds per 16 KiB slice of the bundled sample. Raise it to make a download last
+      # long enough to be interrupted on purpose, which is how the resume test works.
+      MM_TOOLBOX_FIXTURE_DELAY_MS: ${MM_TOOLBOX_FIXTURE_DELAY_MS:-20}
+      # Never let a fixture run reach out for a yt-dlp update.
+      MM_YTDLP_AUTOUPDATE: "0"

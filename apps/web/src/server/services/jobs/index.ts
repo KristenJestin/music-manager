@@ -191,7 +191,66 @@ export async function runStep(
     })
     .where(eq(imports.id, importId));
 
+  // The import-level line is emitted here rather than in the loop, because `download` runs on
+  // its own queue and never goes through the loop at all: a failure there has to close the
+  // job for anyone following it just as clearly as a failure anywhere else.
+  if (!moved.continues) await announce(db, importId, step, moved.status, result);
+
   return result;
+}
+
+/** One journal line saying the import as a whole stopped, and why. */
+async function announce(
+  db: Database,
+  importId: string,
+  step: StepName,
+  status: ImportStatus,
+  result: StepResult,
+): Promise<void> {
+  if (status === "done") {
+    // "already present" is the word `docs/04` § Règles uses for the idempotent case, and the
+    // one the acceptance criteria look for. It is the *download* step that knows, so ask it.
+    const [download] = await db
+      .select({ message: jobSteps.message, status: jobSteps.status })
+      .from(jobSteps)
+      .where(and(eq(jobSteps.importId, importId), eq(jobSteps.step, "download")))
+      .limit(1);
+    const untouched =
+      download?.status === "skipped" && (download.message ?? "").startsWith("already present");
+    await emit(
+      {
+        importId,
+        type: "import.done",
+        message: untouched ? "Import complete: already present." : "Import complete.",
+        data: { ...(result.data ?? {}), alreadyPresent: untouched },
+      },
+      db,
+    );
+    return;
+  }
+  if (status === "failed") {
+    await emit(
+      {
+        importId,
+        level: "error",
+        type: "import.failed",
+        message: result.message ?? `${step} failed`,
+        data: result.error ?? {},
+      },
+      db,
+    );
+    return;
+  }
+  await emit(
+    {
+      importId,
+      level: "warn",
+      type: "import.status",
+      message: `${status}: ${result.message ?? step}`,
+      data: { step, status },
+    },
+    db,
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -210,7 +269,7 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
   const settings = options.settings ?? (await loadSettings(db));
   const ran: { step: StepName; result: StepResult }[] = [];
 
-  let job = await requireImport(importId, db);
+  const job = await requireImport(importId, db);
   if (isTerminal(job.status)) {
     return { importId, status: job.status, step: job.step, ran, handOff: null };
   }
@@ -240,35 +299,6 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 
     const moved = transition(step, result);
     if (!moved.continues) {
-      job = await requireImport(importId, db);
-      if (moved.status === "done") {
-        await emit(
-          { importId, type: "import.done", message: summarise(ran), data: { steps: ran.length } },
-          db,
-        );
-      } else if (moved.status === "failed") {
-        await emit(
-          {
-            importId,
-            level: "error",
-            type: "import.failed",
-            message: result.message ?? `${step} failed`,
-            data: result.error ?? {},
-          },
-          db,
-        );
-      } else {
-        await emit(
-          {
-            importId,
-            level: "warn",
-            type: "import.status",
-            message: `${String(moved.status)}: ${result.message ?? step}`,
-            data: { step, status: moved.status },
-          },
-          db,
-        );
-      }
       return { importId, status: moved.status, step: moved.step, ran, handOff: null };
     }
 
@@ -278,18 +308,8 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
     }
   }
 
-  job = await requireImport(importId, db);
-  return { importId, status: job.status, step: job.step, ran, handOff: null };
-}
-
-function summarise(ran: readonly { step: StepName; result: StepResult }[]): string {
-  const skipped = ran.filter((entry) => entry.result.status === "skipped");
-  const alreadyPresent = skipped.find((entry) =>
-    (entry.result.message ?? "").includes("already present"),
-  );
-  return alreadyPresent === undefined
-    ? `Import complete: ${String(ran.length)} step(s).`
-    : `Import complete: already present.`;
+  const current = await requireImport(importId, db);
+  return { importId, status: current.status, step: current.step, ran, handOff: null };
 }
 
 /* ------------------------------------------------------------------ */

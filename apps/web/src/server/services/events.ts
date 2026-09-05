@@ -10,7 +10,7 @@
  * The notification payload is deliberately tiny (`{id, importId}`): `NOTIFY` truncates above
  * 8 000 bytes, and an event carrying a 50 KB document would silently stop arriving.
  */
-import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, sql } from "drizzle-orm";
 import type { JobEventPayload } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { jobEvents, type EventLevel, type StepName } from "#/server/db/schema/index.ts";
@@ -87,6 +87,20 @@ function toPayload(row: typeof jobEvents.$inferSelect): JobEventPayload {
     data: row.data,
     at: row.at.toISOString(),
   };
+}
+
+/** The id of the newest event, or 0. The starting point of a stream that wants no history. */
+export async function latestEventId(
+  options: { importId?: string } = {},
+  db: Database = defaultDb(),
+): Promise<number> {
+  const rows = await db
+    .select({ id: jobEvents.id })
+    .from(jobEvents)
+    .where(options.importId === undefined ? undefined : eq(jobEvents.importId, options.importId))
+    .orderBy(desc(jobEvents.id))
+    .limit(1);
+  return rows[0]?.id ?? 0;
 }
 
 export interface Subscription {
@@ -187,6 +201,16 @@ export function eventStream(
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Without `since` (or `Last-Event-ID`) a stream starts *now*. Replaying the whole
+      // journal to every new subscriber would flood the Console on connect; a client that
+      // wants the history asks for it with `?since=0`, and one that is reconnecting sends the
+      // id it last saw, which is the case that actually has to be lossless.
+      const from =
+        options.since ??
+        (await latestEventId(
+          options.importId === undefined ? {} : { importId: options.importId },
+          db,
+        ));
       const send = (chunk: string): void => {
         try {
           controller.enqueue(encoder.encode(chunk));
@@ -199,7 +223,7 @@ export function eventStream(
       subscription = await subscribe(
         {
           ...(options.importId === undefined ? {} : { importId: options.importId }),
-          ...(options.since === undefined ? {} : { since: options.since }),
+          since: from,
           onEvent: (event) => send(toServerSentEvent(event)),
         },
         db,

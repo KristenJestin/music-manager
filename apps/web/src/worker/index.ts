@@ -116,6 +116,18 @@ export async function startWorker(): Promise<Worker> {
   }
 
   /* ---- resume whatever the last worker left behind ---- */
+  //
+  // A worker killed mid-download leaves its `download` job in the active state. The queue's
+  // policy is `singleton`, so that ghost would block every later download until it expired —
+  // six hours. Clearing the two queues first is safe because `docs/06-stack.md` states the
+  // rule this whole design rests on: **one orchestrator**. Nothing is lost either: the jobs
+  // carry only an import id, and the imports themselves are re-queued immediately below.
+  // `deleteAllJobs` and not `deleteQueuedJobs`: the latter only removes jobs *before* the
+  // active state, which is precisely the one the ghost is in.
+  for (const queue of [QUEUES.importStep, QUEUES.download]) {
+    await boss.deleteAllJobs(queue);
+  }
+
   const orphans = await resumableImports(db());
   for (const orphan of orphans) {
     log("resuming import", { importId: orphan.id, status: orphan.status, step: orphan.step });

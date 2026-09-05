@@ -14,7 +14,7 @@
  * Idempotent: a track already at its destination is left alone, and `library_*` is upserted
  * on the path, so re-running the step twice produces exactly one row.
  */
-import { existsSync, mkdirSync, rmdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { eq } from "drizzle-orm";
 import {
@@ -36,6 +36,9 @@ import { containerPath, hostPath, workFolder } from "#/server/paths.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
 import type { StepResult } from "../machine.ts";
 import { aborted, updateTrack, type StepContext } from "../context.ts";
+
+/** States meaning the track has nothing left in the work directory. */
+const LEFT_THE_WORK_DIR = new Set(["placed", "done", "skipped"]);
 
 /** Read one document field as a plain string, or `null`. */
 function text(document: TrackDocument, field: string): string | null {
@@ -212,12 +215,32 @@ function lyricsText(document: TrackDocument): string | null {
   return value.synced ?? value.plain ?? null;
 }
 
+/**
+ * Remove the import's work directory — but only once every track has left it.
+ *
+ * A leftover audio file there is somebody's interrupted download, and deleting it would cost
+ * a re-download, which is the one thing this app is built never to do. The toolbox's own
+ * dotfile ledger does not count: it belongs to this directory alone.
+ */
+async function cleanWorkDir(ctx: StepContext): Promise<void> {
+  const work = hostPath(ctx.paths, workFolder(ctx.paths, ctx.job.id));
+  if (!existsSync(work)) return;
+  const settled = await ctx.mappedTracks();
+  const leftovers = readdirSync(work, { withFileTypes: true }).filter(
+    (entry) => entry.isFile() && !entry.name.startsWith("."),
+  );
+  if (settled.every((track) => LEFT_THE_WORK_DIR.has(track.state)) && leftovers.length === 0) {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
 export async function placeStep(ctx: StepContext): Promise<StepResult> {
   const mapped = await ctx.mappedTracks();
   const movable = mapped.filter(
     (track) => track.state === "tagged" || track.state === "placed" || track.state === "done",
   );
   if (movable.length === 0) {
+    await cleanWorkDir(ctx);
     return { status: "skipped", message: "Nothing to place." };
   }
 
@@ -303,13 +326,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
       .where(eq(libraryAlbums.id, albumId));
   }
 
-  // The work directory has served its purpose. Removed only when empty: a leftover file
-  // there is somebody's failed download, and deleting it would cost a re-download.
-  try {
-    rmdirSync(hostPath(ctx.paths, workFolder(ctx.paths, ctx.job.id)));
-  } catch {
-    // Not empty, or already gone. Either way there is nothing to do about it here.
-  }
+  await cleanWorkDir(ctx);
 
   return {
     status: "done",

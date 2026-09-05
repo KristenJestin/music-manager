@@ -38,13 +38,21 @@ export function classify(url: string, extract: ExtractResult): ImportKind {
   return best / extract.entries.length >= 0.7 ? "album" : "playlist";
 }
 
+/**
+ * The URL a single entry is downloaded from.
+ *
+ * A fixture entry carries a realistic-looking `webpage_url` — that is the point of the
+ * recording — but the toolbox in fixtures mode refuses anything that is not a `fixture://`
+ * URL, and rightly so: fixtures mode must be provably offline. So a fixture playlist is
+ * addressed entry by entry with `fixture://<name>?<params>#<index>`, keeping the query string
+ * because that is what carries the scenario switches (`?fp=mismatch`).
+ */
 function entryUrl(entry: ExtractEntry, sourceUrl: string): string {
-  if (entry.webpage_url !== null && entry.webpage_url !== undefined) return entry.webpage_url;
-  // Fixture entries have no webpage_url: address them the way the toolbox expects.
-  if (sourceUrl.startsWith("fixture://")) {
+  if (sourceUrl.toLowerCase().startsWith("fixture://")) {
     const [base] = sourceUrl.split("#");
     return `${base ?? sourceUrl}#${String(entry.index)}`;
   }
+  if (entry.webpage_url !== null && entry.webpage_url !== undefined) return entry.webpage_url;
   return `https://youtu.be/${entry.id}`;
 }
 
