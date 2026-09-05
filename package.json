@@ -1,0 +1,47 @@
+{
+  "name": "music-manager",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "check": "bun run scripts/check.ts",
+    "test": "bun run scripts/test.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "bun run scripts/typecheck.ts",
+    "db:generate": "bun run scripts/db.ts generate",
+    "db:migrate": "bun run scripts/db.ts migrate",
+    "db:reset": "bun run scripts/db.ts reset",
+    "db-generate": "bun run scripts/db.ts generate",
+    "db-migrate": "bun run scripts/db.ts migrate",
+    "db-reset": "bun run scripts/db.ts reset",
+    "toolbox:openapi": "bun run scripts/toolbox-openapi.ts",
+    "toolbox-openapi": "bun run scripts/toolbox-openapi.ts",
+    "e2e": "bun run scripts/e2e.ts",
+    "compose:up": "docker compose -f docker-compose.dev.yml up -d",
+    "compose:down": "docker compose -f docker-compose.dev.yml down"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/bun": "^1.4.1",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^4.1.11"
+  }
+}

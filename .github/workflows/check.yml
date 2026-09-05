@@ -1,0 +1,48 @@
+name: check
+
+on:
+  push:
+    branches: ["main", "phase/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.10"
+          enable-cache: true
+          cache-dependency-glob: services/toolbox/uv.lock
+
+      - name: Install TypeScript dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Python dependencies
+        run: uv sync --frozen
+        working-directory: services/toolbox
+
+      # tsc, eslint, prettier, vitest, ruff, pyright, pytest.
+      - name: Check
+        run: bun run check
+
+      # The generated toolbox contract must be reproducible.
+      - name: Toolbox contract is up to date
+        run: |
+          bun run toolbox:openapi
+          git diff --exit-code -- packages/contracts/toolbox

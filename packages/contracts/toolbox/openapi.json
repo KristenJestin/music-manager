@@ -1,0 +1,116 @@
+{
+  "components": {
+    "schemas": {
+      "Health": {
+        "description": "Payload of ``GET /health``. Mirrored in `packages/contracts`.",
+        "properties": {
+          "fixtures": {
+            "title": "Fixtures",
+            "type": "boolean"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "versions": {
+            "$ref": "#/components/schemas/ToolVersions"
+          }
+        },
+        "required": [
+          "ok",
+          "fixtures",
+          "versions"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "ToolVersions": {
+        "description": "Version of each external tool, or ``None`` when it is missing from the image.",
+        "properties": {
+          "ffmpeg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ffmpeg"
+          },
+          "fpcalc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fpcalc"
+          },
+          "rsgain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rsgain"
+          },
+          "yt-dlp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yt-Dlp"
+          }
+        },
+        "required": [
+          "yt-dlp",
+          "ffmpeg",
+          "fpcalc",
+          "rsgain"
+        ],
+        "title": "ToolVersions",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "summary": "Stateless media operations: yt-dlp, mutagen, fpcalc/AcoustID, rsgain.",
+    "title": "Music Manager toolbox",
+    "version": "0.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Report liveness and which media tools this image actually carries.",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    }
+  }
+}

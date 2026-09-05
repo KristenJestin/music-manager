@@ -1,0 +1,61 @@
+# Development stack. Only the web app runs on the host (`bun run dev`); everything it
+# talks to runs here.
+#
+#   docker compose -f docker-compose.dev.yml up -d --build
+#
+# `./.local/` holds all mutable state (postgres is on a named volume, Navidrome's database
+# and the music library are bind mounts). It is gitignored and safe to delete.
+
+name: mm-dev
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mm
+      POSTGRES_PASSWORD: mm
+      POSTGRES_DB: mm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mm -d mm"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Conformance target: what we write to disk must be readable by a real OpenSubsonic
+  # server. Used by the P02 conformance test and by `verify` in P07.
+  navidrome:
+    # Upstream publishes to docker.io/deluan/navidrome; there is no navidrome/navidrome repo.
+    image: deluan/navidrome:latest
+    restart: unless-stopped
+    environment:
+      ND_DEVAUTOCREATEADMINPASSWORD: admin
+      ND_SCANSCHEDULE: "@every 1m"
+      ND_LOGLEVEL: info
+    ports:
+      - "4533:4533"
+    volumes:
+      - ./.local/navidrome:/data
+      - ./.local/library:/music:ro
+
+  toolbox:
+    build:
+      context: .
+      dockerfile: docker/toolbox.Dockerfile
+    restart: unless-stopped
+    environment:
+      # Empty means "no authentication", which is the default in development.
+      MM_TOOLBOX_TOKEN: ${MM_TOOLBOX_TOKEN:-}
+      MM_TOOLBOX_FIXTURES: ${MM_TOOLBOX_FIXTURES:-0}
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./.local/library:/library
+
+volumes:
+  postgres-data:

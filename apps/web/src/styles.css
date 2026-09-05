@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+/*
+ * Console theme — ported from ../../../prototypes/A-console/styles.css.
+ *
+ * There is ONE vocabulary: shadcn's semantic roles, whose values come from the Console
+ * prototype, extended with the roles the prototype has and shadcn does not (surface-2/3,
+ * the fg-1..3 scale, ok/warn/info and their soft backgrounds).
+ *
+ * Components must only ever use these tokens: `bg-surface-2`, `text-fg-2`, `border-line`,
+ * `text-ok`, `bg-warn-soft`, … Arbitrary values (`bg-[#151920]`, `text-[13px]`) are
+ * forbidden — see ../../../CLAUDE.md.
+ *
+ * The app is dark-only. The tokens below are the dark values; `dark:` variants still
+ * resolve so unmodified shadcn components keep working.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ---- surfaces ---------------------------------------------------------- */
+  --color-background: #0b0d10;
+  --color-surface-1: #101318;
+  --color-surface-2: #151920;
+  --color-surface-3: #1b2028;
+
+  --color-card: #101318;
+  --color-card-foreground: #e6e8eb;
+  --color-popover: #101318;
+  --color-popover-foreground: #e6e8eb;
+
+  /* ---- foreground scale (fg → fg-3, brightest to faintest) --------------- */
+  --color-foreground: #e6e8eb;
+  --color-fg-1: #b7bec9;
+  --color-fg-2: #8b93a1;
+  --color-fg-3: #5d6470;
+
+  /* ---- lines ------------------------------------------------------------- */
+  --color-line: #222833;
+  --color-line-strong: #2c3441;
+  --color-border: #222833;
+  --color-input: #2c3441;
+  --color-ring: #f5b942;
+
+  /* ---- primary action: Console amber -------------------------------------- */
+  --color-primary: #f5b942;
+  --color-primary-foreground: #1a1200;
+  --color-primary-soft: rgb(245 185 66 / 0.14);
+
+  /* ---- neutral roles ------------------------------------------------------ */
+  --color-secondary: #151920;
+  --color-secondary-foreground: #e6e8eb;
+  --color-muted: #151920;
+  --color-muted-foreground: #8b93a1;
+  --color-muted-soft: rgb(139 147 161 / 0.14);
+
+  /* shadcn's `accent` is the hover surface, not the Console amber. */
+  --color-accent: #1b2028;
+  --color-accent-foreground: #e6e8eb;
+
+  /* ---- status ------------------------------------------------------------- */
+  --color-ok: #3fb950;
+  --color-ok-soft: rgb(63 185 80 / 0.14);
+  --color-warn: #d29922;
+  --color-warn-soft: rgb(210 153 34 / 0.16);
+  --color-danger: #f85149;
+  --color-danger-soft: rgb(248 81 73 / 0.14);
+  --color-info: #58a6ff;
+  --color-info-soft: rgb(88 166 255 / 0.14);
+
+  --color-destructive: #f85149;
+  --color-destructive-foreground: #0b0d10;
+
+  /* ---- radii (Console uses 6px / 10px) ------------------------------------ */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  /* ---- typography --------------------------------------------------------- */
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* The Console prototype is dense: 13px body, 12px mono, 11px meta. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.45;
+
+  /* ---- shell geometry ----------------------------------------------------- */
+  --spacing-sidebar: 232px;
+  --spacing-topbar: 48px;
+}
+
+/* Non-token variables that the shadcn Base UI components read directly. */
+:root {
+  --radius: var(--radius-md);
+  --card-spacing: 0.875rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans text-sm antialiased;
+    margin: 0;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    @apply font-mono text-xs;
+  }
+
+  ::selection {
+    @apply bg-primary-soft;
+  }
+}

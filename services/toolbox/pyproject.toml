@@ -1,0 +1,52 @@
+[project]
+name = "toolbox"
+version = "0.0.0"
+description = "Music Manager toolbox: stateless HTTP service around yt-dlp, mutagen, fpcalc and rsgain."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi>=0.121.0",
+    "uvicorn[standard]>=0.40.0",
+    "pydantic>=2.12.0",
+    "structlog>=25.4.0",
+    "yt-dlp>=2026.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "httpx2>=2.12.0",
+    "ruff>=0.14.0",
+    "pyright>=1.1.400",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/toolbox"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "ANN", "PTH", "RUF"]
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN201", "ANN001"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"

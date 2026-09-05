@@ -1,0 +1,12 @@
+node_modules
+dist
+.output
+.nitro
+.tanstack
+.local
+bun.lock
+apps/web/src/routeTree.gen.ts
+apps/web/drizzle
+packages/contracts/toolbox
+services/toolbox/.venv
+services/toolbox/uv.lock
