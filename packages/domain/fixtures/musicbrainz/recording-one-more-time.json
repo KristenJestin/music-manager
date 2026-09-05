@@ -1,0 +1,928 @@
+{
+  "relations": [
+    {
+      "source-credit": "",
+      "attribute-values": {},
+      "direction": "backward",
+      "begin": null,
+      "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+      "type": "producer",
+      "target-type": "artist",
+      "target-credit": "",
+      "artist": {
+        "name": "Thomas Bangalter",
+        "country": "US",
+        "disambiguation": "",
+        "sort-name": "Bangalter, Thomas",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "type": "Person",
+        "id": "122a2714-24f8-4046-a532-64064b5076d2"
+      },
+      "attributes": [],
+      "ended": false,
+      "end": null,
+      "attribute-ids": {}
+    },
+    {
+      "attribute-ids": {},
+      "ended": false,
+      "end": null,
+      "attributes": [],
+      "artist": {
+        "name": "Guy‐Manuel de Homem‐Christo",
+        "sort-name": "Homem‐Christo, Guy‐Manuel, de",
+        "disambiguation": "",
+        "country": "FR",
+        "id": "83886397-adf2-431a-b841-dc4af744a6cc",
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+      },
+      "target-credit": "",
+      "target-type": "artist",
+      "type": "producer",
+      "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+      "begin": null,
+      "direction": "backward",
+      "attribute-values": {},
+      "source-credit": ""
+    },
+    {
+      "target-type": "artist",
+      "target-credit": "",
+      "direction": "backward",
+      "begin": null,
+      "attribute-values": {},
+      "source-credit": "",
+      "type": "vocal",
+      "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+      "attribute-ids": {},
+      "end": null,
+      "ended": false,
+      "attributes": [],
+      "artist": {
+        "name": "Romanthony",
+        "type": "Person",
+        "id": "c2be8eb6-c2e6-4051-898a-7d111e1e5784",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "sort-name": "Romanthony",
+        "country": "US",
+        "disambiguation": ""
+      }
+    },
+    {
+      "end": null,
+      "ended": false,
+      "attributes": [],
+      "attribute-ids": {},
+      "direction": "forward",
+      "begin": null,
+      "attribute-values": {},
+      "source-credit": "",
+      "type": "free streaming",
+      "url": {
+        "id": "59881677-78f4-4439-b3a3-4aecbaa181a7",
+        "resource": "https://open.spotify.com/track/0DiWol3AO6WpXZgp0goxAV"
+      },
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "target-type": "url",
+      "target-credit": ""
+    },
+    {
+      "begin": null,
+      "direction": "forward",
+      "source-credit": "",
+      "attribute-values": {},
+      "url": {
+        "id": "a00c8627-f541-43ca-8ac6-c4edcc93257c",
+        "resource": "https://www.deezer.com/track/3135553"
+      },
+      "type": "free streaming",
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "target-type": "url",
+      "target-credit": "",
+      "attributes": [],
+      "end": null,
+      "ended": false,
+      "attribute-ids": {}
+    },
+    {
+      "ended": false,
+      "end": null,
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "direction": "forward",
+      "attribute-values": {},
+      "source-credit": "",
+      "type": "streaming",
+      "url": {
+        "resource": "https://music.apple.com/us/song/697195462",
+        "id": "7de084a2-6753-4f66-9879-dfaf60563c84"
+      },
+      "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+      "target-type": "url",
+      "target-credit": ""
+    },
+    {
+      "attributes": [],
+      "end": null,
+      "ended": false,
+      "attribute-ids": {},
+      "url": {
+        "resource": "https://tidal.com/track/1550546",
+        "id": "cf95693c-ce67-47bb-81e2-fa73bde47a25"
+      },
+      "type": "streaming",
+      "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+      "direction": "forward",
+      "begin": null,
+      "source-credit": "",
+      "attribute-values": {},
+      "target-credit": "",
+      "target-type": "url"
+    },
+    {
+      "end": null,
+      "ended": false,
+      "attributes": [],
+      "attribute-ids": {},
+      "type": "performance",
+      "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+      "direction": "forward",
+      "begin": null,
+      "work": {
+        "languages": [
+          "eng"
+        ],
+        "iswcs": [
+          "T-071.020.439-9"
+        ],
+        "relations": [
+          {
+            "target-type": "artist",
+            "target-credit": "",
+            "source-credit": "",
+            "attribute-values": {},
+            "begin": null,
+            "direction": "backward",
+            "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+            "type": "composer",
+            "attribute-ids": {},
+            "artist": {
+              "name": "Thomas Bangalter",
+              "country": "US",
+              "disambiguation": "",
+              "sort-name": "Bangalter, Thomas",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "type": "Person",
+              "id": "122a2714-24f8-4046-a532-64064b5076d2"
+            },
+            "attributes": [],
+            "ended": false,
+            "end": null
+          },
+          {
+            "target-credit": "",
+            "target-type": "artist",
+            "type": "writer",
+            "type-id": "a255bca1-b157-4518-9108-7b147dc3fc68",
+            "direction": "backward",
+            "begin": null,
+            "attribute-values": {},
+            "source-credit": "",
+            "attribute-ids": {},
+            "ended": false,
+            "end": null,
+            "attributes": [],
+            "artist": {
+              "name": "Thomas Bangalter",
+              "disambiguation": "",
+              "country": "US",
+              "sort-name": "Bangalter, Thomas",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "id": "122a2714-24f8-4046-a532-64064b5076d2",
+              "type": "Person"
+            }
+          },
+          {
+            "attribute-ids": {},
+            "attributes": [],
+            "ended": false,
+            "end": null,
+            "artist": {
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "id": "83886397-adf2-431a-b841-dc4af744a6cc",
+              "type": "Person",
+              "country": "FR",
+              "disambiguation": "",
+              "sort-name": "Homem‐Christo, Guy‐Manuel, de",
+              "name": "Guy‐Manuel de Homem‐Christo"
+            },
+            "target-credit": "",
+            "target-type": "artist",
+            "type": "writer",
+            "type-id": "a255bca1-b157-4518-9108-7b147dc3fc68",
+            "begin": null,
+            "direction": "backward",
+            "source-credit": "",
+            "attribute-values": {}
+          },
+          {
+            "artist": {
+              "sort-name": "Moore, Anthony Wayne",
+              "disambiguation": "",
+              "country": "US",
+              "type": "Person",
+              "id": "59f8e44c-5206-43f6-8b7b-87c8ea1f658d",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "name": "Anthony Wayne Moore"
+            },
+            "ended": false,
+            "end": null,
+            "attributes": [],
+            "attribute-ids": {},
+            "attribute-values": {},
+            "source-credit": "",
+            "direction": "backward",
+            "begin": null,
+            "type-id": "a255bca1-b157-4518-9108-7b147dc3fc68",
+            "type": "writer",
+            "target-type": "artist",
+            "target-credit": ""
+          },
+          {
+            "end": null,
+            "ended": false,
+            "attributes": [],
+            "attribute-ids": {},
+            "type-id": "b80dff64-9560-445a-b824-c8b432d77a52",
+            "type": "secondhandsongs",
+            "url": {
+              "id": "ab6e29aa-bf49-4af9-bf5e-b2a8ce53f8fd",
+              "resource": "https://secondhandsongs.com/work/118687"
+            },
+            "attribute-values": {},
+            "source-credit": "",
+            "direction": "backward",
+            "begin": null,
+            "target-credit": "",
+            "target-type": "url"
+          },
+          {
+            "end": null,
+            "ended": false,
+            "attributes": [],
+            "attribute-ids": {},
+            "type-id": "587fdd8f-080e-46a9-97af-6425ebbcb3a2",
+            "type": "wikidata",
+            "url": {
+              "resource": "https://www.wikidata.org/wiki/Q2617236",
+              "id": "888b86cc-2754-4a90-be69-92bc9434b565"
+            },
+            "attribute-values": {},
+            "source-credit": "",
+            "begin": null,
+            "direction": "backward",
+            "target-credit": "",
+            "target-type": "url"
+          },
+          {
+            "source-credit": "",
+            "attribute-values": {},
+            "work": {
+              "iswcs": [],
+              "languages": [],
+              "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+              "id": "ee03f722-5e17-410c-a5b7-11486497df21",
+              "type": "Song",
+              "attributes": [],
+              "disambiguation": "Pentatonix' \"remix\"",
+              "language": null,
+              "title": "Daft Punk"
+            },
+            "begin": null,
+            "direction": "backward",
+            "type-id": "c1dca2cd-194c-36dd-93f8-6a359167e992",
+            "type": "medley",
+            "target-type": "work",
+            "target-credit": "",
+            "attributes": [],
+            "ended": false,
+            "end": null,
+            "attribute-ids": {}
+          },
+          {
+            "type": "other version",
+            "type-id": "7440b539-19ab-4243-8c03-4f5942ca2218",
+            "begin": null,
+            "direction": "forward",
+            "attribute-values": {},
+            "work": {
+              "languages": [],
+              "iswcs": [],
+              "language": null,
+              "title": "One more Keim",
+              "disambiguation": "",
+              "id": "e4f91d1d-3da6-41c5-8569-c7e9d9275268",
+              "type": "Song",
+              "attributes": [],
+              "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6"
+            },
+            "source-credit": "",
+            "target-credit": "",
+            "target-type": "work",
+            "ended": false,
+            "end": null,
+            "attributes": [
+              "parody",
+              "translated"
+            ],
+            "attribute-ids": {
+              "translated": "ed11fcb1-5a18-4e1d-b12c-633ed19c8ee1",
+              "parody": "d73de9d3-934b-419c-8c83-2e48a5773b14"
+            }
+          }
+        ],
+        "title": "One More Time",
+        "disambiguation": "",
+        "language": "eng",
+        "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+        "attributes": [],
+        "type": "Song",
+        "id": "4bb47ffc-9006-32cf-8aa9-e213334550dc"
+      },
+      "attribute-values": {},
+      "source-credit": "",
+      "target-credit": "",
+      "target-type": "work"
+    }
+  ],
+  "artist-credit": [
+    {
+      "name": "Daft Punk",
+      "artist": {
+        "aliases": [
+          {
+            "end": null,
+            "ended": false,
+            "type": "Search hint",
+            "type-id": "1937e404-b981-3cb7-8151-4c86ebfc8d8e",
+            "sort-name": "Da Funk",
+            "begin": null,
+            "locale": null,
+            "primary": null,
+            "name": "Da Funk"
+          },
+          {
+            "type": "Artist name",
+            "ended": false,
+            "end": null,
+            "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+            "locale": "en",
+            "begin": null,
+            "sort-name": "Daft Punk",
+            "name": "Daft Punk",
+            "primary": true
+          },
+          {
+            "type-id": "1937e404-b981-3cb7-8151-4c86ebfc8d8e",
+            "ended": false,
+            "type": "Search hint",
+            "end": null,
+            "sort-name": "DaftPunk",
+            "begin": null,
+            "locale": null,
+            "primary": null,
+            "name": "DaftPunk"
+          },
+          {
+            "sort-name": "Duft Punk",
+            "begin": null,
+            "locale": null,
+            "type-id": "1937e404-b981-3cb7-8151-4c86ebfc8d8e",
+            "ended": false,
+            "type": "Search hint",
+            "end": null,
+            "primary": null,
+            "name": "Duft Punk"
+          },
+          {
+            "begin": null,
+            "sort-name": "Daft Punk",
+            "locale": null,
+            "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+            "type": "Artist name",
+            "ended": false,
+            "end": null,
+            "primary": null,
+            "name": "daft punk"
+          },
+          {
+            "begin": null,
+            "sort-name": "ダフト パンク",
+            "locale": "ja",
+            "end": null,
+            "ended": false,
+            "type": "Artist name",
+            "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+            "primary": true,
+            "name": "ダフト・パンク"
+          }
+        ],
+        "name": "Daft Punk",
+        "sort-name": "Daft Punk",
+        "disambiguation": "French electronic duo",
+        "country": "FR",
+        "genres": [
+          {
+            "count": 2,
+            "disambiguation": "",
+            "name": "club",
+            "id": "bab69b07-8bb9-4415-b666-c37609cef80b"
+          },
+          {
+            "id": "e5bba957-8c91-496a-a675-c6d0c6b51c33",
+            "name": "dance",
+            "disambiguation": "",
+            "count": 5
+          },
+          {
+            "name": "disco",
+            "id": "a04d680b-b5c5-4f6a-87a3-f9f1ff98e3ea",
+            "count": 4,
+            "disambiguation": ""
+          },
+          {
+            "disambiguation": "",
+            "count": 1,
+            "id": "3976e9ba-16d0-461d-b732-99408a0374ba",
+            "name": "edm"
+          },
+          {
+            "count": 2,
+            "disambiguation": "",
+            "name": "electro",
+            "id": "60f00d05-df4d-496e-8f5a-c45c03a56ad4"
+          },
+          {
+            "id": "05247982-e44f-4c58-96f8-a5453be69f5f",
+            "name": "electro house",
+            "disambiguation": "",
+            "count": 2
+          },
+          {
+            "count": 1,
+            "disambiguation": "",
+            "name": "electroclash",
+            "id": "cae57e98-c939-4b0e-ae49-8e0cb1bdc91d"
+          },
+          {
+            "disambiguation": "",
+            "count": 40,
+            "id": "89255676-1f14-4dd8-bbad-fca839d6aff4",
+            "name": "electronic"
+          },
+          {
+            "name": "electronic rock",
+            "id": "c4a69842-f891-4569-9506-1882aa5db433",
+            "count": 2,
+            "disambiguation": ""
+          },
+          {
+            "disambiguation": "",
+            "count": 2,
+            "id": "53a3cea3-17af-4421-a07a-5824b540aeb5",
+            "name": "electronica"
+          },
+          {
+            "disambiguation": "",
+            "count": 2,
+            "id": "bb55e7aa-ec06-4605-b867-ee66938713e1",
+            "name": "french electro"
+          },
+          {
+            "id": "5acda04e-995d-4f79-9a66-5fe6a977ce15",
+            "name": "french house",
+            "disambiguation": "",
+            "count": 18
+          },
+          {
+            "name": "funk",
+            "id": "fe4ba6a1-9873-4fd0-a12b-a70c81818514",
+            "count": 2,
+            "disambiguation": ""
+          },
+          {
+            "name": "house",
+            "id": "a2782cb6-1cd0-477c-a61d-b3f8b42dd1b3",
+            "count": 20,
+            "disambiguation": ""
+          },
+          {
+            "id": "d5c8b95a-fcf6-4c1d-b98c-a7cb4efb494f",
+            "name": "jackin house",
+            "disambiguation": "",
+            "count": 1
+          },
+          {
+            "name": "nu disco",
+            "id": "351424dd-91a3-4cf2-9edb-5df647743ec0",
+            "count": 2,
+            "disambiguation": ""
+          },
+          {
+            "count": 1,
+            "disambiguation": "",
+            "name": "organic house",
+            "id": "640fb6e1-c2b9-40be-bbd0-4da3c4d4832c"
+          },
+          {
+            "name": "pop",
+            "id": "911c7bbb-172d-4df8-9478-dbff4296e791",
+            "count": 1,
+            "disambiguation": ""
+          },
+          {
+            "id": "31be54b2-4d0c-42df-aa44-c496c7b4c3c3",
+            "name": "r&b",
+            "disambiguation": "",
+            "count": 1
+          },
+          {
+            "disambiguation": "",
+            "count": 2,
+            "id": "988e91a3-3341-416d-b7f8-7dbef6848dac",
+            "name": "synth-pop"
+          },
+          {
+            "id": "41fe3260-fcc1-450b-bd5a-803886c56912",
+            "name": "techno",
+            "disambiguation": "",
+            "count": 1
+          },
+          {
+            "disambiguation": "",
+            "count": 1,
+            "id": "9a339aa8-a0e5-450c-95a7-b11517bb508f",
+            "name": "trap"
+          }
+        ],
+        "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+        "type": "Group",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "tags": [
+          {
+            "count": 2,
+            "name": "club"
+          },
+          {
+            "name": "dance",
+            "count": 5
+          },
+          {
+            "name": "dance and electronica",
+            "count": 1
+          },
+          {
+            "name": "dance music",
+            "count": 2
+          },
+          {
+            "name": "disco",
+            "count": 4
+          },
+          {
+            "name": "dj tools / acapellas",
+            "count": 1
+          },
+          {
+            "name": "edm",
+            "count": 1
+          },
+          {
+            "count": 2,
+            "name": "electro"
+          },
+          {
+            "count": 2,
+            "name": "electro house"
+          },
+          {
+            "name": "electroclash",
+            "count": 1
+          },
+          {
+            "count": 40,
+            "name": "electronic"
+          },
+          {
+            "name": "electronic rock",
+            "count": 2
+          },
+          {
+            "count": 2,
+            "name": "electronica"
+          },
+          {
+            "name": "european",
+            "count": 1
+          },
+          {
+            "count": 2,
+            "name": "film score"
+          },
+          {
+            "count": 8,
+            "name": "french"
+          },
+          {
+            "count": 2,
+            "name": "french electro"
+          },
+          {
+            "count": 18,
+            "name": "french house"
+          },
+          {
+            "count": 1,
+            "name": "french touch"
+          },
+          {
+            "count": 2,
+            "name": "funk"
+          },
+          {
+            "name": "house",
+            "count": 20
+          },
+          {
+            "name": "house music",
+            "count": 2
+          },
+          {
+            "count": 1,
+            "name": "indie dance"
+          },
+          {
+            "count": 1,
+            "name": "jackin house"
+          },
+          {
+            "count": 2,
+            "name": "left-field house"
+          },
+          {
+            "name": "leftfield house",
+            "count": 2
+          },
+          {
+            "count": 2,
+            "name": "nu disco"
+          },
+          {
+            "count": 1,
+            "name": "nu-disco"
+          },
+          {
+            "count": 1,
+            "name": "organic house"
+          },
+          {
+            "name": "pop",
+            "count": 1
+          },
+          {
+            "count": 1,
+            "name": "r&b"
+          },
+          {
+            "name": "synth-pop",
+            "count": 2
+          },
+          {
+            "name": "synthpop",
+            "count": 1
+          },
+          {
+            "count": 1,
+            "name": "techno"
+          },
+          {
+            "count": 1,
+            "name": "trap"
+          },
+          {
+            "count": 2,
+            "name": "vocoder"
+          }
+        ]
+      },
+      "joinphrase": ""
+    }
+  ],
+  "aliases": [
+    {
+      "primary": null,
+      "name": "One More Time = ワン・モア・タイム",
+      "begin": null,
+      "sort-name": "One More Time = ワン・モア・タイム",
+      "locale": null,
+      "end": null,
+      "ended": false,
+      "type": null,
+      "type-id": null
+    }
+  ],
+  "tags": [
+    {
+      "count": 1,
+      "name": "big beat"
+    },
+    {
+      "name": "club",
+      "count": 1
+    },
+    {
+      "name": "club/dance",
+      "count": 7
+    },
+    {
+      "count": 4,
+      "name": "dance"
+    },
+    {
+      "name": "disco",
+      "count": 3
+    },
+    {
+      "name": "electro",
+      "count": 1
+    },
+    {
+      "name": "electronic",
+      "count": 7
+    },
+    {
+      "count": 2,
+      "name": "electronica"
+    },
+    {
+      "name": "electronica dance",
+      "count": 1
+    },
+    {
+      "name": "elektro",
+      "count": 1
+    },
+    {
+      "name": "euro house",
+      "count": 1
+    },
+    {
+      "count": 2,
+      "name": "french house"
+    },
+    {
+      "name": "house",
+      "count": 9
+    },
+    {
+      "count": 1,
+      "name": "left-field house"
+    },
+    {
+      "count": 1,
+      "name": "party"
+    },
+    {
+      "count": 1,
+      "name": "pop rock"
+    },
+    {
+      "name": "pop_electro_downtempo",
+      "count": 1
+    },
+    {
+      "name": "progressive house",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "rock"
+    },
+    {
+      "count": 1,
+      "name": "soft rock"
+    },
+    {
+      "count": 2,
+      "name": "techno"
+    },
+    {
+      "count": 1,
+      "name": "trip-hop"
+    }
+  ],
+  "genres": [
+    {
+      "name": "big beat",
+      "id": "aac07ae0-8acf-4249-b5c0-2762b53947a2",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "id": "bab69b07-8bb9-4415-b666-c37609cef80b",
+      "name": "club",
+      "disambiguation": "",
+      "count": 1
+    },
+    {
+      "name": "dance",
+      "id": "e5bba957-8c91-496a-a675-c6d0c6b51c33",
+      "count": 4,
+      "disambiguation": ""
+    },
+    {
+      "disambiguation": "",
+      "count": 3,
+      "id": "a04d680b-b5c5-4f6a-87a3-f9f1ff98e3ea",
+      "name": "disco"
+    },
+    {
+      "disambiguation": "",
+      "count": 1,
+      "id": "60f00d05-df4d-496e-8f5a-c45c03a56ad4",
+      "name": "electro"
+    },
+    {
+      "count": 7,
+      "disambiguation": "",
+      "name": "electronic",
+      "id": "89255676-1f14-4dd8-bbad-fca839d6aff4"
+    },
+    {
+      "name": "electronica",
+      "id": "53a3cea3-17af-4421-a07a-5824b540aeb5",
+      "count": 2,
+      "disambiguation": ""
+    },
+    {
+      "name": "euro house",
+      "id": "8f8cbcde-3948-4be5-8bf0-8073f13e4b60",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "name": "french house",
+      "id": "5acda04e-995d-4f79-9a66-5fe6a977ce15",
+      "count": 2,
+      "disambiguation": ""
+    },
+    {
+      "name": "house",
+      "id": "a2782cb6-1cd0-477c-a61d-b3f8b42dd1b3",
+      "count": 9,
+      "disambiguation": ""
+    },
+    {
+      "count": 1,
+      "disambiguation": "",
+      "name": "pop rock",
+      "id": "797e2e85-5ffd-495c-a757-8b4079052f0e"
+    },
+    {
+      "count": 1,
+      "disambiguation": "",
+      "name": "progressive house",
+      "id": "70adb285-e1f7-458a-823f-5cbda5e291c4"
+    },
+    {
+      "count": 1,
+      "disambiguation": "",
+      "name": "rock",
+      "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798"
+    },
+    {
+      "id": "7d0c6a6b-5d56-4b1e-a8c7-e32194f246b9",
+      "name": "soft rock",
+      "disambiguation": "",
+      "count": 1
+    },
+    {
+      "disambiguation": "",
+      "count": 2,
+      "id": "41fe3260-fcc1-450b-bd5a-803886c56912",
+      "name": "techno"
+    }
+  ],
+  "title": "One More Time",
+  "disambiguation": "",
+  "first-release-date": "2000",
+  "length": 320746,
+  "id": "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+  "video": false,
+  "isrcs": [
+    "GBAHT1305744",
+    "GBDUW0000053"
+  ]
+}

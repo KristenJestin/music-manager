@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "results": [
+    {
+      "id": "9ff43b6a-4f16-427c-93c2-92307ca505e0",
+      "score": 0.981168,
+      "recordings": [
+        {
+          "id": "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+          "title": "One More Time",
+          "duration": 320,
+          "artists": [{ "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56", "name": "Daft Punk" }]
+        },
+        {
+          "id": "1e1cb0dd-fe93-4d5b-b5ba-c3ee0d4a1e11",
+          "title": "One More Time (short radio edit)",
+          "duration": 236,
+          "artists": [{ "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56", "name": "Daft Punk" }]
+        }
+      ]
+    },
+    {
+      "id": "1d8f4d6e-2c4c-4f8a-9a02-1c5a1f5b2f77",
+      "score": 0.612044,
+      "recordings": [
+        {
+          "id": "4b31b0d2-6e5a-4f0e-9a67-0d5a4b6c9f21",
+          "title": "One More Time (Romanthony's Unplugged)",
+          "duration": 313,
+          "artists": [{ "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56", "name": "Daft Punk" }]
+        }
+      ]
+    }
+  ]
+}

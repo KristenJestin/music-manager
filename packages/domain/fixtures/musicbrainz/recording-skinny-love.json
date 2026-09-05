@@ -1,0 +1,473 @@
+{
+  "artist-credit": [
+    {
+      "name": "Birdy",
+      "artist": {
+        "aliases": [
+          {
+            "primary": null,
+            "type-id": null,
+            "type": null,
+            "locale": null,
+            "sort-name": "Bogaerde, Jasmine Lucilla Elisabeth van den",
+            "end": null,
+            "begin": null,
+            "name": "Jasmine Lucilla Elisabeth van den Bogaerde",
+            "ended": false
+          },
+          {
+            "locale": null,
+            "sort-name": "Bogaerde, Jasmine Lucilla Elizabeth Jennifer van den",
+            "name": "Jasmine Lucilla Elizabeth Jennifer van den Bogaerde",
+            "end": null,
+            "begin": null,
+            "ended": false,
+            "primary": null,
+            "type-id": "d4dcd0c0-b341-3612-a332-c0ce797b25cf",
+            "type": "Legal name"
+          },
+          {
+            "type-id": null,
+            "primary": null,
+            "type": null,
+            "sort-name": "Bogaerde, Jasmine van den",
+            "locale": null,
+            "begin": null,
+            "end": null,
+            "name": "Jasmine van den Bogaerde",
+            "ended": false
+          }
+        ],
+        "country": "GB",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "type": "Person",
+        "genres": [
+          {
+            "disambiguation": "",
+            "count": 1,
+            "name": "art pop",
+            "id": "930ef127-3653-4677-9b95-ecc90c7c1a14"
+          },
+          {
+            "count": 2,
+            "name": "chamber pop",
+            "id": "f0843e91-c025-4dd7-8aef-6fe3d35470d9",
+            "disambiguation": ""
+          },
+          {
+            "count": 4,
+            "name": "pop",
+            "id": "911c7bbb-172d-4df8-9478-dbff4296e791",
+            "disambiguation": ""
+          },
+          {
+            "count": 1,
+            "name": "singer-songwriter",
+            "id": "455f264b-db00-4716-991d-fbd32dc24523",
+            "disambiguation": ""
+          }
+        ],
+        "sort-name": "Birdy",
+        "disambiguation": "UK singer Jasmine van den Bogaerde",
+        "tags": [
+          {
+            "name": "art pop",
+            "count": 1
+          },
+          {
+            "count": 2,
+            "name": "chamber pop"
+          },
+          {
+            "name": "pop",
+            "count": 4
+          },
+          {
+            "count": 1,
+            "name": "singer-songwriter"
+          }
+        ],
+        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+        "name": "Birdy"
+      },
+      "joinphrase": ""
+    }
+  ],
+  "length": 201026,
+  "genres": [
+    {
+      "name": "acoustic rock",
+      "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "name": "art pop",
+      "id": "930ef127-3653-4677-9b95-ecc90c7c1a14",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "disambiguation": "",
+      "count": 1,
+      "name": "chamber pop",
+      "id": "f0843e91-c025-4dd7-8aef-6fe3d35470d9"
+    },
+    {
+      "id": "36917620-240a-4fed-abcb-7be611ac3834",
+      "name": "indie folk",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "disambiguation": "",
+      "count": 1,
+      "name": "indie pop",
+      "id": "f390be72-360b-41bb-a310-6a2e638779d2"
+    },
+    {
+      "name": "pop",
+      "id": "911c7bbb-172d-4df8-9478-dbff4296e791",
+      "count": 3,
+      "disambiguation": ""
+    },
+    {
+      "count": 1,
+      "name": "pop rock",
+      "id": "797e2e85-5ffd-495c-a757-8b4079052f0e",
+      "disambiguation": ""
+    },
+    {
+      "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+      "name": "rock",
+      "count": 2,
+      "disambiguation": ""
+    }
+  ],
+  "relations": [
+    {
+      "type": "engineer",
+      "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+      "target-credit": "",
+      "source-credit": "",
+      "ended": false,
+      "end": null,
+      "target-type": "artist",
+      "attributes": [],
+      "artist": {
+        "disambiguation": "",
+        "sort-name": "Walton, Paul ‘P Dub’",
+        "name": "Paul ‘P Dub’ Walton",
+        "id": "183309fe-d7aa-4b77-8967-404bd3336425",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "GB",
+        "type": "Person"
+      },
+      "attribute-ids": {},
+      "direction": "backward",
+      "begin": null,
+      "attribute-values": {}
+    },
+    {
+      "ended": false,
+      "end": null,
+      "source-credit": "",
+      "target-type": "artist",
+      "type": "instrument",
+      "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+      "target-credit": "",
+      "direction": "backward",
+      "begin": null,
+      "attribute-ids": {
+        "piano": "b3eac5f9-7859-4416-ac39-7154e2e8d348"
+      },
+      "attribute-values": {},
+      "attribute-credits": {},
+      "attributes": [
+        "piano"
+      ],
+      "artist": {
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "GB",
+        "name": "Birdy",
+        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+        "disambiguation": "UK singer Jasmine van den Bogaerde",
+        "sort-name": "Birdy"
+      }
+    },
+    {
+      "type": "mix",
+      "target-credit": "",
+      "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+      "end": null,
+      "ended": false,
+      "source-credit": "",
+      "target-type": "artist",
+      "attributes": [],
+      "artist": {
+        "country": "GB",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "type": "Person",
+        "sort-name": "Walton, Paul ‘P Dub’",
+        "disambiguation": "",
+        "id": "183309fe-d7aa-4b77-8967-404bd3336425",
+        "name": "Paul ‘P Dub’ Walton"
+      },
+      "begin": null,
+      "direction": "backward",
+      "attribute-ids": {},
+      "attribute-values": {}
+    },
+    {
+      "target-credit": "Alex H.N.Gilbert",
+      "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+      "type": "producer",
+      "target-type": "artist",
+      "end": null,
+      "ended": false,
+      "source-credit": "",
+      "artist": {
+        "id": "7739898b-7445-4444-86cd-e1c55f877718",
+        "name": "Alex Gilbert",
+        "sort-name": "Gilbert, Alex",
+        "disambiguation": "A&R at UK label 14th Floor Records",
+        "type": "Person",
+        "country": null,
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+      },
+      "attributes": [],
+      "attribute-values": {},
+      "begin": null,
+      "direction": "backward",
+      "attribute-ids": {}
+    },
+    {
+      "artist": {
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "GB",
+        "name": "Birdy",
+        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+        "disambiguation": "UK singer Jasmine van den Bogaerde",
+        "sort-name": "Birdy"
+      },
+      "attributes": [],
+      "attribute-values": {},
+      "attribute-ids": {},
+      "begin": null,
+      "direction": "backward",
+      "target-credit": "",
+      "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+      "type": "vocal",
+      "target-type": "artist",
+      "source-credit": "",
+      "end": null,
+      "ended": false
+    },
+    {
+      "attribute-values": {},
+      "direction": "forward",
+      "begin": null,
+      "attribute-ids": {
+        "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+      },
+      "attributes": [
+        "cover"
+      ],
+      "target-type": "work",
+      "ended": false,
+      "end": null,
+      "source-credit": "",
+      "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+      "target-credit": "",
+      "work": {
+        "disambiguation": "",
+        "iswcs": [
+          "T-901.006.781-9"
+        ],
+        "languages": [
+          "eng"
+        ],
+        "relations": [
+          {
+            "type": "composer",
+            "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+            "target-credit": "",
+            "ended": false,
+            "end": null,
+            "source-credit": "",
+            "target-type": "artist",
+            "attributes": [],
+            "artist": {
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "country": "US",
+              "type": "Person",
+              "disambiguation": "",
+              "sort-name": "Vernon, Justin",
+              "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+              "name": "Justin Vernon"
+            },
+            "direction": "backward",
+            "begin": null,
+            "attribute-ids": {},
+            "attribute-values": {}
+          },
+          {
+            "type": "lyricist",
+            "target-credit": "",
+            "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+            "source-credit": "",
+            "end": null,
+            "ended": false,
+            "target-type": "artist",
+            "attributes": [],
+            "artist": {
+              "country": "US",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "type": "Person",
+              "sort-name": "Vernon, Justin",
+              "disambiguation": "",
+              "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+              "name": "Justin Vernon"
+            },
+            "attribute-ids": {},
+            "begin": null,
+            "direction": "backward",
+            "attribute-values": {}
+          },
+          {
+            "target-type": "url",
+            "url": {
+              "id": "400c6804-7085-4388-9018-7ba3fed095f5",
+              "resource": "https://genius.com/Bon-iver-skinny-love-lyrics"
+            },
+            "ended": false,
+            "end": null,
+            "source-credit": "",
+            "type-id": "e38e65aa-75e0-42ba-ace0-072aeb91a538",
+            "target-credit": "",
+            "type": "lyrics",
+            "attribute-values": {},
+            "direction": "backward",
+            "begin": null,
+            "attribute-ids": {},
+            "attributes": []
+          },
+          {
+            "attributes": [],
+            "attribute-values": {},
+            "begin": null,
+            "direction": "backward",
+            "attribute-ids": {},
+            "target-credit": "",
+            "type-id": "b80dff64-9560-445a-b824-c8b432d77a52",
+            "type": "secondhandsongs",
+            "url": {
+              "resource": "https://secondhandsongs.com/work/121013",
+              "id": "464b1bfe-97d2-40de-8723-125cae08993c"
+            },
+            "target-type": "url",
+            "end": null,
+            "ended": false,
+            "source-credit": ""
+          },
+          {
+            "attributes": [],
+            "attribute-values": {},
+            "begin": null,
+            "direction": "backward",
+            "attribute-ids": {},
+            "target-credit": "",
+            "type-id": "587fdd8f-080e-46a9-97af-6425ebbcb3a2",
+            "type": "wikidata",
+            "target-type": "url",
+            "url": {
+              "resource": "https://www.wikidata.org/wiki/Q2109555",
+              "id": "41c1d650-f3de-4471-bdc6-f855705f4f96"
+            },
+            "end": null,
+            "ended": false,
+            "source-credit": ""
+          }
+        ],
+        "id": "92b3a3c2-e2c2-4d6c-bd41-fe57dbac6980",
+        "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+        "title": "Skinny Love",
+        "attributes": [],
+        "language": "eng",
+        "type": "Song"
+      },
+      "type": "performance"
+    }
+  ],
+  "aliases": [],
+  "first-release-date": "2011-01-30",
+  "disambiguation": "",
+  "video": false,
+  "tags": [
+    {
+      "count": 4,
+      "name": "acoustic"
+    },
+    {
+      "name": "acoustic rock",
+      "count": 1
+    },
+    {
+      "name": "adult alternative pop",
+      "count": 1
+    },
+    {
+      "name": "adult contemporary",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "art pop"
+    },
+    {
+      "count": 1,
+      "name": "chamber pop"
+    },
+    {
+      "count": 1,
+      "name": "indie"
+    },
+    {
+      "count": 1,
+      "name": "indie folk"
+    },
+    {
+      "name": "indie pop",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "liste de courses"
+    },
+    {
+      "name": "pop",
+      "count": 3
+    },
+    {
+      "count": 1,
+      "name": "pop rock"
+    },
+    {
+      "name": "rock",
+      "count": 2
+    },
+    {
+      "name": "vocal",
+      "count": 1
+    }
+  ],
+  "id": "5463ed3a-5fc1-49b6-8260-3b5bb36ee047",
+  "title": "Skinny Love",
+  "isrcs": [
+    "GBAHS1100350",
+    "GBAHS1300023",
+    "GBAHT1100002"
+  ]
+}

@@ -1,0 +1,16 @@
+Filename	Loudness (LUFS)	Gain (dB)	Peak	Peak (dB)	Peak Type	Clipping Adjustment?
+01 One More Time.opus	-9.53	-8.47	1.083092	0.69	True Peak	N
+02 Aerodynamic.opus	-8.71	-9.29	1.122018	1.00	True Peak	N
+03 Digital Love.opus	-10.14	-7.86	0.997631	-0.02	True Peak	N
+04 Harder, Better, Faster, Stronger.opus	-9.02	-8.98	1.059254	0.50	True Peak	N
+05 Crescendolls.opus	-8.44	-9.56	1.148154	1.20	True Peak	N
+06 Nightvision.opus	-13.87	-4.13	0.891251	-1.00	True Peak	N
+07 Superheroes.opus	-8.96	-9.04	1.071519	0.60	True Peak	N
+08 High Life.opus	-9.11	-8.89	1.047129	0.40	True Peak	N
+09 Something About Us.opus	-12.45	-5.55	0.912011	-0.80	True Peak	N
+10 Voyager.opus	-9.68	-8.32	1.023293	0.20	True Peak	N
+11 Veridis Quo.opus	-11.02	-6.98	0.954993	-0.40	True Peak	N
+12 Short Circuit.opus	-8.83	-9.17	1.096478	0.80	True Peak	N
+13 Face to Face.opus	-9.35	-8.65	1.035142	0.30	True Peak	N
+14 Too Long.opus	-9.47	-8.53	1.011579	0.10	True Peak	N
+	Album	-9.61	-8.39	1.148154	1.20	True Peak	N

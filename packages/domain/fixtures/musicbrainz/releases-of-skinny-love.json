@@ -1,0 +1,2929 @@
+{
+  "release-count": 100,
+  "releases": [
+    {
+      "packaging": "Digipak",
+      "barcode": "5051275057225",
+      "status": "Official",
+      "id": "04eb4346-6b7a-417e-8de5-3d6b6734325e",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "position": 1,
+          "title": "",
+          "track-count": 20,
+          "id": "f11e4f55-7d25-3a9f-9e24-82582d907e01",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD"
+        },
+        {
+          "position": 2,
+          "id": "957c9b50-d32c-3189-afe3-92c63163a675",
+          "title": "",
+          "track-count": 20,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "position": 3,
+          "title": "",
+          "track-count": 20,
+          "id": "c80d9fc3-d116-3ed8-a1d7-70c8e6cd29c9"
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "label-info": [
+        {
+          "catalog-number": "MOSCD299",
+          "label": {
+            "id": "c48b8ed2-46c5-4e51-9bea-5a37fcd0053b",
+            "sort-name": "Ministry of Sound",
+            "type-id": null,
+            "disambiguation": "",
+            "label-code": 11683,
+            "type": null,
+            "name": "Ministry of Sound"
+          }
+        }
+      ],
+      "quality": "normal",
+      "date": "2012-07-23",
+      "packaging-id": "8f931351-d2e2-310f-afc6-37b89ddba246",
+      "disambiguation": "British 2012 edition",
+      "country": "GB",
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "type": null,
+            "name": "United Kingdom",
+            "disambiguation": ""
+          },
+          "date": "2012-07-23"
+        }
+      ],
+      "cover-art-archive": {
+        "darkened": false,
+        "back": false,
+        "artwork": true,
+        "front": true,
+        "count": 1
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "country": null,
+            "sort-name": "Various Artists",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "disambiguation": "add compilations to this artist",
+            "type": "Other",
+            "name": "Various Artists"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "release-group": {
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "first-release-date": "2012-07-23",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "name": "Various Artists",
+              "type": "Other",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null
+            },
+            "joinphrase": ""
+          }
+        ],
+        "primary-type": "Album",
+        "disambiguation": "British 2012 edition",
+        "title": "The Chillout Session"
+      },
+      "asin": "B0085RFJLA",
+      "title": "The Chillout Session"
+    },
+    {
+      "title": "Birdy",
+      "release-group": {
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "secondary-type-ids": [],
+        "first-release-date": "2011-11-04",
+        "secondary-types": [],
+        "artist-credit": [
+          {
+            "joinphrase": "",
+            "artist": {
+              "type": "Person",
+              "name": "Birdy",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "sort-name": "Birdy",
+              "country": "GB",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+            },
+            "name": "Birdy"
+          }
+        ],
+        "disambiguation": "",
+        "title": "Birdy",
+        "primary-type": "Album"
+      },
+      "artist-credit": [
+        {
+          "artist": {
+            "name": "Birdy",
+            "type": "Person",
+            "disambiguation": "UK singer Jasmine van den Bogaerde",
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "country": "GB",
+            "sort-name": "Birdy",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+          },
+          "joinphrase": "",
+          "name": "Birdy"
+        }
+      ],
+      "asin": "B00722ZHG6",
+      "release-events": [
+        {
+          "area": {
+            "name": "United States",
+            "type": null,
+            "disambiguation": "",
+            "type-id": null,
+            "sort-name": "United States",
+            "iso-3166-1-codes": [
+              "US"
+            ],
+            "id": "489ce91b-6658-3307-9877-795b68554c98"
+          },
+          "date": "2012-03-12"
+        }
+      ],
+      "cover-art-archive": {
+        "front": true,
+        "count": 1,
+        "darkened": false,
+        "back": false,
+        "artwork": true
+      },
+      "country": "US",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "label-info": [
+        {
+          "catalog-number": "530425-2",
+          "label": {
+            "id": "e8e45b67-895d-42a9-a2d0-2c2d944beb02",
+            "sort-name": "14th Floor Records",
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d",
+            "disambiguation": "",
+            "label-code": 3077,
+            "type": "Original Production",
+            "name": "14th Floor Records"
+          }
+        },
+        {
+          "label": {
+            "label-code": 392,
+            "disambiguation": "1958–2019; “WB” logo, with or without “records” beneath or on banner across",
+            "name": "Warner Bros. Records",
+            "type": "Imprint",
+            "id": "c595c289-47ce-4fba-b999-b87503e8cb71",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Warner Bros. Records"
+          },
+          "catalog-number": "530425-2"
+        }
+      ],
+      "quality": "normal",
+      "date": "2012-03-12",
+      "status": "Official",
+      "id": "128d7276-da6c-4a3d-b5a6-eb2c0ffcae50",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "id": "826cc0d8-f6c6-34fd-81ba-b8558d0d5c13",
+          "title": "",
+          "track-count": 11,
+          "position": 1
+        }
+      ],
+      "packaging": "Jewel Case",
+      "barcode": "825646611355"
+    },
+    {
+      "barcode": "0825646520404",
+      "packaging": "None",
+      "id": "128ee898-9b41-4ef3-908c-b0a9742a2632",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "format": "Digital Media",
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "position": 1,
+          "id": "96ac3910-6eb2-444f-866c-8781461c4385",
+          "track-count": 13,
+          "title": ""
+        }
+      ],
+      "status": "Official",
+      "date": "2011-11-04",
+      "label-info": [
+        {
+          "catalog-number": null,
+          "label": {
+            "id": "cd97838f-e1fb-4a1e-96d2-14c1abeac038",
+            "type-id": null,
+            "sort-name": "EastWest Records UK",
+            "label-code": null,
+            "disambiguation": "",
+            "name": "EastWest Records UK",
+            "type": null
+          }
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "language": null,
+        "script": null
+      },
+      "disambiguation": "",
+      "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+      "country": "XW",
+      "cover-art-archive": {
+        "artwork": true,
+        "back": false,
+        "darkened": false,
+        "count": 1,
+        "front": true
+      },
+      "release-events": [
+        {
+          "date": "2011-11-04",
+          "area": {
+            "disambiguation": "",
+            "name": "[Worldwide]",
+            "type": null,
+            "id": "525d4e18-3d00-31b9-a58b-a146a916de8f",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "XW"
+            ],
+            "sort-name": "[Worldwide]"
+          }
+        }
+      ],
+      "asin": null,
+      "release-group": {
+        "primary-type": "Album",
+        "disambiguation": "",
+        "title": "Birdy",
+        "secondary-type-ids": [],
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "first-release-date": "2011-11-04",
+        "secondary-types": [],
+        "artist-credit": [
+          {
+            "artist": {
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+              "sort-name": "Birdy",
+              "country": "GB",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "type": "Person",
+              "name": "Birdy"
+            },
+            "joinphrase": "",
+            "name": "Birdy"
+          }
+        ]
+      },
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "sort-name": "Birdy",
+            "country": "GB",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+            "name": "Birdy",
+            "type": "Person",
+            "disambiguation": "UK singer Jasmine van den Bogaerde"
+          },
+          "name": "Birdy"
+        }
+      ],
+      "title": "Birdy"
+    },
+    {
+      "country": null,
+      "release-events": [
+        {
+          "area": null,
+          "date": "2012-07-23"
+        }
+      ],
+      "cover-art-archive": {
+        "count": 1,
+        "front": true,
+        "back": false,
+        "artwork": true,
+        "darkened": false
+      },
+      "release-group": {
+        "artist-credit": [
+          {
+            "joinphrase": "",
+            "artist": {
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist"
+            },
+            "name": "Various Artists"
+          }
+        ],
+        "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-07-23",
+        "disambiguation": "British 2012 edition",
+        "title": "The Chillout Session",
+        "primary-type": "Album"
+      },
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "country": null,
+            "sort-name": "Various Artists",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "disambiguation": "add compilations to this artist",
+            "type": "Other",
+            "name": "Various Artists"
+          },
+          "name": "Various Artists"
+        }
+      ],
+      "asin": null,
+      "title": "The Chillout Session",
+      "packaging": "Jewel Case",
+      "barcode": null,
+      "status": "Official",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "18c5f3e5-1372-475d-9478-f1fdc024d855",
+      "media": [
+        {
+          "track-count": 20,
+          "title": "",
+          "id": "801f06bb-0433-3fa7-b2fa-e4d1084733bf",
+          "position": 1,
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media"
+        },
+        {
+          "position": 2,
+          "title": "",
+          "track-count": 20,
+          "id": "c9192dbb-0cf3-333a-a81f-667869917b5c",
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media"
+        },
+        {
+          "position": 3,
+          "id": "b7271611-69a7-3d1e-8402-b66e59ba9b4b",
+          "track-count": 20,
+          "title": "",
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        }
+      ],
+      "label-info": [
+        {
+          "label": {
+            "type": null,
+            "name": "Ministry of Sound",
+            "label-code": 11683,
+            "disambiguation": "",
+            "sort-name": "Ministry of Sound",
+            "type-id": null,
+            "id": "c48b8ed2-46c5-4e51-9bea-5a37fcd0053b"
+          },
+          "catalog-number": "MOSE299"
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "date": "2012-07-23",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": ""
+    },
+    {
+      "status": "Official",
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "id": "afadb78b-5240-3b17-baca-345466a30ac6",
+          "title": "",
+          "track-count": 11,
+          "position": 1
+        }
+      ],
+      "id": "1d2b9813-5cc3-4408-b222-2a3f5b0768f6",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "quality": "normal",
+      "label-info": [
+        {
+          "label": {
+            "disambiguation": "",
+            "label-code": 3077,
+            "type": "Original Production",
+            "name": "14th Floor Records",
+            "id": "e8e45b67-895d-42a9-a2d0-2c2d944beb02",
+            "sort-name": "14th Floor Records",
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d"
+          },
+          "catalog-number": "5052498595822"
+        },
+        {
+          "catalog-number": "5052498595822",
+          "label": {
+            "label-code": 121,
+            "disambiguation": "Warner Music imprint",
+            "type": "Imprint",
+            "name": "Atlantic",
+            "id": "50c384a2-0b44-401b-b893-8181173339c7",
+            "sort-name": "Atlantic",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded"
+          }
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "date": "2011-11-07",
+      "packaging": "Jewel Case",
+      "barcode": "5052498595822",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "disambiguation": "UK singer Jasmine van den Bogaerde",
+            "type": "Person",
+            "name": "Birdy",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+            "country": "GB",
+            "sort-name": "Birdy",
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+          },
+          "name": "Birdy"
+        }
+      ],
+      "release-group": {
+        "artist-credit": [
+          {
+            "artist": {
+              "type": "Person",
+              "name": "Birdy",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "sort-name": "Birdy",
+              "country": "GB",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+            },
+            "joinphrase": "",
+            "name": "Birdy"
+          }
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "secondary-type-ids": [],
+        "secondary-types": [],
+        "first-release-date": "2011-11-04",
+        "primary-type": "Album",
+        "disambiguation": "",
+        "title": "Birdy"
+      },
+      "asin": "B004U5WZG8",
+      "country": "XE",
+      "release-events": [
+        {
+          "area": {
+            "disambiguation": "",
+            "name": "Europe",
+            "type": null,
+            "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "XE"
+            ],
+            "sort-name": "Europe"
+          },
+          "date": "2011-11-07"
+        }
+      ],
+      "cover-art-archive": {
+        "back": true,
+        "artwork": true,
+        "darkened": false,
+        "count": 12,
+        "front": true
+      },
+      "title": "Birdy"
+    },
+    {
+      "disambiguation": "",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "id": "1ee5629a-bf8e-4df2-9aac-dd61d87414f7",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "title": "",
+          "track-count": 22,
+          "id": "92e2b6d0-d003-359a-b426-2bde6cb69823",
+          "position": 1,
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD"
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "track-count": 22,
+          "title": "",
+          "id": "b1f331fd-dc34-3d2d-a5c2-4fcb0b6ee66b",
+          "position": 2
+        }
+      ],
+      "status": "Official",
+      "date": "2011-07-25",
+      "label-info": [
+        {
+          "label": null,
+          "catalog-number": "50999 0 87 250 2 8"
+        },
+        {
+          "label": {
+            "id": "f1875ddd-98ed-42be-9d7c-0cfa707b227d",
+            "type-id": null,
+            "sort-name": "NOW",
+            "label-code": null,
+            "disambiguation": "bogus label for the UK series; please use the actual record company logos",
+            "name": "NOW",
+            "type": null
+          },
+          "catalog-number": "CDNOW79"
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "barcode": "5099908725028",
+      "packaging": "Jewel Case",
+      "title": "Now That’s What I Call Music! 79",
+      "asin": "B0057EIYTI",
+      "release-group": {
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "artist": {
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists"
+            },
+            "joinphrase": ""
+          }
+        ],
+        "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2011-07-25",
+        "primary-type": "Album",
+        "disambiguation": "UK",
+        "title": "Now That’s What I Call Music! 79"
+      },
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "country": null,
+            "sort-name": "Various Artists"
+          },
+          "name": "Various Artists"
+        }
+      ],
+      "country": "GB",
+      "cover-art-archive": {
+        "darkened": false,
+        "back": true,
+        "artwork": true,
+        "front": true,
+        "count": 9
+      },
+      "release-events": [
+        {
+          "area": {
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "type-id": null,
+            "sort-name": "United Kingdom",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "disambiguation": "",
+            "name": "United Kingdom",
+            "type": null
+          },
+          "date": "2011-07-25"
+        }
+      ]
+    },
+    {
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "label-info": [
+        {
+          "catalog-number": null,
+          "label": {
+            "type": null,
+            "name": "NOW",
+            "disambiguation": "bogus label for the UK series; please use the actual record company logos",
+            "label-code": null,
+            "sort-name": "NOW",
+            "type-id": null,
+            "id": "f1875ddd-98ed-42be-9d7c-0cfa707b227d"
+          }
+        }
+      ],
+      "quality": "normal",
+      "date": "2011-07-25",
+      "status": "Official",
+      "id": "2bde276e-61a9-4ac8-a063-170e3046914c",
+      "media": [
+        {
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media",
+          "title": "",
+          "track-count": 22,
+          "id": "f41464b6-6d30-31d8-a051-505f1e24545d",
+          "position": 1
+        },
+        {
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media",
+          "title": "",
+          "track-count": 22,
+          "id": "7d088252-882f-3965-b439-039de26bb059",
+          "position": 2
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "packaging": "None",
+      "barcode": null,
+      "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+      "disambiguation": "",
+      "release-group": {
+        "primary-type": "Album",
+        "title": "Now That’s What I Call Music! 79",
+        "disambiguation": "UK",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2011-07-25",
+        "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86"
+            }
+          }
+        ]
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "country": null,
+            "sort-name": "Various Artists"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "asin": "B005CETSF2",
+      "release-events": [
+        {
+          "date": "2011-07-25",
+          "area": {
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "name": "United Kingdom",
+            "type": null,
+            "disambiguation": ""
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "darkened": false,
+        "back": false,
+        "artwork": true,
+        "front": true,
+        "count": 1
+      },
+      "country": "GB",
+      "title": "Now That’s What I Call Music! 79"
+    },
+    {
+      "disambiguation": "",
+      "packaging-id": null,
+      "date": "2012-08-20",
+      "label-info": [
+        {
+          "label": {
+            "sort-name": "EMI",
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d",
+            "id": "c029628b-6633-439e-bcee-ed02e8a338f7",
+            "type": "Original Production",
+            "name": "EMI",
+            "label-code": 542,
+            "disambiguation": "EMI Records, or EMI Music only if there is no other imprint"
+          },
+          "catalog-number": "50999 9 14949 2 4"
+        },
+        {
+          "catalog-number": "VTDCD 1049",
+          "label": {
+            "disambiguation": "",
+            "label-code": null,
+            "name": "EMI TV",
+            "type": null,
+            "id": "71f8597a-1af1-40bb-b346-f50a298c17ff",
+            "type-id": null,
+            "sort-name": "EMI TV"
+          }
+        },
+        {
+          "label": {
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Rhino",
+            "id": "c4f2cf49-b57c-4cc1-8061-f54400704ac4",
+            "name": "Rhino",
+            "type": "Imprint",
+            "disambiguation": "reissue label",
+            "label-code": 2982
+          },
+          "catalog-number": null
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "quality": "normal",
+      "id": "39fbc224-e886-4ced-8e60-694135aa6f0f",
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "id": "991351dc-ae64-3c29-983e-363fd1a66ead",
+          "track-count": 21,
+          "title": "",
+          "position": 1
+        },
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "id": "eefeaeb8-6c04-3250-a734-dcc45946c4b4",
+          "track-count": 21,
+          "title": "",
+          "position": 2
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "status": "Official",
+      "barcode": "5099991494924",
+      "packaging": null,
+      "title": "Now That’s What I Call Chill",
+      "asin": "B008OFSWI0",
+      "release-group": {
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-08-20",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "cf11dccf-4c82-456f-a98e-d6454dfa19ad",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "country": null,
+              "sort-name": "Various Artists",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86"
+            }
+          }
+        ],
+        "primary-type": "Album",
+        "title": "Now That’s What I Call Chill",
+        "disambiguation": "UK"
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "joinphrase": "",
+          "artist": {
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "country": null,
+            "sort-name": "Various Artists"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "front": true,
+        "count": 13,
+        "darkened": false,
+        "back": true,
+        "artwork": true
+      },
+      "release-events": [
+        {
+          "area": {
+            "type": null,
+            "name": "United Kingdom",
+            "disambiguation": "",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed"
+          },
+          "date": "2012-08-20"
+        }
+      ],
+      "country": "GB"
+    },
+    {
+      "title": "NRJ 200% Hits 2012, Volume 2",
+      "release-group": {
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "type": "Other",
+              "name": "Various Artists",
+              "disambiguation": "add compilations to this artist"
+            }
+          }
+        ],
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-09-17",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "64cbf4a4-7ee7-4b50-affc-f27263b5af6c",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "title": "NRJ 200% Hits 2012, Volume 2",
+        "disambiguation": "",
+        "primary-type": "Album"
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "sort-name": "Various Artists",
+            "country": null,
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "disambiguation": "add compilations to this artist",
+            "type": "Other",
+            "name": "Various Artists"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "asin": "B008QZHAE0",
+      "release-events": [
+        {
+          "area": {
+            "id": "08310658-51eb-3801-80de-5a0739207115",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "FR"
+            ],
+            "sort-name": "France",
+            "disambiguation": "",
+            "name": "France",
+            "type": null
+          },
+          "date": "2012-09-17"
+        }
+      ],
+      "cover-art-archive": {
+        "count": 2,
+        "front": true,
+        "back": true,
+        "artwork": true,
+        "darkened": false
+      },
+      "country": "FR",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "label-info": [
+        {
+          "catalog-number": null,
+          "label": {
+            "id": "6e2db230-3709-4557-8f53-7c4eb3e0acfb",
+            "sort-name": "Universal Music Strategic Marketing",
+            "type-id": null,
+            "disambiguation": "subsidiary of Universal Music GmbH",
+            "label-code": null,
+            "type": null,
+            "name": "Universal Music Strategic Marketing"
+          }
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "language": "mul",
+        "script": "Latn"
+      },
+      "date": "2012-09-17",
+      "status": "Official",
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "position": 1,
+          "id": "d4f88b71-1ac0-3b1a-825e-b0c45c397fc6",
+          "title": "",
+          "track-count": 22
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "position": 2,
+          "title": "",
+          "track-count": 20,
+          "id": "54dff574-fd1a-3754-8311-2be8be853931"
+        }
+      ],
+      "id": "403268f3-b3c5-4809-a050-0ff5133d714b",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "packaging": "Jewel Case",
+      "barcode": "600753401330"
+    },
+    {
+      "asin": "B007WG1QKI",
+      "artist-credit": [
+        {
+          "artist": {
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null
+          },
+          "joinphrase": "",
+          "name": "Various Artists"
+        }
+      ],
+      "release-group": {
+        "artist-credit": [
+          {
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "name": "Various Artists",
+              "type": "Other",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "country": null,
+              "sort-name": "Various Artists"
+            },
+            "name": "Various Artists"
+          }
+        ],
+        "id": "3461ca3f-04ec-431a-9fb2-3ca419df9f1c",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-06-22",
+        "primary-type": "Album",
+        "disambiguation": "",
+        "title": "Ö3 Greatest Hits 58"
+      },
+      "cover-art-archive": {
+        "count": 1,
+        "front": true,
+        "back": false,
+        "artwork": true,
+        "darkened": false
+      },
+      "release-events": [
+        {
+          "area": {
+            "type-id": null,
+            "sort-name": "Austria",
+            "iso-3166-1-codes": [
+              "AT"
+            ],
+            "id": "caac77d1-a5c8-3e6e-8e27-90b44dcc1446",
+            "name": "Austria",
+            "type": null,
+            "disambiguation": ""
+          },
+          "date": "2012-06-22"
+        }
+      ],
+      "country": "AT",
+      "title": "Ö3 Greatest Hits 58",
+      "date": "2012-06-22",
+      "quality": "normal",
+      "label-info": [
+        {
+          "label": {
+            "name": "Warner Music Austria",
+            "type": null,
+            "disambiguation": "",
+            "label-code": 4281,
+            "type-id": null,
+            "sort-name": "Warner Music Austria",
+            "id": "115e3444-2beb-46c4-a0e3-04efc6ed393a"
+          },
+          "catalog-number": "5053 1052879 2 5"
+        }
+      ],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "media": [
+        {
+          "title": "",
+          "track-count": 21,
+          "id": "226d5292-e6ae-3be9-8cb6-b18e8970f75f",
+          "position": 1,
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD"
+        }
+      ],
+      "id": "57a6eeed-95a9-416b-a5c3-b48068d32c2a",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "status": "Official",
+      "barcode": "5053105287925",
+      "packaging": "Jewel Case",
+      "disambiguation": "",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a"
+    },
+    {
+      "barcode": "",
+      "packaging": "None",
+      "date": "2011",
+      "quality": "normal",
+      "label-info": [
+        {
+          "label": {
+            "id": "8e0090e8-9081-4797-a386-990040f0accf",
+            "type-id": "88ee6ae7-f413-3490-a1d2-54f6a9f0838c",
+            "sort-name": "Music Factory",
+            "label-code": null,
+            "disambiguation": "UK promotional remix service",
+            "name": "Music Factory",
+            "type": "Reissue Production"
+          },
+          "catalog-number": "CC106"
+        }
+      ],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "media": [
+        {
+          "format": "Digital Media",
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "position": 1,
+          "id": "5ea9ad43-7437-3247-905c-85dfbdd88698",
+          "title": "",
+          "track-count": 20
+        }
+      ],
+      "id": "5f1f0c7c-dd48-40db-a2e6-f068f94db80b",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "status": "Official",
+      "disambiguation": "",
+      "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+      "cover-art-archive": {
+        "darkened": false,
+        "artwork": true,
+        "back": false,
+        "front": true,
+        "count": 1
+      },
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "type": null,
+            "name": "United Kingdom",
+            "disambiguation": ""
+          },
+          "date": "2011"
+        }
+      ],
+      "country": "GB",
+      "asin": null,
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "country": null,
+            "sort-name": "Various Artists",
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other"
+          },
+          "name": "Various Artists"
+        }
+      ],
+      "release-group": {
+        "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters",
+        "disambiguation": "",
+        "primary-type": "Album",
+        "artist-credit": [
+          {
+            "joinphrase": "",
+            "artist": {
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist"
+            },
+            "name": "Various Artists"
+          }
+        ],
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2011",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "135d8761-32c1-4d1b-9236-5b72ef135670",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc"
+      },
+      "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters"
+    },
+    {
+      "packaging-id": null,
+      "disambiguation": "",
+      "quality": "normal",
+      "label-info": [],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "date": "2011-01-30",
+      "status": "Official",
+      "id": "6441c032-9f42-4bc0-a79a-e763035473f5",
+      "media": [
+        {
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media",
+          "position": 1,
+          "track-count": 1,
+          "title": "",
+          "id": "66a4dea2-8ea1-3122-a13b-d94b28e2ec11"
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "packaging": null,
+      "barcode": null,
+      "title": "Skinny Love",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "sort-name": "Birdy",
+            "country": "GB",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+            "name": "Birdy",
+            "type": "Person",
+            "disambiguation": "UK singer Jasmine van den Bogaerde"
+          },
+          "name": "Birdy"
+        }
+      ],
+      "release-group": {
+        "title": "Skinny Love",
+        "disambiguation": "",
+        "primary-type": "Single",
+        "secondary-types": [],
+        "first-release-date": "2011-01-30",
+        "id": "689f1ff2-97af-4412-a4d6-e1b19fd686ad",
+        "secondary-type-ids": [],
+        "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+        "artist-credit": [
+          {
+            "name": "Birdy",
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "name": "Birdy",
+              "type": "Person",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "country": "GB",
+              "sort-name": "Birdy"
+            }
+          }
+        ]
+      },
+      "asin": null,
+      "release-events": [
+        {
+          "area": {
+            "disambiguation": "",
+            "type": null,
+            "name": "United Kingdom",
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "sort-name": "United Kingdom",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "type-id": null
+          },
+          "date": "2011-01-30"
+        }
+      ],
+      "cover-art-archive": {
+        "artwork": true,
+        "back": false,
+        "darkened": false,
+        "count": 1,
+        "front": true
+      },
+      "country": "GB"
+    },
+    {
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "packaging": "Jewel Case",
+      "barcode": "5053105394623",
+      "label-info": [
+        {
+          "label": {
+            "id": "fe7ee819-e43e-4cb2-8e72-463879e4b3e7",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "wea",
+            "disambiguation": "has logo with just “wea” on it",
+            "label-code": 4281,
+            "name": "wea",
+            "type": "Imprint"
+          },
+          "catalog-number": null
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "language": "mul",
+        "script": "Latn"
+      },
+      "date": "2012-08-27",
+      "status": "Official",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "74c69b27-b4fa-4a22-90d7-f017ab6dfb4d",
+      "media": [
+        {
+          "position": 1,
+          "title": "",
+          "track-count": 22,
+          "id": "68b726fb-9262-3a41-bc8c-a7554119d0f3",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD"
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "track-count": 22,
+          "title": "",
+          "id": "f5e7206e-e112-3048-99ed-694f1951df72",
+          "position": 2
+        }
+      ],
+      "title": "NRJ Hits 2012, Volume 2",
+      "release-events": [
+        {
+          "date": "2012-08-27",
+          "area": {
+            "disambiguation": "",
+            "name": "France",
+            "type": null,
+            "id": "08310658-51eb-3801-80de-5a0739207115",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "FR"
+            ],
+            "sort-name": "France"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "count": 2,
+        "front": true,
+        "back": true,
+        "artwork": true,
+        "darkened": false
+      },
+      "country": "FR",
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null,
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "name": "Various Artists",
+            "type": "Other",
+            "disambiguation": "add compilations to this artist"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "release-group": {
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "47cd8ec5-5147-478e-9c7d-cefd7c0a2b8a",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "first-release-date": "2012-08-27",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+            }
+          }
+        ],
+        "disambiguation": "",
+        "title": "NRJ Hits 2012, Volume 2",
+        "primary-type": "Album"
+      },
+      "asin": "B008EU38R0"
+    },
+    {
+      "asin": null,
+      "release-group": {
+        "disambiguation": "",
+        "title": "Hits, Volume 31: April–May 2011",
+        "primary-type": "Album",
+        "artist-credit": [
+          {
+            "artist": {
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "type": "Other",
+              "name": "Various Artists",
+              "disambiguation": "add compilations to this artist"
+            },
+            "joinphrase": "",
+            "name": "Various Artists"
+          }
+        ],
+        "id": "607e6d76-6b9f-46e0-9a1f-893a57670ae2",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2011-04-01"
+      },
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "type": "Other",
+            "name": "Various Artists",
+            "disambiguation": "add compilations to this artist",
+            "sort-name": "Various Artists",
+            "country": null,
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+          },
+          "name": "Various Artists"
+        }
+      ],
+      "country": "GB",
+      "cover-art-archive": {
+        "darkened": false,
+        "artwork": false,
+        "back": false,
+        "front": false,
+        "count": 0
+      },
+      "release-events": [
+        {
+          "area": {
+            "type": null,
+            "name": "United Kingdom",
+            "disambiguation": "",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed"
+          },
+          "date": "2011-04-01"
+        }
+      ],
+      "title": "Hits, Volume 31: April–May 2011",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "7ba904c5-9f96-4cb5-91f3-e495dfaaca6b",
+      "media": [
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "track-count": 20,
+          "title": "",
+          "id": "3938d614-0f7d-31f0-a54c-e9ee57d3a63d",
+          "position": 1
+        }
+      ],
+      "status": "Official",
+      "date": "2011-04-01",
+      "quality": "normal",
+      "label-info": [],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "barcode": null,
+      "packaging": null,
+      "disambiguation": "",
+      "packaging-id": null
+    },
+    {
+      "country": "AT",
+      "release-events": [
+        {
+          "area": {
+            "disambiguation": "",
+            "name": "Austria",
+            "type": null,
+            "id": "caac77d1-a5c8-3e6e-8e27-90b44dcc1446",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "AT"
+            ],
+            "sort-name": "Austria"
+          },
+          "date": "2012-06-29"
+        }
+      ],
+      "cover-art-archive": {
+        "darkened": false,
+        "back": false,
+        "artwork": true,
+        "front": true,
+        "count": 1
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "name": "Various Artists",
+            "type": "Other",
+            "disambiguation": "add compilations to this artist",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null,
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "release-group": {
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "country": null,
+              "sort-name": "Various Artists",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86"
+            }
+          }
+        ],
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-06-29",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "db3d48a9-fcf9-4731-a5ef-812bc5a618de",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "primary-type": "Album",
+        "title": "Cafe Puls Sommerhits 12",
+        "disambiguation": ""
+      },
+      "asin": null,
+      "title": "Cafe Puls Sommerhits 12",
+      "packaging": "Jewel Case",
+      "barcode": "0886919248326",
+      "status": "Official",
+      "media": [
+        {
+          "position": 1,
+          "id": "544f858d-1674-3d88-8529-2046e88a0796",
+          "track-count": 22,
+          "title": "",
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        },
+        {
+          "position": 2,
+          "id": "e2c2c6ed-a341-3709-8745-f6cecf5b706f",
+          "track-count": 22,
+          "title": "",
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        }
+      ],
+      "id": "8ddbe328-608a-4026-af0b-7d01e77c3abd",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "label-info": [
+        {
+          "label": {
+            "label-code": 116,
+            "disambiguation": "German label, used worldwide in the past",
+            "name": "Ariola",
+            "type": "Imprint",
+            "id": "b6d68d43-4939-4d76-b0d7-ef855d9f3e6e",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Ariola"
+          },
+          "catalog-number": null
+        }
+      ],
+      "quality": "normal",
+      "date": "2012-06-29",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": ""
+    },
+    {
+      "status": "Official",
+      "media": [
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "track-count": 21,
+          "title": "",
+          "id": "589da359-7c2b-31d9-a2d7-0a13678901ba",
+          "position": 1
+        },
+        {
+          "position": 2,
+          "title": "",
+          "track-count": 21,
+          "id": "dbd1e62f-7caf-3cbb-8675-30411672e94e",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD"
+        }
+      ],
+      "id": "911e8c8d-53c6-4272-a3ee-4faff266a05b",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "label-info": [
+        {
+          "catalog-number": "50999 9557882 8",
+          "label": {
+            "disambiguation": "EMI Records, or EMI Music only if there is no other imprint",
+            "label-code": 542,
+            "type": "Original Production",
+            "name": "EMI",
+            "id": "c029628b-6633-439e-bcee-ed02e8a338f7",
+            "sort-name": "EMI",
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d"
+          }
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "language": "nld",
+        "script": "Latn"
+      },
+      "date": "2012-02-03",
+      "packaging": "Jewel Case",
+      "barcode": "5099995578828",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "release-group": {
+        "first-release-date": "2012-02-03",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "a27e2835-ccad-4ece-b226-783e2ed47cbe",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "artist-credit": [
+          {
+            "artist": {
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+            },
+            "joinphrase": "",
+            "name": "Various Artists"
+          }
+        ],
+        "primary-type": "Album",
+        "title": "Radio 538: Hitzone 60",
+        "disambiguation": ""
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "joinphrase": "",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "sort-name": "Various Artists",
+            "country": null,
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "disambiguation": "add compilations to this artist",
+            "type": "Other",
+            "name": "Various Artists"
+          }
+        }
+      ],
+      "asin": "B006VBA354",
+      "country": "NL",
+      "release-events": [
+        {
+          "date": "2012-02-03",
+          "area": {
+            "disambiguation": "",
+            "type": null,
+            "name": "Netherlands",
+            "id": "ef1b7cc0-cd26-36f4-8ea0-04d9623786c7",
+            "sort-name": "Netherlands",
+            "iso-3166-1-codes": [
+              "NL"
+            ],
+            "type-id": null
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "front": true,
+        "count": 2,
+        "darkened": false,
+        "artwork": true,
+        "back": true
+      },
+      "title": "Radio 538: Hitzone 60"
+    },
+    {
+      "country": "CH",
+      "release-events": [
+        {
+          "date": "2012-06-06",
+          "area": {
+            "id": "1333ff06-8e3d-3c8e-9f3a-13a2a38b41df",
+            "iso-3166-1-codes": [
+              "CH"
+            ],
+            "sort-name": "Switzerland",
+            "type-id": null,
+            "disambiguation": "",
+            "type": null,
+            "name": "Switzerland"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "front": true,
+        "count": 2,
+        "darkened": false,
+        "back": true,
+        "artwork": true
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "type": "Other",
+            "name": "Various Artists",
+            "disambiguation": "add compilations to this artist",
+            "country": null,
+            "sort-name": "Various Artists",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "release-group": {
+        "first-release-date": "2012-06-06",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "2807806f-8f01-45c6-a14f-33314dc6cf93",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "joinphrase": "",
+            "artist": {
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86"
+            }
+          }
+        ],
+        "primary-type": "Album",
+        "title": "NRJ Summer Hits Only 2012",
+        "disambiguation": ""
+      },
+      "asin": "B00818CRV8",
+      "title": "NRJ Summer Hits Only 2012",
+      "packaging": null,
+      "barcode": "5053105299522",
+      "status": "Official",
+      "id": "997b9ce3-3903-4e1e-9af6-b75838c64cbe",
+      "media": [
+        {
+          "id": "f131349e-fabe-3e37-a30b-d5206545885e",
+          "track-count": 22,
+          "title": "",
+          "position": 1,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "title": "",
+          "track-count": 21,
+          "id": "cf9a911d-1be9-35c2-8785-2f96c1202496",
+          "position": 2
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "label-info": [
+        {
+          "catalog-number": null,
+          "label": {
+            "disambiguation": "company trademark of Warner Music Switzerland AG, \"a Warner Music International company\"",
+            "label-code": 6104,
+            "name": "Warner Music Switzerland",
+            "type": "Production",
+            "id": "e5a8993a-1f36-4535-83dd-164468e7d4f7",
+            "type-id": "a2426aab-2dd4-339c-b47d-b4923a241678",
+            "sort-name": "Warner Music Switzerland"
+          }
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "mul"
+      },
+      "quality": "normal",
+      "date": "2012-06-06",
+      "packaging-id": null,
+      "disambiguation": ""
+    },
+    {
+      "packaging-id": null,
+      "disambiguation": "Deluxe Version",
+      "packaging": null,
+      "barcode": null,
+      "status": "Official",
+      "id": "9f0285c0-d94b-4644-9a4f-c6045d185e5d",
+      "media": [
+        {
+          "track-count": 14,
+          "title": "",
+          "id": "b884a72f-c2d5-456b-b88f-ffec1ee17b28",
+          "position": 1,
+          "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+          "format": "Digital Media"
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "label-info": [
+        {
+          "label": {
+            "name": "Warner Music UK",
+            "type": "Reissue Production",
+            "disambiguation": "UK imprint",
+            "label-code": 14666,
+            "type-id": "88ee6ae7-f413-3490-a1d2-54f6a9f0838c",
+            "sort-name": "Warner Music UK",
+            "id": "9c5cba05-bcad-4daa-b58f-fad3197a2148"
+          },
+          "catalog-number": null
+        }
+      ],
+      "text-representation": {
+        "script": null,
+        "language": null
+      },
+      "quality": "normal",
+      "date": "2011-11-15",
+      "title": "Birdy",
+      "country": "XW",
+      "release-events": [
+        {
+          "date": "2011-11-15",
+          "area": {
+            "type-id": null,
+            "sort-name": "[Worldwide]",
+            "iso-3166-1-codes": [
+              "XW"
+            ],
+            "id": "525d4e18-3d00-31b9-a58b-a146a916de8f",
+            "name": "[Worldwide]",
+            "type": null,
+            "disambiguation": ""
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "artwork": true,
+        "back": false,
+        "darkened": false,
+        "count": 1,
+        "front": true
+      },
+      "release-group": {
+        "artist-credit": [
+          {
+            "artist": {
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "country": "GB",
+              "sort-name": "Birdy",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+              "name": "Birdy",
+              "type": "Person",
+              "disambiguation": "UK singer Jasmine van den Bogaerde"
+            },
+            "joinphrase": "",
+            "name": "Birdy"
+          }
+        ],
+        "first-release-date": "2011-11-04",
+        "secondary-types": [],
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-type-ids": [],
+        "primary-type": "Album",
+        "title": "Birdy",
+        "disambiguation": ""
+      },
+      "artist-credit": [
+        {
+          "name": "Birdy",
+          "artist": {
+            "name": "Birdy",
+            "type": "Person",
+            "disambiguation": "UK singer Jasmine van den Bogaerde",
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "country": "GB",
+            "sort-name": "Birdy",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "asin": null
+    },
+    {
+      "label-info": [
+        {
+          "catalog-number": "060075338697 (2)",
+          "label": {
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Polystar",
+            "id": "7fdf4b1f-37fb-4d5e-9445-b17b0a6930e4",
+            "name": "Polystar",
+            "type": "Imprint",
+            "disambiguation": "Germany",
+            "label-code": 4324
+          }
+        },
+        {
+          "label": {
+            "type": "Imprint",
+            "name": "Sony Music",
+            "disambiguation": "global brand, excluding JP, owned by Sony Music Entertainment",
+            "label-code": 10746,
+            "sort-name": "Sony Music",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "id": "9e6b4d7f-4958-4db7-8504-d89e315836af"
+          },
+          "catalog-number": "060075338697 (2)"
+        },
+        {
+          "catalog-number": "060075338697 (2)",
+          "label": {
+            "disambiguation": "has logo with just “Universal Music Group”",
+            "label-code": null,
+            "type": "Holding",
+            "name": "Universal Music Group",
+            "id": "19d052fa-570a-4b17-9a3d-8f2f029b7b57",
+            "sort-name": "Universal Music Group",
+            "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed"
+          }
+        }
+      ],
+      "text-representation": {
+        "language": "mul",
+        "script": "Latn"
+      },
+      "quality": "normal",
+      "date": "2012-05-08",
+      "status": "Official",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "b508d378-a764-4070-bc55-f5d936fcb0da",
+      "media": [
+        {
+          "id": "2963cbbf-bd33-33a4-a482-b34f1b8d2b39",
+          "title": "",
+          "track-count": 22,
+          "position": 1,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        },
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "position": 2,
+          "id": "3a634189-9027-3b33-ad62-997c4f41b0f1",
+          "title": "",
+          "track-count": 21
+        }
+      ],
+      "packaging": "Jewel Case",
+      "barcode": "0600753386972",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "release-group": {
+        "primary-type": "Album",
+        "disambiguation": "",
+        "title": "Bravo Hits 77",
+        "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "first-release-date": "2012-04-27",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "artist": {
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "type": "Other",
+              "name": "Various Artists",
+              "disambiguation": "add compilations to this artist"
+            },
+            "joinphrase": ""
+          }
+        ]
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "artist": {
+            "name": "Various Artists",
+            "type": "Other",
+            "disambiguation": "add compilations to this artist",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "country": null,
+            "sort-name": "Various Artists",
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "asin": "B007PWXR0Q",
+      "release-events": [
+        {
+          "date": "2012-05-08",
+          "area": {
+            "disambiguation": "",
+            "name": "Germany",
+            "type": null,
+            "id": "85752fda-13c4-31a3-bee5-0e5cb1f51dad",
+            "type-id": null,
+            "sort-name": "Germany",
+            "iso-3166-1-codes": [
+              "DE"
+            ]
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "darkened": false,
+        "back": false,
+        "artwork": true,
+        "front": true,
+        "count": 1
+      },
+      "country": "DE",
+      "title": "Bravo Hits 77"
+    },
+    {
+      "packaging": "Jewel Case",
+      "barcode": "9340650012406",
+      "label-info": [
+        {
+          "label": {
+            "name": "14th Floor Records",
+            "type": "Original Production",
+            "label-code": 3077,
+            "disambiguation": "",
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d",
+            "sort-name": "14th Floor Records",
+            "id": "e8e45b67-895d-42a9-a2d0-2c2d944beb02"
+          },
+          "catalog-number": "5249859582"
+        },
+        {
+          "label": {
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Atlantic",
+            "id": "50c384a2-0b44-401b-b893-8181173339c7",
+            "name": "Atlantic",
+            "type": "Imprint",
+            "label-code": 121,
+            "disambiguation": "Warner Music imprint"
+          },
+          "catalog-number": "5249859582"
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "quality": "normal",
+      "date": "2011",
+      "status": "Official",
+      "media": [
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "position": 1,
+          "title": "",
+          "track-count": 11,
+          "id": "a920ec45-ef0f-3385-8bf7-b67982459e0f"
+        }
+      ],
+      "id": "ca0a0daa-ff77-4e09-982c-00f7beed49e2",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "release-events": [
+        {
+          "date": "2011",
+          "area": {
+            "name": "Australia",
+            "type": null,
+            "disambiguation": "",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "AU"
+            ],
+            "sort-name": "Australia",
+            "id": "106e0bec-b638-3b37-b731-f53d507dc00e"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "count": 1,
+        "front": true,
+        "back": false,
+        "artwork": true,
+        "darkened": false
+      },
+      "country": "AU",
+      "artist-credit": [
+        {
+          "artist": {
+            "type": "Person",
+            "name": "Birdy",
+            "disambiguation": "UK singer Jasmine van den Bogaerde",
+            "sort-name": "Birdy",
+            "country": "GB",
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+          },
+          "joinphrase": "",
+          "name": "Birdy"
+        }
+      ],
+      "release-group": {
+        "artist-credit": [
+          {
+            "name": "Birdy",
+            "artist": {
+              "name": "Birdy",
+              "type": "Person",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "sort-name": "Birdy",
+              "country": "GB",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+            },
+            "joinphrase": ""
+          }
+        ],
+        "secondary-type-ids": [],
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-types": [],
+        "first-release-date": "2011-11-04",
+        "disambiguation": "",
+        "title": "Birdy",
+        "primary-type": "Album"
+      },
+      "asin": null,
+      "title": "Birdy"
+    },
+    {
+      "title": "Bravo Hits 77",
+      "country": "DE",
+      "cover-art-archive": {
+        "artwork": true,
+        "back": true,
+        "darkened": false,
+        "count": 5,
+        "front": true
+      },
+      "release-events": [
+        {
+          "date": "2012-04-27",
+          "area": {
+            "disambiguation": "",
+            "type": null,
+            "name": "Germany",
+            "id": "85752fda-13c4-31a3-bee5-0e5cb1f51dad",
+            "sort-name": "Germany",
+            "iso-3166-1-codes": [
+              "DE"
+            ],
+            "type-id": null
+          }
+        }
+      ],
+      "asin": null,
+      "release-group": {
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-04-27",
+        "artist-credit": [
+          {
+            "artist": {
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "sort-name": "Various Artists",
+              "country": null,
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "disambiguation": "add compilations to this artist",
+              "type": "Other",
+              "name": "Various Artists"
+            },
+            "joinphrase": "",
+            "name": "Various Artists"
+          }
+        ],
+        "primary-type": "Album",
+        "disambiguation": "",
+        "title": "Bravo Hits 77"
+      },
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "artist": {
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null,
+            "disambiguation": "add compilations to this artist",
+            "name": "Various Artists",
+            "type": "Other"
+          },
+          "name": "Various Artists"
+        }
+      ],
+      "disambiguation": "",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "barcode": "3024734",
+      "packaging": "Jewel Case",
+      "id": "d39ae07b-c0d2-494b-88ad-cf99f7d13eb5",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "id": "45e34c52-d538-3d30-8d77-079382b4a10c",
+          "track-count": 22,
+          "title": "",
+          "position": 1
+        },
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "position": 2,
+          "title": "",
+          "track-count": 21,
+          "id": "bddc8c5b-b5b1-3fb5-996d-41e869ce4ad4"
+        }
+      ],
+      "status": "Official",
+      "date": "2012-04-27",
+      "quality": "normal",
+      "label-info": [
+        {
+          "label": {
+            "type": null,
+            "name": "Bertelsmann Club",
+            "label-code": null,
+            "disambiguation": "",
+            "sort-name": "Bertelsmann Club",
+            "type-id": null,
+            "id": "61644aba-ae85-4741-8b3a-5d24a47781f1"
+          },
+          "catalog-number": "3024734"
+        },
+        {
+          "label": {
+            "label-code": 4324,
+            "disambiguation": "Germany",
+            "name": "Polystar",
+            "type": "Imprint",
+            "id": "7fdf4b1f-37fb-4d5e-9445-b17b0a6930e4",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Polystar"
+          },
+          "catalog-number": "3024734"
+        },
+        {
+          "label": {
+            "name": "Sony Music",
+            "type": "Imprint",
+            "label-code": 10746,
+            "disambiguation": "global brand, excluding JP, owned by Sony Music Entertainment",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "sort-name": "Sony Music",
+            "id": "9e6b4d7f-4958-4db7-8504-d89e315836af"
+          },
+          "catalog-number": "3024734"
+        },
+        {
+          "catalog-number": "3024734",
+          "label": {
+            "type": "Holding",
+            "name": "Universal Music Group",
+            "label-code": null,
+            "disambiguation": "has logo with just “Universal Music Group”",
+            "sort-name": "Universal Music Group",
+            "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+            "id": "19d052fa-570a-4b17-9a3d-8f2f029b7b57"
+          }
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      }
+    },
+    {
+      "title": "Maximum Hit Music 01 2012",
+      "country": "BE",
+      "cover-art-archive": {
+        "darkened": false,
+        "artwork": true,
+        "back": false,
+        "front": true,
+        "count": 1
+      },
+      "release-events": [
+        {
+          "area": {
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "BE"
+            ],
+            "sort-name": "Belgium",
+            "id": "5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc",
+            "name": "Belgium",
+            "type": null,
+            "disambiguation": ""
+          },
+          "date": "2012-02-24"
+        }
+      ],
+      "asin": null,
+      "release-group": {
+        "primary-type": "Album",
+        "title": "Maximum Hit Music 01 2012",
+        "disambiguation": "",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "first-release-date": "2012-02-24",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "df0e5c15-160f-40ac-a643-4337fe61bac3",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ],
+        "artist-credit": [
+          {
+            "name": "Various Artists",
+            "artist": {
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist"
+            },
+            "joinphrase": ""
+          }
+        ]
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "joinphrase": "",
+          "artist": {
+            "name": "Various Artists",
+            "type": "Other",
+            "disambiguation": "add compilations to this artist",
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null,
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+          }
+        }
+      ],
+      "disambiguation": "",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "barcode": "0600753379455",
+      "packaging": "Jewel Case",
+      "id": "e66075a6-48da-4b45-8c68-a499b4cfb8f9",
+      "media": [
+        {
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "format": "CD",
+          "position": 1,
+          "title": "",
+          "track-count": 22,
+          "id": "b7ff1116-8663-39f0-b7d4-28b8b020572f"
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "status": "Official",
+      "date": "2012-02-24",
+      "quality": "normal",
+      "label-info": [
+        {
+          "catalog-number": null,
+          "label": {
+            "type-id": "7aaa37fe-2def-3476-b359-80245850062d",
+            "sort-name": "Universal Music Belgium",
+            "id": "ab090e48-760f-46f0-838a-8db4e31bcc3f",
+            "name": "Universal Music Belgium",
+            "type": "Original Production",
+            "label-code": null,
+            "disambiguation": ""
+          }
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "mul"
+      }
+    },
+    {
+      "status": "Official",
+      "id": "ea063e74-e123-4d3d-9288-fe1ec479da9f",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "media": [
+        {
+          "position": 1,
+          "id": "3cb125f4-3ca1-3f0b-9e7b-27d736b9440d",
+          "title": "",
+          "track-count": 14,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        }
+      ],
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "label-info": [
+        {
+          "label": {
+            "sort-name": "Atlantic",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "id": "50c384a2-0b44-401b-b893-8181173339c7",
+            "type": "Imprint",
+            "name": "Atlantic",
+            "label-code": 121,
+            "disambiguation": "Warner Music imprint"
+          },
+          "catalog-number": "5052498982356"
+        }
+      ],
+      "quality": "normal",
+      "date": "2011-11-07",
+      "packaging": "Jewel Case",
+      "barcode": "5052498982356",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "special edition",
+      "release-group": {
+        "artist-credit": [
+          {
+            "name": "Birdy",
+            "artist": {
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "sort-name": "Birdy",
+              "country": "GB",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "name": "Birdy",
+              "type": "Person"
+            },
+            "joinphrase": ""
+          }
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "secondary-type-ids": [],
+        "first-release-date": "2011-11-04",
+        "secondary-types": [],
+        "disambiguation": "",
+        "title": "Birdy",
+        "primary-type": "Album"
+      },
+      "artist-credit": [
+        {
+          "name": "Birdy",
+          "artist": {
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "sort-name": "Birdy",
+            "country": "GB",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+            "name": "Birdy",
+            "type": "Person",
+            "disambiguation": "UK singer Jasmine van den Bogaerde"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "asin": "B005VKMB42",
+      "country": "GB",
+      "release-events": [
+        {
+          "area": {
+            "name": "United Kingdom",
+            "type": null,
+            "disambiguation": "",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed"
+          },
+          "date": "2011-11-07"
+        },
+        {
+          "date": "",
+          "area": {
+            "type": null,
+            "name": "France",
+            "disambiguation": "",
+            "iso-3166-1-codes": [
+              "FR"
+            ],
+            "sort-name": "France",
+            "type-id": null,
+            "id": "08310658-51eb-3801-80de-5a0739207115"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "count": 1,
+        "front": true,
+        "back": false,
+        "artwork": true,
+        "darkened": false
+      },
+      "title": "Birdy"
+    },
+    {
+      "date": "2011-11-07",
+      "quality": "normal",
+      "label-info": [
+        {
+          "catalog-number": "5249859582",
+          "label": {
+            "sort-name": "Atlantic",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "id": "50c384a2-0b44-401b-b893-8181173339c7",
+            "type": "Imprint",
+            "name": "Atlantic",
+            "label-code": 121,
+            "disambiguation": "Warner Music imprint"
+          }
+        }
+      ],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "media": [
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "position": 1,
+          "id": "79162ea2-b28f-3776-91d7-a1b5ca431254",
+          "track-count": 11,
+          "title": ""
+        }
+      ],
+      "id": "f51a95d4-98a5-43f1-8c4a-c2cab20a9cbd",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "status": "Official",
+      "barcode": "5052498595822",
+      "packaging": "Jewel Case",
+      "disambiguation": "",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "asin": "B004U5WZG8",
+      "release-group": {
+        "first-release-date": "2011-11-04",
+        "secondary-types": [],
+        "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+        "secondary-type-ids": [],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "artist-credit": [
+          {
+            "artist": {
+              "name": "Birdy",
+              "type": "Person",
+              "disambiguation": "UK singer Jasmine van den Bogaerde",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "country": "GB",
+              "sort-name": "Birdy",
+              "id": "1b8bdee5-783a-4eca-88e5-3e9460739546"
+            },
+            "joinphrase": "",
+            "name": "Birdy"
+          }
+        ],
+        "title": "Birdy",
+        "disambiguation": "",
+        "primary-type": "Album"
+      },
+      "artist-credit": [
+        {
+          "name": "Birdy",
+          "artist": {
+            "country": "GB",
+            "sort-name": "Birdy",
+            "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+            "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+            "type": "Person",
+            "name": "Birdy",
+            "disambiguation": "UK singer Jasmine van den Bogaerde"
+          },
+          "joinphrase": ""
+        }
+      ],
+      "cover-art-archive": {
+        "back": true,
+        "artwork": true,
+        "darkened": false,
+        "count": 8,
+        "front": true
+      },
+      "release-events": [
+        {
+          "area": {
+            "type": null,
+            "name": "United Kingdom",
+            "disambiguation": "",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "sort-name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed"
+          },
+          "date": "2011-11-07"
+        }
+      ],
+      "country": "GB",
+      "title": "Birdy"
+    },
+    {
+      "status": "Official",
+      "id": "f73377bf-42b5-4e60-8310-f622bfac2a22",
+      "media": [
+        {
+          "position": 1,
+          "id": "2896d177-4ea3-3e66-9c3a-520c2f58635f",
+          "title": "",
+          "track-count": 18,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        },
+        {
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+          "position": 2,
+          "id": "a2f34486-d6bf-3f61-8e43-1a661f1a43f3",
+          "title": "",
+          "track-count": 20
+        },
+        {
+          "id": "8177cfce-9242-3409-b3c8-0e41774cc94c",
+          "track-count": 19,
+          "title": "",
+          "position": 3,
+          "format": "CD",
+          "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31"
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "label-info": [
+        {
+          "catalog-number": "88697937642",
+          "label": {
+            "type": "Imprint",
+            "name": "Sony Music",
+            "disambiguation": "global brand, excluding JP, owned by Sony Music Entertainment",
+            "label-code": 10746,
+            "sort-name": "Sony Music",
+            "type-id": "b6285b2a-3514-3d43-80df-fcf528824ded",
+            "id": "9e6b4d7f-4958-4db7-8504-d89e315836af"
+          }
+        }
+      ],
+      "quality": "normal",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "date": "2012-05-07",
+      "packaging": null,
+      "barcode": "886979376427",
+      "packaging-id": null,
+      "disambiguation": "",
+      "release-group": {
+        "primary-type": "Album",
+        "title": "Knuffelrock 2012 – Jubileum‐Editie",
+        "disambiguation": "",
+        "artist-credit": [
+          {
+            "artist": {
+              "name": "Various Artists",
+              "type": "Other",
+              "disambiguation": "add compilations to this artist",
+              "type-id": "ac897045-5043-3294-969b-187360e45d86",
+              "sort-name": "Various Artists",
+              "country": null,
+              "id": "89ad4ac3-39f7-470e-963a-56509c546377"
+            },
+            "joinphrase": "",
+            "name": "Various Artists"
+          }
+        ],
+        "first-release-date": "2012-05-07",
+        "secondary-types": [
+          "Compilation"
+        ],
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "id": "d50a1d97-8df6-40e0-9b40-3f05904f682d",
+        "secondary-type-ids": [
+          "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+        ]
+      },
+      "artist-credit": [
+        {
+          "name": "Various Artists",
+          "joinphrase": "",
+          "artist": {
+            "type-id": "ac897045-5043-3294-969b-187360e45d86",
+            "sort-name": "Various Artists",
+            "country": null,
+            "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+            "name": "Various Artists",
+            "type": "Other",
+            "disambiguation": "add compilations to this artist"
+          }
+        }
+      ],
+      "asin": null,
+      "country": "NL",
+      "release-events": [
+        {
+          "date": "2012-05-07",
+          "area": {
+            "type": null,
+            "name": "Netherlands",
+            "disambiguation": "",
+            "sort-name": "Netherlands",
+            "iso-3166-1-codes": [
+              "NL"
+            ],
+            "type-id": null,
+            "id": "ef1b7cc0-cd26-36f4-8ea0-04d9623786c7"
+          }
+        }
+      ],
+      "cover-art-archive": {
+        "count": 2,
+        "front": true,
+        "artwork": true,
+        "back": true,
+        "darkened": false
+      },
+      "title": "Knuffelrock 2012 – Jubileum‐Editie"
+    }
+  ],
+  "release-offset": 0
+}
