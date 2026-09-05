@@ -132,12 +132,12 @@ export const SETTING_DEFINITIONS = {
 
   /* ---- the library, on both sides of the bridge ---- */
   libraryRoot: define(
-    z.string().min(1),
+    z.string(),
     "",
     "Library root as this process sees it. Empty means: take MM_LIBRARY_ROOT.",
   ),
   toolboxLibraryRoot: define(
-    z.string().min(1),
+    z.string(),
     "",
     "The same directory as the toolbox container sees it. Empty means: take MM_TOOLBOX_LIBRARY_ROOT.",
   ),
