@@ -9,6 +9,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "tagmap": "bun run scripts/tagmap.ts",
     "fixtures:record": "bun run scripts/record-fixtures.ts"
   },
   "devDependencies": {
