@@ -8,6 +8,13 @@
       "when": 1788643243789,
       "tag": "0000_polite_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788649005239,
+      "tag": "0001_fast_celestials",
+      "breakpoints": true
     }
   ]
 }

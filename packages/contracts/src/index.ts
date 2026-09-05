@@ -6,9 +6,27 @@
  *  - `toolbox/`, generated from the toolbox's OpenAPI document by `bun run toolbox:openapi`.
  *    Never edit `toolbox/` by hand.
  *
- * P00 ships only the shape shared by every `/health` endpoint in the system.
+ * P00 shipped the `/health` shapes; P03 adds the typed error that crosses the TS↔Python
+ * bridge and the job event the SSE stream carries to the browser.
  */
 import { z } from "zod";
+
+export {
+  isRetryable,
+  MM_ERROR_CODES,
+  MMError,
+  mmErrorBodySchema,
+  type MMErrorBody,
+  type MMErrorCode,
+} from "./errors.ts";
+export {
+  JOB_EVENT_TYPES,
+  jobEventSchema,
+  STEP_NAMES,
+  stepNameSchema,
+  type JobEventPayload,
+  type StepName,
+} from "./events.ts";
 
 /** Every service in the stack answers `GET /health` with at least `{ ok: boolean }`. */
 export const healthSchema = z.object({
