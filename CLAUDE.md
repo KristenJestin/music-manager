@@ -107,23 +107,23 @@ must still pass.
 Pillow and ytmusicapi. It has no database, no business logic and no memory between requests
 except one thing: **the single download slot**.
 
-| Route                              | What it does                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| `GET /health`                      | versions of the four binaries, fixtures mode, whether a download is running |
-| `POST /extract`                    | resolve a URL to entries, no download                                    |
-| `POST /download`                   | NDJSON `progress` / `postprocess` / `done` / `error`; **409 `LOCKED`** if one is already running |
-| `POST /probe`                      | ffprobe, including every tag present                                     |
-| `POST /fingerprint`                | fpcalc, plus AcoustID when a key is given                                |
-| `POST /tag`                        | mutagen write + readback, pictures, `.lrc` sidecar                       |
-| `POST /replaygain`                 | rsgain scan, writes `REPLAYGAIN_*` and `R128_*` (Opus)                   |
-| `POST /place`                      | atomic move into the library                                             |
-| `POST /artwork/prepare`            | crop to square, resize, JPEG                                             |
-| `POST /ytmusic/search`             | YouTube Music album playlists (`OLAK5uy_…`)                              |
-| `POST /ytdlp/update` `/selftest`   | keep the downloader alive, structured results                            |
-| `POST /cookies/test`               | parse a `cookies.txt` offline and say if it is a usable session          |
+| Route                            | What it does                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `GET /health`                    | versions of the four binaries, fixtures mode, whether a download is running                      |
+| `POST /extract`                  | resolve a URL to entries, no download                                                            |
+| `POST /download`                 | NDJSON `progress` / `postprocess` / `done` / `error`; **409 `LOCKED`** if one is already running |
+| `POST /probe`                    | ffprobe, including every tag present                                                             |
+| `POST /fingerprint`              | fpcalc, plus AcoustID when a key is given                                                        |
+| `POST /tag`                      | mutagen write + readback, pictures, `.lrc` sidecar                                               |
+| `POST /replaygain`               | rsgain scan, writes `REPLAYGAIN_*` and `R128_*` (Opus)                                           |
+| `POST /place`                    | atomic move into the library                                                                     |
+| `POST /artwork/prepare`          | crop to square, resize, JPEG                                                                     |
+| `POST /ytmusic/search`           | YouTube Music album playlists (`OLAK5uy_…`)                                                      |
+| `POST /ytdlp/update` `/selftest` | keep the downloader alive, structured results                                                    |
+| `POST /cookies/test`             | parse a `cookies.txt` offline and say if it is a usable session                                  |
 
 - **Tag keys are canonical (Vorbis) names.** `packages/domain` owns the names and hands over
-  a flat `[{key, value}]` list; the toolbox owns the *encoding* — which ID3v2.4 frame, which
+  a flat `[{key, value}]` list; the toolbox owns the _encoding_ — which ID3v2.4 frame, which
   MP4 atom, `TIPL`/`TMCL`/`UFID`/`SYLT`, `METADATA_BLOCK_PICTURE`, `----:com.apple.iTunes:*`.
   A field the target format has no slot for (the `—` cells of `docs/03-metadonnees.md` §2) is
   dropped rather than invented; `R128_*` is written on Opus only.
