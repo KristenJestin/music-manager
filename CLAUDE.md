@@ -101,6 +101,45 @@ must still pass.
   the same Chromium `agent-browser` already has installed (`executablePath`), never a
   separate Playwright browser install.
 
+## Toolbox
+
+`services/toolbox/` is a stateless FastAPI service around yt-dlp, mutagen, fpcalc, rsgain,
+Pillow and ytmusicapi. It has no database, no business logic and no memory between requests
+except one thing: **the single download slot**.
+
+| Route                              | What it does                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `GET /health`                      | versions of the four binaries, fixtures mode, whether a download is running |
+| `POST /extract`                    | resolve a URL to entries, no download                                    |
+| `POST /download`                   | NDJSON `progress` / `postprocess` / `done` / `error`; **409 `LOCKED`** if one is already running |
+| `POST /probe`                      | ffprobe, including every tag present                                     |
+| `POST /fingerprint`                | fpcalc, plus AcoustID when a key is given                                |
+| `POST /tag`                        | mutagen write + readback, pictures, `.lrc` sidecar                       |
+| `POST /replaygain`                 | rsgain scan, writes `REPLAYGAIN_*` and `R128_*` (Opus)                   |
+| `POST /place`                      | atomic move into the library                                             |
+| `POST /artwork/prepare`            | crop to square, resize, JPEG                                             |
+| `POST /ytmusic/search`             | YouTube Music album playlists (`OLAK5uy_…`)                              |
+| `POST /ytdlp/update` `/selftest`   | keep the downloader alive, structured results                            |
+| `POST /cookies/test`               | parse a `cookies.txt` offline and say if it is a usable session          |
+
+- **Tag keys are canonical (Vorbis) names.** `packages/domain` owns the names and hands over
+  a flat `[{key, value}]` list; the toolbox owns the *encoding* — which ID3v2.4 frame, which
+  MP4 atom, `TIPL`/`TMCL`/`UFID`/`SYLT`, `METADATA_BLOCK_PICTURE`, `----:com.apple.iTunes:*`.
+  A field the target format has no slot for (the `—` cells of `docs/03-metadonnees.md` §2) is
+  dropped rather than invented; `R128_*` is written on Opus only.
+- **Errors** are `{code, message, hint, action}` from `errors.py`, on HTTP bodies and inside
+  NDJSON `error` events alike. The codes and hints are the Console's error decoder.
+- **Fixtures mode** (`MM_TOOLBOX_FIXTURES=1`) answers every endpoint from
+  `src/toolbox/fixtures/data/`: `fixture://discovery` (15 videos for 14 tracks),
+  `fixture://skinny-love`, `fixture://currents`, and `fixture://discovery?fp=mismatch` for a
+  fingerprint disagreement. `#n` selects one entry. `/download` copies a bundled five-second
+  Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it.
+- **Environment**: `MM_TOOLBOX_TOKEN` (bearer, empty = off), `MM_TOOLBOX_FIXTURES`,
+  `MM_YTDLP_AUTOUPDATE`, `MM_ACOUSTID_KEY`, `MM_LIBRARY_ROOT`, `MM_TOOLBOX_FIXTURE_DELAY_MS`.
+- **Tests**: `uv run pytest` is offline and needs no binaries — the ones that do skip
+  themselves. `pytest -m conformance` needs `docker compose up -d navidrome` and is the
+  proof that what we write is what Navidrome reads (`docs/03-metadonnees.md` §7).
+
 ## Machine setup
 
 - **Bun** is the runtime and package manager for all TypeScript. Node is not required.
