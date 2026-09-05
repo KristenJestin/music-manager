@@ -52,6 +52,12 @@ services:
       # Empty means "no authentication", which is the default in development.
       MM_TOOLBOX_TOKEN: ${MM_TOOLBOX_TOKEN:-}
       MM_TOOLBOX_FIXTURES: ${MM_TOOLBOX_FIXTURES:-0}
+      # Refresh yt-dlp at start-up. Off by default so `compose up` stays offline-friendly.
+      MM_YTDLP_AUTOUPDATE: ${MM_YTDLP_AUTOUPDATE:-0}
+      # Pace of the fixture download, in milliseconds per slice. Raise it for a demo.
+      MM_TOOLBOX_FIXTURE_DELAY_MS: ${MM_TOOLBOX_FIXTURE_DELAY_MS:-20}
+      # AcoustID key for /fingerprint. Without it the fingerprint is still computed.
+      MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
     ports:
       - "8100:8100"
     volumes:

@@ -40,6 +40,9 @@ RUN set -eux; \
 # uv is pinned so the image is reproducible.
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /usr/local/bin/uv
 
+COPY docker/toolbox-entrypoint.sh /usr/local/bin/toolbox-entrypoint.sh
+RUN chmod +x /usr/local/bin/toolbox-entrypoint.sh
+
 WORKDIR /app
 
 # Dependencies first: this layer only changes when the lockfile changes.
@@ -49,16 +52,26 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY services/toolbox/src ./src
 RUN uv sync --frozen --no-dev
 
-# The service is stateless; /library is the only thing it writes to.
+# yt-dlp is the one dependency that goes stale in days rather than months, so the image is
+# built with the newest release rather than the locked one. Pass --build-arg YTDLP_UPDATE=0
+# for a build that depends on nothing but the lockfile.
+ARG YTDLP_UPDATE=1
+RUN if [ "$YTDLP_UPDATE" = "1" ]; then uv pip install --no-cache --upgrade yt-dlp; fi \
+    && python -c "import yt_dlp.version as v; print('yt-dlp', v.__version__)"
+
+# The service is stateless; /library is the only thing it writes to. The virtualenv belongs
+# to the service user so that MM_YTDLP_AUTOUPDATE=1 can refresh yt-dlp at start-up.
 RUN useradd --create-home --uid 10001 toolbox \
     && mkdir -p /library \
-    && chown -R toolbox:toolbox /library /app
+    && chown -R toolbox:toolbox /library /app /opt/venv
 
 USER toolbox
+ENV UV_CACHE_DIR=/tmp/uv-cache
 VOLUME ["/library"]
 EXPOSE 8100
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
     CMD python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8100/health', timeout=3)"
 
+ENTRYPOINT ["/usr/local/bin/toolbox-entrypoint.sh"]
 CMD ["uvicorn", "toolbox.app:app", "--host", "0.0.0.0", "--port", "8100"]
