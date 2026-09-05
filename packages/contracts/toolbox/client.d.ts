@@ -4,6 +4,106 @@
  */
 
 export interface paths {
+    "/artwork/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prepare Artwork
+         * @description Crop to square, resize and re-encode a cover as JPEG.
+         */
+        post: operations["prepareArtwork"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cookies/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Cookies
+         * @description Parse a cookies.txt offline and report whether it is a usable YouTube session.
+         */
+        post: operations["testCookies"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Download
+         * @description Download one file, streaming NDJSON events. A second concurrent call gets 409 LOCKED.
+         */
+        post: operations["download"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract
+         * @description Resolve a URL to its entries without downloading anything.
+         */
+        post: operations["extract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fingerprint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fingerprint
+         * @description Chromaprint fingerprint, plus AcoustID candidates when a key is available.
+         */
+        post: operations["fingerprint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -13,7 +113,7 @@ export interface paths {
         };
         /**
          * Health
-         * @description Report liveness and which media tools this image actually carries.
+         * @description Report liveness, the download slot, and which media tools this image actually carries.
          */
         get: operations["health"];
         put?: never;
@@ -24,20 +124,668 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/place": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Place
+         * @description Move a file into the library, atomically, creating the folders it needs.
+         */
+        post: operations["place"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/probe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Probe
+         * @description Everything ffprobe knows about a file, including every tag present.
+         */
+        post: operations["probe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/replaygain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replaygain
+         * @description Scan with rsgain and write REPLAYGAIN_* (and R128_* on Opus).
+         */
+        post: operations["replaygain"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tag
+         * @description Write already-projected key/value pairs, pictures and lyrics, then read them back.
+         */
+        post: operations["tag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ytdlp/selftest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Selftest Ytdlp
+         * @description Prove the downloader works: module, binaries, and optionally a real extraction.
+         */
+        post: operations["selftestYtDlp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ytdlp/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Ytdlp
+         * @description Upgrade yt-dlp in place and report what changed.
+         */
+        post: operations["updateYtDlp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ytmusic/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Ytmusic
+         * @description Find the YouTube Music album playlist (`OLAK5uy_…`) or video behind a release.
+         */
+        post: operations["searchYtMusic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ArtworkRequest */
+        ArtworkRequest: {
+            /** Path */
+            path?: string | null;
+            /**
+             * Quality
+             * @default 90
+             */
+            quality: number;
+            /**
+             * Size
+             * @default 1200
+             */
+            size: number;
+            /**
+             * Square
+             * @default true
+             */
+            square: boolean;
+            /** Url */
+            url?: string | null;
+        };
+        /** ArtworkResult */
+        ArtworkResult: {
+            /** Bytes */
+            bytes: number;
+            /** Data Base64 */
+            data_base64: string;
+            /** Height */
+            height: number;
+            /**
+             * Mime
+             * @default image/jpeg
+             * @constant
+             */
+            mime: "image/jpeg";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "url" | "path" | "fixture";
+            /** Width */
+            width: number;
+        };
+        /** CookiesTestRequest */
+        CookiesTestRequest: {
+            /**
+             * Content
+             * @description Netscape cookies.txt, inline.
+             */
+            content?: string | null;
+            /** Path */
+            path?: string | null;
+        };
+        /** CookiesTestResult */
+        CookiesTestResult: {
+            /**
+             * Authenticated
+             * @description A YouTube session cookie is present.
+             */
+            authenticated: boolean;
+            /** Cookies */
+            cookies: number;
+            /** Domains */
+            domains: string[];
+            /**
+             * Expired
+             * @default 0
+             */
+            expired: number;
+            /**
+             * Expires At
+             * @description Earliest expiry, ISO-8601 UTC.
+             */
+            expires_at?: string | null;
+            /** Ok */
+            ok: boolean;
+            /** Problems */
+            problems?: string[];
+        };
+        /** DownloadRequest */
+        DownloadRequest: {
+            /**
+             * Cookies
+             * @description Path to a Netscape cookies.txt readable by the container.
+             */
+            cookies?: string | null;
+            /** Dest Dir */
+            dest_dir: string;
+            /**
+             * Extra Args
+             * @description Raw yt-dlp options merged last. Escape hatch; prefer the named fields.
+             */
+            extra_args?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Format
+             * @default bestaudio
+             */
+            format: string;
+            /**
+             * Id
+             * @description Opaque id echoed in every event; used as the file stem.
+             */
+            id: string;
+            /**
+             * Player Client
+             * @description yt-dlp `extractor_args.youtube.player_client`, e.g. 'android' or 'web'.
+             */
+            player_client?: string | null;
+            /** Url */
+            url: string;
+        };
+        /**
+         * ErrorBody
+         * @description The JSON body of every failed request, and of the NDJSON ``error`` event.
+         */
+        ErrorBody: {
+            /** Action */
+            action: string;
+            code: components["schemas"]["ErrorCode"];
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            };
+            /** Hint */
+            hint: string;
+            /** Message */
+            message: string;
+        };
+        /**
+         * ErrorCode
+         * @description Every failure mode the toolbox knows how to name.
+         * @enum {string}
+         */
+        ErrorCode: "YTDLP_BOT_CHECK" | "YTDLP_403" | "YTDLP_FORMAT" | "YTDLP_NSIG" | "YTDLP_UNAVAILABLE" | "YTDLP_AGE" | "YTDLP_PRIVATE" | "FFMPEG_MISSING" | "TAG_WRITE_FAILED" | "PLACE_CONFLICT" | "LOCKED" | "FIXTURE_UNKNOWN" | "UNKNOWN";
+        /**
+         * ExtractEntry
+         * @description One video. `track`/`artist`/`album`/`release_year` are YouTube Music's own tags.
+         */
+        ExtractEntry: {
+            /** Album */
+            album?: string | null;
+            /** Artist */
+            artist?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Duration */
+            duration?: number | null;
+            /** Id */
+            id: string;
+            /** Index */
+            index: number;
+            /** Release Year */
+            release_year?: number | null;
+            /** Thumbnails */
+            thumbnails?: components["schemas"]["Thumbnail"][];
+            /** Title */
+            title: string;
+            /** Track */
+            track?: string | null;
+            /** Uploader */
+            uploader?: string | null;
+            /** Webpage Url */
+            webpage_url?: string | null;
+        };
+        /** ExtractRequest */
+        ExtractRequest: {
+            /**
+             * Cookies
+             * @description Path to a Netscape cookies.txt readable by the container.
+             */
+            cookies?: string | null;
+            /**
+             * Extra Args
+             * @description Raw yt-dlp options merged last. Escape hatch; prefer the named fields.
+             */
+            extra_args?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Player Client
+             * @description yt-dlp `extractor_args.youtube.player_client`, e.g. 'android' or 'web'.
+             */
+            player_client?: string | null;
+            /** Url */
+            url: string;
+        };
+        /** ExtractResult */
+        ExtractResult: {
+            /** Entries */
+            entries: components["schemas"]["ExtractEntry"][];
+            /** Id */
+            id?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "video" | "playlist";
+            /** Title */
+            title?: string | null;
+            /** Uploader */
+            uploader?: string | null;
+        };
+        /** FingerprintCandidate */
+        FingerprintCandidate: {
+            /** Artist */
+            artist?: string | null;
+            /** Recording Mbid */
+            recording_mbid: string;
+            /** Score */
+            score: number;
+            /** Title */
+            title?: string | null;
+        };
+        /** FingerprintRequest */
+        FingerprintRequest: {
+            /** Acoustid Key */
+            acoustid_key?: string | null;
+            /** Path */
+            path: string;
+        };
+        /** FingerprintResult */
+        FingerprintResult: {
+            /** Candidates */
+            candidates?: components["schemas"]["FingerprintCandidate"][] | null;
+            /** Duration */
+            duration: number;
+            /** Fingerprint */
+            fingerprint: string;
+        };
         /**
          * Health
          * @description Payload of ``GET /health``. Mirrored in `packages/contracts`.
          */
         Health: {
+            /**
+             * Downloading
+             * @description True while the single download slot is taken.
+             */
+            downloading: boolean;
             /** Fixtures */
             fixtures: boolean;
             /** Ok */
             ok: boolean;
             versions: components["schemas"]["ToolVersions"];
+        };
+        /**
+         * OnExists
+         * @description What to do when the destination is already taken.
+         * @enum {string}
+         */
+        OnExists: "skip" | "overwrite" | "keep_both";
+        /** Picture */
+        Picture: {
+            /** Data Base64 */
+            data_base64: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Mime
+             * @default image/jpeg
+             */
+            mime: string;
+            /**
+             * Type
+             * @description ID3/FLAC picture type: 3 front cover, 4 back.
+             * @default 3
+             */
+            type: number;
+        };
+        /** PlaceRequest */
+        PlaceRequest: {
+            /** Dest */
+            dest: string;
+            /** @description Omit to make a pre-existing destination a PLACE_CONFLICT error. */
+            on_exists?: components["schemas"]["OnExists"] | null;
+            /** Src */
+            src: string;
+        };
+        /** PlaceResult */
+        PlaceResult: {
+            /**
+             * Moved
+             * @description False when `skip` left an existing file alone.
+             */
+            moved: boolean;
+            on_exists?: components["schemas"]["OnExists"] | null;
+            /** Path */
+            path: string;
+            /** Size */
+            size: number;
+        };
+        /** ProbeRequest */
+        ProbeRequest: {
+            /** Path */
+            path: string;
+        };
+        /** ProbeResult */
+        ProbeResult: {
+            /** Bit Rate */
+            bit_rate?: number | null;
+            /** Channels */
+            channels?: number | null;
+            /** Codec */
+            codec?: string | null;
+            /** Duration */
+            duration?: number | null;
+            /** Format Name */
+            format_name?: string | null;
+            /**
+             * Has Picture
+             * @default false
+             */
+            has_picture: boolean;
+            /** Path */
+            path: string;
+            /** Sample Rate */
+            sample_rate?: number | null;
+            /** Size */
+            size: number;
+            /** Streams */
+            streams?: components["schemas"]["ProbeStream"][];
+            /**
+             * Tags
+             * @description Every tag ffprobe reports, container and stream level, keys upper-cased.
+             */
+            tags?: {
+                [key: string]: string;
+            };
+        };
+        /** ProbeStream */
+        ProbeStream: {
+            /** Bit Rate */
+            bit_rate?: number | null;
+            /** Channels */
+            channels?: number | null;
+            /** Codec Name */
+            codec_name?: string | null;
+            /** Codec Type */
+            codec_type?: string | null;
+            /** Index */
+            index: number;
+            /** Sample Rate */
+            sample_rate?: number | null;
+        };
+        /** ReplayGainFile */
+        ReplayGainFile: {
+            /**
+             * Clipping Adjustment
+             * @default false
+             */
+            clipping_adjustment: boolean;
+            /** Gain */
+            gain: number;
+            /** Loudness */
+            loudness?: number | null;
+            /** Path */
+            path: string;
+            /** Peak */
+            peak: number;
+            /** Peak Db */
+            peak_db?: number | null;
+            /** Range */
+            range?: number | null;
+        };
+        /** ReplayGainRequest */
+        ReplayGainRequest: {
+            /**
+             * Album
+             * @default true
+             */
+            album: boolean;
+            /** Files */
+            files: string[];
+            /**
+             * Reference Loudness
+             * @description LUFS target, rsgain's `-l`.
+             * @default -18
+             */
+            reference_loudness: number;
+            /**
+             * Write
+             * @description Write the tags, not just report the gains.
+             * @default true
+             */
+            write: boolean;
+        };
+        /** ReplayGainResult */
+        ReplayGainResult: {
+            album?: components["schemas"]["ReplayGainFile"] | null;
+            /** Files */
+            files: components["schemas"]["ReplayGainFile"][];
+            /**
+             * R128
+             * @description True when R128_* tags were written (Opus targets).
+             */
+            r128: boolean;
+            /** Reference Loudness */
+            reference_loudness: number;
+            /** Written */
+            written: boolean;
+        };
+        /** SelfTestCheck */
+        SelfTestCheck: {
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /** Name */
+            name: string;
+            /** Ok */
+            ok: boolean;
+        };
+        /** SelfTestRequest */
+        SelfTestRequest: {
+            /**
+             * Network
+             * @description Also hit YouTube. Never enabled in tests or fixtures mode.
+             * @default false
+             */
+            network: boolean;
+            /** Url */
+            url?: string | null;
+        };
+        /** SelfTestResult */
+        SelfTestResult: {
+            /** Checks */
+            checks: components["schemas"]["SelfTestCheck"][];
+            /** Ok */
+            ok: boolean;
+            /** Version */
+            version: string | null;
+        };
+        /**
+         * Tag
+         * @description One key/value pair, already projected by `packages/domain`.
+         *
+         *     Keys are the canonical (Vorbis) names of the Picard table; the toolbox maps them onto
+         *     ID3v2.4 frames and MP4 atoms mechanically. Repeat a key to write a multi-valued tag.
+         */
+        Tag: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * TagFormat
+         * @description Which tag block to write. ``auto`` picks from the file extension.
+         * @enum {string}
+         */
+        TagFormat: "auto" | "vorbis" | "id3" | "mp4";
+        /** TagRequest */
+        TagRequest: {
+            /**
+             * Clear
+             * @description Drop every existing tag first.
+             * @default false
+             */
+            clear: boolean;
+            /** @default auto */
+            format: components["schemas"]["TagFormat"];
+            /**
+             * Lyrics Lrc
+             * @description Synchronised lyrics in LRC form; also written unsynced.
+             */
+            lyrics_lrc?: string | null;
+            /** Path */
+            path: string;
+            /** Pictures */
+            pictures?: components["schemas"]["Picture"][];
+            /**
+             * Sidecar Lrc
+             * @description Also write `<stem>.lrc` next to it.
+             * @default false
+             */
+            sidecar_lrc: boolean;
+            /** Tags */
+            tags?: components["schemas"]["Tag"][];
+        };
+        /** TagResult */
+        TagResult: {
+            format: components["schemas"]["TagFormat"];
+            /** Path */
+            path: string;
+            /** Pictures */
+            pictures: number;
+            /**
+             * Readback
+             * @description The tag block read back from disk after writing, in canonical keys.
+             */
+            readback: {
+                [key: string]: string[];
+            };
+            /** Sidecar Path */
+            sidecar_path?: string | null;
+            /** Size */
+            size: number;
+            /**
+             * Written
+             * @description Number of key/value pairs written.
+             */
+            written: number;
+        };
+        /** Thumbnail */
+        Thumbnail: {
+            /** Height */
+            height?: number | null;
+            /** Url */
+            url: string;
+            /** Width */
+            width?: number | null;
         };
         /**
          * ToolVersions
@@ -53,6 +801,79 @@ export interface components {
             /** Yt-Dlp */
             "yt-dlp": string | null;
         };
+        /** UpdateResult */
+        UpdateResult: {
+            /** Changed */
+            changed: boolean;
+            /** Current */
+            current?: string | null;
+            /**
+             * Method
+             * @default skipped
+             * @enum {string}
+             */
+            method: "uv" | "pip" | "skipped";
+            /** Ok */
+            ok: boolean;
+            /**
+             * Output
+             * @default
+             */
+            output: string;
+            /** Previous */
+            previous?: string | null;
+        };
+        /** YtMusicCandidate */
+        YtMusicCandidate: {
+            /** Album */
+            album?: string | null;
+            /** Artist */
+            artist?: string | null;
+            /** Browse Id */
+            browse_id?: string | null;
+            /** Duration */
+            duration?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "album" | "song" | "video";
+            /** Playlist Id */
+            playlist_id?: string | null;
+            /** Thumbnails */
+            thumbnails?: components["schemas"]["Thumbnail"][];
+            /** Title */
+            title: string;
+            /** Track Count */
+            track_count?: number | null;
+            /** Url */
+            url?: string | null;
+            /** Video Id */
+            video_id?: string | null;
+            /** Year */
+            year?: number | null;
+        };
+        /** YtMusicSearchRequest */
+        YtMusicSearchRequest: {
+            /** Album */
+            album?: string | null;
+            /** Artist */
+            artist: string;
+            /**
+             * Limit
+             * @default 10
+             */
+            limit: number;
+            /** Title */
+            title?: string | null;
+        };
+        /** YtMusicSearchResult */
+        YtMusicSearchResult: {
+            /** Candidates */
+            candidates: components["schemas"]["YtMusicCandidate"][];
+            /** Query */
+            query: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -62,6 +883,217 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    prepareArtwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArtworkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtworkResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    testCookies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookiesTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookiesTestResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DownloadRequest"];
+            };
+        };
+        responses: {
+            /** @description NDJSON stream of progress / postprocess / done / error events. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/x-ndjson": unknown;
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    extract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    fingerprint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FingerprintRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FingerprintResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -78,6 +1110,296 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    place: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    probe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProbeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    replaygain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplayGainRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplayGainResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    selftestYtDlp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SelfTestRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelfTestResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    updateYtDlp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    searchYtMusic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["YtMusicSearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YtMusicSearchResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

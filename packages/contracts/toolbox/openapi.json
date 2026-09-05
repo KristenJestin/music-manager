@@ -1,9 +1,623 @@
 {
   "components": {
     "schemas": {
+      "ArtworkRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "quality": {
+            "default": 90,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Quality",
+            "type": "integer"
+          },
+          "size": {
+            "default": 1200,
+            "maximum": 4000,
+            "minimum": 16,
+            "title": "Size",
+            "type": "integer"
+          },
+          "square": {
+            "default": true,
+            "title": "Square",
+            "type": "boolean"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "title": "ArtworkRequest",
+        "type": "object"
+      },
+      "ArtworkResult": {
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "data_base64": {
+            "title": "Data Base64",
+            "type": "string"
+          },
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "mime": {
+            "const": "image/jpeg",
+            "default": "image/jpeg",
+            "title": "Mime",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "url",
+              "path",
+              "fixture"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "bytes",
+          "data_base64",
+          "source"
+        ],
+        "title": "ArtworkResult",
+        "type": "object"
+      },
+      "CookiesTestRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Netscape cookies.txt, inline.",
+            "title": "Content"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          }
+        },
+        "title": "CookiesTestRequest",
+        "type": "object"
+      },
+      "CookiesTestResult": {
+        "properties": {
+          "authenticated": {
+            "description": "A YouTube session cookie is present.",
+            "title": "Authenticated",
+            "type": "boolean"
+          },
+          "cookies": {
+            "title": "Cookies",
+            "type": "integer"
+          },
+          "domains": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Domains",
+            "type": "array"
+          },
+          "expired": {
+            "default": 0,
+            "title": "Expired",
+            "type": "integer"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Earliest expiry, ISO-8601 UTC.",
+            "title": "Expires At"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ok",
+          "cookies",
+          "domains",
+          "authenticated"
+        ],
+        "title": "CookiesTestResult",
+        "type": "object"
+      },
+      "DownloadRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Path to a Netscape cookies.txt readable by the container.",
+            "title": "Cookies"
+          },
+          "dest_dir": {
+            "title": "Dest Dir",
+            "type": "string"
+          },
+          "extra_args": {
+            "additionalProperties": true,
+            "description": "Raw yt-dlp options merged last. Escape hatch; prefer the named fields.",
+            "title": "Extra Args",
+            "type": "object"
+          },
+          "format": {
+            "default": "bestaudio",
+            "title": "Format",
+            "type": "string"
+          },
+          "id": {
+            "description": "Opaque id echoed in every event; used as the file stem.",
+            "title": "Id",
+            "type": "string"
+          },
+          "player_client": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "yt-dlp `extractor_args.youtube.player_client`, e.g. 'android' or 'web'.",
+            "title": "Player Client"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "dest_dir",
+          "id"
+        ],
+        "title": "DownloadRequest",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "description": "The JSON body of every failed request, and of the NDJSON ``error`` event.",
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "hint": {
+            "title": "Hint",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint",
+          "action"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "Every failure mode the toolbox knows how to name.",
+        "enum": [
+          "YTDLP_BOT_CHECK",
+          "YTDLP_403",
+          "YTDLP_FORMAT",
+          "YTDLP_NSIG",
+          "YTDLP_UNAVAILABLE",
+          "YTDLP_AGE",
+          "YTDLP_PRIVATE",
+          "FFMPEG_MISSING",
+          "TAG_WRITE_FAILED",
+          "PLACE_CONFLICT",
+          "LOCKED",
+          "FIXTURE_UNKNOWN",
+          "UNKNOWN"
+        ],
+        "title": "ErrorCode",
+        "type": "string"
+      },
+      "ExtractEntry": {
+        "description": "One video. `track`/`artist`/`album`/`release_year` are YouTube Music's own tags.",
+        "properties": {
+          "album": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Album"
+          },
+          "artist": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "release_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release Year"
+          },
+          "thumbnails": {
+            "items": {
+              "$ref": "#/components/schemas/Thumbnail"
+            },
+            "title": "Thumbnails",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "track": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Track"
+          },
+          "uploader": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploader"
+          },
+          "webpage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webpage Url"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "index"
+        ],
+        "title": "ExtractEntry",
+        "type": "object"
+      },
+      "ExtractRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Path to a Netscape cookies.txt readable by the container.",
+            "title": "Cookies"
+          },
+          "extra_args": {
+            "additionalProperties": true,
+            "description": "Raw yt-dlp options merged last. Escape hatch; prefer the named fields.",
+            "title": "Extra Args",
+            "type": "object"
+          },
+          "player_client": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "yt-dlp `extractor_args.youtube.player_client`, e.g. 'android' or 'web'.",
+            "title": "Player Client"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "ExtractRequest",
+        "type": "object"
+      },
+      "ExtractResult": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "kind": {
+            "enum": [
+              "video",
+              "playlist"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "uploader": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploader"
+          }
+        },
+        "required": [
+          "kind",
+          "entries"
+        ],
+        "title": "ExtractResult",
+        "type": "object"
+      },
+      "FingerprintCandidate": {
+        "properties": {
+          "artist": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist"
+          },
+          "recording_mbid": {
+            "title": "Recording Mbid",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "recording_mbid",
+          "score"
+        ],
+        "title": "FingerprintCandidate",
+        "type": "object"
+      },
+      "FingerprintRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acoustid_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acoustid Key"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FingerprintRequest",
+        "type": "object"
+      },
+      "FingerprintResult": {
+        "properties": {
+          "candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FingerprintCandidate"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidates"
+          },
+          "duration": {
+            "title": "Duration",
+            "type": "number"
+          },
+          "fingerprint": {
+            "title": "Fingerprint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fingerprint",
+          "duration"
+        ],
+        "title": "FingerprintResult",
+        "type": "object"
+      },
       "Health": {
         "description": "Payload of ``GET /health``. Mirrored in `packages/contracts`.",
         "properties": {
+          "downloading": {
+            "description": "True while the single download slot is taken.",
+            "title": "Downloading",
+            "type": "boolean"
+          },
           "fixtures": {
             "title": "Fixtures",
             "type": "boolean"
@@ -19,9 +633,696 @@
         "required": [
           "ok",
           "fixtures",
+          "downloading",
           "versions"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "OnExists": {
+        "description": "What to do when the destination is already taken.",
+        "enum": [
+          "skip",
+          "overwrite",
+          "keep_both"
+        ],
+        "title": "OnExists",
+        "type": "string"
+      },
+      "Picture": {
+        "additionalProperties": false,
+        "properties": {
+          "data_base64": {
+            "title": "Data Base64",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "mime": {
+            "default": "image/jpeg",
+            "title": "Mime",
+            "type": "string"
+          },
+          "type": {
+            "default": 3,
+            "description": "ID3/FLAC picture type: 3 front cover, 4 back.",
+            "title": "Type",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data_base64"
+        ],
+        "title": "Picture",
+        "type": "object"
+      },
+      "PlaceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "dest": {
+            "title": "Dest",
+            "type": "string"
+          },
+          "on_exists": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OnExists"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Omit to make a pre-existing destination a PLACE_CONFLICT error."
+          },
+          "src": {
+            "title": "Src",
+            "type": "string"
+          }
+        },
+        "required": [
+          "src",
+          "dest"
+        ],
+        "title": "PlaceRequest",
+        "type": "object"
+      },
+      "PlaceResult": {
+        "properties": {
+          "moved": {
+            "description": "False when `skip` left an existing file alone.",
+            "title": "Moved",
+            "type": "boolean"
+          },
+          "on_exists": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OnExists"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "moved",
+          "size"
+        ],
+        "title": "PlaceResult",
+        "type": "object"
+      },
+      "ProbeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ProbeRequest",
+        "type": "object"
+      },
+      "ProbeResult": {
+        "properties": {
+          "bit_rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bit Rate"
+          },
+          "channels": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channels"
+          },
+          "codec": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codec"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "format_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format Name"
+          },
+          "has_picture": {
+            "default": false,
+            "title": "Has Picture",
+            "type": "boolean"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "sample_rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Rate"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "streams": {
+            "items": {
+              "$ref": "#/components/schemas/ProbeStream"
+            },
+            "title": "Streams",
+            "type": "array"
+          },
+          "tags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Every tag ffprobe reports, container and stream level, keys upper-cased.",
+            "title": "Tags",
+            "type": "object"
+          }
+        },
+        "required": [
+          "path",
+          "size"
+        ],
+        "title": "ProbeResult",
+        "type": "object"
+      },
+      "ProbeStream": {
+        "properties": {
+          "bit_rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bit Rate"
+          },
+          "channels": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channels"
+          },
+          "codec_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codec Name"
+          },
+          "codec_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codec Type"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "sample_rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Rate"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "ProbeStream",
+        "type": "object"
+      },
+      "ReplayGainFile": {
+        "properties": {
+          "clipping_adjustment": {
+            "default": false,
+            "title": "Clipping Adjustment",
+            "type": "boolean"
+          },
+          "gain": {
+            "title": "Gain",
+            "type": "number"
+          },
+          "loudness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loudness"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "peak": {
+            "title": "Peak",
+            "type": "number"
+          },
+          "peak_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peak Db"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range"
+          }
+        },
+        "required": [
+          "path",
+          "gain",
+          "peak"
+        ],
+        "title": "ReplayGainFile",
+        "type": "object"
+      },
+      "ReplayGainRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "album": {
+            "default": true,
+            "title": "Album",
+            "type": "boolean"
+          },
+          "files": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Files",
+            "type": "array"
+          },
+          "reference_loudness": {
+            "default": -18,
+            "description": "LUFS target, rsgain's `-l`.",
+            "title": "Reference Loudness",
+            "type": "number"
+          },
+          "write": {
+            "default": true,
+            "description": "Write the tags, not just report the gains.",
+            "title": "Write",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "ReplayGainRequest",
+        "type": "object"
+      },
+      "ReplayGainResult": {
+        "properties": {
+          "album": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReplayGainFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayGainFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "r128": {
+            "description": "True when R128_* tags were written (Opus targets).",
+            "title": "R128",
+            "type": "boolean"
+          },
+          "reference_loudness": {
+            "title": "Reference Loudness",
+            "type": "number"
+          },
+          "written": {
+            "title": "Written",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "files",
+          "reference_loudness",
+          "written",
+          "r128"
+        ],
+        "title": "ReplayGainResult",
+        "type": "object"
+      },
+      "SelfTestCheck": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "ok"
+        ],
+        "title": "SelfTestCheck",
+        "type": "object"
+      },
+      "SelfTestRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "network": {
+            "default": false,
+            "description": "Also hit YouTube. Never enabled in tests or fixtures mode.",
+            "title": "Network",
+            "type": "boolean"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "title": "SelfTestRequest",
+        "type": "object"
+      },
+      "SelfTestResult": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/SelfTestCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "ok",
+          "version",
+          "checks"
+        ],
+        "title": "SelfTestResult",
+        "type": "object"
+      },
+      "Tag": {
+        "additionalProperties": false,
+        "description": "One key/value pair, already projected by `packages/domain`.\n\nKeys are the canonical (Vorbis) names of the Picard table; the toolbox maps them onto\nID3v2.4 frames and MP4 atoms mechanically. Repeat a key to write a multi-valued tag.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "Tag",
+        "type": "object"
+      },
+      "TagFormat": {
+        "description": "Which tag block to write. ``auto`` picks from the file extension.",
+        "enum": [
+          "auto",
+          "vorbis",
+          "id3",
+          "mp4"
+        ],
+        "title": "TagFormat",
+        "type": "string"
+      },
+      "TagRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "clear": {
+            "default": false,
+            "description": "Drop every existing tag first.",
+            "title": "Clear",
+            "type": "boolean"
+          },
+          "format": {
+            "$ref": "#/components/schemas/TagFormat",
+            "default": "auto"
+          },
+          "lyrics_lrc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Synchronised lyrics in LRC form; also written unsynced.",
+            "title": "Lyrics Lrc"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "pictures": {
+            "items": {
+              "$ref": "#/components/schemas/Picture"
+            },
+            "title": "Pictures",
+            "type": "array"
+          },
+          "sidecar_lrc": {
+            "default": false,
+            "description": "Also write `<stem>.lrc` next to it.",
+            "title": "Sidecar Lrc",
+            "type": "boolean"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "TagRequest",
+        "type": "object"
+      },
+      "TagResult": {
+        "properties": {
+          "format": {
+            "$ref": "#/components/schemas/TagFormat"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "pictures": {
+            "title": "Pictures",
+            "type": "integer"
+          },
+          "readback": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "The tag block read back from disk after writing, in canonical keys.",
+            "title": "Readback",
+            "type": "object"
+          },
+          "sidecar_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sidecar Path"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "written": {
+            "description": "Number of key/value pairs written.",
+            "title": "Written",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "format",
+          "written",
+          "pictures",
+          "size",
+          "readback"
+        ],
+        "title": "TagResult",
+        "type": "object"
+      },
+      "Thumbnail": {
+        "properties": {
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "Thumbnail",
         "type": "object"
       },
       "ToolVersions": {
@@ -80,6 +1381,254 @@
         ],
         "title": "ToolVersions",
         "type": "object"
+      },
+      "UpdateResult": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "method": {
+            "default": "skipped",
+            "enum": [
+              "uv",
+              "pip",
+              "skipped"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "output": {
+            "default": "",
+            "title": "Output",
+            "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous"
+          }
+        },
+        "required": [
+          "ok",
+          "changed"
+        ],
+        "title": "UpdateResult",
+        "type": "object"
+      },
+      "YtMusicCandidate": {
+        "properties": {
+          "album": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Album"
+          },
+          "artist": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist"
+          },
+          "browse_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browse Id"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "kind": {
+            "enum": [
+              "album",
+              "song",
+              "video"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "playlist_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Playlist Id"
+          },
+          "thumbnails": {
+            "items": {
+              "$ref": "#/components/schemas/Thumbnail"
+            },
+            "title": "Thumbnails",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "track_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Track Count"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "video_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Id"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ],
+        "title": "YtMusicCandidate",
+        "type": "object"
+      },
+      "YtMusicSearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "album": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Album"
+          },
+          "artist": {
+            "title": "Artist",
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "artist"
+        ],
+        "title": "YtMusicSearchRequest",
+        "type": "object"
+      },
+      "YtMusicSearchResult": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/YtMusicCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "candidates"
+        ],
+        "title": "YtMusicSearchResult",
+        "type": "object"
       }
     }
   },
@@ -90,9 +1639,268 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/artwork/prepare": {
+      "post": {
+        "description": "Crop to square, resize and re-encode a cover as JPEG.",
+        "operationId": "prepareArtwork",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArtworkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtworkResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Prepare Artwork",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/cookies/test": {
+      "post": {
+        "description": "Parse a cookies.txt offline and report whether it is a usable YouTube session.",
+        "operationId": "testCookies",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CookiesTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CookiesTestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Test Cookies",
+        "tags": [
+          "maintenance"
+        ]
+      }
+    },
+    "/download": {
+      "post": {
+        "description": "Download one file, streaming NDJSON events. A second concurrent call gets 409 LOCKED.",
+        "operationId": "download",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DownloadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/x-ndjson": {}
+            },
+            "description": "NDJSON stream of progress / postprocess / done / error events."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Download",
+        "tags": [
+          "download"
+        ]
+      }
+    },
+    "/extract": {
+      "post": {
+        "description": "Resolve a URL to its entries without downloading anything.",
+        "operationId": "extract",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Extract",
+        "tags": [
+          "download"
+        ]
+      }
+    },
+    "/fingerprint": {
+      "post": {
+        "description": "Chromaprint fingerprint, plus AcoustID candidates when a key is available.",
+        "operationId": "fingerprint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FingerprintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FingerprintResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Fingerprint",
+        "tags": [
+          "files"
+        ]
+      }
+    },
     "/health": {
       "get": {
-        "description": "Report liveness and which media tools this image actually carries.",
+        "description": "Report liveness, the download slot, and which media tools this image actually carries.",
         "operationId": "health",
         "responses": {
           "200": {
@@ -109,6 +1917,367 @@
         "summary": "Health",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/place": {
+      "post": {
+        "description": "Move a file into the library, atomically, creating the folders it needs.",
+        "operationId": "place",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Place",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/probe": {
+      "post": {
+        "description": "Everything ffprobe knows about a file, including every tag present.",
+        "operationId": "probe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Probe",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/replaygain": {
+      "post": {
+        "description": "Scan with rsgain and write REPLAYGAIN_* (and R128_* on Opus).",
+        "operationId": "replaygain",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplayGainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayGainResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Replaygain",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/tag": {
+      "post": {
+        "description": "Write already-projected key/value pairs, pictures and lyrics, then read them back.",
+        "operationId": "tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Tag",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/ytdlp/selftest": {
+      "post": {
+        "description": "Prove the downloader works: module, binaries, and optionally a real extraction.",
+        "operationId": "selftestYtDlp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SelfTestRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelfTestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Selftest Ytdlp",
+        "tags": [
+          "maintenance"
+        ]
+      }
+    },
+    "/ytdlp/update": {
+      "post": {
+        "description": "Upgrade yt-dlp in place and report what changed.",
+        "operationId": "updateYtDlp",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Update Ytdlp",
+        "tags": [
+          "maintenance"
+        ]
+      }
+    },
+    "/ytmusic/search": {
+      "post": {
+        "description": "Find the YouTube Music album playlist (`OLAK5uy_…`) or video behind a release.",
+        "operationId": "searchYtMusic",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YtMusicSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YtMusicSearchResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Search Ytmusic",
+        "tags": [
+          "sources"
         ]
       }
     }
