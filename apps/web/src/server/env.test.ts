@@ -12,6 +12,10 @@ describe("serverEnv", () => {
       MM_TOOLBOX_URL: "http://localhost:8100",
       MM_TOOLBOX_TOKEN: "",
       MM_FIXTURES: false,
+      MM_LIBRARY_ROOT: "./.local/library",
+      MM_TOOLBOX_LIBRARY_ROOT: "/library",
+      MM_WORK_DIR: ".mm-work",
+      MM_WEB_URL: "http://localhost:3000",
     });
   });
 

@@ -1,0 +1,297 @@
+/**
+ * The bridge to the Python toolbox (`docs/06-stack.md` § Principes du pont).
+ *
+ * Two things live here and nothing else:
+ *
+ *  - a typed client over the **generated** OpenAPI contract, so a renamed field in
+ *    `services/toolbox/src/toolbox/models.py` is a TypeScript error here rather than a
+ *    surprise at runtime;
+ *  - the NDJSON reader for `POST /download`, which `openapi-fetch` cannot express because
+ *    the response is a stream of events rather than a body.
+ *
+ * Every failure leaves as an `MMError` carrying the toolbox's own `{code, message, hint,
+ * action}`, so the error decoder of the Console sees one shape whichever side broke.
+ */
+import createClient from "openapi-fetch";
+import { MMError } from "@mm/contracts";
+import type { components, paths } from "@mm/contracts/toolbox";
+import { serverEnv } from "#/server/env.ts";
+
+export type ExtractResult = components["schemas"]["ExtractResult"];
+export type ExtractEntry = components["schemas"]["ExtractEntry"];
+export type FingerprintResult = components["schemas"]["FingerprintResult"];
+export type ProbeResult = components["schemas"]["ProbeResult"];
+export type TagRequest = components["schemas"]["TagRequest"];
+export type TagResult = components["schemas"]["TagResult"];
+export type ReplayGainResult = components["schemas"]["ReplayGainResult"];
+export type PlaceResult = components["schemas"]["PlaceResult"];
+export type ArtworkResult = components["schemas"]["ArtworkResult"];
+export type ToolboxHealthResult = components["schemas"]["Health"];
+export type Tag = components["schemas"]["Tag"];
+export type Picture = components["schemas"]["Picture"];
+export type OnExists = components["schemas"]["OnExists"];
+
+/** One line of the `POST /download` NDJSON stream (`services/toolbox/.../download.py`). */
+export type DownloadEvent =
+  | {
+      event: "progress";
+      downloaded: number;
+      total: number | null;
+      speed?: number | null;
+      eta?: number | null;
+    }
+  | { event: "postprocess"; step: string }
+  | { event: "done"; path: string; format_id: string; codec: string; size: number }
+  | { event: "error"; code: string; message: string; hint?: string; action?: string };
+
+export interface ToolboxOptions {
+  readonly baseUrl?: string;
+  readonly token?: string;
+  /** Milliseconds before a non-streaming call is abandoned. */
+  readonly timeoutMs?: number;
+}
+
+export interface DownloadOptions {
+  readonly url: string;
+  /** Destination directory **as the toolbox sees it**. */
+  readonly destDir: string;
+  /** Opaque id echoed in every event and used as the file stem. */
+  readonly id: string;
+  readonly format?: string;
+  readonly signal?: AbortSignal;
+}
+
+/** A thin, typed, error-normalising wrapper. One instance per process is plenty. */
+export class ToolboxClient {
+  private readonly http: ReturnType<typeof createClient<paths>>;
+  readonly baseUrl: string;
+  private readonly token: string;
+  private readonly timeoutMs: number;
+
+  constructor(options: ToolboxOptions = {}) {
+    const env = options.baseUrl === undefined || options.token === undefined ? serverEnv() : null;
+    this.baseUrl = (options.baseUrl ?? env?.MM_TOOLBOX_URL ?? "http://localhost:8100").replace(
+      /\/+$/,
+      "",
+    );
+    this.token = options.token ?? env?.MM_TOOLBOX_TOKEN ?? "";
+    this.timeoutMs = options.timeoutMs ?? 120_000;
+    this.http = createClient<paths>({ baseUrl: this.baseUrl, headers: this.headers() });
+  }
+
+  private headers(): Record<string, string> {
+    return this.token === "" ? {} : { authorization: `Bearer ${this.token}` };
+  }
+
+  /**
+   * Unwrap an `openapi-fetch` result. The toolbox documents `4XX`/`5XX` with its own error
+   * body, so a failure is decoded rather than stringified.
+   */
+  private unwrap<T>(result: { data?: T; error?: unknown; response: Response }, what: string): T {
+    if (result.error !== undefined) {
+      const error = MMError.fromBody(result.error, `${what} failed.`);
+      throw new MMError(error.code, error.message, {
+        hint: error.hint,
+        action: error.action,
+        details: error.details,
+        status: result.response.status,
+      });
+    }
+    if (result.data === undefined) {
+      throw new MMError("UNKNOWN", `${what} returned no body (HTTP ${result.response.status}).`);
+    }
+    return result.data;
+  }
+
+  /** Wrap a transport failure — a stopped container is not a `fetch` stack trace. */
+  private async call<T>(what: string, run: () => Promise<T>): Promise<T> {
+    try {
+      return await run();
+    } catch (error) {
+      if (error instanceof MMError) throw error;
+      throw new MMError("TOOLBOX_UNREACHABLE", `The toolbox did not answer ${what}.`, {
+        hint: `Is it running? \`docker compose -f docker-compose.dev.yml up -d toolbox\` (${this.baseUrl}).`,
+        action: "Start the toolbox",
+        cause: error,
+      });
+    }
+  }
+
+  private signal(): AbortSignal {
+    return AbortSignal.timeout(this.timeoutMs);
+  }
+
+  async health(): Promise<ToolboxHealthResult> {
+    return await this.call("GET /health", async () => {
+      const result = await this.http.GET("/health", { signal: this.signal() });
+      return this.unwrap(result, "GET /health");
+    });
+  }
+
+  async extract(url: string): Promise<ExtractResult> {
+    return await this.call("POST /extract", async () => {
+      const result = await this.http.POST("/extract", {
+        body: { url },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /extract");
+    });
+  }
+
+  async probe(path: string): Promise<ProbeResult> {
+    return await this.call("POST /probe", async () => {
+      const result = await this.http.POST("/probe", { body: { path }, signal: this.signal() });
+      return this.unwrap(result, "POST /probe");
+    });
+  }
+
+  async fingerprint(path: string, acoustidKey?: string): Promise<FingerprintResult> {
+    return await this.call("POST /fingerprint", async () => {
+      const result = await this.http.POST("/fingerprint", {
+        body: { path, acoustid_key: acoustidKey ?? null },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /fingerprint");
+    });
+  }
+
+  async tag(request: TagRequest): Promise<TagResult> {
+    return await this.call("POST /tag", async () => {
+      const result = await this.http.POST("/tag", { body: request, signal: this.signal() });
+      return this.unwrap(result, "POST /tag");
+    });
+  }
+
+  async replaygain(request: {
+    files: string[];
+    album?: boolean;
+    referenceLoudness?: number;
+    write?: boolean;
+  }): Promise<ReplayGainResult> {
+    return await this.call("POST /replaygain", async () => {
+      const result = await this.http.POST("/replaygain", {
+        body: {
+          files: request.files,
+          album: request.album ?? true,
+          reference_loudness: request.referenceLoudness ?? -18,
+          write: request.write ?? true,
+        },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /replaygain");
+    });
+  }
+
+  async place(request: { src: string; dest: string; onExists?: OnExists }): Promise<PlaceResult> {
+    return await this.call("POST /place", async () => {
+      const result = await this.http.POST("/place", {
+        body: {
+          src: request.src,
+          dest: request.dest,
+          on_exists: request.onExists ?? null,
+        },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /place");
+    });
+  }
+
+  async prepareArtwork(request: {
+    url?: string;
+    path?: string;
+    size?: number;
+    square?: boolean;
+    quality?: number;
+  }): Promise<ArtworkResult> {
+    return await this.call("POST /artwork/prepare", async () => {
+      const result = await this.http.POST("/artwork/prepare", {
+        body: {
+          url: request.url ?? null,
+          path: request.path ?? null,
+          size: request.size ?? 1200,
+          square: request.square ?? true,
+          quality: request.quality ?? 90,
+        },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /artwork/prepare");
+    });
+  }
+
+  /**
+   * Stream `POST /download`, yielding one parsed event per NDJSON line.
+   *
+   * Written with `fetch` rather than the generated client on purpose: the response is an
+   * open stream, not a body, and the whole point of the endpoint is that the caller sees
+   * progress while it is still running. A `409` is decoded before the first line is read, so
+   * `LOCKED` arrives as a real error rather than as an event nobody is listening for yet.
+   */
+  async *download(options: DownloadOptions): AsyncGenerator<DownloadEvent> {
+    const response = await this.call("POST /download", async () =>
+      fetch(`${this.baseUrl}/download`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...this.headers() },
+        body: JSON.stringify({
+          url: options.url,
+          dest_dir: options.destDir,
+          id: options.id,
+          format: options.format ?? "bestaudio",
+        }),
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+      }),
+    );
+
+    if (!response.ok) {
+      throw MMError.fromBody(
+        await response.json().catch(() => null),
+        `POST /download failed with HTTP ${response.status}.`,
+      );
+    }
+    if (response.body === null) {
+      throw new MMError("UNKNOWN", "POST /download returned an empty stream.");
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let newline = buffer.indexOf("\n");
+      while (newline !== -1) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (line !== "") yield parseEvent(line);
+        newline = buffer.indexOf("\n");
+      }
+    }
+    const tail = buffer.trim();
+    if (tail !== "") yield parseEvent(tail);
+  }
+}
+
+/** A malformed line is a broken bridge, not something to guess about. */
+function parseEvent(line: string): DownloadEvent {
+  try {
+    return JSON.parse(line) as DownloadEvent;
+  } catch (error) {
+    throw new MMError(
+      "UNKNOWN",
+      `The toolbox sent a line that is not JSON: ${line.slice(0, 120)}`,
+      {
+        cause: error,
+      },
+    );
+  }
+}
+
+let cached: ToolboxClient | undefined;
+
+/** Process-wide client. Lazy, so importing this module never opens a socket. */
+export function toolbox(): ToolboxClient {
+  cached ??= new ToolboxClient();
+  return cached;
+}
+
+/** Test helper: forget the cached client (the environment may have changed). */
+export function resetToolbox(): void {
+  cached = undefined;
+}

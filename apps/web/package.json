@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run src/server/db/migrate.ts",
-    "db:reset": "bun run src/server/db/reset.ts"
+    "db:reset": "bun run src/server/db/reset.ts",
+    "worker": "bun run src/worker/index.ts",
+    "mm": "bun run bin/mm.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -32,6 +34,8 @@
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.41.0",
     "nitro": "3.0.260610-beta",
+    "openapi-fetch": "^0.17.0",
+    "pg-boss": "^12.30.0",
     "postgres": "^3.4.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -18,6 +18,30 @@ const envSchema = z.object({
     .enum(["0", "1"])
     .default("0")
     .transform((value) => value === "1"),
+
+  /**
+   * The music library, **as this process sees it**. On the developer's machine that is a
+   * Windows path; in production it is the shared volume.
+   */
+  MM_LIBRARY_ROOT: z.string().default("./.local/library"),
+
+  /**
+   * The same directory, **as the toolbox container sees it** — the other end of the bind
+   * mount of `docker-compose.dev.yml`. Every path handed to or returned by the toolbox is
+   * translated between the two (see `src/server/paths.ts`); nothing else would work when the
+   * orchestrator runs on Windows and the toolbox in Linux.
+   */
+  MM_TOOLBOX_LIBRARY_ROOT: z.string().default("/library"),
+
+  /**
+   * Where downloads land before `place` moves them. Relative to the library root so that it
+   * is inside the same bind mount, and dot-prefixed so Navidrome's scanner ignores it —
+   * which also makes `place` a rename on the same filesystem, hence genuinely atomic.
+   */
+  MM_WORK_DIR: z.string().default(".mm-work"),
+
+  /** Base URL of the web app, for the CLI's `--follow` and the E2E's SSE check. */
+  MM_WEB_URL: z.url().default("http://localhost:3000"),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;
