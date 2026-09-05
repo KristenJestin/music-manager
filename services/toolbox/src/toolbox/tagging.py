@@ -53,6 +53,8 @@ from toolbox.tagmap import (
     MP4_BOOL_ATOMS,
     MP4_INT_ATOMS,
     MP4_PAIR_ATOMS,
+    MP4_UNSUPPORTED,
+    R128_PREFIX,
     TIPL_ROLES,
     UFID_OWNER,
     freeform_name,
@@ -78,6 +80,7 @@ _ID3_CONSUMED: Final[frozenset[str]] = frozenset(
         "TOTALDISCS",
         "LYRICS",
         "PERFORMER",
+        "ORIGINALYEAR",
         *TIPL_ROLES,
     }
 )
@@ -230,6 +233,17 @@ def _read_vorbis(path: Path) -> dict[str, list[str]]:
 # --------------------------------------------------------------------------------------
 
 
+def _drop(key: str, fmt: TagFormat) -> bool:
+    """True when the target format has no slot for this canonical key.
+
+    `docs/03-metadonnees.md` §2 marks those cells with an em dash; inventing a freeform atom
+    for them would put noise in the file rather than metadata. R128 is Opus-only everywhere.
+    """
+    if key.startswith(R128_PREFIX):
+        return fmt is not TagFormat.VORBIS
+    return fmt is TagFormat.MP4 and key in MP4_UNSUPPORTED
+
+
 def _id3_pair(grouped: Grouped, number: str, total: str, alias: str) -> str | None:
     """`TRCK` / `TPOS` carry "n" or "n/total" in a single frame."""
     numbers = grouped.get(number)
@@ -252,6 +266,8 @@ def _write_id3(path: Path, request: TagRequest, grouped: Grouped) -> int:
     tmcl: list[list[str]] = []
 
     for key, values in grouped.items():
+        if _drop(key, TagFormat.ID3):
+            continue
         written += len(values)
         if key in TIPL_ROLES:
             tipl.extend([TIPL_ROLES[key], value] for value in values)
@@ -270,6 +286,12 @@ def _write_id3(path: Path, request: TagRequest, grouped: Grouped) -> int:
             written -= len(values)  # part of a compound frame, counted below
         else:
             tags.add(TXXX(encoding=Encoding.UTF8, desc=freeform_name(key), text=list(values)))
+
+    # ORIGINALDATE and ORIGINALYEAR share one frame; the fuller value wins.
+    original = grouped.get("ORIGINALDATE") or grouped.get("ORIGINALYEAR")
+    if original and "ORIGINALDATE" not in grouped:
+        tags.add(_frame_class("TDOR")(encoding=Encoding.UTF8, text=[original[0]]))
+        written += 1
 
     for frame_id, number, total, alias in (
         ("TRCK", "TRACKNUMBER", "TRACKTOTAL", "TOTALTRACKS"),
@@ -383,6 +405,8 @@ def _write_mp4(path: Path, request: TagRequest, grouped: Grouped) -> int:
 
     written = 0
     for key, values in grouped.items():
+        if _drop(key, TagFormat.MP4):
+            continue
         written += len(values)
         if key in MP4_ATOMS:
             tags[MP4_ATOMS[key]] = list(values)
@@ -393,7 +417,7 @@ def _write_mp4(path: Path, request: TagRequest, grouped: Grouped) -> int:
         elif key in _MP4_CONSUMED:
             written -= len(values)
         else:
-            tags[f"----:com.apple.iTunes:{freeform_name(key)}"] = [
+            tags[f"----:com.apple.iTunes:{freeform_name(key, target='mp4')}"] = [
                 MP4FreeForm(value.encode("utf-8"), AtomDataType.UTF8) for value in values
             ]
 

@@ -16,6 +16,7 @@ __all__ = [
     "acoustid_key",
     "autoupdate_enabled",
     "env_flag",
+    "fixture_delay_seconds",
     "fixtures_enabled",
     "library_root",
     "toolbox_token",
@@ -43,6 +44,20 @@ def fixtures_enabled() -> bool:
 def autoupdate_enabled() -> bool:
     """True when the container should refresh yt-dlp at start-up."""
     return env_flag("MM_YTDLP_AUTOUPDATE")
+
+
+def fixture_delay_seconds() -> float:
+    """How long a fixture download pauses between slices, in seconds.
+
+    Twenty milliseconds by default, which makes the offline run feel like a download without
+    slowing the tests down. `MM_TOOLBOX_FIXTURE_DELAY_MS` raises it for a demo, or for the
+    test that needs a download to still be running when a second request arrives.
+    """
+    raw = os.environ.get("MM_TOOLBOX_FIXTURE_DELAY_MS", "").strip()
+    try:
+        return max(float(raw), 0.0) / 1000.0 if raw else 0.02
+    except ValueError:
+        return 0.02
 
 
 def toolbox_token() -> str:

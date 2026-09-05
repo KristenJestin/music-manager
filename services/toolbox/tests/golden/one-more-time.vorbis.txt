@@ -1,0 +1,105 @@
+# Golden projection: Daft Punk — Discovery (2001), track 1, "One More Time", as Vorbis
+# comments on an Opus file. One `KEY=value` line per value; repeat a key for a multi-valued
+# tag, exactly as a Vorbis comment block stores it.
+#
+# This is the *superset* of docs/03-metadonnees.md §2 for a track imported from YouTube: it
+# is what the toolbox must be able to write and read back byte-for-byte. When P01 publishes
+# packages/domain/golden/discovery/01-one-more-time.vorbis.txt, the test prefers that file
+# and this one becomes the fallback.
+#
+
+
+# LYRICS holds the synchronised LRC on a single line, with \n for the line breaks.
+# METADATA_BLOCK_PICTURE lines are descriptors, not base64: the test substitutes real
+# image bytes for them, because a golden file is meant to be readable.
+
+# --- 2.1 identity and position ---
+TITLE=One More Time
+TITLESORT=One More Time
+ARTIST=Daft Punk
+ARTISTS=Daft Punk
+ARTISTSORT=Daft Punk
+ALBUM=Discovery
+ALBUMSORT=Discovery
+ALBUMARTIST=Daft Punk
+ALBUMARTISTS=Daft Punk
+ALBUMARTISTSORT=Daft Punk
+TRACKNUMBER=1
+TRACKTOTAL=14
+TOTALTRACKS=14
+DISCNUMBER=1
+DISCTOTAL=1
+TOTALDISCS=1
+
+# --- 2.2 dates and release ---
+DATE=2001-03-12
+RELEASEDATE=2001-03-12
+ORIGINALDATE=2001-03-12
+ORIGINALYEAR=2001
+RELEASETYPE=album
+RELEASESTATUS=official
+RELEASECOUNTRY=XW
+MEDIA=Digital Media
+LABEL=Virgin
+CATALOGNUMBER=7243 8 49606 2 9
+BARCODE=724384960629
+SCRIPT=Latn
+LANGUAGE=eng
+COPYRIGHT=2001 Daft Life Limited, under exclusive licence to Parlophone Records Ltd
+
+# --- 2.3 credits ---
+COMPOSER=Thomas Bangalter
+COMPOSER=Guy-Manuel de Homem-Christo
+COMPOSER=Anthony Moore
+COMPOSERSORT=Bangalter, Thomas
+COMPOSERSORT=Homem-Christo, Guy-Manuel de
+COMPOSERSORT=Moore, Anthony
+LYRICIST=Anthony Moore
+PRODUCER=Thomas Bangalter
+PRODUCER=Guy-Manuel de Homem-Christo
+ENGINEER=Guy-Manuel de Homem-Christo
+MIXER=Thomas Bangalter
+PERFORMER=Romanthony (vocals)
+PERFORMER=Thomas Bangalter (keyboard)
+PERFORMER=Guy-Manuel de Homem-Christo (keyboard)
+
+# --- 2.4 classification and work ---
+GENRE=french house
+GENRE=electronic
+GENRE=disco
+MOOD=euphoric
+WORK=One More Time
+GROUPING=Discovery
+
+# --- 2.5 identifiers ---
+MUSICBRAINZ_TRACKID=b8ba3f4e-9d1e-4a1f-9d3f-2f1a5f0c1b4a
+MUSICBRAINZ_RELEASETRACKID=1a2f7c9d-4e5b-4c6d-8f90-1234567890ab
+MUSICBRAINZ_ALBUMID=c6ea1d33-0b1c-4d54-9d1b-0a1b2c3d4e5f
+MUSICBRAINZ_RELEASEGROUPID=f4c0d67e-4a1b-4c2d-9e8f-0a1b2c3d4e60
+MUSICBRAINZ_ARTISTID=056e4f3e-d505-4dad-8ec1-d04f521cbb56
+MUSICBRAINZ_ALBUMARTISTID=056e4f3e-d505-4dad-8ec1-d04f521cbb56
+MUSICBRAINZ_WORKID=9c0a1b2c-3d4e-4f50-a1b2-c3d4e5f60718
+ISRC=GBAYE0100251
+ACOUSTID_ID=7c3a1b2d-4e5f-4061-8293-a4b5c6d7e8f9
+
+# --- 2.6 audio, provenance, replaygain ---
+BPM=123
+ITUNESADVISORY=2
+COMMENT=Source: youtu.be/eZKgoOjJmrp - imported 2026-09-06 by Music Manager 0.0.0
+ENCODEDBY=yt-dlp 2026.08.19
+ENCODERSETTINGS=libopus, format 251
+ORIGINALFILENAME=eZKgoOjJmrp.opus
+MUSICMANAGER_TAGSCHEMA=1
+MUSICMANAGER_IMPORTID=imp_discovery
+MUSICMANAGER_SOURCEURL=https://www.youtube.com/watch?v=eZKgoOjJmrp
+REPLAYGAIN_TRACK_GAIN=-8.10 dB
+REPLAYGAIN_TRACK_PEAK=0.988000
+REPLAYGAIN_ALBUM_GAIN=-7.60 dB
+REPLAYGAIN_ALBUM_PEAK=0.995000
+REPLAYGAIN_REFERENCE_LOUDNESS=-18.00 LUFS
+R128_TRACK_GAIN=-3354
+R128_ALBUM_GAIN=-3226
+
+# --- lyrics and cover ---
+LYRICS=[00:29.10]One more time\n[00:32.40]We're gonna celebrate\n[00:35.80]Oh yeah, all right\n[00:39.20]Don't stop the dancing\n[00:46.00]One more time\n[00:49.30]We're gonna celebrate\n[00:52.70]Oh yeah, all right\n[00:56.10]Don't stop the dancing\n[01:02.90]One more time
+METADATA_BLOCK_PICTURE=<front image/jpeg> http://coverartarchive.org/release/c6ea1d33-0b1c-4d54-9d1b-0a1b2c3d4e5f/front-1200.jpg

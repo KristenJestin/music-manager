@@ -26,7 +26,7 @@ from typing import Any, Final
 import structlog
 
 from toolbox import fixtures
-from toolbox.config import fixtures_enabled
+from toolbox.config import fixture_delay_seconds, fixtures_enabled
 from toolbox.errors import ToolboxError, classify_ytdlp_error
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
@@ -42,7 +42,6 @@ MEDIA_TYPE: Final[str] = "application/x-ndjson"
 _THROTTLE_SECONDS: Final[float] = 0.25
 #: Size of the slices the fixture download copies, so that progress is visible offline.
 _FIXTURE_CHUNK: Final[int] = 16 * 1024
-_FIXTURE_DELAY: Final[float] = 0.02
 
 _SENTINEL: Final[object] = object()
 
@@ -191,6 +190,7 @@ async def _fixture_events(request: DownloadRequest) -> AsyncIterator[bytes]:
     target = dest_dir / f"{request.id}.opus"
     total = source.stat().st_size
 
+    delay = fixture_delay_seconds()
     copied = 0
     partial = target.with_suffix(".opus.part")
     with source.open("rb") as reader, partial.open("wb") as writer:
@@ -205,11 +205,11 @@ async def _fixture_events(request: DownloadRequest) -> AsyncIterator[bytes]:
                     "event": "progress",
                     "downloaded": float(copied),
                     "total": float(total),
-                    "speed": float(_FIXTURE_CHUNK) / _FIXTURE_DELAY,
+                    "speed": float(_FIXTURE_CHUNK) / delay if delay else None,
                     "eta": float(total - copied) / max(float(_FIXTURE_CHUNK), 1.0),
                 }
             )
-            await asyncio.sleep(_FIXTURE_DELAY)
+            await asyncio.sleep(delay)
 
     yield _line({"event": "postprocess", "step": "FixtureCopy"})
     shutil.move(str(partial), str(target))

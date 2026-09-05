@@ -69,10 +69,13 @@ def probe(path_str: str) -> ProbeResult:
         if not isinstance(item, dict):
             continue
         stream = cast(dict[str, Any], item)
-        _tags(stream, tags)
         kind = str(stream.get("codec_type") or "")
         if kind == "video":
+            # An embedded cover is reported as a video stream carrying its own `title`
+            # ("Back cover"). Merging those would overwrite the track's real tags.
             has_picture = True
+        else:
+            _tags(stream, tags)
         if kind == "audio" and audio is None:
             audio = stream
         streams.append(

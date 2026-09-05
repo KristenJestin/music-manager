@@ -149,13 +149,29 @@ FREEFORM_NAMES: Final[dict[str, str]] = {
     "ACOUSTID_FINGERPRINT": "Acoustid Fingerprint",
 }
 
+#: Picard spells a few names differently in MP4 than in ``TXXX``. ``ARTISTS`` is the one that
+#: matters here: `TXXX:Artists` but `----:com.apple.iTunes:ARTISTS`.
+MP4_FREEFORM_OVERRIDES: Final[dict[str, str]] = {"ARTISTS": "ARTISTS"}
+
 #: The MBID of a recording travels in a ``UFID`` frame keyed by the MusicBrainz namespace.
 UFID_OWNER: Final[str] = "http://musicbrainz.org"
 
+#: R128 is defined for Opus only. Writing it into ID3 or MP4 would be noise, not metadata.
+R128_PREFIX: Final[str] = "R128_"
 
-def freeform_name(key: str) -> str:
+#: Fields with a ``—`` in the MP4 column of `docs/03-metadonnees.md` §2: the format has no
+#: slot for them, so they are dropped rather than invented as freeform atoms.
+MP4_UNSUPPORTED: Final[frozenset[str]] = frozenset(
+    {"WRITER", "ARRANGER", "PERFORMER", "WEBSITE", "ENCODEDBY", "ORIGINALFILENAME"}
+)
+
+
+def freeform_name(key: str, *, target: str = "id3") -> str:
     """Display name used by ``TXXX`` and ``----:com.apple.iTunes:`` for a canonical key."""
-    return FREEFORM_NAMES.get(key.upper(), key.upper())
+    upper = key.upper()
+    if target == "mp4" and upper in MP4_FREEFORM_OVERRIDES:
+        return MP4_FREEFORM_OVERRIDES[upper]
+    return FREEFORM_NAMES.get(upper, upper)
 
 
 def split_performer(value: str) -> tuple[str, str]:

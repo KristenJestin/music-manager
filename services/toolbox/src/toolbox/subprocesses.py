@@ -54,6 +54,10 @@ def run_tool(
             [executable, *args],
             capture_output=True,
             text=True,
+            # These tools speak UTF-8 whatever the host locale claims. Without this, a
+            # Windows console codepage turns a `℗` in a tag into a decoding crash.
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             check=False,
         )
