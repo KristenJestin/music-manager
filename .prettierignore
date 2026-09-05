@@ -10,3 +10,8 @@ apps/web/drizzle
 packages/contracts/toolbox
 services/toolbox/.venv
 services/toolbox/uv.lock
+
+# recorded source responses and golden projections — byte-identical to what
+# `bun run --cwd packages/domain fixtures:record` and MM_UPDATE_GOLDEN=1 write
+packages/domain/fixtures
+packages/domain/golden
