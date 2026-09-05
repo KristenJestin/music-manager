@@ -64,7 +64,9 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run db:migrate`                  | apply pending migrations                                                         |
 | `bun run db:reset`                    | drop and recreate schema `public`, then migrate                                  |
 | `bun run toolbox:openapi`             | regenerate `packages/contracts/toolbox/` from the FastAPI app                    |
-| `bun run e2e`                         | placeholder until P03                                                            |
+| `bun run worker`                      | the job orchestrator (pg-boss): steps, the single download slot, cron            |
+| `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`                   |
+| `bun run e2e-fixture`                 | the offline vertical slice, end to end (`bun run e2e` is an alias)               |
 | `bun run compose:up` / `compose:down` | the dev stack alone                                                              |
 
 `bun run check` must be green at the end of every phase, and the previous phases' fixture E2E
@@ -86,7 +88,18 @@ must still pass.
   Add shadcn components with `bunx shadcn@latest add <name>` rather than by hand.
 - **No network in unit tests.** Ever. Use recorded fixtures, cassettes and golden files.
 - **Fixtures mode** (`MM_FIXTURES=1`, `MM_TOOLBOX_FIXTURES=1`) must stay fully offline: it is
-  what the E2E tests and the demo run on.
+  what the E2E tests and the demo run on. Bring the stack up in that mode with the overlay:
+  `docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d postgres toolbox`.
+- **The library is named twice**, because the orchestrator and the toolbox see the same
+  directory through different paths: `MM_LIBRARY_ROOT` (this process) and
+  `MM_TOOLBOX_LIBRARY_ROOT` (inside the container). Every path crossing the bridge is
+  translated between them by `apps/web/src/server/paths.ts`, and every path stored in a row is
+  library-relative with forward slashes. Downloads land in `<library>/.mm-work/<import>/`,
+  which is inside the same mount — so `place` is a rename, hence genuinely atomic — and
+  dot-prefixed, so Navidrome's scanner ignores it.
+- **One orchestrator.** `docs/06-stack.md` fixes the concurrency at one: a single `download`
+  queue (pg-boss `singleton`, one consumer) and a toolbox that answers `409 LOCKED` to a
+  second caller. The worker clears its own queues on startup on that basis.
 - **The tag map in `packages/domain` is the only source of tag names.** The toolbox receives
   already-projected key/value pairs; it knows nothing about MusicBrainz.
 - **Drizzle is the sole owner of the schema.** Python never touches the database.
