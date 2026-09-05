@@ -17,7 +17,10 @@ import { describe, expect, it } from "vitest";
 
 import { TAGS } from "./tags.ts";
 
-const DOC = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../../docs/03-metadonnees.md");
+const DOC = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../../../docs/03-metadonnees.md",
+);
 
 /**
  * Keys the documentation writes in shorthand:
@@ -68,7 +71,10 @@ function parseDocumentedKeys(markdown: string): DocumentedKey[] {
       inTable = false;
       continue;
     }
-    const cells = line.split("|").slice(1, -1).map((cell) => cell.trim());
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
     if (cells[0] === "Champ") continue; // header
     if (cells.every((cell) => /^-+$/.test(cell))) {
       inTable = true; // the separator row: real rows follow

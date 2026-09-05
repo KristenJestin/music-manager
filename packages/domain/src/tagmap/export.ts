@@ -117,13 +117,17 @@ export function exportFormatTable(format: TagFormat): string {
   const rows = TAGS.flatMap((tag) => {
     const key = format === "vorbis" ? tag.vorbis : format === "id3v24" ? tag.id3 : tag.mp4;
     if (key === null) return [];
-    const flags = [tag.multi ? "multi" : "", tag.albumScope ? "album" : ""].filter(Boolean).join(",") || "-";
+    const flags =
+      [tag.multi ? "multi" : "", tag.albumScope ? "album" : ""].filter(Boolean).join(",") || "-";
     return [[key, tag.field, tag.level, flags, tag.source] as const];
   });
 
   const width = Math.max(...rows.map((row) => row[0].length));
   return `${rows
-    .map((row) => `${row[0].padEnd(width)}  ${row[1].padEnd(30)} ${row[2].padEnd(12)} ${row[3].padEnd(12)} ${row[4]}`)
+    .map(
+      (row) =>
+        `${row[0].padEnd(width)}  ${row[1].padEnd(30)} ${row[2].padEnd(12)} ${row[3].padEnd(12)} ${row[4]}`,
+    )
     .join("\n")}\n`;
 }
 

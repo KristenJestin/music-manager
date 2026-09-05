@@ -57,7 +57,9 @@ async function throttleMusicBrainz(): Promise<void> {
 
 async function getJson(url: string, { throttle = false } = {}): Promise<unknown> {
   if (throttle) await throttleMusicBrainz();
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } });
+  const response = await fetch(url, {
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+  });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText} for ${url}`);
   return (await response.json()) as unknown;
 }
@@ -83,9 +85,17 @@ function redactLyrics(entry: Record<string, unknown>): Record<string, unknown> {
         ? null
         : synced
             .split("\n")
-            .map((line) => `${/^\[\d\d:\d\d[.:]\d\d\]/.exec(line)?.[0] ?? ""} lyrics redacted`.trim())
+            .map((line) =>
+              `${/^\[\d\d:\d\d[.:]\d\d\]/.exec(line)?.[0] ?? ""} lyrics redacted`.trim(),
+            )
             .join("\n"),
-    plainLyrics: plain === null ? null : plain.split("\n").map(() => "lyrics redacted").join("\n"),
+    plainLyrics:
+      plain === null
+        ? null
+        : plain
+            .split("\n")
+            .map(() => "lyrics redacted")
+            .join("\n"),
   };
 }
 
@@ -119,7 +129,9 @@ async function main(): Promise<void> {
     "artists+artist-credits+isrcs+genres+tags+aliases+artist-rels+work-rels+url-rels+work-level-rels";
   await write(
     "musicbrainz/recording-one-more-time.json",
-    await getJson(`${MB}/recording/${recordingId}?inc=${recordingInc}&fmt=json`, { throttle: true }),
+    await getJson(`${MB}/recording/${recordingId}?inc=${recordingInc}&fmt=json`, {
+      throttle: true,
+    }),
   );
 
   // 3. The work behind it (composer / lyricist / writer relations, ISWC, language).
@@ -130,7 +142,9 @@ async function main(): Promise<void> {
   console.log(`MusicBrainz work ${workId}…`);
   await write(
     "musicbrainz/work-one-more-time.json",
-    await getJson(`${MB}/work/${workId}?inc=artist-rels+aliases+tags+url-rels&fmt=json`, { throttle: true }),
+    await getJson(`${MB}/work/${workId}?inc=artist-rels+aliases+tags+url-rels&fmt=json`, {
+      throttle: true,
+    }),
   );
 
   // 4. A recording whose releases must be chosen from (the "single video, borrow a release"

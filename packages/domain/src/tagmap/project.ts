@@ -64,7 +64,10 @@ const PICTURE_FIELDS = ["front_cover", "back_cover"] as const;
  * `TMCL:role` / `Name` pair in ID3. Vorbis gets both `TRACKTOTAL` and `TOTALTRACKS`, as §2.1
  * demands. Images are excluded.
  */
-export function projectDocument(document: TrackDocument, format: TagFormat): readonly ProjectedTag[] {
+export function projectDocument(
+  document: TrackDocument,
+  format: TagFormat,
+): readonly ProjectedTag[] {
   const suppressed = new Set<string>([...SUPPRESSED[format], ...PICTURE_FIELDS]);
   const paired = PAIRED.filter((pair) => pair.formats.includes(format));
   for (const pair of paired) suppressed.add(pair.total);
@@ -95,7 +98,7 @@ export function projectDocument(document: TrackDocument, format: TagFormat): rea
       continue;
     }
 
-    for (const value of renderValues(held.value, format)) {
+    for (const value of renderValues(held.value, format, tag.field)) {
       out.push({ key, value, field: tag.field });
     }
   }
@@ -113,11 +116,17 @@ function projectPerformers(value: FieldValue, key: string, format: TagFormat): P
   }));
 }
 
-function renderValues(value: FieldValue, format: TagFormat): readonly string[] {
+function renderValues(value: FieldValue, format: TagFormat, name: string): readonly string[] {
   if (isLyrics(value)) {
-    // The synchronised LRC when LRCLIB has one, the plain text otherwise (§2.6). ID3's SYLT
-    // half of the row is handled by the separate `lyrics_synced` field.
-    const text = format === "id3v24" ? (value.plain ?? value.synced) : (value.synced ?? value.plain);
+    // §2.6: LYRICS carries the synchronised LRC when LRCLIB has one, the plain text otherwise.
+    // ID3 splits the row in two — USLT is unsynchronised by definition, so it takes the plain
+    // text, and the separate `lyrics_synced` field carries the timestamps into SYLT.
+    const text =
+      name === "lyrics_synced"
+        ? value.synced
+        : format === "id3v24"
+          ? (value.plain ?? value.synced)
+          : (value.synced ?? value.plain);
     return text === null ? [] : [text];
   }
   if (Array.isArray(value)) {
@@ -135,7 +144,10 @@ function renderScalar(value: FieldValue): string {
 }
 
 /** The images to embed, front first (§2.6). Written as APIC/covr/METADATA_BLOCK_PICTURE. */
-export function projectPictures(document: TrackDocument, format: TagFormat): readonly (EmbeddedPicture & {
+export function projectPictures(
+  document: TrackDocument,
+  format: TagFormat,
+): readonly (EmbeddedPicture & {
   readonly key: string;
 })[] {
   const out: (EmbeddedPicture & { key: string })[] = [];
@@ -167,9 +179,15 @@ function isLyrics(value: FieldValue): value is LyricsValue {
 }
 
 function isPerformerList(value: FieldValue): value is readonly PerformerCredit[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "object" && item !== null && "role" in item);
+  return (
+    Array.isArray(value) &&
+    value.every((item) => typeof item === "object" && item !== null && "role" in item)
+  );
 }
 
 function isPictureList(value: FieldValue): value is readonly EmbeddedPicture[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "object" && item !== null && "kind" in item);
+  return (
+    Array.isArray(value) &&
+    value.every((item) => typeof item === "object" && item !== null && "kind" in item)
+  );
 }
