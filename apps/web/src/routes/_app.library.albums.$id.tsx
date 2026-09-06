@@ -28,7 +28,7 @@ import {
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
@@ -159,7 +159,12 @@ function Album() {
     <>
       {/* ---- header ---- */}
       <div className="mb-4 flex flex-wrap items-start gap-5">
-        <Cover size="xl" seed={album.album.id} label={album.album.title} />
+        <Cover
+          size="xl"
+          seed={album.album.id}
+          label={album.album.title}
+          src={coverArtFront(album.album.releaseMbid, 500)}
+        />
         <div className="min-w-0 grow">
           <div className="text-2xs tracking-wider text-fg-2 uppercase">
             {album.identifiers.releaseType ?? "album"}

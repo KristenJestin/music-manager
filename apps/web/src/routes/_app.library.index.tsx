@@ -18,7 +18,7 @@ import { LayoutGrid, Plus, ShieldCheck } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
@@ -229,7 +229,14 @@ function Albums() {
                 className="group/album flex flex-col gap-1.5"
               >
                 <div className="relative">
-                  <Cover size="full" seed={album.id} label={album.title} />
+                  {/* The real front from the Cover Art Archive; the gradient stays underneath
+                      it for a release that has none. */}
+                  <Cover
+                    size="full"
+                    seed={album.id}
+                    label={album.title}
+                    src={coverArtFront(album.releaseMbid)}
+                  />
                   {incomplete ? (
                     <ToneBadge tone="warn" className="absolute top-1.5 left-1.5">
                       {album.presentCount}/{album.trackCount}
