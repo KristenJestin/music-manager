@@ -36,6 +36,7 @@ import {
   trashFileAction,
 } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
+import { MigrateCard } from "#/components/tools/migrate-card.tsx";
 import type { ToolsPayload } from "#/server/functions/tools.ts";
 import type {
   DriftedTrack,
@@ -206,6 +207,7 @@ function Tools() {
 
         <div className="flex flex-col gap-3.5">
           <ScanPanel data={data} busy={busy} act={act} />
+          <MigrateCard />
           <Panel title="Worker log" testId="tools-log">
             <div className="p-3">
               <LogViewer events={data.log} emptyLabel="The journal is empty." />

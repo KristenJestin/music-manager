@@ -38,6 +38,7 @@ import {
   type WebhookJob,
 } from "./queues.ts";
 import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
+import { registerMigrateHandlers } from "./handlers/migrate.ts";
 
 const log = (message: string, extra: Record<string, unknown> = {}): void => {
   console.log(
@@ -110,6 +111,9 @@ export async function startWorker(): Promise<Worker> {
 
   /* ---- retag: the background re-projection of docs/03 §8 (P07a) ---- */
   await registerRetagHandlers(boss, { signal: shutdown.signal, log });
+
+  /* ---- migrate: take over a v1 library and database (P11) ---- */
+  await registerMigrateHandlers(boss, { db: db(), signal: shutdown.signal, log });
 
   /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
   await boss.work<ScanJob>(
