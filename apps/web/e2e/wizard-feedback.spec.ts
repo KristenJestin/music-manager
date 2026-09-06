@@ -47,7 +47,7 @@ test.describe("owner review, lot A", () => {
   }) => {
     await signIn(page);
 
-    const importId = await resolveSource(page, "fixture://discovery");
+    await resolveSource(page, "fixture://discovery");
     await expect(page.getByTestId("source-count")).toContainText("15 videos");
 
     /* ---- A1: the source panel is written for a person, not for yt-dlp ------ */
