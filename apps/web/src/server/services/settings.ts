@@ -492,7 +492,9 @@ export const SETTING_DEFINITIONS = {
     "",
     "The webhook URL, ntfy topic or e-mail address the channel writes to.",
   ),
-  notificationsEvents: define<("job_failed" | "inbox_opened" | "scan_report" | "verify_mismatch")[]>(
+  notificationsEvents: define<
+    ("job_failed" | "inbox_opened" | "scan_report" | "verify_mismatch")[]
+  >(
     z.array(z.enum(["job_failed", "inbox_opened", "scan_report", "verify_mismatch"])),
     ["job_failed", "inbox_opened"],
     "Which events are worth a notification.",
