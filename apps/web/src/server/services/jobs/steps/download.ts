@@ -27,6 +27,17 @@ import { aborted, sleep, setTrackState, updateTrack, type StepContext } from "..
 /** How often a `progress` event is written to the journal. The toolbox emits four a second. */
 const PROGRESS_EVERY_MS = 2_000;
 
+/** How long to wait before asking the toolbox for the single download slot again. */
+const SLOT_POLL_MS = 3_000;
+
+/**
+ * How long a track may wait for the slot before this is treated as a real failure.
+ *
+ * Long enough to sit behind a 28-track album, short enough that a slot leaked by a crashed
+ * caller does not hold a job open until the six-hour queue expiry.
+ */
+const SLOT_MAX_WAIT_MS = 60 * 60_000;
+
 /** True when this recording is already sitting in the library. */
 async function alreadyInLibrary(ctx: StepContext, recordingMbid: string | null): Promise<boolean> {
   if (recordingMbid === null || recordingMbid === "") return false;
@@ -103,21 +114,36 @@ async function downloadOne(ctx: StepContext, track: ImportTrack): Promise<number
         const now = Date.now();
         if (now - lastProgress < PROGRESS_EVERY_MS) break;
         lastProgress = now;
-        await ctx.say("track.progress", `${track.sourceTitle}: downloading`, {
-          trackId: track.id,
-          data: {
-            downloaded: event.downloaded,
-            total: event.total,
-            speed: event.speed ?? null,
-            eta: event.eta ?? null,
+        // `percent` is computed here rather than in the Console: the two numbers it comes
+        // from are on this line, and a reader of `job_events` should not have to divide.
+        const percent =
+          event.total !== null && event.total > 0
+            ? Math.min(100, Math.round((event.downloaded / event.total) * 100))
+            : null;
+        await ctx.say(
+          "track.progress",
+          `${track.sourceTitle}: downloading${percent === null ? "" : ` ${String(percent)}%`}`,
+          {
+            trackId: track.id,
+            data: {
+              stage: "download",
+              percent,
+              downloaded: event.downloaded,
+              total: event.total,
+              speed: event.speed ?? null,
+              eta: event.eta ?? null,
+            },
           },
-        });
+        );
         break;
       }
       case "postprocess":
+        // yt-dlp's own sub-steps — `ExtractAudio`, `MoveFiles`… The owner asked to see them
+        // (C2): between the end of the bytes and the file appearing there is a minute of
+        // ffmpeg, and without this line the page looks stuck at 100%.
         await ctx.say("track.progress", `${track.sourceTitle}: ${event.step}`, {
           trackId: track.id,
-          data: { postprocess: event.step },
+          data: { stage: event.step, postprocess: event.step },
         });
         break;
       case "done": {
@@ -136,6 +162,42 @@ async function downloadOne(ctx: StepContext, track: ImportTrack): Promise<number
     }
   }
   return size;
+}
+
+/**
+ * `downloadOne`, except that a `409 LOCKED` is a **queue, not a failure**.
+ *
+ * The toolbox serves one download at a time on purpose, and something else holding the slot
+ * is a reason to wait rather than to fail a track — then the step, then the album. That is
+ * exactly what the owner saw (C3/C4): a `LOCKED` counted as an attempt, was logged at `warn`
+ * and then at `error`, and after three of them the import was `Failed` with
+ * `LOCKED: A download is already running.` The wait is announced once, at `info`, so the
+ * journal says *waiting for the download slot* instead of stacking red lines for a queue
+ * behaving normally.
+ *
+ * With `rewindTo` in place nothing of ours takes a second slot any more; this is the belt to
+ * that pair of braces, for the operator's own `curl` and for a worker that outlived its
+ * replacement.
+ */
+async function downloadOneWhenFree(ctx: StepContext, track: ImportTrack): Promise<number> {
+  const deadline = Date.now() + SLOT_MAX_WAIT_MS;
+  let announced = false;
+  for (;;) {
+    try {
+      return await downloadOne(ctx, track);
+    } catch (error) {
+      const failure = MMError.from(error);
+      if (failure.code !== "LOCKED" || aborted(ctx) || Date.now() >= deadline) throw failure;
+      if (!announced) {
+        announced = true;
+        await ctx.say("track.waiting", `${track.sourceTitle}: waiting for the download slot`, {
+          trackId: track.id,
+          data: { stage: "waiting", reason: "LOCKED" },
+        });
+      }
+      await sleep(ctx.fixtures ? Math.min(SLOT_POLL_MS, 200) : SLOT_POLL_MS, ctx.signal);
+    }
+  }
 }
 
 export async function downloadStep(ctx: StepContext): Promise<StepResult> {
@@ -222,7 +284,7 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     while (attempt < ctx.settings.downloadMaxAttempts) {
       attempt += 1;
       try {
-        const size = await downloadOne(ctx, track);
+        const size = await downloadOneWhenFree(ctx, track);
         await ctx.say("track.done", `${track.sourceTitle}: downloaded`, {
           trackId: track.id,
           data: { bytes: size, attempt },

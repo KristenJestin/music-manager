@@ -38,8 +38,12 @@ export const JOB_EVENT_TYPES = [
   "step.blocked",
   "step.failed",
   "step.skipped",
+  /** A step failed and the machine rewound to an earlier one instead of stopping the job. */
+  "step.restarting",
   "track.started",
   "track.progress",
+  /** The toolbox's single download slot is taken; this track is queueing, not failing. */
+  "track.waiting",
   "track.done",
   "track.skipped",
   "track.failed",
