@@ -39,6 +39,7 @@ import {
 } from "./queues.ts";
 import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
 import { registerMigrateHandlers } from "./handlers/migrate.ts";
+import { registerDiscoverHandlers } from "./handlers/discover.ts";
 
 const log = (message: string, extra: Record<string, unknown> = {}): void => {
   console.log(
@@ -115,6 +116,9 @@ export async function startWorker(): Promise<Worker> {
   /* ---- migrate: take over a v1 library and database (P11) ---- */
   await registerMigrateHandlers(boss, { db: db(), signal: shutdown.signal, log });
 
+  /* ---- discover: the nightly recommendation refresh (P09) ---- */
+  await registerDiscoverHandlers(boss, { db: db(), signal: shutdown.signal, log });
+
   /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
   await boss.work<ScanJob>(
     QUEUES.scan,
@@ -160,6 +164,7 @@ export async function startWorker(): Promise<Worker> {
     "cron.refresh-sources",
     "cron.scan",
     "cron.ytdlp-update",
+    "cron.discover",
   ]);
   for (const name of [QUEUES.retag, QUEUES.scan, ...Object.keys(CRON_QUEUES)]) {
     if (HANDLED.has(name)) continue;
@@ -178,7 +183,9 @@ export async function startWorker(): Promise<Worker> {
         ? schedules.scanCron
         : name === "cron.ytdlp-update"
           ? schedules.ytdlpUpdateCron
-          : cron;
+          : name === "cron.discover"
+            ? schedules.discoverCron
+            : cron;
     await boss.schedule(name, expression);
   }
 

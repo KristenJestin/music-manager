@@ -83,6 +83,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
+import { cmdDiscover } from "./commands/discover.ts";
 import { cmdMigrate } from "./commands/migrate.ts";
 
 /* ------------------------------------------------------------------ */
@@ -1088,6 +1089,10 @@ const USAGE = `mm — Music Manager
   mm tools [status|update|selftest]       the downloader, the cookies and the sources
   mm tools url <url> | mm tools errors    a dry-run extract, and the error decoder
 
+  mm discover sync                       recompute the recommendations from your listening
+  mm discover list [--json] [--limit n]   the three blocks: gaps, recommendations, similar artists
+  mm discover forget                      un-hide everything you marked "not interested"
+
   mm library albums [--filter <f>] [--profile <p>] [--json]   what is on disk, scored
   mm library tracks [--search s] [--filter f] [--limit n]     every file, one line each
   mm library show <album id> [--json]     one album: identifiers, score, what is missing
@@ -1138,6 +1143,8 @@ async function main(): Promise<number> {
       return await cmdScan(args);
     case "tools":
       return await cmdTools(args);
+    case "discover":
+      return await cmdDiscover(args);
     case "library":
       return await cmdLibrary(args);
     case "migrate":

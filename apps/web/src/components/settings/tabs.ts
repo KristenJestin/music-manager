@@ -42,6 +42,12 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     hint: "Navidrome, notifications and the backup.",
   },
   {
+    id: "discover",
+    label: "Discover",
+    to: "/settings/discover",
+    hint: "Listening window, discography filters, ListenBrainz and the optional playlist.",
+  },
+  {
     id: "api",
     label: "API & agents",
     to: "/settings/api",

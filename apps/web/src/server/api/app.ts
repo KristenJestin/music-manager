@@ -26,6 +26,7 @@ import { APP_VERSION } from "#/server/version.ts";
 import { errorBody, requireScope, resolvePrincipal, type ApiEnv } from "#/server/api/auth.ts";
 import { importRoutes } from "#/server/api/routes/imports.ts";
 import { inboxRoutes } from "#/server/api/routes/inbox.ts";
+import { discoverRoutes } from "#/server/api/routes/discover.ts";
 import { libraryRoutes } from "#/server/api/routes/library.ts";
 import { settingsRoutes } from "#/server/api/routes/settings.ts";
 import { toolsRoutes } from "#/server/api/routes/tools.ts";
@@ -142,6 +143,7 @@ export function buildApi(): OpenAPIHono<ApiEnv> {
   app.route("/tools", toolsRoutes());
   app.route("/events", eventRoutes());
   app.route("/keys", keyRoutes());
+  app.route("/discover", discoverRoutes());
   app.route("/webhooks", webhookRoutes());
 
   return app;
@@ -185,6 +187,7 @@ export function openApiDocument(): Record<string, unknown> {
       { name: "tools", description: "Health, yt-dlp, scans." },
       { name: "events", description: "The job journal, live or paged." },
       { name: "keys", description: "API keys and their scopes." },
+      { name: "discover", description: "Recommendations, and turning one into an import." },
       { name: "webhooks", description: "Signed HTTP callbacks." },
     ],
   }) as unknown as Record<string, unknown>;

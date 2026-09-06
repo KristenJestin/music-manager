@@ -40,6 +40,7 @@ import { listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
+import { discoverList } from "#/server/services/discover.ts";
 import { createRun, runToCompletion } from "#/server/services/retag.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
@@ -146,14 +147,75 @@ interface ToolSpec {
 }
 
 /**
- * The fourteen tools of the spec, as data.
+ * The tools of the spec, as data — P08's fourteen, plus P09's `list_discover`.
  *
- * A table rather than fourteen `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than fifteen `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  */
 export function toolTable(): ToolSpec[] {
   return [
+    {
+      name: "list_discover",
+      scope: "library:read",
+      title: "List recommendations",
+      description:
+        "What Discover currently proposes: discography gaps (release-groups missing from the " +
+        "library for artists you actually play), ListenBrainz recommendations, and similar " +
+        "artists. Every item carries a score, a plain-English reason and its MusicBrainz ids — " +
+        "so a suggestion can be checked against the library with `search_library` before " +
+        "anything is queued. Read-only; it never recomputes.",
+      inputSchema: {
+        kind: z
+          .enum(["discography", "recommendation", "similar_artist"])
+          .optional()
+          .describe("Only one of the three blocks."),
+        limit: z.number().int().min(1).max(200).default(25),
+      },
+      run: async (args: {
+        kind?: "discography" | "recommendation" | "similar_artist";
+        limit: number;
+      }) => {
+        const payload = await discoverList({
+          db: db(),
+          limit: args.limit,
+          ...(args.kind === undefined ? {} : { kind: args.kind }),
+        });
+        const trim = (
+          items: readonly {
+            id: string;
+            title: string;
+            artist: string;
+            score: number;
+            reason: string;
+            source: string;
+            inLibrary: boolean;
+            releaseGroupMbid: string | null;
+            recordingMbid: string | null;
+          }[],
+        ) =>
+          items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.artist,
+            score: Math.round(item.score * 100) / 100,
+            reason: item.reason,
+            source: item.source,
+            inLibrary: item.inLibrary,
+            releaseGroupMbid: item.releaseGroupMbid,
+            recordingMbid: item.recordingMbid,
+          }));
+        return {
+          lastSync: payload.lastSync,
+          windowDays: payload.signals.windowDays,
+          topArtists: payload.signals.topArtists,
+          topGenres: payload.signals.topGenres,
+          discography: trim(payload.discography),
+          recommendations: trim(payload.recommendations),
+          similarArtists: trim(payload.similarArtists),
+        };
+      },
+    },
     {
       name: "list_imports",
       scope: "imports:read",
@@ -646,6 +708,8 @@ export function buildMcpServer(principal: ApiPrincipal): McpServer {
         "the release is and `confirm_mapping` decides; `list_inbox` and `resolve_inbox` answer " +
         "anything else it is blocked on. Before importing, `search_library` says whether you " +
         "already have it.\n\n" +
+        "`list_discover` is the other way in: it says what is worth importing, with a reason, " +
+        "and its ids feed straight into `create_import`.\n\n" +
         "Read `mm://docs/03-metadonnees.md` for what a good tag set is, and `mm://tagmap` for " +
         "the table of every tag this app writes.",
     },
