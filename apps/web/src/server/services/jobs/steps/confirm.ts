@@ -39,7 +39,13 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
     };
   }
 
-  const decidedBy = ctx.job.options.autoConfirm === true ? "cli --yes" : "fixtures";
+  // Provenance is claimed by the caller that opened the gate, not guessed from the fact that
+  // it is open: `confirm_mapping` over MCP is `mcp`, `/api/v1` is `api`, the wizard is
+  // `console`, and only the CLI — which sets `autoConfirm` and nothing else — is `cli --yes`.
+  const decidedBy =
+    ctx.job.options.autoConfirm === true
+      ? (ctx.job.options.confirmedBy ?? "cli --yes")
+      : "fixtures";
   await ctx.db.insert(decisions).values({
     id: newId("decision"),
     kind: "release",

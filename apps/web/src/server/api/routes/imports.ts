@@ -343,6 +343,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
           // Supplying a mapping *is* the confirmation. Blocking on `confirm` afterwards would
           // ask the caller a question it has just answered in the body of this request.
           autoConfirm: true,
+          confirmedBy: "api",
         },
         { priority: PRIORITY[body.priority], releaseMbid: body.releaseMbid },
         db(),

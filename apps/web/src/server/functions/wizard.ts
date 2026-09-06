@@ -506,6 +506,7 @@ export const startImport = createServerFn({ method: "POST", strict: STRICT })
           // release, the mapping and the options and pressed Start. Blocking on `confirm`
           // afterwards would be asking the same question twice.
           autoConfirm: true,
+          confirmedBy: "console",
         },
         { priority: PRIORITY[data.priority], releaseMbid: data.releaseMbid },
         db(),
