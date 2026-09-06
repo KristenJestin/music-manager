@@ -21,7 +21,7 @@ import { ImportStatusBadge, ToneBadge, TrackStateBadge } from "#/components/stat
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { dateTime, mmss, short } from "#/lib/format.ts";
-import { STEPS, type ImportStatus } from "#/server/db/schema/enums.ts";
+import { STEPS, type ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import { bumpJob, cancelJob, fetchJob, pauseJob, retryJob } from "#/server/functions/jobs.ts";
 

@@ -7,7 +7,7 @@
  * for, red where it broke.
  */
 import { cn } from "cn";
-import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.ts";
+import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.vocab.ts";
 
 export interface PipelineDotsProps {
   readonly step: StepName;

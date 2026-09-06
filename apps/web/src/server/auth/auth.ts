@@ -20,6 +20,7 @@
  *    the origin the browser sends, and that is an operational fact, not a build-time one —
  *    so it lives where the rest of the operational facts live and is read at boot.
  */
+import { createHash } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -37,6 +38,16 @@ export const COOKIE_PREFIX = "mm";
  * the library's own source. In development we would rather not force everyone to invent one,
  * so the database URL — which is already a local secret and is stable across restarts — is
  * hashed into a usable key, and the fact is announced once.
+ *
+ * **The hash comes from `node:crypto`, not `Bun.CryptoHasher`.** This module is server code,
+ * but "server" here is not always the Bun runtime: `vite dev` ships a `#!/usr/bin/env node`
+ * bin, so `bun run dev` hands the dev server — and therefore SSR — to Node. Under Node the
+ * `Bun` global does not exist, and the fallback below is the only branch that ever touched it.
+ * Reaching it threw `Bun is not defined` *during SSR*, which the router serialised into the
+ * HTML and the browser rehydrated as "Something went wrong!" in `MatchInnerImpl` — an error
+ * that looked like a client bundle leak and was not one. It only ever fired with an empty
+ * `MM_AUTH_SECRET`, which is why the fixtures E2E (`scripts/e2e-web.ts`, which sets one)
+ * never caught it. `server/auth/auth.test.ts` pins the runtime-independence.
  */
 export function authSecret(env = serverEnv()): string {
   if (env.MM_AUTH_SECRET !== "") return env.MM_AUTH_SECRET;
@@ -45,9 +56,7 @@ export function authSecret(env = serverEnv()): string {
       "MM_AUTH_SECRET is empty. Set it (`openssl rand -base64 32`) before running in production.",
     );
   }
-  const hash = new Bun.CryptoHasher("sha256");
-  hash.update(`music-manager-dev:${env.DATABASE_URL}`);
-  return hash.digest("base64");
+  return createHash("sha256").update(`music-manager-dev:${env.DATABASE_URL}`).digest("base64");
 }
 
 export interface AuthOptions {

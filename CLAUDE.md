@@ -58,7 +58,7 @@ Everything runs from the repository root with Bun. There is no `make`.
 | Command                               | What it does                                                                     |
 | ------------------------------------- | -------------------------------------------------------------------------------- |
 | `bun install`                         | install the workspace                                                            |
-| `bun run dev`                         | compose up, wait for postgres, then the web app on <http://localhost:3000>       |
+| `bun run dev`                         | compose up, wait for postgres, then the web app on `PORT` (default 3000)         |
 | `bun run check`                       | **the gate**: tsr generate, tsc, eslint, prettier, vitest, ruff, pyright, pytest |
 | `bun run test`                        | vitest + pytest only                                                             |
 | `bun run lint` / `bun run format`     | eslint / prettier --write                                                        |
@@ -133,6 +133,42 @@ must still pass.
   stub in the browser bundle. A helper that returns a pre-configured builder defeats it and
   ships Drizzle, `postgres` and Better Auth to the client; so does any **non-handler export**
   from a server-function module. See `apps/web/src/server/functions/base.ts`.
+  `apps/web/src/client-boundary.guard.test.ts` enforces the boundary: a file that reaches the
+  browser may value-import `#/server/**` only as a `createServerFn` export from
+  `server/functions/**`, or from a module the test can _prove_ imports nothing impure. That is
+  why the pipeline vocabularies live in `server/db/schema/enums.vocab.ts` (no imports) while the
+  `pgEnum` wrappers stay in `enums.ts` — the Console needs `STEPS` as a value, and it should not
+  cost the visitor `drizzle-orm/pg-core`. Prefer `import type` and the split will not bite.
+- **`bun run dev` runs SSR under Node, not Bun.** `vite dev` is a `#!/usr/bin/env node` bin, so
+  the dev server — and every SSR render inside it — has no `Bun` global, whatever launched it.
+  Server code must therefore use `node:crypto`, `node:fs` and friends rather than `Bun.*`;
+  `Bun.*` is fine in `scripts/**`, which really does run under Bun. Getting this wrong fails far
+  from its cause: `authSecret` called `Bun.CryptoHasher`, threw during SSR, and the router
+  serialised the dead match into the HTML so the browser showed _“Something went wrong! Bun is
+  not defined”_ — which reads exactly like a client bundle leak and is not one. It only fired
+  with an empty `MM_AUTH_SECRET`, so the fixtures E2E (which sets one) never saw it. The
+  `runtime portability` block of `client-boundary.guard.test.ts` now fails on any new `Bun.`.
+
+### Ports and `.env`
+
+- **The dev port is `PORT`, default 3000.** `PORT=3100 bun run dev` is the normal way to get a
+  server of your own; `:3000` is routinely taken on this machine. Setting `PORT` also turns on
+  Vite's `strictPort`, so a busy port is an error instead of a silent slide to 3001.
+- **A port change is also an `MM_WEB_URL` change.** Better Auth checks the browser's origin
+  against `MM_WEB_URL`, which defaults to `http://localhost:3000`, so an app moved to another
+  port serves a perfect login form that answers **“Invalid origin”** on submit. `bun run dev`
+  derives `MM_WEB_URL` from `PORT` for you; if you launch Vite yourself, set it yourself. An
+  explicit value always wins — that is the reverse-proxy case.
+- **`bun run --cwd apps/web dev` does not load `v2/.env`.** Bun reads `.env` from the current
+  directory, and `--cwd` makes that `apps/web`, which has none — so the app comes up with no
+  `DATABASE_URL` and no keys, looking misconfigured rather than mis-launched. `bun run dev`
+  reads `v2/.env` and hands it to the child explicitly (`scripts/dev.ts`). To run the app alone,
+  export the variables first:
+
+  ```bash
+  set -a; . ./.env; set +a          # from v2/
+  PORT=3100 MM_WEB_URL=http://localhost:3100 bun run --cwd apps/web dev
+  ```
 
 ## Toolbox
 
