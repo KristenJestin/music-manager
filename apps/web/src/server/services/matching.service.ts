@@ -30,6 +30,7 @@ import {
   mapping as mappingEngine,
   recordingCandidates,
   releaseCandidates,
+  stripArtistPrefix,
   titleScore,
   type AlbumHints,
   type DeepPartialConfig,
@@ -264,8 +265,17 @@ export async function matchSingle(
   const lookupLimit = lookupLimitOf(settings);
   const video = input.video;
 
-  const title = video.ytTrack ?? video.title;
   const artist = video.ytArtist ?? video.uploader ?? null;
+  /*
+   * The video title without its "Artist - " prefix (DRIVE-1 §B1).
+   *
+   * An official artist channel has no YouTube Music `track` tag, so the query title is the
+   * video's own — literally `Radiohead - Creep`. Sent as a Lucene phrase that finds a cover
+   * *named* "Radiohead - Creep" and never the original, which is what the first real single
+   * import proposed. The artist is a separate clause; repeating it inside the title clause
+   * only narrows the search to the recordings that misspell themselves.
+   */
+  const title = stripArtistPrefix(video.ytTrack ?? video.title, artist);
 
   /*
    * Two searches, narrow then wide, merged.

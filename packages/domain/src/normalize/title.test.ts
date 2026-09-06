@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeArtist,
   normalizeTitle,
+  stripArtistPrefix,
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./title.ts";
@@ -144,5 +145,42 @@ describe("stripReleaseTypePrefix", () => {
   it("keeps the name rather than emptying it, and strips only the first prefix", () => {
     expect(stripReleaseTypePrefix("Album -")).toBe("Album -");
     expect(stripReleaseTypePrefix("Album - Single - Songs")).toBe("Single - Songs");
+  });
+});
+
+describe("stripArtistPrefix", () => {
+  it("drops the credit an official channel puts in front of its own title", () => {
+    // DRIVE-1 §B1, verbatim: the video is titled "Radiohead - Creep" and the only candidate
+    // proposed was a cover literally named that, because the query was a phrase search.
+    expect(stripArtistPrefix("Radiohead - Creep", "Radiohead")).toBe("Creep");
+  });
+
+  it("accepts the en and em dashes as separators", () => {
+    expect(stripArtistPrefix("Radiohead – Creep", "Radiohead")).toBe("Creep");
+    expect(stripArtistPrefix("Radiohead — Creep", "Radiohead")).toBe("Creep");
+    expect(normalizeTitle("Radiohead – Creep")).toBe("creep");
+    expect(normalizeTitle("Radiohead — Creep")).toBe("creep");
+  });
+
+  it("recognises a channel name built on the artist's", () => {
+    expect(stripArtistPrefix("Radiohead - Creep", "RadioheadVEVO")).toBe("Creep");
+    expect(stripArtistPrefix("Daft Punk - Get Lucky", "Daft Punk - Topic")).toBe("Get Lucky");
+  });
+
+  it("keeps the title when the leading segment is not the artist", () => {
+    // "Creep - Radiohead" is the credit on the *right*: stripping the head would lose the song.
+    expect(stripArtistPrefix("Creep - Radiohead", "Radiohead")).toBe("Creep - Radiohead");
+    expect(stripArtistPrefix("Radiohead - Creep", "Klangsberg")).toBe("Radiohead - Creep");
+  });
+
+  it("strips unconditionally when no artist is known, like normalizeTitle does", () => {
+    expect(stripArtistPrefix("Radiohead - Creep")).toBe("Creep");
+    expect(stripArtistPrefix("Radiohead - Creep", "")).toBe("Creep");
+  });
+
+  it("leaves a hyphenated word and a title with no separator alone", () => {
+    expect(stripArtistPrefix("Jay-Z - 99 Problems", "Jay-Z")).toBe("99 Problems");
+    expect(stripArtistPrefix("Non-Stop", "Hamilton")).toBe("Non-Stop");
+    expect(stripArtistPrefix("Creep", "Radiohead")).toBe("Creep");
   });
 });

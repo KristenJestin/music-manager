@@ -116,6 +116,7 @@ export type {
 export {
   normalizeArtist,
   normalizeTitle,
+  stripArtistPrefix,
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./normalize/title.ts";

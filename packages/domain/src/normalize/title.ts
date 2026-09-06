@@ -34,6 +34,15 @@ const BRACKETED = /\s*[([][^()[\]]*[)\]]/g;
  */
 const FEAT_TAIL = /\s*\b(?:feat\.?|ft\.?|featuring)\b[^([]*?(?:\s+-\s+|(?=[([])|$)/i;
 
+/**
+ * The dash that separates an "Artist - Title" prefix from the title.
+ *
+ * The three characters are the three a YouTube title is actually written with: the ASCII
+ * hyphen, the en dash and the em dash. Whitespace on both sides is required, so a hyphenated
+ * word ("Jay-Z", "Non-Stop") is never mistaken for a separator.
+ */
+const DASH_SEPARATOR = / [-–—] /;
+
 /** A "- Remaster" / "- Remastered 2011" style suffix (outside brackets). */
 const REMASTER_SUFFIX = /\s*-\s*(?:\d{4}\s+)?remaster(?:ed)?(?:\s+\d{4})?\s*$/i;
 
@@ -104,10 +113,12 @@ export function normalizeTitle(raw: string): string {
   //    having "Song ft. X & Y" mistaken for an "Artist - " prefix and dropped.
   s = s.replace(FEAT_TAIL, " ");
 
-  // 3. A leading "Artist - Title" prefix → keep only the title side.
-  const dashIdx = s.indexOf(" - ");
-  if (dashIdx !== -1) {
-    s = s.slice(dashIdx + 3);
+  // 3. A leading "Artist - Title" prefix → keep only the title side. The three dashes a
+  //    YouTube title is written with are all accepted: "Radiohead - Creep",
+  //    "Radiohead – Creep" and "Radiohead — Creep" are the same title.
+  const dash = DASH_SEPARATOR.exec(s);
+  if (dash !== null) {
+    s = s.slice(dash.index + dash[0].length);
   }
 
   // 4. Drop bracketed production noise (Official Video, feat., HD, …).
@@ -141,6 +152,39 @@ const RELEASE_TYPE_PREFIX = /^\s*(?:album|single|ep)\s+[-–—]\s+/i;
 export function stripReleaseTypePrefix(raw: string): string {
   const stripped = raw.replace(RELEASE_TYPE_PREFIX, "").trim();
   return stripped === "" ? raw.trim() : stripped;
+}
+
+/**
+ * Drop a leading "Artist - " from a video title, keeping the human spelling of the rest.
+ *
+ * `normalizeTitle` already does this, but it also folds case, accents and punctuation — it
+ * produces a *comparison key*, not a title. The two places that need the title itself are the
+ * MusicBrainz recording query and everything derived from it, and there the difference is not
+ * cosmetic: `recording:"Radiohead - Creep"` is a phrase search that matches a cover literally
+ * titled "Radiohead - Creep" and never proposes the original, which is exactly what the first
+ * real single import did (DRIVE-1 §B1). `recording:"Creep" AND artist:"Radiohead"` proposes it
+ * first.
+ *
+ * The strip is **conditional on the artist** when one is known: the leading segment has to be
+ * that artist (or a channel name built on it, "RadioheadVEVO"), otherwise "Creep - Radiohead"
+ * would lose its title instead of its credit. With no artist to check against, the leading
+ * segment is dropped anyway — that is what `normalizeTitle` has always done, and the query is
+ * better off without it either way.
+ */
+export function stripArtistPrefix(raw: string, artist?: string | null): string {
+  const dash = DASH_SEPARATOR.exec(raw);
+  if (dash === null) return raw.trim();
+  const head = raw.slice(0, dash.index).trim();
+  const tail = raw.slice(dash.index + dash[0].length).trim();
+  if (head === "" || tail === "") return raw.trim();
+  if (artist == null || artist.trim() === "") return tail;
+
+  const wanted = normalizeArtist(artist);
+  const found = normalizeArtist(head);
+  if (wanted === "" || found === "") return raw.trim();
+  return found === wanted || found.startsWith(wanted) || wanted.startsWith(found)
+    ? tail
+    : raw.trim();
 }
 
 /**
