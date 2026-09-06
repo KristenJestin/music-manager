@@ -809,7 +809,24 @@ export async function listRuns(
 
 export interface RunView {
   readonly run: RetagRun;
+  /** At most `limit` rows. `totals` describes the whole run, not this slice. */
   readonly diffs: readonly (typeof retagDiffs.$inferSelect)[];
+  /**
+   * Counted in SQL, over every row of the run.
+   *
+   * The counts used to be derived from `diffs` by the callers, which had already been cut to
+   * `limit` — so `Math.max(0, changedRows.length - limit)` was a subtraction of a number from
+   * itself and "how many more are there?" answered `0` on a run with twenty-six hidden diffs.
+   * A truncated list must never be the source of its own total.
+   */
+  readonly totals: {
+    /** Rows written for this run so far — one per file processed. */
+    readonly rows: number;
+    /** Rows carrying an error. */
+    readonly failed: number;
+    /** Rows with no error and at least one added/removed/changed tag. */
+    readonly changed: number;
+  };
 }
 
 /** One run and the per-file diffs it produced — what the dry-run panel renders. */
@@ -826,7 +843,59 @@ export async function runView(
     .where(eq(retagDiffs.runId, id))
     .orderBy(retagDiffs.path)
     .limit(options.limit ?? 500);
-  return { run, diffs };
+
+  // `jsonb_array_length` rather than a second pass in JavaScript: the whole point is that these
+  // three numbers are independent of whatever `limit` the caller chose.
+  const [counted] = await db
+    .select({
+      rows: sql<number>`count(*)::int`,
+      failed: sql<number>`count(*) filter (where ${retagDiffs.error} is not null)::int`,
+      changed: sql<number>`count(*) filter (where ${retagDiffs.error} is null and (
+        jsonb_array_length(${retagDiffs.added}) > 0
+        or jsonb_array_length(${retagDiffs.removed}) > 0
+        or jsonb_array_length(${retagDiffs.changed}) > 0))::int`,
+    })
+    .from(retagDiffs)
+    .where(eq(retagDiffs.runId, id));
+
+  return {
+    run,
+    diffs,
+    totals: {
+      rows: counted?.rows ?? 0,
+      failed: counted?.failed ?? 0,
+      changed: counted?.changed ?? 0,
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* reading a diff without drowning in it                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How long a tag value may be before a diff abbreviates it.
+ *
+ * `ACOUSTID_FINGERPRINT` is base64 and the tag map itself calls it "bulky (≈ 2 KB per track)".
+ * Twenty-eight of those in one dry run is fifty-six kilobytes of noise in an answer whose job
+ * is to be read, and `LYRICS` is worse: a full LRC is unbounded. The value is never truncated
+ * on the way *into* a file — only on the way out to a reader.
+ */
+export const DIFF_VALUE_LIMIT = 120;
+
+/** `"AQADtJQibVHCoNzx…" (2048 chars)` — enough to recognise, never enough to drown in. */
+export function abbreviateValue(value: string, limit = DIFF_VALUE_LIMIT): string {
+  if (value.length <= limit) return value;
+  return `${value.slice(0, limit)}… (${String(value.length)} chars)`;
+}
+
+/** The same, over one `{key, field, before, after}` row. */
+export function abbreviateChange(change: RetagTagChange, limit = DIFF_VALUE_LIMIT): RetagTagChange {
+  return {
+    ...change,
+    ...(change.before === undefined ? {} : { before: abbreviateValue(change.before, limit) }),
+    ...(change.after === undefined ? {} : { after: abbreviateValue(change.after, limit) }),
+  };
 }
 
 /** The run currently in flight, if any. There is at most one that matters at a time. */

@@ -313,6 +313,74 @@ export interface SyncReport {
   readonly incompleteAlbums: number;
   readonly playlist: { pushed: number; skipped: number; error: string | null } | null;
   readonly error: string | null;
+  /**
+   * Why the numbers above are what they are, when they are zero.
+   *
+   * A sync that answers `{status: "done", discography: 0, recommendations: 0, error: null}` is
+   * indistinguishable from a broken Discover, and the second MCP test report reached exactly
+   * that conclusion. Every reason is knowable — no ListenBrainz user, no Navidrome, nothing
+   * played in the window — and each one is a sentence here rather than a silence.
+   */
+  readonly notes: readonly string[];
+}
+
+/**
+ * Say why a Discover pass found nothing.
+ *
+ * Pure and exported: the same sentences answer "why is this sync empty?" (`discover_sync`) and
+ * "why is this list empty?" (`list_discover`), and two explanations that could disagree would
+ * be worse than one.
+ */
+export function explainDiscover(input: {
+  readonly settings: Pick<
+    Settings,
+    "discoverEnabled" | "navidromeUrl" | "listenbrainzUser" | "lastfmKey" | "discoverWindowDays"
+  >;
+  readonly totalPlays: number;
+  readonly topArtists: number;
+  readonly signalsError: string | null;
+  readonly found: number;
+}): string[] {
+  const notes: string[] = [];
+  if (!input.settings.discoverEnabled) {
+    notes.push("Discover is switched off (`discoverEnabled`). Nothing is computed.");
+    return notes;
+  }
+  if (input.signalsError !== null) {
+    notes.push(`Listening signals could not be read: ${input.signalsError}`);
+  }
+  if (input.settings.navidromeUrl.trim() === "") {
+    notes.push(
+      "No Navidrome server is configured (`navidromeUrl`), so there is no play history to " +
+        "learn from — discography gaps are ranked by what you actually listen to.",
+    );
+  } else if (input.totalPlays === 0) {
+    notes.push(
+      `Navidrome reported no plays in the last ${String(input.settings.discoverWindowDays)} day(s), ` +
+        "so there are no top artists to look for gaps around.",
+    );
+  } else if (input.topArtists === 0) {
+    notes.push("No artist cleared the play threshold in the window.");
+  }
+  if (input.settings.listenbrainzUser.trim() === "") {
+    notes.push(
+      "No ListenBrainz user is configured (`listenbrainzUser`), so the recommendation block " +
+        "has no source.",
+    );
+  }
+  if (input.settings.lastfmKey.trim() === "" && process.env.MM_LASTFM_KEY === undefined) {
+    notes.push(
+      "No Last.fm key is configured (`lastfmKey` or `MM_LASTFM_KEY`), so similar artists " +
+        "cannot be fetched.",
+    );
+  }
+  if (notes.length === 0 && input.found === 0) {
+    notes.push(
+      "Every source answered and proposed nothing new — the library already covers what they " +
+        "suggest, or the proposals were dismissed.",
+    );
+  }
+  return notes;
 }
 
 /** One row to insert, built from whichever service produced it. */
@@ -357,6 +425,13 @@ export async function syncDiscover(options: SyncOptions = {}): Promise<SyncRepor
       incompleteAlbums: 0,
       playlist: null,
       error: "Discover is switched off in the settings.",
+      notes: explainDiscover({
+        settings,
+        totalPlays: 0,
+        topArtists: 0,
+        signalsError: null,
+        found: 0,
+      }),
     });
   }
 
@@ -468,15 +543,23 @@ export async function syncDiscover(options: SyncOptions = {}): Promise<SyncRepor
         })
       : null;
 
+    const discography = proposals.filter((one) => one.kind === "discography").length;
     return await finish({
       status: "done",
       durationMs: Date.now() - started.getTime(),
-      discography: proposals.filter((one) => one.kind === "discography").length,
+      discography,
       recommendations: recommended.items.length,
       similarArtists: recommended.similar.length,
       incompleteAlbums: incomplete,
       playlist,
       error: signals.error,
+      notes: explainDiscover({
+        settings,
+        totalPlays: signals.totalPlays,
+        topArtists: signals.topArtists.length,
+        signalsError: signals.error,
+        found: discography + recommended.items.length + recommended.similar.length,
+      }),
     });
   } catch (error) {
     return await finish({
@@ -488,6 +571,7 @@ export async function syncDiscover(options: SyncOptions = {}): Promise<SyncRepor
       incompleteAlbums: 0,
       playlist: null,
       error: MMError.from(error).message,
+      notes: [],
     });
   }
 }
@@ -708,6 +792,10 @@ export interface DiscoverList {
   readonly lastSync: DiscoverView["lastSync"];
   readonly signals: {
     readonly windowDays: number;
+    /** Weighted plays observed in the window. Zero is a reason, not a coincidence. */
+    readonly totalPlays: number;
+    /** Why the signals are empty, when the source could not be read at all. */
+    readonly error: string | null;
     readonly topArtists: readonly { name: string; plays: number; mbid: string | null }[];
     readonly topGenres: readonly { name: string; plays: number }[];
   };
@@ -733,6 +821,8 @@ export async function discoverList(
     lastSync: view.lastSync,
     signals: {
       windowDays: view.signals.windowDays,
+      totalPlays: view.signals.totalPlays,
+      error: view.signals.error,
       topArtists: view.signals.topArtists.map((artist) => ({
         name: artist.name,
         plays: artist.plays,

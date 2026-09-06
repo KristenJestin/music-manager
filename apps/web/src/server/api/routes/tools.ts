@@ -11,6 +11,7 @@
  * proxy between here and the caller.
  */
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { serverEnv } from "#/server/env.ts";
@@ -24,7 +25,7 @@ import {
   updateYtdlp,
 } from "#/server/services/tools.ts";
 import { systemStatus } from "#/server/services/status.ts";
-import { lastScan, recentScans } from "#/server/services/scan.ts";
+import { getScan, lastScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { enqueueLibraryScan } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import { errorSchema, healthSchema } from "#/server/api/schemas.ts";
@@ -122,6 +123,58 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
       async (c) => c.json((await run()) as unknown as Record<string, unknown>, 200),
     );
   }
+
+  /* ---- one scan's report, small enough to read ---- */
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/scan",
+      tags: [TAG],
+      summary: "What did the last scan find?",
+      description:
+        "The counts in full, and each list of findings cut to `limit` with `more` beside it. " +
+        "Without `scanId` this is the most recent run whatever its state, so a `running` one " +
+        "answers with its status rather than 404.\n\n" +
+        "`GET /scans` returns the same runs with their reports **whole**, which is what the " +
+        "Console pages through; this one is the shape an agent can read in one answer.",
+      middleware: [requireScope("tools:read")] as const,
+      request: {
+        query: z.object({
+          scanId: z.string().optional(),
+          limit: z.coerce.number().int().min(1).max(100).default(10),
+        }),
+      },
+      responses: {
+        200: { content: { "application/json": { schema: anyJson } }, description: "The report" },
+        404: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "No such scan",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const { scanId, limit } = c.req.valid("query");
+      if (scanId !== undefined) {
+        const scan = await getScan(scanId, db());
+        if (scan === null) {
+          throw new MMError("NOT_FOUND", `No library scan with id ${scanId}.`, { status: 404 });
+        }
+        return c.json(summariseScan(scan, limit) as unknown as Record<string, unknown>, 200);
+      }
+      const [latest] = await recentScans(1, db());
+      if (latest === undefined) {
+        return c.json(
+          {
+            scanId: null,
+            note: "No library scan has ever run on this installation.",
+          },
+          200,
+        );
+      }
+      return c.json(summariseScan(latest, limit) as unknown as Record<string, unknown>, 200);
+    },
+  );
 
   app.openapi(
     createRoute({

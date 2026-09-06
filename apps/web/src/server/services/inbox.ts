@@ -193,6 +193,121 @@ export async function resolveInboxItem(
   return updated ?? item;
 }
 
+/* ------------------------------------------------------------------ */
+/* answering several at once                                           */
+/* ------------------------------------------------------------------ */
+
+/** Which items a batch is about. Exactly one of the three fields carries the selection. */
+export interface InboxSelection {
+  readonly itemId?: string;
+  readonly itemIds?: readonly string[];
+  /** Every item still `open` on this import. */
+  readonly importId?: string;
+  /** With `importId` only: narrow to one kind of question. */
+  readonly type?: InboxType;
+}
+
+export interface BatchOutcome {
+  readonly resolved: readonly { id: string; status: InboxStatus; importId: string | null }[];
+  /** One entry per item that could not be answered; the others were still answered. */
+  readonly failed: readonly { id: string; message: string }[];
+  /**
+   * The imports that now need re-queuing — **deduplicated**, one entry however many of their
+   * items were answered. That is the whole point of the batch: thirteen fingerprint mismatches
+   * answered one at a time re-queued the same job thirteen times, and each restart raced the
+   * one before it.
+   */
+  readonly imports: readonly string[];
+}
+
+/**
+ * Answer a set of items in one pass.
+ *
+ * Deliberately *not* a transaction: an item that cannot be answered (it vanished, or its
+ * resolution is refused) must not throw away the twelve that were, and every answer is already
+ * idempotent per item. The failures come back in `failed` with their reason.
+ */
+export async function resolveInboxBatch(
+  selection: InboxSelection,
+  options: {
+    readonly accept: boolean;
+    readonly decidedBy: string;
+    /** Override the preselected answer. Only meaningful for a single item. */
+    readonly resolution?: Record<string, unknown>;
+  },
+  db: Database = defaultDb(),
+): Promise<BatchOutcome> {
+  const given = [selection.itemId, selection.itemIds, selection.importId].filter(
+    (value) => value !== undefined,
+  );
+  if (given.length === 0) {
+    throw new MMError("INVALID_INPUT", "Give one of `itemId`, `itemIds` or `importId`.", {
+      status: 400,
+    });
+  }
+  if (given.length > 1) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "`itemId`, `itemIds` and `importId` are three ways to say the same thing; give one.",
+      { status: 400 },
+    );
+  }
+  if (selection.type !== undefined && selection.importId === undefined) {
+    throw new MMError("INVALID_INPUT", "`type` only narrows an `importId` batch.", { status: 400 });
+  }
+
+  let items: InboxItem[];
+  if (selection.importId !== undefined) {
+    items = await listInbox(
+      {
+        importId: selection.importId,
+        status: "open",
+        ...(selection.type === undefined ? {} : { type: selection.type }),
+      },
+      db,
+    );
+  } else {
+    const ids = selection.itemIds ?? [selection.itemId ?? ""];
+    const found = await Promise.all(ids.map(async (id) => await getInboxItem(id, db)));
+    const missing = ids.filter((_, index) => found[index] === null);
+    if (missing.length > 0) {
+      throw new MMError("NOT_FOUND", `No Inbox item with id ${missing.join(", ")}.`, {
+        status: 404,
+        hint: "Run `list_inbox` — an item that was already answered is no longer open.",
+      });
+    }
+    items = found.filter((item): item is InboxItem => item !== null);
+  }
+
+  const resolved: { id: string; status: InboxStatus; importId: string | null }[] = [];
+  const failed: { id: string; message: string }[] = [];
+  const imports = new Set<string>();
+
+  for (const item of items) {
+    try {
+      const updated = await resolveInboxItem(
+        item.id,
+        {
+          resolution:
+            options.resolution ??
+            (options.accept
+              ? { accepted: true, ...(item.preselected ?? {}) }
+              : { accepted: false, action: "dismiss" }),
+          decidedBy: options.decidedBy,
+          status: options.accept ? "resolved" : "dismissed",
+        },
+        db,
+      );
+      resolved.push({ id: updated.id, status: updated.status, importId: item.importId });
+      if (item.importId !== null) imports.add(item.importId);
+    } catch (error) {
+      failed.push({ id: item.id, message: MMError.from(error).message });
+    }
+  }
+
+  return { resolved, failed, imports: [...imports] };
+}
+
 /** Close every open item of an import — used when a job is cancelled. */
 export async function closeItemsOf(importId: string, db: Database = defaultDb()): Promise<void> {
   await db

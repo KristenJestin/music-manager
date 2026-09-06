@@ -16,7 +16,7 @@ import { z } from "@hono/zod-openapi";
 import { NOTIFIABLE_EVENTS, STEP_NAMES } from "@mm/contracts";
 // The import-status vocabulary, from the import-free module the `pgEnum` is built from — so
 // the query filter and the column can never name different sets.
-import { IMPORT_STATUSES } from "#/server/db/schema/enums.vocab.ts";
+import { IMPORT_STATUSES, INBOX_TYPES } from "#/server/db/schema/enums.vocab.ts";
 import type {
   ApiKeyView,
   ApiPrincipal,
@@ -295,6 +295,22 @@ export const resolveInboxSchema = z
     resolution: z.record(z.string(), z.unknown()).optional(),
   })
   .openapi("ResolveInbox");
+
+/**
+ * The batch form: several items, one answer, and one restart per import.
+ *
+ * `itemIds` and `importId` are two ways of naming the same set and exactly one must be given —
+ * the service refuses both and neither, rather than picking one and being quietly surprising.
+ */
+export const resolveBatchSchema = z
+  .object({
+    itemIds: z.array(z.string().min(1)).min(1).max(200).optional(),
+    importId: z.string().min(1).optional(),
+    /** With `importId` only: e.g. `fingerprint_mismatch`. */
+    type: z.enum(INBOX_TYPES).optional(),
+    accept: z.boolean().default(true),
+  })
+  .openapi("ResolveInboxBatch");
 
 /* ------------------------------------------------------------------ */
 /* library                                                             */
