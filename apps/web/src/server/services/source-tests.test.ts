@@ -6,8 +6,9 @@
  * have said the same thing about a key AcoustID had refused. The cases below need no network,
  * because they are exactly the ones that never reach one.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Database } from "#/server/db/client.ts";
+import { SOURCE_ENV_KEYS } from "#/server/integrations/config.ts";
 import { testSource } from "./source-tests.ts";
 import { defaults, type Settings } from "./settings.ts";
 
@@ -15,7 +16,21 @@ const db = {} as Database;
 
 const settings = (patch: Partial<Settings> = {}): Settings => ({ ...defaults(), ...patch });
 
+/**
+ * `sourcesConfig()` layers the settings over `process.env`, and Bun loads `v2/.env` for
+ * whatever it runs — so a machine that owns a real `MM_ACOUSTID_KEY` used to turn the first
+ * case below ("there is no key anywhere") into "there is a key, from the environment", and
+ * the suite failed on the owner's checkout while passing in a worktree that has no `.env`.
+ * The environment a test asserts on is part of its fixture: it is stated here, not inherited.
+ */
 describe("the AcoustID test", () => {
+  beforeEach(() => {
+    for (const key of SOURCE_ENV_KEYS) vi.stubEnv(key, "");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("fails, and names both places a key could go, when there is none", async () => {
     const result = await testSource("acoustid", { db, settings: settings() });
     expect(result.ok).toBe(false);

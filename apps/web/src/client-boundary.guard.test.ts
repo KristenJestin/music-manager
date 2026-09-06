@@ -35,6 +35,16 @@ import { describe, expect, it } from "vitest";
  */
 const HERE = dirname(fileURLToPath(import.meta.url));
 
+/**
+ * These are whole-tree static scans, not unit tests, and they are bound by the disk rather
+ * than by the processor: every `.ts` and `.tsx` of the app is read and matched. Five seconds,
+ * vitest's default, is a budget for a function call; on this machine the sweep took twelve
+ * whenever the suite ran beside a dev server and Docker, and the gate went red for a reason
+ * that had nothing to do with the boundary. The scans get a budget that fits what they
+ * actually do. A real regression still fails on its assertion, in milliseconds, not on time.
+ */
+const SCAN_TIMEOUT_MS = 60_000;
+
 /** Directories whose modules are fetched by, or rendered into, the browser. */
 const CLIENT_DIRS = ["routes", "components", "hooks", "lib"] as const;
 
@@ -185,44 +195,60 @@ const clientFiles = CLIENT_DIRS.flatMap((dir) => walk(join(HERE, dir)))
   .filter((file) => !isApiRoute(file));
 
 describe("the client/server boundary", () => {
-  it("scans a plausible amount of the app (a broken walk would pass vacuously)", () => {
-    expect(clientFiles.length).toBeGreaterThanOrEqual(40);
-    expect(clientFiles.some((file) => file.endsWith("/routes/_app.tsx"))).toBe(true);
-    expect(clientFiles.some((file) => file.includes("/components/"))).toBe(true);
-  });
+  it(
+    "scans a plausible amount of the app (a broken walk would pass vacuously)",
+    () => {
+      expect(clientFiles.length).toBeGreaterThanOrEqual(40);
+      expect(clientFiles.some((file) => file.endsWith("/routes/_app.tsx"))).toBe(true);
+      expect(clientFiles.some((file) => file.includes("/components/"))).toBe(true);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 
-  it("still recognises the API routes it excludes", () => {
-    const api = CLIENT_DIRS.flatMap((dir) => walk(join(HERE, dir))).filter(isApiRoute);
-    expect(api.map((file) => file.split("/").at(-1)).toSorted()).toContain("api.auth.$.ts");
-    expect(api.length).toBeGreaterThanOrEqual(5);
-  });
+  it(
+    "still recognises the API routes it excludes",
+    () => {
+      const api = CLIENT_DIRS.flatMap((dir) => walk(join(HERE, dir))).filter(isApiRoute);
+      expect(api.map((file) => file.split("/").at(-1)).toSorted()).toContain("api.auth.$.ts");
+      expect(api.length).toBeGreaterThanOrEqual(5);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 
-  it("imports server code only as a server function or a provably pure module", () => {
-    const violations: string[] = [];
+  it(
+    "imports server code only as a server function or a provably pure module",
+    () => {
+      const violations: string[] = [];
 
-    for (const file of clientFiles) {
-      for (const { specifier, names } of valueImports(file, (s) => s.startsWith("#/server/"))) {
-        const target = moduleFile(specifier);
-        const inFunctions = target.includes("/server/functions/");
-        for (const name of names) {
-          if (inFunctions && isServerFn(target, name)) continue;
-          if (isPure(target)) continue;
-          violations.push(
-            `${file.replace(slash(HERE), "src")} imports { ${name} } from "${specifier}"`,
-          );
+      for (const file of clientFiles) {
+        for (const { specifier, names } of valueImports(file, (s) => s.startsWith("#/server/"))) {
+          const target = moduleFile(specifier);
+          const inFunctions = target.includes("/server/functions/");
+          for (const name of names) {
+            if (inFunctions && isServerFn(target, name)) continue;
+            if (isPure(target)) continue;
+            violations.push(
+              `${file.replace(slash(HERE), "src")} imports { ${name} } from "${specifier}"`,
+            );
+          }
         }
       }
-    }
 
-    expect(violations.toSorted()).toEqual([]);
-  });
+      expect(violations.toSorted()).toEqual([]);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 
-  it("keeps the vocabulary module pure, since the Console imports it for real", () => {
-    const vocab = join(HERE, "server", "db", "schema", "enums.vocab.ts");
-    expect(isPure(slash(vocab))).toBe(true);
-    // The module it was split out of must stay impure, or the split has been undone.
-    expect(isPure(slash(join(HERE, "server", "db", "schema", "enums.ts")))).toBe(false);
-  });
+  it(
+    "keeps the vocabulary module pure, since the Console imports it for real",
+    () => {
+      const vocab = join(HERE, "server", "db", "schema", "enums.vocab.ts");
+      expect(isPure(slash(vocab))).toBe(true);
+      // The module it was split out of must stay impure, or the split has been undone.
+      expect(isPure(slash(join(HERE, "server", "db", "schema", "enums.ts")))).toBe(false);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 });
 
 describe("runtime portability", () => {
@@ -231,26 +257,34 @@ describe("runtime portability", () => {
    * `server/auth/auth.test.ts` has the full story; this is the cheap net that catches the
    * next `Bun.` before it reaches an SSR render.
    */
-  it("uses no Bun global anywhere in the web app", () => {
-    const all = ["routes", "components", "hooks", "lib", "server", "worker"]
-      .map((dir) => join(HERE, dir))
-      .flatMap((dir) => walk(dir));
+  it(
+    "uses no Bun global anywhere in the web app",
+    () => {
+      const all = ["routes", "components", "hooks", "lib", "server", "worker"]
+        .map((dir) => join(HERE, dir))
+        .flatMap((dir) => walk(dir));
 
-    const offenders = all
-      .filter((file) => !/\.test\.tsx?$/.test(file))
-      .filter((file) => /(^|[^.\w])Bun\s*\./.test(code(file)))
-      .map((file) => file.replace(slash(HERE), "src"));
+      const offenders = all
+        .filter((file) => !/\.test\.tsx?$/.test(file))
+        .filter((file) => /(^|[^.\w])Bun\s*\./.test(code(file)))
+        .map((file) => file.replace(slash(HERE), "src"));
 
-    expect(all.length).toBeGreaterThanOrEqual(80);
-    expect(offenders.toSorted()).toEqual([]);
-  });
+      expect(all.length).toBeGreaterThanOrEqual(80);
+      expect(offenders.toSorted()).toEqual([]);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 
-  it("would actually catch one (the scanner reads code, and only code)", () => {
-    const detects = (text: string): boolean => /(^|[^.\w])Bun\s*\./.test(text);
-    expect(detects('const hash = new Bun.CryptoHasher("sha256");')).toBe(true);
-    expect(detects("await Bun.sleep(1000);")).toBe(true);
-    // Not a Bun global: a property called `Bun`, and the word in prose.
-    expect(detects("config.Bun.enabled")).toBe(false);
-    expect(code(join(HERE, "server", "auth", "auth.ts"))).not.toMatch(/Bun/);
-  });
+  it(
+    "would actually catch one (the scanner reads code, and only code)",
+    () => {
+      const detects = (text: string): boolean => /(^|[^.\w])Bun\s*\./.test(text);
+      expect(detects('const hash = new Bun.CryptoHasher("sha256");')).toBe(true);
+      expect(detects("await Bun.sleep(1000);")).toBe(true);
+      // Not a Bun global: a property called `Bun`, and the word in prose.
+      expect(detects("config.Bun.enabled")).toBe(false);
+      expect(code(join(HERE, "server", "auth", "auth.ts"))).not.toMatch(/Bun/);
+    },
+    SCAN_TIMEOUT_MS,
+  );
 });

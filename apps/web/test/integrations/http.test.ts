@@ -6,7 +6,7 @@
  * this proof, "10 concurrent MusicBrainz calls take ≥ 9 s", and a fake clock would prove that
  * the code schedules a delay, not that a caller actually waits for it.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MMError } from "@mm/contracts";
 import {
   backoffOf,
@@ -45,20 +45,36 @@ describe("the rate limiter", () => {
     expect(Date.now() - started).toBeGreaterThanOrEqual(75);
   });
 
+  /**
+   * This one claim is stated on a controlled clock, and it is the exception the header above
+   * describes rather than a contradiction of it.
+   *
+   * What is being proven is that `acquire` moves `nextFreeAt` *before* it awaits, so four
+   * callers arriving in the same tick take four different slots instead of all reading the
+   * same free instant. Wall-clock arrival times cannot prove that on a busy machine: a
+   * starved event loop delivers the four late timers in one batch, every measured gap
+   * collapses to zero, and the test fails while the code is perfectly correct. That is what
+   * made it flaky whenever the suite ran beside a dev server and Docker. A fake clock states
+   * the claim exactly — caller *n* leaves at *n* × the interval, no rounding, no tolerance —
+   * and the two neighbouring tests keep the real-time proof that a caller genuinely waits.
+   */
   it("reserves the slot before waiting, so concurrency cannot collapse the queue", async () => {
-    const limiter = new RateLimiter(50);
-    const at: number[] = [];
-    const started = Date.now();
-    await Promise.all(
-      Array.from({ length: 4 }, async () => {
-        await limiter.acquire();
-        at.push(Date.now() - started);
-      }),
-    );
-    at.sort((a, b) => a - b);
-    for (let index = 1; index < at.length; index += 1) {
-      // Windows timers round down by a few milliseconds; the claim is "spaced", not "exact".
-      expect((at[index] ?? 0) - (at[index - 1] ?? 0)).toBeGreaterThanOrEqual(30);
+    vi.useFakeTimers();
+    try {
+      const limiter = new RateLimiter(50);
+      const at: number[] = [];
+      const started = Date.now();
+      const all = Promise.all(
+        Array.from({ length: 4 }, async () => {
+          await limiter.acquire();
+          at.push(Date.now() - started);
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      await all;
+      expect(at).toEqual([0, 50, 100, 150]);
+    } finally {
+      vi.useRealTimers();
     }
   });
 
