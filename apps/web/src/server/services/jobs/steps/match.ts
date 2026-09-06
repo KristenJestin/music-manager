@@ -698,9 +698,7 @@ async function applySupplied(
     await ctx.db
       .update(imports)
       .set({
-        ...(supplied.album === undefined || supplied.album === ""
-          ? {}
-          : { title: supplied.album }),
+        ...(supplied.album === undefined || supplied.album === "" ? {} : { title: supplied.album }),
         ...(supplied.albumArtist === undefined || supplied.albumArtist === ""
           ? {}
           : { artist: supplied.albumArtist }),
