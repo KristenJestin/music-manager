@@ -62,13 +62,13 @@ describe("the default template is the shipped layout", () => {
 describe("multi-disc modes", () => {
   it("prefixes the file name by default", () => {
     expect(renderPathTemplate(DEFAULT_PATH_TEMPLATE, doubleDisc)).toBe(
-      "Justice/Woman (2016)/2-03 Alakazam !.opus",
+      "Justice/Woman (2016)/2-03 - Alakazam !.opus",
     );
   });
 
   it("puts each disc in its own folder", () => {
     expect(renderPathTemplate(DEFAULT_PATH_TEMPLATE, doubleDisc, { discMode: "folder" })).toBe(
-      "Justice/Woman (2016)/Disc 2/03 Alakazam !.opus",
+      "Justice/Woman (2016)/Disc 2/03 - Alakazam !.opus",
     );
   });
 
@@ -80,14 +80,14 @@ describe("multi-disc modes", () => {
 
   it("drops the disc entirely when the release is numbered straight through", () => {
     expect(renderPathTemplate(DEFAULT_PATH_TEMPLATE, doubleDisc, { discMode: "continuous" })).toBe(
-      "Justice/Woman (2016)/03 Alakazam !.opus",
+      "Justice/Woman (2016)/03 - Alakazam !.opus",
     );
   });
 
   it("never adds a disc to a single-disc release, whatever the mode", () => {
     for (const discMode of ["prefix", "folder", "continuous"] as const) {
       expect(renderPathTemplate(DEFAULT_PATH_TEMPLATE, discovery, { discMode })).toBe(
-        "Daft Punk/Discovery (2001)/01 One More Time.opus",
+        "Daft Punk/Discovery (2001)/01 - One More Time.opus",
       );
     }
   });
@@ -96,7 +96,7 @@ describe("multi-disc modes", () => {
 describe("substitution", () => {
   it("removes the brackets around a year that does not exist", () => {
     expect(renderPathTemplate(DEFAULT_PATH_TEMPLATE, noYear)).toBe(
-      "Unknown Artist/Untitled/07 Track Seven.opus",
+      "Unknown Artist/Untitled/07 - Track Seven.opus",
     );
   });
 
@@ -130,7 +130,7 @@ describe("substitution", () => {
       ...discovery,
       title: "AC/DC Tribute",
     });
-    expect(path).toBe("Daft Punk/Discovery (2001)/01 AC-DC Tribute.opus");
+    expect(path).toBe("Daft Punk/Discovery (2001)/01 - AC-DC Tribute.opus");
   });
 });
 
@@ -160,8 +160,8 @@ describe("the Settings preview", () => {
   it("shows three worked examples, and they are what the renderer would do", () => {
     const preview = previewPathTemplate(DEFAULT_PATH_TEMPLATE);
     expect(preview).toHaveLength(3);
-    expect(preview[0]?.path).toBe("Daft Punk/Discovery (2001)/01 One More Time.opus");
-    expect(preview[1]?.path).toBe("Justice/Woman (2016)/1-01 Safe and Sound.opus");
-    expect(preview[2]?.path).toBe("Unknown Artist/Untitled/07 Track Seven.opus");
+    expect(preview[0]?.path).toBe("Daft Punk/Discovery (2001)/01 - One More Time.opus");
+    expect(preview[1]?.path).toBe("Justice/Woman (2016)/1-01 - Safe and Sound.opus");
+    expect(preview[2]?.path).toBe("Unknown Artist/Untitled/07 - Track Seven.opus");
   });
 });

@@ -264,7 +264,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     it("puts the files where packages/domain/paths says", () => {
       expect(existsSync(join(LIBRARY_HOST, "Daft Punk", "Discovery (2001)"))).toBe(true);
       expect(
-        existsSync(join(LIBRARY_HOST, "Daft Punk", "Discovery (2001)", "01 One More Time.opus")),
+        existsSync(join(LIBRARY_HOST, "Daft Punk", "Discovery (2001)", "01 - One More Time.opus")),
       ).toBe(true);
       expect(existsSync(join(LIBRARY_HOST, "Daft Punk", "Discovery (2001)", "cover.jpg"))).toBe(
         true,

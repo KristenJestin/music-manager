@@ -23,21 +23,21 @@ const discovery: TrackPathInput = {
 
 describe("trackPath", () => {
   it("renders the layout of docs/04, step `place`", () => {
-    expect(trackPath(discovery)).toBe("Daft Punk/Discovery (2001)/01 One More Time.opus");
+    expect(trackPath(discovery)).toBe("Daft Punk/Discovery (2001)/01 - One More Time.opus");
   });
 
   it("pads the track number to two digits so players sort correctly", () => {
-    expect(trackFileName({ ...discovery, trackNumber: 9 })).toBe("09 One More Time.opus");
-    expect(trackFileName({ ...discovery, trackNumber: 14 })).toBe("14 One More Time.opus");
-    expect(trackFileName({ ...discovery, trackNumber: 101 })).toBe("101 One More Time.opus");
+    expect(trackFileName({ ...discovery, trackNumber: 9 })).toBe("09 - One More Time.opus");
+    expect(trackFileName({ ...discovery, trackNumber: 14 })).toBe("14 - One More Time.opus");
+    expect(trackFileName({ ...discovery, trackNumber: 101 })).toBe("101 - One More Time.opus");
   });
 
   it("adds the disc prefix only when the release has several discs", () => {
     expect(trackFileName({ ...discovery, totalDiscs: 1, discNumber: 1 })).toBe(
-      "01 One More Time.opus",
+      "01 - One More Time.opus",
     );
     expect(trackFileName({ ...discovery, totalDiscs: 2, discNumber: 2, trackNumber: 3 })).toBe(
-      "2-03 One More Time.opus",
+      "2-03 - One More Time.opus",
     );
   });
 
@@ -118,7 +118,7 @@ describe("sidecarPaths", () => {
   });
 
   it("names the .lrc after the audio file, which is what readers look for", () => {
-    expect(paths.lyrics).toBe("Daft Punk/Discovery (2001)/01 One More Time.lrc");
+    expect(paths.lyrics).toBe("Daft Punk/Discovery (2001)/01 - One More Time.lrc");
     expect(paths.lyrics.replace(/\.lrc$/, ".opus")).toBe(trackPath(discovery));
   });
 
@@ -132,7 +132,7 @@ describe("hostile names", () => {
   it("survives a title that is nothing but forbidden characters", () => {
     const path = trackPath({ ...discovery, title: "???", albumArtist: "//" });
     expect(path.split("/").filter((segment) => segment === "")).toHaveLength(0);
-    expect(path).toBe("--/Discovery (2001)/01 ---.opus");
+    expect(path).toBe("--/Discovery (2001)/01 - ---.opus");
   });
 
   it("never produces a segment that escapes the library root", () => {

@@ -1,8 +1,8 @@
 /**
  * Library paths (`docs/04-pipeline-et-matching.md`, step `place`).
  *
- * The layout is `{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}`. The disc
- * prefix appears only on multi-disc releases, so a normal album keeps the plain `01 Title`
+ * The layout is `{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}`. The disc
+ * prefix appears only on multi-disc releases, so a normal album keeps the plain `01 - Title`
  * numbering every player sorts correctly.
  *
  * Sanitisation has three modes, because the same library is served over SMB to Windows, read
@@ -97,18 +97,18 @@ export function albumFolder(input: TrackPathInput, options: PathOptions = {}): s
   return `${artist}/${album}`;
 }
 
-/** `01 One More Time.opus` — the file name alone. */
+/** `01 - One More Time.opus` — the file name alone. */
 export function trackFileName(input: TrackPathInput, options: PathOptions = {}): string {
   const disc =
     input.totalDiscs !== undefined && input.totalDiscs > 1 && input.discNumber !== undefined
       ? `${String(input.discNumber)}-`
       : "";
   const number = String(input.trackNumber).padStart(2, "0");
-  const stem = sanitizeSegment(`${disc}${number} ${input.title}`, options);
+  const stem = sanitizeSegment(`${disc}${number} - ${input.title}`, options);
   return `${stem}.${input.extension}`;
 }
 
-/** The full relative path: `Daft Punk/Discovery (2001)/01 One More Time.opus`. */
+/** The full relative path: `Daft Punk/Discovery (2001)/01 - One More Time.opus`. */
 export function trackPath(input: TrackPathInput, options: PathOptions = {}): string {
   return `${albumFolder(input, options)}/${trackFileName(input, options)}`;
 }
@@ -122,7 +122,7 @@ export interface SidecarPaths {
   readonly artistImage: string;
   readonly albumNfo: string;
   readonly artistNfo: string;
-  /** `Artist/Album (Year)/01 One More Time.lrc` — one per track. */
+  /** `Artist/Album (Year)/01 - One More Time.lrc` — one per track. */
   readonly lyrics: string;
 }
 

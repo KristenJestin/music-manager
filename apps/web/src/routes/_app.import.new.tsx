@@ -1175,7 +1175,7 @@ function StepOptions({
               <div className="rounded-md border border-dashed border-line-strong bg-background px-2.5 py-2 font-mono text-2xs text-fg-1">
                 {folder}/
                 <b className="font-medium text-primary">
-                  {String(firstTrack?.position ?? 1).padStart(2, "0")} {firstTrack?.title ?? "…"}
+                  {String(firstTrack?.position ?? 1).padStart(2, "0")} - {firstTrack?.title ?? "…"}
                 </b>
                 .opus
               </div>

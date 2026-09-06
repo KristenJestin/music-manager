@@ -1,7 +1,7 @@
 /**
  * The library layout, as a template (`docs/07-ui.md`, Settings › Library & files).
  *
- * `./index.ts` fixes one layout — `{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}`
+ * `./index.ts` fixes one layout — `{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}`
  * — and that is still the default and still what every test asserts. This file makes it
  * *configurable*, because the shape of a music library is one of the few things a self-hosted
  * app genuinely must not decide for you: somebody's Navidrome, somebody's phone and somebody's
@@ -29,14 +29,14 @@ import { sanitizeSegment, type PathOptions, type TrackPathInput } from "./index.
 
 /** What `./index.ts` builds, written as a template. The default value of the setting. */
 export const DEFAULT_PATH_TEMPLATE =
-  "{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}";
+  "{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}";
 
 /**
  * How a multi-disc release is numbered.
  *
- *  - `prefix`      `Album/1-01 Title.opus` — one folder, disc in the file name (the default);
- *  - `folder`      `Album/Disc 1/01 Title.opus` — one folder per disc;
- *  - `continuous`  `Album/01 Title.opus` — no disc anywhere, for releases numbered straight
+ *  - `prefix`      `Album/1-01 - Title.opus` — one folder, disc in the file name (the default);
+ *  - `folder`      `Album/Disc 1/01 - Title.opus` — one folder per disc;
+ *  - `continuous`  `Album/01 - Title.opus` — no disc anywhere, for releases numbered straight
  *                  through. Only choose it if the tracks really are numbered that way, or two
  *                  discs will both claim `01`.
  */

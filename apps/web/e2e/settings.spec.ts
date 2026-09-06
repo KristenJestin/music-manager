@@ -21,7 +21,7 @@ test.describe("settings", () => {
     /* ---- the preview follows the template, computed by the real renderer ---- */
 
     const preview = page.getByTestId("template-preview");
-    await expect(preview).toContainText("Daft Punk/Discovery (2001)/01 One More Time.opus");
+    await expect(preview).toContainText("Daft Punk/Discovery (2001)/01 - One More Time.opus");
 
     await page
       .getByTestId("setting-pathTemplate")
@@ -46,7 +46,7 @@ test.describe("settings", () => {
 
     await page
       .getByTestId("setting-pathTemplate")
-      .fill("{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}");
+      .fill("{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}");
     await expect(page.getByTestId("template-error")).toHaveCount(0, { timeout: 30_000 });
     await page.getByTestId("setting-maxSegmentLength").fill("180");
     await page.getByTestId("settings-save").click();

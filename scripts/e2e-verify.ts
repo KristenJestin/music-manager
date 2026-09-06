@@ -448,14 +448,14 @@ async function main(): Promise<void> {
   section("4 · delete a file → the scan reports it missing → re-download");
   /* ---------------------------------------------------------------- */
 
-  const victim = join(ALBUM_DIR, "05 Crescendolls.opus");
+  const victim = join(ALBUM_DIR, "05 - Crescendolls.opus");
   const victimSize = statSync(victim).size;
   unlinkSync(victim);
   info(`deleted 05 Crescendolls.opus (${String(victimSize)} bytes)`);
 
   const afterDelete = await mm(["scan", "run", "--json"], { allowFailure: true });
   const scan1 = JSON.parse(afterDelete.stdout) as ScanReport;
-  const missing = scan1.missing.find((entry) => entry.path.endsWith("05 Crescendolls.opus"));
+  const missing = scan1.missing.find((entry) => entry.path.endsWith("05 - Crescendolls.opus"));
   check(
     missing !== undefined,
     "the scan reports the file as missing",
@@ -499,7 +499,7 @@ async function main(): Promise<void> {
   section("5 · edit a tag by hand → the scan reports the drift → fix re-tags");
   /* ---------------------------------------------------------------- */
 
-  const drifted = "Daft Punk/Discovery (2001)/01 One More Time.opus";
+  const drifted = "Daft Punk/Discovery (2001)/01 - One More Time.opus";
   const originalDate = await probeTag(drifted, "DATE");
   await writeTag(drifted, "DATE", "2008");
   check(

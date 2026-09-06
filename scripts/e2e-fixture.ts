@@ -75,20 +75,20 @@ const FAST_MS = "20";
 
 /** The fourteen names `packages/domain/paths` must produce for Discovery. */
 const EXPECTED_FILES = [
-  "01 One More Time.opus",
-  "02 Aerodynamic.opus",
-  "03 Digital Love.opus",
-  "04 Harder, Better, Faster, Stronger.opus",
-  "05 Crescendolls.opus",
-  "06 Nightvision.opus",
-  "07 Superheroes.opus",
-  "08 High Life.opus",
-  "09 Something About Us.opus",
-  "10 Voyager.opus",
-  "11 Veridis Quo.opus",
-  "12 Short Circuit.opus",
-  "13 Face to Face.opus",
-  "14 Too Long.opus",
+  "01 - One More Time.opus",
+  "02 - Aerodynamic.opus",
+  "03 - Digital Love.opus",
+  "04 - Harder, Better, Faster, Stronger.opus",
+  "05 - Crescendolls.opus",
+  "06 - Nightvision.opus",
+  "07 - Superheroes.opus",
+  "08 - High Life.opus",
+  "09 - Something About Us.opus",
+  "10 - Voyager.opus",
+  "11 - Veridis Quo.opus",
+  "12 - Short Circuit.opus",
+  "13 - Face to Face.opus",
+  "14 - Too Long.opus",
 ] as const;
 
 const ALBUM_DIR = join(LIBRARY, "Daft Punk", "Discovery (2001)");
@@ -432,7 +432,7 @@ async function main(): Promise<void> {
   section("3 · the tags, read back through the toolbox");
   /* ---------------------------------------------------------------- */
 
-  const probed = await probe("Daft Punk/Discovery (2001)/01 One More Time.opus");
+  const probed = await probe("Daft Punk/Discovery (2001)/01 - One More Time.opus");
   check(probed.codec === "opus", "the file really is Opus", probed.codec);
   for (const key of ["MUSICBRAINZ_TRACKID", "ARTISTS", "R128_TRACK_GAIN"]) {
     const value = probed.tags[key];
