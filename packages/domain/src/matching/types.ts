@@ -181,6 +181,18 @@ export interface FitLine {
   readonly videoTitle: string;
   /** Position within the medium, or `null` when the video binds to nothing. */
   readonly trackPosition: number | null;
+  /** Which medium (disc) the bound track is on, or `null` when nothing was bound. */
+  readonly mediumPosition: number | null;
+  /**
+   * The identifiers the assignment already computed.
+   *
+   * They are here because an agent confirming this candidate over the API has to *send* them
+   * back (`confirm_mapping.bindings[].recordingMbid`), and without them its only honest option
+   * was `null` — which then made every AcoustID check disagree with the mapping it had just
+   * been given. The system knew the answer and did not say it; now it does.
+   */
+  readonly recordingMbid: string | null;
+  readonly trackMbid: string | null;
   readonly trackTitle: string | null;
   /** `video − track` in seconds. */
   readonly delta: number | null;
