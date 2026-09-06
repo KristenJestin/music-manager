@@ -16,7 +16,16 @@ describe("serverEnv", () => {
       MM_TOOLBOX_LIBRARY_ROOT: "/library",
       MM_WORK_DIR: ".mm-work",
       MM_WEB_URL: "http://localhost:3000",
+      MM_AUTH_SECRET: "",
+      MM_ADMIN_EMAIL: "",
+      MM_ADMIN_PASSWORD: "",
+      MM_BEHIND_PROXY: false,
+      NODE_ENV: "development",
     });
+  });
+
+  it("turns MM_BEHIND_PROXY into a boolean", () => {
+    expect(serverEnv({ ...valid, MM_BEHIND_PROXY: "1" }).MM_BEHIND_PROXY).toBe(true);
   });
 
   it("turns MM_FIXTURES into a boolean", () => {

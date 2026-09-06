@@ -36,6 +36,8 @@ export const MM_ERROR_CODES = [
   "AWAITING_CONFIRM",
   "AWAITING_REVIEW",
   "CANCELLED",
+  /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
+  "UNAUTHORIZED",
 ] as const;
 
 export type MMErrorCode = (typeof MM_ERROR_CODES)[number] | (string & {});

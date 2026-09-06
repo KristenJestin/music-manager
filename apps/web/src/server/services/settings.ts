@@ -335,6 +335,13 @@ export const SETTING_DEFINITIONS = {
     "Widest accepted difference, in seconds, between a LRCLIB result and the track.",
   ),
 
+  /* ---- the Console itself (P06) ---- */
+  trustedOrigins: define(
+    z.array(z.string()),
+    [],
+    "Extra origins the Console may be reached from, beyond MM_WEB_URL — the public URL of a reverse proxy, say. Wildcards like `https://*.example.com` are allowed.",
+  ),
+
   /* ---- the library, on both sides of the bridge ---- */
   libraryRoot: define(
     z.string(),

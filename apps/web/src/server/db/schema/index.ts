@@ -11,7 +11,8 @@
  *  - `library`   what is on disk;
  *  - `metadata`  raw cache, documents, artists;
  *  - `inbox`     pending questions and the decisions taken;
- *  - `settings`  the typed KV store.
+ *  - `settings`  the typed KV store;
+ *  - `auth`      Better Auth's four tables (P06).
  */
 export * from "./meta.ts";
 export * from "./enums.ts";
@@ -21,3 +22,4 @@ export * from "./library.ts";
 export * from "./metadata.ts";
 export * from "./inbox.ts";
 export * from "./settings.ts";
+export * from "./auth.ts";

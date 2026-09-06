@@ -42,6 +42,40 @@ const envSchema = z.object({
 
   /** Base URL of the web app, for the CLI's `--follow` and the E2E's SSE check. */
   MM_WEB_URL: z.url().default("http://localhost:3000"),
+
+  /* ---- authentication (P06) ------------------------------------------- */
+
+  /**
+   * The signing secret for sessions. Better Auth also reads `BETTER_AUTH_SECRET`; this is the
+   * `MM_`-prefixed name so that one `.env` describes the whole app.
+   *
+   * Empty is tolerated for local development — the auth module then derives a stable secret
+   * from the database URL and says so — and refused in production, where a guessable session
+   * signature is the whole of the security model.
+   */
+  MM_AUTH_SECRET: z.string().default(""),
+
+  /**
+   * The single administrator, created on first boot (`docs/phases/P06-web-coeur.md`).
+   * When either is missing the app serves `/setup` once instead, and nothing else.
+   */
+  MM_ADMIN_EMAIL: z.string().default(""),
+  MM_ADMIN_PASSWORD: z.string().default(""),
+
+  /**
+   * "1" when a reverse proxy terminates TLS in front of this process.
+   *
+   * It does two things: it makes the session cookie `Secure` even though this process only
+   * speaks HTTP, and it lets `x-forwarded-proto`/`-host` be believed. Both are wrong to do
+   * when nothing trustworthy sets those headers, which is why it is opt-in.
+   */
+  MM_BEHIND_PROXY: z
+    .enum(["0", "1"])
+    .default("0")
+    .transform((value) => value === "1"),
+
+  /** `production` hardens the cookie and refuses an empty `MM_AUTH_SECRET`. */
+  NODE_ENV: z.string().default("development"),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;
