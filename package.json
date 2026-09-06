@@ -52,6 +52,8 @@
     "navidrome:record": "bun run apps/web/src/server/integrations/navidrome/record-cassettes.ts",
     "e2e-migrate": "bun run scripts/e2e-migrate.ts",
     "e2e:migrate": "bun run scripts/e2e-migrate.ts",
+    "e2e-all": "bun run scripts/e2e-all.ts",
+    "e2e:all": "bun run scripts/e2e-all.ts",
     "fixtures:v1": "bun run fixtures/v1/generate.ts"
   },
   "devDependencies": {

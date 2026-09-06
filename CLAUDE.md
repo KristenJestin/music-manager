@@ -73,10 +73,21 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`                   |
 | `bun run e2e-fixture`                 | the offline vertical slice, end to end (CLI, worker, toolbox — no browser)       |
 | `bun run e2e`                         | the Console's Playwright tests: brings up its own app, worker and database       |
+| `bun run e2e-migrate`                 | the v1 take-over: a fixture v1 installation, dry run then real run               |
+| `bun run e2e-verify`                  | the Navidrome read-back, against a real Navidrome container                      |
+| `bun run e2e:all`                     | **all four of the above**, cheapest first; `--only fixture,web` for a subset     |
 | `bun run compose:up` / `compose:down` | aliases of `stack:up` / `stack:down`                                             |
 
-`bun run check` must be green at the end of every phase, and the previous phases' fixture E2E
-must still pass.
+`bun run check` must be green at the end of every phase, and `bun run e2e:all` — the four
+end-to-end runs, which need Docker and a fixtures-mode toolbox — with it. `check` is the fast
+gate (types, lint, unit tests, no containers); `e2e:all` is the slow one, and it is the half
+that catches a pipeline that stopped working. Bring this checkout's toolbox up in fixtures
+mode first: `MM_TOOLBOX_FIXTURES=1 bun run stack:up`.
+
+All four runners resolve the checkout they are in (`scripts/e2e-checkout.ts`): their own
+toolbox port, their own per-process databases, their own library subdirectory, and `-p` on
+every `docker compose` call. Running them from a worktree is therefore safe, and running two
+of them at once is too.
 
 ## Conventions
 

@@ -34,12 +34,15 @@ import {
   resolveDocker,
   withDatabaseName,
 } from "./lib.ts";
+import { describeStack, e2eStack } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+/** Which checkout is this, and therefore which postgres, which toolbox, which `-p`. */
+const STACK = e2eStack();
+const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
 /**
  * A database of its own, per process, rather than resetting whatever `DATABASE_URL` already
  * pointed at — which was the developer's or another agent's real `mm` database by default.
@@ -47,7 +50,7 @@ const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@loca
  */
 const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_fixture_${String(process.pid)}`;
 const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
-const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
+const TOOLBOX_URL = STACK.toolboxUrl;
 /**
  * Never `:3000` by default: a script that silently reused whatever answered there once mistook
  * an unrelated app for itself and reported zero SSE frames with no error
@@ -67,7 +70,12 @@ const LIBRARY_SUBDIR =
   process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `.mm-e2e-fixture-${String(process.pid)}`;
 const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
 const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
-const COMPOSE = ["-f", "docker-compose.dev.yml", "-f", "docker-compose.fixtures.yml"];
+/**
+ * Always with `-p`, and never `postgres` from a worktree. `e2eStack()` says why at length;
+ * the short version is that `docker compose -f docker-compose.dev.yml …` without a project
+ * addresses the **shared** `mm-dev` containers by name, wherever it is run from.
+ */
+const COMPOSE = STACK.compose;
 
 /** Slice pace of the fixture download. Slow enough to interrupt, fast enough to finish. */
 const SLOW_MS = "400";
@@ -94,7 +102,7 @@ const EXPECTED_FILES = [
 const ALBUM_DIR = join(LIBRARY, "Daft Punk", "Discovery (2001)");
 
 const childEnv: Record<string, string> = {
-  ...(process.env as Record<string, string>),
+  ...STACK.env,
   DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
@@ -283,8 +291,8 @@ async function recreateToolbox(delayMs: string): Promise<void> {
   if (docker === null) die("docker not found");
   const result = await capture({
     label: "compose up toolbox",
-    cmd: [docker, "compose", ...COMPOSE, "up", "-d", "toolbox"],
-    env: { ...childEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: delayMs },
+    cmd: [docker, ...COMPOSE, "up", "-d", ...STACK.services("toolbox")],
+    env: { ...childEnv, ...STACK.composeEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: delayMs },
   });
   if (result.code !== 0) die(`compose up toolbox failed:\n${result.stderr}`);
   await toolboxReady();
@@ -307,14 +315,15 @@ async function probe(relative: string): Promise<{ tags: Record<string, string>; 
 
 async function main(): Promise<void> {
   section("preflight");
+  info(describeStack(STACK));
   if (!(await dockerIsRunning())) die("The Docker daemon is not answering. Start Docker Desktop.");
   const docker = resolveDocker();
   if (docker === null) die("docker not found");
 
   const up = await capture({
     label: "compose up",
-    cmd: [docker, "compose", ...COMPOSE, "up", "-d", "postgres", "toolbox"],
-    env: { ...childEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: FAST_MS },
+    cmd: [docker, ...COMPOSE, "up", "-d", ...STACK.services("postgres", "toolbox")],
+    env: { ...childEnv, ...STACK.composeEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: FAST_MS },
   });
   if (up.code !== 0) die(`compose up failed:\n${up.stderr}`);
   await toolboxReady();

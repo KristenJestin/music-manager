@@ -36,13 +36,16 @@ import {
   webDir,
   withDatabaseName,
 } from "./lib.ts";
+import { describeStack, e2eStack } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
-const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
+/** Which checkout is this, and therefore which postgres and which toolbox. */
+const STACK = e2eStack();
+const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
+const TOOLBOX_URL = STACK.toolboxUrl;
 
 /**
  * A port of its own, chosen fresh by the OS unless `MM_E2E_PORT` pins one. Several agents run
@@ -72,7 +75,7 @@ const ADMIN_PASSWORD = "e2e-password-01";
 const FIXTURE_DELAY_MS = "10";
 
 const childEnv: Record<string, string> = {
-  ...(process.env as Record<string, string>),
+  ...STACK.env,
   DATABASE_URL: TEST_DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
@@ -97,6 +100,7 @@ function say(message: string): void {
 
 async function preflight(): Promise<void> {
   say("checking the stack");
+  console.log(`  ${describeStack(STACK)}`);
 
   try {
     const response = await fetch(`${TOOLBOX_URL}/health`, { signal: AbortSignal.timeout(4000) });
@@ -104,8 +108,8 @@ async function preflight(): Promise<void> {
     if (body.ok !== true) throw new Error("the toolbox is not healthy");
     if (body.fixtures !== true) {
       throw new Error(
-        "the toolbox is not in fixtures mode — bring it up with:\n" +
-          "  docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d postgres toolbox",
+        "the toolbox is not in fixtures mode. Bring this checkout's own up with:\n" +
+          "  MM_TOOLBOX_FIXTURES=1 bun run stack:up",
       );
     }
     console.log(`toolbox ok on ${TOOLBOX_URL} (fixtures)`);

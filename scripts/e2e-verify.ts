@@ -31,12 +31,15 @@ import {
   resolveDocker,
   withDatabaseName,
 } from "./lib.ts";
+import { describeStack, e2eStack } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+/** Which checkout is this, and therefore which postgres, which toolbox, which `-p`. */
+const STACK = e2eStack();
+const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
 /**
  * A database of its own, per process — not the shared `mm` database this used to reset by
  * default, which a concurrent `bun run dev` or another agent's run could be using at the same
@@ -44,8 +47,8 @@ const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@loca
  */
 const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_verify_${String(process.pid)}`;
 const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
-const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
-const NAVIDROME_URL = process.env["MM_NAVIDROME_URL"] ?? "http://localhost:4533";
+const TOOLBOX_URL = STACK.toolboxUrl;
+const NAVIDROME_URL = STACK.navidromeUrl;
 const NAVIDROME_USER = process.env["MM_NAVIDROME_USER"] ?? "admin";
 /** `ND_DEVAUTOCREATEADMINPASSWORD` in docker-compose.dev.yml. */
 const NAVIDROME_PASSWORD = process.env["MM_NAVIDROME_PASSWORD"] ?? "admin";
@@ -67,10 +70,11 @@ const LIBRARY_SUBDIR =
 const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
 const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
 const ALBUM_DIR = join(LIBRARY, "Daft Punk", "Discovery (2001)");
-const COMPOSE = ["-f", "docker-compose.dev.yml", "-f", "docker-compose.fixtures.yml"];
+/** With `-p`, always — see `e2eStack()` for the incident that rule exists to prevent. */
+const COMPOSE = STACK.compose;
 
 const childEnv: Record<string, string> = {
-  ...(process.env as Record<string, string>),
+  ...STACK.env,
   DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
@@ -305,14 +309,15 @@ interface ScanReport {
 
 async function main(): Promise<void> {
   section("preflight");
+  info(describeStack(STACK));
   if (!(await dockerIsRunning())) die("The Docker daemon is not answering. Start Docker Desktop.");
   const docker = resolveDocker();
   if (docker === null) die("docker not found");
 
   const up = await capture({
     label: "compose up",
-    cmd: [docker, "compose", ...COMPOSE, "up", "-d", "postgres", "toolbox", "navidrome"],
-    env: { ...childEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: "20" },
+    cmd: [docker, ...COMPOSE, "up", "-d", ...STACK.services("postgres", "toolbox", "navidrome")],
+    env: { ...childEnv, ...STACK.composeEnv, MM_TOOLBOX_FIXTURE_DELAY_MS: "20" },
   });
   if (up.code !== 0) die(`compose up failed:\n${up.stderr}`);
   await toolboxReady();

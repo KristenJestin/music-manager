@@ -40,17 +40,26 @@ import {
   webDir,
   withDatabaseName,
 } from "./lib.ts";
+import { describeStack, e2eStack } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
-const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
+/** Which checkout is this, and therefore which postgres, which toolbox, which `-p`. */
+const STACK = e2eStack();
+const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
+const TOOLBOX_URL = STACK.toolboxUrl;
 
 /** The v2 database under test, and the scratch database standing in for v1. */
 const V2_DB = process.env["MM_E2E_DB"] ?? `mm_migrate_e2e_${String(process.pid)}`;
-const V1_DB = process.env["MM_V1_FIXTURE_DB"] ?? "mm_v1_fixture";
+/**
+ * Per process, like the v2 one beside it. A fixed `mm_v1_fixture` was the last shared name
+ * left in these runners: two runs on this machine — two agents, or the three consecutive runs
+ * of a stabilisation pass — dropped and recreated the *same* v1 installation out from under
+ * each other, and the loser migrated a database that had just been emptied.
+ */
+const V1_DB = process.env["MM_V1_FIXTURE_DB"] ?? `mm_v1_fixture_${String(process.pid)}`;
 const V2_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, V2_DB);
 const V1_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, V1_DB);
 
@@ -73,7 +82,7 @@ const LIBRARY = resolve(repoRoot, ".local", "library", LIBRARY_LEAF);
 const TOOLBOX_LIBRARY = `/library/${LIBRARY_LEAF}`;
 
 let childEnv: Record<string, string> = {
-  ...(process.env as Record<string, string>),
+  ...STACK.env,
   DATABASE_URL: V2_DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
@@ -293,6 +302,7 @@ const v2 = new SQL({ url: V2_DATABASE_URL, max: 2 });
 
 async function main(): Promise<void> {
   section("preflight");
+  info(describeStack(STACK));
   await toolboxReady();
   info(`toolbox healthy at ${TOOLBOX_URL}, fixtures mode on`);
 
