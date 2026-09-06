@@ -602,12 +602,15 @@ export async function runBatch(runId: string, options: BatchOptions = {}): Promi
             : run.dryRun
               ? `${track.path}: ${describeDiff(outcome.diff)} (dry run, nothing written)`
               : `${track.path}: ${describeDiff(outcome.diff)}`,
+        // The per-file counts are named `*Tags` so they cannot be mistaken for the run's own
+        // `changed`/`failed` counters, which travel under those names on the finish event and
+        // which the Console's progress bar reads.
         data: {
           runId: run.id,
           path: track.path,
-          added: outcome.diff.added.length,
-          removed: outcome.diff.removed.length,
-          changed: outcome.diff.changed.length,
+          addedTags: outcome.diff.added.length,
+          removedTags: outcome.diff.removed.length,
+          changedTags: outcome.diff.changed.length,
           wrote: outcome.wrote,
         },
       },

@@ -999,6 +999,78 @@ export async function importBehindAlbum(
 }
 
 /* ------------------------------------------------------------------ */
+/* fetch missing                                                       */
+/* ------------------------------------------------------------------ */
+
+export interface FetchMissingResult {
+  readonly tracks: number;
+  readonly requests: number;
+  readonly scoreBefore: number | null;
+  readonly scoreAfter: number | null;
+  readonly gained: readonly string[];
+  readonly failed: readonly { path: string; message: string }[];
+}
+
+/**
+ * Go back to the sources for the fields this album does not have.
+ *
+ * The opposite of a re-tag, and the distinction is the whole of §8: a re-tag is *offline*
+ * because the answers are already in the raw cache, and this is *online* because they are not.
+ * A field is missing either because nobody has it or because we never asked; only asking can
+ * tell the two apart, and the answer goes into the raw cache so nobody has to ask twice.
+ *
+ * It does not write a single file. The documents get richer, the album's score goes up, and
+ * the files are still behind — which is exactly when the page offers a re-tag.
+ */
+export async function fetchMissing(
+  albumId: string,
+  options: { db?: Database } = {},
+): Promise<FetchMissingResult> {
+  const db = options.db ?? defaultDb();
+  const settings = await loadSettings(db);
+  const currentSchema = effectiveSchemaVersion(settings);
+
+  const [album] = await db
+    .select()
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.id, albumId))
+    .limit(1);
+  if (album === undefined) throw new MMError("NOT_FOUND", `No album with id ${albumId}.`);
+
+  const tracks = await db.select().from(libraryTracks).where(eq(libraryTracks.albumId, albumId));
+  const before = scoreAlbum(album, await documentsOfTracks(tracks, db), currentSchema);
+  const missingBefore = new Set(before.missing.map((entry) => entry.field));
+
+  const { build } = await import("#/server/services/documents.ts");
+  const failed: { path: string; message: string }[] = [];
+  let requests = 0;
+  let touched = 0;
+
+  for (const track of tracks) {
+    if (track.importTrackId === null) continue;
+    try {
+      const built = await build(track.importTrackId, { db, settings, offline: false });
+      requests += built.requests;
+      touched += 1;
+    } catch (error) {
+      failed.push({ path: track.path, message: MMError.from(error).message });
+    }
+  }
+
+  const after = scoreAlbum(album, await documentsOfTracks(tracks, db), currentSchema);
+  const missingAfter = new Set(after.missing.map((entry) => entry.field));
+
+  return {
+    tracks: touched,
+    requests,
+    scoreBefore: before.score,
+    scoreAfter: after.score,
+    gained: [...missingBefore].filter((field) => !missingAfter.has(field)).sort(),
+    failed,
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* the cover picker                                                    */
 /* ------------------------------------------------------------------ */
 

@@ -28,6 +28,7 @@ import {
   deleteAlbum,
   deleteTrack,
   documentOfLibraryTrack,
+  fetchMissing,
   importBehindAlbum,
   planRedownload,
   setCover,
@@ -38,6 +39,7 @@ import {
   type ArtistRow,
   type CoverOption,
   type DeleteResult,
+  type FetchMissingResult,
   type FileComparison,
   type RedownloadPlan,
   type TrackDetail,
@@ -208,6 +210,23 @@ export const chooseCover = createServerFn({ method: "POST", strict: STRICT })
   .handler(async ({ data }): Promise<{ path: string; bytes: number; tracks: number }> => {
     try {
       return await setCover(data.id, data.url, { db: db() });
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Ask the sources again for what this album is missing.
+ *
+ * Online, deliberately and visibly: it is the one action in the library pages that leaves the
+ * machine, and it reports how many requests it made so that is never a surprise.
+ */
+export const fetchMissingTags = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ albumId: z.string().min(1) }))
+  .handler(async ({ data }): Promise<FetchMissingResult> => {
+    try {
+      return await fetchMissing(data.albumId, { db: db() });
     } catch (error) {
       return toFailure(error);
     }
