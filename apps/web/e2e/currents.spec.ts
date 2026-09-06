@@ -42,7 +42,9 @@ test.describe("fixture://currents", () => {
      * situation, and also the only way to check that the editor's arithmetic is right.
      */
     for (const title of ["Gossip", "Disciples"]) {
-      await mappingRow(page, title).getByTestId("mapping-select").selectOption("");
+      // A listbox now, not a native select (A10): open it, then take the escape hatch.
+      await mappingRow(page, title).getByTestId("mapping-select").click();
+      await page.getByRole("option", { name: /not on this release/ }).click();
     }
     await expect(page.getByTestId("bound-count")).toHaveText("11");
     await expect(page.getByTestId("extra-count")).toHaveText("2");

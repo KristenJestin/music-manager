@@ -31,7 +31,9 @@ test.describe("the Inbox", () => {
     /* ---- unbind two videos: the mapping editor, doing its one job ---------- */
 
     for (const title of ["Nightvision", "Short Circuit"]) {
-      await mappingRow(page, title).getByTestId("mapping-select").selectOption("");
+      // A listbox now, not a native select (A10): open it, then take the escape hatch.
+      await mappingRow(page, title).getByTestId("mapping-select").click();
+      await page.getByRole("option", { name: /not on this release/ }).click();
       await expect(mappingRow(page, title)).toHaveAttribute("data-status", "unmatched");
     }
     await expect(page.getByTestId("bound-count")).toHaveText("12");

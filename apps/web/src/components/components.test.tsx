@@ -60,6 +60,24 @@ const candidate: ReleaseCandidate = {
     status: 1,
     country: 1,
   },
+  fitLines: [
+    {
+      videoIndex: 0,
+      videoTitle: "One More Time",
+      trackPosition: 1,
+      trackTitle: "One More Time",
+      delta: -1,
+      status: "confident",
+    },
+    {
+      videoIndex: 1,
+      videoTitle: "Alive 1997 excerpt",
+      trackPosition: null,
+      trackTitle: null,
+      delta: null,
+      status: "unmatched",
+    },
+  ],
   penalties: [],
   why: ["Album title and artist match exactly", "13/14 tracks are covered by a video within ±2s"],
   preselected: true,
@@ -106,6 +124,27 @@ describe("ReleaseCandidateCard", () => {
     expect(screen.getByText("fit not checked")).toBeTruthy();
   });
 
+  it("shows video ↔ track behind “tracklist fit”, which is what ordered the list", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    expect(screen.queryByTestId("candidate-fit")).toBeNull();
+    fireEvent.click(screen.getByTestId("fit-toggle"));
+    const fit = screen.getByTestId("candidate-fit");
+    expect(within(fit).getByText("Alive 1997 excerpt")).toBeTruthy();
+    expect(within(fit).getByText("not on this release")).toBeTruthy();
+  });
+
+  it("says so rather than showing an empty table when no tracklist was fetched", () => {
+    render(
+      <ReleaseCandidateCard
+        candidate={{ ...candidate, detailed: false, fitLines: [] }}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("fit-toggle"));
+    expect(screen.getByText(/tracklist was not fetched/)).toBeTruthy();
+  });
+
   it("names every penalty that lowered the score", () => {
     render(
       <ReleaseCandidateCard
@@ -127,6 +166,7 @@ describe("MappingRow", () => {
     durationSeconds: 320,
     uploader: "Daft Punk - Topic",
     ytTrack: "One More Time",
+    thumbnail: "https://i.ytimg.com/vi/vid_1/maxresdefault.jpg",
   };
   const tracks: MappingCandidateTrack[] = [
     {
@@ -194,7 +234,7 @@ describe("MappingRow", () => {
     expect(screen.getByTestId("mapping-row").dataset["status"]).toBe("unmatched");
   });
 
-  it("offers every track of the release, plus “not on this release”", () => {
+  it("offers every track of the release, plus “not on this release”", async () => {
     render(
       <MappingRow
         index={0}
@@ -205,12 +245,13 @@ describe("MappingRow", () => {
         onChange={vi.fn()}
       />,
     );
-    const options = within(screen.getByTestId("mapping-select")).getAllByRole("option");
+    fireEvent.click(screen.getByTestId("mapping-select"));
+    const options = await screen.findAllByRole("option");
     expect(options).toHaveLength(3);
     expect(options[0]?.textContent).toContain("not on this release");
   });
 
-  it("reports an unbinding as null, not as an empty string", () => {
+  it("reports an unbinding as null, not as an empty string", async () => {
     const onChange = vi.fn();
     render(
       <MappingRow
@@ -222,10 +263,13 @@ describe("MappingRow", () => {
         onChange={onChange}
       />,
     );
-    fireEvent.change(screen.getByTestId("mapping-select"), { target: { value: "" } });
+    fireEvent.click(screen.getByTestId("mapping-select"));
+    const options = await screen.findAllByRole("option");
+    const skip = options[0] as HTMLElement;
+    fireEvent.pointerDown(skip);
+    fireEvent.pointerUp(skip);
+    fireEvent.click(skip);
     expect(onChange).toHaveBeenCalledWith(null);
-    fireEvent.change(screen.getByTestId("mapping-select"), { target: { value: "1" } });
-    expect(onChange).toHaveBeenCalledWith(1);
   });
 });
 

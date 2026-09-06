@@ -5,12 +5,27 @@
  * and shows what it was worth (Δ and a confidence bar); you can change it to any track of the
  * release, or to "not on this release", and the row's tone follows immediately. Nothing here
  * is written anywhere until Start.
+ *
+ * The selector is the shadcn/Base UI `Select`, not the browser's own (A10 of the owner review).
+ * A native `<select>` cannot be styled to match the rest of the Console, and on a fourteen-track
+ * release its popup is the one piece of the screen that looks like a different application. The
+ * escape hatch — "not on this release" — stays first in the list, because it is the answer to
+ * "this video is a bonus track" and that is the common correction.
  */
 import { AlertTriangle, Check, Info, X } from "lucide-react";
 import type { MappingLine, MappingSignals } from "@mm/domain";
 import { cn } from "cn";
+import { Cover } from "#/components/cover.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+} from "#/components/ui/select.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip.tsx";
 import { delta, mmss, pct } from "#/lib/format.ts";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import type { MappingCandidateTrack, SourceVideo } from "#/server/functions/wizard.ts";
@@ -26,13 +41,20 @@ export interface MappingRowProps {
   readonly onChange: (absoluteIndex: number | null) => void;
 }
 
-/** Why the engine bound this pair, as one hoverable sentence. */
-function signalsTitle(signals: MappingSignals | null): string {
-  if (signals === null) return "No release track was within tolerance.";
+/** The sentinel the Select uses for "not on this release": a value, because `null` is not one. */
+const SKIP = "skip";
+
+/** What the engine weighed for this pair, as label/value pairs a tooltip can lay out. */
+function signalPairs(signals: MappingSignals | null): readonly { name: string; value: number }[] {
+  if (signals === null) return [];
   return Object.entries(signals)
     .filter((entry): entry is [string, number] => typeof entry[1] === "number")
-    .map(([name, value]) => `${name} ${pct(value)}`)
-    .join(" · ");
+    .map(([name, value]) => ({ name, value }));
+}
+
+/** One option's label, used both in the popup and on the closed trigger. */
+function trackLabel(track: MappingCandidateTrack): string {
+  return `${String(track.position).padStart(2, "0")} · ${track.title} · ${mmss(track.lengthSeconds)}`;
 }
 
 export function MappingRow({ index, video, line, tracks, bound, onChange }: MappingRowProps) {
@@ -47,6 +69,7 @@ export function MappingRow({ index, video, line, tracks, bound, onChange }: Mapp
       : video.durationSeconds - track.lengthSeconds;
 
   const Arrow = status === "unmatched" ? X : status === "check" ? AlertTriangle : Check;
+  const pairs = signalPairs(line?.signals ?? null);
 
   return (
     <div
@@ -59,7 +82,13 @@ export function MappingRow({ index, video, line, tracks, bound, onChange }: Mapp
       <span className="font-mono text-fg-3">{index + 1}</span>
 
       <div className="flex min-w-0 items-center gap-2.5">
-        <span aria-hidden="true" className="h-6.5 w-11 shrink-0 rounded-xs bg-cover-1" />
+        <Cover
+          size="xs"
+          src={video.thumbnail}
+          seed={video.videoId}
+          label={video.title}
+          className="h-6.5 w-11 rounded-xs"
+        />
         <span className="min-w-0">
           <span className="block truncate font-medium">{video.title}</span>
           <span className="block font-mono text-2xs text-fg-2">
@@ -80,26 +109,42 @@ export function MappingRow({ index, video, line, tracks, bound, onChange }: Mapp
         <Arrow className="size-4" />
       </span>
 
-      <label className="min-w-0">
-        <span className="sr-only">MusicBrainz track for {video.title}</span>
-        <select
-          data-testid="mapping-select"
-          disabled={!hydrated}
-          value={bound === null ? "" : String(bound)}
-          onChange={(event) => {
-            onChange(event.target.value === "" ? null : Number(event.target.value));
+      <div className="min-w-0">
+        <Select
+          value={bound === null ? SKIP : String(bound)}
+          onValueChange={(next) => {
+            onChange(next === SKIP ? null : Number(next));
           }}
-          className="h-7 w-full rounded-md border border-line-strong bg-background px-2 text-xs outline-none focus:border-primary"
         >
-          <option value="">— not on this release (skip / extra) —</option>
-          {tracks.map((option) => (
-            <option key={option.absoluteIndex} value={String(option.absoluteIndex)}>
-              {String(option.position).padStart(2, "0")} · {option.title} ·{" "}
-              {mmss(option.lengthSeconds)}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            size="sm"
+            data-testid="mapping-select"
+            disabled={!hydrated}
+            aria-label={`MusicBrainz track for ${video.title}`}
+            className="w-full rounded-md border-line-strong bg-background text-xs"
+          >
+            <span data-slot="select-value" className="truncate">
+              {track === null ? "not on this release (skip / extra)" : trackLabel(track)}
+            </span>
+          </SelectTrigger>
+          <SelectContent className="text-xs">
+            {/* First, deliberately: "this video is not on the release" is the usual correction. */}
+            <SelectItem value={SKIP} className="text-xs">
+              not on this release (skip / extra)
+            </SelectItem>
+            <SelectSeparator />
+            {tracks.map((option) => (
+              <SelectItem
+                key={option.absoluteIndex}
+                value={String(option.absoluteIndex)}
+                className="text-xs"
+              >
+                {trackLabel(option)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="text-2xs">
         {track === null ? (
@@ -119,12 +164,42 @@ export function MappingRow({ index, video, line, tracks, bound, onChange }: Mapp
         )}
       </div>
 
-      <span
-        title={signalsTitle(line?.signals ?? null)}
-        className="grid size-6 cursor-help place-items-center rounded-md text-fg-3 hover:bg-surface-3 hover:text-foreground"
-      >
-        <Info className="size-3.5" aria-hidden="true" />
-      </span>
+      {/*
+        A real tooltip, not the browser's (A11). `title` truncated the signals to "title 10…"
+        after a fraction of a second of hover and could not be read at all on a touch screen;
+        this one is a focusable button with the numbers laid out one per line.
+      */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              data-testid="mapping-signals"
+              aria-label={`Why video ${String(index + 1)} was bound this way`}
+              className="grid size-6 cursor-help place-items-center rounded-md text-fg-3 hover:bg-surface-3 hover:text-foreground focus-visible:bg-surface-3 focus-visible:text-foreground focus-visible:outline-none"
+            >
+              <Info className="size-3.5" aria-hidden="true" />
+            </button>
+          }
+        />
+        <TooltipContent className="max-w-64 flex-col items-start gap-1">
+          {pairs.length === 0 ? (
+            <span>No release track was within tolerance, so nothing was bound.</span>
+          ) : (
+            <>
+              <span className="font-medium">Why this binding</span>
+              <span className="grid w-full grid-cols-[auto_1fr] gap-x-2.5 font-mono">
+                {pairs.map((pair) => (
+                  <span key={pair.name} className="contents">
+                    <span>{pair.name}</span>
+                    <span className="text-right">{pct(pair.value)}</span>
+                  </span>
+                ))}
+              </span>
+            </>
+          )}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
