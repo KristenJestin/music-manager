@@ -10,8 +10,9 @@ import {
   RefreshCw,
   Search,
 } from "lucide-react";
-import type { MappingLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
+import type { BorrowRelease, MappingLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
+import { borrowLabel } from "#/components/borrow-select.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
@@ -28,13 +29,17 @@ import { mmss, pct } from "#/lib/format.ts";
 import {
   fetchCandidates,
   fetchMapping,
+  fetchRecording,
   fetchSource,
   resolveSource,
   searchCandidates,
   startImport,
   type CandidatesView,
   type MappingViewPayload,
+  type RecordingViewPayload,
+  type SearchResultView,
   type SourceView,
+  type SourceVideo,
 } from "#/server/functions/wizard.ts";
 
 /**
@@ -57,7 +62,16 @@ const search = z.object({
   url: z.string().optional(),
   importId: z.string().optional(),
   step: z.number().int().min(1).max(4).default(1),
+  /** The chosen release MBID on an album, the chosen **recording** MBID on a single. */
   release: z.string().optional(),
+  /**
+   * A single only: the release its album context is borrowed from.
+   *
+   * In the URL like everything else the wizard decides, so a reload keeps it and step 4 can
+   * show the folder the file will actually land in. Absent means "whatever the engine
+   * preferred", which is the honest default — it is not the same as a choice.
+   */
+  borrow: z.string().optional(),
 });
 
 type WizardSearch = z.infer<typeof search>;
@@ -66,6 +80,8 @@ interface WizardData {
   readonly source: SourceView | null;
   readonly candidates: CandidatesView | null;
   readonly mapping: MappingViewPayload | null;
+  /** The single path's step 3 and 4: one recording, looked up by MBID from the URL. */
+  readonly recording: RecordingViewPayload | null;
 }
 
 export const Route = createFileRoute("/_app/import/new")({
@@ -80,7 +96,7 @@ export const Route = createFileRoute("/_app/import/new")({
      */
     if (deps.importId === undefined) {
       if (deps.url === undefined || deps.url.trim() === "") {
-        return { source: null, candidates: null, mapping: null };
+        return { source: null, candidates: null, mapping: null, recording: null };
       }
       const created = await resolveSource({ data: { url: deps.url } });
       throw redirect({
@@ -91,7 +107,7 @@ export const Route = createFileRoute("/_app/import/new")({
     }
 
     const source = await fetchSource({ data: { importId: deps.importId } });
-    if (deps.step < 2) return { source, candidates: null, mapping: null };
+    if (deps.step < 2) return { source, candidates: null, mapping: null, recording: null };
 
     const candidates = await fetchCandidates({ data: { importId: deps.importId } });
     // Step 2 opens on the algorithm's proposal. Putting it in the URL rather than in state
@@ -103,19 +119,26 @@ export const Route = createFileRoute("/_app/import/new")({
         replace: true,
       });
     }
-    if (
-      deps.step < 3 ||
-      deps.release === undefined ||
-      deps.release === NO_MUSICBRAINZ ||
-      candidates.kind === "single"
-    ) {
-      return { source, candidates, mapping: null };
+    if (deps.step < 3 || deps.release === undefined || deps.release === NO_MUSICBRAINZ) {
+      return { source, candidates, mapping: null, recording: null };
+    }
+
+    /*
+     * A single has no tracklist to map against, so steps 3 and 4 need the *recording* rather
+     * than a mapping — looked up by MBID, exactly like the album's release, so that a
+     * candidate found through the search box survives a reload (DRIVE-1 §A1).
+     */
+    if (candidates.kind === "single") {
+      const recording = await fetchRecording({
+        data: { importId: deps.importId, recordingMbid: deps.release },
+      });
+      return { source, candidates, mapping: null, recording };
     }
 
     const mapping = await fetchMapping({
       data: { importId: deps.importId, releaseMbid: deps.release },
     });
-    return { source, candidates, mapping };
+    return { source, candidates, mapping, recording: null };
   },
   staticData: { crumbs: [{ label: "Import" }] },
   component: Wizard,
@@ -248,7 +271,7 @@ function WizardActions({ children }: { readonly children: ReactNode }) {
 }
 
 function Wizard() {
-  const { source, candidates, mapping } = Route.useLoaderData();
+  const { source, candidates, mapping, recording } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const toast = useToast();
@@ -332,11 +355,17 @@ function Wizard() {
           candidates={candidates}
           busy={blocked}
           selected={params.release ?? null}
+          borrow={params.borrow ?? null}
           onSelect={(id) => {
-            go({ release: id });
+            // A different recording has a different set of releases to borrow from, so the
+            // previous choice cannot travel with it.
+            go({ release: id, borrow: undefined });
+          }}
+          onBorrow={(releaseMbid) => {
+            go({ borrow: releaseMbid });
           }}
           onSearch={async (query) => {
-            if (params.importId === undefined) return [];
+            if (params.importId === undefined) return null;
             setBusy(true);
             setError(null);
             try {
@@ -344,11 +373,13 @@ function Wizard() {
                 data: { importId: params.importId, query },
               });
               setBusy(false);
-              if (result.candidates.length === 0) toast("Nothing found for that.", "warn");
-              return result.candidates;
+              if (result.releases.length + result.recordings.length === 0) {
+                toast("Nothing found for that.", "warn");
+              }
+              return result;
             } catch (cause) {
               fail(cause);
-              return [];
+              return null;
             }
           }}
           onBack={() => {
@@ -356,8 +387,9 @@ function Wizard() {
           }}
           onContinue={() => {
             // Without MusicBrainz there is no tracklist to map against, so step 3 has nothing
-            // to show: the mapping *is* the source's own order.
-            go({ step: single === true || params.release === NO_MUSICBRAINZ ? 4 : 3 });
+            // to show: the mapping *is* the source's own order. A single *does* have a step 3
+            // — one video against one recording — and it is where the binding is confirmed.
+            go({ step: params.release === NO_MUSICBRAINZ ? 4 : 3 });
           }}
           onSkipMusicBrainz={() => {
             go({ release: NO_MUSICBRAINZ, step: 4 });
@@ -372,6 +404,7 @@ function Wizard() {
           source={source}
           candidates={candidates}
           mapping={mapping}
+          recording={recording}
           busy={blocked}
           single={single === true}
           onError={setError}
@@ -382,6 +415,7 @@ function Wizard() {
           }}
           importId={params.importId ?? ""}
           release={params.release ?? ""}
+          borrow={params.borrow ?? null}
         />
       ) : null}
     </div>
@@ -404,10 +438,12 @@ function StepTail({
   source,
   candidates,
   mapping,
+  recording,
   busy,
   single,
   importId,
   release,
+  borrow,
   onBusy,
   onError,
   onFail,
@@ -417,10 +453,12 @@ function StepTail({
   readonly source: SourceView | null;
   readonly candidates: CandidatesView | null;
   readonly mapping: MappingViewPayload | null;
+  readonly recording: RecordingViewPayload | null;
   readonly busy: boolean;
   readonly single: boolean;
   readonly importId: string;
   readonly release: string;
+  readonly borrow: string | null;
   readonly onBusy: (value: boolean) => void;
   readonly onError: (message: string | null) => void;
   readonly onFail: (cause: unknown) => void;
@@ -463,21 +501,41 @@ function StepTail({
 
   const bindings = useMemo(() => ({ ...proposed, ...overrides }), [proposed, overrides]);
 
-  const bound = Object.values(bindings).filter((value) => value !== null).length;
-  const extras = (mapping?.videos.length ?? 0) - bound;
-  const uncovered = Math.max(0, (mapping?.tracks.length ?? 0) - bound);
+  /** Import without MusicBrainz: the source's own order is the mapping. */
+  const untagged = release === NO_MUSICBRAINZ;
 
   const chosenRecording = useMemo<RecordingCandidate | null>(
-    () => (candidates?.recordings ?? []).find((entry) => entry.id === release) ?? null,
-    [candidates, release],
+    () =>
+      recording?.recording ??
+      (candidates?.recordings ?? []).find((entry) => entry.id === release) ??
+      null,
+    [recording, candidates, release],
   );
   const chosenRelease = useMemo<ReleaseCandidate | null>(
     () => (candidates?.releases ?? []).find((entry) => entry.id === release) ?? null,
     [candidates, release],
   );
 
-  /** Import without MusicBrainz: the source's own order is the mapping. */
-  const untagged = release === NO_MUSICBRAINZ;
+  /**
+   * The release a single's album context is borrowed from: the one in the URL, else the one
+   * the engine preferred. `null` when MusicBrainz files this recording nowhere, which is a
+   * state the Start button has to refuse rather than paper over with `Unknown Album`.
+   */
+  const chosenBorrow = useMemo<BorrowRelease | null>(() => {
+    if (chosenRecording === null) return null;
+    const picked = chosenRecording.releases.find((entry) => entry.id === borrow);
+    return picked ?? chosenRecording.borrow ?? chosenRecording.releases[0] ?? null;
+  }, [chosenRecording, borrow]);
+
+  const bound = single
+    ? untagged
+      ? (source?.videos.length ?? 0)
+      : chosenRecording !== null && chosenBorrow !== null
+        ? 1
+        : 0
+    : Object.values(bindings).filter((value) => value !== null).length;
+  const extras = single ? 0 : (mapping?.videos.length ?? 0) - bound;
+  const uncovered = single ? 0 : Math.max(0, (mapping?.tracks.length ?? 0) - bound);
 
   const start = (): void => {
     onBusy(true);
@@ -517,6 +575,58 @@ function StepTail({
           `Import queued without MusicBrainz: ${String(result.mapped)} track(s), tagged from YouTube alone.`,
           "ok",
         );
+        void navigate({ to: "/imports/$id", params: { id: result.importId } });
+      }, onFail);
+      return;
+    }
+
+    /*
+     * A single: one video, one recording, and the release its album context is borrowed from.
+     *
+     * There was no branch here at all until DRIVE-1 §A1 — `start` knew "untagged" and "album",
+     * so a single reached the Start button with an empty payload behind a button that was
+     * disabled anyway. The shape is the album's, reduced: `trackTotal: 0` because a single
+     * covers no tracklist, so `applySupplied` raises no `uncovered_tracks` for the eleven
+     * other tracks of the album it happens to be borrowing from.
+     */
+    if (single) {
+      const video = source?.videos[0];
+      if (video === undefined || chosenRecording === null || chosenBorrow === null) {
+        onBusy(false);
+        onError(
+          chosenBorrow === null && chosenRecording !== null
+            ? "This recording is on no MusicBrainz release, so there is nothing to file it under. Pick another candidate, or import without MusicBrainz."
+            : "Nothing is bound: pick a recording first.",
+        );
+        return;
+      }
+      const year = chosenBorrow.date === null ? null : Number(chosenBorrow.date.slice(0, 4));
+      void startImport({
+        data: {
+          importId,
+          releaseMbid: chosenBorrow.id,
+          releaseGroupMbid: null,
+          album: chosenBorrow.title,
+          albumArtist: chosenRecording.artist,
+          year: year === null || Number.isNaN(year) ? null : year,
+          trackTotal: 0,
+          bindings: [
+            {
+              position: video.index,
+              trackPosition: chosenBorrow.trackPosition ?? 1,
+              mediumPosition: 1,
+              trackMbid: null,
+              recordingMbid: chosenRecording.id,
+              trackTitle: chosenRecording.title,
+              confidence: chosenRecording.score,
+            },
+          ],
+          options,
+          priority,
+        },
+      }).then((result) => {
+        onBusy(false);
+        toast(`Import queued: “${chosenRecording.title}” on “${chosenBorrow.title}”.`, "ok");
         void navigate({ to: "/imports/$id", params: { id: result.importId } });
       }, onFail);
       return;
@@ -572,6 +682,23 @@ function StepTail({
     }, onFail);
   };
 
+  if (step === 3 && single) {
+    return (
+      <StepSingleMapping
+        video={recording?.video ?? source?.videos[0] ?? null}
+        recording={chosenRecording}
+        borrow={chosenBorrow}
+        busy={busy}
+        onBack={() => {
+          onStep(2);
+        }}
+        onContinue={() => {
+          onStep(4);
+        }}
+      />
+    );
+  }
+
   if (step === 3) {
     return (
       <StepMapping
@@ -602,27 +729,179 @@ function StepTail({
       releaseTitle={
         untagged
           ? (source?.hints.album ?? source?.title ?? "Unknown Album")
-          : (chosenRelease?.title ?? chosenRecording?.title ?? mapping?.releaseTitle ?? "")
+          : single
+            ? (chosenBorrow?.title ?? "")
+            : (chosenRelease?.title ?? mapping?.releaseTitle ?? "")
       }
       releaseArtist={
         untagged
           ? (source?.hints.artist ?? source?.uploader ?? "Unknown Artist")
-          : (chosenRelease?.artist ?? chosenRecording?.artist ?? mapping?.releaseArtist ?? "")
+          : single
+            ? (chosenRecording?.artist ?? "")
+            : (chosenRelease?.artist ?? mapping?.releaseArtist ?? "")
+      }
+      /*
+       * The single's destination is the borrow release's folder and the recording's own
+       * title, not "…" under a folder named after the recording (DRIVE-1 §A1, last paragraph).
+       */
+      year={
+        single && !untagged && chosenBorrow?.date != null
+          ? Number(chosenBorrow.date.slice(0, 4))
+          : (mapping?.releaseYear ?? null)
+      }
+      firstTrack={
+        single && !untagged && chosenRecording !== null
+          ? {
+              position: chosenBorrow?.trackPosition ?? 1,
+              title: chosenRecording.title,
+            }
+          : null
       }
       untagged={untagged}
-      bound={untagged ? (source?.videos.length ?? 0) : bound}
-      extras={untagged ? 0 : extras}
-      uncovered={untagged ? 0 : uncovered}
+      bound={bound}
+      extras={extras}
+      uncovered={uncovered}
       options={options}
       setOptions={setOptions}
       priority={priority}
       setPriority={setPriority}
       busy={busy}
       onBack={() => {
-        onStep(single || untagged ? 2 : 3);
+        onStep(untagged ? 2 : 3);
       }}
       onStart={start}
     />
+  );
+}
+
+/* ================================================================== */
+/* step 3, single                                                      */
+/* ================================================================== */
+
+/**
+ * Step 3 of a single: one video against one recording.
+ *
+ * It used to be skipped, which cost the wizard two things at once — the stepper claimed a step
+ * had been *done* that had never been shown (DRIVE-1, minor findings), and the one screen that
+ * says *which recording, on which release, at which track number* did not exist for the import
+ * kind whose whole answer is that sentence. There is nothing to choose here: choosing happened
+ * on step 2. It is a confirmation, and it is short on purpose.
+ */
+function StepSingleMapping({
+  video,
+  recording,
+  borrow,
+  busy,
+  onBack,
+  onContinue,
+}: {
+  readonly video: SourceVideo | null;
+  readonly recording: RecordingCandidate | null;
+  readonly borrow: BorrowRelease | null;
+  readonly busy: boolean;
+  readonly onBack: () => void;
+  readonly onContinue: () => void;
+}) {
+  if (recording === null || video === null) {
+    return (
+      <div className="rounded-xl border border-dashed border-line-strong px-6 py-16 text-center text-fg-2">
+        Pick a recording first.
+      </div>
+    );
+  }
+
+  const difference =
+    video.durationSeconds === null || recording.length === null
+      ? null
+      : video.durationSeconds - recording.length;
+
+  return (
+    <>
+      <div
+        data-testid="mapping-summary"
+        className="mb-2 flex flex-wrap items-center gap-3.5 rounded-md bg-surface-2 px-3.5 py-2.5 text-xs"
+      >
+        <span>
+          <b className="text-ok" data-testid="bound-count">
+            {borrow === null ? 0 : 1}
+          </b>
+          /1 video bound
+        </span>
+        <span className="text-fg-2">One video, one recording: there is nothing to re-assign.</span>
+        <span className="ml-auto font-mono text-fg-2">
+          Δ {difference === null ? "n/a" : `${difference > 0 ? "+" : ""}${Math.round(difference)}s`}
+        </span>
+      </div>
+
+      <div
+        data-testid="single-mapping"
+        className="overflow-hidden rounded-xl border border-line bg-surface-1"
+      >
+        <div className="map-grid gap-2.5 border-b border-line px-3 py-1.5 text-2xs tracking-wider text-fg-2 uppercase">
+          <span>#</span>
+          <span>YouTube video</span>
+          <span />
+          <span>MusicBrainz recording</span>
+          <span>Fit</span>
+          <span />
+        </div>
+        <div className="map-grid items-center gap-2.5 px-3 py-2 text-xs">
+          <span className="text-right font-mono text-fg-3">1</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <Cover size="xs" src={video.thumbnail} seed={video.videoId} label={video.title} />
+            <span className="min-w-0">
+              <span className="block truncate">{video.title}</span>
+              <span className="block font-mono text-2xs text-fg-3">
+                {mmss(video.durationSeconds)} · {video.uploader ?? "unknown channel"}
+              </span>
+            </span>
+          </span>
+          <ArrowRight className="size-4 text-ok" aria-hidden="true" />
+          <span className="min-w-0">
+            <span className="block truncate">
+              {recording.title} <span className="text-fg-2">by {recording.artist}</span>
+            </span>
+            <span className="block truncate text-2xs text-fg-2" data-testid="single-borrow">
+              {borrow === null
+                ? "on no usable release"
+                : `${borrowLabel(borrow)} · album tags from here`}
+            </span>
+          </span>
+          <span className="font-mono text-2xs">{pct(recording.score)}</span>
+          <span />
+        </div>
+      </div>
+
+      <div className="split-even-grid mt-3.5">
+        {borrow === null ? (
+          <Callout tone="danger" data-testid="single-no-release">
+            <b>MusicBrainz files this recording on no release.</b> There is no album folder, no
+            album tag and no track number to give the file. Go back and pick another candidate, or
+            import without MusicBrainz from step 2.
+          </Callout>
+        ) : (
+          <Callout tone="info">
+            <b>Album context is borrowed.</b> The file is filed under “{borrow.title}” with that
+            release's album tags and track number; the recording's own identifiers are what get
+            written. Change the release on step 2 if this is not where it belongs.
+          </Callout>
+        )}
+        <Callout tone="info">
+          <b>Fingerprint verification is on.</b> After download the file is fingerprinted
+          (AcoustID); if it disagrees with this recording the job pauses in Review instead of
+          tagging the wrong track.
+        </Callout>
+      </div>
+
+      <WizardActions>
+        <Button variant="ghost" onClick={onBack}>
+          <ChevronLeft className="size-4" aria-hidden="true" /> Back
+        </Button>
+        <Button data-testid="wizard-next" disabled={busy || borrow === null} onClick={onContinue}>
+          Options <ArrowRight className="size-4" aria-hidden="true" />
+        </Button>
+      </WizardActions>
+    </>
   );
 }
 
@@ -887,7 +1166,9 @@ function StepMatch({
   candidates,
   busy,
   selected,
+  borrow,
   onSelect,
+  onBorrow,
   onSearch,
   onBack,
   onContinue,
@@ -897,30 +1178,45 @@ function StepMatch({
   readonly candidates: CandidatesView | null;
   readonly busy: boolean;
   readonly selected: string | null;
+  readonly borrow: string | null;
   readonly onSelect: (id: string) => void;
-  readonly onSearch: (query: string) => Promise<readonly ReleaseCandidate[]>;
+  readonly onBorrow: (releaseMbid: string) => void;
+  readonly onSearch: (query: string) => Promise<SearchResultView | null>;
   readonly onBack: () => void;
   readonly onContinue: () => void;
   readonly onSkipMusicBrainz: () => void;
 }) {
   const [query, setQuery] = useState("");
-  const [manual, setManual] = useState<readonly ReleaseCandidate[]>([]);
+  const [manual, setManual] = useState<SearchResultView | null>(null);
 
+  const single = candidates?.kind === "single";
   const preselected =
     candidates === null
       ? null
       : ([...candidates.releases, ...candidates.recordings].find((entry) => entry.preselected) ??
         null);
-  const shown = candidates?.releases ?? [];
+
   /*
    * A manual search (or a pasted MBID) is scored on its own, so its first result comes back
    * flagged `preselected` — which would paint a second "preselected" badge on a card the
    * algorithm never proposed, next to the one it did. The preselection belongs to the original
    * ranking; a card added by hand is only ever an extra choice.
    */
-  const extra = manual
-    .filter((entry) => !shown.some((known) => known.id === entry.id))
-    .map((entry) => (entry.preselected ? { ...entry, preselected: false } : entry));
+  function merge<T extends { readonly id: string; readonly preselected: boolean }>(
+    ranked: readonly T[],
+    found: readonly T[],
+  ): T[] {
+    const extra = found
+      .filter((entry) => !ranked.some((known) => known.id === entry.id))
+      .map((entry) => (entry.preselected ? { ...entry, preselected: false } : entry));
+    return [...ranked, ...extra];
+  }
+
+  // DRIVE-1 §B2: the single branch rendered `candidates.recordings` and dropped the manual
+  // results on the floor, so the search box and the MBID field were visible and inert on the
+  // one screen where the matcher had just proposed a cover.
+  const releases = merge(candidates?.releases ?? [], manual?.releases ?? []);
+  const recordings = merge(candidates?.recordings ?? [], manual?.recordings ?? []);
 
   const runSearch = (): void => {
     if (query.trim() === "") return;
@@ -980,7 +1276,11 @@ function StepMatch({
                     runSearch();
                   }
                 }}
-                placeholder="Search releases, or paste a release MBID…"
+                placeholder={
+                  single
+                    ? "Search recordings, or paste a recording MBID…"
+                    : "Search releases, or paste a release MBID…"
+                }
                 className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-fg-3"
               />
             </label>
@@ -990,17 +1290,19 @@ function StepMatch({
           </div>
 
           <div className="flex flex-col gap-2.5" data-testid="candidate-list">
-            {candidates.kind === "single"
-              ? candidates.recordings.map((candidate) => (
+            {single
+              ? recordings.map((candidate) => (
                   <RecordingCandidateCard
                     key={candidate.id}
                     candidate={candidate}
                     selected={selected === candidate.id}
                     onSelect={onSelect}
+                    borrow={borrow}
+                    onBorrow={onBorrow}
                     videoSeconds={source?.videos[0]?.durationSeconds ?? null}
                   />
                 ))
-              : [...shown, ...extra].map((candidate) => (
+              : releases.map((candidate) => (
                   <ReleaseCandidateCard
                     key={candidate.id}
                     candidate={candidate}
@@ -1013,12 +1315,12 @@ function StepMatch({
           <Callout className="mt-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                Nothing fits? Paste the MBID of the right release above, and the mapping is computed
-                against whatever you pin, even if the search never proposed it. If MusicBrainz
-                genuinely does not have this (a live set, a bootleg, an unregistered artist), import
-                it from the YouTube tags alone. The album is then flagged <b>untagged</b> in the
-                library, with its own filter on the Quality page, so it can be finished the day a
-                release appears.
+                Nothing fits? Paste the MBID of the right {single ? "recording" : "release"} above,
+                and the {single ? "import is filed" : "mapping is computed"} against whatever you
+                pin, even if the search never proposed it. If MusicBrainz genuinely does not have
+                this (a live set, a bootleg, an unregistered artist), import it from the YouTube
+                tags alone. The album is then flagged <b>untagged</b> in the library, with its own
+                filter on the Quality page, so it can be finished the day a release appears.
               </div>
               <Button
                 variant="outline"
@@ -1228,6 +1530,8 @@ function StepOptions({
   mapping,
   releaseTitle,
   releaseArtist,
+  year,
+  firstTrack,
   untagged,
   bound,
   extras,
@@ -1244,6 +1548,11 @@ function StepOptions({
   readonly mapping: MappingViewPayload | null;
   readonly releaseTitle: string;
   readonly releaseArtist: string;
+  /** The year of the folder name. A single takes it from the release it borrows from. */
+  readonly year: number | null;
+  /** The file the destination preview names. A single's is its recording, at its borrowed
+   *  track number; an album's is the release's first track. */
+  readonly firstTrack: { readonly position: number; readonly title: string } | null;
   /** Import without MusicBrainz: no release, tags from the YouTube metadata alone. */
   readonly untagged: boolean;
   readonly bound: number;
@@ -1257,11 +1566,10 @@ function StepOptions({
   readonly onBack: () => void;
   readonly onStart: () => void;
 }) {
-  const year = mapping?.releaseYear ?? null;
   const folder = `${releaseArtist === "" ? "Unknown Artist" : releaseArtist}/${
     releaseTitle === "" ? "Unknown Album" : releaseTitle
   }${year === null ? "" : ` (${String(year)})`}`;
-  const firstTrack = mapping?.tracks[0];
+  const preview = firstTrack ?? mapping?.tracks[0] ?? null;
 
   return (
     <>
@@ -1336,8 +1644,9 @@ function StepOptions({
             <div className="flex flex-col gap-1.5 px-3.5 py-3">
               <div className="rounded-md border border-dashed border-line-strong bg-background px-2.5 py-2 font-mono text-2xs text-fg-1">
                 {folder}/
-                <b className="font-medium text-primary">
-                  {String(firstTrack?.position ?? 1).padStart(2, "0")} - {firstTrack?.title ?? "…"}
+                <b className="font-medium text-primary" data-testid="destination-preview">
+                  {String(preview?.position ?? 1).padStart(2, "0")} -{" "}
+                  {preview?.title ?? source?.videos[0]?.title ?? "…"}
                 </b>
                 .opus
               </div>

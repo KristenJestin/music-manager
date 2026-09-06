@@ -170,6 +170,32 @@ describe("Skinny Love, through the service", () => {
     expect(result.ranking.preselected?.borrow?.type).toBe("Album");
   });
 
+  it("also answers the video the toolbox fixture serves, so the wizard replays offline", async () => {
+    /*
+     * `fixture://skinny-love` is Bon Iver's original, not Birdy's cover — a different artist
+     * clause and a thirty-six second wider duration window, hence a different cache key. The
+     * cassette carried no document for it, so the Console's step 2 threw for every single
+     * import in fixtures mode (DRIVE-1 §A1). The scenario is unchanged; the entries are a
+     * superset.
+     */
+    const recorded = cassette("skinny-love");
+    const fromToolbox = {
+      id: "MVzhTGx2Lec",
+      index: 0,
+      title: "Skinny Love",
+      durationSeconds: 238,
+      uploader: "Bon Iver - Topic",
+      ytTrack: "Skinny Love",
+      ytArtist: "Bon Iver",
+      ytAlbum: "For Emma, Forever Ago",
+      ytReleaseYear: 2007,
+    };
+    const result = await matchSingle(cassetteGateway(recorded), { video: fromToolbox }, settings);
+
+    expect(result.ranking.preselected?.artist).toMatch(/bon iver/i);
+    expect(result.ranking.preselected?.borrow).not.toBeNull();
+  });
+
   it("brings back the other artists' versions, and puts them under 0.4", async () => {
     const recorded = cassette("skinny-love");
     const video = recorded.videos[0];

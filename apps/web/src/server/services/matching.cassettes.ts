@@ -43,6 +43,13 @@ export interface CassetteEntry {
  * tracks missing) are deliberately *not* what the toolbox serves, because the phase
  * specification's table asks for those exact situations. Keeping them here means `mm match`
  * needs neither Docker nor the toolbox to reproduce the table.
+ *
+ * The **entries**, however, must cover both: the Console resolves through the toolbox, so on
+ * `fixture://skinny-love` it matches Bon Iver's video with a different artist clause and a
+ * different duration window. Until `alsoVideos` was added to the recorder, the cassette had no
+ * document for that query and step 2 of a *single* could not be exercised offline at all —
+ * which is how the wizard shipped without a single path (DRIVE-1 §A1) and without a spec that
+ * would have noticed. `videos[0]` is still the scenario; the entries are a superset of it.
  */
 export interface Cassette {
   readonly name: string;

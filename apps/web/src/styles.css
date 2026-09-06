@@ -122,6 +122,8 @@
   /* `max-w-*` and `w-*` read different namespaces; the palette needs both. */
   --container-palette: 620px;
   --container-form: 380px;
+  /* The "Borrow album context from" selector of the single wizard, as in the prototype. */
+  --container-borrow: 380px;
 
   /*
    * Cover placeholders.

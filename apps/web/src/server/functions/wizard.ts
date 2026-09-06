@@ -44,8 +44,10 @@ import {
   hintsFor,
   mappingFor,
   parseMbid,
+  pinnedRecording,
   pinnedRelease,
   rankFor,
+  searchRecordings,
   searchReleases,
   videosOf,
 } from "#/server/services/matching.queries.ts";
@@ -279,40 +281,112 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
     }
   });
 
+/** What a manual search or a pasted MBID gives back, in either import kind. */
+export interface SearchResultView {
+  readonly kind: "album" | "single";
+  readonly releases: readonly ReleaseCandidate[];
+  readonly recordings: readonly RecordingCandidate[];
+  readonly query: string;
+}
+
 /**
  * Search MusicBrainz in words, or paste an MBID.
  *
  * One function for both because they are the same act — "the list is wrong, here is what I
  * mean" — and because an MBID pasted into the search box should just work rather than being a
  * different field you have to notice.
+ *
+ * It follows the import's **kind**, which it did not before: a single searched releases, and
+ * step 2 of a single renders recordings, so the box and the paste field were two visible,
+ * inert controls on exactly the screen where the matcher had just proposed the wrong thing
+ * (DRIVE-1 §B2).
  */
 export const searchCandidates = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ importId: z.string().min(1), query: z.string().trim().min(1) }))
-  .handler(
-    async ({ data }): Promise<{ candidates: readonly ReleaseCandidate[]; query: string }> => {
-      try {
-        const job = await getImport(data.importId, db());
-        if (job === null) {
-          throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
-        }
-        const settings = await loadSettings(db());
-        const mbid = parseMbid(data.query);
+  .handler(async ({ data }): Promise<SearchResultView> => {
+    try {
+      const job = await getImport(data.importId, db());
+      if (job === null) {
+        throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
+      }
+      const settings = await loadSettings(db());
+      const mbid = parseMbid(data.query);
+
+      if (await isSingle(job)) {
         if (mbid !== null) {
-          const { candidate } = await pinnedRelease({
+          const { candidate } = await pinnedRecording({
             job,
             settings,
             db: db(),
-            releaseMbid: mbid,
+            recordingMbid: mbid,
           });
-          return { candidates: [candidate], query: mbid };
+          return { kind: "single", releases: [], recordings: [candidate], query: mbid };
         }
-        return await searchReleases({ job, settings, db: db(), query: data.query });
-      } catch (error) {
-        return toFailure(error);
+        const found = await searchRecordings({ job, settings, db: db(), query: data.query });
+        return { kind: "single", releases: [], recordings: found.candidates, query: found.query };
       }
-    },
-  );
+
+      if (mbid !== null) {
+        const { candidate } = await pinnedRelease({ job, settings, db: db(), releaseMbid: mbid });
+        return { kind: "album", releases: [candidate], recordings: [], query: mbid };
+      }
+      const found = await searchReleases({ job, settings, db: db(), query: data.query });
+      return { kind: "album", releases: found.candidates, recordings: [], query: found.query };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * "Is this a single?", answered the same way the `match` step answers it.
+ *
+ * `kind` is what `resolve` decided, and a playlist that turned out to hold one video is a
+ * single whatever the row says — `matchStep` has always used `kind === "single" || rows === 1`
+ * and the wizard has to agree with it, or step 2 renders recordings while the search box
+ * queries releases.
+ */
+async function isSingle(job: Import): Promise<boolean> {
+  if (job.kind === "single") return true;
+  const { rows } = await videosOf(job.id, db());
+  return rows.length === 1;
+}
+
+/**
+ * One recording, by MBID, scored against this import's video.
+ *
+ * Steps 3 and 4 of the single path read it from the URL rather than from step 2's ranking,
+ * so a reload — or a recording that only ever came from the search box — still renders.
+ */
+export const fetchRecording = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ importId: z.string().min(1), recordingMbid: z.string().min(1) }))
+  .handler(async ({ data }): Promise<RecordingViewPayload> => {
+    try {
+      const job = await getImport(data.importId, db());
+      if (job === null) {
+        throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
+      }
+      const settings = await loadSettings(db());
+      const { candidate } = await pinnedRecording({
+        job,
+        settings,
+        db: db(),
+        recordingMbid: data.recordingMbid,
+      });
+      const { rows } = await videosOf(job.id, db());
+      const video = toSourceView(job, rows, []).videos[0] ?? null;
+      return { recording: candidate, video };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/** Step 3 and step 4 of a single: one recording, one video, and the releases to file it under. */
+export interface RecordingViewPayload {
+  readonly recording: RecordingCandidate;
+  readonly video: SourceVideo | null;
+}
 
 /* ------------------------------------------------------------------ */
 /* step 3 — the mapping                                                */

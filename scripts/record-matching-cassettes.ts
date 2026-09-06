@@ -60,6 +60,19 @@ interface SingleScenario {
   readonly kind: "single";
   readonly source: { url: string; note?: string };
   readonly video: MatchVideo;
+  /**
+   * Other videos the same cassette must be able to answer.
+   *
+   * `videos[0]` is the scenario the phase table describes and the only one the pure-engine
+   * fixture is built from — deliberately *not* what the toolbox fixture serves, which is the
+   * whole point of a cassette that needs neither Docker nor a network. But the Console's
+   * wizard resolves through the toolbox, so on `fixture://skinny-love` it matches the *other*
+   * video, with a different artist clause and a different duration window, and the cassette
+   * had no document for it: step 2 of a single could not be exercised offline at all
+   * (DRIVE-1 §A1, when a spec was finally written for it). Recording both keeps the scenario
+   * and makes the fixture pair usable end to end.
+   */
+  readonly alsoVideos?: readonly MatchVideo[];
 }
 
 type Scenario = AlbumScenario | SingleScenario;
@@ -211,6 +224,21 @@ const SKINNY_LOVE: SingleScenario = {
     ytAlbum: "Birdy",
     ytReleaseYear: 2011,
   },
+  // Verbatim from `services/toolbox/src/toolbox/fixtures/data/skinny-love.json`, so that
+  // `fixture://skinny-love` replays in the Console exactly as it does in `mm match`.
+  alsoVideos: [
+    {
+      id: "MVzhTGx2Lec",
+      index: 0,
+      title: "Skinny Love",
+      durationSeconds: 238,
+      uploader: "Bon Iver - Topic",
+      ytTrack: "Skinny Love",
+      ytArtist: "Bon Iver",
+      ytAlbum: "For Emma, Forever Ago",
+      ytReleaseYear: 2007,
+    },
+  ],
 };
 
 const FORMIDABLE: SingleScenario = {
@@ -406,71 +434,92 @@ async function recordAlbum(scenario: AlbumScenario): Promise<{
   return { entries, fixture };
 }
 
-async function recordSingle(scenario: SingleScenario): Promise<{
-  entries: CassetteEntry[];
-  fixture: unknown;
-}> {
+async function recordSingle(
+  scenario: SingleScenario,
+  known: ReadonlyMap<string, unknown> = new Map(),
+): Promise<{ entries: CassetteEntry[]; fixture: unknown }> {
   const entries: CassetteEntry[] = [];
-  const video = scenario.video;
-  const title = video.ytTrack ?? video.title;
+  const written = new Set<string>();
 
-  // The same two searches the service makes: narrow to find the answer, wide to surface the
-  // same-title recordings by other artists that the score has to be seen rejecting.
-  const narrow = lucene.recordingQuery({
-    title,
-    artist: video.ytArtist ?? video.uploader ?? null,
-    durationSeconds: video.durationSeconds,
-  });
-  const wide = lucene.recordingQuery({ title });
-
-  const merged: MbRecording[] = [];
-  const seen = new Set<string>();
-  for (const query of [narrow, wide]) {
-    const found = await get<SearchResult>("recording", {
-      query,
-      limit: String(SEARCH_LIMIT),
-      offset: "0",
-    });
-    entries.push({
-      key: `search/recording?query=${query}&limit=${String(SEARCH_LIMIT)}&offset=0`,
-      payload: found,
-    });
-    for (const recording of found.recordings ?? []) {
-      if (recording.id === undefined || seen.has(recording.id)) continue;
-      seen.add(recording.id);
-      merged.push(recording);
+  /**
+   * Fetch a document, unless the cassette already carries it under that key.
+   *
+   * Two videos of the same scenario overlap heavily — the wide search is literally the same
+   * request, and most of the lookups are the same recordings — and a re-record must not spend
+   * a request, or risk a different answer, on a document that is already recorded.
+   */
+  async function document<T>(key: string, path: string, query: Record<string, string>): Promise<T> {
+    const cached = known.get(key);
+    const payload = cached ?? (await get<T>(path, query));
+    if (!written.has(key)) {
+      written.add(key);
+      entries.push({ key, payload });
     }
+    return payload as T;
   }
 
-  const candidates: unknown[] = [];
-  for (const [index, recording] of merged.entries()) {
-    if (recording.id === undefined) continue;
-    let releases = (recording as { releases?: readonly MbRelease[] }).releases ?? [];
-    if (index < RECORDED_LOOKUPS) {
-      const full = await get<MbRecording & { releases?: readonly MbRelease[] }>(
-        `recording/${recording.id}`,
-        { inc: `${INC.recordingFull}+releases+release-groups+media` },
+  async function forVideo(video: MatchVideo): Promise<unknown[]> {
+    const title = video.ytTrack ?? video.title;
+
+    // The same two searches the service makes: narrow to find the answer, wide to surface the
+    // same-title recordings by other artists that the score has to be seen rejecting.
+    const narrow = lucene.recordingQuery({
+      title,
+      artist: video.ytArtist ?? video.uploader ?? null,
+      durationSeconds: video.durationSeconds,
+    });
+    const wide = lucene.recordingQuery({ title });
+
+    const merged: MbRecording[] = [];
+    const seen = new Set<string>();
+    for (const query of [narrow, wide]) {
+      const found = await document<SearchResult>(
+        `search/recording?query=${query}&limit=${String(SEARCH_LIMIT)}&offset=0`,
+        "recording",
+        { query, limit: String(SEARCH_LIMIT), offset: "0" },
       );
-      entries.push({ key: `recording/${recording.id}?inc=recordingFull`, payload: full });
-      if (full.releases !== undefined) releases = full.releases;
+      for (const recording of found.recordings ?? []) {
+        if (recording.id === undefined || seen.has(recording.id)) continue;
+        seen.add(recording.id);
+        merged.push(recording);
+      }
     }
-    const credited = recording["artist-credit"] ?? [];
-    candidates.push({
-      id: recording.id,
-      title: recording.title ?? "",
-      artist: credited
-        .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
-        .join("")
-        .trim(),
-      disambiguation: recording.disambiguation ?? "",
-      lengthMs: recording.length ?? null,
-      isrcs: recording.isrcs ?? [],
-      searchScore: (recording as { score?: number }).score ?? null,
-      releases,
-    });
+
+    const candidates: unknown[] = [];
+    for (const [index, recording] of merged.entries()) {
+      if (recording.id === undefined) continue;
+      let releases = (recording as { releases?: readonly MbRelease[] }).releases ?? [];
+      if (index < RECORDED_LOOKUPS) {
+        const full = await document<MbRecording & { releases?: readonly MbRelease[] }>(
+          `recording/${recording.id}?inc=recordingFull`,
+          `recording/${recording.id}`,
+          { inc: `${INC.recordingFull}+releases+release-groups+media` },
+        );
+        if (full.releases !== undefined) releases = full.releases;
+      }
+      const credited = recording["artist-credit"] ?? [];
+      candidates.push({
+        id: recording.id,
+        title: recording.title ?? "",
+        artist: credited
+          .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
+          .join("")
+          .trim(),
+        disambiguation: recording.disambiguation ?? "",
+        lengthMs: recording.length ?? null,
+        isrcs: recording.isrcs ?? [],
+        searchScore: (recording as { score?: number }).score ?? null,
+        releases,
+      });
+    }
+    return candidates;
   }
 
-  return { entries, fixture: { kind: "single", video, candidates } };
+  // The pure-engine fixture is the first video's scenario, and only that one.
+  const candidates = await forVideo(scenario.video);
+  for (const other of scenario.alsoVideos ?? []) await forVideo(other);
+
+  return { entries, fixture: { kind: "single", video: scenario.video, candidates } };
 }
 
 /* ------------------------------------------------------------------ */
@@ -482,6 +531,16 @@ const FIXTURE_DIR = join(repoRoot, "packages", "domain", "fixtures", "matching")
 
 function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+/** The documents a previous run of this scenario already recorded, by cache key. */
+function existingCassette(name: string): Map<string, unknown> {
+  const path = join(CASSETTE_DIR, `${name}.json`);
+  if (!existsSync(path)) return new Map();
+  const parsed = JSON.parse(readFileSync(path, "utf8")) as {
+    entries?: readonly { key: string; payload: unknown }[];
+  };
+  return new Map((parsed.entries ?? []).map((entry) => [entry.key, entry.payload]));
 }
 
 async function main(): Promise<void> {
@@ -499,8 +558,18 @@ async function main(): Promise<void> {
 
   for (const scenario of chosen) {
     console.log(`recording ${scenario.name}…`);
+    /*
+     * Documents already in the cassette are kept rather than re-fetched.
+     *
+     * A cassette is a recording of one afternoon's MusicBrainz. Adding a video to a scenario
+     * must add the documents that video needs and change nothing else — otherwise every
+     * assertion written against the old recording is re-litigated by a run that was only ever
+     * meant to be additive. `--refresh` is the way to ask for the other thing.
+     */
+    const previous = existingCassette(scenario.name);
+    const known = process.argv.includes("--refresh") ? new Map<string, unknown>() : previous;
     const { entries, fixture } =
-      scenario.kind === "album" ? await recordAlbum(scenario) : await recordSingle(scenario);
+      scenario.kind === "album" ? await recordAlbum(scenario) : await recordSingle(scenario, known);
 
     const cassette = {
       name: scenario.name,

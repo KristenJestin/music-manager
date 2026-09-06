@@ -19,12 +19,16 @@ import {
   flattenTracks,
   lucene,
   mapping as mappingEngine,
+  recordingCandidates,
   releaseCandidates,
   type AlbumHints,
   type MappingResult,
   type MatchTrack,
   type MatchVideo,
+  type MbRecording,
   type MbRelease,
+  type RecordingCandidate,
+  type RecordingCandidateInput,
   type ReleaseCandidate,
   type ReleaseCandidateInput,
 } from "@mm/domain";
@@ -264,6 +268,125 @@ export async function pinnedRelease(input: PinnedInput): Promise<{
     throw new MMError("NOT_FOUND", `Release ${input.releaseMbid} could not be scored.`);
   }
   return { candidate, release };
+}
+
+/* ------------------------------------------------------------------ */
+/* the same two manual paths, for a lone video                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The video a single import is about.
+ *
+ * A `single` import has exactly one row; a playlist that resolved to one entry is a single as
+ * far as the matcher is concerned (`matchStep` says so too). Anything else is a programming
+ * error rather than a user one, which is why it is an `INVALID_INPUT` and not a 404.
+ */
+async function loneVideo(job: Import, db: Database): Promise<MatchVideo> {
+  const { videos } = await videosOf(job.id, db);
+  const video = videos[0];
+  if (video === undefined) {
+    throw new MMError("INVALID_INPUT", "This import has no videos yet.", {
+      hint: "Resolve the source first.",
+      action: "Back to step 1",
+    });
+  }
+  return video;
+}
+
+/** One MusicBrainz recording document, as the scorer wants it. */
+function toRecordingInput(recording: MbRecording): RecordingCandidateInput {
+  const credited = recording["artist-credit"] ?? [];
+  return {
+    id: recording.id ?? "",
+    title: recording.title ?? "",
+    artist: credited
+      .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
+      .join("")
+      .trim(),
+    disambiguation: recording.disambiguation ?? "",
+    lengthMs: recording.length ?? null,
+    isrcs: recording.isrcs ?? [],
+    searchScore: (recording as { score?: number }).score ?? null,
+    releases: (recording as { releases?: readonly MbRelease[] }).releases ?? [],
+  };
+}
+
+export interface PinnedRecordingInput extends RankingInput {
+  readonly recordingMbid: string;
+}
+
+/**
+ * One recording, looked up by MBID and scored against this import's video.
+ *
+ * Steps 3 and 4 of the single path go through here rather than through the step-2 ranking,
+ * for the same reason the album path re-fetches its release: the recording you are importing
+ * may have come from the search box or from a pasted MBID, and neither of those survives a
+ * reload. Looking it up means the last two steps are a function of the URL, like every other
+ * screen in the wizard.
+ */
+export async function pinnedRecording(
+  input: PinnedRecordingInput,
+): Promise<{ candidate: RecordingCandidate }> {
+  const db = input.db ?? defaultDb();
+  const video = await loneVideo(input.job, db);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const recording = await gateway.lookupRecording(input.recordingMbid);
+  if (recording === null) {
+    throw new MMError("NOT_FOUND", `No MusicBrainz recording with id ${input.recordingMbid}.`, {
+      hint: "Check the MBID on musicbrainz.org.",
+      action: "Back to step 2",
+      status: 404,
+    });
+  }
+  const ranking = recordingCandidates.score(
+    { video, candidates: [toRecordingInput(recording)] },
+    configFromSettings(input.settings),
+  );
+  const candidate = ranking.candidates[0];
+  if (candidate === undefined) {
+    throw new MMError("NOT_FOUND", `Recording ${input.recordingMbid} could not be scored.`);
+  }
+  return { candidate };
+}
+
+/**
+ * Search MusicBrainz for recordings and score them against *this* video.
+ *
+ * The album path has had this since P06; the single path shipped the same search box wired to
+ * a release search, so typing in it returned releases that step 2 then declined to render
+ * (DRIVE-1 §B2). One entity per import kind, one scorer, same numbers.
+ */
+export async function searchRecordings(
+  input: SearchInput,
+): Promise<{ candidates: readonly RecordingCandidate[]; query: string }> {
+  const db = input.db ?? defaultDb();
+  const video = await loneVideo(input.job, db);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const query = lucene.recordingQuery({ title: input.query.trim() });
+  const found = await gateway.search("recording", query, input.settings.matchSearchLimit);
+  const recordings = found?.recordings ?? [];
+
+  const limit = lookupLimitOf(input.settings);
+  const candidates: RecordingCandidateInput[] = [];
+  for (const [index, recording] of recordings.entries()) {
+    const base = toRecordingInput(recording);
+    // The release groups only come with a lookup, and the borrow ladder cannot be applied
+    // without them — same cap, and for the same reason, as `matchSingle`.
+    if (index < limit && recording.id !== undefined) {
+      const full = await gateway.lookupRecording(recording.id);
+      const fullReleases = (full as { releases?: readonly MbRelease[] } | null)?.releases;
+      if (fullReleases !== undefined) candidates.push({ ...base, releases: fullReleases });
+      else candidates.push(base);
+    } else {
+      candidates.push(base);
+    }
+  }
+
+  return {
+    candidates: recordingCandidates.score({ video, candidates }, configFromSettings(input.settings))
+      .candidates,
+    query,
+  };
 }
 
 /* ------------------------------------------------------------------ */

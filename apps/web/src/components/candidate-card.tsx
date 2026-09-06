@@ -19,6 +19,7 @@ import { useState, type ReactNode } from "react";
 import { ChevronDown, ExternalLink, ListChecks, Sparkles } from "lucide-react";
 import type { FitLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
 import { cn } from "cn";
+import { BorrowSelect } from "#/components/borrow-select.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { SignalsRow } from "#/components/signals-row.tsx";
@@ -328,6 +329,9 @@ export interface RecordingCandidateCardProps extends CommonProps {
   readonly candidate: RecordingCandidate;
   /** The video's length, so the card can show the difference rather than two numbers. */
   readonly videoSeconds: number | null;
+  /** The release chosen to borrow album context from, when this card is the selected one. */
+  readonly borrow?: string | null;
+  readonly onBorrow?: (releaseMbid: string) => void;
 }
 
 export function RecordingCandidateCard({
@@ -335,6 +339,8 @@ export function RecordingCandidateCard({
   selected,
   onSelect,
   videoSeconds,
+  borrow = null,
+  onBorrow,
 }: RecordingCandidateCardProps) {
   const [open, setOpen] = useState(false);
   const showWhy = open || selected;
@@ -418,6 +424,27 @@ export function RecordingCandidateCard({
                 <li key={reason}>{reason}</li>
               ))}
             </ul>
+          </div>
+        ) : null}
+
+        {/*
+          The borrow release, on the selected card only — the prototype's `wizStep2Single`.
+          It is a *decision*, not a detail: it names the folder, the album tags and the track
+          number. Off the selected card it would be a dropdown per row nobody asked for.
+        */}
+        {selected && onBorrow !== undefined ? (
+          <div
+            className="mt-2.5 border-t border-line pt-2.5"
+            onClick={(event) => {
+              // The whole card is the radio; the selector inside it is not a second vote.
+              event.stopPropagation();
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+            }}
+            role="presentation"
+          >
+            <BorrowSelect releases={candidate.releases} value={borrow} onChange={onBorrow} />
           </div>
         ) : null}
       </div>

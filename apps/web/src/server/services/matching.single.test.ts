@@ -24,16 +24,13 @@ function recordingGateway(recordings: readonly MbRecording[] = []): MbGateway & 
   return {
     queries,
     calls: { searches: 0, lookups: 0 },
-    // eslint-disable-next-line @typescript-eslint/require-await
     async search(_entity, query): Promise<MbSearchResult | null> {
       queries.push(query);
       return { recordings } as unknown as MbSearchResult;
     },
-    // eslint-disable-next-line @typescript-eslint/require-await
     async lookupRelease(): Promise<MbRelease | null> {
       return null;
     },
-    // eslint-disable-next-line @typescript-eslint/require-await
     async lookupRecording(): Promise<MbRecording | null> {
       return null;
     },
@@ -81,7 +78,9 @@ describe("matchSingle queries", () => {
     const gateway = recordingGateway();
     await matchSingle(
       gateway,
-      { video: { ...VIDEO, ytTrack: "Creep", ytArtist: "Radiohead", uploader: "Radiohead - Topic" } },
+      {
+        video: { ...VIDEO, ytTrack: "Creep", ytArtist: "Radiohead", uploader: "Radiohead - Topic" },
+      },
       defaults(),
     );
     expect(gateway.queries[0]).toContain('recording:"Creep"');

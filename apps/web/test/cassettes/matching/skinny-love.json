@@ -1,7 +1,7 @@
 {
   "name": "skinny-love",
   "kind": "single",
-  "recordedAt": "2026-09-06T00:51:55.808Z",
+  "recordedAt": "2026-09-06T22:24:12.338Z",
   "source": {
     "url": "https://www.youtube.com/watch?v=skinny-love",
     "note": "Birdy's cover, not Bon Iver's original: same title, same song, thirty-six seconds apart."
@@ -8255,6 +8255,3077 @@
                           "name": "Arms Aloft",
                           "sort-name": "Arms Aloft",
                           "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/recording?query=recording:\"Skinny Love\" AND artist:\"Bon Iver\" AND dur:[233000 TO 243000]&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-06T22:24:22.162Z",
+        "count": 2,
+        "offset": 0,
+        "recordings": [
+          {
+            "id": "8a8ca6f4-2150-4b2b-935d-b66962de3b89",
+            "title": "Skinny Love",
+            "disambiguation": "original studio mix",
+            "length": 238520,
+            "video": null,
+            "score": 100,
+            "isrcs": ["US38Y0811503", "US38Y0800003"],
+            "first-release-date": "2007-07-08",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "7bd3627a-1d16-4ae4-bfdc-506ecdbc01df",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-02-19",
+                "country": "XW",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "c479b0f6-f2b9-4042-97f7-deba6f5ea93c",
+                "title": "For Emma, Forever Ago",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "c388e976-d998-46fa-9121-580aa0502861",
+                "title": "Triple J: Hottest 100 of the Past 20 Years",
+                "date": "2013",
+                "country": "AU",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "dc0cf2cd-2d30-4a01-bc3e-019ee32339c9",
+                  "title": "Triple J: Hottest 100 of the Past 20 Years",
+                  "primary-type": "Other",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 100,
+                    "track-offset": 15
+                  }
+                ]
+              },
+              {
+                "id": "42994126-a013-403d-951e-22609a132d7b",
+                "title": "Triple J: Hottest 100 of 2008",
+                "date": "2008",
+                "country": "AU",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ac2fa2a6-c4fe-41a2-b143-51ecd7e722b3",
+                  "title": "Triple J: Hottest 100 of 2008",
+                  "primary-type": "Broadcast"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 100,
+                    "track-offset": 20
+                  }
+                ]
+              },
+              {
+                "id": "6f949dc8-9846-4274-9975-1daa70581d77",
+                "title": "Paste Magazine Sampler #40: March 2008",
+                "date": "2008-03",
+                "country": "US",
+                "status": "Promotion",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
+                  "title": "Paste Magazine Sampler #40: March 2008",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 21,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "b35af33c-7b48-43aa-8ecf-b06f57d78647",
+                "title": "Folk You!",
+                "date": "2013-03-01",
+                "country": "NL",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
+                  "title": "Folk You!",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 18,
+                    "track-offset": 12
+                  }
+                ]
+              },
+              {
+                "id": "0a43e002-765a-4187-844d-13bbcdf87711",
+                "title": "Pop-Rock Station, Volume 2",
+                "date": "2013",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
+                  "title": "Pop-Rock Station, Volume 2",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 15,
+                    "track-offset": 11
+                  }
+                ]
+              },
+              {
+                "id": "b260014a-48eb-4346-bfdf-353b743ba92c",
+                "title": "Long Time Gone: 15 All-New American Music Classics",
+                "date": "2008-06-05",
+                "country": "GB",
+                "status": "Promotion",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
+                  "title": "Long Time Gone: 15 All-New American Music Classics",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 15,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "57011980-c84f-4cf8-83ab-7ce39440b503",
+                "title": "Triple J: Hottest 100, Volume 16",
+                "date": "2009",
+                "country": "AU",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
+                  "title": "Triple J: Hottest 100, Volume 16",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 23,
+                    "track-offset": 9
+                  }
+                ]
+              },
+              {
+                "id": "5f7035c6-dbb1-4de6-acbe-23e27de6026f",
+                "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+                "date": "2013-07-19",
+                "country": "AU",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
+                  "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 2,
+                    "format": "CD",
+                    "track-count": 20,
+                    "track-offset": 18
+                  }
+                ]
+              },
+              {
+                "id": "da74b0ef-1249-4e6f-9e9f-bd62d96496b4",
+                "title": "Coastal Chill 09",
+                "date": "2008",
+                "country": "AU",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
+                  "title": "Coastal Chill 09",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 21,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "4030acb5-e6b3-4b40-9c07-9d527e9c3cfa",
+                "title": "Coastal Chill: The Collection",
+                "date": "2009",
+                "country": "AU",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
+                  "title": "Coastal Chill: The Collection",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 2,
+                    "format": "CD",
+                    "track-count": 20,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "821bea2e-522a-4b28-8a8b-3080f9cf9d16",
+                "title": "Pop-Rock Station, Volume 2",
+                "date": "2013-11",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Zégut",
+                    "artist": {
+                      "id": "9fc93d16-5fa7-44e3-9622-c783b8e02bf9",
+                      "name": "Francis Zégut",
+                      "sort-name": "Zégut, Francis"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
+                  "title": "Pop-Rock Station, Volume 2",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 2,
+                    "format": "CD",
+                    "track-count": 14,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "3dc071da-2e27-453d-974c-646564bd6794",
+                "title": "For Emma, Forever Ago",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "72ac279b-c886-4ef5-b6ce-8d6e3097b95b",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-02-19",
+                "country": "AF",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "04f2f82f-127a-49bf-b775-f00588896d80",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-02-19",
+                "country": "BH",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "9b475ba4-9a46-4de3-aa24-ee27ef764930",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-05-12",
+                "country": "AD",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "dfca4414-20b8-40e0-9f85-f9ef1c7aebbf",
+                "title": "For Emma, Forever Ago",
+                "date": "2016-05-03",
+                "country": "US",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Cassette",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "f2d4a53b-0612-48e2-a09c-02489ae27a51",
+                "title": "For Emma, Forever Ago",
+                "date": "2007-07-08",
+                "country": "US",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "4f5c2bff-a5f0-32f6-8199-190bf22872aa",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-02-19",
+                "country": "US",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "54216506-b050-3fc6-ae7c-472974d4dd69",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-02-19",
+                "country": "US",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "f04b0342-2004-3a67-8725-38a8f02b81f0",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-03-23",
+                "country": "AU",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "10363dd8-ddda-3318-a0a6-1c157aa2ea91",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-05-12",
+                "country": "GB",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "0270cde6-6b5b-31fa-b04b-d8b68ff612d4",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-03-10",
+                "country": "GB",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "5370b447-ee3a-3699-a899-d5df024f6c4b",
+                "title": "For Emma, Forever Ago",
+                "date": "2008-05-12",
+                "country": "GB",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "12\" Vinyl",
+                    "track-count": 9,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "8bc20e6e-a0d2-4035-9ca6-ad46b9346cc5",
+                "title": "eMusic SXSW Birthday Sampler",
+                "date": "2008",
+                "country": "US",
+                "status": "Promotion",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
+                  "title": "eMusic SXSW Birthday Sampler",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 6,
+                    "track-offset": 5
+                  }
+                ]
+              },
+              {
+                "id": "eeb017f6-2a1c-4e28-bb31-45a3f4cf3b54",
+                "title": "For Emma, Forever Ago",
+                "disambiguation": "iTunes version",
+                "date": "2008-03-10",
+                "country": "GB",
+                "status": "Official",
+                "release-group": {
+                  "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+                  "title": "For Emma, Forever Ago",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 10,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "04e748fa-6898-424a-91fa-3e21e154978e",
+                "title": "Jagjaguwar 2008/2009 Sampler",
+                "date": "2009-03-06",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
+                  "title": "Jagjaguwar 2008/2009 Sampler",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 8,
+                    "track-offset": 0
+                  }
+                ]
+              },
+              {
+                "id": "03a1fff4-f940-4730-af6f-cc07cda90f54",
+                "title": "Songs of the Valentine's Day Massacre",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
+                  "title": "Songs of the Valentine's Day Massacre",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 14,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "9e821cb5-f02c-46a8-8e9c-40a629fcd59f",
+                "title": "Skinny Love",
+                "date": "2008-04-08",
+                "country": "GB",
+                "status": "Promotion",
+                "release-group": {
+                  "id": "2dea4c18-8aa6-4909-9053-fddfa057c231",
+                  "title": "Skinny Love",
+                  "primary-type": "Single"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD-R",
+                    "track-count": 1,
+                    "track-offset": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4d54703b-ff2f-47df-be33-5f7529b83cfc",
+            "title": "Skinny Love",
+            "length": 239520,
+            "video": null,
+            "score": 100,
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "721557ec-563f-465b-b883-1b6d7bee6bf1",
+                "title": "POP MIX",
+                "date": "",
+                "country": "GB",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
+                  "title": "POP MIX",
+                  "primary-type": "Album",
+                  "secondary-types": ["Compilation"]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 17,
+                    "track-offset": 7
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/8a8ca6f4-2150-4b2b-935d-b66962de3b89?inc=recordingFull",
+      "payload": {
+        "id": "8a8ca6f4-2150-4b2b-935d-b66962de3b89",
+        "title": "Skinny Love",
+        "disambiguation": "original studio mix",
+        "length": 238520,
+        "video": false,
+        "isrcs": ["US38Y0800003", "US38Y0811503"],
+        "first-release-date": "2007-07-08",
+        "artist-credit": [
+          {
+            "name": "Bon Iver",
+            "joinphrase": "",
+            "artist": {
+              "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+              "name": "Bon Iver",
+              "sort-name": "Bon Iver",
+              "disambiguation": "US indie folk band"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "f2d4a53b-0612-48e2-a09c-02489ae27a51",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2007-07-08",
+            "country": "US",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "4930eac9-e122-3b83-a208-b299377d721f",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "7bd3627a-1d16-4ae4-bfdc-506ecdbc01df",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-02-19",
+            "country": "XW",
+            "status": "Official",
+            "barcode": "656605211565",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "057ffa73-de64-4d19-8629-e9035dcfabbf",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4f5c2bff-a5f0-32f6-8199-190bf22872aa",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-02-19",
+            "country": "US",
+            "status": "Official",
+            "barcode": "656605211527",
+            "packaging": "Gatefold Cover",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "158218ca-0056-35d8-b9fc-92ec3bd66772",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "54216506-b050-3fc6-ae7c-472974d4dd69",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-02-19",
+            "country": "US",
+            "status": "Official",
+            "barcode": "656605211510",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Vinyl",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "e38ab610-a75c-39e8-b0c6-7d8a03066297",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ac279b-c886-4ef5-b6ce-8d6e3097b95b",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-02-19",
+            "country": "AF",
+            "status": "Official",
+            "barcode": "656605211565",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "14f2f7d5-04c8-48b1-a8a1-93644ef47b55",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "04f2f82f-127a-49bf-b775-f00588896d80",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-02-19",
+            "country": "BH",
+            "status": "Official",
+            "barcode": "886445690866",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "575a3af3-21be-42f5-88f5-a85a18db90ec",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 232426,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "eeb017f6-2a1c-4e28-bb31-45a3f4cf3b54",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "iTunes version",
+            "date": "2008-03-10",
+            "country": "GB",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 10,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "1fe8eff8-a4e9-3034-84fe-fd457d05c8be",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 239000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "0270cde6-6b5b-31fa-b04b-d8b68ff612d4",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-03-10",
+            "country": "GB",
+            "status": "Official",
+            "barcode": null,
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "2f40465d-8aef-3ec0-ae1e-8e16f918c00f",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "f04b0342-2004-3a67-8725-38a8f02b81f0",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-03-23",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "9332727012549",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "38c46ffb-5342-3208-967d-6f494f52dc70",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "6f949dc8-9846-4274-9975-1daa70581d77",
+            "title": "Paste Magazine Sampler #40: March 2008",
+            "disambiguation": "",
+            "date": "2008-03",
+            "country": "US",
+            "status": "Promotion",
+            "barcode": "",
+            "packaging": "Cardboard/Paper Sleeve",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
+              "title": "Paste Magazine Sampler #40: March 2008",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2008-03",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 21,
+                "track-offset": 3,
+                "tracks": [
+                  {
+                    "id": "35c037a9-2138-3951-a698-18bc74e9fd03",
+                    "position": 4,
+                    "number": "4",
+                    "title": "Skinny Love",
+                    "length": 227533,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "9e821cb5-f02c-46a8-8e9c-40a629fcd59f",
+            "title": "Skinny Love",
+            "disambiguation": "",
+            "date": "2008-04-08",
+            "country": "GB",
+            "status": "Promotion",
+            "barcode": null,
+            "packaging": "Cardboard/Paper Sleeve",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "2dea4c18-8aa6-4909-9053-fddfa057c231",
+              "title": "Skinny Love",
+              "primary-type": "Single",
+              "secondary-types": [],
+              "first-release-date": "2008-04-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD-R",
+                "title": "",
+                "track-count": 1,
+                "track-offset": 0,
+                "tracks": [
+                  {
+                    "id": "b7b4cfd5-5f1e-4489-b36e-b01af909deca",
+                    "position": 1,
+                    "number": "1",
+                    "title": "Skinny Love",
+                    "length": 239000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5370b447-ee3a-3699-a899-d5df024f6c4b",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-05-12",
+            "country": "GB",
+            "status": "Official",
+            "barcode": "0652637280913",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "12\" Vinyl",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "0aba6c2d-b57e-34b6-ae46-a27e8c475b43",
+                    "position": 3,
+                    "number": "A3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "10363dd8-ddda-3318-a0a6-1c157aa2ea91",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-05-12",
+            "country": "GB",
+            "status": "Official",
+            "barcode": "652637280920",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "4a8ee551-c62e-36e7-9d32-d5f4bded5e6a",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "9b475ba4-9a46-4de3-aa24-ee27ef764930",
+            "title": "For Emma, Forever Ago",
+            "disambiguation": "",
+            "date": "2008-05-12",
+            "country": "AD",
+            "status": "Official",
+            "barcode": "652637280906",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "sort-name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+              "title": "For Emma, Forever Ago",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2007-07-08",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Bon Iver",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                    "name": "Bon Iver",
+                    "sort-name": "Bon Iver",
+                    "disambiguation": "US indie folk band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 9,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "26af7590-6672-4126-a4b1-ce378fba0b64",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Skinny Love",
+                    "length": 238532,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "b260014a-48eb-4346-bfdf-353b743ba92c",
+            "title": "Long Time Gone: 15 All-New American Music Classics",
+            "disambiguation": "",
+            "date": "2008-06-05",
+            "country": "GB",
+            "status": "Promotion",
+            "barcode": "",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
+              "title": "Long Time Gone: 15 All-New American Music Classics",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2008-06-05",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 15,
+                "track-offset": 3,
+                "tracks": [
+                  {
+                    "id": "0890626e-54d0-3286-9d8f-7239e1bdc628",
+                    "position": 4,
+                    "number": "4",
+                    "title": "Skinny Love",
+                    "length": 233226,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "da74b0ef-1249-4e6f-9e9f-bd62d96496b4",
+            "title": "Coastal Chill 09",
+            "disambiguation": "",
+            "date": "2008",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "5099926613826",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
+              "title": "Coastal Chill 09",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2008",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 21,
+                "track-offset": 6,
+                "tracks": [
+                  {
+                    "id": "dd1f2c6d-9d00-33fa-9d89-09a4ffd57689",
+                    "position": 7,
+                    "number": "7",
+                    "title": "Skinny Love",
+                    "length": 227320,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "8bc20e6e-a0d2-4035-9ca6-ad46b9346cc5",
+            "title": "eMusic SXSW Birthday Sampler",
+            "disambiguation": "",
+            "date": "2008",
+            "country": "US",
+            "status": "Promotion",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
+              "title": "eMusic SXSW Birthday Sampler",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2008",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 6,
+                "track-offset": 5,
+                "tracks": [
+                  {
+                    "id": "c9dc25f1-175e-3da3-9986-516548d125f6",
+                    "position": 6,
+                    "number": "6",
+                    "title": "Skinny Love",
+                    "length": 238000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "03a1fff4-f940-4730-af6f-cc07cda90f54",
+            "title": "Songs of the Valentine's Day Massacre",
+            "disambiguation": "",
+            "date": "2008",
+            "country": null,
+            "status": "Bootleg",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
+              "title": "Songs of the Valentine's Day Massacre",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2008",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 14,
+                "track-offset": 1,
+                "tracks": [
+                  {
+                    "id": "b98a5167-161f-4406-bccc-c9a0bf8ae8e0",
+                    "position": 2,
+                    "number": "2",
+                    "title": "Skinny Love",
+                    "length": 238576,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "42994126-a013-403d-951e-22609a132d7b",
+            "title": "Triple J: Hottest 100 of 2008",
+            "disambiguation": "",
+            "date": "2008",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "ac2fa2a6-c4fe-41a2-b143-51ecd7e722b3",
+              "title": "Triple J: Hottest 100 of 2008",
+              "primary-type": "Broadcast",
+              "secondary-types": [],
+              "first-release-date": "2008",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 100,
+                "track-offset": 20,
+                "tracks": [
+                  {
+                    "id": "0b0cf45b-b5b6-4627-9514-8c26fba82459",
+                    "position": 21,
+                    "number": "21",
+                    "title": "Skinny Love",
+                    "length": 229133,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "04e748fa-6898-424a-91fa-3e21e154978e",
+            "title": "Jagjaguwar 2008/2009 Sampler",
+            "disambiguation": "",
+            "date": "2009-03-06",
+            "country": "US",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
+              "title": "Jagjaguwar 2008/2009 Sampler",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2009-03-06",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 8,
+                "track-offset": 0,
+                "tracks": [
+                  {
+                    "id": "5214bb59-8bd7-3983-b4d7-9d8d5bd8c61e",
+                    "position": 1,
+                    "number": "1",
+                    "title": "Skinny Love",
+                    "length": 239000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4030acb5-e6b3-4b40-9c07-9d527e9c3cfa",
+            "title": "Coastal Chill: The Collection",
+            "disambiguation": "",
+            "date": "2009",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "5099996779422",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
+              "title": "Coastal Chill: The Collection",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2009",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 2,
+                "format": "CD",
+                "title": "",
+                "track-count": 20,
+                "track-offset": 6,
+                "tracks": [
+                  {
+                    "id": "2d02305d-a491-39dd-8ffd-f2f37bd9684b",
+                    "position": 7,
+                    "number": "7",
+                    "title": "Skinny Love",
+                    "length": 226000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "57011980-c84f-4cf8-83ab-7ce39440b503",
+            "title": "Triple J: Hottest 100, Volume 16",
+            "disambiguation": "",
+            "date": "2009",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "0600753159699",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
+              "title": "Triple J: Hottest 100, Volume 16",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2009",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 23,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "4f03a3c8-b288-3c61-b4a4-3d87073d6c77",
+                    "position": 10,
+                    "number": "10",
+                    "title": "Skinny Love",
+                    "length": 228933,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "b35af33c-7b48-43aa-8ecf-b06f57d78647",
+            "title": "Folk You!",
+            "disambiguation": "",
+            "date": "2013-03-01",
+            "country": "NL",
+            "status": "Official",
+            "barcode": "0600753423752",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
+              "title": "Folk You!",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2013-03-01",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 18,
+                "track-offset": 12,
+                "tracks": [
+                  {
+                    "id": "e1e43285-33ce-3025-b38b-2902c37e46f1",
+                    "position": 13,
+                    "number": "13",
+                    "title": "Skinny Love",
+                    "length": 232000,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5f7035c6-dbb1-4de6-acbe-23e27de6026f",
+            "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+            "disambiguation": "",
+            "date": "2013-07-19",
+            "country": "AU",
+            "status": "Official",
+            "barcode": "0600753442920",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
+              "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2013-07-19",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 2,
+                "format": "CD",
+                "title": "",
+                "track-count": 20,
+                "track-offset": 18,
+                "tracks": [
+                  {
+                    "id": "bd2f13eb-2165-47ba-8699-ad84c61f8bb4",
+                    "position": 19,
+                    "number": "19",
+                    "title": "Skinny Love",
+                    "length": 229133,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "821bea2e-522a-4b28-8a8b-3080f9cf9d16",
+            "title": "Pop-Rock Station, Volume 2",
+            "disambiguation": "",
+            "date": "2013-11",
+            "country": "FR",
+            "status": "Official",
+            "barcode": "5053105976720",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Zégut",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9fc93d16-5fa7-44e3-9622-c783b8e02bf9",
+                  "name": "Francis Zégut",
+                  "sort-name": "Zégut, Francis",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "release-group": {
+              "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
+              "title": "Pop-Rock Station, Volume 2",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "2013-11",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Zégut",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "9fc93d16-5fa7-44e3-9622-c783b8e02bf9",
+                    "name": "Francis Zégut",
+                    "sort-name": "Zégut, Francis",
+                    "disambiguation": ""
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 2,
+                "format": "CD",
+                "title": "",
+                "track-count": 14,
+                "track-offset": 3,
+                "tracks": [
+                  {
+                    "id": "88d44b0f-93ad-4bc5-8cc0-5a48fa4d9d52",
+                    "position": 4,
+                    "number": "4",
+                    "title": "Skinny Love",
+                    "length": 226960,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/4d54703b-ff2f-47df-be33-5f7529b83cfc?inc=recordingFull",
+      "payload": {
+        "id": "4d54703b-ff2f-47df-be33-5f7529b83cfc",
+        "title": "Skinny Love",
+        "disambiguation": "",
+        "length": 239520,
+        "video": false,
+        "isrcs": [],
+        "artist-credit": [
+          {
+            "name": "Bon Iver",
+            "joinphrase": "",
+            "artist": {
+              "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+              "name": "Bon Iver",
+              "sort-name": "Bon Iver",
+              "disambiguation": "US indie folk band"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "721557ec-563f-465b-b883-1b6d7bee6bf1",
+            "title": "POP MIX",
+            "disambiguation": "",
+            "date": "",
+            "country": "GB",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
+              "title": "POP MIX",
+              "primary-type": "Album",
+              "secondary-types": ["Compilation"],
+              "first-release-date": "",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 17,
+                "track-offset": 7,
+                "tracks": [
+                  {
+                    "id": "475f7faf-675a-31a8-a374-1430dc45f1c5",
+                    "position": 8,
+                    "number": "8",
+                    "title": "Skinny Love",
+                    "length": 239520,
+                    "artist-credit": [
+                      {
+                        "name": "Bon Iver",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                          "name": "Bon Iver",
+                          "sort-name": "Bon Iver",
+                          "disambiguation": "US indie folk band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/dc8f845c-2062-4f54-b908-5585b7d258da?inc=recordingFull",
+      "payload": {
+        "id": "dc8f845c-2062-4f54-b908-5585b7d258da",
+        "title": "Skinny Love",
+        "disambiguation": "",
+        "length": 299680,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "2010-11-01",
+        "artist-credit": [
+          {
+            "name": "JP Jones",
+            "joinphrase": ", ",
+            "artist": {
+              "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+              "name": "John-Paul Jones",
+              "sort-name": "Jones, John-Paul",
+              "disambiguation": "of British indie rock group Grace"
+            }
+          },
+          {
+            "name": "Chrissie Hynde",
+            "joinphrase": " & ",
+            "artist": {
+              "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+              "name": "Chrissie Hynde",
+              "sort-name": "Hynde, Chrissie",
+              "disambiguation": "rock singer-songwriter and founder of Pretenders"
+            }
+          },
+          {
+            "name": "The Fairground Boys",
+            "joinphrase": "",
+            "artist": {
+              "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+              "name": "The Fairground Boys",
+              "sort-name": "Fairground Boys, The",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "68b338cd-26c2-4534-885a-d64c43fa4ce5",
+            "title": "Fidelity!",
+            "disambiguation": "",
+            "date": "2010-11-01",
+            "country": "XE",
+            "status": "Official",
+            "barcode": "4029759057802",
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "JP Jones",
+                "joinphrase": ", ",
+                "artist": {
+                  "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                  "name": "John-Paul Jones",
+                  "sort-name": "Jones, John-Paul",
+                  "disambiguation": "of British indie rock group Grace"
+                }
+              },
+              {
+                "name": "Chrissie Hynde",
+                "joinphrase": " & ",
+                "artist": {
+                  "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                  "name": "Chrissie Hynde",
+                  "sort-name": "Hynde, Chrissie",
+                  "disambiguation": "rock singer-songwriter and founder of Pretenders"
+                }
+              },
+              {
+                "name": "The Fairground Boys",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                  "name": "The Fairground Boys",
+                  "sort-name": "Fairground Boys, The",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "release-group": {
+              "id": "570a4425-3bf8-4eb0-9039-a230f2f2f887",
+              "title": "Fidelity!",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2010-09-10",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "JP Jones",
+                  "joinphrase": ", ",
+                  "artist": {
+                    "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                    "name": "John-Paul Jones",
+                    "sort-name": "Jones, John-Paul",
+                    "disambiguation": "of British indie rock group Grace"
+                  }
+                },
+                {
+                  "name": "Chrissie Hynde",
+                  "joinphrase": " & ",
+                  "artist": {
+                    "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                    "name": "Chrissie Hynde",
+                    "sort-name": "Hynde, Chrissie",
+                    "disambiguation": "rock singer-songwriter and founder of Pretenders"
+                  }
+                },
+                {
+                  "name": "The Fairground Boys",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                    "name": "The Fairground Boys",
+                    "sort-name": "Fairground Boys, The",
+                    "disambiguation": ""
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 12,
+                "track-offset": 11,
+                "tracks": [
+                  {
+                    "id": "2c3d3ab1-e6d0-305c-9793-c4b833ac0ec8",
+                    "position": 12,
+                    "number": "12",
+                    "title": "Skinny Love",
+                    "length": 299680,
+                    "artist-credit": [
+                      {
+                        "name": "JP Jones",
+                        "joinphrase": ", ",
+                        "artist": {
+                          "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                          "name": "John-Paul Jones",
+                          "sort-name": "Jones, John-Paul",
+                          "disambiguation": "of British indie rock group Grace"
+                        }
+                      },
+                      {
+                        "name": "Chrissie Hynde",
+                        "joinphrase": " & ",
+                        "artist": {
+                          "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                          "name": "Chrissie Hynde",
+                          "sort-name": "Hynde, Chrissie",
+                          "disambiguation": "rock singer-songwriter and founder of Pretenders"
+                        }
+                      },
+                      {
+                        "name": "The Fairground Boys",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                          "name": "The Fairground Boys",
+                          "sort-name": "Fairground Boys, The",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/e3295f35-e933-495b-a496-227a395dd0c6?inc=recordingFull",
+      "payload": {
+        "id": "e3295f35-e933-495b-a496-227a395dd0c6",
+        "title": "Skinny Love",
+        "disambiguation": "",
+        "length": 264000,
+        "video": false,
+        "isrcs": [],
+        "artist-credit": [
+          {
+            "name": "Axel Winter",
+            "joinphrase": "",
+            "artist": {
+              "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+              "name": "Axel Winter",
+              "sort-name": "Winter, Axel",
+              "disambiguation": "Australian Singer Songwriter"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "801b32fb-db3f-4b95-8233-8bba14ec03aa",
+            "title": "My Home",
+            "disambiguation": "",
+            "date": "",
+            "country": "AU",
+            "status": null,
+            "barcode": "",
+            "packaging": "Plastic Sleeve",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Axel Winter",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                  "name": "Axel Winter",
+                  "sort-name": "Winter, Axel",
+                  "disambiguation": "Australian Singer Songwriter"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "cd513657-93b9-4524-9591-7d17571953b5",
+              "title": "My Home",
+              "primary-type": "EP",
+              "secondary-types": [],
+              "first-release-date": "",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Axel Winter",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                    "name": "Axel Winter",
+                    "sort-name": "Winter, Axel",
+                    "disambiguation": "Australian Singer Songwriter"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 11,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "d65e217e-db98-46d1-8fa0-b083bbb70693",
+                    "position": 10,
+                    "number": "10",
+                    "title": "Skinny Love",
+                    "length": 264000,
+                    "artist-credit": [
+                      {
+                        "name": "Axel Winter",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                          "name": "Axel Winter",
+                          "sort-name": "Winter, Axel",
+                          "disambiguation": "Australian Singer Songwriter"
                         }
                       }
                     ]
