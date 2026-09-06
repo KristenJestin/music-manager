@@ -79,15 +79,19 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run compose:up` / `compose:down` | aliases of `stack:up` / `stack:down`                                             |
 
 `bun run check` must be green at the end of every phase, and `bun run e2e:all` — the four
-end-to-end runs, which need Docker and a fixtures-mode toolbox — with it. `check` is the fast
-gate (types, lint, unit tests, no containers); `e2e:all` is the slow one, and it is the half
-that catches a pipeline that stopped working. Bring this checkout's toolbox up in fixtures
-mode first: `MM_TOOLBOX_FIXTURES=1 bun run stack:up`.
+end-to-end runs — with it. `check` is the fast gate (types, lint, unit tests, no browser);
+`e2e:all` is the slow one, and it is the half that catches a pipeline that stopped working.
+**Both want this checkout's toolbox up in fixtures mode first:**
+`MM_TOOLBOX_FIXTURES=1 bun run stack:up`. `check` runs without it — the integration tests say
+so and skip themselves — but a toolbox that answers _in real mode_ fails them, which is the one
+state that looks like a regression and is not.
 
-All four runners resolve the checkout they are in (`scripts/e2e-checkout.ts`): their own
-toolbox port, their own per-process databases, their own library subdirectory, and `-p` on
-every `docker compose` call. Running them from a worktree is therefore safe, and running two
-of them at once is too.
+All four runners, and `check`'s vitest step, resolve the checkout they are in
+(`scripts/e2e-checkout.ts`, `devEnv()`): their own database, their own toolbox port, their own
+library subdirectory, and `-p` on every `docker compose` call. Running them from a worktree is
+therefore safe, and running two of them at once is too. Before that resolution existed, `check`
+from a worktree fell back to `localhost:5432/mm` and `localhost:8100` — the owner's postgres and
+the owner's toolbox.
 
 ## Conventions
 

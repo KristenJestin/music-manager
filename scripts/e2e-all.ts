@@ -8,8 +8,8 @@
  * only ever executed by the agent that wrote it. A suite nobody runs is a suite that is
  * already broken; it simply has not been told yet.
  *
- * `bun run check` stays what it is: the fast gate, types and lint and unit tests, no Docker
- * and no browser. This is the slow one, and it is the other half of the Definition of Done.
+ * `bun run check` stays what it is: the fast gate, types and lint and unit tests, no browser.
+ * This is the slow one, and it is the other half of the Definition of Done.
  *
  * Order is cheapest-first, so a broken pipeline is reported in three minutes rather than in
  * thirty:
