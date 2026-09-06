@@ -26,8 +26,20 @@
  * against it.
  */
 import { eq } from "drizzle-orm";
-import type { MappingResult, MatchVideo, ReleaseCandidate, RecordingCandidate } from "@mm/domain";
-import { albumHints, flattenTracks, mapping as mappingEngine } from "@mm/domain";
+import type {
+  MappingResult,
+  MatchVideo,
+  MbRelease,
+  RecordingCandidate,
+  ReleaseCandidate,
+} from "@mm/domain";
+import {
+  albumHints,
+  creditName,
+  flattenTracks,
+  mapping as mappingEngine,
+  yearOf,
+} from "@mm/domain";
 import { imports, type ImportTrack } from "#/server/db/schema/index.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
 import {
@@ -323,12 +335,38 @@ async function matchOneAlbum(
   const result = await matchAlbum(gateway, { videos, hints }, ctx.settings);
   const pinned = ctx.job.options.releaseMbid;
 
-  // `--release <mbid>` pins the release; the mapping is still computed, against that one.
-  const chosen =
+  /*
+   * `--release <mbid>` pins the release. The mapping is still computed — against that one.
+   *
+   * A pin the search never returned is the case that matters: it is exactly why somebody
+   * reaches for the flag. Falling back to the preselection there would silently import a
+   * different record than the one asked for, so the release is looked up by MBID instead. That
+   * costs one document beyond the budget, which is the correct trade: the budget bounds what
+   * the *matcher* spends guessing, not what a person spends being explicit.
+   */
+  const pinnedCandidate =
     pinned === undefined
-      ? result.ranking.preselected
-      : (result.ranking.candidates.find((candidate) => candidate.id === pinned) ??
-        result.ranking.preselected);
+      ? undefined
+      : result.ranking.candidates.find((candidate) => candidate.id === pinned);
+
+  if (pinned !== undefined && pinnedCandidate === undefined) {
+    const direct = await gateway.lookupRelease(pinned);
+    if (direct === null) {
+      return {
+        status: "failed",
+        message: `No MusicBrainz release with id ${pinned}.`,
+        error: {
+          code: "NOT_FOUND",
+          message: `No MusicBrainz release with id ${pinned}.`,
+          hint: "Check the MBID on musicbrainz.org, or drop --release and let the matcher propose.",
+          action: "Check the MBID",
+        },
+      };
+    }
+    return await withPinnedRelease(ctx, rows, videos, direct, result.budget, result.queries);
+  }
+
+  const chosen = pinnedCandidate ?? result.ranking.preselected;
 
   if (chosen === null || chosen === undefined) {
     await openInboxItem(
@@ -420,6 +458,62 @@ async function matchOneAlbum(
       `${String(mapped)} track(s) mapped, ${String(extras)} extra, ` +
       `${String(proposal.uncoveredTracks.length)} uncovered — ${describe(chosen)}`,
     data,
+  };
+}
+
+/**
+ * Map against a release the user named, which the search never proposed.
+ *
+ * No ranking, no ambiguity, no `ambiguous_release`: there is nothing to be ambiguous *about*.
+ * The notices still apply — being explicit about the release says nothing about whether every
+ * track is covered.
+ */
+async function withPinnedRelease(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  videos: readonly MatchVideo[],
+  release: MbRelease,
+  budget: MatchBudget,
+  queries: readonly string[],
+): Promise<StepResult> {
+  const tracks = flattenTracks(release);
+  if (tracks.length === 0) {
+    return {
+      status: "failed",
+      message: `Release ${release.id ?? "?"} has no tracklist.`,
+      data: { budget },
+    };
+  }
+
+  const proposal = mappingEngine.assign(videos, tracks, configFromSettings(ctx.settings));
+  await persistRelease(ctx, {
+    id: release.id ?? "",
+    releaseGroupId: release["release-group"]?.id ?? null,
+    ...(release.title === undefined ? {} : { title: release.title }),
+    ...(creditName(release["artist-credit"]) === null
+      ? {}
+      : { artist: creditName(release["artist-credit"]) ?? "" }),
+    year: yearOf(release.date),
+  });
+  const { mapped, extras } = await persistMapping(ctx, rows, proposal);
+  await raiseNotices(ctx, proposal, release.id ?? null);
+
+  return {
+    status: "done",
+    message:
+      `${String(mapped)} track(s) mapped, ${String(extras)} extra, ` +
+      `${String(proposal.uncoveredTracks.length)} uncovered — pinned release ${release.id ?? "?"}`,
+    data: {
+      kind: "album" as const,
+      releaseMbid: release.id ?? "",
+      mapped,
+      extras,
+      uncovered: proposal.uncoveredTracks.length,
+      pinned: true,
+      budget: { searches: budget.searches, lookups: budget.lookups + 1 },
+      queries,
+      mapping: proposal.lines,
+    },
   };
 }
 
