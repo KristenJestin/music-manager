@@ -41,4 +41,10 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     to: "/settings/integrations",
     hint: "Navidrome, notifications and the backup.",
   },
+  {
+    id: "api",
+    label: "API & agents",
+    to: "/settings/api",
+    hint: "Tokens with scopes, the MCP endpoint, and signed webhooks.",
+  },
 ];
