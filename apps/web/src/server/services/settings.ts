@@ -335,11 +335,149 @@ export const SETTING_DEFINITIONS = {
     "Widest accepted difference, in seconds, between a LRCLIB result and the track.",
   ),
 
+  /* ---- the versioned tag schema (docs/03 §8, P07) ---- */
+  tagSchemaVersionOverride: define(
+    z.number().int().min(0),
+    0,
+    "Pretend the tag schema is at this version instead of the one compiled in. 0 = off. It exists so §8's background re-tag can be exercised end to end without recompiling the domain package; a real installation never sets it.",
+  ),
+  retagBatchSize: define(
+    z.number().int().min(1).max(500),
+    25,
+    "How many files one `retag` queue job re-projects before handing the queue back. Small enough that a cancel is felt quickly, large enough that the overhead is not the work.",
+  ),
+  sourcesRefreshEnabled: define(
+    z.boolean(),
+    true,
+    "Let the weekly `sources.refresh` cron re-fetch MusicBrainz entities that changed upstream and queue the albums they touch for a re-tag.",
+  ),
+
   /* ---- the Console itself (P06) ---- */
   trustedOrigins: define(
     z.array(z.string()),
     [],
     "Extra origins the Console may be reached from, beyond MM_WEB_URL — the public URL of a reverse proxy, say. Wildcards like `https://*.example.com` are allowed.",
+  ),
+
+  /* ---- the downloader (P07, Settings → Downloader) ---- */
+  ytdlpAutoUpdate: define(
+    z.boolean(),
+    true,
+    "Refresh yt-dlp on a schedule. Decision 012: a stale downloader is the single largest cause of breakage.",
+  ),
+  ytdlpUpdateCron: define(
+    z.string().min(1),
+    "0 4 * * *",
+    "When the `cron.ytdlp-update` job runs, as a five-field cron expression.",
+  ),
+  ytdlpChannel: define(
+    z.enum(["stable", "nightly", "master"]),
+    "stable",
+    "Which yt-dlp release channel `--update-to` follows.",
+  ),
+  ytdlpPin: define(
+    z.string(),
+    "",
+    "Pin yt-dlp to one version (`2025.08.11`). Empty means: follow the channel.",
+  ),
+  ytdlpOnUpdateFailure: define(
+    z.enum(["warn", "pause_downloads", "rollback"]),
+    "warn",
+    "What happens when an auto-update fails: raise an Inbox item, stop downloading, or go back to the previous build.",
+  ),
+  cookiesMode: define(
+    z.enum(["anonymous", "file"]),
+    "anonymous",
+    "How yt-dlp authenticates. `anonymous` is the default and needs nothing; `file` uses a Netscape cookies.txt.",
+  ),
+  cookiesFile: define(
+    z.string(),
+    "",
+    "Path to the `cookies.txt`, as this process sees it. Only read when `cookiesMode` is `file`.",
+  ),
+  downloadProxy: define(
+    z.string(),
+    "",
+    "Proxy yt-dlp downloads through this URL (`http://host:port`, `socks5://…`). Empty means: direct.",
+  ),
+  ytdlpPlayerClient: define(
+    z.string(),
+    "",
+    "yt-dlp `player_client` extractor argument (`web_safari`, `android,web`). Empty means: yt-dlp's own default.",
+  ),
+  ytdlpExtraArgs: define(
+    z.array(z.string()),
+    [],
+    "Extra yt-dlp command-line arguments, one per entry. An escape hatch, not a habit.",
+  ),
+
+  /* ---- Navidrome (docs/03-metadonnees.md §7, decision 009) ---- */
+  navidromeEnabled: define(
+    z.boolean(),
+    false,
+    "Read every placed album back through OpenSubsonic. Off means the `verify` step only checks the files exist.",
+  ),
+  navidromeUrl: define(
+    z.string(),
+    "",
+    "Base URL of the Navidrome server, without `/rest` (`http://localhost:4533`).",
+  ),
+  navidromeUser: define(z.string(), "", "Navidrome user the read-back authenticates as."),
+  navidromePassword: define(
+    z.string(),
+    "",
+    "That user's password. Sent as the Subsonic token+salt pair, never in clear.",
+    { secret: true },
+  ),
+  navidromeRescanOnVerify: define(
+    z.boolean(),
+    true,
+    "Ask Navidrome to scan before reading an album back. Off when a cron already scans often enough.",
+  ),
+  navidromeWaitTimeoutMs: define(
+    z.number().int().min(1_000).max(3_600_000),
+    240_000,
+    "How long the `verify` step waits for a scan to finish before giving up on it.",
+  ),
+
+  /* ---- the library scan (P07) ---- */
+  scanEnabled: define(z.boolean(), true, "Run the nightly library scan."),
+  scanCron: define(
+    z.string().min(1),
+    "0 3 * * *",
+    "When the nightly `cron.scan` runs, as a five-field cron expression.",
+  ),
+  scanIdentifyOrphans: define(
+    z.boolean(),
+    false,
+    "Fingerprint orphan files during the scan and propose an AcoustID identification. Costs one call per file.",
+  ),
+  trashDir: define(
+    z.string(),
+    ".local/trash",
+    "Where a deleted file goes. Nothing is ever unlinked: `delete` is a move into this directory.",
+  ),
+
+  /* ---- notifications (the delivery lands in P08) ---- */
+  notificationsEnabled: define(
+    z.boolean(),
+    false,
+    "Announce failures, Inbox items and scan reports somewhere. The transports arrive in P08.",
+  ),
+  notificationsChannel: define(
+    z.enum(["none", "webhook", "ntfy", "email"]),
+    "none",
+    "Where a notification goes. Stored now, delivered in P08.",
+  ),
+  notificationsTarget: define(
+    z.string(),
+    "",
+    "The webhook URL, ntfy topic or e-mail address the channel writes to.",
+  ),
+  notificationsEvents: define(
+    z.array(z.enum(["job_failed", "inbox_opened", "scan_report", "verify_mismatch"])),
+    ["job_failed", "inbox_opened"],
+    "Which events are worth a notification.",
   ),
 
   /* ---- the library, on both sides of the bridge ---- */

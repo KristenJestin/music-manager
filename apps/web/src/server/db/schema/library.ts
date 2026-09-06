@@ -36,6 +36,13 @@ export const libraryAlbums = pgTable(
     presentCount: integer("present_count").notNull().default(0),
     completeness: doublePrecision("completeness"),
     coverPath: text("cover_path"),
+    /**
+     * The last OpenSubsonic read-back (`docs/03-metadonnees.md` §7), as an `AlbumVerification`
+     * from `src/server/services/verify.ts`: one verdict per field, `ok | mismatch |
+     * not_indexed`, plus what was written and what came back.
+     */
+    verification: jsonb("verification").$type<Record<string, unknown>>(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

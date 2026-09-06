@@ -38,6 +38,12 @@ export const MM_ERROR_CODES = [
   "CANCELLED",
   /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
   "UNAUTHORIZED",
+  /* --- the Navidrome read-back (P07, docs/03 §7) --- */
+  "NAVIDROME_NOT_CONFIGURED",
+  "NAVIDROME_UNREACHABLE",
+  "NAVIDROME_AUTH",
+  "NAVIDROME_FAILED",
+  "NAVIDROME_SCAN_TIMEOUT",
 ] as const;
 
 export type MMErrorCode = (typeof MM_ERROR_CODES)[number] | (string & {});
