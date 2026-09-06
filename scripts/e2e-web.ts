@@ -5,8 +5,8 @@
  * It owns everything the tests assume and cleans up after itself:
  *
  *  1. checks that Postgres and the toolbox are up, and that the toolbox is in fixtures mode;
- *  2. drops and recreates a database of its own (`<db>_web_e2e`), migrates it, and seeds the
- *     recorded sources so `tag` can build a document offline;
+ *  2. drops and recreates a database of its own, and an empty library of its own beside it,
+ *     migrates the one and seeds the recorded sources so `tag` can build a document offline;
  *  3. starts the web app and the worker on a dedicated port, in fixtures mode, with a known
  *     administrator;
  *  4. runs Playwright **under Node**;
@@ -14,9 +14,11 @@
  *
  * Two choices deserve their reasons.
  *
- * **Its own database.** The tests count jobs and read the Inbox, so they cannot share a
- * database with a developer's own imports without becoming order-dependent on somebody else's
- * data. A fresh one costs a second and makes every assertion absolute.
+ * **Its own database, and its own library.** The tests count jobs, read the Inbox and compare
+ * files against rows, so they cannot share either with a developer's imports — or with the
+ * previous run's — without becoming order-dependent on somebody else's data. Both are fresh
+ * every time, which costs a second and makes every assertion absolute. The library used not
+ * to be, and the story of what that cost is above `LIBRARY_LEAF`.
  *
  * **Playwright runs on Node, not Bun.** Playwright talks to Chromium over a `--remote-debugging-pipe`
  * on file descriptors 3 and 4; Bun does not pass those through, so every `launch()` hangs until
@@ -24,7 +26,7 @@
  * uses it), so the runner shells out to it rather than pretending the problem does not exist.
  * Everything else here is Bun, and the entry point is still `bun run e2e`.
  */
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { SQL } from "bun";
 import {
@@ -75,6 +77,28 @@ const ADMIN_PASSWORD = "e2e-password-01";
 /** The fixture downloads are a file copy; pace them fast so a run is a minute, not ten. */
 const FIXTURE_DELAY_MS = "10";
 
+/**
+ * A library of its own, per run — the missing half of "a database of its own".
+ *
+ * The database was recreated every run and the library was **not**: every run wrote into the
+ * same `.local/library/.mm-e2e`. So the second run onwards started with the previous run's
+ * fourteen `.opus` files already in place, the `download` step correctly reported them
+ * "already present", and `tag` never rewrote them — leaving every file carrying the *previous
+ * run's* `MUSICMANAGER_IMPORTID` while the fresh database held this one's.
+ *
+ * `library.spec.ts` › "DB vs files … finds no drift on a freshly tagged album" is exactly the
+ * test that notices, and it is right to: fourteen of fourteen files did differ. It passed the
+ * first time the suite ever ran on a machine and failed from then on, which is the least
+ * useful failure a suite can have — it depends on history rather than on the code.
+ *
+ * So the library is named from `RUN_TAG` like the other three runners' are, and removed at the
+ * end. It stays under `.local/library`, because that directory is the toolbox's bind mount and
+ * the container can read nothing else, and stays dot-prefixed so a Navidrome pointed at the
+ * same mount ignores it.
+ */
+const LIBRARY_LEAF = process.env["MM_E2E_LIBRARY_LEAF"] ?? `.mm-e2e-${RUN_TAG}`;
+const LIBRARY = join(repoRoot, ".local", "library", LIBRARY_LEAF);
+
 const childEnv: Record<string, string> = {
   ...STACK.env,
   DATABASE_URL: TEST_DATABASE_URL,
@@ -87,8 +111,8 @@ const childEnv: Record<string, string> = {
   MM_ADMIN_PASSWORD: ADMIN_PASSWORD,
   // Stable across runs so a session cookie kept between them stays valid.
   MM_AUTH_SECRET: "music-manager-e2e-secret-not-for-production",
-  MM_LIBRARY_ROOT: join(repoRoot, ".local", "library", ".mm-e2e"),
-  MM_TOOLBOX_LIBRARY_ROOT: "/library/.mm-e2e",
+  MM_LIBRARY_ROOT: LIBRARY,
+  MM_TOOLBOX_LIBRARY_ROOT: `/library/${LIBRARY_LEAF}`,
 };
 
 function say(message: string): void {
@@ -285,6 +309,11 @@ if (!(await portIsFree())) {
 
 await resetDatabase();
 
+// A fresh library beside the fresh database: `mkdir` rather than a delete, because the name
+// is this run's alone and nothing can be in it yet.
+say(`library ${LIBRARY}`);
+mkdirSync(LIBRARY, { recursive: true });
+
 say(`starting the web app on ${BASE_URL} and the worker`);
 spawnBackground("web", [bun, "x", "vite", "dev", "--port", String(PORT), "--strictPort"], webDir);
 spawnBackground("worker", [bun, "run", join(webDir, "src", "worker", "index.ts")], repoRoot);
@@ -304,6 +333,11 @@ try {
   // fresh port and database every time, there is no reason for one to survive its own run.
   if (process.env["MM_E2E_DB"] === undefined) {
     await dropDatabaseIfExists(ADMIN_DATABASE_URL, TEST_DB);
+  }
+  // And the library with it. Fifty megabytes of fixture audio per run adds up, and leaving it
+  // is what let one run inherit another's files in the first place.
+  if (process.env["MM_E2E_LIBRARY_LEAF"] === undefined) {
+    rmSync(LIBRARY, { recursive: true, force: true });
   }
 }
 
