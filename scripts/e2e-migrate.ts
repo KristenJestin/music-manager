@@ -27,6 +27,7 @@
  *     docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d postgres toolbox
  *     bun run e2e-migrate
  */
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { SQL } from "bun";
@@ -71,7 +72,7 @@ const LIBRARY_LEAF = process.env["MM_E2E_LIBRARY_LEAF"] ?? `.mm-migrate-${String
 const LIBRARY = resolve(repoRoot, ".local", "library", LIBRARY_LEAF);
 const TOOLBOX_LIBRARY = `/library/${LIBRARY_LEAF}`;
 
-const childEnv: Record<string, string> = {
+let childEnv: Record<string, string> = {
   ...(process.env as Record<string, string>),
   DATABASE_URL: V2_DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
@@ -80,6 +81,59 @@ const childEnv: Record<string, string> = {
   MM_LIBRARY_ROOT: LIBRARY,
   MM_TOOLBOX_LIBRARY_ROOT: TOOLBOX_LIBRARY,
 };
+
+/**
+ * The later sections need a v1 installation nobody has migrated yet.
+ *
+ * `--resume` has to interrupt a migration in flight, and `--rename-to-template` has to move
+ * files that are still where v1 put them — neither can run on the library section 4 already
+ * took over, and re-migrating in place would prove the *second* run rather than the flag. So
+ * each gets its own database and its own directory, built from the same fixture, and every
+ * child process is pointed at it through `childEnv`.
+ *
+ * The leaf is fresh every time for the reason above: a recreated bind-mount directory of the
+ * same name is served to the container as a stale inode on Docker Desktop for Windows.
+ */
+interface Installation {
+  readonly v2Db: string;
+  readonly v2Url: string;
+  readonly library: string;
+  readonly leaf: string;
+}
+const extraInstallations: Installation[] = [];
+
+async function freshInstallation(suffix: string): Promise<Installation> {
+  const v2Db = `${V2_DB}_${suffix}`;
+  const leaf = `${LIBRARY_LEAF}-${suffix}`;
+  const installation: Installation = {
+    v2Db,
+    v2Url: withDatabaseName(ADMIN_DATABASE_URL, v2Db),
+    library: resolve(repoRoot, ".local", "library", leaf),
+    leaf,
+  };
+  extraInstallations.push(installation);
+
+  childEnv = {
+    ...childEnv,
+    DATABASE_URL: installation.v2Url,
+    MM_LIBRARY_ROOT: installation.library,
+    MM_TOOLBOX_LIBRARY_ROOT: `/library/${leaf}`,
+  };
+
+  await createFreshDatabase(ADMIN_DATABASE_URL, v2Db);
+  await must("migrate the v2 schema", [bun, "run", join(webDir, "src/server/db/migrate.ts")]);
+  await must("seed the recorded sources", [
+    bun,
+    "run",
+    join(webDir, "src/server/integrations/seed-fixtures.ts"),
+  ]);
+  await must("build a second v1 fixture library", [
+    bun,
+    "run",
+    join(repoRoot, "fixtures/v1/build-library.ts"),
+  ]);
+  return installation;
+}
 
 /* ------------------------------------------------------------------ */
 /* reporting                                                           */
@@ -168,6 +222,28 @@ async function probe(relative: string): Promise<Record<string, string>> {
   return body.tags ?? {};
 }
 
+/**
+ * A fingerprint of everything the v1 database holds.
+ *
+ * The phase's strongest promise is that the migration never writes to the source: v1's
+ * database is the owner's only record of what v1 knew, and `reader.ts` goes to the trouble of
+ * a read-only startup option, a `SET` and a `SHOW` read back. Taken before the first run and
+ * after the last one, this digest is what turns that from an intention into a fact.
+ */
+async function v1Digest(): Promise<string> {
+  const sql = new SQL({ url: V1_DATABASE_URL, max: 1 });
+  try {
+    const parts: string[] = [];
+    for (const table of ["Songs", "SongForceMetadata", "UserPlaylists", "UserPlaylistSongs"]) {
+      const rows = (await sql.unsafe(`select * from "${table}" order by "Id"`)) as unknown[];
+      parts.push(`${table}:${JSON.stringify(rows)}`);
+    }
+    return createHash("sha256").update(parts.join("\n")).digest("hex");
+  } finally {
+    await sql.end();
+  }
+}
+
 /** Every audio file under the library, library-relative, sorted. */
 function walk(root: string, prefix = ""): string[] {
   if (!existsSync(root)) return [];
@@ -245,6 +321,8 @@ async function main(): Promise<void> {
     { count: number }[]
   >`select count(*)::int as count from "UserPlaylists"`;
   await v1.end();
+
+  const v1Before = await v1Digest();
 
   check(songCount?.count === 30, "the dump loaded thirty Songs rows", String(songCount?.count));
   check(forceCount?.count === 6, "with six SongForceMetadata overrides", String(forceCount?.count));
@@ -630,6 +708,247 @@ async function main(): Promise<void> {
   console.log("");
   console.log(printed.stdout.trimEnd());
 
+  /* ---------------------------------------------------------------- */
+  section("7 · the v1 source is never written");
+  /* ---------------------------------------------------------------- */
+  //
+  // The phase's most expensive mistake would be a migration that damaged the installation it
+  // was migrating from, and the v1 database is the owner's only record of what v1 knew. Two
+  // runs and a no-op have gone past at this point, so the digest covers all of them.
+
+  check(
+    (await v1Digest()) === v1Before,
+    "every row of the four v1 tables is byte-for-byte what it was before the migration",
+    v1Before.slice(0, 16),
+  );
+
+  // …and the refusal is the server's, not a convention this code follows. `reader.ts` opens
+  // with `-c default_transaction_read_only=on`; the same connection here must be unable to
+  // write even when it tries.
+  const readOnly = new SQL({
+    url: V1_DATABASE_URL,
+    max: 1,
+    connection: { options: "-c default_transaction_read_only=on" },
+  });
+  let refusal = "(the write was allowed)";
+  try {
+    await readOnly.unsafe(`update "Songs" set "Title" = 'tampered' where "Id" = 1`);
+  } catch (error) {
+    refusal = error instanceof Error ? error.message : String(error);
+  } finally {
+    await readOnly.end();
+  }
+  check(
+    /read-only|read only/i.test(refusal),
+    "and Postgres itself refuses a write on the connection the reader opens",
+    refusal.split("\n")[0] ?? "",
+  );
+
+  /* ---------------------------------------------------------------- */
+  section("8 · --resume, after an interruption in flight");
+  /* ---------------------------------------------------------------- */
+  //
+  // Idempotence (section 5) is not resumption: it proves a *finished* run is not redone. What
+  // has to be proved here is that a run killed halfway leaves usable state behind — the
+  // failure mode this table exists for, and the one a real thirty-thousand-file migration will
+  // meet. So a migration is started, killed as soon as it has committed work, and resumed.
+
+  const resumeInstall = await freshInstallation("resume");
+  const resumeSql = new SQL({ url: resumeInstall.v2Url, max: 2 });
+
+  const child = Bun.spawn(
+    [
+      bun,
+      "run",
+      join(webDir, "bin", "mm.ts"),
+      "migrate",
+      "v1",
+      "--db",
+      V1_DATABASE_URL,
+      "--library",
+      resumeInstall.library,
+      "--i-have-a-backup",
+    ],
+    { env: childEnv, stdout: "pipe", stderr: "pipe" },
+  );
+
+  // Wait for real committed progress rather than for a clock: the point is to cut the run
+  // *after* it has written rows and *before* it has written them all.
+  let progressed = 0;
+  const deadline = Date.now() + 180_000;
+  while (Date.now() < deadline) {
+    const [row] = await resumeSql<{ count: number }[]>`
+      select count(*)::int as count from migration_v1 where outcome <> 'planned'`;
+    progressed = row?.count ?? 0;
+    if (progressed >= 3) break;
+    if (child.exitCode !== null) break;
+    await Bun.sleep(250);
+  }
+  // Only this tree, only by the PID this process holds — never a pattern match (`CLAUDE.md`).
+  if (child.exitCode === null) {
+    if (process.platform === "win32") {
+      Bun.spawnSync([
+        process.env["COMSPEC"] ?? "cmd",
+        "/c",
+        "taskkill",
+        "/PID",
+        String(child.pid),
+        "/T",
+        "/F",
+      ]);
+    } else {
+      child.kill(9);
+    }
+  }
+  await child.exited;
+
+  const [interrupted] = await resumeSql<{ count: number }[]>`
+    select count(*)::int as count from migration_v1 where outcome = 'migrated'`;
+  const [stillRunning] = await resumeSql<{ count: number }[]>`
+    select count(*)::int as count from migration_v1_runs where status = 'running'`;
+  check(
+    (interrupted?.count ?? 0) > 0,
+    "the interrupted run committed what it had finished",
+    `${String(interrupted?.count ?? 0)} row(s) migrated before the kill`,
+  );
+  check(
+    (interrupted?.count ?? 0) < 24,
+    "and it did not finish",
+    `${String(interrupted?.count ?? 0)} of 24`,
+  );
+  check((stillRunning?.count ?? 0) === 1, "the run row is left `running`, for --resume to find");
+
+  const resumed = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    resumeInstall.library,
+    "--i-have-a-backup",
+    "--resume",
+    "--json",
+  ]);
+  const resumedReport = JSON.parse(resumed.stdout) as Report;
+
+  check(
+    resumedReport.counts.alreadyDone >= (interrupted?.count ?? 0),
+    "the resumed run skips what the killed one had already done",
+    `${String(resumedReport.counts.alreadyDone)} skipped`,
+  );
+  check(resumedReport.counts.failed === 0, "nothing failed on the way back up");
+
+  const [resumedTracks] = await resumeSql<{ count: number }[]>`
+    select count(*)::int as count from library_tracks`;
+  const [resumedAlbums] = await resumeSql<{ count: number }[]>`
+    select count(*)::int as count from library_albums`;
+  check(
+    (resumedTracks?.count ?? 0) === 24 && (resumedAlbums?.count ?? 0) === 3,
+    "and the library ends up exactly where an uninterrupted run would have left it",
+    `${String(resumedAlbums?.count)} album(s), ${String(resumedTracks?.count)} track(s)`,
+  );
+  const resumedFiles = walk(resumeInstall.library).filter((path) => path.endsWith(".opus"));
+  check(
+    JSON.stringify(resumedFiles) === JSON.stringify(beforeOpus),
+    "with every file still at its v1 path",
+    `${String(resumedFiles.length)} file(s)`,
+  );
+  await resumeSql.end();
+
+  /* ---------------------------------------------------------------- */
+  section("9 · --rename-to-template");
+  /* ---------------------------------------------------------------- */
+  //
+  // The flag the phase argues against, which is exactly why it needs a test: nothing else in
+  // the suite moves a file, so a regression here would only ever be found by the one person
+  // who used it, on their real library, after the play counts were gone.
+
+  const renameInstall = await freshInstallation("rename");
+  const renameBefore = walk(renameInstall.library).filter((path) => path.endsWith(".opus"));
+
+  const renamed = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    renameInstall.library,
+    "--i-have-a-backup",
+    "--rename-to-template",
+    "--json",
+  ]);
+  // `--json` promises the report and nothing else on stdout: the rename banner used to be
+  // printed there, and a script asking for JSON got a document no parser accepts.
+  check(
+    renamed.stdout.trimStart().startsWith("{"),
+    "`--json` puts the report on stdout and the warning on stderr",
+    renamed.stdout.trimStart().slice(0, 40).replace(/\n/g, " "),
+  );
+  check(
+    renamed.stderr.includes("--rename-to-template will MOVE"),
+    "and the warning is still shown, where a person sees it",
+  );
+  const renamedReport = JSON.parse(renamed.stdout) as Report;
+
+  check(
+    renamedReport.counts.renamed > 0,
+    "files were renamed",
+    `${String(renamedReport.counts.renamed)} of ${String(renamedReport.counts.migrated)}`,
+  );
+  check(
+    renamedReport.counts.failed === 0,
+    "and nothing failed",
+    JSON.stringify(renamedReport.errors.slice(0, 3)),
+  );
+
+  const renameAfter = walk(renameInstall.library).filter((path) => path.endsWith(".opus"));
+  check(
+    renameAfter.length === renameBefore.length,
+    "no file was lost or duplicated by the move",
+    `${String(renameBefore.length)} → ${String(renameAfter.length)}`,
+  );
+  check(
+    JSON.stringify(renameAfter) !== JSON.stringify(renameBefore),
+    "the paths are not the v1 paths any more",
+  );
+
+  /*
+   * The template is decision 074: `{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}`.
+   * v1 wrote `Disc 1 - 03 - Title.opus` even on a single-disc album; v2 writes the disc prefix
+   * only when there is more than one disc, so the two names differ in more than punctuation.
+   */
+  check(
+    renameAfter.includes("Daft Punk/Discovery (2001)/01 - One More Time.opus"),
+    "a single-disc track lands at `NN - Title.opus`, the template of decision 074",
+    renameAfter.find((path) => path.includes("One More Time")) ?? "(absent)",
+  );
+  check(
+    renameAfter.some((path) => /\/\d-\d\d - .+\.opus$/.test(path)),
+    "and a multi-disc one keeps its disc in the name",
+    renameAfter.find((path) => /\/\d-\d\d - /.test(path)) ?? "(absent)",
+  );
+  check(
+    !renameAfter.some((path) => path.includes("Disc 1 - ")),
+    "v1's `Disc 1 - ` prefix on a single-disc album is gone",
+  );
+
+  const renameSql = new SQL({ url: renameInstall.v2Url, max: 1 });
+  const [recorded] = await renameSql<{ count: number }[]>`
+    select count(*)::int as count from migration_v1 where renamed_from is not null`;
+  check(
+    (recorded?.count ?? 0) === renamedReport.counts.renamed,
+    "every rename is recorded with where the file came from, so it can be reported and undone",
+    `${String(recorded?.count ?? 0)} row(s) carry renamed_from`,
+  );
+  const [renamedTracks] = await renameSql<{ path: string }[]>`
+    select path from library_tracks order by path limit 1`;
+  check(
+    renamedTracks !== undefined && renameAfter.includes(renamedTracks.path),
+    "and the database points at the new path, not the old one",
+    renamedTracks?.path ?? "(no track)",
+  );
+  await renameSql.end();
+
   section("result");
   console.log(`  ${String(checks - failures)}/${String(checks)} checks passed`);
   if (failures > 0) die(`${String(failures)} check(s) failed`);
@@ -640,6 +959,10 @@ async function cleanup(): Promise<void> {
   if (process.env["MM_E2E_KEEP"] === "1") return;
   await dropDatabaseIfExists(ADMIN_DATABASE_URL, V2_DB).catch(() => {});
   await dropDatabaseIfExists(ADMIN_DATABASE_URL, V1_DB).catch(() => {});
+  for (const installation of extraInstallations) {
+    await dropDatabaseIfExists(ADMIN_DATABASE_URL, installation.v2Db).catch(() => {});
+    rmSync(installation.library, { recursive: true, force: true });
+  }
   // Both the library and the playlist archive this run created, and nothing else.
   rmSync(LIBRARY, { recursive: true, force: true });
   rmSync(resolve(LIBRARY, "..", "_archive", "v1-playlists"), { recursive: true, force: true });
