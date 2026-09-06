@@ -133,6 +133,27 @@ const NOT_OURS = new Set([
   "COVERARTMIME",
 ]);
 
+/**
+ * Keys `ffprobe` renames on its way out.
+ *
+ * ffmpeg's Ogg/Vorbis demuxer runs the comment block through `ff_vorbiscomment_metadata_conv`
+ * before reporting it, which maps three of our keys onto ffmpeg's own generic metadata names.
+ * The file really does contain `ALBUMARTIST`; `/probe` really does say `ALBUM_ARTIST`.
+ *
+ * Without this table every single file of every album showed three phantom additions and
+ * three phantom removals on every dry run — which is precisely the kind of lie a diff must not
+ * tell, because a diff nobody can trust is worse than no diff at all. It was found by running
+ * `mm retag --dry-run` over a freshly tagged album and getting "14 changed" for files that had
+ * been written minutes earlier.
+ *
+ * Left-hand side is the key **we write**; the list is what ffprobe may call it instead.
+ */
+const PROBE_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  ALBUMARTIST: ["ALBUM_ARTIST"],
+  TRACKNUMBER: ["TRACK"],
+  DISCNUMBER: ["DISC"],
+};
+
 export interface ProjectionDiff {
   readonly added: RetagTagChange[];
   readonly removed: RetagTagChange[];
@@ -174,11 +195,32 @@ export function diffProjection(
   const added: RetagTagChange[] = [];
   const changed: RetagTagChange[] = [];
   const removed: RetagTagChange[] = [];
+  /** Probe keys already accounted for, so the "removed" pass does not report them twice. */
+  const consumed = new Set<string>();
   let unchanged = 0;
+
+  /** The probe's value for one of our keys, under whatever name it chose to report it. */
+  const embeddedValue = (key: string): string | undefined => {
+    const direct = present.get(key);
+    if (direct !== undefined) {
+      consumed.add(key);
+      return direct;
+    }
+    for (const alias of PROBE_ALIASES[key] ?? []) {
+      // An alias that we also write ourselves is not an alias, it is a different tag.
+      if (wanted.has(alias)) continue;
+      const value = present.get(alias);
+      if (value !== undefined) {
+        consumed.add(alias);
+        return value;
+      }
+    }
+    return undefined;
+  };
 
   for (const [key, { values, field }] of wanted) {
     const after = values.join("; ");
-    const before = present.get(key);
+    const before = embeddedValue(key);
     if (before === undefined) {
       added.push({ key, field, after });
     } else if (normalise(before) === normalise(after)) {
@@ -189,7 +231,7 @@ export function diffProjection(
   }
 
   for (const [key, before] of present) {
-    if (wanted.has(key) || NOT_OURS.has(key)) continue;
+    if (wanted.has(key) || consumed.has(key) || NOT_OURS.has(key)) continue;
     removed.push({ key, before });
   }
 

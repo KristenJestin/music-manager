@@ -104,6 +104,63 @@ describe("diffProjection", () => {
     const diff = diffProjection([tag("TITLE", "T"), tag("ALBUM", "A"), tag("ARTIST", "B")], {});
     expect(diff.added.map((entry) => entry.key)).toEqual(["ALBUM", "ARTIST", "TITLE"]);
   });
+
+  /*
+   * Found by running `mm retag --dry-run` over an album tagged minutes earlier and getting
+   * "14 changed". ffmpeg's Ogg demuxer renames three of our keys before ffprobe reports them,
+   * so every file showed three phantom additions and three phantom removals — the exact kind
+   * of lie that makes a dry run worthless.
+   */
+  describe("the three keys ffprobe renames", () => {
+    const projected = [
+      tag("ALBUMARTIST", "Daft Punk", "albumartist"),
+      tag("TRACKNUMBER", "1", "tracknumber"),
+      tag("DISCNUMBER", "1", "discnumber"),
+    ];
+    const asProbed = { ALBUM_ARTIST: "Daft Punk", TRACK: "1", DISC: "1" };
+
+    it("recognises them rather than reporting six phantom changes", () => {
+      const diff = diffProjection(projected, asProbed);
+      expect(diff.unchanged).toBe(3);
+      expect(isNoop(diff)).toBe(true);
+    });
+
+    it("still reports a real difference under the renamed key", () => {
+      const diff = diffProjection(projected, { ...asProbed, ALBUM_ARTIST: "Stardust" });
+      expect(diff.changed).toEqual([
+        {
+          key: "ALBUMARTIST",
+          field: "albumartist",
+          before: "Stardust",
+          after: "Daft Punk",
+        },
+      ]);
+    });
+
+    /*
+     * `TRACKTOTAL` and `TOTALTRACKS` are two keys we genuinely write, and ffprobe reports both
+     * verbatim. Nothing about the alias table may touch them.
+     */
+    it("leaves the totals alone, which ffprobe does not rename", () => {
+      const diff = diffProjection(
+        [tag("TRACKTOTAL", "14", "totaltracks"), tag("TOTALTRACKS", "14", "totaltracks")],
+        { TRACKTOTAL: "14", TOTALTRACKS: "14" },
+      );
+      expect(diff.unchanged).toBe(2);
+      expect(isNoop(diff)).toBe(true);
+    });
+
+    it("does not consume an alias that is itself a key we write", () => {
+      // If we ever projected a literal `TRACK`, it is a tag in its own right and the alias
+      // must not steal its value away from `TRACKNUMBER`.
+      const diff = diffProjection(
+        [tag("TRACKNUMBER", "1", "tracknumber"), tag("TRACK", "One More Time", "track")],
+        { TRACK: "One More Time" },
+      );
+      expect(diff.added.map((entry) => entry.key)).toEqual(["TRACKNUMBER"]);
+      expect(diff.unchanged).toBe(1);
+    });
+  });
 });
 
 describe("hashProjection", () => {
