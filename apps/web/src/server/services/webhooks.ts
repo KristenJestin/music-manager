@@ -230,6 +230,11 @@ export async function dispatch(
         webhookId: row.id,
         event,
         payload: { ...payload },
+        // `attempt` counts attempts *made*, and none has been yet. The column's default is 1
+        // — the count you would want if the row were written after the request rather than
+        // before it — so a first success recorded `2`. Set explicitly rather than changed in
+        // the schema, because 0005 is already applied.
+        attempt: 0,
       });
       ids.push(id);
     }

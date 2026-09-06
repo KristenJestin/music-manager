@@ -29,6 +29,7 @@ import {
   errorSchema,
   idParam,
   keySchema,
+  patchWebhookSchema,
   okSchema,
   webhookViewSchema,
 } from "#/server/api/schemas.ts";
@@ -225,7 +226,15 @@ export function webhookRoutes(): OpenAPIHono<ApiEnv> {
         body: {
           content: {
             "application/json": {
-              schema: createWebhookSchema.partial().extend({ enabled: z.boolean().optional() }),
+              /*
+               * Declared field by field rather than as `createWebhookSchema.partial()`.
+               *
+               * `.partial()` makes a field optional but does **not** remove its `.default()`,
+               * so a body of `{"events": []}` came back out of the parser carrying
+               * `name: ""` — and the handler dutifully renamed the endpoint to nothing. A
+               * PATCH must not change what it was not asked to change.
+               */
+              schema: patchWebhookSchema,
             },
           },
           required: true,

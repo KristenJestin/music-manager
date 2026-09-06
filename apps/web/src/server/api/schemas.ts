@@ -417,3 +417,20 @@ export const createWebhookSchema = z
 export const createdWebhookSchema = webhookViewSchema
   .extend({ secret: z.string().openapi({ description: "The HMAC key. Shown once." }) })
   .openapi("CreatedWebhook");
+
+/**
+ * The PATCH body: every field optional, and **no defaults**.
+ *
+ * Written out rather than derived with `createWebhookSchema.partial()`, because `.partial()`
+ * only makes a field optional — it leaves the `.default()` in place, so a body that mentioned
+ * only `events` parsed into one that also carried `name: ""`, and the handler renamed the
+ * endpoint to nothing. A PATCH must not change what it was not asked to change.
+ */
+export const patchWebhookSchema = z
+  .object({
+    name: z.string().optional(),
+    url: z.string().min(1).optional(),
+    events: z.array(notifiableEventSchema).optional(),
+    enabled: z.boolean().optional(),
+  })
+  .openapi("PatchWebhook");

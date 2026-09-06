@@ -131,7 +131,10 @@ describe("send", () => {
   });
 
   it("hands the e-mail channel a rendered message and lets SMTP be injected", async () => {
-    const sendMail = vi.fn(async () => undefined);
+    const sent: { to: string; subject: string; body: string }[] = [];
+    const sendMail = vi.fn(async (message: { to: string; subject: string; body: string }) => {
+      sent.push(message);
+    });
     const outcome = await send(note, {
       sendMail,
       settings: settingsWith({
@@ -142,11 +145,11 @@ describe("send", () => {
     });
 
     expect(outcome).toEqual({ delivered: true, channel: "email" });
-    const message = sendMail.mock.calls[0]?.[0] as { to: string; subject: string; body: string };
-    expect(message.to).toBe("me@example.test");
-    expect(message.subject).toBe(note.title);
-    expect(message.body).toContain(note.body);
-    expect(message.body).toContain("/imports/imp_1");
+    const message = sent[0];
+    expect(message?.to).toBe("me@example.test");
+    expect(message?.subject).toBe(note.title);
+    expect(message?.body).toContain(note.body);
+    expect(message?.body).toContain("/imports/imp_1");
   });
 });
 

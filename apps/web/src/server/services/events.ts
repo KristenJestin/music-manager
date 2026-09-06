@@ -14,6 +14,7 @@ import { and, asc, desc, eq, gt, sql } from "drizzle-orm";
 import type { JobEventPayload } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { jobEvents, type EventLevel, type StepName } from "#/server/db/schema/index.ts";
+import { announceJournal, notifiableFor } from "#/server/services/announce.ts";
 
 /** The channel every orchestrator process notifies and every SSE stream listens on. */
 export const EVENT_CHANNEL = "mm_job_events";
@@ -54,6 +55,28 @@ export async function emit(options: EmitOptions, db: Database = defaultDb()): Pr
   const nudge: Nudge = { id, importId: options.importId ?? null };
   // `pg_notify` rather than `NOTIFY`: the channel name is a literal and the payload is bound.
   await db.execute(sql`select pg_notify(${EVENT_CHANNEL}, ${JSON.stringify(nudge)})`);
+
+  /*
+   * Three of these lines are also worth telling a human or a third party about (P08).
+   *
+   * Deliberately **not awaited**: `emit()` is on the hot path of every step, and a webhook
+   * subscriber that takes ten seconds to answer must not add ten seconds to an import. The row
+   * is already written and already announced on the channel, so nothing here can be lost by
+   * letting it finish on its own — and `announceJournal` never throws, so there is nothing to
+   * catch either. `void` says that is on purpose rather than a forgotten `await`.
+   */
+  if (notifiableFor(options.type) !== null) {
+    void announceJournal(
+      {
+        type: options.type,
+        message: options.message,
+        importId: options.importId ?? null,
+        step: options.step ?? null,
+        data: options.data,
+      },
+      db,
+    );
+  }
   return id;
 }
 

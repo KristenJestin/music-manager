@@ -14,7 +14,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { emit } from "#/server/services/events.ts";
 import { runScan, type ScanReport } from "#/server/services/scan.ts";
 import { loadSettings } from "#/server/services/settings.ts";
-import { updateYtdlp } from "#/server/services/tools.ts";
+import { cookiesStatus, updateYtdlp } from "#/server/services/tools.ts";
 
 export interface ScanJob {
   /** `cron`, `manual`, `cli`. */
@@ -100,8 +100,50 @@ export async function handleYtdlpUpdate(deps: HandlerDeps = {}): Promise<void> {
   try {
     const result = await updateYtdlp({ db, settings });
     log("yt-dlp update", { from: result.from, to: result.to, updated: result.updated });
+    /*
+     * Two of P08's five notifiable events are raised here rather than in the journal.
+     *
+     * They belong to the *downloader*, not to any import, so they have no `job_events` row to
+     * ride on — and they are precisely the two an operator wants to hear about before an
+     * import fails rather than after. `announce()` never throws, so a broken webhook cannot
+     * turn a successful update into a failed cron.
+     */
+    const { announce } = await import("#/server/services/announce.ts");
+    if (result.updated) {
+      await announce(
+        "ytdlp.updated",
+        { ok: true, version: result.to ?? "", from: result.from ?? "" },
+        { db },
+      );
+    }
+    // A cookie jar that is about to expire is the single most common cause of a download
+    // failing overnight, and the whole point of saying so is to say it *early*. "Soon" is a
+    // week: long enough to be acted on without nagging, short enough to still matter.
+    const cookies = await cookiesStatus({ db, settings });
+    // `anonymous` means there is no jar to expire, so there is nothing to warn about.
+    if (cookies.mode === "file") {
+      const dueInMs =
+        cookies.expiresAt === null ? null : new Date(cookies.expiresAt).getTime() - Date.now();
+      const expiringSoon = dueInMs !== null && dueInMs < 7 * 24 * 60 * 60 * 1000;
+      const broken = !cookies.ok || !cookies.authenticated || cookies.expired > 0;
+      if (expiringSoon || broken) {
+        await announce(
+          "cookies.expiring",
+          {
+            message:
+              cookies.problems.length > 0 ? cookies.problems.join("; ") : cookies.note,
+            expiresAt: cookies.expiresAt ?? "",
+            expired: cookies.expired,
+            authenticated: cookies.authenticated,
+          },
+          { db },
+        );
+      }
+    }
   } catch (error) {
     log("yt-dlp update failed", { error: MMError.from(error).message });
+    const { announce } = await import("#/server/services/announce.ts");
+    await announce("ytdlp.updated", { ok: false, message: MMError.from(error).message }, { db });
   }
 }
 
