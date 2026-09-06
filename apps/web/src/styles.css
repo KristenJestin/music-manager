@@ -238,6 +238,18 @@
   grid-template-columns: 4rem 2.75rem 5.25rem minmax(0, 1fr);
 }
 
+/**
+ * One journal line: time, event type, message.
+ *
+ * The album History has no level column, so it cannot borrow `log-grid`: three cells in a
+ * four-column track put `import.created` in the 2.75rem level column and the message in the
+ * 5.25rem step column, which is what made that tab render as overlapping text.
+ */
+@utility event-grid {
+  display: grid;
+  grid-template-columns: 4rem 8rem minmax(0, 1fr);
+}
+
 /** One mapping row: number, video, arrow, track selector, fit, why. */
 @utility map-grid {
   display: grid;

@@ -871,7 +871,7 @@ function HistoryTab({
       data-testid="album-history"
     >
       {history.map((line) => (
-        <div key={line.id} className="log-grid gap-2 px-1.5 py-0.5 text-2xs">
+        <div key={line.id} className="event-grid gap-2 px-1.5 py-0.5 text-2xs">
           <span className="font-mono text-fg-3">{clockTime(line.at)}</span>
           <span
             className={cn(
