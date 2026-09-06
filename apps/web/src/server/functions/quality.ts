@@ -28,6 +28,7 @@ import {
 } from "#/server/services/schema-version.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { activeRun, listRuns } from "#/server/services/retag.ts";
+import { countOffTemplate } from "#/server/services/relocate.ts";
 
 /** One profile, as the picker shows it. Derived from `@mm/domain`, never restated. */
 export interface ProfileSummary {
@@ -83,6 +84,15 @@ export interface QualityPayload {
   readonly schemaOverridden: boolean;
   readonly active: RetagProgress | null;
   readonly recent: readonly RetagProgress[];
+  /**
+   * Files whose path no longer matches `pathTemplate` — the counter on the Re-file button.
+   *
+   * Not part of `LibraryQualityStats`, which is a pure function of the scored rows: this one
+   * renders a template and stats the disk, so it is computed here beside the query that needs
+   * it rather than smuggled into an arithmetic helper.
+   */
+  readonly offTemplate: number;
+  readonly pathTemplate: string;
 }
 
 function toProgress(run: {
@@ -132,7 +142,11 @@ export const fetchQuality = createServerFn({ method: "GET", strict: STRICT })
           return (left ?? 1) - (right ?? 1);
         });
 
-      const [running, recent] = await Promise.all([activeRun(db()), listRuns({ limit: 8 }, db())]);
+      const [running, recent, offTemplate] = await Promise.all([
+        activeRun(db()),
+        listRuns({ limit: 8 }, db()),
+        countOffTemplate({ db: db(), settings }),
+      ]);
 
       return {
         rows: shown.map(({ album, quality }) => ({
@@ -169,6 +183,8 @@ export const fetchQuality = createServerFn({ method: "GET", strict: STRICT })
         schemaOverridden: isSchemaOverridden(settings),
         active: running === null ? null : toProgress(running),
         recent: recent.map(toProgress),
+        offTemplate,
+        pathTemplate: settings.pathTemplate,
       };
     } catch (error) {
       return toFailure(error);

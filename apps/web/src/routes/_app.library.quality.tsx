@@ -17,7 +17,7 @@ import { useState } from "react";
 import { Link, createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { PROFILE_IDS } from "@mm/domain";
-import { Layers, Settings2, ShieldCheck, Sparkles, Tag } from "lucide-react";
+import { FolderTree, Layers, Settings2, ShieldCheck, Sparkles, Tag } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -35,6 +35,8 @@ import { QUALITY_FILTERS, QUALITY_FILTER_LABELS } from "#/lib/library-filters.ts
 import { fetchQuality } from "#/server/functions/quality.ts";
 import { fetchMissingTags } from "#/server/functions/library.ts";
 import { startRetag, stopRetag } from "#/server/functions/retag.ts";
+import { runRelocate } from "#/server/functions/relocate.ts";
+import type { RelocateReport } from "#/server/services/relocate.ts";
 
 const search = z.object({
   filter: z.enum(QUALITY_FILTERS).default("all"),
@@ -58,6 +60,8 @@ function Quality() {
   const toast = useToast();
 
   const [busy, setBusy] = useState<string | null>(null);
+  /** The dry run, held so "Re-file" is only reachable once its plan has been seen. */
+  const [relocatePlan, setRelocatePlan] = useState<RelocateReport | null>(null);
   const [selected, setSelected] = useState<readonly string[]>([]);
 
   /* The run in flight, followed live. The loader's row is the starting point. */
@@ -134,7 +138,7 @@ function Quality() {
       />
 
       {/* ---- the numbers ---- */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-7">
         <StatTile
           label={profiled ? `Visible in ${params.profile}` : "Average score"}
           value={pct(averageForProfile)}
@@ -182,6 +186,13 @@ function Quality() {
           icon={<Layers className="size-3.5" aria-hidden="true" />}
           to="/library/quality"
           search={{ filter: "schema", profile: params.profile }}
+        />
+        <StatTile
+          label="Off template"
+          value={payload.offTemplate}
+          tone={payload.offTemplate === 0 ? "ok" : "warn"}
+          sub="files · filed under an older layout"
+          icon={<FolderTree className="size-3.5" aria-hidden="true" />}
         />
       </div>
 
@@ -271,6 +282,83 @@ function Quality() {
                 </Button>
               </>
             )}
+          </div>
+        </div>
+      </Callout>
+
+      {/* ---- the path template (decision 074, and its other half) ---- */}
+      <Callout
+        tone={payload.offTemplate === 0 ? "ok" : "warn"}
+        className="mb-3"
+        icon={<FolderTree className="size-4" aria-hidden="true" />}
+        data-testid="relocate-callout"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="font-medium">Library layout</span>{" "}
+            <code className="font-mono text-2xs">{payload.pathTemplate}</code>{" "}
+            {payload.offTemplate === 0 ? (
+              <>Every file is filed where the template says it belongs.</>
+            ) : (
+              <>
+                <span data-testid="off-template" className="font-mono">
+                  {payload.offTemplate}
+                </span>{" "}
+                file(s) are filed under an older layout. Re-tagging fixes the tags, never the paths,
+                so they stay this way until they are moved. Navidrome identifies a file by its path,
+                so moving one loses that track&rsquo;s play count and its favourites — read the dry
+                run before you apply it.
+              </>
+            )}
+            {relocatePlan === null ? null : (
+              <ul
+                data-testid="relocate-plan"
+                className="mt-2 max-h-40 space-y-1 overflow-auto font-mono text-2xs text-fg-2"
+              >
+                {relocatePlan.moves.map((move) => (
+                  <li key={move.from}>
+                    {move.from} <span className="text-fg-3">to</span> {move.to}
+                  </li>
+                ))}
+                {relocatePlan.blocked.map((entry) => (
+                  <li key={entry.path} className="text-warn">
+                    {entry.path} — blocked ({entry.reason})
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy !== null || payload.offTemplate === 0}
+              data-testid="relocate-dry-run"
+              onClick={() => {
+                act("relocate-dry", async () => {
+                  const report = await runRelocate({ data: { albumId: null, dryRun: true } });
+                  setRelocatePlan(report);
+                  return `${String(report.planned)} file(s) would move, ${String(report.inPlace)} already in place.`;
+                });
+              }}
+            >
+              Dry run (plan)
+            </Button>
+            <Button
+              size="sm"
+              disabled={busy !== null || relocatePlan === null || relocatePlan.planned === 0}
+              data-testid="relocate-apply"
+              onClick={() => {
+                act("relocate", async () => {
+                  const report = await runRelocate({ data: { albumId: null, dryRun: false } });
+                  setRelocatePlan(null);
+                  return `Moved ${String(report.moved)} file(s); ${String(report.skipped)} skipped, ${String(report.failed)} failed.`;
+                });
+              }}
+            >
+              <FolderTree className="size-3.5" aria-hidden="true" /> Re-file {payload.offTemplate}{" "}
+              file(s)
+            </Button>
           </div>
         </div>
       </Callout>
