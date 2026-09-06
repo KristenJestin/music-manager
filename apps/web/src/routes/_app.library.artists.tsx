@@ -10,11 +10,12 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { ExternalLink, Search } from "lucide-react";
-import { Input } from "#/components/ui/input.tsx";
+import { ExternalLink } from "lucide-react";
+
 import { Cover } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { SearchInput } from "#/components/search-input.tsx";
 import { short } from "#/lib/format.ts";
 import type { ArtistRow } from "#/server/services/library.ts";
 import { fetchArtists } from "#/server/functions/library.ts";
@@ -90,23 +91,17 @@ function Artists() {
       />
 
       <div className="mb-3 flex items-center gap-2">
-        <label className="flex h-7 min-w-64 items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2">
-          <Search className="size-3.5 text-fg-3" aria-hidden="true" />
-          <Input
-            data-testid="artists-search"
-            value={query}
-            placeholder="Search artists…"
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                void navigate({ to: "/library/artists", search: { q: query } });
-              }
-            }}
-            className="h-6 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-          />
-        </label>
+        <SearchInput
+          data-testid="artists-search"
+          className="min-w-64"
+          label="Search artists"
+          placeholder="Search artists…"
+          value={query}
+          onValueChange={setQuery}
+          onSubmit={(q) => {
+            void navigate({ to: "/library/artists", search: { q } });
+          }}
+        />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-line bg-surface-1">

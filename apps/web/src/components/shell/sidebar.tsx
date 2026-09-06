@@ -83,7 +83,7 @@ export function Sidebar() {
           <Music4 className="size-3.5" aria-hidden="true" />
         </span>
         Music Manager
-        <span className="ml-auto font-mono text-3xs text-fg-3">v{data?.version ?? "—"}</span>
+        <span className="ml-auto font-mono text-3xs text-fg-3">v{data?.version ?? "?"}</span>
       </div>
 
       <nav className="flex flex-col gap-0.5 px-2 py-2.5" aria-label="Main">
@@ -98,7 +98,12 @@ export function Sidebar() {
                 <Link
                   key={entry.label}
                   to={entry.to}
-                  activeOptions={{ exact: entry.exact ?? false }}
+                  // `includeSearch` defaults to *true*, and every filtered page validates its
+                  // search with defaults — so `/library` built a `next.search` of
+                  // `{q,filter,sort,profile}` that never equalled the bare `?`-less URL, and
+                  // Albums was the one entry that never lit up (owner review B3). The sidebar
+                  // answers "which section am I in", which no query string can change.
+                  activeOptions={{ exact: entry.exact ?? false, includeSearch: false }}
                   className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-fg-1 hover:bg-surface-2 hover:text-foreground"
                   activeProps={{
                     className: "bg-surface-3 text-foreground inset-shadow-nav",

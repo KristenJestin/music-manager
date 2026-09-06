@@ -14,12 +14,13 @@ import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { PROFILE_IDS } from "@mm/domain";
-import { LayoutGrid, Plus, Search, ShieldCheck } from "lucide-react";
+import { LayoutGrid, Plus, ShieldCheck } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
-import { Input } from "#/components/ui/input.tsx";
+
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
@@ -72,8 +73,10 @@ function Albums() {
   const scoreOf = (quality: (typeof albums)[number]["quality"]): number | null =>
     profiled ? quality.byProfile[params.profile as never] : quality.score;
 
-  const submit = (): void => {
-    void navigate({ to: "/library", search: { ...params, q: query } });
+  // Takes the value rather than reading `query`: the clear button changes the state and
+  // submits in the same tick, so the state it would read is still the old one.
+  const submit = (q: string): void => {
+    void navigate({ to: "/library", search: { ...params, q } });
   };
 
   return (
@@ -143,21 +146,15 @@ function Albums() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <label className="flex h-7 min-w-56 flex-1 items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2">
-          <Search className="size-3.5 text-fg-3" aria-hidden="true" />
-          <Input
-            data-testid="library-search"
-            value={query}
-            placeholder="Search albums, artists, MBID…"
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") submit();
-            }}
-            className="h-6 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-          />
-        </label>
+        <SearchInput
+          data-testid="library-search"
+          className="min-w-56 flex-1"
+          label="Search albums"
+          placeholder="Search albums, artists, MBID…"
+          value={query}
+          onValueChange={setQuery}
+          onSubmit={submit}
+        />
         <select
           data-testid="library-sort"
           value={params.sort}

@@ -10,11 +10,12 @@
 import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
-import { Input } from "#/components/ui/input.tsx";
+
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { SearchInput } from "#/components/search-input.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
@@ -137,23 +138,17 @@ function Tracks() {
       />
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <label className="flex h-7 min-w-64 flex-1 items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2">
-          <Search className="size-3.5 text-fg-3" aria-hidden="true" />
-          <Input
-            data-testid="tracks-search"
-            value={query}
-            placeholder="Title, artist, album, MBID, path…"
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                void navigate({ to: "/library/tracks", search: { ...params, q: query, page: 0 } });
-              }
-            }}
-            className="h-6 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-          />
-        </label>
+        <SearchInput
+          data-testid="tracks-search"
+          className="min-w-64 flex-1"
+          label="Search tracks"
+          placeholder="Title, artist, album, MBID, path…"
+          value={query}
+          onValueChange={setQuery}
+          onSubmit={(q) => {
+            void navigate({ to: "/library/tracks", search: { ...params, q, page: 0 } });
+          }}
+        />
       </div>
 
       <FilterChips
