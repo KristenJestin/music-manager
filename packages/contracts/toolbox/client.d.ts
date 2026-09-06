@@ -379,6 +379,11 @@ export interface components {
              * @description Path to a Netscape cookies.txt readable by the container.
              */
             cookies?: string | null;
+            /**
+             * Cookies Content
+             * @description A Netscape cookies.txt inline, written to a private temporary file for the duration of the call. On a real server the operator has a browser export to paste, not a path inside this container. Wins over `cookies`.
+             */
+            cookies_content?: string | null;
             /** Dest Dir */
             dest_dir: string;
             /**
@@ -504,6 +509,11 @@ export interface components {
              * @description Path to a Netscape cookies.txt readable by the container.
              */
             cookies?: string | null;
+            /**
+             * Cookies Content
+             * @description A Netscape cookies.txt inline, written to a private temporary file for the duration of the call. On a real server the operator has a browser export to paste, not a path inside this container. Wins over `cookies`.
+             */
+            cookies_content?: string | null;
             /**
              * Extra Args
              * @description Raw yt-dlp options merged last. Escape hatch; prefer the named fields.

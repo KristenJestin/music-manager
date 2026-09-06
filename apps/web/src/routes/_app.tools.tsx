@@ -10,7 +10,16 @@
  */
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Download, Play, RefreshCw, Scan, ShieldCheck, Trash2, Wrench } from "lucide-react";
+import {
+  Download,
+  Play,
+  RefreshCw,
+  Scan,
+  ShieldCheck,
+  SlidersHorizontal,
+  Trash2,
+  Wrench,
+} from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -90,6 +99,35 @@ function Diag({
       </div>
       <div className="flex shrink-0 gap-1.5">{children}</div>
     </div>
+  );
+}
+
+/**
+ * "X is not configured" with no way to configure it is half a diagnostic (owner review B5).
+ * Every row that can say that now carries the link to the exact block that fixes it, which
+ * is why `Section` in `components/settings/controls.tsx` grew an `id`.
+ */
+function ConfigureLink({
+  to,
+  hash,
+  label = "Configure",
+  testId,
+}: {
+  readonly to: "/settings/integrations" | "/settings/downloader" | "/settings/metadata";
+  readonly hash: string;
+  readonly label?: string;
+  readonly testId?: string;
+}) {
+  return (
+    <Button
+      size="xs"
+      variant="outline"
+      nativeButton={false}
+      data-testid={testId}
+      render={<Link to={to} hash={hash} />}
+    >
+      <SlidersHorizontal className="size-3.5" aria-hidden="true" /> {label}
+    </Button>
   );
 }
 
@@ -320,6 +358,12 @@ function DownloaderPanel({
         >
           Test
         </Button>
+        <ConfigureLink
+          to="/settings/downloader"
+          hash="cookies"
+          label={cookies.mode === "anonymous" ? "Configure" : "Change"}
+          testId="cookies-configure"
+        />
       </Diag>
 
       <Diag
@@ -340,9 +384,16 @@ function DownloaderPanel({
         detail={
           navidrome.ok
             ? `${navidrome.server} ${navidrome.serverVersion} · ${String(navidrome.latencyMs)} ms · ${navidrome.songCount === null ? "never scanned" : `${String(navidrome.songCount)} songs`}${navidrome.scanning ? " · scanning now" : ""}`
-            : (navidrome.error ?? "not configured")
+            : (navidrome.error ?? "No Navidrome server is configured.")
         }
       >
+        {navidrome.configured ? null : (
+          <ConfigureLink
+            to="/settings/integrations"
+            hash="navidrome"
+            testId="navidrome-configure"
+          />
+        )}
         <Button
           size="xs"
           variant="outline"
@@ -369,6 +420,9 @@ function DownloaderPanel({
             : `${String(verified.albums)} album(s) compared${verified.lastAt === null ? "" : `, last ${timeAgo(verified.lastAt, now)}`} · ${String(verified.withMismatch)} with a mismatch`
         }
       >
+        {navidrome.configured ? null : (
+          <ConfigureLink to="/settings/integrations" hash="navidrome" testId="readback-configure" />
+        )}
         <Button
           size="xs"
           disabled={busy !== null || !navidrome.configured}

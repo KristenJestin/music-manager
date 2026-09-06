@@ -15,7 +15,7 @@ from toolbox.config import fixtures_enabled
 from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error
 from toolbox.models import ExtractRequest, ExtractResult
 from toolbox.urls import UrlKind, is_fixture_url, parse_url
-from toolbox.ytdlp import build_options, extract_info, result_from_info
+from toolbox.ytdlp import build_options, cookie_jar, extract_info, result_from_info
 
 __all__ = ["extract"]
 
@@ -42,9 +42,11 @@ def extract(request: ExtractRequest) -> ExtractResult:
             details={"requested": request.url},
         )
 
-    options = build_options(request, skip_download=True)
     try:
-        info = extract_info(request.url, options, download=False)
+        with cookie_jar(request) as jar:
+            info = extract_info(
+                request.url, build_options(request, skip_download=True, **jar), download=False
+            )
     except Exception as exc:
         raise classify_ytdlp_error(exc, url=request.url) from exc
 

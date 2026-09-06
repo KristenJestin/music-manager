@@ -28,6 +28,11 @@ import { LISTENBRAINZ_BASE } from "#/server/integrations/listenbrainz.ts";
 import { LRCLIB_BASE } from "#/server/integrations/lrclib.ts";
 import { MUSICBRAINZ_BASE } from "#/server/integrations/musicbrainz.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
+import {
+  cookieJar,
+  describe as describeCookies,
+  isMisconfigured,
+} from "#/server/services/cookies.ts";
 import { emit, readEvents } from "#/server/services/events.ts";
 import { openLibraryItem, closeLibraryItem } from "#/server/services/library-inbox.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -219,6 +224,8 @@ export async function selftest(
 export interface CookiesStatus {
   readonly mode: Settings["cookiesMode"];
   readonly path: string;
+  /** One safe line about where the jar came from. Never a cookie. */
+  readonly source: string;
   readonly ok: boolean;
   readonly cookies: number;
   readonly domains: readonly string[];
@@ -241,6 +248,7 @@ export async function cookiesStatus(deps: ToolsDeps = {}): Promise<CookiesStatus
   const empty = {
     mode: settings.cookiesMode,
     path: settings.cookiesFile,
+    source: describeCookies(settings),
     ok: true,
     cookies: 0,
     domains: [] as string[],
@@ -256,20 +264,29 @@ export async function cookiesStatus(deps: ToolsDeps = {}): Promise<CookiesStatus
       note: "Anonymous mode: yt-dlp uses no session. Age-gated videos and bot checks will fail, which is the trade.",
     };
   }
-  if (settings.cookiesFile.trim() === "") {
+  const jar = cookieJar(settings);
+  if (isMisconfigured(settings)) {
     return {
       ...empty,
       ok: false,
-      problems: ["No cookies.txt path is set."],
-      note: "Cookie mode is on but no file is configured.",
+      problems: [
+        settings.cookiesMode === "file"
+          ? "No cookies.txt path is set."
+          : "The pasted cookie jar is empty.",
+      ],
+      note: `Cookie mode is "${settings.cookiesMode}" but nothing is configured.`,
     };
   }
 
   try {
-    const result: CookiesTestResult = await box().testCookies({ path: settings.cookiesFile });
+    // The same jar the pipeline sends, tested the same way — that is what makes the button
+    // worth pressing. A pasted jar is parsed inline; a path is read inside the container.
+    const result: CookiesTestResult = await box().testCookies({
+      ...(jar.path === undefined ? {} : { path: jar.path }),
+      ...(jar.content === undefined ? {} : { content: jar.content }),
+    });
     return {
-      mode: settings.cookiesMode,
-      path: settings.cookiesFile,
+      ...empty,
       ok: result.ok,
       cookies: result.cookies,
       domains: result.domains,
@@ -286,7 +303,10 @@ export async function cookiesStatus(deps: ToolsDeps = {}): Promise<CookiesStatus
       ...empty,
       ok: false,
       problems: [MMError.from(error).message],
-      note: "The toolbox could not read the cookie file.",
+      note:
+        settings.cookiesMode === "file"
+          ? "The toolbox could not read the cookie file."
+          : "The toolbox could not parse the pasted jar.",
     };
   }
 }
@@ -449,10 +469,12 @@ export interface UrlTest {
  * "it failed", but "it failed because YouTube wants a session, and here is the button".
  */
 export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTest> {
-  const { box } = await resolve(deps);
+  const { box, settings } = await resolve(deps);
   const started = Date.now();
   try {
-    const result = await box().extract(url);
+    // With the installation's own session: a dry run that authenticates differently from
+    // the pipeline would answer a question nobody asked.
+    const result = await box().extract(url, cookieJar(settings));
     const entries = result.entries;
     return {
       url,

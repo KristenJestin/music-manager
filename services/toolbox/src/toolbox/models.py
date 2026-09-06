@@ -67,11 +67,19 @@ class Strict(BaseModel):
 
 
 class YtdlpOptions(Strict):
-    """The three escape hatches every yt-dlp call shares."""
+    """The escape hatches every yt-dlp call shares."""
 
     cookies: str | None = Field(
         default=None,
         description="Path to a Netscape cookies.txt readable by the container.",
+    )
+    cookies_content: str | None = Field(
+        default=None,
+        description=(
+            "A Netscape cookies.txt inline, written to a private temporary file for the "
+            "duration of the call. On a real server the operator has a browser export to "
+            "paste, not a path inside this container. Wins over `cookies`."
+        ),
     )
     player_client: str | None = Field(
         default=None,

@@ -36,12 +36,25 @@ export interface ToneBadgeProps extends VariantProps<typeof toneBadge> {
   readonly children: React.ReactNode;
   readonly className?: string;
   readonly title?: string;
+  readonly "data-testid"?: string;
 }
 
 /** A small rectangular badge in one of the six tones. The Console's workhorse. */
-export function ToneBadge({ tone, outline, className, children, title }: ToneBadgeProps) {
+export function ToneBadge({
+  tone,
+  outline,
+  className,
+  children,
+  title,
+  "data-testid": testId,
+}: ToneBadgeProps) {
   return (
-    <Badge variant="outline" title={title} className={cn(toneBadge({ tone, outline }), className)}>
+    <Badge
+      variant="outline"
+      title={title}
+      data-testid={testId}
+      className={cn(toneBadge({ tone, outline }), className)}
+    >
       {children}
     </Badge>
   );

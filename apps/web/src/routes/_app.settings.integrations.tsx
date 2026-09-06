@@ -72,6 +72,7 @@ function Integrations() {
   return (
     <div className="flex flex-col gap-3.5" data-testid="settings-integrations">
       <Section
+        id="navidrome"
         title="Navidrome"
         description="The read-back of docs/03 §7: what a server gives back is the only proof a tag arrived."
       >

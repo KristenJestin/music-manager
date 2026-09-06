@@ -30,6 +30,11 @@ import {
 } from "#/server/services/schema-version.ts";
 import { filesBehindCount } from "#/server/services/quality.ts";
 import {
+  CREDENTIAL_ENV_KEY,
+  sourcesConfig,
+  type CredentialOrigin,
+} from "#/server/integrations/config.ts";
+import {
   testAllSources,
   testSource,
   type SourceTestResult,
@@ -74,6 +79,21 @@ export interface MetadataSettingsPayload {
   readonly sources: readonly string[];
   /** The sidecars of §3, and which consumers pick each of them up. */
   readonly sidecars: readonly { file: string; readers: readonly string[]; note: string }[];
+  /**
+   * What the services will actually use, and where it comes from (owner review B7 and B8).
+   *
+   * An empty Contact field over a `MM_MB_CONTACT` that every MusicBrainz request carries is
+   * a page lying by omission. The contact is shown in full because it is *published* — it
+   * travels in the User-Agent of every outgoing call, which is quoted here for the same
+   * reason. The API keys are not: only where each one came from crosses to the browser.
+   */
+  readonly effective: {
+    readonly contact: { value: string; origin: CredentialOrigin; envKey: string };
+    readonly userAgent: string;
+    readonly acoustidKey: { origin: CredentialOrigin; envKey: string };
+    readonly lastfmKey: { origin: CredentialOrigin; envKey: string };
+    readonly fanartKey: { origin: CredentialOrigin; envKey: string };
+  };
 }
 
 /** §3's sidecars, with the profiles that read them — derived, never hand-listed. */
@@ -102,8 +122,23 @@ export const fetchMetadataSettings = createServerFn({ method: "GET", strict: STR
       const settings = await loadSettings(db());
       const record = settings as unknown as Record<string, unknown>;
       const behind = await filesBehindCount({ db: db(), settings });
+      const config = sourcesConfig(settings);
 
       return {
+        effective: {
+          contact: {
+            value: config.contact,
+            origin: config.origin.contact,
+            envKey: CREDENTIAL_ENV_KEY.contact,
+          },
+          userAgent: config.userAgent,
+          acoustidKey: {
+            origin: config.origin.acoustidKey,
+            envKey: CREDENTIAL_ENV_KEY.acoustidKey,
+          },
+          lastfmKey: { origin: config.origin.lastfmKey, envKey: CREDENTIAL_ENV_KEY.lastfmKey },
+          fanartKey: { origin: config.origin.fanartKey, envKey: CREDENTIAL_ENV_KEY.fanartKey },
+        },
         fields: METADATA_KEYS.map((key) => ({
           key,
           value: maskSetting(key, record[key] as never),

@@ -194,6 +194,18 @@
             "description": "Path to a Netscape cookies.txt readable by the container.",
             "title": "Cookies"
           },
+          "cookies_content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A Netscape cookies.txt inline, written to a private temporary file for the duration of the call. On a real server the operator has a browser export to paste, not a path inside this container. Wins over `cookies`.",
+            "title": "Cookies Content"
+          },
           "dest_dir": {
             "title": "Dest Dir",
             "type": "string"
@@ -488,6 +500,18 @@
             ],
             "description": "Path to a Netscape cookies.txt readable by the container.",
             "title": "Cookies"
+          },
+          "cookies_content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A Netscape cookies.txt inline, written to a private temporary file for the duration of the call. On a real server the operator has a browser export to paste, not a path inside this container. Wins over `cookies`.",
+            "title": "Cookies Content"
           },
           "extra_args": {
             "additionalProperties": true,

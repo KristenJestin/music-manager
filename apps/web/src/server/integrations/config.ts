@@ -18,6 +18,25 @@ export { SOURCE_NAMES, type SourceName };
 
 const DAY_MS = 86_400_000;
 
+/**
+ * Where a credential actually came from.
+ *
+ * The Console used to show an empty Contact field while every MusicBrainz request carried
+ * `MM_MB_CONTACT`, and told you "the key was accepted" about a key it never named (owner
+ * review B7 and B8). A page that shows a value must be able to say where it got it.
+ */
+export type CredentialOrigin = "settings" | "environment" | "none";
+
+export type CredentialName = "contact" | "acoustidKey" | "lastfmKey" | "fanartKey";
+
+/** How the Console names the source of a credential, in one place. */
+export const CREDENTIAL_ENV_KEY: Readonly<Record<CredentialName, string>> = {
+  contact: "MM_MB_CONTACT",
+  acoustidKey: "MM_ACOUSTID_KEY",
+  lastfmKey: "MM_LASTFM_KEY",
+  fanartKey: "MM_FANARTTV_KEY",
+};
+
 export interface SourcesConfig {
   /** `MusicManager/<version> ( <contact> )` — §4 requires a contact in the User-Agent. */
   readonly userAgent: string;
@@ -25,6 +44,8 @@ export interface SourcesConfig {
   readonly acoustidKey: string;
   readonly lastfmKey: string;
   readonly fanartKey: string;
+  /** Settings, environment, or nothing — per credential. Never the value itself. */
+  readonly origin: Readonly<Record<CredentialName, CredentialOrigin>>;
   readonly enabled: Readonly<Record<SourceName, boolean>>;
   /** Milliseconds, 0 = never expires. */
   readonly ttlMs: Readonly<Record<SourceName, number>>;
@@ -50,10 +71,15 @@ export function userAgentFor(contact: string): string {
     : `MusicManager/${APP_VERSION} ( ${trimmed} )`;
 }
 
-/** Settings first, environment second, for one credential. */
-function credential(fromSettings: string, fromEnv: string | undefined): string {
-  const chosen = fromSettings.trim() === "" ? (fromEnv ?? "") : fromSettings;
-  return chosen.trim();
+/** Settings first, environment second, for one credential — and which of the two won. */
+function credential(
+  fromSettings: string,
+  fromEnv: string | undefined,
+): { value: string; origin: CredentialOrigin } {
+  if (fromSettings.trim() !== "") return { value: fromSettings.trim(), origin: "settings" };
+  const fromEnvironment = (fromEnv ?? "").trim();
+  if (fromEnvironment !== "") return { value: fromEnvironment, origin: "environment" };
+  return { value: "", origin: "none" };
 }
 
 export function sourcesConfig(
@@ -61,15 +87,24 @@ export function sourcesConfig(
   env: Record<string, string | undefined> = process.env,
 ): SourcesConfig {
   const contact = credential(settings.mbContact, env.MM_MB_CONTACT);
+  const acoustid = credential(settings.acoustidKey, env.MM_ACOUSTID_KEY);
+  const lastfm = credential(settings.lastfmKey, env.MM_LASTFM_KEY);
+  const fanart = credential(settings.fanartKey, env.MM_FANARTTV_KEY);
   const ttlMs = {} as Record<SourceName, number>;
   for (const name of SOURCE_NAMES) ttlMs[name] = settings.sourceTtlDays[name] * DAY_MS;
 
   return {
-    contact,
-    userAgent: userAgentFor(contact),
-    acoustidKey: credential(settings.acoustidKey, env.MM_ACOUSTID_KEY),
-    lastfmKey: credential(settings.lastfmKey, env.MM_LASTFM_KEY),
-    fanartKey: credential(settings.fanartKey, env.MM_FANARTTV_KEY),
+    contact: contact.value,
+    userAgent: userAgentFor(contact.value),
+    acoustidKey: acoustid.value,
+    lastfmKey: lastfm.value,
+    fanartKey: fanart.value,
+    origin: {
+      contact: contact.origin,
+      acoustidKey: acoustid.origin,
+      lastfmKey: lastfm.origin,
+      fanartKey: fanart.origin,
+    },
     enabled: settings.sourcesEnabled,
     ttlMs,
     maxGenres: settings.maxGenres,

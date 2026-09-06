@@ -14,7 +14,13 @@
  */
 import { MMError } from "@mm/contracts";
 import type { Database } from "#/server/db/client.ts";
-import { sourcesConfig, type SourceContext } from "#/server/integrations/config.ts";
+import {
+  CREDENTIAL_ENV_KEY,
+  sourcesConfig,
+  type CredentialName,
+  type CredentialOrigin,
+  type SourceContext,
+} from "#/server/integrations/config.ts";
 import * as acoustid from "#/server/integrations/acoustid.ts";
 import * as coverartarchive from "#/server/integrations/coverartarchive.ts";
 import * as deezer from "#/server/integrations/deezer.ts";
@@ -37,6 +43,26 @@ export interface SourceTestResult {
   readonly configured: boolean;
   readonly latencyMs: number;
   readonly message: string;
+  /** Where the credential this run used came from. `undefined` for sources that need none. */
+  readonly credential?: CredentialOrigin;
+}
+
+/**
+ * "The key from the settings" / "the key from MM_ACOUSTID_KEY" / "no key at all".
+ *
+ * A test that does not say which credential it used is not a test (owner review B8): the
+ * owner read "The key was accepted" over an empty field, because the key had come from the
+ * environment and nothing on the page said so.
+ */
+function says(name: CredentialName, origin: CredentialOrigin): string {
+  if (origin === "settings") return "the key from the settings";
+  if (origin === "environment") return `the key from ${CREDENTIAL_ENV_KEY[name]}`;
+  return "no key";
+}
+
+/** The failure a source with no credential deserves: it names the two places to put one. */
+function missing(name: CredentialName, label: string): string {
+  return `No ${label} key is configured, in the settings or in ${CREDENTIAL_ENV_KEY[name]}.`;
 }
 
 function contextFor(settings: Settings, db: Database): SourceContext {
@@ -49,37 +75,33 @@ async function timed(
   enabled: boolean,
   configured: boolean,
   probe: () => Promise<string>,
+  extra: { credential?: CredentialOrigin; unconfigured?: string } = {},
 ): Promise<SourceTestResult> {
   const started = Date.now();
+  const base = {
+    source,
+    enabled,
+    configured,
+    ...(extra.credential === undefined ? {} : { credential: extra.credential }),
+  };
   if (!enabled) {
-    return {
-      source,
-      ok: false,
-      enabled,
-      configured,
-      latencyMs: 0,
-      message: "Disabled — enable it to test.",
-    };
+    return { ...base, ok: false, latencyMs: 0, message: "Disabled: enable it to test." };
   }
   if (!configured) {
     return {
-      source,
+      ...base,
       ok: false,
-      enabled,
-      configured,
       latencyMs: 0,
-      message: "No credential configured.",
+      message: extra.unconfigured ?? "No credential configured.",
     };
   }
   try {
     const message = await probe();
-    return { source, ok: true, enabled, configured, latencyMs: Date.now() - started, message };
+    return { ...base, ok: true, latencyMs: Date.now() - started, message };
   } catch (error) {
     return {
-      source,
+      ...base,
       ok: false,
-      enabled,
-      configured,
       latencyMs: Date.now() - started,
       message: MMError.from(error).message,
     };
@@ -98,25 +120,46 @@ export async function testSource(
 
   switch (source) {
     case "musicbrainz":
-      return await timed(source, on, true, async () => {
-        const answer = await musicbrainz.lookupRelease(ctx, RELEASE);
-        return answer.data === null
-          ? "Answered, but that release is unknown to it."
-          : `Answered as ${config.userAgent}.`;
-      });
+      return await timed(
+        source,
+        on,
+        true,
+        async () => {
+          const answer = await musicbrainz.lookupRelease(ctx, RELEASE);
+          // The User-Agent is quoted in full on purpose: §4 requires a contact in it, and
+          // the Console had no way to show that the one from the environment was really the
+          // one being sent (owner review B7).
+          return answer.data === null
+            ? `Answered as ${config.userAgent}, but that release is unknown to it.`
+            : `Answered as ${config.userAgent}.`;
+        },
+        { credential: config.origin.contact },
+      );
     case "coverartarchive":
       return await timed(source, on, true, async () => {
         const answer = await coverartarchive.index(ctx, RELEASE);
         return answer.data === null ? "Answered: no cover for that release." : "Answered.";
       });
     case "acoustid":
-      return await timed(source, on, config.acoustidKey !== "", async () => {
-        // A fingerprint short enough to be a probe and long enough to be accepted.
-        const answer = await acoustid.lookup(ctx, "AQAAA0mUaEkSRZEGAA", 224);
-        return answer === null
-          ? "No key configured, so nothing was asked."
-          : "The key was accepted.";
-      });
+      return await timed(
+        source,
+        on,
+        config.acoustidKey !== "",
+        async () => {
+          // A synthetic fingerprint: AcoustID checks the key before it looks at the audio,
+          // so "invalid fingerprint" back means the credential got through, and "invalid API
+          // key" back is a real failure rather than the shrug it used to be (decision 053).
+          const answer = await acoustid.lookup(ctx, "AQAAA0mUaEkSRZEGAA", 224);
+          const who = says("acoustidKey", config.origin.acoustidKey);
+          return answer === null
+            ? `AcoustID accepted ${who} and had nothing to say about the probe fingerprint.`
+            : `AcoustID accepted ${who}.`;
+        },
+        {
+          credential: config.origin.acoustidKey,
+          unconfigured: missing("acoustidKey", "AcoustID"),
+        },
+      );
     case "lrclib":
       return await timed(source, on, true, async () => {
         const answer = await lrclib.search(ctx, { track: "One More Time", artist: "Daft Punk" });
@@ -130,12 +173,22 @@ export async function testSource(
         return "Answered.";
       });
     case "lastfm":
-      return await timed(source, on, config.lastfmKey !== "", async () => {
-        const answer = await lastfm.artistTopTags(ctx, "Daft Punk");
-        return answer === null
-          ? "No key configured, so nothing was asked."
-          : "The key was accepted.";
-      });
+      return await timed(
+        source,
+        on,
+        config.lastfmKey !== "",
+        async () => {
+          const answer = await lastfm.artistTopTags(ctx, "Daft Punk");
+          const who = says("lastfmKey", config.origin.lastfmKey);
+          // `null` means the client saw no key at all — which `configured` above already
+          // ruled out, so it would be a bug here rather than a verdict on the credential.
+          if (answer === null) {
+            throw new MMError("INVALID_INPUT", "Nothing was asked: no key reached the client.");
+          }
+          return `Last.fm accepted ${who}.`;
+        },
+        { credential: config.origin.lastfmKey, unconfigured: missing("lastfmKey", "Last.fm") },
+      );
     case "listenbrainz":
       return await timed(source, on, true, async () => {
         await listenbrainz.recordingTags(ctx, RECORDING);

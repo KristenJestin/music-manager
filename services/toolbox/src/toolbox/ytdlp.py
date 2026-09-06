@@ -12,7 +12,9 @@ value crossing its boundary is narrowed here.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+import tempfile
+from collections.abc import Callable, Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, cast
 
@@ -24,6 +26,7 @@ from toolbox.tagging import TAGGABLE_SUFFIXES
 __all__ = [
     "audio_extraction_codec",
     "build_options",
+    "cookie_jar",
     "downloaded_path",
     "entry_from_info",
     "extract_info",
@@ -59,14 +62,43 @@ def yt_dlp_version() -> str | None:
 
 
 def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
-    """Assemble the yt-dlp option dict. ``extra_args`` is merged last, on purpose."""
+    """Assemble the yt-dlp option dict. ``extra_args`` is merged last, on purpose.
+
+    ``cookiefile`` may be supplied through ``overrides`` — that is how :func:`cookie_jar`
+    hands over the temporary file it wrote for an inline jar.
+    """
     built: dict[str, Any] = {**_BASE, **overrides}
-    if options.cookies:
+    if "cookiefile" not in built and options.cookies:
         built["cookiefile"] = options.cookies
     if options.player_client:
         built["extractor_args"] = {"youtube": {"player_client": [options.player_client]}}
     built.update(options.extra_args)
     return built
+
+
+@contextmanager
+def cookie_jar(options: YtdlpOptions) -> Iterator[dict[str, Any]]:
+    """Yield the ``cookiefile`` override for this call, cleaning up after itself.
+
+    Inline content is the case that matters: on a real server the operator has a browser
+    export to paste into the Console, not a path that happens to exist inside this container
+    (owner review B6). It is written 0600 to the system temp directory and removed on the way
+    out, so it never lands in the library, in a log, or in an image layer.
+    """
+    content = options.cookies_content
+    if not content:
+        yield {}
+        return
+    handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
+        "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
+    )
+    try:
+        handle.write(content if content.endswith("\n") else f"{content}\n")
+        handle.close()
+        Path(handle.name).chmod(0o600)
+        yield {"cookiefile": handle.name}
+    finally:
+        Path(handle.name).unlink(missing_ok=True)
 
 
 def extract_info(url: str, options: Mapping[str, Any], *, download: bool = False) -> InfoDict:

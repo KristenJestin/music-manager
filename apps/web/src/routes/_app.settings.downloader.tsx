@@ -13,6 +13,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Download, Play, Save } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
+import { Textarea } from "#/components/ui/textarea.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { ChipGroup, FormRow, ReadOnly, Section, Toggle } from "#/components/settings/controls.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
@@ -182,6 +183,7 @@ function DownloaderSettings() {
       </Section>
 
       <Section
+        id="cookies"
         title="Authentication"
         description="Needed for age-gated videos and to get past “Sign in to confirm you're not a bot”."
       >
@@ -191,6 +193,7 @@ function DownloaderSettings() {
             options={[
               { value: "anonymous", label: "None (anonymous)" },
               { value: "file", label: "cookies.txt file" },
+              { value: "paste", label: "Paste cookies.txt" },
             ]}
             onChange={(next) => {
               set("cookiesMode", next);
@@ -201,9 +204,10 @@ function DownloaderSettings() {
         {form.cookiesMode === "file" ? (
           <FormRow
             label="cookies.txt path"
-            help="As this process sees it, not as the container does."
+            help="As the toolbox container sees it. On a server, prefer pasting the jar."
           >
             <Input
+              data-testid="setting-cookiesFile"
               className="w-full max-w-form font-mono text-xs"
               placeholder="/data/cookies.txt"
               value={form.cookiesFile}
@@ -211,21 +215,42 @@ function DownloaderSettings() {
                 set("cookiesFile", event.target.value);
               }}
             />
-            <Button
-              size="xs"
-              variant="outline"
-              disabled={busy !== null}
-              onClick={() => {
-                run("cookies", async () => {
-                  const result = await runCookiesTest();
-                  return result.ok
-                    ? `${String(result.cookies)} cookie(s), a usable session.`
-                    : `${result.note} ${result.problems.join("; ")}`;
-                });
-              }}
-            >
-              Test
-            </Button>
+            <CookiesTestButton busy={busy !== null} onRun={run} />
+          </FormRow>
+        ) : form.cookiesMode === "paste" ? (
+          /*
+           * The third option (owner review B6). On a real server nobody has a path inside the
+           * toolbox container, but everybody has a browser export in the clipboard. The jar is
+           * stored in the settings like any other credential — masked on the way to the
+           * browser — and the toolbox writes it to a private temporary file for each call.
+           */
+          <FormRow
+            label="cookies.txt content"
+            help="Paste the Netscape export whole. Stored server-side; never shown again."
+          >
+            <div className="flex w-full max-w-form flex-col gap-1.5">
+              <Textarea
+                data-testid="setting-cookiesText"
+                rows={6}
+                spellCheck={false}
+                className="font-mono text-xs"
+                placeholder={"# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t…"}
+                value={form.cookiesText}
+                onFocus={(event) => {
+                  // The stored jar arrives as its mask. Clicking in means "replace it".
+                  if (event.target.value.startsWith("set (")) set("cookiesText", "");
+                }}
+                onChange={(event) => {
+                  set("cookiesText", event.target.value);
+                }}
+              />
+              <div className="flex items-center gap-1.5">
+                <CookiesTestButton busy={busy !== null} onRun={run} />
+                <span className="text-2xs text-fg-3">
+                  Test reads the jar that is <b>saved</b>, so save first.
+                </span>
+              </div>
+            </div>
           </FormRow>
         ) : (
           <FormRow label="Anonymous mode">
@@ -373,5 +398,38 @@ function DownloaderSettings() {
         </Button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The Test button, identical for a path and for a pasted jar (owner review B6).
+ *
+ * It tests what the pipeline would use, which is the *saved* setting: a button that tested
+ * the unsaved textarea would answer a question about a jar no download will ever see.
+ */
+function CookiesTestButton({
+  busy,
+  onRun,
+}: {
+  readonly busy: boolean;
+  readonly onRun: (key: string, task: () => Promise<string>) => void;
+}) {
+  return (
+    <Button
+      size="xs"
+      variant="outline"
+      disabled={busy}
+      data-testid="cookies-test"
+      onClick={() => {
+        onRun("cookies", async () => {
+          const result = await runCookiesTest();
+          return result.ok
+            ? `${result.source}: ${String(result.cookies)} cookie(s), a usable session.`
+            : `${result.source}: ${result.note} ${result.problems.join("; ")}`;
+        });
+      }}
+    >
+      Test
+    </Button>
   );
 }

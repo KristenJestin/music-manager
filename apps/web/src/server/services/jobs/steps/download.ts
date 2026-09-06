@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
 import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
+import { cookieJar } from "#/server/services/cookies.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
 import { aborted, sleep, setTrackState, updateTrack, type StepContext } from "../context.ts";
 
@@ -92,6 +93,9 @@ async function downloadOne(ctx: StepContext, track: ImportTrack): Promise<number
     destDir,
     id: track.id,
     format: ctx.settings.downloadFormat,
+    // The configured session, whether it is a path the container can read or a jar pasted
+    // into Settings. Without this a bot check reads like YouTube's fault rather than ours.
+    cookies: cookieJar(ctx.settings),
     ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
   })) {
     switch (event.event) {

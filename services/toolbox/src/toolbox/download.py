@@ -31,7 +31,13 @@ from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
 from toolbox.tagging import TAGGABLE_SUFFIXES
-from toolbox.ytdlp import audio_extraction_codec, build_options, downloaded_path, extract_info
+from toolbox.ytdlp import (
+    audio_extraction_codec,
+    build_options,
+    cookie_jar,
+    downloaded_path,
+    extract_info,
+)
 
 __all__ = ["MEDIA_TYPE", "ndjson_download"]
 
@@ -113,24 +119,32 @@ class _Worker:
         try:
             dest = Path(self.request.dest_dir)
             dest.mkdir(parents=True, exist_ok=True)
-            options = build_options(
-                self.request,
-                format=self.request.format,
-                outtmpl=str(dest / f"{self.request.id}.%(ext)s"),
-                progress_hooks=[self._progress],
-                postprocessor_hooks=[self._postprocess],
-                overwrites=False,
-            )
-            # No re-encoding, ever: FFmpegExtractAudio with a `preferredcodec` that matches
-            # the stream already selected makes ffmpeg copy the packets into a container we
-            # can tag (`.opus` for YouTube's itag 251, which arrives as WebM/Matroska).
-            preflight = extract_info(self.request.url, options, download=False)
-            codec = audio_extraction_codec(preflight)
-            if codec is not None:
-                options["postprocessors"] = [
-                    {"key": "FFmpegExtractAudio", "preferredcodec": codec, "preferredquality": None}
-                ]
-            info = extract_info(self.request.url, options, download=True)
+            # The jar lives exactly as long as the download: an inline one is a temporary
+            # file this block writes and removes (`cookie_jar`), a path is passed through.
+            with cookie_jar(self.request) as jar:
+                options = build_options(
+                    self.request,
+                    format=self.request.format,
+                    outtmpl=str(dest / f"{self.request.id}.%(ext)s"),
+                    progress_hooks=[self._progress],
+                    postprocessor_hooks=[self._postprocess],
+                    overwrites=False,
+                    **jar,
+                )
+                # No re-encoding, ever: FFmpegExtractAudio with a `preferredcodec` that
+                # matches the stream already selected makes ffmpeg copy the packets into a
+                # container we can tag (`.opus` for itag 251, which arrives as WebM).
+                preflight = extract_info(self.request.url, options, download=False)
+                codec = audio_extraction_codec(preflight)
+                if codec is not None:
+                    options["postprocessors"] = [
+                        {
+                            "key": "FFmpegExtractAudio",
+                            "preferredcodec": codec,
+                            "preferredquality": None,
+                        }
+                    ]
+                info = extract_info(self.request.url, options, download=True)
             self._finish(info)
         except BaseException as exc:
             error = (

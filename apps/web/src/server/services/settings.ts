@@ -405,14 +405,20 @@ export const SETTING_DEFINITIONS = {
     "What happens when an auto-update fails: raise an Inbox item, stop downloading, or go back to the previous build.",
   ),
   cookiesMode: define(
-    z.enum(["anonymous", "file"]),
+    z.enum(["anonymous", "file", "paste"]),
     "anonymous",
-    "How yt-dlp authenticates. `anonymous` is the default and needs nothing; `file` uses a Netscape cookies.txt.",
+    "How yt-dlp authenticates: `anonymous` needs nothing, `file` reads a Netscape cookies.txt the toolbox can see, `paste` uses the jar stored below.",
   ),
   cookiesFile: define(
     z.string(),
     "",
-    "Path to the `cookies.txt`, as this process sees it. Only read when `cookiesMode` is `file`.",
+    "Path to the `cookies.txt`, as the toolbox container sees it. Only read when `cookiesMode` is `file`.",
+  ),
+  cookiesText: define(
+    z.string(),
+    "",
+    "A Netscape `cookies.txt` pasted whole. Only read when `cookiesMode` is `paste`; sent to the toolbox, which writes it to a private temporary file per call.",
+    { secret: true },
   ),
   downloadProxy: define(
     z.string(),

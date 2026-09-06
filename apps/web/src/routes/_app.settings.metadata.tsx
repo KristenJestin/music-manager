@@ -112,20 +112,47 @@ function MetadataSettings() {
   return (
     <SettingsForm hydrated={hydrated} testId="settings-metadata">
       {/* ---- MusicBrainz ---- */}
-      <Section title="MusicBrainz" description="The reference. Everything else refines it.">
+      <Section
+        id="musicbrainz"
+        title="MusicBrainz"
+        description="The reference. Everything else refines it."
+      >
         <FormRow
           label="Contact"
-          help="Goes into the User-Agent, which MusicBrainz requires. Empty means: take MM_MB_CONTACT."
+          help={`Goes into the User-Agent, which MusicBrainz requires. Empty means: take ${payload.effective.contact.envKey}.`}
         >
           <Input
             data-testid="setting-mbContact"
             className="h-7 max-w-md font-mono text-xs"
             value={String(value("mbContact", ""))}
-            placeholder="you@example.com"
+            placeholder={
+              payload.effective.contact.origin === "environment"
+                ? payload.effective.contact.value
+                : "you@example.com"
+            }
             onChange={(event) => {
               set("mbContact", event.target.value);
             }}
           />
+          <CredentialOriginBadge
+            testId="origin-mbContact"
+            origin={payload.effective.contact.origin}
+            envKey={payload.effective.contact.envKey}
+          />
+        </FormRow>
+        {/*
+         * The effective value, written out. The owner found this field empty while every
+         * MusicBrainz request was carrying `MM_MB_CONTACT` (review B7): the setting was the
+         * override, not the value, and nothing said so. Quoting the User-Agent is the proof
+         * that the contact is really being sent, not merely stored.
+         */}
+        <FormRow
+          label="User-Agent"
+          help="Rebuilt from the contact above on every call; this is the exact string sent."
+        >
+          <code data-testid="effective-user-agent" className="font-mono text-2xs text-fg-2">
+            {payload.effective.userAgent}
+          </code>
         </FormRow>
         <FormRow label="Rate limit" help="One request per second, and it is not configurable.">
           <ToneBadge outline>1 req/s · enforced by the limiter, not by hope</ToneBadge>
@@ -244,10 +271,14 @@ function MetadataSettings() {
 
       {/* ---- fingerprint ---- */}
       <Section
+        id="acoustid"
         title="Fingerprint (AcoustID)"
         description="The safety net: it checks the mapping against the audio itself."
       >
-        <FormRow label="API key">
+        <FormRow
+          label="API key"
+          help={`Empty means: take ${payload.effective.acoustidKey.envKey}. Test says which one it used.`}
+        >
           <Input
             data-testid="setting-acoustidKey"
             className="h-7 max-w-md font-mono text-xs"
@@ -255,6 +286,11 @@ function MetadataSettings() {
             onChange={(event) => {
               set("acoustidKey", event.target.value);
             }}
+          />
+          <CredentialOriginBadge
+            testId="origin-acoustidKey"
+            origin={payload.effective.acoustidKey.origin}
+            envKey={payload.effective.acoustidKey.envKey}
           />
           <Button
             size="xs"
@@ -769,8 +805,35 @@ function WeightGrid({
   );
 }
 
+/**
+ * Where the value this page is *about to use* comes from (owner review B7, B8).
+ *
+ * A blank field means "no override", not "nothing configured" — the difference between the
+ * two is the whole complaint, so it is said next to the field rather than in a help line.
+ */
+function CredentialOriginBadge({
+  origin,
+  envKey,
+  testId,
+}: {
+  readonly origin: "settings" | "environment" | "none";
+  readonly envKey: string;
+  readonly testId?: string;
+}) {
+  if (origin === "settings") return null;
+  return origin === "environment" ? (
+    <ToneBadge tone="info" data-testid={testId} title={`Taken from ${envKey}`}>
+      from {envKey}
+    </ToneBadge>
+  ) : (
+    <ToneBadge tone="warn" data-testid={testId} title={`Neither the setting nor ${envKey} is set`}>
+      not set
+    </ToneBadge>
+  );
+}
+
 function TestResult({ result }: { readonly result: SourceTestResult | undefined }) {
-  if (result === undefined) return <span className="text-2xs text-fg-3">—</span>;
+  if (result === undefined) return <span className="text-2xs text-fg-3">not tested</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
       <span

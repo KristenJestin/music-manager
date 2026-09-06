@@ -37,16 +37,26 @@ export function FormRow({
 }
 
 export function Section({
+  id,
   title,
   description,
   children,
 }: {
+  /**
+   * Anchor, so that a page which says "this is not configured" can link straight at the
+   * block that configures it (`/settings/integrations#navidrome`, owner review B5).
+   * `scroll-mt` keeps the heading clear of the sticky topbar when the browser jumps.
+   */
+  readonly id?: string;
   readonly title: string;
   readonly description?: string;
   readonly children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-1">
+    <section
+      id={id}
+      className="scroll-mt-topbar rounded-xl border border-line bg-surface-1 px-3.5 py-1 target:border-primary"
+    >
       <header className="border-b border-line py-2.5">
         <h2 className="text-xs font-medium tracking-wide">{title}</h2>
         {description === undefined ? null : (

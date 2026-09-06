@@ -16,6 +16,7 @@ import createClient from "openapi-fetch";
 import { MMError } from "@mm/contracts";
 import type { components, paths } from "@mm/contracts/toolbox";
 import { serverEnv } from "#/server/env.ts";
+import type { CookieJar } from "#/server/services/cookies.ts";
 
 export type ExtractResult = components["schemas"]["ExtractResult"];
 export type ExtractEntry = components["schemas"]["ExtractEntry"];
@@ -75,7 +76,19 @@ export interface DownloadOptions {
   /** Opaque id echoed in every event and used as the file stem. */
   readonly id: string;
   readonly format?: string;
+  /** The YouTube session, if this installation has one. */
+  readonly cookies?: CookieJar;
   readonly signal?: AbortSignal;
+}
+
+/**
+ * The two cookie fields of `YtdlpOptions`, as the toolbox spells them.
+ *
+ * Written once and reused, because forgetting them is invisible: a download without a
+ * session simply fails later with a bot check, which reads like YouTube's fault.
+ */
+function cookieBody(jar: CookieJar): { cookies: string | null; cookies_content: string | null } {
+  return { cookies: jar.path ?? null, cookies_content: jar.content ?? null };
 }
 
 /** A thin, typed, error-normalising wrapper. One instance per process is plenty. */
@@ -153,10 +166,10 @@ export class ToolboxClient {
     });
   }
 
-  async extract(url: string): Promise<ExtractResult> {
+  async extract(url: string, jar: CookieJar = {}): Promise<ExtractResult> {
     return await this.call("POST /extract", async () => {
       const result = await this.http.POST("/extract", {
-        body: { url },
+        body: { url, ...cookieBody(jar) },
         signal: this.signal(),
       });
       return this.unwrap(result, "POST /extract");
@@ -326,6 +339,7 @@ export class ToolboxClient {
           dest_dir: options.destDir,
           id: options.id,
           format: options.format ?? DEFAULT_DOWNLOAD_FORMAT,
+          ...cookieBody(options.cookies ?? {}),
         }),
         ...(options.signal === undefined ? {} : { signal: options.signal }),
       }),

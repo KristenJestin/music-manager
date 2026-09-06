@@ -18,6 +18,7 @@ Three claims are checked here:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from collections.abc import Mapping
 from pathlib import Path
@@ -32,9 +33,9 @@ from yt_dlp.postprocessor.ffmpeg import (  # pyright: ignore[reportMissingTypeSt
 from tests.conftest import requires
 from toolbox import download as download_module
 from toolbox.errors import ErrorCode, ToolboxError
-from toolbox.models import DEFAULT_FORMAT, Tag, TagFormat, TagRequest
+from toolbox.models import DEFAULT_FORMAT, Tag, TagFormat, TagRequest, YtdlpOptions
 from toolbox.tagging import TAGGABLE_SUFFIXES, detect_format, read_tags, write_tags
-from toolbox.ytdlp import audio_extraction_codec
+from toolbox.ytdlp import audio_extraction_codec, build_options, cookie_jar
 
 #: What yt-dlp reports for YouTube's itag 251 — the format the owner's import actually got.
 ITAG_251: dict[str, Any] = {
@@ -238,3 +239,51 @@ def test_the_remux_copies_the_stream_instead_of_re_encoding_it(webm_file: Path):
     assert abs(float(after["format"]["duration"]) - float(before["format"]["duration"])) < 0.05
     ratio = float(after["format"]["bit_rate"]) / float(before["format"]["bit_rate"])
     assert 0.95 < ratio < 1.05, "a re-encode would not land within 5% of the source bitrate"
+
+
+# --------------------------------------------------------------------------------------
+# 4. The cookie jar, pasted rather than mounted (owner review B6)
+# --------------------------------------------------------------------------------------
+
+
+def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing():
+    """`cookies_content` is the case a real server has: an export to paste, not a path."""
+    options = YtdlpOptions(cookies_content="# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/")
+    with cookie_jar(options) as jar:
+        path = Path(str(jar["cookiefile"]))
+        assert path.is_file()
+        assert path.read_text(encoding="utf-8").startswith("# Netscape HTTP Cookie File")
+        assert path.read_text(encoding="utf-8").endswith("\n")
+        if os.name != "nt":  # Windows has no POSIX mode bits to speak of
+            assert path.stat().st_mode & 0o077 == 0
+    assert not path.exists()
+
+
+def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
+    options = YtdlpOptions(cookies_content="x")
+    seen: Path | None = None
+    with pytest.raises(RuntimeError):  # noqa: PT012 - the point is what happens on the way out
+        with cookie_jar(options) as jar:
+            seen = Path(str(jar["cookiefile"]))
+            raise RuntimeError("boom")
+    assert seen is not None
+    assert not seen.exists()
+
+
+def test_a_path_is_passed_straight_through_and_an_absent_jar_adds_nothing():
+    with cookie_jar(YtdlpOptions(cookies="/data/cookies.txt")) as jar:
+        assert jar == {}
+    assert build_options(YtdlpOptions(cookies="/data/cookies.txt"))["cookiefile"] == (
+        "/data/cookies.txt"
+    )
+    with cookie_jar(YtdlpOptions()) as jar:
+        assert jar == {}
+    assert "cookiefile" not in build_options(YtdlpOptions())
+
+
+def test_inline_content_wins_over_a_path_that_the_container_cannot_see():
+    options = YtdlpOptions(cookies="/not/in/this/container.txt", cookies_content="pasted")
+    with cookie_jar(options) as jar:
+        built = build_options(options, **jar)
+        assert built["cookiefile"] == jar["cookiefile"]
+        assert built["cookiefile"] != "/not/in/this/container.txt"

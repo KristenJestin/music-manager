@@ -238,8 +238,13 @@ export async function getJson<T>(options: GetJsonOptions): Promise<JsonResponse<
       return { data, etag: response.headers.get("etag"), status: response.status };
     }
 
+    // The body of a refusal is the only place a source says *why* it refused. AcoustID
+    // answers 400 both for "that fingerprint is nonsense" and for "that API key is wrong",
+    // and dropping the body is what let the second hide behind the first (decision 052,
+    // owner review B8). Truncated, because it is a diagnostic and not a payload.
+    const body = await response.text().catch(() => "");
     const retryable = response.status === 429 || response.status >= 500;
-    lastError = httpError(options.source, options.url, response.status, retryable);
+    lastError = httpError(options.source, options.url, response.status, retryable, body);
     if (!retryable) throw lastError;
     if (attempt < attempts) {
       await wait(backoffOf(backoffBase, attempt, response.headers.get("retry-after")));
@@ -261,7 +266,16 @@ export function backoffOf(baseMs: number, attempt: number, retryAfter: string | 
   return Math.min(baseMs * 2 ** (attempt - 1), 30_000);
 }
 
-function httpError(source: string, url: string, status: number, retryable: boolean): MMError {
+/** How much of a refusal's body travels with the error. Enough to read, not enough to log. */
+const MAX_ERROR_BODY = 400;
+
+function httpError(
+  source: string,
+  url: string,
+  status: number,
+  retryable: boolean,
+  body = "",
+): MMError {
   const code =
     status === 429
       ? "SOURCE_RATE_LIMITED"
@@ -278,7 +292,12 @@ function httpError(source: string, url: string, status: number, retryable: boole
           ? "The identifier may be wrong, or the source simply has nothing for it."
           : "The source is having trouble; this is usually temporary.",
     action: status >= 500 || status === 429 ? "Retry later" : undefined,
-    details: { source, url: redact(url), status },
+    details: {
+      source,
+      url: redact(url),
+      status,
+      ...(body === "" ? {} : { body: body.slice(0, MAX_ERROR_BODY) }),
+    },
     status,
     retryable,
   });

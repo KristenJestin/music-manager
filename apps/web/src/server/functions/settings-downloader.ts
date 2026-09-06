@@ -14,7 +14,7 @@ import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { loadSettings, setSetting } from "#/server/services/settings.ts";
+import { loadSettings, maskSetting, setSetting } from "#/server/services/settings.ts";
 import { downloaderHealth, type DownloaderHealth } from "#/server/services/tools.ts";
 
 const form = z.object({
@@ -23,8 +23,9 @@ const form = z.object({
   ytdlpChannel: z.enum(["stable", "nightly", "master"]),
   ytdlpPin: z.string(),
   ytdlpOnUpdateFailure: z.enum(["warn", "pause_downloads", "rollback"]),
-  cookiesMode: z.enum(["anonymous", "file"]),
+  cookiesMode: z.enum(["anonymous", "file", "paste"]),
   cookiesFile: z.string(),
+  cookiesText: z.string(),
   downloadProxy: z.string(),
   downloadJitterMinMs: z.number().int().min(0),
   downloadJitterMaxMs: z.number().int().min(0),
@@ -58,6 +59,9 @@ export const fetchDownloaderSettings = createServerFn({ method: "GET", strict: S
           ytdlpOnUpdateFailure: settings.ytdlpOnUpdateFailure,
           cookiesMode: settings.cookiesMode,
           cookiesFile: settings.cookiesFile,
+          // The jar itself never crosses to the browser: the form gets a mask, and a save
+          // that echoes the mask back is read as "leave it alone" (same rule as the keys).
+          cookiesText: maskSetting("cookiesText", settings.cookiesText) as string,
           downloadProxy: settings.downloadProxy,
           downloadJitterMinMs: settings.downloadJitterMinMs,
           downloadJitterMaxMs: settings.downloadJitterMaxMs,
@@ -83,6 +87,9 @@ export const saveDownloaderSettings = createServerFn({ method: "POST", strict: S
       const database = db();
       let saved = 0;
       for (const [key, value] of Object.entries(data)) {
+        // A masked secret coming back unchanged means "leave it alone", not "set it to the
+        // mask" — otherwise opening Settings and pressing Save would wipe the cookie jar.
+        if (key === "cookiesText" && String(value).startsWith("set (")) continue;
         await setSetting(key as keyof DownloaderForm, value, { db: database });
         saved += 1;
       }
