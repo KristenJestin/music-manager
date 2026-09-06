@@ -148,6 +148,8 @@ test.describe("the REST API", () => {
     );
     // Spot-check that the document describes the routes rather than merely existing.
     expect(document.paths).toHaveProperty("/api/v1/imports");
+    // P09 mounts Discover on the same document, under its own tag.
+    expect(document.paths).toHaveProperty("/api/v1/discover");
     expect(document.paths).toHaveProperty("/api/v1/imports/{id}/confirm-mapping");
     expect(document.paths).toHaveProperty("/api/v1/events");
 
@@ -270,6 +272,7 @@ test.describe("the MCP server", () => {
       "get_settings",
       "update_settings",
       "ytdlp_update",
+      "list_discover",
     ]) {
       expect(names, `${expected} should be advertised`).toContain(expected);
     }

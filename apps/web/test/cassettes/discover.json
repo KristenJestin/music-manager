@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-09-06T00:00:00.000Z",
+  "note": "P09. Two answers the P04 tapes do not carry, because neither can be recorded without an account: ListenBrainz collaborative filtering needs a user whose listens exist, and Last.fm's similar-artists is only reached at limit=20 by the recommender. Hand-authored in the exact response shapes of the two APIs (`payload.mbids[]` for CF, `similarartists.artist[]` with `match` as a decimal string for Last.fm) — the recorded `listenbrainz.json` and `lastfm.json` next to this file are the reference for those shapes. Re-record with `bun run apps/web/test/record-cassettes.ts` once a ListenBrainz account is wired up.",
+  "entries": [
+    {
+      "method": "GET",
+      "url": "https://api.listenbrainz.org/1/cf/recommendation/user/mm-fixtures/recording?count=100",
+      "status": 200,
+      "body": {
+        "payload": {
+          "count": 3,
+          "user_name": "mm-fixtures",
+          "mbids": [
+            { "recording_mbid": "60fa767a-d85d-4991-82bc-4294e0b11ae7", "score": 0.94 },
+            { "recording_mbid": "5463ed3a-5fc1-49b6-8260-3b5bb36ee047", "score": 0.71 },
+            { "recording_mbid": "11111111-2222-4333-8444-555555555555", "score": 0.42 }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=Justice&limit=20&api_key=<redacted>&format=json&autocorrect=1",
+      "status": 200,
+      "body": {
+        "similarartists": {
+          "artist": [
+            {
+              "name": "SebastiAn",
+              "mbid": "f1x7u2e0-0003-4000-8000-000000000003",
+              "match": "1",
+              "url": "https://www.last.fm/music/SebastiAn"
+            },
+            {
+              "name": "Breakbot",
+              "mbid": "f1x7u2e0-0004-4000-8000-000000000004",
+              "match": "0.783",
+              "url": "https://www.last.fm/music/Breakbot"
+            },
+            {
+              "name": "Kavinsky",
+              "mbid": "",
+              "match": "0.612",
+              "url": "https://www.last.fm/music/Kavinsky"
+            }
+          ],
+          "@attr": { "artist": "Justice" }
+        }
+      }
+    }
+  ]
+}

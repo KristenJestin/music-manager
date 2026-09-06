@@ -75,7 +75,13 @@ test.describe("the shell", () => {
    * phase builds it, and it is the only one left that should.
    */
   test("every Library and System entry leads to a real page", async ({ page }) => {
-    for (const path of ["/library", "/library/tracks", "/library/quality", "/tools"]) {
+    for (const path of [
+      "/library",
+      "/library/tracks",
+      "/library/quality",
+      "/discover",
+      "/tools",
+    ]) {
       await page.goto(path);
       await expect(page.getByTestId("coming-soon")).toHaveCount(0);
       await expect(page.locator("h1").first()).toBeVisible();
@@ -84,8 +90,7 @@ test.describe("the shell", () => {
     await page.goto("/settings");
     await expect(page.getByTestId("settings-nav")).toBeVisible();
 
-    await page.goto("/discover");
-    await expect(page.getByTestId("coming-soon")).toContainText(/Coming in P09/);
+    // `/discover` was the last placeholder; P09 built it, so it is in the loop above now.
   });
 
   test("the dashboard tiles link where they say they do", async ({ page }) => {

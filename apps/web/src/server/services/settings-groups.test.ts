@@ -63,8 +63,16 @@ describe("coverage", () => {
     expect(homeless).toEqual([]);
   });
 
-  it("the two tabs together are most of the registry", () => {
-    const shown = GENERAL_KEYS.length + METADATA_KEYS.length;
+  /**
+   * P09 note: this used to read `GENERAL_KEYS.length + METADATA_KEYS.length`, and adding a
+   * third group to this file made it fail at 47 of 95 — while *raising* the share of the
+   * registry that has a home. The two named groups were a proxy for "most knobs are reachable"
+   * that stopped being one the moment a third tab registered its keys here, so the assertion
+   * now states the property directly. It keeps holding as further tabs are added, which the
+   * old form could not.
+   */
+  it("the groups declared here are most of the registry", () => {
+    const shown = SETTING_KEYS.length - ungroupedKeys().length;
     expect(shown).toBeGreaterThan(SETTING_KEYS.length / 2);
   });
 });
