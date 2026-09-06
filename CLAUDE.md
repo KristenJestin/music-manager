@@ -58,7 +58,10 @@ Everything runs from the repository root with Bun. There is no `make`.
 | Command                               | What it does                                                                     |
 | ------------------------------------- | -------------------------------------------------------------------------------- |
 | `bun install`                         | install the workspace                                                            |
-| `bun run dev`                         | compose up, wait for postgres, then the web app on `PORT` (default 3000)         |
+| `bun run dev`                         | this checkout's stack up, then the web app on `PORT` (default 3000)              |
+| `bun run dev:portless`                | the same, behind `https://music-manager.localhost` — no port to remember         |
+| `bun run stack:up` / `stack:down`     | only the containers **this checkout** owns (`compose:up`/`down` are aliases)     |
+| `bun run stack:info`                  | print what this checkout resolves to: project, ports, database, library, URL     |
 | `bun run check`                       | **the gate**: tsr generate, tsc, eslint, prettier, vitest, ruff, pyright, pytest |
 | `bun run test`                        | vitest + pytest only                                                             |
 | `bun run lint` / `bun run format`     | eslint / prettier --write                                                        |
@@ -70,7 +73,7 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`                   |
 | `bun run e2e-fixture`                 | the offline vertical slice, end to end (CLI, worker, toolbox — no browser)       |
 | `bun run e2e`                         | the Console's Playwright tests: brings up its own app, worker and database       |
-| `bun run compose:up` / `compose:down` | the dev stack alone                                                              |
+| `bun run compose:up` / `compose:down` | aliases of `stack:up` / `stack:down`                                             |
 
 `bun run check` must be green at the end of every phase, and the previous phases' fixture E2E
 must still pass.
@@ -169,6 +172,96 @@ must still pass.
   set -a; . ./.env; set +a          # from v2/
   PORT=3100 MM_WEB_URL=http://localhost:3100 bun run --cwd apps/web dev
   ```
+
+### portless — a name instead of a port
+
+[portless](https://portless.sh/) is installed on this machine. It runs a local HTTPS proxy and
+gives the command it launches an ephemeral `PORT` plus a `PORTLESS_URL`:
+
+```bash
+bun run dev:portless              # from v2/       → https://music-manager.localhost
+bun run dev:portless              # from a worktree → https://music-manager-<slug>.localhost
+```
+
+- **The app name is derived, never typed.** `scripts/checkout.ts` owns it: `music-manager` in
+  `v2/`, `music-manager-<slug>` in a worktree. Same URL every time the same checkout starts.
+- **`MM_WEB_URL` follows `PORTLESS_URL`**, so Better Auth's origin check passes. Forget that
+  and you get a login form that renders perfectly and answers **"Invalid origin"** on submit —
+  the same trap as a port change, one origin further away.
+- **Cookies stop colliding.** `http://localhost:3100` and `http://localhost:3101` are _one_
+  origin as far as cookies and `localStorage` are concerned, so two agents' sessions overwrite
+  each other. Two `.localhost` names are two origins.
+- The certificate is portless's own CA, already in the OS trust store (`portless doctor`).
+  `curl` needs `--cacert %USERPROFILE%\.portless\ca.pem` or, in a hurry, `-k`.
+- `PORTLESS=0 bun run dev` and plain `bun run dev` still work on a bare port; nothing depends
+  on the proxy. `portless list` shows who holds what, `portless prune` clears crashed sessions.
+
+## Worktrees
+
+**Every dev task happens in a `git worktree`, never in `v2/` itself.** The owner keeps `v2/` to
+test main while an agent builds elsewhere. A worktree is a full, isolated stack.
+
+```bash
+# from v2/
+git worktree add ../v2-wt-<slug> -b phase/PNN-<nom>
+cd ../v2-wt-<slug>
+bun install                 # a worktree has no node_modules of its own
+bun run stack:info          # read it: project, ports, database, library, URL
+bun run dev:portless        # or: bun run dev
+bun run dev:worker          # `bun run worker`, same environment (second terminal)
+```
+
+`scripts/checkout.ts` derives everything from the directory you are in, and `scripts/stack.ts`
+is the only thing that talks to compose:
+
+|                 | `v2/` (primary)                   | `../v2-wt-<slug>`                                        |
+| --------------- | --------------------------------- | -------------------------------------------------------- |
+| compose project | `mm-dev`                          | `mm-<slug>`                                              |
+| containers      | postgres, navidrome, toolbox      | **toolbox only** (`--navidrome` adds one)                |
+| toolbox         | `:8100`                           | a stable port in 8200–8899                               |
+| database        | the one in `.env`                 | `mm_<slug>`, same postgres, created and migrated for you |
+| library         | `v2/.local/library`               | `<worktree>/.local/library`                              |
+| URL             | `https://music-manager.localhost` | `https://music-manager-<slug>.localhost`                 |
+
+- **`.env` is the owner's, and it stays there.** It is gitignored, so a worktree has none. The
+  scripts read `v2/.env` through `git rev-parse --git-common-dir` and then override
+  `DATABASE_URL`, `MM_TOOLBOX_URL` and `MM_LIBRARY_ROOT` for the worktree. Drop a `.env` in the
+  worktree only to _override_ a key; it is merged on top, and any key you set there (or export
+  in the shell) is left alone — that is the escape hatch, and also the way to point a worktree
+  at the shared library on purpose.
+- **Postgres is shared on purpose.** One server, one database per checkout. A second postgres
+  would cost a gigabyte to hold a few megabytes; a database is free.
+
+### What you must never do from a worktree
+
+- **Never run `docker compose` by hand, and never without `-p`.** `docker-compose.dev.yml`
+  declares `name: mm-dev` and bind-mounts `./.local/library`, relative to _your_ copy of the
+  file. `docker compose -f docker-compose.dev.yml up -d` from a worktree therefore finds the
+  shared `mm-dev-toolbox-1` **by name** and recreates it mounting _your_ library — the owner's
+  library silently disappears from under him. That happened during P07-verify-1
+  (`../orchestration/reports/P07-verify-1.md` §9). Use `bun run stack:up` / `stack:down`, which
+  always pass `-p`, and check with:
+
+  ```bash
+  docker inspect mm-dev-toolbox-1 --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\n"}}{{end}}'
+  # must still say  …\v2\.local\library -> /library
+  ```
+
+- **Never `docker compose down` the `mm-dev` project**, never restart `mm-dev-*`, never stop the
+  owner's dev server or worker. `bun run stack:down` from your worktree stops only `mm-<slug>`.
+- **Never `bun run db:reset`, `db:migrate` or `mm` with an inherited `DATABASE_URL`.** Go
+  through the package scripts; they resolve the checkout. `bun run stack:info` tells you which
+  database you are about to touch — read it before anything destructive.
+- Never delete `.local/` in `v2/`. Yours is `<worktree>/.local/`.
+
+### Cleaning up
+
+```bash
+bun run stack:down                              # from the worktree: only mm-<slug>
+psql "<admin-url>" -c 'drop database mm_<slug>' # or leave it; it is small
+cd ../v2 && git worktree remove ../v2-wt-<slug> --force
+docker image rm mm-<slug>-toolbox               # the per-project toolbox image
+```
 
 ## Toolbox
 

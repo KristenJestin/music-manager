@@ -39,6 +39,8 @@
     "compose:up": "bun run scripts/stack.ts up",
     "compose:down": "bun run scripts/stack.ts down",
     "worker": "bun run scripts/worker.ts",
+    "dev:worker": "bun run scripts/worker.ts",
+    "dev-worker": "bun run scripts/worker.ts",
     "mm": "bun run scripts/mm.ts",
     "e2e-fixture": "bun run scripts/e2e-fixture.ts",
     "cache:seed-fixtures": "bun run apps/web/src/server/integrations/seed-fixtures.ts",
