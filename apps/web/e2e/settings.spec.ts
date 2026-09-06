@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import { expect, test, signIn, typeInto } from "./helpers.ts";
 
 /**
  * Settings: the round trip, and the two things this page must not get wrong.
@@ -23,32 +22,34 @@ test.describe("settings", () => {
     const preview = page.getByTestId("template-preview");
     await expect(preview).toContainText("Daft Punk/Discovery (2001)/01 - One More Time.opus");
 
-    await page
-      .getByTestId("setting-pathTemplate")
-      .fill("{albumArtist}/{album}/{track:03} {title}.{ext}");
+    await typeInto(
+      page.getByTestId("setting-pathTemplate"),
+      "{albumArtist}/{album}/{track:03} {title}.{ext}",
+    );
     await expect(preview).toContainText("Daft Punk/Discovery/001 One More Time.opus", {
       timeout: 30_000,
     });
 
     // A template with a typo is refused with a reason, and Save is blocked rather than
     // writing a literal `{albumartist}` into every folder name.
-    await page.getByTestId("setting-pathTemplate").fill("{albumartist}/{title}.{ext}");
+    await typeInto(page.getByTestId("setting-pathTemplate"), "{albumartist}/{title}.{ext}");
     await expect(page.getByTestId("template-error")).toContainText("unknown token", {
       timeout: 30_000,
     });
     await expect(page.getByTestId("settings-save")).toBeDisabled();
 
     // A template that would give every track of an album the same name is refused too.
-    await page.getByTestId("setting-pathTemplate").fill("{album}/{track:02}.{ext}");
+    await typeInto(page.getByTestId("setting-pathTemplate"), "{album}/{track:02}.{ext}");
     await expect(page.getByTestId("template-error")).toContainText("{title}", { timeout: 30_000 });
 
     /* ---- the round trip ---------------------------------------------------- */
 
-    await page
-      .getByTestId("setting-pathTemplate")
-      .fill("{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}");
+    await typeInto(
+      page.getByTestId("setting-pathTemplate"),
+      "{albumArtist}/{album} ({year})/{disc-}{track:02} - {title}.{ext}",
+    );
     await expect(page.getByTestId("template-error")).toHaveCount(0, { timeout: 30_000 });
-    await page.getByTestId("setting-maxSegmentLength").fill("180");
+    await typeInto(page.getByTestId("setting-maxSegmentLength"), "180");
     await page.getByTestId("settings-save").click();
     await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
 
@@ -56,7 +57,7 @@ test.describe("settings", () => {
     await expect(page.getByTestId("setting-maxSegmentLength")).toHaveValue("180");
 
     // Put it back, so the rest of the suite files things where it expects to find them.
-    await page.getByTestId("setting-maxSegmentLength").fill("200");
+    await typeInto(page.getByTestId("setting-maxSegmentLength"), "200");
     await page.getByTestId("settings-save").click();
     await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
   });
@@ -92,13 +93,13 @@ test.describe("settings", () => {
 
     /* ---- the round trip ---------------------------------------------------- */
 
-    await page.getByTestId("setting-maxGenres").fill("4");
+    await typeInto(page.getByTestId("setting-maxGenres"), "4");
     await page.getByTestId("settings-save").click();
     await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
     await page.reload();
     await expect(page.getByTestId("setting-maxGenres")).toHaveValue("4");
 
-    await page.getByTestId("setting-maxGenres").fill("3");
+    await typeInto(page.getByTestId("setting-maxGenres"), "3");
     await page.getByTestId("settings-save").click();
     await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
   });

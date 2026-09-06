@@ -1,5 +1,12 @@
-import { expect, test } from "@playwright/test";
-import { mappingRow, pressGlobal, resolveSource, signIn, waitForStatus } from "./helpers.ts";
+import {
+  expect,
+  test,
+  mappingRow,
+  pressGlobal,
+  resolveSource,
+  signIn,
+  waitForStatus,
+} from "./helpers.ts";
 
 /**
  * The second scenario of `docs/phases/P06-web-coeur.md`: a release whose tracklist the source

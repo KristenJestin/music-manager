@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import type { Page } from "@playwright/test";
+import { expect, test, reloadUntil, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The library screens, against a library that really has files in it.
@@ -16,13 +16,22 @@ import { signIn } from "./helpers.ts";
  * and the failure message says exactly what is missing.
  */
 
-/** Wait for the album `import-album.spec.ts` placed. */
+/**
+ * Wait for the album `import-album.spec.ts` placed.
+ *
+ * **Re-navigating, not polling one render.** `/library` is a loader page: it reads its rows
+ * once, when it is opened. An earlier version opened it and then waited two minutes on the
+ * locator, which is a wait that can never end — and did not, the one time this spec started
+ * five seconds before the worker finished writing the album row. `data-testid="album-card"`
+ * was never going to appear in a document that had already been rendered without it.
+ */
 async function ensureLibrary(page: Page): Promise<void> {
-  await page.goto("/library");
-  await expect(
-    page.getByTestId("album-card").first(),
-    "the library is empty: import-album.spec.ts places the album these tests read, so run the whole suite rather than this file alone",
-  ).toBeVisible({ timeout: 120_000 });
+  await reloadUntil(page, "/library", async () => {
+    await expect(
+      page.getByTestId("album-card").first(),
+      "the library is empty: import-album.spec.ts places the album these tests read, so run the whole suite rather than this file alone",
+    ).toBeVisible({ timeout: 5_000 });
+  });
 }
 
 test.describe("the library", () => {
@@ -37,12 +46,17 @@ test.describe("the library", () => {
     await expect(cards.first()).toBeVisible();
 
     // The filters are links, so a filtered view is a URL. "All" must hold every album.
+    // `data-active` rather than the query string: the router keeps a search value that equals
+    // its default, so "all" is `?filter=all…` and not the bare path (see quality.spec.ts).
     const total = await cards.count();
     await page.getByTestId("library-filters-all").click();
+    await expect(page.getByTestId("library-filters-all")).toHaveAttribute("data-active", "true", {
+      timeout: 60_000,
+    });
     await expect(cards).toHaveCount(total);
 
     // Searching for something that cannot match empties the grid rather than erroring.
-    await page.getByTestId("library-search").fill("zzz-no-such-album");
+    await typeInto(page.getByTestId("library-search"), "zzz-no-such-album");
     await page.getByTestId("library-search").press("Enter");
     await expect(page.getByTestId("library-empty")).toBeVisible();
     await page.goto("/library");
@@ -130,10 +144,13 @@ test.describe("the library", () => {
     await signIn(page);
     await ensureLibrary(page);
 
-    await page.goto("/library/tracks");
-    await expect(page.getByTestId("tracks-table")).toBeVisible();
+    // Same loader page, same rule: open it again until it holds a row, rather than watching
+    // one render of it and hoping.
     const rows = page.getByTestId("tracks-table").locator("tbody tr");
-    expect(await rows.count()).toBeGreaterThan(0);
+    await reloadUntil(page, "/library/tracks", async () => {
+      await expect(page.getByTestId("tracks-table")).toBeVisible({ timeout: 5_000 });
+      await expect(rows.first()).toBeVisible({ timeout: 5_000 });
+    });
 
     // A track page is one file: the document, its provenance, and where it came from.
     await rows.first().click();

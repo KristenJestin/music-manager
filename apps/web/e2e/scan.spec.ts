@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import { expect, test, signIn } from "./helpers.ts";
 
 /**
  * The library scan, driven from the Tools card.

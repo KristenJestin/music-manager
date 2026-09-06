@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { signIn, typeInto } from "./helpers.ts";
+import { expect, test, signIn, typeInto } from "./helpers.ts";
 
 /**
  * Tools › Migrate from v1 — the Console side of P11.

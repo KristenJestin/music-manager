@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import type { Page } from "@playwright/test";
+import { expect, test, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The acceptance scenario of `docs/phases/P07-bibliotheque-qualite.md`:
@@ -39,7 +39,7 @@ async function setOverride(page: Page, value: number): Promise<void> {
   await page.goto("/settings/metadata");
   const field = page.getByTestId("setting-tagSchemaVersionOverride");
   await expect(field).toBeVisible({ timeout: 60_000 });
-  await field.fill(String(value));
+  await typeInto(field, String(value));
   await page.getByTestId("settings-save").click();
   await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
 
@@ -74,27 +74,38 @@ test.describe("metadata quality and the tag schema", () => {
     const all = await page.getByTestId("quality-row").count();
     expect(all).toBeGreaterThan(0);
 
-    // A filter is a link, and it narrows: "below 80%" can never hold more than "all".
+    /*
+     * A filter is a link, and it narrows: "below 80%" can never hold more than "all".
+     *
+     * Waited on the **chip**, not on the URL. Two versions of this test guessed at the query
+     * string and both were wrong in a different way: `/\/library\/quality/` also matches the
+     * page as it stood *before* the click, so the row count read straight after was the old
+     * view's; and the replacement waited for a bare path with no query, which never comes,
+     * because TanStack Router keeps a search value that happens to equal its zod default —
+     * "all" is `?filter=all&profile=global`. `data-active` is the loader's own answer to
+     * "which filter am I showing", so there is nothing left to guess.
+     */
     await page.getByTestId("quality-filters-below80").click();
-    await page.waitForURL(/filter=below80/, { timeout: 60_000 });
-    expect(await page.getByTestId("quality-row").count()).toBeLessThanOrEqual(all);
+    await expect(page.getByTestId("quality-filters-below80")).toHaveAttribute(
+      "data-active",
+      "true",
+      { timeout: 60_000 },
+    );
+    await expect
+      .poll(async () => await page.getByTestId("quality-row").count(), { timeout: 30_000 })
+      .toBeLessThanOrEqual(all);
 
-    // Not `/\/library\/quality/`: that pattern also matches the *current* URL, which still
-    // carries `?filter=below80` — a substring match, not an exact one — so `waitForURL` was
-    // returning immediately against the page as it stood before this click's navigation, and
-    // the row count read straight after was the below80 view's, not "all"'s. `filter=all` is
-    // the search schema's default, so TanStack Router omits it: bare path, no query at all.
     await page.getByTestId("quality-filters-all").click();
-    await page.waitForURL((url) => url.pathname === "/library/quality" && url.search === "", {
+    await expect(page.getByTestId("quality-filters-all")).toHaveAttribute("data-active", "true", {
       timeout: 60_000,
     });
-    expect(await page.getByTestId("quality-row").count()).toBe(all);
+    await expect(page.getByTestId("quality-row")).toHaveCount(all, { timeout: 30_000 });
 
     // The profile re-scores the same albums; it never changes how many there are, because it
     // changes the view and not the files.
     await page.getByTestId("quality-profile").selectOption("navidrome");
     await page.waitForURL(/profile=navidrome/, { timeout: 60_000 });
-    expect(await page.getByTestId("quality-row").count()).toBe(all);
+    await expect(page.getByTestId("quality-row")).toHaveCount(all, { timeout: 30_000 });
     await expect(page.getByText("Visible in navidrome")).toBeVisible();
   });
 

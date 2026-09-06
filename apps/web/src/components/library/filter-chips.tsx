@@ -52,6 +52,16 @@ export function FilterChips<T extends string>({
           {...link(chip.value)}
           title={chip.title}
           data-testid={`${testId ?? "filter"}-${chip.value}`}
+          /*
+           * Which chip is on, said out loud.
+           *
+           * It is otherwise only knowable from the colour, or from guessing how the router
+           * spells the URL — and the guess is wrong: TanStack keeps a search value that
+           * equals its zod default, so "all" reads `?filter=all&profile=global` and not the
+           * bare path a test once waited sixty seconds for. The active chip is the fact; the
+           * query string is one of several encodings of it.
+           */
+          data-active={chip.value === active ? "true" : "false"}
           className={cn(
             "inline-flex h-6 items-center gap-1.5 rounded-xl border border-line-strong bg-surface-2 px-2.5 text-xs text-fg-1 hover:bg-surface-3",
             chip.value === active && "border-primary bg-primary-soft text-primary",

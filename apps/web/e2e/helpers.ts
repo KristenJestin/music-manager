@@ -1,7 +1,62 @@
 /**
- * What every spec needs: signing in, and waiting for a job to stop moving.
+ * What every spec needs: a `test` that lands on hydrated pages, signing in, typing into a
+ * Base UI field, and waiting for a job to stop moving.
  */
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, test as base, type Locator, type Page } from "@playwright/test";
+
+/**
+ * The Console's `test`, whose `page` is never handed back mid-hydration.
+ *
+ * Every page here is server-rendered, so the markup — buttons, fields, the drawer — is on
+ * screen and clickable a good while before React attaches to any of it. A click in that
+ * window is not queued, it is *dropped*: the handler does not exist yet. The suite met this
+ * three different ways, and each time it looked like a different bug —
+ *
+ *  - `api.spec.ts` typed a key name into a controlled Base UI input and the first render
+ *    after hydration wrote `""` back over it (`toHaveValue` received `""`);
+ *  - `shell.spec.ts` clicked *Open drawer* and the drawer never opened, because the `onClick`
+ *    that flips the state was not attached yet (`aria-hidden` stayed `"true"`);
+ *  - and anything that clicked a button which calls a server function simply waited out its
+ *    timeout on a toast that was never going to come.
+ *
+ * None of those is a real defect and all of them are load-dependent, which is what made the
+ * suite fail four tests on a busy machine and none on an idle one. So rather than sprinkling
+ * a wait over the call sites that happened to be caught, the wait belongs to *navigation*:
+ * after every `goto` and every `reload`, if the document contains the app shell, wait for the
+ * attribute `AppShell` sets from inside the effect that attaches its listeners. Client-side
+ * navigations need nothing — the shell stays mounted and hydrated across them.
+ *
+ * `/login` and `/setup` are outside the shell, so they are recognised and not waited for;
+ * their fields are plain uncontrolled `<input>`s, which is why `fill()` is right there and
+ * wrong everywhere else.
+ */
+export const test = base.extend({
+  page: async ({ page }: { page: Page }, provide: (ready: Page) => Promise<void>) => {
+    const goto = page.goto.bind(page);
+    const reload = page.reload.bind(page);
+    page.goto = async (url, options) => {
+      const response = await goto(url, options);
+      await hydrated(page);
+      return response;
+    };
+    page.reload = async (options) => {
+      const response = await reload(options);
+      await hydrated(page);
+      return response;
+    };
+    // Named `provide` rather than Playwright's usual `use`: the React lint rule reads a call to
+    // `use(...)` as the React hook and refuses it outside a component.
+    await provide(page);
+  },
+});
+
+export { expect };
+
+/** Wait for React, but only on the pages that have a shell to hydrate. */
+async function hydrated(page: Page): Promise<void> {
+  if ((await page.locator('[data-testid="app-shell"]').count()) === 0) return;
+  await shellReady(page);
+}
 
 /** The administrator `scripts/e2e-web.ts` bootstraps. */
 export const ADMIN = {
@@ -22,6 +77,9 @@ export async function signIn(page: Page): Promise<void> {
   await page.getByTestId("login-submit").click();
   await page.waitForURL(/\/$/, { timeout: 60_000 });
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  // The dashboard arrives through a full load, which the patched `goto` above did not make —
+  // so the one navigation that escapes the fixture waits for hydration here instead.
+  await shellReady(page);
 }
 
 /** Paste a URL into the wizard and wait for `resolve` to have produced its videos. */
@@ -47,6 +105,35 @@ export async function waitForStatus(
   timeout = 150_000,
 ): Promise<void> {
   await expect(page.getByText(status, { exact: true }).first()).toBeVisible({ timeout });
+}
+
+/**
+ * Load a page again and again until an assertion about it holds.
+ *
+ * The Console's list pages are **loader-rendered, not live**: `/library`, `/tools` and the
+ * rest fetch their rows once, when they are navigated to. Waiting on a locator inside one of
+ * them therefore waits on a photograph — if the row was not there when the page loaded, no
+ * amount of `toBeVisible({ timeout })` will make it appear, and the test spends its whole
+ * budget looking at a document that cannot change.
+ *
+ * That is precisely how `library.spec.ts` failed a run: it opened `/library` five seconds
+ * before the worker wrote the album row, then stared at the empty grid for two minutes. The
+ * album was in the database the whole time. Re-navigating is what a person does, and it is
+ * the only thing that can actually observe a change.
+ *
+ * Not a sleep: each attempt is a real assertion with a short budget, so it returns the moment
+ * the page says what it should, and the failure it finally raises is the assertion's own.
+ */
+export async function reloadUntil(
+  page: Page,
+  path: string,
+  check: () => Promise<void>,
+  timeout = 120_000,
+): Promise<void> {
+  await expect(async () => {
+    await page.goto(path);
+    await check();
+  }).toPass({ timeout, intervals: [500, 1000, 2000] });
 }
 
 /**
@@ -76,7 +163,9 @@ export async function pressGlobal(page: Page, key: string): Promise<void> {
 }
 
 /**
- * Put text into a Console text field, the way a person does.
+ * Put text into a Console text field, the way a person does — **the only supported way**.
+ *
+ * Two distinct traps live here, and every spec that typed by hand met one of them.
  *
  * **`fill()` does not drive these inputs.** `components/ui/input.tsx` wraps Base UI's `Input`,
  * and setting `value` through the native setter — which is what `fill()` does — does not reach
@@ -85,15 +174,32 @@ export async function pressGlobal(page: Page, key: string): Promise<void> {
  * was there before, or a button that stays disabled because the field it watches still reads
  * empty. Verified by hand in a real browser: typing and Delete both work, `fill()` does not.
  *
+ * **And typing too early is thrown away.** Every Console page is server-rendered, so the field
+ * is on screen — visible, focusable, and perfectly willing to accept keystrokes — a good while
+ * before React attaches to it. A Base UI `Input` is *controlled*: the first render after
+ * hydration writes the state value, `""`, back over whatever the keyboard put in the DOM. The
+ * text is not merely late, it is gone, and the failure reads `toHaveValue("e2e-readonly")
+ * received ""` on a field the trace clearly shows was typed into. That is the "input race"
+ * P09 recorded, and it is why `api.spec.ts` failed a run out of three.
+ *
+ * So: wait for hydration first (`shellReady`, which watches the very effect that attaches the
+ * shell's listeners), then type, then **re-type if the value did not stick**. The retry is not
+ * a sleep in disguise — it re-does the whole gesture and asserts the outcome, so it costs
+ * nothing when the first attempt worked and it names the field when nothing ever works.
+ *
  * Select-all and type **over** the selection rather than deleting first: a numeric field
  * coerces its empty intermediate state to `0`, and the new digits would then land after it.
  */
 export async function typeInto(field: Locator, text: string): Promise<void> {
-  await field.click();
-  await field.press("ControlOrMeta+a");
-  if (text === "") await field.press("Delete");
-  else await field.pressSequentially(text);
-  await expect(field).toHaveValue(text);
+  await shellReady(field.page());
+  await expect(field).toBeVisible({ timeout: 60_000 });
+  await expect(async () => {
+    await field.click();
+    await field.press("ControlOrMeta+a");
+    if (text === "") await field.press("Delete");
+    else await field.pressSequentially(text);
+    await expect(field).toHaveValue(text, { timeout: 3_000 });
+  }).toPass({ timeout: 60_000, intervals: [250, 500, 1000] });
 }
 
 /**

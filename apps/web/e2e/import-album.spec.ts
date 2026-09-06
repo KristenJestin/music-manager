@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { resolveSource, signIn, waitForStatus } from "./helpers.ts";
+import { expect, test, resolveSource, signIn, waitForStatus } from "./helpers.ts";
 
 /**
  * The reference scenario of `docs/phases/P06-web-coeur.md`:

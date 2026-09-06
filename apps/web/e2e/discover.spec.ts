@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import type { Page } from "@playwright/test";
+import { expect, test, signIn } from "./helpers.ts";
 
 /**
  * `/discover`, offline.

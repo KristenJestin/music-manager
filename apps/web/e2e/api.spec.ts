@@ -1,5 +1,5 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { signIn, typeInto } from "./helpers.ts";
+import type { APIRequestContext, Page } from "@playwright/test";
+import { expect, test, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The public API, driven the way an agent would drive it.

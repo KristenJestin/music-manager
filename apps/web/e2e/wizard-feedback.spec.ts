@@ -1,8 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { expect, test } from "@playwright/test";
-import { resolveSource, signIn } from "./helpers.ts";
+import { expect, test, resolveSource, signIn } from "./helpers.ts";
 
 /**
  * The wizard corrections of the owner's first real import (`orchestration/feedback/

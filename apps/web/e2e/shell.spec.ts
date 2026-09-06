@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { pressGlobal, shellReady, signIn, typeInto } from "./helpers.ts";
+import { expect, test, pressGlobal, shellReady, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The Console shell: the parts that are on every page, and the keyboard.
@@ -42,7 +41,7 @@ test.describe("the shell", () => {
     await shellReady(page);
     await pressGlobal(page, "ControlOrMeta+k");
     await expect(page.getByTestId("palette-input")).toBeVisible();
-    await page.getByTestId("palette-input").fill("Jobs");
+    await typeInto(page.getByTestId("palette-input"), "Jobs");
     await page.getByRole("option", { name: "Jobs" }).first().click();
     await page.waitForURL(/\/imports/, { timeout: 60_000 });
 

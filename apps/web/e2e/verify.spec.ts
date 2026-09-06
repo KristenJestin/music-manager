@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { signIn, typeInto } from "./helpers.ts";
+import { expect, test, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The Navidrome read-back, from the Console.
