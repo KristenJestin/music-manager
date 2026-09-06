@@ -41,6 +41,7 @@ import {
   runServiceLatencies,
   runUrlTest,
   runYtdlpUpdate,
+  scanStatus,
   startScan,
   trashFileAction,
 } from "#/server/functions/tools.ts";
@@ -656,6 +657,26 @@ function ErrorDecoder({
 /* the library scan                                                    */
 /* ------------------------------------------------------------------ */
 
+/** How long "Scan now" waits for the worker before saying so and letting go. */
+const SCAN_WAIT_MS = 90_000;
+
+/**
+ * Poll until the worker has finished a scan newer than `previousScanId`.
+ *
+ * Returns `false` on timeout rather than throwing: a scan that takes longer than a minute and
+ * a half on a large library is not an error, and the honest answer is "it is still going",
+ * not a red toast.
+ */
+async function waitForScan(previousScanId: string | null): Promise<boolean> {
+  const deadline = Date.now() + SCAN_WAIT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const status = await scanStatus();
+    if (status.id !== null && status.id !== previousScanId) return true;
+  }
+  return false;
+}
+
 function ScanPanel({
   data,
   busy,
@@ -823,8 +844,20 @@ function ScanPanel({
             disabled={busy !== null}
             onClick={() => {
               act("scan", async () => {
-                await startScan({ data: {} });
-                return "Scan queued. The worker walks the library and reports here.";
+                /*
+                 * Wait for the worker, then let `act` invalidate.
+                 *
+                 * Invalidating the moment the message is posted re-reads the *previous*
+                 * report — the walk has not happened yet — so the panel went on saying
+                 * "never run · 0 / 0 / 0" until a manual F5 (DRIVE-1 §B4). The router cannot
+                 * help with that; there is nothing new to read. So the button holds until
+                 * the newest finished run is not the one it started from.
+                 */
+                const { previousScanId } = await startScan({ data: {} });
+                const finished = await waitForScan(previousScanId);
+                return finished
+                  ? "Scan finished. The panel below is this run."
+                  : "Scan queued. It is taking a while; the panel refreshes when it lands.";
               });
             }}
             data-testid="scan-now"

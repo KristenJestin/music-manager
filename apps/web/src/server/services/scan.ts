@@ -20,7 +20,7 @@
  */
 import { existsSync, readdirSync, renameSync, statSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { and, asc, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { projectDocument, type TrackDocument } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -644,6 +644,7 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       .where(eq(libraryScans.id, id))
       .returning();
 
+    await recordMissing(db, rows, onDisk);
     await raiseScanItems(db, report);
     await emit(
       {
@@ -676,6 +677,66 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       .where(eq(libraryScans.id, id));
     throw failure;
   }
+}
+
+/**
+ * Write what the walk learned onto the rows themselves — DRIVE-1 §B5.
+ *
+ * The scan reported missing files on the Tools page and nowhere else: the album still said
+ * "13/13 tracks", the track still appeared in the Tracks list with its `lrc` and `rg` badges,
+ * and only the album's "DB vs files" tab — one click deep on one page — admitted that one file
+ * "could not be read". The scan is the only thing that walks the whole tree, so it is the only
+ * thing that can make the rest of the library honest without walking it again.
+ *
+ * Two writes, both derived from the same `onDisk` map:
+ *
+ *  - `library_tracks.missing_at`, stamped when a row's file is absent and cleared when it is
+ *    back, which is what the badges and the "Missing files" filter read;
+ *  - `library_albums.present_count`, which was maintained on delete only and therefore drifted
+ *    the moment a file disappeared behind the app's back.
+ */
+async function recordMissing(
+  db: Database,
+  rows: readonly { id: string; albumId: string | null; path: string }[],
+  onDisk: ReadonlyMap<string, unknown>,
+): Promise<void> {
+  const now = new Date();
+  const gone = rows.filter((row) => !onDisk.has(row.path)).map((row) => row.id);
+  const back = rows.filter((row) => onDisk.has(row.path)).map((row) => row.id);
+
+  // Chunked: a library of tens of thousands of tracks must not become one enormous `in (…)`.
+  for (const batch of chunk(gone, 500)) {
+    await db
+      .update(libraryTracks)
+      .set({ missingAt: now, updatedAt: now })
+      .where(inArray(libraryTracks.id, batch));
+  }
+  for (const batch of chunk(back, 500)) {
+    await db
+      .update(libraryTracks)
+      .set({ missingAt: null, updatedAt: now })
+      .where(and(inArray(libraryTracks.id, batch), isNotNull(libraryTracks.missingAt)));
+  }
+
+  const albums = new Map<string, number>();
+  for (const row of rows) {
+    if (row.albumId === null) continue;
+    albums.set(row.albumId, (albums.get(row.albumId) ?? 0) + (onDisk.has(row.path) ? 1 : 0));
+  }
+  for (const [albumId, present] of albums) {
+    await db
+      .update(libraryAlbums)
+      .set({ presentCount: present, updatedAt: now })
+      .where(and(eq(libraryAlbums.id, albumId), ne(libraryAlbums.presentCount, present)));
+  }
+}
+
+function chunk<T>(values: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    out.push(values.slice(index, index + size));
+  }
+  return out;
 }
 
 /**

@@ -28,17 +28,15 @@ test.describe("library scan", () => {
     }
   });
 
-  test("Scan now queues a run and the report comes back with its four sections", async ({
-    page,
-  }) => {
+  test("Scan now refreshes the panel by itself, with no F5 — DRIVE-1 §B4", async ({ page }) => {
+    /*
+     * The panel used to go on saying "never run · 0 / 0 / 0" after a scan, because the page
+     * invalidated its loader the instant the message was posted — before the worker had
+     * walked anything. The button now waits for the run it started, so this asserts the whole
+     * report **without reloading**, which is exactly what the old code could not do.
+     */
     await page.getByTestId("scan-now").click();
-    await expect(page.getByText(/Scan queued/)).toBeVisible({ timeout: 30_000 });
-
-    // The worker picks the job off the `scan` queue; the page shows the run once it lands.
-    await expect(async () => {
-      await page.reload();
-      await expect(page.getByTestId("scan-orphans")).toBeVisible({ timeout: 5_000 });
-    }).toPass({ timeout: 120_000 });
+    await expect(page.getByText(/Scan finished/)).toBeVisible({ timeout: 120_000 });
 
     for (const section of ["scan-orphans", "scan-missing", "scan-drift", "scan-duplicates"]) {
       await expect(page.getByTestId(section), section).toBeVisible();

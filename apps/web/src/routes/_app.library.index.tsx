@@ -242,6 +242,21 @@ function Albums() {
                       {album.presentCount}/{album.trackCount}
                     </ToneBadge>
                   ) : null}
+                  {/*
+                    A file that has gone, which is not the same as a track never imported
+                    (DRIVE-1 §B5): the scan writes `missing_at`, so the grid can say it
+                    without stat-ing hundreds of albums.
+                  */}
+                  {album.quality.missingCount > 0 ? (
+                    <ToneBadge
+                      tone="danger"
+                      data-testid="album-missing"
+                      className="absolute top-1.5 right-1.5"
+                      title="The last library scan could not find these files on disk."
+                    >
+                      {album.quality.missingCount} missing
+                    </ToneBadge>
+                  ) : null}
                   {album.quality.untagged ? (
                     <ToneBadge
                       tone="info"

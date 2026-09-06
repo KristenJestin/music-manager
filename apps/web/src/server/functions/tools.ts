@@ -24,6 +24,7 @@ import {
   identifyOrphan,
   lastScan,
   libraryCounts,
+  recentScans,
   reportOf,
   trashFile,
   type ScanReport,
@@ -198,13 +199,44 @@ export const startScan = createServerFn({ method: "POST", strict: STRICT })
   .inputValidator(
     z.object({ driftLimit: z.number().int().min(0).max(100_000).optional() }).default({}),
   )
-  .handler(async ({ data }): Promise<{ queued: boolean }> => {
+  .handler(async ({ data }): Promise<{ queued: boolean; previousScanId: string | null }> => {
     try {
+      // Read *before* enqueueing: "the panel is stale until this id changes" is the only
+      // honest way for the page to know the worker has finished (see `scanStatus`).
+      const previous = await lastScan(db());
       const id = await enqueueLibraryScan({
         trigger: "manual",
         ...(data.driftLimit === undefined ? {} : { driftLimit: data.driftLimit }),
       });
-      return { queued: id !== null };
+      return { queued: id !== null, previousScanId: previous?.id ?? null };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Has the worker finished a scan yet?
+ *
+ * "Scan now" enqueues; the walk happens in the worker, seconds to minutes later. The page
+ * invalidated its loader the instant the message was posted, so it re-read the *previous*
+ * report and went on saying "never run · 0 / 0 / 0" until somebody pressed F5 (DRIVE-1 §B4).
+ * A router invalidation cannot fix that — there is nothing new to read yet.
+ *
+ * So the button waits: it polls this, which is one indexed row, until the newest finished run
+ * is not the one it started from. Cheap enough to poll, and it is the same question a person
+ * answers by reloading.
+ */
+export const scanStatus = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .handler(async (): Promise<{ id: string | null; at: string | null; running: boolean }> => {
+    try {
+      const database = db();
+      const [last, recent] = await Promise.all([lastScan(database), recentScans(1, database)]);
+      return {
+        id: last?.id ?? null,
+        at: last?.startedAt.toISOString() ?? null,
+        running: recent[0]?.status === "running",
+      };
     } catch (error) {
       return toFailure(error);
     }

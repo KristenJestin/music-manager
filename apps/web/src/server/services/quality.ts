@@ -104,6 +104,16 @@ export interface AlbumQuality {
   readonly trackCount: number;
   readonly presentCount: number;
   readonly documentCount: number;
+  /**
+   * How many of this album's files the **last scan** could not find on disk.
+   *
+   * Distinct from `trackCount - presentCount`, which is "incomplete": an album can be missing
+   * a track because it was never imported (the release has thirteen and the playlist had
+   * eleven), and that is a different problem with a different remedy. This one means the file
+   * *was* there and is not any more — a re-download that keeps the mapping, not a new import
+   * (DRIVE-1 §B5).
+   */
+  readonly missingCount: number;
   /** Lowest schema version any of its files carries — the album is only as fresh as that. */
   readonly schemaVersion: number | null;
   readonly filesBehind: number;
@@ -357,6 +367,7 @@ export function scoreAlbum(
         ? tracks.length
         : tracks.filter((track) => onDisk.has(track.libraryTrackId)).length,
     documentCount: documents.length,
+    missingCount: loaded.filter((entry) => entry.track.missingAt !== null).length,
     schemaVersion: schemaVersions.length === 0 ? null : Math.min(...schemaVersions),
     filesBehind: tracks.filter((track) => track.behind).length,
     driftCount: tracks.filter((track) => track.drift).length,
@@ -520,6 +531,10 @@ export function matchesFilter(
       return score !== null && score < 0.8;
     case "incomplete":
       return quality.presentCount < quality.trackCount;
+    // "Files the last scan could not find", which is not the same question as "incomplete":
+    // one is a file that has gone, the other a track that was never imported (DRIVE-1 §B5).
+    case "missing":
+      return quality.missingCount > 0;
     case "untagged":
       return quality.untagged;
     case "schema":

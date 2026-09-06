@@ -79,6 +79,20 @@ export const libraryTracks = pgTable(
     }),
     verifiedAt: timestamp("verified_at", { withTimezone: true }),
     verifyResult: jsonb("verify_result").$type<Record<string, unknown>>(),
+    /**
+     * When a library scan last found this row's file **absent from disk**, `null` when the
+     * file was there.
+     *
+     * The scan already knew — it reports "missing files" on the Tools page — and nothing else
+     * did: an album whose `13 - Wonderland.opus` had been deleted by hand still announced
+     * "13/13 tracks · 50.6 MB", and the track still carried its `lrc` and `rg` badges
+     * (DRIVE-1 §B5). `albumDetail` stats each file on its way to one album, which is right for
+     * one album and impossible for a grid of hundreds; a column the scan writes is what lets
+     * the grid, the filters and the Quality page say the same true thing without walking the
+     * tree. It is a *fact with a date on it*, not a flag: "the scan of 14:32 could not find
+     * this" is honest even if somebody has since plugged the drive back in.
+     */
+    missingAt: timestamp("missing_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

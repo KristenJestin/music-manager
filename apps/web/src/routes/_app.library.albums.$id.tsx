@@ -113,6 +113,8 @@ function Album() {
   }
 
   const quality = album.quality;
+  /** The tracks whose file is not on disk — `present` is a real `existsSync` (decision 090). */
+  const missing = album.tracks.filter((track) => !track.present);
   const profiled = params.profile !== "global";
   const score = profiled ? quality.byProfile[params.profile as never] : quality.score;
 
@@ -189,6 +191,20 @@ function Album() {
             <ToneBadge tone={quality.presentCount === quality.trackCount ? "ok" : "warn"}>
               {quality.presentCount}/{quality.trackCount} tracks
             </ToneBadge>
+            {/*
+              The album said "13/13 tracks · 50.6 MB" over a directory one file short, because
+              only the "DB vs files" tab ever looked at the disk (DRIVE-1 §B5). `present` is a
+              real `existsSync` per track (decision 090); the badge just stops hiding it.
+            */}
+            {missing.length === 0 ? null : (
+              <ToneBadge
+                tone="danger"
+                data-testid="album-missing"
+                title={`Not on disk: ${missing.map((track) => track.title).join(", ")}`}
+              >
+                {missing.length} file(s) missing
+              </ToneBadge>
+            )}
             <ToneBadge tone={scoreTone(score)} title="Metadata completeness">
               {pct(score)}
               {profiled ? ` in ${params.profile}` : ""}
@@ -471,6 +487,19 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       header: "Extras",
       cell: (row) => (
         <span className="flex gap-1">
+          {/*
+            First, and in `danger`: a track that says `lrc` and `rg` and 99% about a file that
+            is not there is worse than one that says nothing (DRIVE-1 §B5).
+          */}
+          {row.present ? null : (
+            <ToneBadge
+              tone="danger"
+              data-testid="track-missing"
+              title="The file is not on disk. Re-download it from the album's actions."
+            >
+              missing
+            </ToneBadge>
+          )}
           {row.hasLyrics ? <ToneBadge tone="ok">lrc</ToneBadge> : null}
           {row.hasReplayGain ? <ToneBadge tone="ok">rg</ToneBadge> : null}
         </span>

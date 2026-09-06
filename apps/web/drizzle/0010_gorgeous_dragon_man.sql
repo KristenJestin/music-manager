@@ -1,0 +1,1 @@
+ALTER TABLE "library_tracks" ADD COLUMN "missing_at" timestamp with time zone;

@@ -32,6 +32,7 @@ export const QUALITY_FILTERS = [
   "all",
   "below80",
   "incomplete",
+  "missing",
   "untagged",
   "schema",
   "drift",
@@ -45,6 +46,8 @@ export const QUALITY_FILTER_LABELS: Readonly<Record<QualityFilter, string>> = Ob
   all: "All",
   below80: "Below 80%",
   incomplete: "Incomplete",
+  // "the file has gone", not "the track was never imported" — see `AlbumQuality.missingCount`.
+  missing: "Missing files",
   untagged: "Untagged",
   schema: "Behind schema",
   drift: "Drift",
