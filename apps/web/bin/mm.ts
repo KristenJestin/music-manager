@@ -14,7 +14,39 @@
  */
 import { readFileSync } from "node:fs";
 import { MMError } from "@mm/contracts";
+import {
+  canonicalValue,
+  tagByField,
+  trackCompleteness,
+  type AlbumHints,
+  type MatchVideo,
+} from "@mm/domain";
 import { db } from "#/server/db/client.ts";
+import { toolbox } from "#/server/toolbox/client.ts";
+import {
+  cassetteNameOf,
+  cassetteNames,
+  loadCassette,
+} from "#/server/services/matching.cassettes.ts";
+import {
+  cassetteGateway,
+  liveGateway,
+  type MbGateway,
+} from "#/server/services/matching.gateway.ts";
+import { sourceContextFor } from "#/server/services/matching.context.ts";
+import {
+  matchAlbum,
+  matchSingle,
+  type AlbumMatch,
+  type SingleMatch,
+} from "#/server/services/matching.service.ts";
+import {
+  build as buildDocument,
+  rebuild as rebuildDocument,
+  storedDocument,
+  type SourceVisit,
+} from "#/server/services/documents.ts";
+import { credentialReport, sourcesConfig } from "#/server/integrations/config.ts";
 import type { StepName } from "#/server/db/schema/index.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
@@ -29,8 +61,10 @@ import {
   stepsOf,
 } from "#/server/services/jobs/index.ts";
 import {
+  isSecretSetting,
   isSettingKey,
   loadSettings,
+  maskSetting,
   parseCliValue,
   SETTING_DEFINITIONS,
   SETTING_KEYS,
@@ -344,19 +378,432 @@ async function cmdInbox(args: Args): Promise<number> {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* mm match — the preselection, without importing anything (P05)       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `mm match <url> [--kind album|single] [--json]` — run the matcher and print what it thinks,
+ * without creating a job, downloading anything, or touching the library.
+ *
+ * The point of a separate command is that the preselection is the part of the pipeline most
+ * worth arguing with, and arguing with it should not cost an import. It is also how the
+ * acceptance table of `docs/phases/P05-matching.md` is checked by hand.
+ *
+ * A `fixture://…` URL replays a recorded scenario — the videos and every MusicBrainz document
+ * come off the cassette, so this needs neither the network nor the toolbox. A real URL goes
+ * through the toolbox for the video listing and through MusicBrainz for the rest, at one
+ * request per second.
+ */
+async function cmdMatch(args: Args): Promise<number> {
+  const url = args.positional[1];
+  if (url === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "usage: mm match <url|fixture://…> [--kind album|single] [--json]",
+    );
+  }
+  const asJson = flagBoolean(args, "json");
+  const forced = flagString(args, "kind");
+  if (forced !== undefined && forced !== "album" && forced !== "single") {
+    throw new MMError("INVALID_INPUT", `--kind must be album or single, not "${forced}".`);
+  }
+
+  const prepared = await prepareMatch(url);
+  const kind = forced ?? prepared.kind;
+  const settings = await loadSettings(db());
+
+  if (kind === "single") {
+    const video = prepared.videos[0];
+    if (video === undefined) throw new MMError("INVALID_INPUT", "no video to match.");
+    const result = await matchSingle(prepared.gateway, { video }, settings);
+    if (asJson) {
+      console.log(JSON.stringify({ ...result, kind, video }, null, 2));
+      return 0;
+    }
+    printSingle(video, result);
+    return 0;
+  }
+
+  const result = await matchAlbum(
+    prepared.gateway,
+    { videos: prepared.videos, hints: prepared.hints },
+    settings,
+  );
+  if (asJson) {
+    console.log(JSON.stringify({ ...result, kind, hints: prepared.hints }, null, 2));
+    return 0;
+  }
+  printAlbum(prepared, result);
+  return 0;
+}
+
+interface PreparedMatch {
+  readonly kind: "album" | "single";
+  readonly source: string;
+  readonly videos: readonly MatchVideo[];
+  readonly hints: AlbumHints;
+  readonly gateway: MbGateway;
+}
+
+/** Where the videos and the MusicBrainz documents come from, for one `mm match`. */
+async function prepareMatch(url: string): Promise<PreparedMatch> {
+  const name = cassetteNameOf(url);
+  if (name !== null) {
+    const cassette = loadCassette(name);
+    if (cassette === null) {
+      throw new MMError("NOT_FOUND", `No recorded scenario "${name}".`, {
+        hint: `Known: ${cassetteNames().join(", ") || "none"}.`,
+        action: "List the scenarios",
+      });
+    }
+    return {
+      kind: cassette.kind,
+      source: `${cassette.name} (recorded ${cassette.recordedAt.slice(0, 10)})`,
+      videos: cassette.videos,
+      hints: {
+        album: cassette.source.album ?? null,
+        artist: cassette.source.artist ?? null,
+        year: cassette.source.year ?? null,
+        label: cassette.source.label ?? null,
+      },
+      gateway: cassetteGateway(cassette),
+    };
+  }
+
+  const extract = await toolbox().extract(url);
+  const videos: MatchVideo[] = extract.entries.map((entry, index) => ({
+    id: entry.id,
+    index,
+    title: entry.title,
+    durationSeconds: entry.duration ?? null,
+    uploader: entry.uploader ?? null,
+    ytTrack: entry.track ?? null,
+    ytArtist: entry.artist ?? null,
+    ytAlbum: entry.album ?? null,
+    ytReleaseYear: entry.release_year ?? null,
+  }));
+  const first = videos[0];
+  return {
+    kind: extract.kind === "video" || videos.length <= 1 ? "single" : "album",
+    source: url,
+    videos,
+    hints: {
+      album: first?.ytAlbum ?? extract.title ?? null,
+      artist: first?.ytArtist ?? extract.uploader ?? null,
+      year: first?.ytReleaseYear ?? null,
+      label: null,
+    },
+    gateway: liveGateway(await sourceContextFor(db())),
+  };
+}
+
+/** A column of scores only reads as a ranking when the decimals line up. */
+function score3(value: number): string {
+  return value.toFixed(3);
+}
+
+const MAPPING_MARK: Record<string, string> = {
+  confident: "ok   ",
+  check: "?    ",
+  unmatched: "extra",
+};
+
+function printAlbum(prepared: PreparedMatch, result: AlbumMatch): void {
+  line(`source      ${prepared.source}`);
+  line(`videos      ${String(prepared.videos.length)}`);
+  line(
+    `looking for ${prepared.hints.album ?? "?"} — ${prepared.hints.artist ?? "?"}` +
+      `${prepared.hints.year == null ? "" : ` (${String(prepared.hints.year)})`}`,
+  );
+  line(
+    `budget      ${String(result.budget.searches)} search(es) + ` +
+      `${String(result.budget.lookups)} lookup(s)`,
+  );
+  line("");
+  line("   score  fit    mean Δ  tk  where             release");
+  for (const candidate of result.ranking.candidates.slice(0, 10)) {
+    // `*` preselected, ` ` looked up, `·` never looked up — so the budget is visible.
+    const mark = candidate.preselected ? "*" : candidate.detailed ? " " : "·";
+    const fit = candidate.detailed ? `${String(candidate.fit)}/${String(candidate.fitOf)}` : "-";
+    const delta = candidate.durDelta === null ? "-" : `${candidate.durDelta.toFixed(2)}s`;
+    const where = `${candidate.country ?? "??"} ${candidate.format ?? "?"}`;
+    line(
+      ` ${mark} ${score3(candidate.score)}  ${fit.padEnd(6)} ${delta.padEnd(7)} ` +
+        `${String(candidate.tracks).padStart(2)}  ${where.padEnd(17).slice(0, 17)} ` +
+        `${candidate.title}${candidate.disambiguation === "" ? "" : ` (${candidate.disambiguation})`}`,
+    );
+  }
+
+  const first = result.ranking.preselected;
+  if (first !== null) {
+    line("");
+    line(`preselected ${first.title} — ${first.id}${first.safe ? "   [safe]" : ""}`);
+    for (const why of first.why) line(`  · ${why}`);
+    line(
+      `margin      ${result.ranking.margin === null ? "n/a" : score3(result.ranking.margin)}` +
+        `${result.ranking.ambiguous ? "   → ambiguous_release: the Inbox would ask" : ""}`,
+    );
+  }
+
+  const proposal = result.mapping;
+  if (proposal === null) return;
+  line("");
+  line(
+    `mapping     ${String(proposal.bound)} bound, ` +
+      `${String(proposal.extraVideos.length)} extra video(s), ` +
+      `${String(proposal.uncoveredTracks.length)} uncovered track(s)`,
+  );
+  for (const mapped of proposal.lines) {
+    const track = mapped.trackN === null ? " --" : String(mapped.trackN).padStart(3);
+    const delta =
+      mapped.delta === null ? "" : `  ${mapped.delta > 0 ? "+" : ""}${mapped.delta.toFixed(1)}s`;
+    line(
+      ` ${String(mapped.videoIndex + 1).padStart(3)} ${MAPPING_MARK[mapped.status] ?? "     "} ` +
+        `${track}  ${score3(mapped.confidence)}  ` +
+        `${(mapped.trackTitle ?? mapped.videoTitle).padEnd(36).slice(0, 36)}${delta}`,
+    );
+  }
+  for (const track of proposal.uncoveredTracks) {
+    line(` uncovered   ${String(track.position).padStart(3)}         ${track.title}`);
+  }
+  line("");
+  line("Nothing was imported. `confirm` is still required — decision 002.");
+}
+
+function printSingle(video: MatchVideo, result: SingleMatch): void {
+  line(`video       ${video.title}`);
+  line(
+    `duration    ${video.durationSeconds === null ? "?" : `${String(video.durationSeconds)}s`}` +
+      `${video.uploader == null ? "" : `, uploaded by ${video.uploader}`}`,
+  );
+  line(
+    `budget      ${String(result.budget.searches)} search(es) + ` +
+      `${String(result.budget.lookups)} lookup(s)`,
+  );
+  line("");
+  line("   score  length  artist                 recording                      filed under");
+  for (const candidate of result.ranking.candidates.slice(0, 10)) {
+    const mark = candidate.preselected ? "*" : " ";
+    const length = candidate.length === null ? "-" : `${String(Math.round(candidate.length))}s`;
+    const named = `${candidate.title}${candidate.disambiguation === "" ? "" : ` (${candidate.disambiguation})`}`;
+    const borrow =
+      candidate.borrow === null
+        ? "—"
+        : `${candidate.borrow.title} [${candidate.borrow.type ?? "?"}]`;
+    line(
+      ` ${mark} ${score3(candidate.score)}  ${length.padEnd(7)} ` +
+        `${candidate.artist.padEnd(22).slice(0, 22)} ${named.padEnd(30).slice(0, 30)} ${borrow}`,
+    );
+  }
+
+  const first = result.ranking.preselected;
+  if (first !== null) {
+    line("");
+    line(`preselected ${first.title} — ${first.id}${first.safe ? "   [safe]" : ""}`);
+    for (const why of first.why) line(`  · ${why}`);
+    line(
+      `margin      ${result.ranking.margin === null ? "n/a" : score3(result.ranking.margin)}` +
+        `${result.ranking.ambiguous ? "   → ambiguous_recording: the Inbox would ask" : ""}`,
+    );
+  }
+  line("");
+  line("Nothing was imported. `confirm` is still required — decision 002.");
+}
+
+/* ------------------------------------------------------------------ */
+/* mm doc — the metadata document (P04)                                */
+/* ------------------------------------------------------------------ */
+
+const VISIT_MARK: Record<SourceVisit["outcome"], string> = {
+  fetched: "net ",
+  hit: "cach",
+  absent: "none",
+  skipped: "skip",
+  failed: "FAIL",
+};
+
+function printVisits(visits: readonly SourceVisit[]): void {
+  if (visits.length === 0) return;
+  line("");
+  line(" sources consulted:");
+  for (const visit of visits) {
+    line(
+      `  ${VISIT_MARK[visit.outcome]} ${visit.source.padEnd(16)} ${visit.key.slice(0, 52).padEnd(53)}${visit.note ?? visit.fetchedAt ?? ""}`,
+    );
+  }
+}
+
+/** A value, short enough to read in a table. Lyrics and pictures are summarised, not dumped. */
+function short(value: unknown): string {
+  if (Array.isArray(value)) {
+    if (value.length > 0 && typeof value[0] === "object") {
+      return `${String(value.length)} entr${value.length === 1 ? "y" : "ies"}`;
+    }
+    return value.map((item) => String(item)).join("; ");
+  }
+  if (typeof value === "object" && value !== null) {
+    const held = value as { synced?: string | null; plain?: string | null };
+    if ("synced" in held || "plain" in held) {
+      return held.synced != null ? "synced lyrics" : held.plain != null ? "plain lyrics" : "-";
+    }
+    return canonicalValue(value as never).slice(0, 60);
+  }
+  const text = String(value);
+  return text.length > 60 ? `${text.slice(0, 57)}…` : text;
+}
+
+async function cmdDoc(args: Args): Promise<number> {
+  const sub = args.positional[1];
+  const id = args.positional[2];
+  if (sub === undefined || id === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "usage: mm doc build <id> | mm doc show <id> [--missing] [--json] | mm doc rebuild <id> [--offline]",
+    );
+  }
+
+  if (sub === "build" || sub === "rebuild") {
+    // `rebuild` is offline by default — that is what distinguishes it from `build`. `--offline`
+    // on `build` says the same thing explicitly, and `--online` on `rebuild` opts back out.
+    const offline = sub === "rebuild" ? !flagBoolean(args, "online") : flagBoolean(args, "offline");
+    const run = sub === "rebuild" ? rebuildDocument : buildDocument;
+    const result = await run(id, {
+      offline,
+      refresh: flagBoolean(args, "refresh"),
+    });
+
+    line(`document ${result.documentId} for ${result.importTrackId}`);
+    line(`  mode        ${offline ? "offline (cache only)" : "online"}`);
+    line(
+      `  fields      ${String(Object.keys(result.document.fields).length)} present, ${String(Object.keys(result.document.na).length)} n/a`,
+    );
+    line(`  completeness ${result.completeness === null ? "n/a" : result.completeness.toFixed(3)}`);
+    line(`  requests    ${String(result.requests)}`);
+    if (offline && result.requests > 0) {
+      // The whole promise of §8 is that a rebuild costs nothing. If it ever stops being true,
+      // it must be loud rather than slow.
+      console.error(
+        `\nOFFLINE VIOLATION: ${String(result.requests)} outgoing request(s) during an offline rebuild.`,
+      );
+      printVisits(result.visits);
+      return 1;
+    }
+    if (!flagBoolean(args, "quiet")) printVisits(result.visits);
+    return 0;
+  }
+
+  if (sub === "show") {
+    const stored = await storedDocument(id);
+    if (stored === null) {
+      throw new MMError("NOT_FOUND", `No document for ${id}.`, {
+        hint: "`mm doc build <id>` builds it.",
+        action: "Build it",
+      });
+    }
+    if (flagBoolean(args, "json")) {
+      console.log(JSON.stringify(stored.document, null, 2));
+      return 0;
+    }
+
+    const report = trackCompleteness(stored.document);
+    const onlyMissing = flagBoolean(args, "missing");
+
+    line(`document for ${stored.importTrackId}`);
+    line(
+      `  completeness ${stored.completeness === null ? "n/a" : stored.completeness.toFixed(3)}  ·  ${String(report.present.length)} present, ${String(report.missing.length)} missing, ${String(report.na.length)} n/a`,
+    );
+    line("");
+
+    if (onlyMissing) {
+      const byLevel = {
+        required: [] as string[],
+        recommended: [] as string[],
+        optional: [] as string[],
+      };
+      for (const field of report.missing) {
+        const tag = tagByField(field);
+        if (tag !== undefined) byLevel[tag.level].push(`${field} (${tag.vorbis})`);
+      }
+      for (const level of ["required", "recommended", "optional"] as const) {
+        const held = byLevel[level];
+        line(` ${level.padEnd(12)} ${held.length === 0 ? "— none missing" : String(held.length)}`);
+        for (const entry of held) line(`   ${entry}`);
+      }
+      line("");
+      line(` n/a (${String(report.na.length)}) — the source says the field does not exist:`);
+      for (const field of report.na) {
+        const reason = stored.document.na[field]?.reason ?? "";
+        line(`   ${field.padEnd(28)} ${reason}`);
+      }
+      return byLevel.required.length === 0 ? 0 : 1;
+    }
+
+    line(
+      "FIELD                        VORBIS                     SOURCE        FETCHED AT            VALUE",
+    );
+    for (const entry of report.fields) {
+      if (entry.state === "present") {
+        const held = stored.document.fields[entry.field];
+        if (held === undefined) continue;
+        line(
+          `${entry.field.padEnd(28)} ${entry.vorbis.padEnd(26)} ${held.source.padEnd(13)} ${held.fetchedAt.slice(0, 19).padEnd(21)} ${held.locked ? "🔒 " : ""}${short(held.value)}`,
+        );
+      } else if (entry.state === "na") {
+        const held = stored.document.na[entry.field];
+        line(
+          `${entry.field.padEnd(28)} ${entry.vorbis.padEnd(26)} ${(held?.source ?? "-").padEnd(13)} ${"n/a".padEnd(21)} ${held?.reason ?? ""}`,
+        );
+      } else {
+        line(
+          `${entry.field.padEnd(28)} ${entry.vorbis.padEnd(26)} ${"-".padEnd(13)} ${`missing (${entry.level})`.padEnd(21)}`,
+        );
+      }
+    }
+    return 0;
+  }
+
+  throw new MMError("INVALID_INPUT", `Unknown doc subcommand "${sub}".`, {
+    hint: "build, show or rebuild.",
+  });
+}
+
+/** `mm sources` — which credentials are configured, without printing any of them. */
+async function cmdSources(): Promise<number> {
+  const settings = await loadSettings();
+  const config = sourcesConfig(settings);
+  line(`user-agent  ${config.userAgent}`);
+  line("");
+  for (const [name, state] of Object.entries(credentialReport(config))) {
+    line(`  ${name.padEnd(22)} ${state}`);
+  }
+  line("");
+  line("  source           enabled  ttl (days)");
+  for (const [name, on] of Object.entries(config.enabled)) {
+    const days = config.ttlMs[name as keyof typeof config.ttlMs] / 86_400_000;
+    line(
+      `  ${name.padEnd(17)} ${(on ? "yes" : "no").padEnd(8)} ${days === 0 ? "never" : String(days)}`,
+    );
+  }
+  return 0;
+}
+
 async function cmdSettings(args: Args): Promise<number> {
   const sub = args.positional[1] ?? "get";
   if (sub === "get") {
     const key = args.positional[2];
     const all = await loadSettings();
+    // A credential is never printed, here or anywhere else: `maskSetting` turns it into its
+    // length and last two characters, which distinguishes "wrong key" from "no key" and
+    // nothing more.
     if (key === undefined) {
       for (const name of SETTING_KEYS) {
-        line(name.padEnd(30), JSON.stringify(all[name]));
+        line(name.padEnd(30), JSON.stringify(maskSetting(name, all[name])));
       }
       return 0;
     }
     if (!isSettingKey(key)) throw new MMError("INVALID_INPUT", `Unknown setting "${key}".`);
-    line(JSON.stringify(all[key]));
+    line(JSON.stringify(maskSetting(key, all[key])));
     return 0;
   }
 
@@ -370,13 +817,14 @@ async function cmdSettings(args: Args): Promise<number> {
     const value = await setSetting(key as SettingKey, parseCliValue(key as SettingKey, raw), {
       setBy: "cli",
     });
-    line(`${key} = ${JSON.stringify(value)}`);
+    line(`${key} = ${JSON.stringify(maskSetting(key as SettingKey, value))}`);
     return 0;
   }
 
   if (sub === "list") {
     for (const name of SETTING_KEYS) {
-      line(name.padEnd(30), SETTING_DEFINITIONS[name].doc);
+      const mark = isSecretSetting(name) ? " (secret)" : "";
+      line(name.padEnd(30), `${SETTING_DEFINITIONS[name].doc}${mark}`);
     }
     return 0;
   }
@@ -400,6 +848,7 @@ async function cmdControl(args: Args, action: "cancel" | "pause" | "bump"): Prom
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
+  mm match <url|fixture://…> [--kind album|single] [--json]   score candidates without importing
   mm jobs
   mm job <id> [--follow]
   mm retry <id> --step <${STEP_ORDER.join("|")}>
@@ -409,7 +858,13 @@ const USAGE = `mm — Music Manager
   mm settings get [key] | set <key> <value> | list
   mm pause <id> | mm cancel <id> | mm bump <id>
 
-Environment: DATABASE_URL, MM_TOOLBOX_URL, MM_FIXTURES, MM_LIBRARY_ROOT, MM_TOOLBOX_LIBRARY_ROOT.
+  mm doc build <import_track_id|library_track_id> [--offline] [--refresh]
+  mm doc show <id> [--missing] [--json]
+  mm doc rebuild <id> [--offline]        offline by default; exits 1 if anything left the machine
+  mm sources                             which credentials are set, and every source's TTL
+
+Environment: DATABASE_URL, MM_TOOLBOX_URL, MM_FIXTURES, MM_LIBRARY_ROOT, MM_TOOLBOX_LIBRARY_ROOT,
+             MM_MB_CONTACT, MM_ACOUSTID_KEY, MM_LASTFM_KEY, MM_FANARTTV_KEY.
 `;
 
 async function main(): Promise<number> {
@@ -419,6 +874,8 @@ async function main(): Promise<number> {
   switch (command) {
     case "import":
       return await cmdImport(args);
+    case "match":
+      return await cmdMatch(args);
     case "jobs":
       return await cmdJobs();
     case "job":
@@ -429,6 +886,10 @@ async function main(): Promise<number> {
       return await cmdInbox(args);
     case "settings":
       return await cmdSettings(args);
+    case "doc":
+      return await cmdDoc(args);
+    case "sources":
+      return await cmdSources();
     case "cancel":
     case "pause":
     case "bump":
