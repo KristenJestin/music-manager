@@ -1,0 +1,181 @@
+/**
+ * Jobs: the list, one job, its journal, and the four controls.
+ *
+ * Every function here carries `sessionMiddleware`, so none of them answers without a session.
+ * The controls are thin on purpose — `retry`, `pause`, `cancel` and `bump` already exist in
+ * `jobs.service` and already write the journal lines the SSE stream carries, so the Console's
+ * job is to call them and get out of the way, not to reimplement what "retry" means.
+ *
+ * `retry` and `resume` also put the job back on a queue. Without that the row would say
+ * `running` and nothing would be running it, which is the one failure mode a job page must
+ * never show.
+ */
+import { z } from "zod";
+import type { JobEventPayload } from "@mm/contracts";
+import { db } from "#/server/db/client.ts";
+import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.ts";
+import { createServerFn } from "@tanstack/react-start";
+import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
+import { readEvents } from "#/server/services/events.ts";
+import {
+  bumpImport,
+  cancelImport,
+  pauseImport,
+  resumeStepOf,
+  retryStep,
+} from "#/server/services/jobs/index.ts";
+import {
+  jobCounts,
+  jobDetail,
+  listJobs,
+  stepResult,
+  type DashboardStats,
+  type JobDetail,
+  type JobSummary,
+} from "#/server/services/console.queries.ts";
+import { enqueue } from "#/server/services/queue.ts";
+
+const statusFilter = z.enum([
+  "all",
+  "active",
+  "pending",
+  "running",
+  "awaiting_confirm",
+  "awaiting_review",
+  "paused",
+  "done",
+  "failed",
+  "cancelled",
+]);
+
+export type JobStatusFilter = z.infer<typeof statusFilter>;
+
+export interface JobListPayload {
+  readonly jobs: readonly JobSummary[];
+  readonly counts: Record<ImportStatus | "all" | "active", number>;
+}
+
+export const fetchJobs = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ status: statusFilter.default("all") }))
+  .handler(async ({ data }): Promise<JobListPayload> => {
+    try {
+      const [jobs, counts] = await Promise.all([
+        listJobs({ status: data.status, limit: 100 }),
+        jobCounts(),
+      ]);
+      return { jobs, counts };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export interface JobPagePayload extends JobDetail {
+  /** What `match` decided, so the detail page can show the release without asking MusicBrainz. */
+  readonly match: Record<string, unknown> | null;
+  /** The journal so far. The SSE stream takes over from the last id. */
+  readonly events: readonly JobEventPayload[];
+}
+
+export const fetchJob = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<JobPagePayload | null> => {
+    try {
+      const detail = await jobDetail(data.id);
+      if (detail === null) return null;
+      const [match, events] = await Promise.all([
+        stepResult(data.id, "match"),
+        readEvents({ importId: data.id, since: 0, limit: 500 }),
+      ]);
+      return { ...detail, match, events };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/** More journal, for a page that was open across a reload or a long gap. */
+export const fetchJobEvents = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1), since: z.number().int().min(0).default(0) }))
+  .handler(async ({ data }): Promise<readonly JobEventPayload[]> => {
+    try {
+      return await readEvents({ importId: data.id, since: data.since, limit: 500 });
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/* ------------------------------------------------------------------ */
+/* controls                                                            */
+/* ------------------------------------------------------------------ */
+
+const stepName = z.enum(STEPS);
+
+export const retryJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1), step: stepName.optional() }))
+  .handler(async ({ data }): Promise<{ step: StepName }> => {
+    try {
+      const from = data.step ?? (await resumeStepOf(data.id, db()));
+      // Rewind the step rows without running anything here: the worker owns execution, and a
+      // download started inside an HTTP request would die with the request.
+      await retryStep(data.id, from, { db: db(), only: true });
+      await enqueue(data.id, "console retry", from);
+      return { step: from };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export const resumeJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<{ step: StepName }> => {
+    try {
+      const step = await resumeStepOf(data.id, db());
+      await enqueue(data.id, "console resume", step);
+      return { step };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export const pauseJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    try {
+      await pauseImport(data.id, "Paused from the Console.", db());
+      return { ok: true };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export const cancelJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    try {
+      await cancelImport(data.id, db());
+      return { ok: true };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export const bumpJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1), by: z.number().int().default(10) }))
+  .handler(async ({ data }): Promise<{ priority: number }> => {
+    try {
+      const priority = await bumpImport(data.id, data.by, db());
+      await enqueue(data.id, "console bump");
+      return { priority };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+export type { DashboardStats };

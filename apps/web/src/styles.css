@@ -41,6 +41,8 @@
   /* ---- lines ------------------------------------------------------------- */
   --color-line: #222833;
   --color-line-strong: #2c3441;
+  /* The hover border of a raised control — the prototype's `#3a4351`. */
+  --color-line-hover: #3a4351;
   --color-border: #222833;
   --color-input: #2c3441;
   --color-ring: #f5b942;
@@ -71,6 +73,21 @@
   --color-info: #58a6ff;
   --color-info-soft: rgb(88 166 255 / 0.14);
 
+  /*
+   * Callouts need three values per tone, not one: a wash, a visible edge, and text that is
+   * legible *on* the wash. The plain `--color-ok` is too saturated to read a paragraph in,
+   * which is why the prototype lightens it — those lightened values are these.
+   */
+  --color-ok-edge: rgb(63 185 80 / 0.35);
+  --color-ok-text: #7fd58c;
+  --color-warn-edge: rgb(210 153 34 / 0.35);
+  --color-warn-text: #f0cf7a;
+  --color-danger-edge: rgb(248 81 73 / 0.35);
+  --color-danger-text: #ff8a83;
+  --color-info-edge: rgb(88 166 255 / 0.35);
+  --color-info-text: #9ccbff;
+  --color-primary-edge: rgb(245 185 66 / 0.35);
+
   --color-destructive: #f85149;
   --color-destructive-foreground: #0b0d10;
 
@@ -85,7 +102,9 @@
     "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* The Console prototype is dense: 13px body, 12px mono, 11px meta. */
+  /* The Console prototype is dense: 13px body, 12px mono, 11px meta, 10px keycaps. */
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 1.4;
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1.4;
   --text-xs: 0.75rem;
@@ -96,12 +115,139 @@
   /* ---- shell geometry ----------------------------------------------------- */
   --spacing-sidebar: 232px;
   --spacing-topbar: 48px;
+  --spacing-drawer: 380px;
+  --spacing-palette: 620px;
+  --spacing-urlbox: 420px;
+  --spacing-scorebar: 64px;
+  /* `max-w-*` and `w-*` read different namespaces; the palette needs both. */
+  --container-palette: 620px;
+  --container-form: 380px;
+
+  /*
+   * Cover placeholders.
+   *
+   * Until P07 downloads real artwork, a release is drawn as a gradient chosen from its id.
+   * Eleven of them, ported from `prototypes/shared/core.js`, as `--background-image-*` so
+   * they are `bg-cover-1` … `bg-cover-11` and never an arbitrary value in a component.
+   */
+  --background-image-cover-1: linear-gradient(135deg, #ffb347 0%, #ff6b6b 45%, #2b2d42 100%);
+  --background-image-cover-2: linear-gradient(135deg, #0f172a 0%, #334155 50%, #c0c0c0 100%);
+  --background-image-cover-3: linear-gradient(135deg, #f5e6c8 0%, #c9a27a 60%, #4a3728 100%);
+  --background-image-cover-4: linear-gradient(135deg, #f9d423 0%, #ff4e50 40%, #1f2937 100%);
+  --background-image-cover-5: linear-gradient(135deg, #ffe4e6 0%, #f43f5e 55%, #111827 100%);
+  --background-image-cover-6: linear-gradient(135deg, #111111 0%, #333333 55%, #8b0000 100%);
+  --background-image-cover-7: linear-gradient(135deg, #a7f3d0 0%, #3b82f6 45%, #7c2d12 100%);
+  --background-image-cover-8: linear-gradient(135deg, #f8fafc 0%, #94a3b8 50%, #0f172a 100%);
+  --background-image-cover-9: linear-gradient(135deg, #d1fae5 0%, #22c55e 40%, #f0fdf4 100%);
+  --background-image-cover-10: linear-gradient(135deg, #fde68a 0%, #f59e0b 50%, #1e3a8a 100%);
+  --background-image-cover-11: linear-gradient(135deg, #1c1917 0%, #78350f 60%, #f59e0b 100%);
+
+  /* The amber rule down the left edge of the active sidebar entry. */
+  --inset-shadow-nav: inset 2px 0 0 var(--color-primary);
+
+  /* ---- motion ------------------------------------------------------------- */
+  --animate-pulse-ring: pulse-ring 1.6s infinite;
+  --animate-blink: blink 1s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(63 185 80 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgb(63 185 80 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(63 185 80 / 0);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Non-token variables that the shadcn Base UI components read directly. */
 :root {
   --radius: var(--radius-md);
   --card-spacing: 0.875rem;
+}
+
+/*
+ * Named layouts.
+ *
+ * Tailwind v4 has no theme namespace for `grid-template-*`, so the only way to express the
+ * Console's seven fixed grids without arbitrary values (`grid-cols-[28px_1fr_…]`, which
+ * ../../../CLAUDE.md forbids) is a named utility per grid. Each one is ported from
+ * `prototypes/A-console/styles.css` and named after the thing it lays out.
+ */
+
+/** The shell: sidebar column, topbar row. */
+@utility shell-grid {
+  display: grid;
+  grid-template-columns: var(--spacing-sidebar) 1fr;
+  grid-template-rows: var(--spacing-topbar) 1fr;
+}
+
+/** A page's main column and its rail. Collapses to one column on a narrow window. */
+@utility split-grid {
+  display: grid;
+  gap: --spacing(4);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  @media (width < 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/** Two equal columns, same collapse. */
+@utility split-even-grid {
+  display: grid;
+  gap: --spacing(4);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  @media (width < 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/** The Review page: item list, decision card. */
+@utility review-grid {
+  display: grid;
+  gap: --spacing(4);
+  grid-template-columns: 340px minmax(0, 1fr);
+  @media (width < 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/** One decision card: cover, then the question and its answers. */
+@utility review-card-grid {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+}
+
+/** A definition list: label column sized to its content. */
+@utility kv-grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+/** One log line: time, level, step, message. */
+@utility log-grid {
+  display: grid;
+  grid-template-columns: 4rem 2.75rem 5.25rem minmax(0, 1fr);
+}
+
+/** One mapping row: number, video, arrow, track selector, fit, why. */
+@utility map-grid {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) 2.75rem minmax(0, 1fr) 7.5rem 2rem;
+}
+
+/** One candidate card: radio, cover, body, score. */
+@utility candidate-grid {
+  display: grid;
+  grid-template-columns: 1.5rem 3.5rem minmax(0, 1fr) auto;
 }
 
 @layer base {
