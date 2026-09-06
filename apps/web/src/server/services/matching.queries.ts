@@ -36,8 +36,10 @@ import { toMatchVideo } from "#/server/services/jobs/steps/match.ts";
 import {
   cassetteGateway,
   liveGateway,
+  reportingGateway,
   type MbGateway,
 } from "#/server/services/matching.gateway.ts";
+import { matchReporter, publishProgress } from "#/server/services/match-progress.ts";
 import { cassetteNameOf, loadCassette } from "#/server/services/matching.cassettes.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import {
@@ -117,14 +119,47 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
       action: "Back to step 1",
     });
   }
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const plain = await gatewayForUrl(input.job.url, db, input.signal);
   const single = input.job.kind === "single" || rows.length === 1;
-  if (single) {
-    const video = videos[0];
-    if (video === undefined) throw new MMError("INVALID_INPUT", "This import has no videos yet.");
-    return await matchSingle(gateway, { video }, input.settings);
+
+  /*
+   * The wait is the feature here (A5 of the owner review).
+   *
+   * Two searches and up to `matchLookupLimit` lookups at one request per second is eight to
+   * ten seconds that cannot be made shorter, so the screen is told what is being spent rather
+   * than left blank. The planned counts are the same budget `matchAlbum` promises, taken from
+   * the settings rather than discovered as we go.
+   */
+  const report = matchReporter(input.job.id, {
+    searches: 2,
+    lookups: lookupLimitOf(input.settings),
+  });
+  report("starting", "Asking MusicBrainz about this release…", { searches: 0, lookups: 0 });
+  const gateway = reportingGateway(plain, report);
+
+  try {
+    if (single) {
+      const video = videos[0];
+      if (video === undefined) throw new MMError("INVALID_INPUT", "This import has no videos yet.");
+      return await matchSingle(gateway, { video }, input.settings);
+    }
+    return await matchAlbum(
+      gateway,
+      { videos, hints: hintsFor(input.job, videos) },
+      input.settings,
+    );
+  } finally {
+    // Always: a subscriber must not be left watching a match that failed half-way.
+    publishProgress({
+      importId: input.job.id,
+      phase: "done",
+      label: "Scoring the candidates…",
+      searches: gateway.calls.searches,
+      searchesPlanned: 2,
+      lookups: gateway.calls.lookups,
+      lookupsPlanned: lookupLimitOf(input.settings),
+    });
   }
-  return await matchAlbum(gateway, { videos, hints: hintsFor(input.job, videos) }, input.settings);
 }
 
 /* ------------------------------------------------------------------ */

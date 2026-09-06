@@ -1,18 +1,28 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { ArrowRight, ChevronLeft, Play, RefreshCw, Search } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  Copyright,
+  LoaderCircle,
+  Play,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 import type { MappingLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { MappingRow } from "#/components/mapping-row.tsx";
+import { ProgressBar } from "#/components/progress-bar.tsx";
 import { Stepper } from "#/components/stepper.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { RecordingCandidateCard, ReleaseCandidateCard } from "#/components/candidate-card.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
+import { useMatchProgress } from "#/hooks/use-match-progress.ts";
 import { cn } from "cn";
 import { mmss, pct } from "#/lib/format.ts";
 import {
@@ -109,6 +119,15 @@ export const Route = createFileRoute("/_app/import/new")({
   },
   staticData: { crumbs: [{ label: "Import" }] },
   component: Wizard,
+  /*
+   * A5 of the owner review: pressing "Find on MusicBrainz" did nothing visible for ten
+   * seconds. It was not slow *and* silent by accident — every step's data is fetched in the
+   * loader, and a loader with no pending component leaves the previous screen on the glass
+   * until it resolves. `pendingMs: 0` shows the waiting screen on the first frame instead.
+   */
+  pendingMs: 0,
+  pendingMinMs: 300,
+  pendingComponent: WizardPending,
 });
 
 const STEP_NAMES = ["Source", "MusicBrainz match", "Track mapping", "Options & start"];
@@ -131,6 +150,101 @@ export interface WizardOptions {
   readonly lyrics: boolean;
   readonly replaygain: boolean;
   readonly force: boolean;
+}
+
+/* ================================================================== */
+/* the frame: waiting, and the action bar                              */
+/* ================================================================== */
+
+/**
+ * What the wizard looks like while its loader is running.
+ *
+ * Step 2 is the one that takes real time — two MusicBrainz searches and up to six tracklist
+ * lookups, at the one request per second the service is rate-limited to, so eight to ten
+ * seconds is the floor. The screen therefore reports the work rather than spinning: which
+ * request is being made now, and how many of the planned ones are done.
+ */
+function WizardPending() {
+  const params = Route.useSearch();
+  const matching = params.step >= 2 && params.importId !== undefined;
+  const progress = useMatchProgress(matching ? (params.importId ?? null) : null);
+
+  const done = (progress?.searches ?? 0) + (progress?.lookups ?? 0);
+  const planned = Math.max(1, (progress?.searchesPlanned ?? 2) + (progress?.lookupsPlanned ?? 6));
+
+  return (
+    <div data-testid="wizard-pending" className="flex flex-col gap-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-1 px-4 py-3">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">New import</h1>
+          <p className="text-fg-2">
+            {matching ? "Asking MusicBrainz which release this is" : "Reading the source"}
+          </p>
+        </div>
+        <Stepper steps={STEP_NAMES} current={params.step - 1} done={params.step - 1} />
+      </div>
+
+      <section className="rounded-xl border border-line bg-surface-1 px-6 py-10">
+        <div className="mx-auto flex max-w-md flex-col items-center gap-3.5 text-center">
+          <LoaderCircle className="size-7 animate-spin text-primary" aria-hidden="true" />
+          <h2 className="text-sm font-semibold" data-testid="pending-title">
+            {matching ? "Searching MusicBrainz…" : "Reading the source…"}
+          </h2>
+          <p className="text-xs text-fg-2" data-testid="pending-label">
+            {progress?.label ??
+              (matching
+                ? "Two searches and up to six tracklist lookups, one request per second."
+                : "Asking YouTube what is behind this link.")}
+          </p>
+
+          {matching ? (
+            <div className="flex w-full flex-col gap-1.5">
+              <ProgressBar
+                value={Math.min(1, done / planned)}
+                tone="primary"
+                label="MusicBrainz requests done"
+                className="w-full"
+              />
+              <p className="font-mono text-2xs text-fg-2" data-testid="pending-counters">
+                <span data-testid="pending-searches">
+                  {progress?.searches ?? 0}/{progress?.searchesPlanned ?? 2}
+                </span>{" "}
+                searches, {""}
+                <span data-testid="pending-lookups">
+                  {progress?.lookups ?? 0}/{progress?.lookupsPlanned ?? 6}
+                </span>{" "}
+                tracklist lookups
+              </p>
+            </div>
+          ) : null}
+
+          <p className="text-2xs text-fg-3">
+            MusicBrainz allows one request per second, so this takes about ten seconds. Nothing is
+            downloaded and nothing is written until you press Start.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * The wizard's action bar: Back on the left, the step's forward action on the right.
+ *
+ * Sticky (A9 of the owner review). Step 3 of a fourteen-track album is two screens tall, and a
+ * "Map tracks" button that only exists at the bottom of it is a button most people scroll past
+ * looking for. It sits above the page background rather than inside it, so the rows scroll
+ * under it instead of ending behind it.
+ */
+function WizardActions({ children }: { readonly children: ReactNode }) {
+  return (
+    <footer
+      data-testid="wizard-actions"
+      className="sticky bottom-0 z-20 -mx-4 mt-4 flex items-center justify-between gap-3 border-t border-line bg-background/95 px-4 py-3 backdrop-blur-sm"
+    >
+      {children}
+    </footer>
+  );
 }
 
 function Wizard() {
@@ -170,8 +284,8 @@ function Wizard() {
           <h1 className="text-lg font-semibold tracking-tight">New import</h1>
           <p className="text-fg-2">
             {single
-              ? "Single video → one recording"
-              : "Album/playlist → one release, 1:1 track mapping"}
+              ? "One video, one recording"
+              : "Album or playlist: one release, one video per track"}
           </p>
         </div>
         <Stepper
@@ -400,7 +514,7 @@ function StepTail({
       }).then((result) => {
         onBusy(false);
         toast(
-          `Import queued without MusicBrainz — ${String(result.mapped)} track(s), tagged from YouTube alone.`,
+          `Import queued without MusicBrainz: ${String(result.mapped)} track(s), tagged from YouTube alone.`,
           "ok",
         );
         void navigate({ to: "/imports/$id", params: { id: result.importId } });
@@ -453,7 +567,7 @@ function StepTail({
       },
     }).then((result) => {
       onBusy(false);
-      toast(`Import queued — ${String(result.mapped)} track(s).`, "ok");
+      toast(`Import queued: ${String(result.mapped)} track(s).`, "ok");
       void navigate({ to: "/imports/$id", params: { id: result.importId } });
     }, onFail);
   };
@@ -600,12 +714,12 @@ function StepSource({
 
           {source === null ? (
             <div className="rounded-xl border border-dashed border-line-strong px-6 py-16 text-center text-fg-2">
-              {busy ? "Asking yt-dlp…" : "Paste a URL above to see what yt-dlp finds."}
+              {busy ? "Reading the source…" : "Paste a link above to see what we find on YouTube."}
             </div>
           ) : (
             <section className="overflow-hidden rounded-xl border border-line bg-surface-1">
               <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-                <h2 className="text-sm font-semibold">What yt-dlp sees</h2>
+                <h2 className="text-sm font-semibold">What we found on YouTube</h2>
                 <span className="text-xs text-fg-2" data-testid="source-count">
                   {source.videos.length} {source.videos.length === 1 ? "video" : "videos"} ·{" "}
                   {mmss(source.totalSeconds)} total
@@ -613,7 +727,12 @@ function StepSource({
               </header>
               <div className="px-3.5 py-3">
                 <div className="flex items-start gap-3.5">
-                  <Cover size="lg" seed={source.importId} label={source.title ?? source.url} />
+                  <Cover
+                    size="lg"
+                    src={source.thumbnail}
+                    seed={source.importId}
+                    label={source.title ?? source.url}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold">{source.title ?? source.url}</div>
                     <div className="text-fg-2">{source.uploader ?? "unknown channel"}</div>
@@ -624,8 +743,8 @@ function StepSource({
                           label: "Parsed artist",
                           value: (
                             <>
-                              {source.hints.artist ?? "—"}{" "}
-                              <ToneBadge tone="ok">from YT tags</ToneBadge>
+                              {source.hints.artist ?? "not found"}{" "}
+                              <ToneBadge tone="ok">from the YouTube tags</ToneBadge>
                             </>
                           ),
                         },
@@ -633,8 +752,8 @@ function StepSource({
                           label: "Parsed album",
                           value: (
                             <>
-                              {source.hints.album ?? "—"}{" "}
-                              <ToneBadge tone="ok">from YT tags</ToneBadge>
+                              {source.hints.album ?? "not found"}{" "}
+                              <ToneBadge tone="ok">from the YouTube tags</ToneBadge>
                             </>
                           ),
                         },
@@ -642,9 +761,11 @@ function StepSource({
                           label: "Year",
                           value: (
                             <>
-                              {source.hints.year ?? "—"}{" "}
+                              {source.hints.year ?? "not found"}{" "}
                               {source.hints.releasedOn === null ? null : (
-                                <ToneBadge tone="info">℗ / Released on</ToneBadge>
+                                <ToneBadge tone="info">
+                                  <Copyright className="size-3" aria-hidden="true" /> Released on
+                                </ToneBadge>
                               )}
                             </>
                           ),
@@ -653,9 +774,9 @@ function StepSource({
                           label: "Label",
                           value: (
                             <>
-                              {source.hints.label ?? "—"}{" "}
+                              {source.hints.label ?? "not found"}{" "}
                               {source.hints.label === null ? null : (
-                                <ToneBadge tone="info">“Provided to YouTube by”</ToneBadge>
+                                <ToneBadge tone="info">from “Provided to YouTube by”</ToneBadge>
                               )}
                             </>
                           ),
@@ -676,8 +797,10 @@ function StepSource({
                       <thead>
                         <tr className="text-2xs tracking-wider text-fg-2 uppercase">
                           <th className="px-2 py-1.5 text-left">#</th>
-                          <th className="px-2 py-1.5 text-left">Video title</th>
-                          <th className="px-2 py-1.5 text-left">YT track tag</th>
+                          <th className="px-2 py-1.5 text-left" colSpan={2}>
+                            Video title
+                          </th>
+                          <th className="px-2 py-1.5 text-left">Track name on YouTube</th>
                           <th className="px-2 py-1.5 text-right">Duration</th>
                         </tr>
                       </thead>
@@ -687,8 +810,16 @@ function StepSource({
                             <td className="px-2 py-1 text-right font-mono text-fg-3">
                               {video.index + 1}
                             </td>
+                            <td className="py-1 pl-2">
+                              <Cover
+                                size="xs"
+                                src={video.thumbnail}
+                                seed={video.videoId}
+                                label={video.title}
+                              />
+                            </td>
                             <td className="px-2 py-1">{video.title}</td>
-                            <td className="px-2 py-1 text-fg-2">{video.ytTrack ?? "—"}</td>
+                            <td className="px-2 py-1 text-fg-2">{video.ytTrack ?? "not tagged"}</td>
                             <td className="px-2 py-1 text-right font-mono">
                               {mmss(video.durationSeconds)}
                             </td>
@@ -707,8 +838,8 @@ function StepSource({
           {source !== null && source.duplicates.length > 0 ? (
             <Callout tone="warn">
               This URL was imported before ({source.duplicates.length}{" "}
-              {source.duplicates.length === 1 ? "time" : "times"}). Re-importing is allowed — it is
-              how you pick up better metadata — and files already in the library are skipped unless
+              {source.duplicates.length === 1 ? "time" : "times"}). Re-importing is allowed; it is
+              how you pick up better metadata, and files already in the library are skipped unless
               you force them.
             </Callout>
           ) : null}
@@ -735,11 +866,14 @@ function StepSource({
         </div>
       </div>
 
-      <footer className="mt-4 flex justify-end">
+      <WizardActions>
+        <span className="text-2xs text-fg-3">
+          {source === null ? "Paste a link to begin." : "Nothing is downloaded yet."}
+        </span>
         <Button data-testid="wizard-next" disabled={source === null || busy} onClick={onContinue}>
           Find on MusicBrainz <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
-      </footer>
+      </WizardActions>
     </>
   );
 }
@@ -797,17 +931,27 @@ function StepMatch({
             <b>
               {preselected === null
                 ? "Nothing scored high enough to propose."
-                : `Preselected: ${preselected.title} — ${pct(preselected.score)}.`}
+                : `Preselected: ${preselected.title}, scored ${pct(preselected.score)}.`}
             </b>{" "}
             {candidates.budget.searches} search
             {candidates.budget.searches === 1 ? "" : "es"} and {candidates.budget.lookups} lookup
             {candidates.budget.lookups === 1 ? "" : "s"} against MusicBrainz. You pick; the
-            algorithm only orders. Open <em>why?</em> on any card for the signals behind its score.
+            algorithm only orders. Open <em>why?</em> on any card for the signals behind its score.{" "}
+            {/*
+              A8 of the owner review, in one sentence: the tracklist fit is *already* what
+              ordered this list, so "the release is chosen from the tracks, but the mapping
+              comes after" is answered on the card rather than a step later.
+            */}
+            <span data-testid="fit-explainer">
+              The <b>fit</b> next to each score is that candidate's tracklist already matched
+              against your videos, one by one, which is what separates two pressings of the same
+              record. Open <em>tracklist fit</em> to read it; step 3 is where you change it.
+            </span>
             {candidates.ambiguous ? (
               <>
                 {" "}
                 <b>Two candidates are within {candidates.margin?.toFixed(3) ?? "?"}</b> and would
-                not import the same tracks — worth a look.
+                not import the same tracks, which is worth a look.
               </>
             ) : null}
           </Callout>
@@ -861,12 +1005,12 @@ function StepMatch({
           <Callout className="mt-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                Nothing fits? Paste the MBID of the right release above — the mapping is computed
+                Nothing fits? Paste the MBID of the right release above, and the mapping is computed
                 against whatever you pin, even if the search never proposed it. If MusicBrainz
-                genuinely does not have this — a live set, a bootleg, an unregistered artist —
-                import it from the YouTube tags alone. The album is then flagged <b>untagged</b> in
-                the library, with its own filter on the Quality page, so it can be finished the day
-                a release appears.
+                genuinely does not have this (a live set, a bootleg, an unregistered artist), import
+                it from the YouTube tags alone. The album is then flagged <b>untagged</b> in the
+                library, with its own filter on the Quality page, so it can be finished the day a
+                release appears.
               </div>
               <Button
                 variant="outline"
@@ -882,7 +1026,7 @@ function StepMatch({
         </>
       )}
 
-      <footer className="mt-4 flex justify-between">
+      <WizardActions>
         <Button variant="ghost" onClick={onBack}>
           <ChevronLeft className="size-4" aria-hidden="true" /> Back
         </Button>
@@ -890,7 +1034,7 @@ function StepMatch({
           {candidates?.kind === "single" ? "Options" : "Map tracks"}{" "}
           <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
-      </footer>
+      </WizardActions>
     </>
   );
 }
@@ -955,7 +1099,7 @@ function StepMapping({
           release track{uncovered === 1 ? "" : "s"} uncovered
         </span>
         <span className="ml-auto text-fg-2">
-          mean |Δ| {mapping.meanAbsDelta === null ? "—" : `${mapping.meanAbsDelta.toFixed(1)}s`}
+          mean |Δ| {mapping.meanAbsDelta === null ? "n/a" : `${mapping.meanAbsDelta.toFixed(1)}s`}
         </span>
       </div>
 
@@ -1011,14 +1155,14 @@ function StepMapping({
         </Callout>
       </div>
 
-      <footer className="mt-4 flex justify-between">
+      <WizardActions>
         <Button variant="ghost" onClick={onBack}>
           <ChevronLeft className="size-4" aria-hidden="true" /> Back
         </Button>
         <Button data-testid="wizard-next" disabled={bound === 0 || busy} onClick={onContinue}>
           Options <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
-      </footer>
+      </WizardActions>
     </>
   );
 }
@@ -1115,8 +1259,8 @@ function StepOptions({
     <>
       {untagged ? (
         <Callout tone="warn" className="mb-3.5" data-testid="untagged-notice">
-          <b>Importing without MusicBrainz.</b> The tags will come from the YouTube metadata alone —
-          title, artist, album, year — so there will be no identifiers, no credits, no release date
+          <b>Importing without MusicBrainz.</b> The tags will come from the YouTube metadata alone
+          (title, artist, album, year), so there will be no identifiers, no credits, no release date
           and no cover from the archive. The album is flagged <b>untagged</b> in the library and has
           its own filter on the Quality page; picking a release later and re-tagging fills in
           everything, offline, without re-downloading a byte.
@@ -1129,23 +1273,33 @@ function StepOptions({
               <h2 className="text-sm font-semibold">Summary</h2>
             </header>
             <div className="flex items-start gap-3.5 px-3.5 py-3">
-              <Cover size="lg" seed={mapping?.releaseMbid ?? ""} label={releaseTitle} />
+              {/*
+                The archive's front when a release was chosen, the YouTube thumbnail when it
+                was not — the same order `docs/03` §4 gives the real cover pipeline, so the
+                picture here is the picture the album will end up with.
+              */}
+              <Cover
+                size="lg"
+                src={coverArtFront(mapping?.releaseMbid) ?? source?.thumbnail}
+                seed={mapping?.releaseMbid ?? ""}
+                label={releaseTitle}
+              />
               <KeyValueList
                 className="flex-1"
                 items={[
                   {
                     label: "Source",
-                    value: <span className="font-mono text-2xs">{source?.url ?? "—"}</span>,
+                    value: <span className="font-mono text-2xs">{source?.url ?? "none"}</span>,
                   },
                   {
                     label: "Release",
-                    value: `${releaseTitle} — ${releaseArtist}${year === null ? "" : ` (${String(year)})`}`,
+                    value: `${releaseTitle} by ${releaseArtist}${year === null ? "" : ` (${String(year)})`}`,
                   },
                   {
                     label: "Tracks",
                     value: (
                       <span data-testid="summary-tracks">
-                        {bound} bound · {extras} extra skipped · {uncovered} uncovered
+                        {bound} bound, {extras} extra skipped, {uncovered} uncovered
                       </span>
                     ),
                   },
@@ -1160,7 +1314,7 @@ function StepOptions({
                         </ToneBadge>
                       ),
                   },
-                  { label: "Pace", value: "one download at a time, 5–15 s apart" },
+                  { label: "Pace", value: "one download at a time, 5 to 15 seconds apart" },
                 ]}
               />
             </div>
@@ -1169,7 +1323,7 @@ function StepOptions({
           <section className="rounded-xl border border-line bg-surface-1">
             <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
               <h2 className="text-sm font-semibold">Destination preview</h2>
-              <span className="text-2xs text-fg-2">template from Settings › Library</span>
+              <span className="text-2xs text-fg-2">template from Settings, Library</span>
             </header>
             <div className="flex flex-col gap-1.5 px-3.5 py-3">
               <div className="rounded-md border border-dashed border-line-strong bg-background px-2.5 py-2 font-mono text-2xs text-fg-1">
@@ -1180,7 +1334,7 @@ function StepOptions({
                 .opus
               </div>
               <p className="text-2xs text-fg-3">
-                Native codec kept — opus from YouTube, never re-encoded. Cover embedded, sidecar
+                Native codec kept: opus from YouTube, never re-encoded. Cover embedded, sidecar
                 lyrics written next to the file.
               </p>
             </div>
@@ -1196,7 +1350,7 @@ function StepOptions({
               <Toggle
                 testId="option-fingerprint"
                 label="Verify with fingerprint"
-                help="AcoustID after download; pause in Review on a mismatch"
+                help="AcoustID after download; pauses in Review on a mismatch"
                 checked={options.fingerprint}
                 onChange={(value) => {
                   setOptions({ ...options, fingerprint: value });
@@ -1205,7 +1359,7 @@ function StepOptions({
               <Toggle
                 testId="option-lyrics"
                 label="Fetch synced lyrics"
-                help="LRCLIB, embedded and written as .lrc"
+                help="From LRCLIB, embedded and written as a .lrc file"
                 checked={options.lyrics}
                 onChange={(value) => {
                   setOptions({ ...options, lyrics: value });
@@ -1214,7 +1368,7 @@ function StepOptions({
               <Toggle
                 testId="option-replaygain"
                 label="ReplayGain (track + album)"
-                help="rsgain, once every track is in"
+                help="Measured once every track of the album is in"
                 checked={options.replaygain}
                 onChange={(value) => {
                   setOptions({ ...options, replaygain: value });
@@ -1266,7 +1420,7 @@ function StepOptions({
         </div>
       </div>
 
-      <footer className="mt-4 flex justify-between">
+      <WizardActions>
         <Button variant="ghost" onClick={onBack}>
           <ChevronLeft className="size-4" aria-hidden="true" /> Back
         </Button>
@@ -1274,7 +1428,7 @@ function StepOptions({
           <Play className="size-4" aria-hidden="true" />
           {busy ? "Starting…" : "Start import"}
         </Button>
-      </footer>
+      </WizardActions>
     </>
   );
 }

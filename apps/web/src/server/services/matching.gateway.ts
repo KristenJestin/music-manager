@@ -55,6 +55,41 @@ export function liveGateway(ctx: SourceContext): MbGateway {
   };
 }
 
+/** What a gateway tells the outside world while it works. See `match-progress.ts`. */
+export type GatewayReporter = (
+  phase: "searching" | "looking-up",
+  label: string,
+  done: { searches: number; lookups: number },
+) => void;
+
+/**
+ * A gateway that says what it is about to do.
+ *
+ * Wrapped rather than built in, so the counting stays in one place and neither implementation
+ * has to know that anybody is watching. It reports **before** each call, not after: at one
+ * request per second the interesting second is the one being spent, and a progress line that
+ * only appears once the answer is back is a progress line that is always a step behind.
+ */
+export function reportingGateway(inner: MbGateway, report: GatewayReporter): MbGateway {
+  return {
+    get calls() {
+      return inner.calls;
+    },
+    async search(entity, query, limit) {
+      report("searching", `Searching MusicBrainz for a ${entity.replace("-", " ")}…`, inner.calls);
+      return await inner.search(entity, query, limit);
+    },
+    async lookupRelease(mbid) {
+      report("looking-up", "Reading a release's tracklist…", inner.calls);
+      return await inner.lookupRelease(mbid);
+    },
+    async lookupRecording(mbid) {
+      report("looking-up", "Reading a recording's releases…", inner.calls);
+      return await inner.lookupRecording(mbid);
+    },
+  };
+}
+
 /**
  * A recorded scenario, replayed.
  *
