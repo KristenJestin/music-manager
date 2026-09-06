@@ -65,12 +65,25 @@ test.describe("the shell", () => {
     }
   });
 
-  test("Library and System are navigable, and honest about arriving in P07", async ({ page }) => {
-    for (const path of ["/library", "/library/tracks", "/library/quality", "/tools", "/settings"]) {
+  /**
+   * P07 built these pages, so the placeholder they used to show is gone.
+   *
+   * What the shell still has to guarantee is the property the old assertion stood for: every
+   * entry in the sidebar leads somewhere real. `/discover` is the one that still says which
+   * phase builds it, and it is the only one left that should.
+   */
+  test("every Library and System entry leads to a real page", async ({ page }) => {
+    for (const path of ["/library", "/library/tracks", "/library/quality", "/tools"]) {
       await page.goto(path);
-      await expect(page.getByTestId("coming-soon")).toBeVisible();
-      await expect(page.getByTestId("coming-soon")).toContainText(/Coming in P0[79]/);
+      await expect(page.getByTestId("coming-soon")).toHaveCount(0);
+      await expect(page.locator("h1").first()).toBeVisible();
     }
+    // `/settings` is a layout: it redirects to its first tab rather than rendering alone.
+    await page.goto("/settings");
+    await expect(page.getByTestId("settings-nav")).toBeVisible();
+
+    await page.goto("/discover");
+    await expect(page.getByTestId("coming-soon")).toContainText(/Coming in P09/);
   });
 
   test("the dashboard tiles link where they say they do", async ({ page }) => {

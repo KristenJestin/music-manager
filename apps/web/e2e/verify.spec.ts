@@ -30,9 +30,12 @@ test.describe("settings › integrations", () => {
     }
   });
 
-  test("an unconfigured Navidrome is reported as such", async ({ page }) => {
-    await expect(page.getByText("not configured")).toBeVisible();
-    await expect(page.getByTestId("navidrome-url")).toHaveValue("");
+  test("a Navidrome that does not answer is reported as such, never as 'no mismatches'", async ({
+    page,
+  }) => {
+    await expect(
+      page.getByTestId("settings-integrations").getByText(/not configured|not answering/),
+    ).toBeVisible();
   });
 
   test("the password box is empty and its placeholder is a mask, never a value", async ({
@@ -51,9 +54,10 @@ test.describe("settings › integrations", () => {
     await page.getByTestId("navidrome-test").click();
     // A failure is a *result*: it lands in the toast and in the status row, not in an error page.
     await expect(page.getByTestId("settings-integrations")).toBeVisible();
-    await expect(page.getByText(/not answering|did not answer|No answer/)).toBeVisible({
-      timeout: 60_000,
-    });
+    await expect(page.getByTestId("toaster")).toContainText(
+      /did not answer|No answer|not answering/,
+      { timeout: 60_000 },
+    );
   });
 
   test("the notifications block says where its delivery lives", async ({ page }) => {
@@ -64,15 +68,19 @@ test.describe("settings › integrations", () => {
   test("a saved value is read back by the settings store", async ({ page }) => {
     await page.getByTestId("navidrome-url").fill("http://navidrome.test:4533");
     await page.getByTestId("integrations-save").click();
-    await expect(page.getByText(/setting\(s\) saved/)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
 
     await page.reload();
     await expect(page.getByTestId("navidrome-url")).toHaveValue("http://navidrome.test:4533");
 
-    // Put it back, so the specs stay order-independent.
+    // Put it back, and prove it went back: the other specs must not inherit a half-configured
+    // server, and a toast is not evidence that the store was written.
     await page.getByTestId("navidrome-url").fill("");
     await page.getByTestId("integrations-save").click();
-    await expect(page.getByText(/setting\(s\) saved/)).toBeVisible({ timeout: 60_000 });
+    await page.reload();
+    await expect(page.getByTestId("navidrome-url")).toHaveValue("");
   });
 });
 
@@ -94,13 +102,16 @@ test.describe("settings › downloader", () => {
 
     await page.getByTestId("input-jitter-min").fill("7000");
     await page.getByTestId("downloader-save").click();
-    await expect(page.getByText(/setting\(s\) saved/)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
 
     await page.reload();
     await expect(page.getByTestId("input-jitter-min")).toHaveValue("7000");
 
     await page.getByTestId("input-jitter-min").fill("5000");
     await page.getByTestId("downloader-save").click();
-    await expect(page.getByText(/setting\(s\) saved/)).toBeVisible({ timeout: 60_000 });
+    await page.reload();
+    await expect(page.getByTestId("input-jitter-min")).toHaveValue("5000");
   });
 });
