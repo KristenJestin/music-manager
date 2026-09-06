@@ -1,0 +1,4218 @@
+{
+  "kind": "single",
+  "video": {
+    "id": "yt-skinny-love",
+    "index": 0,
+    "title": "Birdy - Skinny Love [Official Music Video]",
+    "durationSeconds": 202,
+    "uploader": "Birdy",
+    "ytTrack": "Skinny Love",
+    "ytArtist": "Birdy",
+    "ytAlbum": "Birdy",
+    "ytReleaseYear": 2011
+  },
+  "candidates": [
+    {
+      "id": "5463ed3a-5fc1-49b6-8260-3b5bb36ee047",
+      "title": "Skinny Love",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 201026,
+      "isrcs": [
+        "GBAHS1100350",
+        "GBAHT1100002",
+        "GBAHS1300023"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "6441c032-9f42-4bc0-a79a-e763035473f5",
+          "title": "Skinny Love",
+          "disambiguation": "",
+          "date": "2011-01-30",
+          "country": "GB",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "689f1ff2-97af-4412-a4d6-e1b19fd686ad",
+            "title": "Skinny Love",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2011-01-30",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 1,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "8d1ac842-6f05-301d-aacf-d18126ab5cf3",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Skinny Love",
+                  "length": 200000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7ba904c5-9f96-4cb5-91f3-e495dfaaca6b",
+          "title": "Hits, Volume 31: April–May 2011",
+          "disambiguation": "",
+          "date": "2011-04-01",
+          "country": "GB",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "607e6d76-6b9f-46e0-9a1f-893a57670ae2",
+            "title": "Hits, Volume 31: April–May 2011",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-04-01",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "4aca709b-8677-36ea-828a-1b6def2e6f7c",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Skinny Love",
+                  "length": 201760,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1ee5629a-bf8e-4df2-9aac-dd61d87414f7",
+          "title": "Now That’s What I Call Music! 79",
+          "disambiguation": "",
+          "date": "2011-07-25",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "5099908725028",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
+            "title": "Now That’s What I Call Music! 79",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-07-25",
+            "disambiguation": "UK",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 20,
+              "tracks": [
+                {
+                  "id": "c9fa6ea5-8708-3837-8672-6fffbdfa094b",
+                  "position": 21,
+                  "number": "21",
+                  "title": "Skinny Love",
+                  "length": 202946,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2bde276e-61a9-4ac8-a063-170e3046914c",
+          "title": "Now That’s What I Call Music! 79",
+          "disambiguation": "",
+          "date": "2011-07-25",
+          "country": "GB",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
+            "title": "Now That’s What I Call Music! 79",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-07-25",
+            "disambiguation": "UK",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 20,
+              "tracks": [
+                {
+                  "id": "21cb2e9f-7cd0-3ff0-acf5-8db275969efb",
+                  "position": 21,
+                  "number": "21",
+                  "title": "Skinny Love",
+                  "length": 203000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "128ee898-9b41-4ef3-908c-b0a9742a2632",
+          "title": "Birdy",
+          "disambiguation": "",
+          "date": "2011-11-04",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "0825646520404",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "d45944e9-ace1-4948-bdac-1151412f53b3",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 201080,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ea063e74-e123-4d3d-9288-fe1ec479da9f",
+          "title": "Birdy",
+          "disambiguation": "special edition",
+          "date": "2011-11-07",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "5052498982356",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "f5de0f5e-23db-3695-b467-fa819e9bd1df",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 203066,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1d2b9813-5cc3-4408-b222-2a3f5b0768f6",
+          "title": "Birdy",
+          "disambiguation": "",
+          "date": "2011-11-07",
+          "country": "XE",
+          "status": "Official",
+          "barcode": "5052498595822",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 11,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "198cfe63-b3bf-3e75-80c8-54ef85d3e4cf",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 203066,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f51a95d4-98a5-43f1-8c4a-c2cab20a9cbd",
+          "title": "Birdy",
+          "disambiguation": "",
+          "date": "2011-11-07",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "5052498595822",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 11,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "0d0736bc-772d-35a1-b872-44ca05093a48",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 203066,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "9f0285c0-d94b-4644-9a4f-c6045d185e5d",
+          "title": "Birdy",
+          "disambiguation": "Deluxe Version",
+          "date": "2011-11-15",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "85a15767-6738-45e3-a3c2-0c5fb4e9c3a9",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 201000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ca0a0daa-ff77-4e09-982c-00f7beed49e2",
+          "title": "Birdy",
+          "disambiguation": "",
+          "date": "2011",
+          "country": "AU",
+          "status": "Official",
+          "barcode": "9340650012406",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 11,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "dd955c7d-be31-458f-bbbd-1061e8347429",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 203066,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5f1f0c7c-dd48-40db-a2e6-f068f94db80b",
+          "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters",
+          "disambiguation": "",
+          "date": "2011",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "135d8761-32c1-4d1b-9236-5b72ef135670",
+            "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "b9d6c46a-c702-429c-9e02-25045ebb6dcb",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Skinny Love",
+                  "length": 203026,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "911e8c8d-53c6-4272-a3ee-4faff266a05b",
+          "title": "Radio 538: Hitzone 60",
+          "disambiguation": "",
+          "date": "2012-02-03",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "5099995578828",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "a27e2835-ccad-4ece-b226-783e2ed47cbe",
+            "title": "Radio 538: Hitzone 60",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-02-03",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "e58d4300-145a-396f-b643-5d69eb000f30",
+                  "position": 5,
+                  "number": "5",
+                  "title": "Skinny Love",
+                  "length": 201573,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "e66075a6-48da-4b45-8c68-a499b4cfb8f9",
+          "title": "Maximum Hit Music 01 2012",
+          "disambiguation": "",
+          "date": "2012-02-24",
+          "country": "BE",
+          "status": "Official",
+          "barcode": "0600753379455",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "df0e5c15-160f-40ac-a643-4337fe61bac3",
+            "title": "Maximum Hit Music 01 2012",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-02-24",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 10,
+              "tracks": [
+                {
+                  "id": "c1dde69d-753d-4ae7-8d18-f1a3b503c1b6",
+                  "position": 11,
+                  "number": "11",
+                  "title": "Skinny Love",
+                  "length": 199000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "128d7276-da6c-4a3d-b5a6-eb2c0ffcae50",
+          "title": "Birdy",
+          "disambiguation": "",
+          "date": "2012-03-12",
+          "country": "US",
+          "status": "Official",
+          "barcode": "825646611355",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "joinphrase": "",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2011-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Birdy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                  "name": "Birdy",
+                  "sort-name": "Birdy",
+                  "disambiguation": "UK singer Jasmine van den Bogaerde"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 11,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "e2cd2ab9-92a6-466c-8cbc-badb3f44d26a",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 203066,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d39ae07b-c0d2-494b-88ad-cf99f7d13eb5",
+          "title": "Bravo Hits 77",
+          "disambiguation": "",
+          "date": "2012-04-27",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "3024734",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
+            "title": "Bravo Hits 77",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-04-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 13,
+              "tracks": [
+                {
+                  "id": "1fa9303e-7bff-3c17-afe4-8eebfc2684aa",
+                  "position": 14,
+                  "number": "14",
+                  "title": "Skinny Love",
+                  "length": 201133,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f73377bf-42b5-4e60-8310-f622bfac2a22",
+          "title": "Knuffelrock 2012 – Jubileum‐Editie",
+          "disambiguation": "",
+          "date": "2012-05-07",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "886979376427",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d50a1d97-8df6-40e0-9b40-3f05904f682d",
+            "title": "Knuffelrock 2012 – Jubileum‐Editie",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-05-07",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "9c15e3e1-afaf-42b6-9a64-3c85ab78d059",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Skinny Love",
+                  "length": 201000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b508d378-a764-4070-bc55-f5d936fcb0da",
+          "title": "Bravo Hits 77",
+          "disambiguation": "",
+          "date": "2012-05-08",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "0600753386972",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
+            "title": "Bravo Hits 77",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-04-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 13,
+              "tracks": [
+                {
+                  "id": "a7426184-290e-4066-9aef-db5d1f63eb10",
+                  "position": 14,
+                  "number": "14",
+                  "title": "Skinny Love (album version)",
+                  "length": 201133,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "997b9ce3-3903-4e1e-9af6-b75838c64cbe",
+          "title": "NRJ Summer Hits Only 2012",
+          "disambiguation": "",
+          "date": "2012-06-06",
+          "country": "CH",
+          "status": "Official",
+          "barcode": "5053105299522",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2807806f-8f01-45c6-a14f-33314dc6cf93",
+            "title": "NRJ Summer Hits Only 2012",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-06-06",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 3,
+              "tracks": [
+                {
+                  "id": "db59d2ea-6385-4de5-b46b-99736499258c",
+                  "position": 4,
+                  "number": "4",
+                  "title": "Skinny Love",
+                  "length": 199000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "57a6eeed-95a9-416b-a5c3-b48068d32c2a",
+          "title": "Ö3 Greatest Hits 58",
+          "disambiguation": "",
+          "date": "2012-06-22",
+          "country": "AT",
+          "status": "Official",
+          "barcode": "5053105287925",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "3461ca3f-04ec-431a-9fb2-3ca419df9f1c",
+            "title": "Ö3 Greatest Hits 58",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-06-22",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 11,
+              "tracks": [
+                {
+                  "id": "cb6b7e9c-da05-42a7-aeb4-7e3d2d697290",
+                  "position": 12,
+                  "number": "12",
+                  "title": "Skinny Love",
+                  "length": 200000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8ddbe328-608a-4026-af0b-7d01e77c3abd",
+          "title": "Cafe Puls Sommerhits 12",
+          "disambiguation": "",
+          "date": "2012-06-29",
+          "country": "AT",
+          "status": "Official",
+          "barcode": "0886919248326",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "db3d48a9-fcf9-4731-a5ef-812bc5a618de",
+            "title": "Cafe Puls Sommerhits 12",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-06-29",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 15,
+              "tracks": [
+                {
+                  "id": "711e72b1-05ea-45b1-ad47-6e492476ea0b",
+                  "position": 16,
+                  "number": "16",
+                  "title": "Skinny Love",
+                  "length": 197346,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "04eb4346-6b7a-417e-8de5-3d6b6734325e",
+          "title": "The Chillout Session",
+          "disambiguation": "British 2012 edition",
+          "date": "2012-07-23",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "5051275057225",
+          "packaging": "Digipak",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
+            "title": "The Chillout Session",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-07-23",
+            "disambiguation": "British 2012 edition",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "80f6224a-5d2f-3bd1-83b7-6521c7e5aed9",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Skinny Love",
+                  "length": 199666,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "18c5f3e5-1372-475d-9478-f1fdc024d855",
+          "title": "The Chillout Session",
+          "disambiguation": "",
+          "date": "2012-07-23",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
+            "title": "The Chillout Session",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-07-23",
+            "disambiguation": "British 2012 edition",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "6f8d137f-7a48-4f10-985a-9bc88e60f440",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Skinny Love",
+                  "length": 203000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "39fbc224-e886-4ced-8e60-694135aa6f0f",
+          "title": "Now That’s What I Call Chill",
+          "disambiguation": "",
+          "date": "2012-08-20",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "5099991494924",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "cf11dccf-4c82-456f-a98e-d6454dfa19ad",
+            "title": "Now That’s What I Call Chill",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-08-20",
+            "disambiguation": "UK",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 6,
+              "tracks": [
+                {
+                  "id": "36bb2648-6f69-4ec5-b476-7d7c2143a3d9",
+                  "position": 7,
+                  "number": "7",
+                  "title": "Skinny Love",
+                  "length": 202213,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "74c69b27-b4fa-4a22-90d7-f017ab6dfb4d",
+          "title": "NRJ Hits 2012, Volume 2",
+          "disambiguation": "",
+          "date": "2012-08-27",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "5053105394623",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "47cd8ec5-5147-478e-9c7d-cefd7c0a2b8a",
+            "title": "NRJ Hits 2012, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-08-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "bc3cf4d8-a926-3873-ae1c-58eb22556034",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 199480,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "403268f3-b3c5-4809-a050-0ff5133d714b",
+          "title": "NRJ 200% Hits 2012, Volume 2",
+          "disambiguation": "",
+          "date": "2012-09-17",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "600753401330",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "64cbf4a4-7ee7-4b50-affc-f27263b5af6c",
+            "title": "NRJ 200% Hits 2012, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2012-09-17",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "2d422677-bac1-319f-b5a2-03f220e5ff52",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Skinny Love",
+                  "length": 199853,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "801a336a-4863-47b9-b605-ca90ebf7d2fe",
+      "title": "Skinny Love",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 201080,
+      "isrcs": [
+        "GBAHS1100350"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "c414fa08-8913-4eee-b390-4d206a06ab1a",
+          "title": "Chill Lounge",
+          "disambiguation": "",
+          "date": "2025-06-28",
+          "country": null,
+          "status": "Official",
+          "barcode": "5059460413856",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "3094d419-dbfd-44fa-babf-242d73a156c9",
+            "title": "Chill Lounge",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2025-06-28",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 65,
+              "track-offset": 14,
+              "tracks": [
+                {
+                  "id": "8e5c3af1-259a-48ff-9879-2d04692067f6",
+                  "position": 15,
+                  "number": "15",
+                  "title": "Skinny Love",
+                  "length": 201080,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "46f3dbe2-1da8-431c-9c5c-5e91ca5998c4",
+      "title": "Skinny Love",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 201480,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "fbe93b56-a676-4cd3-8c36-97aa78830d15",
+          "title": "Die Hit-Giganten: Romance",
+          "disambiguation": "2 x CDs, 20 + 20 x tracks, Telamo 2022",
+          "date": "2022-05-27",
+          "country": null,
+          "status": "Official",
+          "barcode": "405380431712",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "b1009d36-32e9-46ac-895c-f54ac5d19c95",
+            "title": "Die Hit-Giganten: Romance",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2022-05-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 19,
+              "tracks": [
+                {
+                  "id": "7f9b4319-d837-4938-9949-dfe2bf9ad923",
+                  "position": 20,
+                  "number": "20",
+                  "title": "Skinny Love",
+                  "length": 201480,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "76e1ea4f-ca81-45fc-9d49-4025f7d42b6a",
+      "title": "Skinny Love",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 201000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "3b93c766-b0ed-43da-a777-08323b0f6005",
+          "title": "Songs for the Car",
+          "disambiguation": "",
+          "date": "2018-07-27",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "0190295604967",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f364a81c-976e-40a6-b82e-0f3ed9e0e3ef",
+            "title": "Songs for the Car",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2018-07-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 16,
+              "tracks": [
+                {
+                  "id": "461c15db-fe67-4bf0-a7a4-8972ef34b7b1",
+                  "position": 17,
+                  "number": "17",
+                  "title": "Skinny Love",
+                  "length": 201000,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7e97f9f0-7097-478c-8ae1-f70b7059b72c",
+      "title": "Skinny Love (Sebastian Carter remix)",
+      "artist": "Birdy",
+      "disambiguation": "part of a “EDM: Electronic Dance Music: The Collection” DJ‐mix",
+      "lengthMs": 206426,
+      "isrcs": [],
+      "searchScore": 84,
+      "releases": [
+        {
+          "id": "f4f20ad0-e9af-4635-b874-23d452e7c7fc",
+          "title": "EDM: Electronic Dance Music: The Collection",
+          "disambiguation": "",
+          "date": "2015-07-31",
+          "country": "GB",
+          "status": "Official",
+          "barcode": "0825646072071",
+          "packaging": "Digipak",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ac3c8bc3-f8b3-4a87-a17b-d0450044d1f0",
+            "title": "EDM: Electronic Dance Music: The Collection",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "DJ-mix"
+            ],
+            "first-release-date": "2015-07-31",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 14,
+              "tracks": [
+                {
+                  "id": "56f5dcc4-5d07-4a76-ac20-078c0b8c4f63",
+                  "position": 15,
+                  "number": "15",
+                  "title": "Skinny Love (Sebastian Carter remix)",
+                  "length": 206426,
+                  "artist-credit": [
+                    {
+                      "name": "Birdy",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                        "name": "Birdy",
+                        "sort-name": "Birdy",
+                        "disambiguation": "UK singer Jasmine van den Bogaerde"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "74ca4448-8de3-4595-9886-b72e4972b99a",
+      "title": "Skinny Love",
+      "artist": "Dia Frampton",
+      "disambiguation": "",
+      "lengthMs": 193000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ea6a91ec-6b65-4f5c-bb1a-252e3ae75c5a",
+          "title": "Cover Mondays",
+          "disambiguation": "",
+          "date": "2011-07-26",
+          "country": "US",
+          "status": null,
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Dia Frampton",
+              "joinphrase": "",
+              "artist": {
+                "id": "fe3399b8-16c1-4e96-8f06-331072cb61bf",
+                "name": "Dia Frampton",
+                "sort-name": "Frampton, Dia",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "eb73d0db-93ab-49aa-b603-ad3e47234390",
+            "title": "Cover Mondays",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-07-26",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Dia Frampton",
+                "joinphrase": "",
+                "artist": {
+                  "id": "fe3399b8-16c1-4e96-8f06-331072cb61bf",
+                  "name": "Dia Frampton",
+                  "sort-name": "Frampton, Dia",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "61a2b763-6f01-4b1d-aeb8-0acd0d0d9fa5",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Skinny Love",
+                  "length": 193000,
+                  "artist-credit": [
+                    {
+                      "name": "Dia Frampton",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "fe3399b8-16c1-4e96-8f06-331072cb61bf",
+                        "name": "Dia Frampton",
+                        "sort-name": "Frampton, Dia",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e369384b-f9db-4a69-888c-4e732a8d78c6",
+      "title": "Skinny Love",
+      "artist": "University of Maryland Faux Paz",
+      "disambiguation": "",
+      "lengthMs": 236880,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "2baa5881-df7e-4367-beb2-0697c1ca7051",
+          "title": "Chaos",
+          "disambiguation": "",
+          "date": "2014-11-04",
+          "country": "AF",
+          "status": "Official",
+          "barcode": "840218159936",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "University of Maryland Faux Paz",
+              "joinphrase": "",
+              "artist": {
+                "id": "8eb65cfd-0dfc-4abf-98ee-d3a7e2187051",
+                "name": "University of Maryland Faux Paz",
+                "sort-name": "University of Maryland Faux Paz",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "35e74906-0817-467c-a8b4-ed9b95bbf098",
+            "title": "Chaos",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2014-11-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "University of Maryland Faux Paz",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8eb65cfd-0dfc-4abf-98ee-d3a7e2187051",
+                  "name": "University of Maryland Faux Paz",
+                  "sort-name": "University of Maryland Faux Paz",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 8,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "64074b88-78ca-43f1-8d20-9bac6a96e58f",
+                  "position": 5,
+                  "number": "5",
+                  "title": "Skinny Love",
+                  "length": 236880,
+                  "artist-credit": [
+                    {
+                      "name": "University of Maryland Faux Paz",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8eb65cfd-0dfc-4abf-98ee-d3a7e2187051",
+                        "name": "University of Maryland Faux Paz",
+                        "sort-name": "University of Maryland Faux Paz",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0ba32550-8c37-4306-85cb-03f81a18dc52",
+      "title": "Skinny Love",
+      "artist": "Don't Litter",
+      "disambiguation": "",
+      "lengthMs": 228907,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "b1421ed8-b64f-4d49-8842-9f9cd326413d",
+          "title": "Now That's What I Call Heartbreak, Volume 6: Comp Goes Pop",
+          "disambiguation": "",
+          "date": "2024-02-13",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "a6135239-a06d-417c-95cd-9124818535a6",
+            "title": "Now That's What I Call Heartbreak, Volume 6: Comp Goes Pop",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2024-02-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 24,
+              "track-offset": 19,
+              "tracks": [
+                {
+                  "id": "a1987fc3-9f49-4851-a439-9d07823b22e3",
+                  "position": 20,
+                  "number": "20",
+                  "title": "Skinny Love",
+                  "length": 228907,
+                  "artist-credit": [
+                    {
+                      "name": "Don't Litter",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "a4b2635d-b6fa-4a2a-b234-284787ccab81",
+                        "name": "Don't Litter",
+                        "sort-name": "Don't Litter",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e1ed517e-bc4e-4dce-b007-e8ecccede8f3",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "part of “MoS: Chillout Sessions Classics” DJ-mix",
+      "lengthMs": 224066,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "e1ea210c-7f26-4dd3-afaf-5948a8e1a18f",
+          "title": "Ministry of Sound: Chillout Sessions Classics",
+          "disambiguation": "",
+          "date": "2013-07-26",
+          "country": "AU",
+          "status": "Official",
+          "barcode": "0602537443390",
+          "packaging": "Digipak",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "7a65ec6a-a912-44dc-8b7c-ab6105358f88",
+            "title": "Ministry of Sound: Chillout Sessions Classics",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "DJ-mix"
+            ],
+            "first-release-date": "2013-07-26",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 19,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "b22f8611-241e-4c9a-b959-231db9eee793",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Skinny Love",
+                  "length": 224066,
+                  "artist-credit": [
+                    {
+                      "name": "Bon Iver",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                        "name": "Bon Iver",
+                        "sort-name": "Bon Iver",
+                        "disambiguation": "US indie folk band"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "05b6316d-36b8-403f-a19d-de021299523b",
+      "title": "Skinny Love",
+      "artist": "Arms Aloft",
+      "disambiguation": "",
+      "lengthMs": 196000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "2ef3fe86-c5a2-4698-8b7b-a72ff4ad2cea",
+          "title": "Comfort at Any Cost",
+          "disambiguation": "",
+          "date": "2010-03-16",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Arms Aloft",
+              "joinphrase": "",
+              "artist": {
+                "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                "name": "Arms Aloft",
+                "sort-name": "Arms Aloft",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "595ff551-e7b7-3590-a165-1925a5719630",
+            "title": "Comfort at Any Cost",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2008-10-17",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Arms Aloft",
+                "joinphrase": "",
+                "artist": {
+                  "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                  "name": "Arms Aloft",
+                  "sort-name": "Arms Aloft",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "4adfd4cf-7e03-3b49-9412-32c7f0158927",
+                  "position": 5,
+                  "number": "5",
+                  "title": "Skinny Love",
+                  "length": 196000,
+                  "artist-credit": [
+                    {
+                      "name": "Arms Aloft",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                        "name": "Arms Aloft",
+                        "sort-name": "Arms Aloft",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "25cbca12-61cb-3b49-b44e-4860fabd9451",
+          "title": "Comfort at Any Cost",
+          "disambiguation": "",
+          "date": "2010-03",
+          "country": "US",
+          "status": "Official",
+          "barcode": "880270319121",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Arms Aloft",
+              "joinphrase": "",
+              "artist": {
+                "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                "name": "Arms Aloft",
+                "sort-name": "Arms Aloft",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "595ff551-e7b7-3590-a165-1925a5719630",
+            "title": "Comfort at Any Cost",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2008-10-17",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Arms Aloft",
+                "joinphrase": "",
+                "artist": {
+                  "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                  "name": "Arms Aloft",
+                  "sort-name": "Arms Aloft",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "a79001e0-cb83-3a20-86c5-ecc88bc55027",
+                  "position": 5,
+                  "number": "5",
+                  "title": "Skinny Love",
+                  "length": 196000,
+                  "artist-credit": [
+                    {
+                      "name": "Arms Aloft",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "29c0bd25-ad65-4d02-9843-b47f3f134f48",
+                        "name": "Arms Aloft",
+                        "sort-name": "Arms Aloft",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dc8f845c-2062-4f54-b908-5585b7d258da",
+      "title": "Skinny Love",
+      "artist": "JP Jones, Chrissie Hynde & The Fairground Boys",
+      "disambiguation": "",
+      "lengthMs": 299680,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "68b338cd-26c2-4534-885a-d64c43fa4ce5",
+          "title": "Fidelity!",
+          "date": "2010-11-01",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "JP Jones",
+              "joinphrase": ", ",
+              "artist": {
+                "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                "name": "John-Paul Jones",
+                "sort-name": "Jones, John-Paul",
+                "disambiguation": "of British indie rock group Grace"
+              }
+            },
+            {
+              "name": "Chrissie Hynde",
+              "joinphrase": " & ",
+              "artist": {
+                "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                "name": "Chrissie Hynde",
+                "sort-name": "Hynde, Chrissie",
+                "disambiguation": "rock singer-songwriter and founder of Pretenders"
+              }
+            },
+            {
+              "name": "The Fairground Boys",
+              "artist": {
+                "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                "name": "The Fairground Boys",
+                "sort-name": "Fairground Boys, The"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "570a4425-3bf8-4eb0-9039-a230f2f2f887",
+            "title": "Fidelity!",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 12,
+              "track-offset": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e3295f35-e933-495b-a496-227a395dd0c6",
+      "title": "Skinny Love",
+      "artist": "Axel Winter",
+      "disambiguation": "",
+      "lengthMs": 264000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "801b32fb-db3f-4b95-8233-8bba14ec03aa",
+          "title": "My Home",
+          "date": "",
+          "country": "AU",
+          "release-group": {
+            "id": "cd513657-93b9-4524-9591-7d17571953b5",
+            "title": "My Home",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e579d7f7-440e-4efc-9a4e-25747a4056aa",
+      "title": "Skinny Love",
+      "artist": "Saya Santaquilani",
+      "disambiguation": "",
+      "lengthMs": 202187,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "94cefeee-1a4c-42bd-be9f-1ff84c713738",
+          "title": "Skinny Love (Bon Iver Cover)",
+          "status": "Promotion",
+          "artist-credit": [
+            {
+              "name": "Saya",
+              "artist": {
+                "id": "c3594878-f698-4f05-8205-3d553498251d",
+                "name": "Saya Santaquilani",
+                "sort-name": "Santaquilani, Saya"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e7206ebb-5626-4519-a455-810944eb3a65",
+            "title": "Skinny Love (Bon Iver Cover)",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e3ddf94b-6fa5-495c-83a5-6c95b8434deb",
+      "title": "Skinny Love",
+      "artist": "The Whiffenpoofs",
+      "disambiguation": "",
+      "lengthMs": 238306,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "13bfc3c8-292b-4bf2-b50b-5a2460aac5f6",
+          "title": "On the Bumpy Road",
+          "date": "2017",
+          "country": "US",
+          "artist-credit": [
+            {
+              "name": "The Whiffenpoofs",
+              "artist": {
+                "id": "8e50d034-9913-4902-b7f6-a3162b347bda",
+                "name": "The Whiffenpoofs",
+                "sort-name": "Whiffenpoofs, The",
+                "disambiguation": "Yale A Capella"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ce38bf00-b167-4040-93fa-525037184ec2",
+            "title": "On the Bumpy Road",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 16,
+              "track-offset": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5999e9d8-9477-46e2-afd3-6100c513654b",
+      "title": "Skinny Love",
+      "artist": "Anastasia Falcón",
+      "disambiguation": "",
+      "lengthMs": 174000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "552e900b-d8cf-460a-a0db-8df66a56248a",
+          "title": "Anastasia",
+          "date": "2012-12-01",
+          "country": "XW",
+          "status": "Official",
+          "release-group": {
+            "id": "f4041ec2-fa4d-4e86-94e1-d8ec995ad15d",
+            "title": "Anastasia",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7b18a61b-b4a4-400a-add5-c28decda7dc9",
+      "title": "Skinny Love",
+      "artist": "Out of the Blue",
+      "disambiguation": "",
+      "lengthMs": 232000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "741b800c-8c07-482a-bd70-c07c7e081947",
+          "title": "Music Up!",
+          "date": "2012",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Out of the Blue",
+              "artist": {
+                "id": "f4342f22-eaa6-43fd-93e0-761a7de96468",
+                "name": "Out of the Blue",
+                "sort-name": "Out of the Blue",
+                "disambiguation": "The Oxford University acapella group"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "509a0eda-75b6-4460-a07c-e7e1b046a41f",
+            "title": "Music Up!",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5901aece-696d-42c6-b0fb-c57d69644c91",
+      "title": "Skinny Love",
+      "artist": "stories feat. Sarah Isen",
+      "disambiguation": "",
+      "lengthMs": 221776,
+      "isrcs": [
+        "QZPJ32124201"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "25d22d48-e9c3-4aa2-bfc8-1b79c487bd81",
+          "title": "vol. 21",
+          "date": "2021-11-26",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "stories",
+              "artist": {
+                "id": "7f1bf01b-3dcb-4f63-a398-027912b41c0c",
+                "name": "stories",
+                "sort-name": "stories",
+                "disambiguation": "Acoustic cover band"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "03ff5ffa-b972-4212-bc38-d379175fce14",
+            "title": "vol. 21",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 10,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "43590f1e-0d9b-4f23-8241-3dc1b91cf5e1",
+      "title": "Skinny Love",
+      "artist": "Japanese Breakfast",
+      "disambiguation": "",
+      "lengthMs": 226981,
+      "isrcs": [
+        "USJ5G2232502"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "23eef223-c395-4ba6-8932-476e225a798d",
+          "title": "Spotify Singles",
+          "date": "2022-03-30",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Japanese Breakfast",
+              "artist": {
+                "id": "8c529495-91f5-4e2f-b71b-adcb66878d04",
+                "name": "Japanese Breakfast",
+                "sort-name": "Japanese Breakfast",
+                "disambiguation": "Michelle Zauner's solo project and band"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "37e607ea-01a2-4aab-83eb-fc7b8bc5762f",
+            "title": "Spotify Singles",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 2,
+              "track-offset": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1fefa9fa-a169-42f1-9894-e7592becbaae",
+      "title": "Skinny Love",
+      "artist": "Joey Riot vs Ron E",
+      "disambiguation": "",
+      "lengthMs": 328240,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "aed5b586-9852-4155-b8b9-7793771fcd81",
+          "title": "Keep It Lethal",
+          "date": "2015-07-12",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Joey Riot",
+              "artist": {
+                "id": "cb86f6e4-85a5-44c3-8ef8-40db287b91b0",
+                "name": "Joey Riot",
+                "sort-name": "Riot, Joey"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "de0ee9a7-a0b7-47b4-a83a-913f1f0a8ef1",
+            "title": "Keep It Lethal",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d9fc1931-ee9b-4c75-87ef-e268b7e843d3",
+      "title": "Skinny Love",
+      "artist": "Polina Babiy",
+      "disambiguation": "",
+      "lengthMs": 116000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "71235105-11a7-4637-aa93-fdaef6dc692b",
+          "title": "Live + 1",
+          "status": "Bootleg",
+          "release-group": {
+            "id": "7474b685-4061-4350-9112-3422d9170112",
+            "title": "Live + 1",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 16,
+              "track-offset": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "07dd0853-cbb7-4474-8d7f-8712ed9eb00e",
+      "title": "Skinny Love",
+      "artist": "Adam Garrett",
+      "disambiguation": "",
+      "lengthMs": 189600,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "e55e480a-ba10-431d-91b0-b103fdd17616",
+          "title": "The Voice: The Final 32",
+          "date": "2013",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "62131ed6-c59c-4a61-bfcc-6e3603175f01",
+            "title": "The Voice: The Final 32",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 16,
+              "track-offset": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8a8ca6f4-2150-4b2b-935d-b66962de3b89",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "original studio mix",
+      "lengthMs": 238520,
+      "isrcs": [
+        "US38Y0811503",
+        "US38Y0800003"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "7bd3627a-1d16-4ae4-bfdc-506ecdbc01df",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-02-19",
+          "country": "XW",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "c479b0f6-f2b9-4042-97f7-deba6f5ea93c",
+          "title": "For Emma, Forever Ago",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "c388e976-d998-46fa-9121-580aa0502861",
+          "title": "Triple J: Hottest 100 of the Past 20 Years",
+          "date": "2013",
+          "country": "AU",
+          "status": "Bootleg",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "dc0cf2cd-2d30-4a01-bc3e-019ee32339c9",
+            "title": "Triple J: Hottest 100 of the Past 20 Years",
+            "primary-type": "Other",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 100,
+              "track-offset": 15
+            }
+          ]
+        },
+        {
+          "id": "42994126-a013-403d-951e-22609a132d7b",
+          "title": "Triple J: Hottest 100 of 2008",
+          "date": "2008",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ac2fa2a6-c4fe-41a2-b143-51ecd7e722b3",
+            "title": "Triple J: Hottest 100 of 2008",
+            "primary-type": "Broadcast"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 100,
+              "track-offset": 20
+            }
+          ]
+        },
+        {
+          "id": "6f949dc8-9846-4274-9975-1daa70581d77",
+          "title": "Paste Magazine Sampler #40: March 2008",
+          "date": "2008-03",
+          "country": "US",
+          "status": "Promotion",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
+            "title": "Paste Magazine Sampler #40: March 2008",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 21,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "b35af33c-7b48-43aa-8ecf-b06f57d78647",
+          "title": "Folk You!",
+          "date": "2013-03-01",
+          "country": "NL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
+            "title": "Folk You!",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 18,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "0a43e002-765a-4187-844d-13bbcdf87711",
+          "title": "Pop-Rock Station, Volume 2",
+          "date": "2013",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
+            "title": "Pop-Rock Station, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 11
+            }
+          ]
+        },
+        {
+          "id": "b260014a-48eb-4346-bfdf-353b743ba92c",
+          "title": "Long Time Gone: 15 All-New American Music Classics",
+          "date": "2008-06-05",
+          "country": "GB",
+          "status": "Promotion",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
+            "title": "Long Time Gone: 15 All-New American Music Classics",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "57011980-c84f-4cf8-83ab-7ce39440b503",
+          "title": "Triple J: Hottest 100, Volume 16",
+          "date": "2009",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
+            "title": "Triple J: Hottest 100, Volume 16",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 23,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "5f7035c6-dbb1-4de6-acbe-23e27de6026f",
+          "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+          "date": "2013-07-19",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
+            "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 18
+            }
+          ]
+        },
+        {
+          "id": "da74b0ef-1249-4e6f-9e9f-bd62d96496b4",
+          "title": "Coastal Chill 09",
+          "date": "2008",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
+            "title": "Coastal Chill 09",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 21,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "4030acb5-e6b3-4b40-9c07-9d527e9c3cfa",
+          "title": "Coastal Chill: The Collection",
+          "date": "2009",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
+            "title": "Coastal Chill: The Collection",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "821bea2e-522a-4b28-8a8b-3080f9cf9d16",
+          "title": "Pop-Rock Station, Volume 2",
+          "date": "2013-11",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Zégut",
+              "artist": {
+                "id": "9fc93d16-5fa7-44e3-9622-c783b8e02bf9",
+                "name": "Francis Zégut",
+                "sort-name": "Zégut, Francis"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
+            "title": "Pop-Rock Station, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "3dc071da-2e27-453d-974c-646564bd6794",
+          "title": "For Emma, Forever Ago",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "72ac279b-c886-4ef5-b6ce-8d6e3097b95b",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-02-19",
+          "country": "AF",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "04f2f82f-127a-49bf-b775-f00588896d80",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-02-19",
+          "country": "BH",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "9b475ba4-9a46-4de3-aa24-ee27ef764930",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-05-12",
+          "country": "AD",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "dfca4414-20b8-40e0-9f85-f9ef1c7aebbf",
+          "title": "For Emma, Forever Ago",
+          "date": "2016-05-03",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Cassette",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "f2d4a53b-0612-48e2-a09c-02489ae27a51",
+          "title": "For Emma, Forever Ago",
+          "date": "2007-07-08",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "4f5c2bff-a5f0-32f6-8199-190bf22872aa",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-02-19",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "54216506-b050-3fc6-ae7c-472974d4dd69",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-02-19",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Vinyl",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "f04b0342-2004-3a67-8725-38a8f02b81f0",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-03-23",
+          "country": "AU",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "10363dd8-ddda-3318-a0a6-1c157aa2ea91",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-05-12",
+          "country": "GB",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "0270cde6-6b5b-31fa-b04b-d8b68ff612d4",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-03-10",
+          "country": "GB",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "5370b447-ee3a-3699-a899-d5df024f6c4b",
+          "title": "For Emma, Forever Ago",
+          "date": "2008-05-12",
+          "country": "GB",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 9,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "8bc20e6e-a0d2-4035-9ca6-ad46b9346cc5",
+          "title": "eMusic SXSW Birthday Sampler",
+          "date": "2008",
+          "country": "US",
+          "status": "Promotion",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
+            "title": "eMusic SXSW Birthday Sampler",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "eeb017f6-2a1c-4e28-bb31-45a3f4cf3b54",
+          "title": "For Emma, Forever Ago",
+          "disambiguation": "iTunes version",
+          "date": "2008-03-10",
+          "country": "GB",
+          "status": "Official",
+          "release-group": {
+            "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+            "title": "For Emma, Forever Ago",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 10,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "04e748fa-6898-424a-91fa-3e21e154978e",
+          "title": "Jagjaguwar 2008/2009 Sampler",
+          "date": "2009-03-06",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
+            "title": "Jagjaguwar 2008/2009 Sampler",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 8,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "03a1fff4-f940-4730-af6f-cc07cda90f54",
+          "title": "Songs of the Valentine's Day Massacre",
+          "status": "Bootleg",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
+            "title": "Songs of the Valentine's Day Massacre",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 1
+            }
+          ]
+        },
+        {
+          "id": "9e821cb5-f02c-46a8-8e9c-40a629fcd59f",
+          "title": "Skinny Love",
+          "date": "2008-04-08",
+          "country": "GB",
+          "status": "Promotion",
+          "release-group": {
+            "id": "2dea4c18-8aa6-4909-9053-fddfa057c231",
+            "title": "Skinny Love",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD-R",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "259afe6c-a50d-4ac9-89aa-c11825bb76bb",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "live, 2008-05-16: Later… with Jools Holland",
+      "lengthMs": 250026,
+      "isrcs": [
+        "GBCAD0902494"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "1494f710-6759-4cee-9e11-d97c44abcbe7",
+          "title": "Later… Live With Jools Holland, Volume 2",
+          "date": "2009",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "528ae5c3-5a55-4478-b2b9-688563cbf76b",
+            "title": "Later… Live With Jools Holland, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "Live"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 17,
+              "track-offset": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4d54703b-ff2f-47df-be33-5f7529b83cfc",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "",
+      "lengthMs": 239520,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "721557ec-563f-465b-b883-1b6d7bee6bf1",
+          "title": "POP MIX",
+          "date": "",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
+            "title": "POP MIX",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 17,
+              "track-offset": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f4016291-8001-48b6-87ee-60a4c4c2a74f",
+      "title": "Skinny Love",
+      "artist": "Cameron Mitchell",
+      "disambiguation": "",
+      "lengthMs": 237000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "bab92048-fd9a-4b90-a9a3-9474128527f7",
+          "title": "The Covers",
+          "date": "2012-08-28",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "c51fcbe0-7a5b-452d-aa5a-39fed14addd4",
+            "title": "The Covers",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 7,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4ebc6bfd-d3fe-4397-b625-456719676b2f",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "Blogotheque Take Away Show",
+      "lengthMs": 334000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "abd4bf48-6108-40ca-8698-25188b9417fe",
+          "title": "Blogotheque Take Away Show",
+          "status": "Promotion",
+          "release-group": {
+            "id": "da0afe47-38b0-4bfc-99f3-7a5e44f22484",
+            "title": "Blogotheque Take Away Show",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Live"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "DVD",
+              "track-count": 6,
+              "track-offset": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6b01929c-86a8-4884-8e70-e4f8acd5a4d8",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "70a0d761-7231-4c8b-af50-bab744df955f",
+          "title": "Delicatessen",
+          "date": "2010",
+          "country": "ES",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "27526dd4-62ee-45a0-9bd1-d9d941a5031e",
+            "title": "Delicatessen",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "433ebe5d-1716-4d04-8dc8-e3018c835809",
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "disambiguation": "live, 2008-08-08: Koka Booth Amphitheater, Cary, NC, USA",
+      "lengthMs": 305093,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "cca52098-6473-45dc-bbfe-b5f102816d43",
+          "title": "2008-08-08: Koka Booth Amphitheater, Cary, NC, USA",
+          "status": "Bootleg",
+          "release-group": {
+            "id": "3b23332e-6925-42a2-a63f-286e5683f466",
+            "title": "2008-08-08: Koka Booth Amphitheater, Cary, NC, USA",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Live"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 7,
+              "track-offset": 4
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

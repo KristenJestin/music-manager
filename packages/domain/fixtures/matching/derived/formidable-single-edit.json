@@ -1,0 +1,3424 @@
+{
+  "kind": "single",
+  "derivedFrom": "matching/formidable.json",
+  "synthetic": "MusicBrainz has one studio “Formidable” at 3:34, used by both the single and the album; there is no 3:33 single edit. This candidate is the recorded recording (16afa384-174e-435e-bfa3-5591accda31c) shortened by one second and restricted to the “Formidable” single (976e0677-a480-4a5e-a177-6a86c1900bbf), which is a real release of it. Nothing else was changed.",
+  "video": {
+    "id": "yt-formidable",
+    "index": 0,
+    "title": "Stromae - Formidable (clip officiel)",
+    "durationSeconds": 214,
+    "uploader": "Stromae",
+    "ytTrack": "Formidable",
+    "ytArtist": "Stromae",
+    "ytReleaseYear": 2013
+  },
+  "candidates": [
+    {
+      "id": "16afa384-174e-435e-bfa3-5591accda31c",
+      "title": "Formidable",
+      "artist": "Stromae",
+      "disambiguation": "",
+      "lengthMs": 214000,
+      "isrcs": [
+        "BET671300161"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "976e0677-a480-4a5e-a177-6a86c1900bbf",
+          "title": "Formidable",
+          "disambiguation": "",
+          "date": "2013-06-01",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "19099ea5-3600-4154-b482-2ec68815883e",
+            "title": "Formidable",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2013-06-01",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 1,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "225b2e2b-73c3-4f20-a57c-2458346a7fec",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 214678,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f6de2fb9-fae0-4f4c-b576-344d98590495",
+          "title": "La Bande‐son de l’été 2013",
+          "disambiguation": "",
+          "date": "2013-07-10",
+          "country": "FR",
+          "status": "Promotion",
+          "barcode": "",
+          "packaging": "Cardboard/Paper Sleeve",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f3052095-4ed1-47d9-af4b-4fdcef894238",
+            "title": "La Bande‐son de l’été 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013-07-10",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 16,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "05423552-4a1f-4eb1-ac01-d8c26b56a4ae",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Formidable",
+                  "length": 216040,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b1574416-8c3e-4585-a7c2-e9fd0aec0a86",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2013-08-16",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "00602537502295",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "00b2f6e1-d9ca-4218-9a6c-df0ae4b47a88",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "de57c1d9-5e65-420f-a896-1332e87d4c09",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2013-08-19",
+          "country": "BE",
+          "status": "Official",
+          "barcode": "602537479870",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "73fdfe42-22c4-4a53-a0d5-fe1b12714b4f",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c22bdb3a-69c0-449a-9ef5-99796bb0f2d7",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2013-08-19",
+          "country": "US",
+          "status": "Official",
+          "barcode": "602537524792",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "7a5237ec-5563-4879-a149-74d61dd02fb1",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213960,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "85a51dc5-5e0b-4231-ae05-45882f1cbe9c",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2013-08-19",
+          "country": "XE",
+          "status": "Official",
+          "barcode": "0602537514496",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "441f5205-dca4-471f-9dfd-ca3bfc1fde6d",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4bff3b6e-620c-474e-9fa7-cb699fba22c0",
+          "title": "NRJ 200% Hits 2013, Volume 2",
+          "disambiguation": "",
+          "date": "2013-09-16",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "600753449721",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "aca936cc-474d-4d51-acb4-83e071907ead",
+            "title": "NRJ 200% Hits 2013, Volume 2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013-09-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "65ace4a9-d505-4078-a621-6053f66da94e",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 214000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "550a6ec9-e83d-4692-9ac7-d3a028f8799b",
+          "title": "MNM Big Hits 2013, Vol. 3",
+          "disambiguation": "",
+          "date": "2013-09-27",
+          "country": "BE",
+          "status": "Official",
+          "barcode": "0600753450598",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "3d411ef4-f7ea-4545-abe6-cb72b5ff674a",
+            "title": "MNM Big Hits 2013, Vol. 3",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013-09-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 21,
+              "tracks": [
+                {
+                  "id": "f5ca849a-75db-41ac-81a1-09a0b099a303",
+                  "position": 22,
+                  "number": "22",
+                  "title": "Formidable",
+                  "length": 212813,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1d12038c-79bb-473d-b2e0-6c917c3e73ca",
+          "title": "W9 Hits 2014",
+          "disambiguation": "",
+          "date": "2013-10-21",
+          "country": "FR",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "168431c3-abb9-4af7-b3c9-4e38a0ee0871",
+            "title": "W9 Hits 2014",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013-10-21",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 23,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "fe4c1312-0426-45ac-bd06-767243fb5c31",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "103d52ec-7f51-4477-baf8-f2c26eb3ebf9",
+          "title": "The Dome, Volume 68",
+          "disambiguation": "",
+          "date": "2013-12-06",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "0600753464328",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ca2a7489-825d-484d-a426-1daa9d9f1d98",
+            "title": "The Dome, Volume 68",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013-12-06",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 17,
+              "tracks": [
+                {
+                  "id": "1d458bfd-2f0c-4146-a188-9c635b0d20b4",
+                  "position": 18,
+                  "number": "18",
+                  "title": "Formidable",
+                  "length": 214906,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d9ec70ec-d02e-4d2f-a0ae-c79895706521",
+          "title": "Maximum Hit Music Best of 2013",
+          "disambiguation": "",
+          "date": "2013",
+          "country": "BE",
+          "status": "Official",
+          "barcode": "0600753471418",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5899c636-db55-435c-b4bd-e4c903712bb7",
+            "title": "Maximum Hit Music Best of 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 21,
+              "tracks": [
+                {
+                  "id": "7834ad12-a1f3-4f57-83db-ebb6d3e8c41c",
+                  "position": 22,
+                  "number": "22",
+                  "title": "Formidable",
+                  "length": 215000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "11d0ede6-31f8-40e8-a747-dfd055505bb3",
+          "title": "NRJ Music Awards 15th Edition",
+          "disambiguation": "",
+          "date": "2013",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "888837786522",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e508b5f8-2971-4467-8b6a-59290742817f",
+            "title": "NRJ Music Awards 15TH Edition",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "937c018a-1e7b-42e3-95c5-3ef1ebcbd5c6",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Formidable",
+                  "length": 214026,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5a9cb6d7-946e-4ba9-a2e7-0a287894e55b",
+          "title": "Playlist Hits 2014",
+          "disambiguation": "",
+          "date": "2013",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "600753468425",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ffeb4cb9-8e90-495e-9f8b-d7b6307625d1",
+            "title": "Playlist Hits 2014",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2013",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "ab280b7c-413a-4c63-9307-ba88b7568f40",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 213520,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f2aff0c3-332a-4d19-885e-ead360cff0c4",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2013",
+          "country": "XE",
+          "status": "Official",
+          "barcode": "602537502196",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "58161e6e-f972-452b-8e15-05a011601a47",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a1ec9a22-4398-47c1-8348-c8db6809a275",
+          "title": "Radio 538: Hitzone 68",
+          "disambiguation": "",
+          "date": "2014-02-07",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "0600753500903",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
+            "title": "Radio 538: Hitzone 68",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-02-07",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "3403887a-3a6b-450a-a387-0a136a2bdd54",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Formidable",
+                  "length": 214000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3598e9ff-6f1e-4ec1-880c-01c3143b5833",
+          "title": "Radio 538: Hitzone 68",
+          "disambiguation": "",
+          "date": "2014-02-07",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "0600753500934",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
+            "title": "Radio 538: Hitzone 68",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-02-07",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "4bb102fb-57dc-4984-9fcf-0e1ca1d10158",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Formidable",
+                  "length": 213936,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "e44d7cca-2620-4398-823c-f7a6a59fefb4",
+          "title": "Bravo Hits 84",
+          "disambiguation": "",
+          "date": "2014-02-14",
+          "country": "CH",
+          "status": "Official",
+          "barcode": "0600753500286",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
+            "title": "Bravo Hits 84",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-02-14",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "e2f800e4-d175-412c-9006-9b8ed1aa4087",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Formidable",
+                  "length": 215000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0a8895f4-3bfc-4362-8999-ff9988782a97",
+          "title": "Bravo Hits 84",
+          "disambiguation": "",
+          "date": "2014-02-14",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "0600753500231",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
+            "title": "Bravo Hits 84",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-02-14",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "7b22808c-d904-4830-bfd7-01aadfe26eb2",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Formidable",
+                  "length": 214000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "348662a8-54ce-4d14-adf5-3ce2cefd57bb",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2014-02-25",
+          "country": "US",
+          "status": "Official",
+          "barcode": "602537502196",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "5dce0d7c-6294-4e7d-9cba-e7edb144938b",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 213933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3ee99046-ad33-432d-82fd-2109348a6ff1",
+          "title": "Sanremo 2014",
+          "disambiguation": "",
+          "date": "2014-02-27",
+          "country": "IT",
+          "status": "Official",
+          "barcode": "0600753504604",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "0dee6fbc-37f2-4103-8b2a-59f545a06a97",
+            "title": "Sanremo 2014",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-02-27",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "title": "Nuove proposte / Ospiti internazionali",
+              "track-count": 11,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "3b6bca2c-04de-44ef-9884-38067e2a7a72",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Formidable",
+                  "length": 215000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6048498a-62f7-42a5-a921-93c2134d180f",
+          "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
+          "disambiguation": "",
+          "date": "2014-04",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "0600753504758",
+          "packaging": "Fatbox",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2f6ece53-3eee-46de-a114-beb773b16756",
+            "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "b8c9cf91-e92d-4ebe-9837-5238b9209efb",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 214906,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a499df79-fc7b-4162-911f-77384eac926d",
+          "title": "Radio 538 Hitzone: Best of 2014",
+          "disambiguation": "",
+          "date": "2014-11-14",
+          "country": "NL",
+          "status": "Official",
+          "barcode": "0600753557914",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "508b0ac4-d7c3-4eb4-b703-a3e003a7fe22",
+            "title": "Radio 538 Hitzone: Best of 2014",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-11-14",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 10,
+              "tracks": [
+                {
+                  "id": "05871e59-51f6-4a0c-97c3-4765e85afbbd",
+                  "position": 11,
+                  "number": "11",
+                  "title": "Formidable",
+                  "length": 215933,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a0a512d9-9a86-4f36-a990-09e0cdd60c55",
+          "title": "Chartboxx 2/2014",
+          "disambiguation": "",
+          "date": "2014",
+          "country": "DE",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f42ee259-ff2f-4a68-a66d-3ca7da2d19cf",
+            "title": "Chartboxx 2/2014",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 21,
+              "track-offset": 14,
+              "tracks": [
+                {
+                  "id": "1d3452a1-4ad7-402f-b784-6d567fe809bf",
+                  "position": 15,
+                  "number": "15",
+                  "title": "Formidable",
+                  "length": 214720,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ef3b8621-5168-46aa-944a-62c0b7fd40a0",
+          "title": "Formidable - 40 Franse chansons - Van Stromae tot Aznavour",
+          "disambiguation": "",
+          "date": "2014",
+          "country": null,
+          "status": "Withdrawn",
+          "barcode": "00600753504765",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2f6ece53-3eee-46de-a114-beb773b16756",
+            "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2014-04",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "271356c1-b856-41c3-8e56-dbb32029d097",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 212900,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "78eee894-28ba-4395-abba-1c806289c592",
+          "title": "Racine carrée",
+          "disambiguation": "",
+          "date": "2014",
+          "country": "XE",
+          "status": "Official",
+          "barcode": "602537713769",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d079dc50-fa9b-4a88-90f4-5e8723accd75",
+            "title": "Racine carrée",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 13,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "5b083fcf-0a18-4dc6-9d0e-f2e2a537961a",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Formidable",
+                  "length": 214000,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "38b10ee6-d2ef-4009-b027-34421116f875",
+      "title": "Formidable",
+      "artist": "Rouler Pinder",
+      "disambiguation": "",
+      "lengthMs": 67000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "b0ffb296-3e41-4ced-bb8b-a87b2ba747c2",
+          "title": "Ben... Mon cochon !!",
+          "disambiguation": "",
+          "date": "2005-06-02",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Rouler Pinder",
+              "joinphrase": "",
+              "artist": {
+                "id": "e108571e-886b-4b1b-aa9d-653ce3e0bef6",
+                "name": "Rouler Pinder",
+                "sort-name": "Rouler Pinder",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d6449743-c124-3837-953b-556843e0e51c",
+            "title": "Ben... Mon cochon !!",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2005-06-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Rouler Pinder",
+                "joinphrase": "",
+                "artist": {
+                  "id": "e108571e-886b-4b1b-aa9d-653ce3e0bef6",
+                  "name": "Rouler Pinder",
+                  "sort-name": "Rouler Pinder",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 11,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "21ede491-bcbb-3f11-ad7f-9712a6388f8e",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 67000,
+                  "artist-credit": [
+                    {
+                      "name": "Rouler Pinder",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "e108571e-886b-4b1b-aa9d-653ce3e0bef6",
+                        "name": "Rouler Pinder",
+                        "sort-name": "Rouler Pinder",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fcd2c94e-2dff-43e7-b084-c3e44e7c0206",
+      "title": "Formidable",
+      "artist": "Oui Oui",
+      "disambiguation": "",
+      "lengthMs": 202000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "71088910-d7fb-4a3c-9b64-816a7a0e2fb2",
+          "title": "Formidable",
+          "disambiguation": "",
+          "date": "1992",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "3383005920397",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Oui Oui",
+              "joinphrase": "",
+              "artist": {
+                "id": "4de99623-071b-4352-8e49-8b5f966ab05f",
+                "name": "Oui Oui",
+                "sort-name": "Oui Oui",
+                "disambiguation": "French pop group"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e5df8e3f-f97e-429c-9193-ffb8a3b74293",
+            "title": "Formidable",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "1992",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Oui Oui",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4de99623-071b-4352-8e49-8b5f966ab05f",
+                  "name": "Oui Oui",
+                  "sort-name": "Oui Oui",
+                  "disambiguation": "French pop group"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 12,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "063874fa-2a7a-3335-abd6-54f39b8e2f02",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Formidable",
+                  "length": 202000,
+                  "artist-credit": [
+                    {
+                      "name": "Oui Oui",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4de99623-071b-4352-8e49-8b5f966ab05f",
+                        "name": "Oui Oui",
+                        "sort-name": "Oui Oui",
+                        "disambiguation": "French pop group"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4358c495-e9f4-47a4-b91f-bf377a841997",
+      "title": "Formidable",
+      "artist": "Celyane",
+      "disambiguation": "",
+      "lengthMs": 159000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "e438e018-09e7-4a4a-b5be-d882108ad69d",
+          "title": "Celyane",
+          "disambiguation": "",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Celyane",
+              "joinphrase": "",
+              "artist": {
+                "id": "c49ed54d-d595-40f0-a8ab-de37af67fa14",
+                "name": "Celyane",
+                "sort-name": "Celyane",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e98f27c7-89a6-4125-b460-dd5d0cde989c",
+            "title": "Celyane",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Celyane",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c49ed54d-d595-40f0-a8ab-de37af67fa14",
+                  "name": "Celyane",
+                  "sort-name": "Celyane",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": null,
+              "title": "",
+              "track-count": 10,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "b5fdb495-b586-3677-b554-0520043a27d0",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Formidable",
+                  "length": 159000,
+                  "artist-credit": [
+                    {
+                      "name": "Celyane",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "c49ed54d-d595-40f0-a8ab-de37af67fa14",
+                        "name": "Celyane",
+                        "sort-name": "Celyane",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1ea09c6b-5dcf-4374-9011-1e65bfc025bc",
+      "title": "Formidable",
+      "artist": "Charles Aznavour",
+      "disambiguation": "",
+      "lengthMs": 142773,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "16efae82-367f-463b-92df-073eeb7e7bac",
+          "title": "Das Beste auf Deutsch",
+          "disambiguation": "",
+          "date": "2004-10-21",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "724386386427",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Charles Aznavour",
+              "joinphrase": "",
+              "artist": {
+                "id": "5f264b87-d5f6-487d-aa3e-ae4c5f0c6fc9",
+                "name": "Charles Aznavour",
+                "sort-name": "Aznavour, Charles",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "be135c71-56bc-31ac-99b5-0512cf1786cd",
+            "title": "Das Beste auf Deutsch",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2004-10-21",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Charles Aznavour",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5f264b87-d5f6-487d-aa3e-ae4c5f0c6fc9",
+                  "name": "Charles Aznavour",
+                  "sort-name": "Aznavour, Charles",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Copy Control CD",
+              "title": "",
+              "track-count": 16,
+              "track-offset": 10,
+              "tracks": [
+                {
+                  "id": "05b2e701-a0b5-34cc-81b9-2c1d3cb00b91",
+                  "position": 11,
+                  "number": "11",
+                  "title": "Formidable",
+                  "length": 142773,
+                  "artist-credit": [
+                    {
+                      "name": "Charles Aznavour",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "5f264b87-d5f6-487d-aa3e-ae4c5f0c6fc9",
+                        "name": "Charles Aznavour",
+                        "sort-name": "Aznavour, Charles",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6a638de4-c9ee-4e24-967a-91ae253b527d",
+      "title": "Formidable",
+      "artist": "Marc Morgan",
+      "disambiguation": "",
+      "lengthMs": 218000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "f1323618-46d0-4c1a-9199-e0d8af7bda28",
+          "title": "Un cygne sur l'Orénoque",
+          "disambiguation": "",
+          "date": "1993",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "3383005921790",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Marc Morgan",
+              "joinphrase": "",
+              "artist": {
+                "id": "1a967a25-f272-4eae-b80e-71688017c0b4",
+                "name": "Marc Morgan",
+                "sort-name": "Morgan, Marc",
+                "disambiguation": "Belgian/francophonic singer & songwriter Marc Wathieu"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "814486f5-e587-3aa0-bb59-fd81769e7aa4",
+            "title": "Un cygne sur l'Orénoque",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "1993",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Marc Morgan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1a967a25-f272-4eae-b80e-71688017c0b4",
+                  "name": "Marc Morgan",
+                  "sort-name": "Morgan, Marc",
+                  "disambiguation": "Belgian/francophonic singer & songwriter Marc Wathieu"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 11,
+              "tracks": [
+                {
+                  "id": "c26b6bc0-8830-38f3-a4ef-890274dac6ab",
+                  "position": 12,
+                  "number": "12",
+                  "title": "Formidable",
+                  "length": 218000,
+                  "artist-credit": [
+                    {
+                      "name": "Marc Morgan",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "1a967a25-f272-4eae-b80e-71688017c0b4",
+                        "name": "Marc Morgan",
+                        "sort-name": "Morgan, Marc",
+                        "disambiguation": "Belgian/francophonic singer & songwriter Marc Wathieu"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "120dd461-93f3-41b4-ade2-bd3a268deac1",
+      "title": "Formidable",
+      "artist": "DJ Maikel",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "42bd3f79-04a1-4c05-ba45-7024b70c0120",
+          "title": "My Style",
+          "disambiguation": "",
+          "date": "1997",
+          "country": "NL",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "DJ Maikel",
+              "joinphrase": "",
+              "artist": {
+                "id": "786ad19a-2d2f-4bdd-af7d-7cf629789f46",
+                "name": "DJ Maikel",
+                "sort-name": "DJ Maikel",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d32508d7-e64f-4f62-a60f-74425e98eefe",
+            "title": "My Style",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "1997",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "DJ Maikel",
+                "joinphrase": "",
+                "artist": {
+                  "id": "786ad19a-2d2f-4bdd-af7d-7cf629789f46",
+                  "name": "DJ Maikel",
+                  "sort-name": "DJ Maikel",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "title": "",
+              "track-count": 5,
+              "track-offset": 3,
+              "tracks": [
+                {
+                  "id": "788e266e-cc31-351e-9dc2-d6d08c379c8e",
+                  "position": 4,
+                  "number": "B2",
+                  "title": "Formidable",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "DJ Maikel",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "786ad19a-2d2f-4bdd-af7d-7cf629789f46",
+                        "name": "DJ Maikel",
+                        "sort-name": "DJ Maikel",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7ece9d46-cead-4f95-84db-a0b56ef62164",
+      "title": "Formidable",
+      "artist": "Stromae",
+      "disambiguation": "",
+      "lengthMs": 397128,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+          "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+          "disambiguation": "",
+          "date": "2015-12-11",
+          "country": "DE",
+          "status": "Official",
+          "barcode": "888751866294",
+          "packaging": "Digipak",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "961324e1-66e8-40db-837c-42dee4e22475",
+            "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+            "primary-type": "Other",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2015-12-11",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Blu-ray",
+              "title": "",
+              "track-count": 24,
+              "track-offset": 13,
+              "tracks": [
+                {
+                  "id": "9b50ef28-ce6b-4cd9-ae91-82c45ca07420",
+                  "position": 14,
+                  "number": "14",
+                  "title": "Formidable",
+                  "length": 397128,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dffba131-01f5-43f6-a091-e1c8fdb98c86",
+      "title": "Formidable!",
+      "artist": "Barbara Casini",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0f90ea3b-07d2-4e16-879f-4ff51d233b1d",
+          "title": "Formidable!",
+          "disambiguation": "",
+          "date": "2009",
+          "country": "IT",
+          "status": "Official",
+          "barcode": "8013284004246",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Barbara Casini",
+              "joinphrase": "",
+              "artist": {
+                "id": "a32aad20-a3af-4eca-ac04-c1d2ac3113eb",
+                "name": "Barbara Casini",
+                "sort-name": "Casini, Barbara",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d4b2561f-6b90-4c8c-917b-ad1b38d362d4",
+            "title": "Formidable!",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2009",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Barbara Casini",
+                "joinphrase": "",
+                "artist": {
+                  "id": "a32aad20-a3af-4eca-ac04-c1d2ac3113eb",
+                  "name": "Barbara Casini",
+                  "sort-name": "Casini, Barbara",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 12,
+              "track-offset": 10,
+              "tracks": [
+                {
+                  "id": "fb52da0e-8fd0-43ef-a0f0-e7a260012d4f",
+                  "position": 11,
+                  "number": "11",
+                  "title": "Formidable!",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Barbara Casini",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "a32aad20-a3af-4eca-ac04-c1d2ac3113eb",
+                        "name": "Barbara Casini",
+                        "sort-name": "Casini, Barbara",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "453d180f-ee2d-4018-8f69-bb8498dbde78",
+      "title": "FORMIDABLE",
+      "artist": "Rodrigo",
+      "disambiguation": "",
+      "lengthMs": 125000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ff503cd6-d1b2-4ff0-b00c-768f2537c15d",
+          "title": "ÉTERNEL SECOND",
+          "disambiguation": "",
+          "date": "2024-04-12",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Rodrigo",
+              "joinphrase": "",
+              "artist": {
+                "id": "be32e939-f9bb-4177-8e74-e53dc7ee3c91",
+                "name": "Rodrigo",
+                "sort-name": "Rodrigo",
+                "disambiguation": "French"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "8c017c45-72f1-4264-b3bf-ad58d3740e5f",
+            "title": "ÉTERNEL SECOND",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2024-04-12",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Rodrigo",
+                "joinphrase": "",
+                "artist": {
+                  "id": "be32e939-f9bb-4177-8e74-e53dc7ee3c91",
+                  "name": "Rodrigo",
+                  "sort-name": "Rodrigo",
+                  "disambiguation": "French"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 8,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "b9886932-ecd6-4fc6-b188-d32d995418e6",
+                  "position": 5,
+                  "number": "5",
+                  "title": "FORMIDABLE",
+                  "length": 125000,
+                  "artist-credit": [
+                    {
+                      "name": "Rodrigo",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "be32e939-f9bb-4177-8e74-e53dc7ee3c91",
+                        "name": "Rodrigo",
+                        "sort-name": "Rodrigo",
+                        "disambiguation": "French"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cbe7232c-8a8e-4eec-97c0-f7c850f356e1",
+      "title": "Formidable",
+      "artist": "unisixn",
+      "disambiguation": "",
+      "lengthMs": 233142,
+      "isrcs": [
+        "CA5KR2316390"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0474e62f-0762-486f-8067-dc30d564228c",
+          "title": "Toxic Volume 1",
+          "date": "2023-01-20",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "047607ba-f5cd-4832-86a7-ba185a06c19a",
+            "title": "Toxic Volume 1",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 10,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "391cf1a9-08d9-4537-80b9-cf3ec57aaeba",
+      "title": "FORMIDABLE",
+      "artist": "Kyo & Mdns",
+      "disambiguation": "",
+      "lengthMs": 140000,
+      "isrcs": [
+        "FRZ082500596",
+        "FRZ052500293"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "54dd3059-b330-4ac3-9e79-302161613f1c",
+          "title": "ULTRAVIOLENT",
+          "disambiguation": "Tidal-only Dolby Atmos",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Kyo",
+              "artist": {
+                "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                "name": "Kyo",
+                "sort-name": "Kyo",
+                "disambiguation": "French pop-rock band"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+            "title": "ULTRAVIOLENT",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 12,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "0d7eb2de-7cf1-4db2-86cb-1934e5e5b3b2",
+          "title": "ULTRAVIOLENT",
+          "date": "2025-10-31",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Kyo",
+              "artist": {
+                "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                "name": "Kyo",
+                "sort-name": "Kyo",
+                "disambiguation": "French pop-rock band"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+            "title": "ULTRAVIOLENT",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 12,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2f87f4b3-0440-4448-ada6-4f37a37f3e5a",
+      "title": "Formidable",
+      "artist": "Kyo (feat. Mdns)",
+      "disambiguation": "",
+      "lengthMs": 140000,
+      "isrcs": [
+        "FRZ052500293"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "72c4587b-8d49-482b-9f93-d3d1e9474a7f",
+          "title": "ULTRAVIOLENT",
+          "date": "2025-10-31",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Kyo",
+              "artist": {
+                "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                "name": "Kyo",
+                "sort-name": "Kyo",
+                "disambiguation": "French pop-rock band"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+            "title": "ULTRAVIOLENT",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 12,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "771dd185-27c7-4afc-ba51-fd80faa2bd85",
+      "title": "Formidable",
+      "artist": "Metamorfózy",
+      "disambiguation": "",
+      "lengthMs": 173000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "53d720d6-8f9c-4339-b671-3f068ea12eb2",
+          "title": "Decasia",
+          "date": "2011",
+          "country": "NO",
+          "status": "Official",
+          "release-group": {
+            "id": "0a9e7bb2-f999-489c-a957-18904d53d564",
+            "title": "Decasia",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0137928f-5df4-4a59-93d4-ab39a4b44e74",
+      "title": "Formidable",
+      "artist": "Donald Byrd Quintet",
+      "disambiguation": "",
+      "lengthMs": 554000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "e894c545-c057-4486-a742-fdbf5949bf45",
+          "title": "Complete Live At The Olympia 1958",
+          "date": "2010",
+          "country": "XE",
+          "release-group": {
+            "id": "c44de0cd-0963-4768-9516-7b94efb5c2f3",
+            "title": "Complete Live At The Olympia 1958",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "34e7ae94-22b1-46d5-84a5-54bc50f911f1",
+      "title": "Formidable",
+      "artist": "Captain",
+      "disambiguation": "",
+      "lengthMs": 20000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "3ca1edc9-c688-45d8-bed3-3cb705ec9e93",
+          "title": "Rhythm & Soul Vol 1 & 2",
+          "date": "1997",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "9a4629c8-6311-483a-a86d-9bf1ddbf5db0",
+            "title": "Rhythm & Soul Vol 1 & 2",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 63,
+              "track-offset": 44
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "49ef3deb-5824-4f20-b47f-9e2e4f5291e9",
+      "title": "Formidable",
+      "artist": "Captain",
+      "disambiguation": "",
+      "lengthMs": 10000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "3ca1edc9-c688-45d8-bed3-3cb705ec9e93",
+          "title": "Rhythm & Soul Vol 1 & 2",
+          "date": "1997",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "9a4629c8-6311-483a-a86d-9bf1ddbf5db0",
+            "title": "Rhythm & Soul Vol 1 & 2",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 63,
+              "track-offset": 62
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4c662213-0500-4b0e-b195-2a6fe3ba5b97",
+      "title": "Formidable",
+      "artist": "Gents Universitair Koor",
+      "disambiguation": "",
+      "lengthMs": 224000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ebc1e199-8840-407c-b951-f49be7e05ccd",
+          "title": "Best Of",
+          "date": "2022",
+          "country": "BE",
+          "release-group": {
+            "id": "2950d766-63e8-4a02-b7f9-24176c58dbb2",
+            "title": "Best Of",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Live"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "914a31a7-3ef4-417e-9e32-52f40d266908",
+      "title": "Formidable",
+      "artist": "Radiarc",
+      "disambiguation": "",
+      "lengthMs": 292577,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "d078ceed-26f8-460d-8fe6-d3259f4a0075",
+          "title": "Forward",
+          "date": "2013-09-30",
+          "country": "XW",
+          "status": "Official",
+          "release-group": {
+            "id": "05608b50-e71e-454a-a16e-2c5b9e97db3c",
+            "title": "Forward",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 15,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d0d1f995-706d-4203-a036-1fdf3cc6e055",
+      "title": "Formidable",
+      "artist": "Martyn Corbet",
+      "disambiguation": "",
+      "lengthMs": 141000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "e447b7f6-7097-4157-b375-9c0ea8c6275a",
+          "title": "How to Save the Universe in 90 Seconds (or Less)",
+          "date": "2022-07-18",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Audiomachine",
+              "artist": {
+                "id": "1e3e8759-f149-4e1b-933a-e4c46876c5fd",
+                "name": "Audiomachine",
+                "sort-name": "Audiomachine",
+                "disambiguation": "production music library [AM#; AMS#; AMT#]"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "16d8f058-8dd8-437c-bd63-d0c139bc590a",
+            "title": "How to Save the Universe in 90 Seconds (or Less)",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 18,
+              "track-offset": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d14bba8b-f711-457e-8bee-d66076b4378a",
+      "title": "Formidable",
+      "artist": "Mr Traumatik",
+      "disambiguation": "",
+      "lengthMs": 140064,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "02b5e101-0961-4c34-9963-2356105e6607",
+          "title": "Dont Judge A CD By Its Cover",
+          "date": "2014-11-13",
+          "country": "XW",
+          "status": "Official",
+          "release-group": {
+            "id": "966d5248-1111-4136-8f52-d6a246fce2da",
+            "title": "Don’t Judge a CD by Its Cover",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 20,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "36e23d25-acc4-44fd-a183-faa78f261be5",
+      "title": "Formidable",
+      "artist": "Omnium Gatherum",
+      "disambiguation": "",
+      "lengthMs": 294000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "03552f66-13e7-4f27-ada7-b4c7df5894d6",
+          "title": "Beyond",
+          "disambiguation": "cornetto twister vinyl",
+          "date": "2025-01-13",
+          "country": "DE",
+          "status": "Official",
+          "release-group": {
+            "id": "32e40058-f2c4-466e-9ce7-b627040c613c",
+            "title": "Beyond",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 6,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "0478c55a-5cdc-4f4d-9b44-33a9bbc4ed99",
+          "title": "Beyond",
+          "disambiguation": "blue and black smoked with white splatter vinyl, tour edition",
+          "date": "2025-01-15",
+          "country": "DE",
+          "status": "Official",
+          "release-group": {
+            "id": "32e40058-f2c4-466e-9ce7-b627040c613c",
+            "title": "Beyond",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 6,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "703b92d9-e066-4349-8198-e7a433141fc8",
+          "title": "Beyond",
+          "date": "2013-02-22",
+          "country": "DE",
+          "status": "Official",
+          "release-group": {
+            "id": "32e40058-f2c4-466e-9ce7-b627040c613c",
+            "title": "Beyond",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 10,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "157f14df-329a-4fef-ba99-fcaebfe6acac",
+          "title": "Beyond",
+          "date": "2013-02-22",
+          "country": "KR",
+          "status": "Official",
+          "release-group": {
+            "id": "32e40058-f2c4-466e-9ce7-b627040c613c",
+            "title": "Beyond",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "1ed55567-70dc-4c5b-b5bc-762a4417d955",
+          "title": "Beyond",
+          "date": "2018-02-13",
+          "country": "XW",
+          "status": "Official",
+          "release-group": {
+            "id": "32e40058-f2c4-466e-9ce7-b627040c613c",
+            "title": "Beyond",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2e6e924-44f2-4cd1-910b-799fa34ef3d3",
+      "title": "Formidable",
+      "artist": "Jarby McCoy",
+      "disambiguation": "",
+      "lengthMs": 197773,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "d33f3a16-b592-4c98-9b64-a6ab6cf635c8",
+          "title": "DÉcollaGES",
+          "date": "2007",
+          "country": "BE",
+          "status": "Official",
+          "release-group": {
+            "id": "60684ebb-6404-436c-ba45-12b9c10dbb37",
+            "title": "DÉcollaGES",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 29,
+              "track-offset": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f511a180-3030-4001-8e17-9b35b5ea48a1",
+      "title": "Formidable",
+      "artist": "Captain",
+      "disambiguation": "",
+      "lengthMs": 60000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "3ca1edc9-c688-45d8-bed3-3cb705ec9e93",
+          "title": "Rhythm & Soul Vol 1 & 2",
+          "date": "1997",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "9a4629c8-6311-483a-a86d-9bf1ddbf5db0",
+            "title": "Rhythm & Soul Vol 1 & 2",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 63,
+              "track-offset": 26
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "394fbe8f-bbb3-425d-a97d-f158d4bebff5",
+      "title": "Formidable",
+      "artist": "Antoine Delie feat. Delta",
+      "disambiguation": "",
+      "lengthMs": 220027,
+      "isrcs": [
+        "FR8Y72200234"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "03538f8d-c7fb-4f98-bac7-89fe496c9833",
+          "title": "C'est ma vie",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Antoine Delie",
+              "artist": {
+                "id": "1fd8d80d-8d07-450d-884d-1d402d789475",
+                "name": "Antoine Delie",
+                "sort-name": "Delie, Antoine"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "82a73edc-db09-45f3-ad8d-354e022b288e",
+            "title": "C'est ma vie",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 5,
+              "track-offset": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "97dd9774-18ce-42df-a99f-33d469c76e9f",
+      "title": "Formidable",
+      "artist": "Owrang",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "6e00458c-e279-4d51-a4c5-487f371ea2c6",
+          "title": "Retrieving Beirut Part 4/4",
+          "disambiguation": "bandcamp",
+          "date": "2020-08-07",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "eb7da159-c97a-40f8-86b0-a7dd5262e0ed",
+            "title": "Retrieving Beirut Part 4/4",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 20,
+              "track-offset": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-0000000f0213",
+      "title": "Formidable",
+      "artist": "Stromae",
+      "disambiguation": "",
+      "lengthMs": 213000,
+      "isrcs": [
+        "BET671300161"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "976e0677-a480-4a5e-a177-6a86c1900bbf",
+          "title": "Formidable",
+          "disambiguation": "",
+          "date": "2013-06-01",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Stromae",
+              "joinphrase": "",
+              "artist": {
+                "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                "name": "Stromae",
+                "sort-name": "Stromae",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "19099ea5-3600-4154-b482-2ec68815883e",
+            "title": "Formidable",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2013-06-01",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 1,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "225b2e2b-73c3-4f20-a57c-2458346a7fec",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Formidable",
+                  "length": 214678,
+                  "artist-credit": [
+                    {
+                      "name": "Stromae",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                        "name": "Stromae",
+                        "sort-name": "Stromae",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

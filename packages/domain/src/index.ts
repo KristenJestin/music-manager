@@ -101,5 +101,8 @@ export { normalizeArtist, normalizeTitle, titleSimilarity } from "./normalize/ti
 export { parseYouTubeDescription } from "./normalize/youtube-description.ts";
 export type { YouTubeCredit, YouTubeDescription } from "./normalize/youtube-description.ts";
 
+/* ---- matching (docs 04, §Algorithme de présélection) ---- */
+export * from "./matching/index.ts";
+
 /** Kept from P00 so downstream imports do not break; the real version is TAG_SCHEMA_VERSION. */
 export const DOMAIN_SCHEMA_VERSION = 1 as const;
