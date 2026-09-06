@@ -35,6 +35,13 @@ import {
   type LibraryAlbum,
   type LibraryTrack,
 } from "#/server/db/schema/index.ts";
+import {
+  ALBUM_FILTERS,
+  TRACK_FILTERS,
+  type AlbumFilter,
+  type AlbumSort,
+  type TrackFilter,
+} from "#/lib/library-filters.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { retryStep } from "#/server/services/jobs/index.ts";
@@ -57,18 +64,12 @@ import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/
 /* the album grid                                                      */
 /* ------------------------------------------------------------------ */
 
-export const ALBUM_FILTERS = [
-  "all",
-  "incomplete",
-  "untagged",
-  "nocover",
-  "ytcover",
-  "schema",
-] as const;
-export type AlbumFilter = (typeof ALBUM_FILTERS)[number];
-
-export const ALBUM_SORTS = ["recent", "artist", "year", "score"] as const;
-export type AlbumSort = (typeof ALBUM_SORTS)[number];
+export {
+  ALBUM_FILTERS,
+  ALBUM_SORTS,
+  type AlbumFilter,
+  type AlbumSort,
+} from "#/lib/library-filters.ts";
 
 export interface AlbumCard {
   readonly id: string;
@@ -511,8 +512,7 @@ export async function albumHistory(
 /* the tracks page                                                     */
 /* ------------------------------------------------------------------ */
 
-export const TRACK_FILTERS = ["all", "nolyrics", "noreplaygain", "schema", "untagged"] as const;
-export type TrackFilter = (typeof TRACK_FILTERS)[number];
+export { TRACK_FILTERS, type TrackFilter } from "#/lib/library-filters.ts";
 
 export interface TrackRow {
   readonly id: string;

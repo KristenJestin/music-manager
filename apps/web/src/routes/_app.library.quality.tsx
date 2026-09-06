@@ -31,7 +31,7 @@ import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { RetagProgressBar, SchemaBadge, SchemaHeading } from "#/components/library/schema.tsx";
 import { useRetagProgress } from "#/hooks/use-retag-progress.ts";
 import { pct } from "#/lib/format.ts";
-import { QUALITY_FILTERS, QUALITY_FILTER_LABELS } from "#/server/services/quality.ts";
+import { QUALITY_FILTERS, QUALITY_FILTER_LABELS } from "#/lib/library-filters.ts";
 import { fetchQuality } from "#/server/functions/quality.ts";
 import { fetchMissingTags } from "#/server/functions/library.ts";
 import { startRetag, stopRetag } from "#/server/functions/retag.ts";

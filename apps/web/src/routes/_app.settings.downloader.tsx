@@ -25,7 +25,7 @@ import { runSelftest, runYtdlpUpdate, runCookiesTest } from "#/server/functions/
 
 export const Route = createFileRoute("/_app/settings/downloader")({
   loader: async () => await fetchDownloaderSettings(),
-  staticData: { crumbs: [{ label: "System" }, { label: "Settings" }, { label: "Downloader" }] },
+  staticData: { crumbs: [{ label: "Downloader" }] },
   component: DownloaderSettings,
 });
 

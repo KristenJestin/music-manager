@@ -39,6 +39,7 @@ import {
   type TagLevel,
   type TrackDocument,
 } from "@mm/domain";
+import { type QualityFilter } from "#/lib/library-filters.ts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   libraryAlbums,
@@ -443,30 +444,11 @@ export function summarise(
 /* the filters of /library/quality                                     */
 /* ------------------------------------------------------------------ */
 
-export const QUALITY_FILTERS = [
-  "all",
-  "below80",
-  "incomplete",
-  "untagged",
-  "schema",
-  "drift",
-  "lyrics",
-  "ytcover",
-  "replaygain",
-] as const;
-export type QualityFilter = (typeof QUALITY_FILTERS)[number];
-
-export const QUALITY_FILTER_LABELS: Readonly<Record<QualityFilter, string>> = Object.freeze({
-  all: "All",
-  below80: "Below 80%",
-  incomplete: "Incomplete",
-  untagged: "Untagged",
-  schema: "Behind schema",
-  drift: "Drift",
-  lyrics: "No lyrics",
-  ytcover: "YouTube cover",
-  replaygain: "No ReplayGain",
-});
+export {
+  QUALITY_FILTERS,
+  QUALITY_FILTER_LABELS,
+  type QualityFilter,
+} from "#/lib/library-filters.ts";
 
 /** Whether an album passes one filter, scored through `profile` (or globally). */
 export function matchesFilter(

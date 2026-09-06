@@ -544,7 +544,9 @@ function ErrorDecoder({
     {
       key: "matches",
       header: "Matches",
-      className: "max-w-56 font-mono text-2xs text-fg-2",
+      // `break-words` and a width, not `truncate`: a pattern is what you would grep a log for,
+      // so it has to be readable in full even when it wraps onto three lines.
+      className: "w-64 max-w-64 font-mono text-2xs break-words whitespace-normal text-fg-2",
       cell: (row) => ((row.patterns ?? []).length === 0 ? "—" : (row.patterns ?? []).join(" · ")),
     },
     { key: "cause", header: "Cause", cell: (row) => row.hint },

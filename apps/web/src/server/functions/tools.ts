@@ -19,6 +19,7 @@ import {
   type NavidromeStatus,
 } from "#/server/services/navidrome.ts";
 import { enqueueLibraryScan } from "#/server/services/queue.ts";
+import { verificationSummary } from "#/server/services/verify.ts";
 import {
   identifyOrphan,
   lastScan,
@@ -118,27 +119,6 @@ export const fetchTools = createServerFn({ method: "GET", strict: STRICT })
       return toFailure(error);
     }
   });
-
-/** How many albums have ever been read back, and how many of those came back wrong. */
-async function verificationSummary(
-  database: ReturnType<typeof db>,
-): Promise<{ albums: number; withMismatch: number; lastAt: string | null }> {
-  const { libraryAlbums } = await import("#/server/db/schema/index.ts");
-  const { isNotNull } = await import("drizzle-orm");
-  const rows = await database
-    .select({ verifiedAt: libraryAlbums.verifiedAt, verification: libraryAlbums.verification })
-    .from(libraryAlbums)
-    .where(isNotNull(libraryAlbums.verifiedAt));
-  let withMismatch = 0;
-  let lastAt: string | null = null;
-  for (const row of rows) {
-    const verification = row.verification as { mismatches?: number } | null;
-    if ((verification?.mismatches ?? 0) > 0) withMismatch += 1;
-    const at = row.verifiedAt?.toISOString() ?? null;
-    if (at !== null && (lastAt === null || at > lastAt)) lastAt = at;
-  }
-  return { albums: rows.length, withMismatch, lastAt };
-}
 
 /* ------------------------------------------------------------------ */
 /* the buttons                                                         */

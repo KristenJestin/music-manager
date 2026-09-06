@@ -25,7 +25,7 @@ import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { pct } from "#/lib/format.ts";
-import { ALBUM_FILTERS, ALBUM_SORTS } from "#/server/services/library.ts";
+import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";
 import { fetchAlbums } from "#/server/functions/library.ts";
 
 const search = z.object({

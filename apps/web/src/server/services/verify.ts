@@ -21,7 +21,7 @@
  * actually handed. That keeps this file honest — it can only ever claim we wrote something we
  * really did write.
  */
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { projectDocument, tagByField, type TrackDocument } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -651,6 +651,35 @@ export async function verifyLibrary(options: VerifyOptions = {}): Promise<Librar
     notFound,
     albums: rows,
   };
+}
+
+/**
+ * How many albums have ever been read back, and how many came back wrong.
+ *
+ * It lives in the service and not in `server/functions/tools.ts` for a reason worth naming:
+ * a **non-handler function** in a server-function module survives the client split, and this
+ * one touches Drizzle — which lands `postgres` in the browser bundle and fails at runtime as
+ * `Buffer is not defined`, three layers from its cause (`server/functions/base.ts`).
+ */
+export async function verificationSummary(db: Database = defaultDb()): Promise<{
+  albums: number;
+  withMismatch: number;
+  lastAt: string | null;
+}> {
+  const rows = await db
+    .select({ verifiedAt: libraryAlbums.verifiedAt, verification: libraryAlbums.verification })
+    .from(libraryAlbums)
+    .where(isNotNull(libraryAlbums.verifiedAt));
+
+  let withMismatch = 0;
+  let lastAt: string | null = null;
+  for (const row of rows) {
+    const verification = row.verification as { mismatches?: number } | null;
+    if ((verification?.mismatches ?? 0) > 0) withMismatch += 1;
+    const at = row.verifiedAt?.toISOString() ?? null;
+    if (at !== null && (lastAt === null || at > lastAt)) lastAt = at;
+  }
+  return { albums: rows.length, withMismatch, lastAt };
 }
 
 /** The stored verdicts, for the Console and for `mm verify --all`. */

@@ -19,7 +19,7 @@ import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { bytes, mmss, pct, timeAgo } from "#/lib/format.ts";
-import { TRACK_FILTERS } from "#/server/services/library.ts";
+import { TRACK_FILTERS } from "#/lib/library-filters.ts";
 import type { TrackRow } from "#/server/services/library.ts";
 import { fetchTracks } from "#/server/functions/library.ts";
 

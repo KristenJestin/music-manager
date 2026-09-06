@@ -30,7 +30,7 @@ import type { NavidromeStatus } from "#/server/services/navidrome.ts";
 
 export const Route = createFileRoute("/_app/settings/integrations")({
   loader: async () => await fetchIntegrationSettings(),
-  staticData: { crumbs: [{ label: "System" }, { label: "Settings" }, { label: "Integrations" }] },
+  staticData: { crumbs: [{ label: "Integrations" }] },
   component: Integrations,
 });
 
