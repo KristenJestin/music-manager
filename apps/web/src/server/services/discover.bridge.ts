@@ -95,6 +95,35 @@ export function rankByDuration<T extends { duration?: number | null }>(
     .sort((a, b) => a.delta - b.delta);
 }
 
+/**
+ * Which of the matcher's candidates the wizard should open on.
+ *
+ * The wizard already preselects one; left alone it preselects *its* favourite, which is
+ * usually right but is not necessarily the record you clicked in Discover. So the candidate
+ * whose **release-group** is the one the Discover item names wins, and the matcher's own
+ * choice is the fallback. That is the difference between "the wizard preselected something"
+ * and "Discover preselected the thing you asked for".
+ *
+ * The answer is always a member of `candidates` or `null`: a `release` search value the list
+ * does not contain would leave step 2 with nothing highlighted, which is worse than no
+ * preselection at all. Pure and exported so it can be proven against a candidate list where
+ * the two branches disagree — the fixture album cannot, since all twelve of its releases share
+ * one release-group.
+ */
+export function preselectedRelease(
+  candidates: readonly { readonly id: string; readonly releaseGroupId?: string | null }[],
+  releaseGroupMbid: string | null,
+  matcherChoice: string | null | undefined,
+): string | null {
+  const wanted =
+    releaseGroupMbid === null
+      ? undefined
+      : candidates.find((candidate) => candidate.releaseGroupId === releaseGroupMbid);
+  if (wanted !== undefined) return wanted.id;
+  const fallback = candidates.find((candidate) => candidate.id === matcherChoice);
+  return fallback?.id ?? null;
+}
+
 export interface ResolveOptions {
   readonly client?: ToolboxClient;
   readonly fixtures?: boolean;

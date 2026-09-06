@@ -24,7 +24,7 @@ import { rankFor } from "#/server/services/matching.queries.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import { browseReleaseGroupsByArtist } from "#/server/integrations/musicbrainz.ts";
 import { accepts, filtersOf } from "#/server/services/discography.ts";
-import { resolveDiscoverSource } from "#/server/services/discover.bridge.ts";
+import { preselectedRelease, resolveDiscoverSource } from "#/server/services/discover.bridge.ts";
 import {
   discoverView,
   forgetDismissals,
@@ -178,13 +178,11 @@ async function preselectFor(
   const result = await rankFor({ job, settings, db: db() });
   // A lone video has no release to preselect; the wizard's step 2 lists recordings instead.
   if (result.kind === "single") return null;
-  const wanted =
-    releaseGroupMbid === null
-      ? undefined
-      : result.ranking.candidates.find(
-          (candidate) => candidate.releaseGroupId === releaseGroupMbid,
-        );
-  return wanted?.id ?? result.ranking.preselected?.id ?? null;
+  return preselectedRelease(
+    result.ranking.candidates,
+    releaseGroupMbid,
+    result.ranking.preselected?.id ?? null,
+  );
 }
 
 /**

@@ -15,6 +15,7 @@ import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import {
   FIXTURE_URL,
   pickAlbum,
+  preselectedRelease,
   rankByDuration,
   resolveDiscoverSource,
 } from "./discover.bridge.ts";
@@ -185,5 +186,40 @@ describe("resolveDiscoverSource", () => {
     );
     expect(found.url).toBe("");
     expect(found.label.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Which release the wizard opens on.
+ *
+ * The fixture album cannot prove this: all twelve of its candidate releases share one
+ * release-group, so the branch that prefers "the record Discover meant" and the branch that
+ * falls back to the matcher's favourite return the same id, and the e2e that reads the URL
+ * cannot tell them apart. Here they are made to disagree.
+ */
+describe("preselectedRelease", () => {
+  const candidates = [
+    { id: "rel-tron", releaseGroupId: "rg-tron" },
+    { id: "rel-homework-fr", releaseGroupId: "rg-homework" },
+    { id: "rel-homework-us", releaseGroupId: "rg-homework" },
+  ];
+
+  it("prefers the release-group Discover meant over the matcher's favourite", () => {
+    expect(preselectedRelease(candidates, "rg-homework", "rel-tron")).toBe("rel-homework-fr");
+  });
+
+  it("falls back to the matcher when no candidate carries that release-group", () => {
+    expect(preselectedRelease(candidates, "rg-nothing-here", "rel-tron")).toBe("rel-tron");
+  });
+
+  it("falls back to the matcher when the item has no release-group at all", () => {
+    expect(preselectedRelease(candidates, null, "rel-tron")).toBe("rel-tron");
+  });
+
+  it("answers null rather than a release that is not on the list", () => {
+    // A `release` search value step 2 does not contain leaves nothing highlighted, which is
+    // worse than no preselection at all.
+    expect(preselectedRelease(candidates, "rg-nothing-here", "rel-not-a-candidate")).toBeNull();
+    expect(preselectedRelease([], "rg-homework", "rel-tron")).toBeNull();
   });
 });
