@@ -12,6 +12,7 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
+import { DEFAULT_WEIGHTS } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { settings as settingsTable } from "#/server/db/schema/index.ts";
 
@@ -20,14 +21,57 @@ interface SettingDefinition<T> {
   readonly schema: z.ZodType<T>;
   readonly default: T;
   readonly doc: string;
+  /** A credential. Never shown in full by the CLI, the API or a log (P04). */
+  readonly secret?: boolean;
 }
 
-function define<T>(schema: z.ZodType<T>, value: T, doc: string): SettingDefinition<T> {
-  return { schema, default: value, doc };
+function define<T>(
+  schema: z.ZodType<T>,
+  value: T,
+  doc: string,
+  options: { secret?: boolean } = {},
+): SettingDefinition<T> {
+  return { schema, default: value, doc, ...(options.secret === true ? { secret: true } : {}) };
 }
 
 const sanitizeMode = z.enum(["unicode", "windows", "strict"]);
 const onExists = z.enum(["skip", "overwrite", "keep_both"]);
+
+/** The eight external sources of `docs/03-metadonnees.md` §4 that P04 speaks to. */
+export const SOURCE_NAMES = [
+  "musicbrainz",
+  "coverartarchive",
+  "acoustid",
+  "lrclib",
+  "deezer",
+  "lastfm",
+  "listenbrainz",
+  "wikimedia",
+] as const;
+
+export type SourceName = (typeof SOURCE_NAMES)[number];
+
+const sourceFlags = z.object({
+  musicbrainz: z.boolean(),
+  coverartarchive: z.boolean(),
+  acoustid: z.boolean(),
+  lrclib: z.boolean(),
+  deezer: z.boolean(),
+  lastfm: z.boolean(),
+  listenbrainz: z.boolean(),
+  wikimedia: z.boolean(),
+});
+
+const sourceDays = z.object({
+  musicbrainz: z.number().min(0),
+  coverartarchive: z.number().min(0),
+  acoustid: z.number().min(0),
+  lrclib: z.number().min(0),
+  deezer: z.number().min(0),
+  lastfm: z.number().min(0),
+  listenbrainz: z.number().min(0),
+  wikimedia: z.number().min(0),
+});
 
 /**
  * The registry. Grouped by the part of the pipeline they steer; the names are the ones the
@@ -92,6 +136,80 @@ export const SETTING_DEFINITIONS = {
     "either",
     "Which of an explicit/clean pair to prefer.",
   ),
+  matchAmbiguityMargin: define(
+    z.number().min(0).max(1),
+    0.04,
+    "Two candidates closer than this are ambiguous: the Inbox asks instead of the engine guessing.",
+  ),
+  matchBindingFloor: define(
+    z.number().min(0).max(1),
+    0.35,
+    "A video/track pair below this is not bound at all; the video becomes an extra.",
+  ),
+  matchDurationTolerance: define(
+    z.number().min(0).max(60),
+    2,
+    "Seconds a video and a track may differ by and still count as the same length.",
+  ),
+  matchLookupLimit: define(
+    z.number().int().min(1).max(25),
+    6,
+    "How many release candidates get a tracklist lookup, which is what the fit needs.",
+  ),
+  matchSearchLimit: define(
+    z.number().int().min(1).max(100),
+    25,
+    "How many results one MusicBrainz search asks for. A match makes at most two of them.",
+  ),
+  matchReleaseWeights: define(
+    z.object({
+      title: z.number().min(0),
+      artist: z.number().min(0),
+      trackCount: z.number().min(0),
+      durations: z.number().min(0),
+      year: z.number().min(0),
+      label: z.number().min(0),
+      format: z.number().min(0),
+      status: z.number().min(0),
+      country: z.number().min(0),
+    }),
+    DEFAULT_WEIGHTS.release,
+    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one.",
+  ),
+  matchRecordingWeights: define(
+    z.object({
+      title: z.number().min(0),
+      artist: z.number().min(0),
+      duration: z.number().min(0),
+      ytTags: z.number().min(0),
+      isrc: z.number().min(0),
+    }),
+    DEFAULT_WEIGHTS.recording,
+    "Weight of each recording signal, for a lone video.",
+  ),
+  matchMappingWeights: define(
+    z.object({
+      title: z.number().min(0),
+      duration: z.number().min(0),
+      position: z.number().min(0),
+      ytTrackTag: z.number().min(0),
+      acoustid: z.number().min(0),
+    }),
+    DEFAULT_WEIGHTS.mapping,
+    "Weight of each signal when binding one video to one track.",
+  ),
+
+  /* ---- learned preferences (docs/04 § decisions) ---- */
+  learnPreferences: define(
+    z.boolean(),
+    true,
+    "Let confirmed releases nudge the country and format preferences. Never silently: what was learned is listed here.",
+  ),
+  learnedFrom: define(
+    z.number().int().min(0),
+    0,
+    "How many confirmed releases the current preferences were learned from. Read-only.",
+  ),
 
   /* ---- fingerprint (decision 011) ---- */
   verifyFingerprint: define(
@@ -128,6 +246,93 @@ export const SETTING_DEFINITIONS = {
     z.number().int().min(32).max(255),
     200,
     "Longest single path segment, leaving room for sidecar suffixes.",
+  ),
+
+  /* ---- external sources (docs/03 §4, P04) ---- */
+  mbContact: define(
+    z.string(),
+    "",
+    "Contact put in the MusicBrainz User-Agent, as §4 requires. Empty means: take MM_MB_CONTACT.",
+  ),
+  acoustidKey: define(
+    z.string(),
+    "",
+    "AcoustID application key. Empty means: take MM_ACOUSTID_KEY.",
+    { secret: true },
+  ),
+  lastfmKey: define(z.string(), "", "Last.fm API key. Empty means: take MM_LASTFM_KEY.", {
+    secret: true,
+  }),
+  fanartKey: define(
+    z.string(),
+    "",
+    "fanart.tv API key, the fallback for artist images. Empty means: take MM_FANARTTV_KEY.",
+    { secret: true },
+  ),
+  sourcesEnabled: define(
+    sourceFlags,
+    {
+      musicbrainz: true,
+      coverartarchive: true,
+      acoustid: true,
+      lrclib: true,
+      deezer: true,
+      lastfm: true,
+      listenbrainz: true,
+      wikimedia: true,
+    },
+    "Which of the eight sources of §4 may be called. A disabled source is simply not asked.",
+  ),
+  sourceTtlDays: define(
+    sourceDays,
+    {
+      // MusicBrainz edits land constantly, so a month; a cover index and a fingerprint
+      // essentially never change, so never. 0 means "never expires" (§1: nothing is purged).
+      musicbrainz: 30,
+      coverartarchive: 90,
+      acoustid: 0,
+      lrclib: 14,
+      deezer: 90,
+      lastfm: 30,
+      listenbrainz: 30,
+      wikimedia: 180,
+    },
+    "Days after which a stored source answer is refreshed. 0 = never. Rows are never deleted.",
+  ),
+  coverOrder: define<("coverartarchive" | "youtube")[]>(
+    z.array(z.enum(["coverartarchive", "youtube"])),
+    ["coverartarchive", "youtube"],
+    "Where a front cover is looked for, best first. The YouTube thumbnail is the §4 fallback.",
+  ),
+  coverMaxBytes: define(
+    z.number().int().min(0),
+    8_000_000,
+    "Refuse a cover file larger than this. 0 disables the check.",
+  ),
+  genrePreference: define<("musicbrainz" | "lastfm" | "listenbrainz")[]>(
+    z.array(z.enum(["musicbrainz", "lastfm", "listenbrainz"])),
+    ["musicbrainz", "lastfm", "listenbrainz"],
+    "Which source's genres win. §4: MusicBrainz first, Last.fm and ListenBrainz as fallbacks.",
+  ),
+  maxGenres: define(
+    z.number().int().min(1).max(10),
+    3,
+    "How many GENRE values a track carries at most.",
+  ),
+  genreMinCount: define(
+    z.number().int().min(0),
+    1,
+    "Ignore a community tag with fewer votes than this; below it, tags are noise.",
+  ),
+  writeAcoustidFingerprint: define(
+    z.boolean(),
+    false,
+    "Write the raw Chromaprint into ACOUSTID_FINGERPRINT. §2.5: bulky, so opt-in.",
+  ),
+  lyricsMaxDurationDelta: define(
+    z.number().int().min(0),
+    2,
+    "Widest accepted difference, in seconds, between a LRCLIB result and the track.",
   ),
 
   /* ---- the library, on both sides of the bridge ---- */
@@ -176,6 +381,28 @@ export function parseValue<K extends SettingKey>(key: K, raw: unknown): SettingV
     throw new Error(`invalid value for setting "${key}": ${detail}`);
   }
   return parsed.data as SettingValue<K>;
+}
+
+/** True when the value of `key` is a credential and must never be printed. */
+export function isSecretSetting(key: SettingKey): boolean {
+  return SETTING_DEFINITIONS[key].secret === true;
+}
+
+/**
+ * What may be shown for a setting. A credential becomes its length and its last two
+ * characters — enough to tell "the wrong key" from "no key", never enough to use.
+ */
+export function maskSetting<K extends SettingKey>(key: K, value: SettingValue<K>): unknown {
+  if (!isSecretSetting(key)) return value;
+  if (typeof value !== "string" || value === "") return "";
+  return `set (${String(value.length)} chars, …${value.slice(-2)})`;
+}
+
+/** Every setting, with credentials masked. What the CLI and the API are allowed to show. */
+export function maskedSettings(settings: Settings): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of SETTING_KEYS) out[key] = maskSetting(key, settings[key]);
+  return out;
 }
 
 /** True when `key` is one of ours. The CLI needs this before it parses a value. */

@@ -11,8 +11,18 @@
  * measured loudness is then merged back into the stored documents, because the database, not
  * the file, is the source of truth (decision 006).
  *
- * In P03 the source data is the recorded Discovery fixture; P04 replaces that with the real
- * sources and nothing else in this step changes.
+ * P04 replaced the recorded-fixture shortcut of P03 with `documents.service`, and the step
+ * itself barely changed: it asks for a document and projects it. Two things are worth
+ * knowing about the seam:
+ *
+ *  - **fixtures mode builds offline.** `MM_FIXTURES=1` means "the raw cache already holds
+ *    every answer" (`bun run cache:seed-fixtures`), so the build is run with `offline: true`
+ *    and cannot reach the network even by accident. A source the fixture set does not cover
+ *    is simply skipped, and the field it owns stays missing.
+ *  - **the loudness goes into the raw cache**, under `("rsgain", "track/<import track id>")`,
+ *    before the documents are rebuilt. rsgain measures *our* file, so its numbers are a
+ *    source response like any other — and putting them there is what lets an offline rebuild
+ *    reproduce the very same document months later (§8).
  */
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -22,20 +32,17 @@ import {
   projectDocument,
   projectPictures,
   TAG_SCHEMA_VERSION,
-  trackCompleteness,
   type ProjectedTag,
   type TrackDocument,
-  type YtdlpEntry,
 } from "@mm/domain";
+import { eq } from "drizzle-orm";
 import { metadataDocuments, type ImportTrack } from "#/server/db/schema/index.ts";
-import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
-import { getOrFetch } from "#/server/services/cache.ts";
-import {
-  buildDocument,
-  isDiscoveryFixture,
-  type MeasuredLoudness,
-} from "#/server/services/sources/fixtures.ts";
+import { put as cachePut } from "#/server/services/cache.ts";
+import { download as downloadArtwork } from "#/server/integrations/coverartarchive.ts";
+import { sourcesConfig, type SourceContext } from "#/server/integrations/config.ts";
+import { build as buildDocument, rsgainKey, RSGAIN_SOURCE } from "#/server/services/documents.ts";
+import type { MeasuredLoudness } from "#/server/services/sources/fixtures.ts";
 import type { Picture, Tag } from "#/server/toolbox/client.ts";
 import type { StepResult } from "../machine.ts";
 import { aborted, updateTrack, type StepContext } from "../context.ts";
@@ -68,39 +75,41 @@ function currentFile(track: ImportTrack): string | null {
   return track.downloadPath;
 }
 
-async function documentFor(
-  ctx: StepContext,
-  track: ImportTrack,
-  loudness: MeasuredLoudness | undefined,
-): Promise<TrackDocument> {
-  const now = new Date();
-  return buildDocument({
-    trackPosition: track.trackPosition ?? 1,
-    importId: ctx.job.id,
-    sourceUrl: track.url,
-    entry: track.raw as YtdlpEntry,
-    fetchedAt: now.toISOString(),
-    importedOn: now.toISOString().slice(0, 10),
-    ...(loudness === undefined ? {} : { loudness }),
-    opus: (currentFile(track) ?? "").toLowerCase().endsWith(".opus"),
+/**
+ * One track's document, from the real sources through the raw cache.
+ *
+ * Offline in fixtures mode, online otherwise. `documents.service` persists it, so this step
+ * no longer writes `metadata_documents` itself — which also means a document built here and
+ * one rebuilt by `mm doc rebuild` cannot drift apart.
+ */
+async function documentFor(ctx: StepContext, track: ImportTrack): Promise<TrackDocument> {
+  const built = await buildDocument(track.id, {
+    db: ctx.db,
+    settings: ctx.settings,
+    offline: ctx.fixtures,
+    ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
   });
+  return built.document;
 }
 
-/** Fetch and cache the album art once, whatever the number of tracks that embed it. */
+/**
+ * Fetch and cache the album art once, whatever the number of tracks that embed it.
+ *
+ * Through the same client `documents.service` uses, so the prepared JPEG lands in the raw
+ * cache under one key and an offline re-tag finds it there.
+ */
 async function artwork(
   ctx: StepContext,
   url: string,
 ): Promise<{ data_base64: string; mime: string }> {
-  const entry = await getOrFetch(
-    "artwork",
-    `${url}#${String(ctx.settings.artworkSize)}`,
-    async () => {
-      const prepared = await ctx.toolbox.prepareArtwork({ url, size: ctx.settings.artworkSize });
-      return { data_base64: prepared.data_base64, mime: prepared.mime };
-    },
-    { db: ctx.db },
-  );
-  return entry.data;
+  const sourceCtx: SourceContext = {
+    db: ctx.db,
+    config: sourcesConfig(ctx.settings),
+    offline: false,
+    refresh: false,
+    ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
+  };
+  return await downloadArtwork(sourceCtx, ctx.toolbox, url, ctx.settings.artworkSize);
 }
 
 async function pictureList(ctx: StepContext, document: TrackDocument): Promise<Picture[]> {
@@ -134,35 +143,16 @@ export function lyricsOf(document: TrackDocument): string | null {
   return value.synced ?? value.plain ?? null;
 }
 
-async function storeDocument(
+/** Only the projection hash is written here; the document itself is `documents.service`'s. */
+async function storeProjectionHash(
   ctx: StepContext,
   track: ImportTrack,
-  document: TrackDocument,
   hash: string,
 ): Promise<void> {
-  const score = trackCompleteness(document).score;
   await ctx.db
-    .insert(metadataDocuments)
-    .values({
-      id: newId("metadataDocument"),
-      importTrackId: track.id,
-      recordingMbid: track.recordingMbid,
-      document: document as unknown as Record<string, unknown>,
-      tagSchemaVersion: TAG_SCHEMA_VERSION,
-      projectionHash: hash,
-      completeness: score,
-    })
-    .onConflictDoUpdate({
-      target: metadataDocuments.importTrackId,
-      set: {
-        document: document as unknown as Record<string, unknown>,
-        recordingMbid: track.recordingMbid,
-        tagSchemaVersion: TAG_SCHEMA_VERSION,
-        projectionHash: hash,
-        completeness: score,
-        updatedAt: new Date(),
-      },
-    });
+    .update(metadataDocuments)
+    .set({ projectionHash: hash, updatedAt: new Date() })
+    .where(eq(metadataDocuments.importTrackId, track.id));
 }
 
 export async function tagStep(ctx: StepContext): Promise<StepResult> {
@@ -170,19 +160,6 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
   const toWrite = mapped.filter(
     (track) => TAGGABLE.has(track.state) && track.downloadPath !== null,
   );
-
-  if (!isDiscoveryFixture(ctx.job.url)) {
-    return {
-      status: "failed",
-      message: "No metadata sources yet: P03 can only build a document for the recorded fixture.",
-      error: {
-        code: "STEP_FAILED",
-        message: "The metadata sources (MusicBrainz, CAA, LRCLIB, Deezer) arrive in P04.",
-        hint: "Import `fixture://discovery` to exercise the pipeline offline.",
-        action: "Use a recorded fixture",
-      },
-    };
-  }
 
   if (toWrite.length === 0 && mapped.every((track) => track.state === "skipped")) {
     return { status: "skipped", message: "already present (nothing to tag)" };
@@ -198,7 +175,7 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     const relative = track.downloadPath;
     if (relative === null || !existsSync(hostPath(ctx.paths, relative))) continue;
 
-    const document = await documentFor(ctx, track, undefined);
+    const document = await documentFor(ctx, track);
     documents.set(track.id, document);
 
     const tags: Tag[] = projectDocument(document, "vorbis").map((tag) => ({
@@ -283,15 +260,21 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     }
   }
 
-  /* ---- store the documents, loudness included ---- */
+  /* ---- the loudness enters the raw cache, then the documents are rebuilt from it ---- */
+  for (const [trackId, measured] of loudness) {
+    await cachePut(RSGAIN_SOURCE, rsgainKey(trackId), measured, { db: ctx.db });
+  }
+
   for (const track of mapped) {
-    const base = documents.get(track.id);
+    const built = documents.get(track.id);
     const measured = loudness.get(track.id);
-    if (base === undefined && measured === undefined) continue;
-    const document = measured === undefined ? base : await documentFor(ctx, track, measured);
+    if (built === undefined && measured === undefined) continue;
+    // A track that was measured is rebuilt so its document carries the loudness; one that was
+    // only tagged already has the document `documents.service` persisted a moment ago. Both
+    // paths go through the same builder, offline, so neither can invent a different answer.
+    const document = measured === undefined ? built : await documentFor(ctx, track);
     if (document === undefined) continue;
-    const tags = projectDocument(document, "vorbis");
-    await storeDocument(ctx, track, document, projectionHash(tags));
+    await storeProjectionHash(ctx, track, projectionHash(projectDocument(document, "vorbis")));
   }
 
   return {

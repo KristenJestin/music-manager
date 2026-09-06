@@ -292,6 +292,18 @@ async function main(): Promise<void> {
   if (reset.code !== 0) die(`db reset failed:\n${reset.stdout}${reset.stderr}`);
   info("database reset and migrated");
 
+  // P04: fixtures mode is no longer a branch in the code, it is a pre-filled raw cache. The
+  // recorded source responses are written into `source_cache` under the keys the real clients
+  // use, so `tag` takes the ordinary production path with the network unplugged. Seeding must
+  // happen after the reset, which is why it lives here and not only in the acceptance script.
+  const seeded = await capture({
+    label: "seed fixtures",
+    cmd: [bun, "run", "apps/web/src/server/integrations/seed-fixtures.ts"],
+    env: childEnv,
+  });
+  if (seeded.code !== 0) die(`cache:seed-fixtures failed:\n${seeded.stdout}${seeded.stderr}`);
+  info(seeded.stdout.trim());
+
   rmSync(LIBRARY, { recursive: true, force: true });
   mkdirSync(LIBRARY, { recursive: true });
   info(`library emptied: ${LIBRARY}`);

@@ -32,7 +32,9 @@
     "compose:down": "docker compose -f docker-compose.dev.yml down",
     "worker": "bun run apps/web/src/worker/index.ts",
     "mm": "bun run apps/web/bin/mm.ts",
-    "e2e-fixture": "bun run scripts/e2e-fixture.ts"
+    "e2e-fixture": "bun run scripts/e2e-fixture.ts",
+    "cache:seed-fixtures": "bun run apps/web/src/server/integrations/seed-fixtures.ts",
+    "cache-seed-fixtures": "bun run apps/web/src/server/integrations/seed-fixtures.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
