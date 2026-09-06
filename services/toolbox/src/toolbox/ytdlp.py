@@ -13,7 +13,7 @@ value crossing its boundary is narrowed here.
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, cast
@@ -77,7 +77,7 @@ def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
 
 
 @contextmanager
-def cookie_jar(options: YtdlpOptions) -> Iterator[dict[str, Any]]:
+def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
     """Yield the ``cookiefile`` override for this call, cleaning up after itself.
 
     Inline content is the case that matters: on a real server the operator has a browser

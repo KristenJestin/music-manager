@@ -262,10 +262,9 @@ def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing()
 def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
     options = YtdlpOptions(cookies_content="x")
     seen: Path | None = None
-    with pytest.raises(RuntimeError):  # noqa: PT012 - the point is what happens on the way out
-        with cookie_jar(options) as jar:
-            seen = Path(str(jar["cookiefile"]))
-            raise RuntimeError("boom")
+    with pytest.raises(RuntimeError), cookie_jar(options) as jar:
+        seen = Path(str(jar["cookiefile"]))
+        raise RuntimeError("boom")
     assert seen is not None
     assert not seen.exists()
 
