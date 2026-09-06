@@ -18,10 +18,11 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:
 import { dirname } from "node:path";
 import { eq } from "drizzle-orm";
 import {
-  albumFolder,
-  sidecarPaths,
-  trackPath,
+  renderAlbumFolder,
+  renderPathTemplate,
+  type DiscMode,
   type SanitizeMode,
+  type TemplateOptions,
   type TrackPathInput,
   type TrackDocument,
 } from "@mm/domain";
@@ -96,9 +97,9 @@ async function documentOf(ctx: StepContext, trackId: string): Promise<TrackDocum
 async function upsertAlbum(
   ctx: StepContext,
   input: TrackPathInput,
-  options: { mode: SanitizeMode; maxSegmentLength: number },
+  options: TemplateOptions,
 ): Promise<string> {
-  const folder = albumFolder(input, options);
+  const folder = renderAlbumFolder(ctx.settings.pathTemplate, input, options);
   const [existing] = await ctx.db
     .select()
     .from(libraryAlbums)
@@ -244,9 +245,13 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     return { status: "skipped", message: "Nothing to place." };
   }
 
-  const options = {
+  // The layout is a template now (P07a, Settings › Library & files). Its default renders
+  // byte-for-byte what `trackPath` always did — `paths/template.test.ts` is what keeps that
+  // true, and it is what lets this line change without re-filing anybody's library.
+  const options: TemplateOptions = {
     mode: ctx.settings.sanitizeMode as SanitizeMode,
     maxSegmentLength: ctx.settings.maxSegmentLength,
+    discMode: ctx.settings.discMode as DiscMode,
   };
   const onExists = ctx.job.options.force === true ? "overwrite" : ctx.settings.onExists;
 
@@ -266,8 +271,8 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
 
     const extension = (source ?? track.libraryPath ?? ".opus").split(".").pop() ?? "opus";
     const input = pathInputFor(document, track, extension);
-    const relative = trackPath(input, options);
-    folder ??= albumFolder(input, options);
+    const relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
+    folder ??= renderAlbumFolder(ctx.settings.pathTemplate, input, options);
     cover ??= coverUrl(document);
     albumId ??= await upsertAlbum(ctx, input, options);
 
@@ -300,7 +305,9 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     if (ctx.settings.writeLyricsSidecar) {
       const lyrics = lyricsText(document);
       if (lyrics !== null) {
-        const target = hostPath(ctx.paths, sidecarPaths(input, options).lyrics);
+        // Next to the audio file, whatever the template put it — not next to where the
+        // default layout would have put it.
+        const target = hostPath(ctx.paths, relative.replace(/\.[^./]+$/, ".lrc"));
         mkdirSync(dirname(target), { recursive: true });
         writeFileSync(target, lyrics.endsWith("\n") ? lyrics : `${lyrics}\n`, "utf8");
         sidecars += 1;

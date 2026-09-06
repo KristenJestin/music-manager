@@ -95,6 +95,22 @@ export {
   trackPath,
 } from "./paths/index.ts";
 export type { PathOptions, SanitizeMode, SidecarPaths, TrackPathInput } from "./paths/index.ts";
+export {
+  DEFAULT_PATH_TEMPLATE,
+  DISC_MODES,
+  PATH_TOKENS,
+  previewPathTemplate,
+  renderAlbumFolder,
+  renderPathTemplate,
+  validatePathTemplate,
+} from "./paths/template.ts";
+export type {
+  DiscMode,
+  TemplateCheck,
+  TemplateExtras,
+  TemplateOptions,
+  TemplateToken,
+} from "./paths/template.ts";
 
 /* ---- normalisation (docs 04, §Algorithme de présélection) ---- */
 export { normalizeArtist, normalizeTitle, titleSimilarity } from "./normalize/title.ts";
