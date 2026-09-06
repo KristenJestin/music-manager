@@ -10,6 +10,9 @@ from toolbox.app import PUBLIC_PATHS, app
 #: Every route the phase promises, with the operation id the generated client exposes.
 EXPECTED_OPERATIONS: dict[tuple[str, str], str] = {
     ("get", "/health"): "health",
+    #: P07: the Console's error decoder reads the taxonomy from here rather than
+    #: keeping a second copy of `errors.py` in TypeScript.
+    ("get", "/errors"): "errorCatalog",
     ("post", "/extract"): "extract",
     ("post", "/download"): "download",
     ("post", "/probe"): "probe",

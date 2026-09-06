@@ -107,7 +107,9 @@ class ErrorCatalogEntry(BaseModel):
     """One row of ``GET /errors`` — the Console's error decoder, straight from ``errors.py``."""
 
     code: str
-    message: str = Field(description="What the operator is told when nothing more specific is known.")
+    message: str = Field(
+        description="What the operator is told when nothing more specific is known."
+    )
     hint: str = Field(description="Why it happens, in one sentence.")
     action: str = Field(description="Label of the single button the Console offers. Empty = none.")
     status: int

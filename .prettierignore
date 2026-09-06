@@ -15,3 +15,7 @@ services/toolbox/uv.lock
 # `bun run --cwd packages/domain fixtures:record` and MM_UPDATE_GOLDEN=1 write
 packages/domain/fixtures
 packages/domain/golden
+
+# recorded Navidrome answers — byte-identical to what
+# `bun run navidrome:record` writes, so a re-recording is a readable diff
+apps/web/src/server/integrations/navidrome/cassettes
