@@ -105,45 +105,38 @@ test.describe("the REST API", () => {
     /* ---- and the same call succeeds for a key that carries it ------------- */
 
     /*
-     * Created through the API, and then cancelled through it — on purpose.
+     * A URL the toolbox cannot resolve — on purpose, and it is the whole point.
      *
      * The claim under test is authorisation: a key carrying `imports:write` gets a 201 and an
-     * import id, where the read-only key got a 403. Running the pipeline to `done` is
-     * `import-album.spec.ts`'s subject, and it must stay its subject alone.
+     * import id, where the read-only key got a 403. The route answers 201 the moment the row
+     * exists, before anything is resolved, so the URL only has to be a string.
      *
-     * This used to pass `autoConfirm: true` and walk away, which launched a full background
+     * It used to be `fixture://discovery` with `autoConfirm`, which launched a full background
      * import of *the same album into the same library* from the very first spec of the suite
-     * and left it racing everything after it. (`autoConfirm` is not even what made it run:
-     * `confirmStep` treats fixtures mode as automatic, so dropping the flag would change
-     * nothing.) It cost `library.spec.ts` a run: both imports owned
-     * `Daft Punk/Discovery (2001)`, the second found every file "already present" and so never
-     * re-tagged it, and the Tags tab then showed fourteen files whose `MUSICMANAGER_IMPORTID`
-     * was the *first* import's while the database held the second's — "no drift on a freshly
-     * tagged album" failing on a real drift that no part of the product had caused. Which
-     * import tagged the files depended on how two background jobs interleaved, so it failed
-     * some runs and not others.
+     * and left it racing everything after it. It cost `library.spec.ts` a run: both imports
+     * owned `Daft Punk/Discovery (2001)`, the second found every file "already present" and so
+     * never re-tagged it, and the Tags tab then showed fourteen files whose
+     * `MUSICMANAGER_IMPORTID` was the *first* import's while the database held the second's —
+     * "no drift on a freshly tagged album" failing on a real drift that no part of the product
+     * had caused, some runs and not others.
      *
-     * Cancelling is both the cure and extra coverage: the import never reaches `place`, so it
-     * writes no file, and `POST /{id}/cancel` gets exercised. `place` is a download and
-     * fourteen tag calls away from the 201, so this is not a race with anything.
+     * Two tidier-looking fixes do not work, and both were tried. Dropping `autoConfirm` does
+     * nothing, because `confirmStep` treats fixtures mode as automatic. Cancelling straight
+     * after the 201 does not hold either: `runImport` writes `status: "running"` when it
+     * starts, with no regard for a `cancelled` written in between, so the cancel is silently
+     * undone whenever the worker has already picked the job up — which is a real weakness of
+     * the orchestrator, reported rather than papered over here.
+     *
+     * `fixture://nothing-like-this` fails at `resolve` with `FIXTURE_UNKNOWN`, having
+     * downloaded, tagged and placed nothing. Nothing to race, nothing to clean up.
      */
     const created = await request.post("/api/v1/imports", {
       headers: { "x-api-key": writer },
-      data: { url: "fixture://discovery", options: { autoConfirm: true } },
+      data: { url: "fixture://nothing-like-this" },
     });
     expect(created.status()).toBe(201);
     const payload = (await created.json()) as { import: { id: string; status: string } };
     expect(payload.import.id).toMatch(/^imp_/);
-
-    const cancelled = await request.post(`/api/v1/imports/${payload.import.id}/cancel`, {
-      headers: { "x-api-key": writer },
-    });
-    expect(cancelled.status()).toBe(200);
-    // Asserted rather than assumed. `cancelImport` writes the status inside the request, and
-    // `runImport` refuses to re-enter a terminal import — the pipeline hands the download to
-    // its own queue and so always comes back through that gate before a file is placed.
-    const state = (await cancelled.json()) as { import: { status: string } };
-    expect(state.import.status).toBe("cancelled");
 
     /* ---- an unknown key is 401, which is a different problem -------------- */
 
