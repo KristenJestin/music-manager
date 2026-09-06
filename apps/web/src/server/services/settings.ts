@@ -17,6 +17,7 @@ import {
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_WEIGHTS,
   DISC_MODES,
+  PATH_TOKENS,
   validatePathTemplate,
 } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -239,9 +240,20 @@ export const SETTING_DEFINITIONS = {
 
   /* ---- placement (docs/04 § Étapes, `place`) ---- */
   pathTemplate: define(
-    z.string().refine((value) => validatePathTemplate(value).ok, {
-      message:
-        "unusable template — every token must exist and {title} must appear, or two tracks of an album would share a file name",
+    // `validatePathTemplate` already knows *which* token is wrong; a constant message threw
+    // that away and left the caller to guess. `superRefine` is what lets the issue carry it,
+    // together with the list of what would have been accepted.
+    z.string().superRefine((value, ctx) => {
+      const check = validatePathTemplate(value);
+      if (check.ok) return;
+      ctx.addIssue({
+        code: "custom",
+        message: `unusable template — ${check.reason}. Valid tokens: ${PATH_TOKENS.map(
+          (entry) => entry.token,
+        ).join(
+          " ",
+        )} (and {track:0N} for any width). {title} must appear, or two tracks of an album would share a file name.`,
+      });
     }),
     DEFAULT_PATH_TEMPLATE,
     "Where a track is filed, as a template. The default is the layout `packages/domain/paths` ships, byte for byte. Tokens: {albumArtist} {album} {year} {disc} {disc-} {track} {track:02} {title} {artist} {ext} {mbid}.",
@@ -642,13 +654,22 @@ export function isSecretSetting(key: SettingKey): boolean {
 }
 
 /**
- * What may be shown for a setting. A credential becomes its length and its last two
- * characters — enough to tell "the wrong key" from "no key", never enough to use.
+ * The one thing a masked credential says: whether there is one.
+ *
+ * It used to say `set (5 chars, …in)` — the exact length and the last two characters. On a
+ * five-character password that is forty per cent of the secret handed to anything that can
+ * read the settings, and the length alone narrows a brute force considerably. "Is a value
+ * configured?" is the only question a reader legitimately has here; `SETTING_MASK` answers it
+ * and nothing else. Distinguishing *which* key is set is what the source tests of decision
+ * 073 are for, and they never print the value either.
  */
+export const SETTING_MASK = "set";
+
+/** What may be shown for a setting. A credential becomes `"set"` or `""`, never a prefix. */
 export function maskSetting<K extends SettingKey>(key: K, value: SettingValue<K>): unknown {
   if (!isSecretSetting(key)) return value;
   if (typeof value !== "string" || value === "") return "";
-  return `set (${String(value.length)} chars, …${value.slice(-2)})`;
+  return SETTING_MASK;
 }
 
 /** Every setting, with credentials masked. What the CLI and the API are allowed to show. */

@@ -5,6 +5,9 @@ import {
   isSettingKey,
   parseCliValue,
   parseValue,
+  maskSetting,
+  maskedSettings,
+  SETTING_MASK,
   SETTING_DEFINITIONS,
   SETTING_KEYS,
 } from "./settings.ts";
@@ -86,5 +89,69 @@ describe("parseCliValue", () => {
 
   it("still refuses a value the schema rejects", () => {
     expect(() => parseCliValue("sanitizeMode", "sideways")).toThrow(/sanitizeMode/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* what a reader is allowed to see (MCP test report §15, §17)          */
+/* ------------------------------------------------------------------ */
+
+describe("masking a credential", () => {
+  it("says only whether one is set", () => {
+    // It used to answer `set (5 chars, …in)`: the exact length and the last two characters,
+    // which on a five-character password is forty per cent of the secret.
+    expect(maskSetting("navidromePassword", "admin")).toBe("set");
+    expect(maskSetting("navidromePassword", "")).toBe("");
+  });
+
+  it("leaks neither the length nor any character of the value", () => {
+    const secret = "correct-horse-battery-staple";
+    const masked = String(maskSetting("navidromePassword", secret));
+    expect(masked).not.toContain(String(secret.length));
+    expect(masked).not.toContain(secret.slice(-2));
+    expect(masked).toBe(SETTING_MASK);
+  });
+
+  it("masks every key declared secret, and nothing else", () => {
+    const masked = maskedSettings({ ...defaults(), navidromePassword: "hunter2" } as never);
+    for (const key of SETTING_KEYS) {
+      if (SETTING_DEFINITIONS[key].secret !== true) continue;
+      const value = masked[key];
+      expect(value === "" || value === SETTING_MASK, key).toBe(true);
+    }
+    expect(masked["sanitizeMode"]).toBe("windows");
+  });
+});
+
+describe("an invalid path template", () => {
+  it("names the token it does not know, instead of saying every token must exist", () => {
+    const failure = SETTING_DEFINITIONS.pathTemplate.schema.safeParse(
+      "{albumartist}/{album}/{title}.{ext}",
+    );
+    expect(failure.success).toBe(false);
+    const message = failure.error?.issues[0]?.message ?? "";
+    expect(message).toContain("{albumartist}");
+  });
+
+  it("lists the tokens that would have been accepted", () => {
+    const failure = SETTING_DEFINITIONS.pathTemplate.schema.safeParse("{nope}/{title}.{ext}");
+    const message = failure.error?.issues[0]?.message ?? "";
+    expect(message).toContain("{nope}");
+    expect(message).toContain("{albumArtist}");
+    expect(message).toContain("{track:02}");
+  });
+
+  it("still says which required token is missing", () => {
+    const failure = SETTING_DEFINITIONS.pathTemplate.schema.safeParse("{album}/{track}.{ext}");
+    expect(failure.error?.issues[0]?.message ?? "").toContain("{title}");
+  });
+
+  it("accepts the default and a padded track token of any width", () => {
+    expect(SETTING_DEFINITIONS.pathTemplate.schema.safeParse(defaults().pathTemplate).success).toBe(
+      true,
+    );
+    expect(
+      SETTING_DEFINITIONS.pathTemplate.schema.safeParse("{album}/{track:03} {title}.{ext}").success,
+    ).toBe(true);
   });
 });
