@@ -8,7 +8,7 @@
 
 /** `3:21`, or `1:02:03` past an hour. */
 export function mmss(seconds: number | null | undefined): string {
-  if (seconds === null || seconds === undefined || !Number.isFinite(seconds)) return "—";
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds)) return "--:--";
   const total = Math.max(0, Math.round(seconds));
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
@@ -19,7 +19,7 @@ export function mmss(seconds: number | null | undefined): string {
 
 /** A [0, 1] score as `97%`. */
 export function pct(value: number | null | undefined): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+  if (value === null || value === undefined || !Number.isFinite(value)) return "n/a";
   return `${String(Math.round(value * 100))}%`;
 }
 
@@ -50,9 +50,9 @@ export function bytes(value: number | null | undefined): string {
  * hydration that follows it cannot disagree, and so the tests are not time-dependent.
  */
 export function timeAgo(at: Date | string | null | undefined, now: Date = new Date()): string {
-  if (at === null || at === undefined) return "—";
+  if (at === null || at === undefined) return "never";
   const then = typeof at === "string" ? new Date(at) : at;
-  if (Number.isNaN(then.getTime())) return "—";
+  if (Number.isNaN(then.getTime())) return "never";
   const seconds = (now.getTime() - then.getTime()) / 1000;
   if (seconds < 0) return "just now";
   if (seconds < 60) return "just now";
@@ -64,9 +64,9 @@ export function timeAgo(at: Date | string | null | undefined, now: Date = new Da
 
 /** `05 Sep, 18:05`. */
 export function dateTime(at: Date | string | null | undefined): string {
-  if (at === null || at === undefined) return "—";
+  if (at === null || at === undefined) return "not yet";
   const value = typeof at === "string" ? new Date(at) : at;
-  if (Number.isNaN(value.getTime())) return "—";
+  if (Number.isNaN(value.getTime())) return "not yet";
   return value.toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -85,12 +85,12 @@ export function clockTime(at: Date | string | null | undefined): string {
 
 /** The first eight characters of an MBID — enough to recognise, short enough to sit in a cell. */
 export function short(id: string | null | undefined, length = 8): string {
-  return id === null || id === undefined || id === "" ? "—" : id.slice(0, length);
+  return id === null || id === undefined || id === "" ? "none" : id.slice(0, length);
 }
 
 /** `+2s` / `−3s`. A signed duration difference, with a real minus sign. */
 export function delta(seconds: number | null | undefined): string {
-  if (seconds === null || seconds === undefined || !Number.isFinite(seconds)) return "—";
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds)) return "n/a";
   const rounded = Math.round(seconds);
   if (rounded === 0) return "0s";
   return rounded > 0 ? `+${String(rounded)}s` : `−${String(Math.abs(rounded))}s`;

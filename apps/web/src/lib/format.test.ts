@@ -34,9 +34,9 @@ describe("mmss", () => {
   });
 
   it("answers with a dash rather than NaN", () => {
-    expect(mmss(null)).toBe("—");
-    expect(mmss(undefined)).toBe("—");
-    expect(mmss(Number.NaN)).toBe("—");
+    expect(mmss(null)).toBe("--:--");
+    expect(mmss(undefined)).toBe("--:--");
+    expect(mmss(Number.NaN)).toBe("--:--");
   });
 });
 
@@ -48,7 +48,7 @@ describe("pct", () => {
   });
 
   it("answers with a dash for an unknown score", () => {
-    expect(pct(null)).toBe("—");
+    expect(pct(null)).toBe("n/a");
   });
 });
 
@@ -93,8 +93,8 @@ describe("timeAgo", () => {
   });
 
   it("never renders Invalid Date", () => {
-    expect(timeAgo(null, now)).toBe("—");
-    expect(timeAgo("not a date", now)).toBe("—");
+    expect(timeAgo(null, now)).toBe("never");
+    expect(timeAgo("not a date", now)).toBe("never");
   });
 });
 
@@ -110,15 +110,15 @@ describe("delta", () => {
     expect(delta(2)).toBe("+2s");
     expect(delta(-3)).toBe("−3s");
     expect(delta(0)).toBe("0s");
-    expect(delta(null)).toBe("—");
+    expect(delta(null)).toBe("n/a");
   });
 });
 
 describe("short", () => {
   it("keeps enough of an MBID to recognise it", () => {
     expect(short("d073287b-d1bd-4f11-a933-a4386f8cf701")).toBe("d073287b");
-    expect(short(null)).toBe("—");
-    expect(short("")).toBe("—");
+    expect(short(null)).toBe("none");
+    expect(short("")).toBe("none");
   });
 });
 
