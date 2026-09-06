@@ -1,8 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { NotifiableEvent } from "@mm/contracts";
+import { NOTIFIABLE_EVENTS, type NotifiableEvent } from "@mm/contracts";
 import { resetServerEnv } from "#/server/env.ts";
 import { defaults, type Settings } from "./settings.ts";
-import { describe as describeEvent, notify, send } from "./notifications.ts";
+import {
+  describe as describeEvent,
+  encodeHeaderValue,
+  mimeMessage,
+  notify,
+  send,
+} from "./notifications.ts";
 
 /*
  * A message carries a link, and the link comes from `MM_WEB_URL`.
@@ -70,7 +76,8 @@ describe("send", () => {
     expect(call?.url).toBe("https://ntfy.example/mm");
     expect(call?.init.body).toBe(note.body);
     const headers = call?.init.headers as Record<string, string>;
-    expect(headers["Title"]).toBe(note.title);
+    // The title has an em dash, so it travels as an RFC 2047 word — see the block below.
+    expect(headers["Title"]).toBe("=?UTF-8?B?SW1wb3J0IGZpbmlzaGVkIOKAlCBEaXNjb3Zlcnk=?=");
     expect(headers["Tags"]).toBe("import.done");
     // The link makes the message actionable on a phone, which is the point of the channel.
     expect(headers["Click"]).toMatch(/\/imports\/imp_1$/);
@@ -267,5 +274,61 @@ describe("describe", () => {
     const failed = describeEvent("ytdlp.updated", { ok: false, message: "no network" });
     expect(failed.title).toBe("yt-dlp update failed");
     expect(failed.priority).toBe("high");
+  });
+});
+
+/*
+ * The bug this block exists for (P08-P11-verify-1).
+ *
+ * Both surviving channels put the title in a **header**. `fetch` refuses a header value outside
+ * ISO-8859-1, and `describe()` renders `Import failed — <album>` for every failed import, so
+ * ntfy delivered nothing at all for the two events the phase was built to deliver: the worker
+ * logged `Header 'Title' has invalid value` and swallowed it. Nothing above caught it because a
+ * mock `fetch` never constructs a `Headers`, so the tests here build the real thing.
+ */
+describe("header encoding", () => {
+  it("leaves an ASCII value alone", () => {
+    expect(encodeHeaderValue("Review needed")).toBe("Review needed");
+    expect(encodeHeaderValue("Import finished: Discovery")).toBe("Import finished: Discovery");
+  });
+
+  it("encodes anything else as one RFC 2047 word, which decodes back", () => {
+    const encoded = encodeHeaderValue("Import failed — 君の名は");
+    expect(encoded).toMatch(/^=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?=$/);
+    const payload = encoded.slice("=?UTF-8?B?".length, -"?=".length);
+    expect(Buffer.from(payload, "base64").toString("utf8")).toBe("Import failed — 君の名は");
+  });
+
+  it("produces a Title `fetch` will actually accept, for every event", () => {
+    for (const event of NOTIFIABLE_EVENTS) {
+      const rendered = describeEvent(event, {
+        importId: "imp_1",
+        // An album title is arbitrary text: an em dash, a curly quote and a script that is not
+        // Latin all reach this header, and any one of them used to drop the message.
+        title: "Sigur Rós — ( ) “untitled” 君の名は",
+        count: 2,
+      });
+      expect(() => new Headers({ Title: encodeHeaderValue(rendered.title) }), event).not.toThrow();
+    }
+    // …and the raw title is exactly what `fetch` refuses, which is why the encoding is there.
+    expect(() => new Headers({ Title: "Import failed — 君の名は" })).toThrow();
+  });
+
+  it("writes a mail whose Subject is ASCII and whose body is base64", () => {
+    const wire = mimeMessage(
+      { to: "me@example.test", subject: "Import failed — 君の名は", body: "download failed.\n" },
+      "mm@example.test",
+      new Date("2026-09-06T12:00:00Z"),
+    );
+    const [headerBlock = "", bodyBlock = ""] = wire.split("\r\n\r\n");
+    // RFC 5322: every octet of a header is ASCII unless the relay negotiated otherwise.
+    expect(headerBlock).toMatch(/^[\x20-\x7e\r\n]*$/);
+    expect(headerBlock).toContain("Subject: =?UTF-8?B?");
+    expect(headerBlock).toContain("Content-Transfer-Encoding: base64");
+    expect(Buffer.from(bodyBlock.replaceAll("\r\n", ""), "base64").toString("utf8")).toBe(
+      "download failed.\n",
+    );
+    // No line of a base64 body can be a lone dot, so DATA cannot be ended early by the content.
+    for (const line of wire.split("\r\n")) expect(line).not.toBe(".");
   });
 });

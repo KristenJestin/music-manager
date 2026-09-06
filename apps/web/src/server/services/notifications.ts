@@ -60,6 +60,58 @@ export type DeliveryOutcome =
   | { readonly delivered: false; readonly channel: string; readonly reason: string };
 
 /* ------------------------------------------------------------------ */
+/* header values                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A header value the transports can actually put on the wire.
+ *
+ * Both surviving channels carry the title in a **header**, and a header is bytes, not text:
+ * `fetch` refuses a value outside ISO-8859-1 outright (`Header 'Title' has invalid value`) and
+ * an SMTP header outside ASCII is only legal after RFC 2047 encoding. The titles this module
+ * renders are neither — `Import failed — Discovery` alone is enough, and an album called
+ * `君の名は` would be too — so every ntfy notification of a real import was dropped before it
+ * left the process, logged as a warning nobody reads. The unit tests never saw it because a
+ * mock `fetch` never builds a `Headers`.
+ *
+ * ASCII passes through untouched, which is the overwhelmingly common case and keeps a header
+ * readable in a `curl -v`. Anything else becomes one RFC 2047 encoded word, the form ntfy
+ * documents for non-ASCII headers and the form every mail client has understood since 1996.
+ */
+export function encodeHeaderValue(value: string): string {
+  if (/^[\x20-\x7e]*$/.test(value)) return value;
+  return `=?UTF-8?B?${Buffer.from(value, "utf8").toString("base64")}?=`;
+}
+
+/**
+ * The `DATA` payload of one message, without the terminating dot.
+ *
+ * Pulled out of `smtpSend` so that what goes on the wire can be asserted without a socket —
+ * `sendMail` is injectable, so a test that stubs it never sees these bytes at all, and this is
+ * where the encoding bug lived. `Subject` is RFC 2047 encoded when it is not ASCII, and the
+ * body travels base64: a mail header is ASCII by definition, and a raw UTF-8 body is only legal
+ * once the relay has announced `8BITMIME`, which this client never checks for. base64 also puts
+ * dot-stuffing and the 998-octet line limit out of reach by construction.
+ */
+export function mimeMessage(message: MailMessage, from: string, now = new Date()): string {
+  const headers = [
+    `From: Music Manager <${from}>`,
+    `To: <${message.to}>`,
+    `Subject: ${encodeHeaderValue(message.subject)}`,
+    `Date: ${now.toUTCString()}`,
+    "MIME-Version: 1.0",
+    'Content-Type: text/plain; charset="utf-8"',
+    "Content-Transfer-Encoding: base64",
+  ].join("\r\n");
+  const body = (
+    Buffer.from(message.body, "utf8")
+      .toString("base64")
+      .match(/.{1,76}/g) ?? []
+  ).join("\r\n");
+  return `${headers}\r\n\r\n${body}`;
+}
+
+/* ------------------------------------------------------------------ */
 /* the entry point job handlers use                                    */
 /* ------------------------------------------------------------------ */
 
@@ -167,7 +219,7 @@ async function sendNtfy(
   const doFetch = deps.fetch ?? globalThis.fetch;
   const link = linkOf(notification);
   const headers: Record<string, string> = {
-    Title: notification.title,
+    Title: encodeHeaderValue(notification.title),
     Tags: notification.event,
     Priority: notification.priority === "high" ? "4" : notification.priority === "low" ? "2" : "3",
   };
@@ -366,17 +418,7 @@ async function smtpSend(message: MailMessage, settings: Settings): Promise<void>
     await say("DATA");
     await expect(354, "DATA");
 
-    const headers = [
-      `From: Music Manager <${from}>`,
-      `To: <${message.to}>`,
-      `Subject: ${message.subject}`,
-      `Date: ${new Date().toUTCString()}`,
-      "MIME-Version: 1.0",
-      'Content-Type: text/plain; charset="utf-8"',
-    ].join("\r\n");
-    // Dot-stuffing: a line that is a single `.` would otherwise end the message early.
-    const body = message.body.replace(/\r?\n/g, "\r\n").replace(/^\./gm, "..");
-    await say(`${headers}\r\n\r\n${body}\r\n.`);
+    await say(`${mimeMessage(message, from)}\r\n.`);
     await expect(250, "message body");
 
     await say("QUIT");
@@ -406,7 +448,7 @@ export function describe(event: NotifiableEvent, data: Record<string, unknown>):
       const title = text("title", "An import");
       return {
         event,
-        title: `Import finished — ${title}`,
+        title: `Import finished: ${title}`,
         body: `${title} is in the library${
           typeof data["tracks"] === "number" ? ` (${String(data["tracks"])} tracks)` : ""
         }.`,
@@ -418,7 +460,7 @@ export function describe(event: NotifiableEvent, data: Record<string, unknown>):
       const title = text("title", "An import");
       return {
         event,
-        title: `Import failed — ${title}`,
+        title: `Import failed: ${title}`,
         body: `${text("step", "A step")} failed: ${text("message", "no detail given")}.`,
         path: `/imports/${text("importId", "")}`,
         priority: "high",
