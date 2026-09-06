@@ -117,6 +117,20 @@ describe("compareFingerprint", () => {
     expect(verdict.score).toBe(0.93);
   });
 
+  it("names the video rather than saying the mapping says “”", () => {
+    // `trackTitle` is `""`, not null, whenever a mapping was confirmed without one — which is
+    // every mapping an agent could build before `recordingMbid` was exposed. The reason then
+    // read `the mapping says “”`, which is true and says nothing.
+    const verdict = compareFingerprint(
+      { candidates: [{ recording_mbid: "rec-2", score: 0.99, title: "Wonderland", artist: null }] },
+      { recordingMbid: null, title: "", sourceTitle: "CHVRCHES - Clearest Blue" },
+      options,
+    );
+    expect(verdict.agrees).toBe(false);
+    expect(verdict.reason).not.toContain("“”");
+    expect(verdict.reason).toContain("CHVRCHES - Clearest Blue");
+  });
+
   it("says nothing when AcoustID answered nothing — silence is not a contradiction", () => {
     expect(
       compareFingerprint({ candidates: null }, { recordingMbid: "rec-1", title: "x" }, options)

@@ -170,8 +170,17 @@ export class MMError extends Error {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = "MMError";
     this.code = code;
-    this.hint = options.hint;
-    this.action = options.action;
+    /*
+     * An empty string is not an action, it is the absence of one.
+     *
+     * The Python side models both fields as `str` with `""` for "nothing to say", so a decoded
+     * toolbox error arrived here as `action: ""` and `toBody()` — which only drops `undefined`
+     * — put the empty string on the wire. A reader then had to know that `""` and "absent"
+     * mean the same thing while `hint` beside it was filled, which is exactly the kind of
+     * detail an agent gets wrong. Normalised once, here, so every surface agrees.
+     */
+    this.hint = options.hint === "" ? undefined : options.hint;
+    this.action = options.action === "" ? undefined : options.action;
     this.details = options.details;
     this.status = options.status;
     this.retryable = options.retryable ?? RETRYABLE.has(code);

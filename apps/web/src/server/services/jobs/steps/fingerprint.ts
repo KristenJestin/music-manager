@@ -42,7 +42,18 @@ export interface Verdict {
  */
 export function compareFingerprint(
   result: Pick<FingerprintResult, "candidates">,
-  expected: { recordingMbid: string | null; title: string | null },
+  expected: {
+    recordingMbid: string | null;
+    title: string | null;
+    /**
+     * What to call the track when the mapping supplied no title.
+     *
+     * Without it the reason read `the mapping says “”` — true, and useless: the reader cannot
+     * tell an empty mapping from a bug in the sentence. The source video's title is what a
+     * person would say instead, and it is always there.
+     */
+    sourceTitle?: string | null;
+  },
   options: { minScore: number; titleThreshold: number },
 ): Verdict {
   const candidates = (result.candidates ?? []).filter(
@@ -94,26 +105,40 @@ export function compareFingerprint(
   }
 
   const best = candidates[0];
+  // `expected.title` is `""` — not null — whenever a caller confirmed a mapping without one,
+  // so the empty string has to be excluded explicitly or the sentence reads `says “”`.
+  const claimed =
+    [expected.title, expected.recordingMbid, expected.sourceTitle].find(
+      (value) => value !== null && value !== undefined && value !== "",
+    ) ?? "nothing";
   return {
     agrees: false,
     candidateMbid: best?.recording_mbid ?? null,
     candidateTitle: best?.title ?? null,
     score: best?.score ?? null,
-    reason: `AcoustID hears “${best?.title ?? best?.recording_mbid ?? "something else"}”, the mapping says “${expected.title ?? expected.recordingMbid ?? "?"}”`,
+    reason: `AcoustID hears “${best?.title ?? best?.recording_mbid ?? "something else"}”, the mapping says “${claimed}”`,
   };
 }
 
-/** Track ids whose mismatch has already been answered. */
-async function acceptedMismatches(ctx: StepContext): Promise<Set<string>> {
+/** Every `fingerprint_mismatch` item this import has ever raised, answered or not. */
+async function mismatchItems(ctx: StepContext): Promise<{
+  /** Track ids whose mismatch has been answered — accepted or dismissed. */
+  readonly accepted: Set<string>;
+  /** Track ids whose mismatch is still `open`. Nobody has decided about these. */
+  readonly open: Set<string>;
+}> {
   const rows = await ctx.db
     .select()
     .from(inboxItems)
     .where(and(eq(inboxItems.importId, ctx.job.id), eq(inboxItems.type, "fingerprint_mismatch")));
   const accepted = new Set<string>();
+  const open = new Set<string>();
   for (const row of rows) {
-    if (row.status !== "open" && row.trackId !== null) accepted.add(row.trackId);
+    if (row.trackId === null) continue;
+    if (row.status === "open") open.add(row.trackId);
+    else accepted.add(row.trackId);
   }
-  return accepted;
+  return { accepted, open };
 }
 
 export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
@@ -129,24 +154,43 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
     return { status: "skipped", message: "No downloaded track to fingerprint." };
   }
 
-  const accepted = await acceptedMismatches(ctx);
+  const { accepted } = await mismatchItems(ctx);
   let checked = 0;
   let agreed = 0;
   const disagreements: ImportTrack[] = [];
+  /** Tracks whose mismatch stands but could not be re-measured in this pass. */
+  const unanswered: ImportTrack[] = [];
 
   for (const track of tracks) {
     if (aborted(ctx)) {
       return { status: "blocked", blockedAs: "paused", message: "Stopped during fingerprinting." };
     }
-    if (track.downloadPath === null) continue;
-    if (!existsSync(hostPath(ctx.paths, track.downloadPath))) continue;
+    /*
+     * No file to re-measure — but that is not the same as "agrees".
+     *
+     * `place` sets `downloadPath` to null once the track is in the library, so re-running the
+     * pipeline over a partly-placed import found nothing to fingerprint, counted zero
+     * disagreements and returned `done` — walking straight past open mismatch items. That is
+     * how an import finished `done` with five `fingerprint_mismatch` questions still open in
+     * the report's own words, "le step est passé sans les attendre". The verdict already
+     * recorded on the row is the answer here: a track whose stored verdict is a disagreement
+     * and whose question has not been answered still blocks.
+     */
+    if (track.downloadPath === null || !existsSync(hostPath(ctx.paths, track.downloadPath))) {
+      if (track.fingerprintOk === false && !accepted.has(track.id)) unanswered.push(track);
+      continue;
+    }
 
     const result = await ctx.toolbox.fingerprint(containerPath(ctx.paths, track.downloadPath));
     checked += 1;
 
     const verdict = compareFingerprint(
       result,
-      { recordingMbid: track.recordingMbid, title: track.trackTitle },
+      {
+        recordingMbid: track.recordingMbid,
+        title: track.trackTitle,
+        sourceTitle: track.sourceTitle,
+      },
       {
         minScore: ctx.settings.fingerprintMinScore,
         titleThreshold: ctx.settings.titleMatchThreshold,
@@ -196,12 +240,35 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
     );
   }
 
-  if (disagreements.length > 0) {
+  /*
+   * The last word belongs to the Inbox, not to this pass.
+   *
+   * `open` is re-read here rather than reused from the top, because the loop above may have
+   * raised new items. Anything still open — measured in this pass or standing from a previous
+   * one — means a human has not decided, and decision 011 is explicit that carrying on would
+   * write the wrong tags onto the right file. This is the guarantee "pause on disagreement"
+   * was supposed to be and, for a re-run over placed files, was not.
+   */
+  const stillOpen = (await mismatchItems(ctx)).open;
+  const blocking = new Set([
+    ...disagreements.map((track) => track.id),
+    ...unanswered.map((track) => track.id),
+    ...stillOpen,
+  ]);
+
+  if (blocking.size > 0) {
     return {
       status: "blocked",
       blockedAs: "awaiting_review",
-      message: `${String(disagreements.length)} fingerprint mismatch(es) need a decision.`,
-      data: { checked, agreed, mismatched: disagreements.length },
+      message: `${String(blocking.size)} fingerprint mismatch(es) need a decision.`,
+      data: {
+        checked,
+        agreed,
+        mismatched: blocking.size,
+        // Named apart so the journal says *why* a step blocked without re-measuring anything:
+        // these are questions inherited from an earlier pass, not new findings.
+        carriedOver: Math.max(0, blocking.size - disagreements.length),
+      },
     };
   }
 

@@ -92,4 +92,30 @@ describe("MMError.fromBody on a body that is not ours", () => {
     expect(MMError.fromBody(null, "POST /probe failed.").message).toBe("POST /probe failed.");
     expect(MMError.fromBody({}, "POST /probe failed.").message).toBe("POST /probe failed.");
   });
+
+  /*
+   * The toolbox models both fields as `str`, with `""` for "nothing to say" — so a decoded
+   * error arrived with `action: ""` beside a filled `hint`, and a reader had to know that the
+   * empty string and the absent key mean the same thing here but not there.
+   */
+  it("omits an empty action rather than putting an empty string on the wire", () => {
+    const decoded = MMError.fromBody({
+      code: "UNKNOWN",
+      message: "This video is unavailable",
+      hint: "No known cause matched; the original message is in `message`.",
+      action: "",
+    });
+    expect(decoded.action).toBeUndefined();
+    expect(decoded.toBody()).not.toHaveProperty("action");
+    expect(decoded.toBody().hint).toContain("No known cause matched");
+  });
+
+  it("keeps an action that says something", () => {
+    const decoded = MMError.fromBody({
+      code: "INVALID_INPUT",
+      message: "Extra inputs are not permitted",
+      action: "Rebuild the toolbox image (`bun run stack:up --build`)",
+    });
+    expect(decoded.toBody().action).toContain("stack:up --build");
+  });
 });
