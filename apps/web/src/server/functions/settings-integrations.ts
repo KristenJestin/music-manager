@@ -16,7 +16,11 @@ import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { navidromeStatus, requestRescan, type NavidromeStatus } from "#/server/services/navidrome.ts";
+import {
+  navidromeStatus,
+  requestRescan,
+  type NavidromeStatus,
+} from "#/server/services/navidrome.ts";
 import { loadSettings, maskSetting, setSetting } from "#/server/services/settings.ts";
 
 const form = z.object({
@@ -163,9 +167,11 @@ export const exportBackup = createServerFn({ method: "GET", strict: STRICT })
   .handler(async (): Promise<BackupPayload> => {
     try {
       const database = db();
-      const { metadataDocuments, sourceCache, settings: settingsTable } = await import(
-        "#/server/db/schema/index.ts"
-      );
+      const {
+        metadataDocuments,
+        sourceCache,
+        settings: settingsTable,
+      } = await import("#/server/db/schema/index.ts");
       const { isSecretSetting, isSettingKey } = await import("#/server/services/settings.ts");
       const { APP_VERSION } = await import("#/server/version.ts");
 

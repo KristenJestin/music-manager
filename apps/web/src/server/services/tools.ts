@@ -170,11 +170,7 @@ export async function updateYtdlp(deps: ToolsDeps = {}): Promise<YtdlpUpdateOutc
   }
 }
 
-async function raiseUpdateFailure(
-  db: Database,
-  settings: Settings,
-  detail: string,
-): Promise<void> {
+async function raiseUpdateFailure(db: Database, settings: Settings, detail: string): Promise<void> {
   const consequence =
     settings.ytdlpOnUpdateFailure === "pause_downloads"
       ? "Downloads are configured to stop until this is fixed."
@@ -430,7 +426,12 @@ export interface UrlTest {
   readonly entries: number;
   readonly durationMs: number;
   readonly sample: readonly { readonly title: string; readonly duration: number | null }[];
-  readonly error: { readonly code: string; readonly message: string; readonly hint: string; readonly action: string } | null;
+  readonly error: {
+    readonly code: string;
+    readonly message: string;
+    readonly hint: string;
+    readonly action: string;
+  } | null;
 }
 
 /**

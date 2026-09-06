@@ -71,7 +71,11 @@ export async function handleScan(
     const failure = MMError.from(error);
     log("scan failed", { error: failure.message });
     await emit(
-      { type: "scan.failed", level: "error", message: `The library scan failed: ${failure.message}` },
+      {
+        type: "scan.failed",
+        level: "error",
+        message: `The library scan failed: ${failure.message}`,
+      },
       db,
     );
     return null;
@@ -102,9 +106,6 @@ export async function handleYtdlpUpdate(deps: HandlerDeps = {}): Promise<void> {
 }
 
 /** Put a scan on the queue. Used by the Console, the CLI and the cron alike. */
-export async function enqueueScan(
-  boss: PgBoss,
-  job: ScanJob = {},
-): Promise<string | null> {
+export async function enqueueScan(boss: PgBoss, job: ScanJob = {}): Promise<string | null> {
   return await boss.send("scan", job, { singletonKey: "library-scan", retryLimit: 0 });
 }

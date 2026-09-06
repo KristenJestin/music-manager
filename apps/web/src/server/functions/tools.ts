@@ -13,7 +13,11 @@ import type { JobEventPayload } from "@mm/contracts";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { navidromeStatus, requestRescan, type NavidromeStatus } from "#/server/services/navidrome.ts";
+import {
+  navidromeStatus,
+  requestRescan,
+  type NavidromeStatus,
+} from "#/server/services/navidrome.ts";
 import { enqueueLibraryScan } from "#/server/services/queue.ts";
 import {
   identifyOrphan,

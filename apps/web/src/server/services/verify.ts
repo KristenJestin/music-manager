@@ -32,7 +32,7 @@ import {
   type LibraryAlbum,
   type LibraryTrack,
 } from "#/server/db/schema/index.ts";
-import { NavidromeClient } from "#/server/integrations/navidrome/client.ts";
+import { type NavidromeClient } from "#/server/integrations/navidrome/client.ts";
 import type { SubsonicAlbum, SubsonicSong } from "#/server/integrations/navidrome/types.ts";
 import { closeLibraryItem, openLibraryItem } from "#/server/services/library-inbox.ts";
 import { navidromeClient } from "#/server/services/navidrome.ts";
@@ -251,7 +251,12 @@ export function compareAlbum(written: Map<string, string[]>, read: ReadBack): Ve
     ),
     row("album", "album", wrote("album"), album.name),
     row("year", "date", wrote("date").map(yearOf), album.year),
-    row("originalReleaseDate", "originaldate", wrote("originaldate"), isoDate(album.originalReleaseDate)),
+    row(
+      "originalReleaseDate",
+      "originaldate",
+      wrote("originaldate"),
+      isoDate(album.originalReleaseDate),
+    ),
     row("genres[]", "genre", wrote("genre"), names(album.genres)),
     row("moods[]", "mood", wrote("mood"), album.moods),
     row("releaseTypes[]", "releasetype", wrote("releasetype"), album.releaseTypes),

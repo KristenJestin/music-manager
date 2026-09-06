@@ -225,7 +225,10 @@ export function compareTags(
     const values = Array.isArray(value)
       ? value.map((item) => String(item))
       : String(value ?? "").split(/\r?\n/);
-    actual.set(upper, values.filter((item) => item.trim() !== ""));
+    actual.set(
+      upper,
+      values.filter((item) => item.trim() !== ""),
+    );
   }
 
   const out: DriftedField[] = [];
@@ -312,9 +315,9 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       .map((file) => ({ path: file.path, size: file.size, modifiedAt: file.modifiedAt }));
 
     const albumTitles = new Map(
-      (await db.select({ id: libraryAlbums.id, title: libraryAlbums.title }).from(libraryAlbums)).map(
-        (album) => [album.id, album.title],
-      ),
+      (
+        await db.select({ id: libraryAlbums.id, title: libraryAlbums.title }).from(libraryAlbums)
+      ).map((album) => [album.id, album.title]),
     );
 
     const missing: MissingFile[] = rows
@@ -331,7 +334,10 @@ export async function runScan(options: ScanOptions = {}): Promise<{
 
     /* ---- duplicates ---- */
 
-    const byRecording = new Map<string, { title: string; files: { trackId: string; path: string }[] }>();
+    const byRecording = new Map<
+      string,
+      { title: string; files: { trackId: string; path: string }[] }
+    >();
     for (const row of rows) {
       if (row.recordingMbid === null || row.recordingMbid === "") continue;
       const group = byRecording.get(row.recordingMbid) ?? { title: row.title, files: [] };
@@ -559,7 +565,8 @@ export async function identifyOrphan(
   const settings = options.settings ?? (await loadSettings(options.db));
   const paths = options.paths ?? resolvePaths(settings);
   const box = options.toolbox ?? defaultToolbox();
-  const key = settings.acoustidKey.trim() === "" ? process.env.MM_ACOUSTID_KEY : settings.acoustidKey;
+  const key =
+    settings.acoustidKey.trim() === "" ? process.env.MM_ACOUSTID_KEY : settings.acoustidKey;
 
   const result = await box.fingerprint(containerPath(paths, relative), key ?? undefined);
   const candidates = (result.candidates ?? []).map((candidate) => ({
@@ -574,11 +581,7 @@ export async function identifyOrphan(
 
 /** The last runs, newest first. What the Tools card shows. */
 export async function recentScans(limit = 10, db: Database = defaultDb()): Promise<LibraryScan[]> {
-  return await db
-    .select()
-    .from(libraryScans)
-    .orderBy(desc(libraryScans.startedAt))
-    .limit(limit);
+  return await db.select().from(libraryScans).orderBy(desc(libraryScans.startedAt)).limit(limit);
 }
 
 /** The newest finished run, with its report. */

@@ -148,7 +148,10 @@ export class NavidromeClient {
       throw new MMError(
         "NAVIDROME_FAILED",
         `Navidrome answered HTTP ${String(response.status)} to ${view}.`,
-        { hint: "The URL points at something that is not an OpenSubsonic API.", status: response.status },
+        {
+          hint: "The URL points at something that is not an OpenSubsonic API.",
+          status: response.status,
+        },
       );
     }
 
@@ -213,7 +216,9 @@ export class NavidromeClient {
   /** Ask for a scan. `full` re-reads every file rather than the changed ones. */
   async startScan(options: { full?: boolean } = {}): Promise<SubsonicScanStatus> {
     const envelope = await this.get("startScan", { fullScan: options.full === true });
-    return NavidromeClient.payload<SubsonicScanStatus>(envelope, "scanStatus") ?? { scanning: true };
+    return (
+      NavidromeClient.payload<SubsonicScanStatus>(envelope, "scanStatus") ?? { scanning: true }
+    );
   }
 
   async getScanStatus(): Promise<SubsonicScanStatus> {

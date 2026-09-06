@@ -109,9 +109,7 @@ export async function closeLibraryItem(
   const closed = await db
     .update(inboxItems)
     .set({ status: "resolved", resolvedAt: new Date(), updatedAt: new Date() })
-    .where(
-      and(eq(inboxItems.type, type), eq(inboxItems.status, "open"), subjectOf(subject)),
-    )
+    .where(and(eq(inboxItems.type, type), eq(inboxItems.status, "open"), subjectOf(subject)))
     .returning({ id: inboxItems.id });
   return closed.length;
 }

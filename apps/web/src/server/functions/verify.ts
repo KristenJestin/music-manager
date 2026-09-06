@@ -58,9 +58,7 @@ export const fetchAlbumVerification = createServerFn({ method: "GET", strict: ST
 /** "Re-verify": read this one album back now. */
 export const verifyOne = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(
-    z.object({ albumId: z.string().min(1), rescan: z.boolean().optional() }),
-  )
+  .inputValidator(z.object({ albumId: z.string().min(1), rescan: z.boolean().optional() }))
   .handler(async ({ data }): Promise<AlbumVerification> => {
     try {
       return await verifyAlbum(data.albumId, {
