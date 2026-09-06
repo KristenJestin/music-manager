@@ -474,7 +474,7 @@ describe("the small ones", () => {
     render(<Cover seed="imp_1" label="Discovery" src="https://example.invalid/front-250" />);
     const image = screen.getByTestId("cover-image");
     expect(image.getAttribute("src")).toBe("https://example.invalid/front-250");
-    expect(image.getAttribute("alt")).toBe("Discovery");
+    expect(image.getAttribute("alt")).toBe("");
     fireEvent.error(image);
     expect(screen.queryByTestId("cover-image")).toBeNull();
     // The gradient and the initial were underneath the whole time.

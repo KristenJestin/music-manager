@@ -84,8 +84,10 @@ export interface CoverProps extends VariantProps<typeof coverVariants> {
 }
 
 export function Cover({ src, seed, label, size, className }: CoverProps) {
-  // Keyed on the URL so a re-render with a different image retries rather than staying failed.
+  // Both keyed on the URL, so a re-render with a different image retries from scratch rather
+  // than staying broken — or, worse, staying transparent over the wrong gradient.
   const [broken, setBroken] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<string | null>(null);
   const gradient = GRADIENTS[coverIndex(seed ?? label ?? "") - 1] ?? GRADIENTS[7];
   const title = label ?? "";
   const url = src === undefined || src === null || src === "" || src === broken ? null : src;
@@ -93,7 +95,7 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
   return (
     <div
       data-slot="cover"
-      data-has-image={url === null ? undefined : true}
+      data-has-image={loaded !== null && loaded === url ? true : undefined}
       className={cn(coverVariants({ size }), gradient, className)}
       title={title}
       aria-hidden={title === "" ? true : undefined}
@@ -102,16 +104,32 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
         {title.slice(0, 1).toUpperCase()}
       </span>
       {url === null ? null : (
+        /*
+         * Transparent until it has actually loaded, and with no `alt`.
+         *
+         * A cover is decoration over a tile that already reads: the wrapper carries the title,
+         * and an `alt` here would put the album's name *inside* the 36 px square as soon as the
+         * image 404s — which is precisely what a YouTube thumbnail URL from a fixture, or a
+         * release the Cover Art Archive has never had a front for, does. Hidden-until-loaded
+         * means the failure mode is the gradient we drew before and nothing else.
+         */
         <img
           src={url}
-          alt={title}
+          alt=""
+          aria-hidden="true"
           loading="lazy"
           decoding="async"
           data-testid="cover-image"
+          onLoad={() => {
+            setLoaded(url);
+          }}
           onError={() => {
             setBroken(url);
           }}
-          className="absolute inset-0 size-full object-cover"
+          className={cn(
+            "absolute inset-0 size-full object-cover",
+            loaded === url ? "opacity-100" : "opacity-0",
+          )}
         />
       )}
     </div>
