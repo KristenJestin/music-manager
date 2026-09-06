@@ -5,6 +5,22 @@
 #
 # `./.local/` holds all mutable state (postgres is on a named volume, Navidrome's database
 # and the music library are bind mounts). It is gitignored and safe to delete.
+#
+# ---------------------------------------------------------------------------
+# One project per checkout — do not run this file without `-p`.
+# ---------------------------------------------------------------------------
+# `name: mm-dev` below is the *default* project name, and it is right for `v2/` only. Compose
+# addresses containers as `<project>-<service>-N`, and the bind mounts here are relative to
+# whichever copy of this file was used. So a `docker compose up` run from a `git worktree` finds
+# the shared `mm-dev-toolbox-1` by name and **recreates** it mounting the worktree's
+# `./.local/library` — silently moving the library out from under whoever was using it. That
+# happened during P07-verify-1 (`orchestration/reports/P07-verify-1.md` §9).
+#
+# The parade is `bun run stack:up` (`scripts/stack.ts`), which always passes `-p` and sets the
+# port variables below from the checkout: `mm-dev` with 5432/4533/8100 in `v2/`, and `mm-<slug>`
+# with ports of its own in a worktree. Both `-p` and `COMPOSE_PROJECT_NAME` override `name:`;
+# the defaults keep a bare `docker compose -f docker-compose.dev.yml …` in `v2/` identical to
+# what it was before the variables existed.
 
 name: mm-dev
 
@@ -17,7 +33,7 @@ services:
       POSTGRES_PASSWORD: mm
       POSTGRES_DB: mm
     ports:
-      - "5432:5432"
+      - "${MM_POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -38,7 +54,7 @@ services:
       ND_SCANSCHEDULE: "@every 1m"
       ND_LOGLEVEL: info
     ports:
-      - "4533:4533"
+      - "${MM_NAVIDROME_PORT:-4533}:4533"
     volumes:
       - ./.local/navidrome:/data
       - ./.local/library:/music:ro
@@ -59,7 +75,7 @@ services:
       # AcoustID key for /fingerprint. Without it the fingerprint is still computed.
       MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
     ports:
-      - "8100:8100"
+      - "${MM_TOOLBOX_PORT:-8100}:8100"
     volumes:
       - ./.local/library:/library
 

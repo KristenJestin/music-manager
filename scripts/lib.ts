@@ -156,6 +156,28 @@ export async function createFreshDatabase(adminUrl: string, name: string): Promi
   }
 }
 
+/**
+ * Create a database if it is not already there, and say whether it had to.
+ *
+ * The counterpart of `createFreshDatabase` for a *durable* database — a worktree's own
+ * `mm_<slug>`, which must survive `bun run dev` being stopped and started again with the
+ * developer's data still in it. `create database` has no `if not exists`, so the catalogue is
+ * asked first.
+ */
+export async function ensureDatabase(adminUrl: string, name: string): Promise<boolean> {
+  const admin = new SQL(adminUrl);
+  try {
+    const rows = (await admin.unsafe(
+      `select 1 from pg_database where datname = '${name}'`,
+    )) as unknown[];
+    if (rows.length > 0) return false;
+    await admin.unsafe(`create database ${name}`);
+    return true;
+  } finally {
+    await admin.end();
+  }
+}
+
 /** Drop a database this run created, freeing it for the next one. Safe to call if it never was. */
 export async function dropDatabaseIfExists(adminUrl: string, name: string): Promise<void> {
   const admin = new SQL(adminUrl);
