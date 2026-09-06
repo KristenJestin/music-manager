@@ -42,7 +42,11 @@ function Artists() {
       className: "w-10",
       cell: (row) => <Cover size="sm" seed={row.mbid ?? row.name} label={row.name} />,
     },
-    { key: "name", header: "Artist", cell: (row) => <span className="font-medium">{row.name}</span> },
+    {
+      key: "name",
+      header: "Artist",
+      cell: (row) => <span className="font-medium">{row.name}</span>,
+    },
     { key: "albums", header: "Albums", numeric: true, cell: (row) => row.albums },
     { key: "tracks", header: "Tracks", numeric: true, cell: (row) => row.tracks },
     {

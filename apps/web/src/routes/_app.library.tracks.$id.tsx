@@ -44,7 +44,8 @@ function render(value: unknown): string {
   const record = value as Record<string, unknown>;
   if ("synced" in record || "plain" in record) return "(lyrics)";
   if ("url" in record) return String(record["url"]);
-  if ("name" in record && "role" in record) return `${String(record["name"])} (${String(record["role"])})`;
+  if ("name" in record && "role" in record)
+    return `${String(record["name"])} (${String(record["role"])})`;
   return JSON.stringify(value);
 }
 
@@ -95,8 +96,9 @@ function TrackPage() {
             {track.title}
           </h1>
           <div className="text-xs text-fg-1">
-            {track.artist ?? "unknown artist"} · <span className="font-mono">{mmss(track.duration)}</span>{" "}
-            · {track.format ?? "?"} · {bytes(track.size)}
+            {track.artist ?? "unknown artist"} ·{" "}
+            <span className="font-mono">{mmss(track.duration)}</span> · {track.format ?? "?"} ·{" "}
+            {bytes(track.size)}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <ToneBadge tone={scoreTone(detail.score)}>{pct(detail.score)}</ToneBadge>
@@ -267,8 +269,16 @@ function TrackPage() {
             <h2 className="mb-2 text-xs font-medium">Identifiers</h2>
             <KeyValueList
               items={[
-                { label: "Recording", value: <span className="font-mono text-2xs">{short(track.recordingMbid, 36)}</span> },
-                { label: "Track", value: <span className="font-mono text-2xs">{short(track.trackMbid, 36)}</span> },
+                {
+                  label: "Recording",
+                  value: (
+                    <span className="font-mono text-2xs">{short(track.recordingMbid, 36)}</span>
+                  ),
+                },
+                {
+                  label: "Track",
+                  value: <span className="font-mono text-2xs">{short(track.trackMbid, 36)}</span>,
+                },
                 {
                   label: "Album",
                   value:
@@ -301,8 +311,8 @@ function TrackPage() {
               ))}
             </div>
             <p className="mt-2 text-3xs text-fg-3">
-              A profile scores only what that consumer reads back. It never changes what is
-              written: the superset goes into the file whatever this list says.
+              A profile scores only what that consumer reads back. It never changes what is written:
+              the superset goes into the file whatever this list says.
             </p>
           </section>
 

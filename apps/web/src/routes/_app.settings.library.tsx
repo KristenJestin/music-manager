@@ -18,13 +18,7 @@ import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
-import {
-  ChipGroup,
-  FormRow,
-  ReadOnly,
-  Section,
-  Toggle,
-} from "#/components/settings/controls.tsx";
+import { ChipGroup, FormRow, ReadOnly, Section, Toggle } from "#/components/settings/controls.tsx";
 import {
   fetchGeneralSettings,
   previewTemplate,
@@ -330,14 +324,17 @@ function LibrarySettings() {
       </Section>
 
       <Callout tone="info">
-        <FolderTree className="inline size-3.5" aria-hidden="true" /> Changing the template does
-        not move anything that is already filed. New imports follow it; an existing album keeps
-        the path it was placed at, and the row and the file agree because both were written at
-        the same time.
+        <FolderTree className="inline size-3.5" aria-hidden="true" /> Changing the template does not
+        move anything that is already filed. New imports follow it; an existing album keeps the path
+        it was placed at, and the row and the file agree because both were written at the same time.
       </Callout>
 
       <div className="flex justify-end">
-        <Button data-testid="settings-save" disabled={saving || templateError !== ""} onClick={save}>
+        <Button
+          data-testid="settings-save"
+          disabled={saving || templateError !== ""}
+          onClick={save}
+        >
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>

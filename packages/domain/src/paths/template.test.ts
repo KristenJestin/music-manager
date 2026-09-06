@@ -110,15 +110,13 @@ describe("substitution", () => {
     expect(renderPathTemplate("{artist}/{title}.{ext}", discovery)).toBe(
       "Daft Punk/One More Time.opus",
     );
-    expect(renderPathTemplate("{artist}/{title}.{ext}", discovery, {}, { artist: "Romanthony" })).toBe(
-      "Romanthony/One More Time.opus",
-    );
+    expect(
+      renderPathTemplate("{artist}/{title}.{ext}", discovery, {}, { artist: "Romanthony" }),
+    ).toBe("Romanthony/One More Time.opus");
   });
 
   it("appends the real extension when the template forgot it", () => {
-    expect(renderPathTemplate("{album}/{title}", discovery)).toBe(
-      "Discovery/One More Time.opus",
-    );
+    expect(renderPathTemplate("{album}/{title}", discovery)).toBe("Discovery/One More Time.opus");
   });
 
   it("never lets a template escape the library root", () => {

@@ -115,7 +115,9 @@ function Albums() {
         <StatTile label="Albums" value={stats.albums} sub={`${stats.artists} artists`} />
         <StatTile
           label="Metadata"
-          value={pct(profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore)}
+          value={pct(
+            profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,
+          )}
           tone={scoreTone(
             profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,
           )}

@@ -66,7 +66,13 @@ export function RetagProgressBar({
 }) {
   const value = total === 0 ? 0 : done / total;
   const tone =
-    status === "failed" ? "danger" : status === "done" ? "ok" : status === "cancelled" ? "muted" : "info";
+    status === "failed"
+      ? "danger"
+      : status === "done"
+        ? "ok"
+        : status === "cancelled"
+          ? "muted"
+          : "info";
   return (
     <div className={cn("flex items-center gap-2", className)} data-testid="retag-progress">
       <ProgressBar className="w-40" value={value} tone={tone} label="Re-tag progress" />
@@ -105,8 +111,7 @@ function Row({
   readonly tone: "ok" | "danger" | "warn";
   readonly line: DiffLine;
 }) {
-  const colour =
-    tone === "ok" ? "text-ok" : tone === "danger" ? "text-danger" : "text-warn";
+  const colour = tone === "ok" ? "text-ok" : tone === "danger" ? "text-danger" : "text-warn";
   return (
     <div className="grid grid-cols-[1rem_minmax(0,14rem)_1fr] items-start gap-2 py-0.5">
       <span className={cn("font-mono text-2xs", colour)}>{mark}</span>
@@ -152,12 +157,7 @@ export function TagDiff({
         <Row key={`+${line.key}`} mark={<Plus className="size-3" />} tone="ok" line={line} />
       ))}
       {changed.map((line) => (
-        <Row
-          key={`~${line.key}`}
-          mark={<RefreshCw className="size-3" />}
-          tone="warn"
-          line={line}
-        />
+        <Row key={`~${line.key}`} mark={<RefreshCw className="size-3" />} tone="warn" line={line} />
       ))}
       {removed.map((line) => (
         <Row key={`-${line.key}`} mark={<Minus className="size-3" />} tone="danger" line={line} />

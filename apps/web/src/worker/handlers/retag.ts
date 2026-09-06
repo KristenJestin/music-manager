@@ -178,7 +178,10 @@ export async function refreshSources(
 /** Register the `retag` consumer and the weekly source refresh on a running boss. */
 export async function registerRetagHandlers(
   boss: PgBoss,
-  options: { signal?: AbortSignal; log?: (message: string, extra?: Record<string, unknown>) => void },
+  options: {
+    signal?: AbortSignal;
+    log?: (message: string, extra?: Record<string, unknown>) => void;
+  },
 ): Promise<void> {
   const say = options.log ?? ((): void => undefined);
 
@@ -203,15 +206,11 @@ export async function registerRetagHandlers(
     },
   );
 
-  await boss.work(
-    "cron.refresh-sources",
-    { localConcurrency: 1 },
-    async (jobs: Job<object>[]) => {
-      for (const _job of jobs) {
-        void _job;
-        const result = await refreshSources(boss, { db: defaultDb() });
-        say("sources refreshed", { ...result });
-      }
-    },
-  );
+  await boss.work("cron.refresh-sources", { localConcurrency: 1 }, async (jobs: Job<object>[]) => {
+    for (const _job of jobs) {
+      void _job;
+      const result = await refreshSources(boss, { db: defaultDb() });
+      say("sources refreshed", { ...result });
+    }
+  });
 }

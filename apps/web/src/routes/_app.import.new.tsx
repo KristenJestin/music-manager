@@ -864,9 +864,9 @@ function StepMatch({
                 Nothing fits? Paste the MBID of the right release above — the mapping is computed
                 against whatever you pin, even if the search never proposed it. If MusicBrainz
                 genuinely does not have this — a live set, a bootleg, an unregistered artist —
-                import it from the YouTube tags alone. The album is then flagged{" "}
-                <b>untagged</b> in the library, with its own filter on the Quality page, so it
-                can be finished the day a release appears.
+                import it from the YouTube tags alone. The album is then flagged <b>untagged</b> in
+                the library, with its own filter on the Quality page, so it can be finished the day
+                a release appears.
               </div>
               <Button
                 variant="outline"
@@ -1115,11 +1115,11 @@ function StepOptions({
     <>
       {untagged ? (
         <Callout tone="warn" className="mb-3.5" data-testid="untagged-notice">
-          <b>Importing without MusicBrainz.</b> The tags will come from the YouTube metadata
-          alone — title, artist, album, year — so there will be no identifiers, no credits, no
-          release date and no cover from the archive. The album is flagged <b>untagged</b> in
-          the library and has its own filter on the Quality page; picking a release later and
-          re-tagging fills in everything, offline, without re-downloading a byte.
+          <b>Importing without MusicBrainz.</b> The tags will come from the YouTube metadata alone —
+          title, artist, album, year — so there will be no identifiers, no credits, no release date
+          and no cover from the archive. The album is flagged <b>untagged</b> in the library and has
+          its own filter on the Quality page; picking a release later and re-tagging fills in
+          everything, offline, without re-downloading a byte.
         </Callout>
       ) : null}
       <div className="split-grid">

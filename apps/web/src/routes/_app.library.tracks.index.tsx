@@ -69,8 +69,16 @@ function Tracks() {
         <span className="text-fg-3">{String(row.trackNumber ?? 0).padStart(2, "0")}</span>
       ),
     },
-    { key: "title", header: "Title", cell: (row) => <span className="font-medium">{row.title}</span> },
-    { key: "artist", header: "Artist", cell: (row) => <span className="text-fg-2">{row.artist ?? "—"}</span> },
+    {
+      key: "title",
+      header: "Title",
+      cell: (row) => <span className="font-medium">{row.title}</span>,
+    },
+    {
+      key: "artist",
+      header: "Artist",
+      cell: (row) => <span className="text-fg-2">{row.artist ?? "—"}</span>,
+    },
     {
       key: "album",
       header: "Album",

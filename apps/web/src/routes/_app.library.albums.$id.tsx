@@ -106,8 +106,8 @@ function Album() {
   if (album === null) {
     return (
       <Callout tone="warn">
-        No album with that id. It may have been deleted — <Link to="/library">back to the
-        library</Link>.
+        No album with that id. It may have been deleted —{" "}
+        <Link to="/library">back to the library</Link>.
       </Callout>
     );
   }
@@ -169,7 +169,11 @@ function Album() {
             {album.album.title}
           </h1>
           <div className="text-xs text-fg-1">
-            <Link to="/library/artists" search={{ q: album.album.albumArtist }} className="text-primary">
+            <Link
+              to="/library/artists"
+              search={{ q: album.album.albumArtist }}
+              className="text-primary"
+            >
               {album.album.albumArtist}
             </Link>
             {album.identifiers.label === null ? null : ` · ${album.identifiers.label}`}
@@ -190,7 +194,10 @@ function Album() {
             </ToneBadge>
             <ToneBadge tone={quality.replayGainCount > 0 ? "ok" : "muted"}>ReplayGain</ToneBadge>
             {quality.untagged ? (
-              <ToneBadge tone="info" title="No MusicBrainz release: the tags come from YouTube alone.">
+              <ToneBadge
+                tone="info"
+                title="No MusicBrainz release: the tags come from YouTube alone."
+              >
                 untagged
               </ToneBadge>
             ) : null}
@@ -233,10 +240,7 @@ function Album() {
               nativeButton={false}
               title="Re-pick the release in the import wizard's step 2, then re-run the match."
               render={
-                <Link
-                  to="/import/new"
-                  search={{ importId: album.wizardImportId, step: 2 }}
-                />
+                <Link to="/import/new" search={{ importId: album.wizardImportId, step: 2 }} />
               }
             >
               <Disc3 className="size-4" aria-hidden="true" /> Change release
@@ -338,8 +342,8 @@ function Album() {
             <span className="font-mono">{bytes(album.sizeBytes)}</span> · folder{" "}
             <span className="font-mono">{album.album.folder}</span>
             <p className="mt-1.5 text-2xs text-fg-3">
-              The raw source cache is <em>not</em> touched, so re-importing this album later
-              costs no network traffic. Anything else in the folder is left where it is.
+              The raw source cache is <em>not</em> touched, so re-importing this album later costs
+              no network traffic. Anything else in the folder is left where it is.
             </p>
           </>
         }
@@ -414,7 +418,11 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
         </span>
       ),
     },
-    { key: "title", header: "Title", cell: (row) => <span className="font-medium">{row.title}</span> },
+    {
+      key: "title",
+      header: "Title",
+      cell: (row) => <span className="font-medium">{row.title}</span>,
+    },
     { key: "length", header: "Length", numeric: true, cell: (row) => mmss(row.duration) },
     {
       key: "source",
@@ -439,7 +447,9 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
     {
       key: "recording",
       header: "Recording",
-      cell: (row) => <span className="font-mono text-2xs text-fg-3">{short(row.recordingMbid)}</span>,
+      cell: (row) => (
+        <span className="font-mono text-2xs text-fg-3">{short(row.recordingMbid)}</span>
+      ),
     },
     {
       key: "file",
@@ -586,9 +596,9 @@ function MetadataTab({
             <SchemaHeading current={album.currentSchema} overridden={album.schemaOverridden} />{" "}
             {behind ? (
               <>
-                {quality.filesBehind} file(s) were written by an older projection. The re-tag
-                reads the raw cache — no network, no re-download, the audio stream is not touched
-                — and shows a diff per file first.
+                {quality.filesBehind} file(s) were written by an older projection. The re-tag reads
+                the raw cache — no network, no re-download, the audio stream is not touched — and
+                shows a diff per file first.
               </>
             ) : (
               <>
@@ -638,9 +648,9 @@ function MetadataTab({
               .filter(
                 (entry) =>
                   !profiled ||
-                  album.tagMap.find((row) => row.field === entry.field)?.readers.includes(
-                    profile as never,
-                  ) === true,
+                  album.tagMap
+                    .find((row) => row.field === entry.field)
+                    ?.readers.includes(profile as never) === true,
               )
               .slice(0, 30)
               .map((entry) => (
@@ -658,9 +668,7 @@ function MetadataTab({
                   </ToneBadge>
                   <span className="font-mono text-xs">{entry.vorbis}</span>
                   <span className="grow truncate text-2xs text-fg-3">{entry.source}</span>
-                  <span className="font-mono text-2xs text-fg-3">
-                    {entry.tracks} track(s)
-                  </span>
+                  <span className="font-mono text-2xs text-fg-3">{entry.tracks} track(s)</span>
                   <span className="text-2xs text-fg-2">{entry.action}</span>
                 </li>
               ))}
@@ -698,8 +706,9 @@ function CompareTab({
       <Callout tone={drifting.length === 0 ? "ok" : "warn"} className="mb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            Every file was opened through the toolbox&rsquo;s <code className="font-mono">/probe</code>{" "}
-            and compared, key by key, with what the database says it should hold.{" "}
+            Every file was opened through the toolbox&rsquo;s{" "}
+            <code className="font-mono">/probe</code> and compared, key by key, with what the
+            database says it should hold.{" "}
             {drifting.length === 0
               ? "They agree."
               : `${String(drifting.length)} of ${String(rows.length)} file(s) differ.`}{" "}
@@ -735,9 +744,7 @@ function CompareTab({
             )}
           </div>
         ))}
-        {rows.length === 0 ? (
-          <Callout tone="info">No files to compare.</Callout>
-        ) : null}
+        {rows.length === 0 ? <Callout tone="info">No files to compare.</Callout> : null}
       </div>
     </>
   );
@@ -793,8 +800,8 @@ function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
         <h2 className="mb-2 text-xs font-medium">Matching decision</h2>
         {album.decision === null ? (
           <p className="text-xs text-fg-2">
-            No decision recorded. This album was not matched through the wizard — an import
-            without MusicBrainz, or a release supplied on the command line.
+            No decision recorded. This album was not matched through the wizard — an import without
+            MusicBrainz, or a release supplied on the command line.
           </p>
         ) : (
           <>
@@ -852,7 +859,11 @@ function HistoryTab({
           <span
             className={cn(
               "font-mono",
-              line.level === "error" ? "text-danger" : line.level === "warn" ? "text-warn" : "text-fg-3",
+              line.level === "error"
+                ? "text-danger"
+                : line.level === "warn"
+                  ? "text-warn"
+                  : "text-fg-3",
             )}
           >
             {line.type}

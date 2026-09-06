@@ -132,7 +132,9 @@ export async function testSource(
     case "lastfm":
       return await timed(source, on, config.lastfmKey !== "", async () => {
         const answer = await lastfm.artistTopTags(ctx, "Daft Punk");
-        return answer === null ? "No key configured, so nothing was asked." : "The key was accepted.";
+        return answer === null
+          ? "No key configured, so nothing was asked."
+          : "The key was accepted.";
       });
     case "listenbrainz":
       return await timed(source, on, true, async () => {

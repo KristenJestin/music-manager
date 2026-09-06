@@ -66,7 +66,11 @@ import { lyricsOf } from "#/server/services/jobs/steps/tag.ts";
 import { tracksBehindSchema } from "#/server/services/quality.ts";
 import { effectiveSchemaVersion } from "#/server/services/schema-version.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
-import { toolbox as defaultToolbox, type Tag, type ToolboxClient } from "#/server/toolbox/client.ts";
+import {
+  toolbox as defaultToolbox,
+  type Tag,
+  type ToolboxClient,
+} from "#/server/toolbox/client.ts";
 
 /* ------------------------------------------------------------------ */
 /* the format a file actually is                                       */
@@ -206,7 +210,10 @@ export function diffProjection(
  * PUNK` are a real difference and hiding it would defeat the point of the diff.
  */
 function normalise(value: string): string {
-  return value.replace(/\s*[;/]\s*/g, "; ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/\s*[;/]\s*/g, "; ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** The same hash `tag` stores, so a re-tag and an import agree on "unchanged". */
@@ -384,7 +391,14 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
     const diff = diffProjection(projected, probe.tags ?? {});
 
     if (ctx.dryRun) {
-      return { path: track.path, diff, wrote: false, schemaBefore: before, schemaAfter: null, error: null };
+      return {
+        path: track.path,
+        diff,
+        wrote: false,
+        schemaBefore: before,
+        schemaAfter: null,
+        error: null,
+      };
     }
 
     /* ---- 4 · write, refresh the sidecar, stamp the version ---- */

@@ -89,9 +89,7 @@ function Quality() {
 
   const toggle = (albumId: string): void => {
     setSelected((current) =>
-      current.includes(albumId)
-        ? current.filter((id) => id !== albumId)
-        : [...current, albumId],
+      current.includes(albumId) ? current.filter((id) => id !== albumId) : [...current, albumId],
     );
   };
 
@@ -207,9 +205,8 @@ function Quality() {
                   {stats.filesBehind}
                 </span>{" "}
                 file(s) across {stats.albumsBehind} album(s) were written by an older projection.
-                The re-tag re-derives them from the raw source cache: no network, no
-                re-download, the audio stream is never touched, and every file gets a diff
-                before it is written.
+                The re-tag re-derives them from the raw source cache: no network, no re-download,
+                the audio stream is never touched, and every file gets a diff before it is written.
               </>
             )}
             {progress === null ? null : (
@@ -224,7 +221,8 @@ function Quality() {
             )}
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            {progress !== null && (progress.status === "running" || progress.status === "pending") ? (
+            {progress !== null &&
+            (progress.status === "running" || progress.status === "pending") ? (
               <Button
                 size="sm"
                 variant="outline"

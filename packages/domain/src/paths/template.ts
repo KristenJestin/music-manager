@@ -28,7 +28,8 @@
 import { sanitizeSegment, type PathOptions, type TrackPathInput } from "./index.ts";
 
 /** What `./index.ts` builds, written as a template. The default value of the setting. */
-export const DEFAULT_PATH_TEMPLATE = "{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}";
+export const DEFAULT_PATH_TEMPLATE =
+  "{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}";
 
 /**
  * How a multi-disc release is numbered.
@@ -67,12 +68,16 @@ export const PATH_TOKENS: readonly TemplateToken[] = Object.freeze([
   { token: "{disc}", description: "Disc number, unpadded." },
   {
     token: "{disc-}",
-    description: "Disc prefix — `1-` on a multi-disc release, nothing otherwise. Honours the multi-disc setting.",
+    description:
+      "Disc prefix — `1-` on a multi-disc release, nothing otherwise. Honours the multi-disc setting.",
   },
   { token: "{track}", description: "Track number, unpadded." },
   { token: "{track:02}", description: "Track number, zero-padded to that width (`02`, `03`…)." },
   { token: "{title}", description: "Track title." },
-  { token: "{artist}", description: "Track artist — differs from the album artist on compilations." },
+  {
+    token: "{artist}",
+    description: "Track artist — differs from the album artist on compilations.",
+  },
   { token: "{ext}", description: "File extension, from the file we actually have." },
   { token: "{mbid}", description: "MusicBrainz recording id." },
 ]);

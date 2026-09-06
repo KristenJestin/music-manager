@@ -185,9 +185,7 @@ export function TagMapTable({
                             title={`${entry.name}: ${row.readers.includes(entry.id as never) ? "reads it" : "not known to read it"}`}
                             className={cn(
                               "size-1.5 rounded-full",
-                              row.readers.includes(entry.id as never)
-                                ? "bg-ok"
-                                : "bg-line-strong",
+                              row.readers.includes(entry.id as never) ? "bg-ok" : "bg-line-strong",
                             )}
                           />
                         ))}
@@ -196,10 +194,7 @@ export function TagMapTable({
                     {showStatus ? (
                       <>
                         <td className="px-2.5 py-1.5">
-                          <ToneBadge
-                            tone={STATE_TONE[row.state]}
-                            title={row.reason ?? undefined}
-                          >
+                          <ToneBadge tone={STATE_TONE[row.state]} title={row.reason ?? undefined}>
                             {STATE_LABEL[row.state]}
                           </ToneBadge>
                           {row.state === "present" && row.tracks > 0 ? (

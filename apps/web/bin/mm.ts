@@ -74,12 +74,7 @@ import {
 } from "#/server/services/settings.ts";
 import { createBoss, enqueueDownload, enqueueImportStep, stopBoss } from "#/worker/queues.ts";
 import { enqueueRetag } from "#/worker/handlers/retag.ts";
-import {
-  albumDetail,
-  albumGrid,
-  artistList,
-  trackList,
-} from "#/server/services/library.ts";
+import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
 import {
   cancelRun,
   createRun,
@@ -919,7 +914,7 @@ async function cmdLibrary(args: Args): Promise<number> {
     line(`${String(payload.total)} track(s) match · schema v${String(payload.currentSchema)}`);
     for (const track of payload.tracks) {
       line(
-        `${track.behind ? "!" : " "} ${(track.score === null ? "  —" : `${(track.score * 100).toFixed(0).padStart(3)}%`)}  ${track.path}`,
+        `${track.behind ? "!" : " "} ${track.score === null ? "  —" : `${(track.score * 100).toFixed(0).padStart(3)}%`}  ${track.path}`,
       );
     }
     return 0;
@@ -1006,7 +1001,9 @@ async function cmdRetag(args: Args): Promise<number> {
     for (const diff of view.diffs) {
       const counts = `+${String(diff.added.length)} ~${String(diff.changed.length)} -${String(diff.removed.length)}`;
       line("");
-      line(`  ${diff.path}   ${counts}${diff.error === null ? "" : `   ERROR ${diff.error.message}`}`);
+      line(
+        `  ${diff.path}   ${counts}${diff.error === null ? "" : `   ERROR ${diff.error.message}`}`,
+      );
       for (const entry of diff.added) line(`    + ${entry.key}=${entry.after ?? ""}`);
       for (const entry of diff.changed) {
         line(`    ~ ${entry.key}: ${entry.before ?? ""} -> ${entry.after ?? ""}`);

@@ -1124,9 +1124,11 @@ export async function coverOptions(
 
   /* Cover Art Archive: front and back of the release, from the cached index. */
   if (detail.album.releaseMbid !== null && detail.album.releaseMbid !== "") {
-    const { index: caaIndex, imagesOfType, urlOf } = await import(
-      "#/server/integrations/coverartarchive.ts"
-    );
+    const {
+      index: caaIndex,
+      imagesOfType,
+      urlOf,
+    } = await import("#/server/integrations/coverartarchive.ts");
     const { sourcesConfig } = await import("#/server/integrations/config.ts");
     const settings = await loadSettings(db);
     try {
@@ -1158,10 +1160,7 @@ export async function coverOptions(
     .filter((id): id is string => id !== null)
     .slice(0, 4);
   if (sourceIds.length > 0) {
-    const rows = await db
-      .select()
-      .from(importTracks)
-      .where(inArray(importTracks.id, sourceIds));
+    const rows = await db.select().from(importTracks).where(inArray(importTracks.id, sourceIds));
     const { youtubeThumbnail } = await import("#/server/services/documents.ts");
     for (const row of rows) {
       const url = youtubeThumbnail(row.raw as never);

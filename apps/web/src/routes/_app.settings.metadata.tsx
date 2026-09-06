@@ -342,7 +342,10 @@ function MetadataSettings() {
             }}
           />
         </FormRow>
-        <FormRow label="Last.fm key" help="Moods and community genres. Empty means: take MM_LASTFM_KEY.">
+        <FormRow
+          label="Last.fm key"
+          help="Moods and community genres. Empty means: take MM_LASTFM_KEY."
+        >
           <Input
             data-testid="setting-lastfmKey"
             className="h-7 max-w-md font-mono text-xs"
@@ -372,11 +375,11 @@ function MetadataSettings() {
       >
         <div className="py-3">
           <Callout tone="info" className="mb-3">
-            The reference is the <b>Picard tag mapping</b>: the standard superset across all
-            formats — Vorbis for Opus and FLAC, ID3v2.4 for MP3, MP4 atoms for AAC. We write{" "}
-            <b>{payload.tagMap.length} tags</b> whenever the sources have data, including the
-            ones today&rsquo;s consumer ignores. Servers and players are <b>profiles</b> that
-            describe what is <i>read back</i>; <b>a profile never changes what is written</b>.
+            The reference is the <b>Picard tag mapping</b>: the standard superset across all formats
+            — Vorbis for Opus and FLAC, ID3v2.4 for MP3, MP4 atoms for AAC. We write{" "}
+            <b>{payload.tagMap.length} tags</b> whenever the sources have data, including the ones
+            today&rsquo;s consumer ignores. Servers and players are <b>profiles</b> that describe
+            what is <i>read back</i>; <b>a profile never changes what is written</b>.
           </Callout>
 
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -458,18 +461,16 @@ function MetadataSettings() {
       >
         <div className="py-3">
           <Callout tone="info" className="mb-3">
-            <Layers className="inline size-3.5" aria-hidden="true" /> Two forgotten fields are
-            two resolvers, a version bump, and a background re-tag that reads the{" "}
-            <b>raw source cache</b> — no network, no re-download, the audio stream is never
-            touched. Each file gets a visible diff before it is written.
+            <Layers className="inline size-3.5" aria-hidden="true" /> Two forgotten fields are two
+            resolvers, a version bump, and a background re-tag that reads the{" "}
+            <b>raw source cache</b> — no network, no re-download, the audio stream is never touched.
+            Each file gets a visible diff before it is written.
           </Callout>
 
           <div className="mb-3 grid gap-2 sm:grid-cols-4">
             <StatTile
               label="Current schema"
-              value={
-                <SchemaHeading current={schema.current} overridden={schema.overridden} />
-              }
+              value={<SchemaHeading current={schema.current} overridden={schema.overridden} />}
               sub={schema.overridden ? "override in force" : "compiled into @mm/domain"}
             />
             <StatTile
@@ -521,7 +522,9 @@ function MetadataSettings() {
               size="sm"
               variant="outline"
               nativeButton={false}
-              render={<Link to="/library/quality" search={{ filter: "schema", profile: "global" }} />}
+              render={
+                <Link to="/library/quality" search={{ filter: "schema", profile: "global" }} />
+              }
             >
               Albums behind schema
             </Button>
@@ -693,8 +696,8 @@ function MetadataSettings() {
 
       <div className="flex items-center justify-end gap-2">
         <span className="text-2xs text-fg-3">
-          <Download className="inline size-3" aria-hidden="true" /> Every value is parsed by its
-          zod schema before it is written.
+          <Download className="inline size-3" aria-hidden="true" /> Every value is parsed by its zod
+          schema before it is written.
         </span>
         <Button data-testid="settings-save" disabled={saving} onClick={save}>
           {saving ? "Saving…" : "Save"}

@@ -56,9 +56,9 @@ export function CoverPicker({
         <DialogHeader>
           <DialogTitle>Choose a cover</DialogTitle>
           <DialogDescription>
-            The Cover Art Archive first, the YouTube thumbnail as the fallback — the order of
-            docs §4. Choosing writes <code className="font-mono">cover.jpg</code> and records the
-            choice in the document; the embedded picture follows on the next re-tag.
+            The Cover Art Archive first, the YouTube thumbnail as the fallback — the order of docs
+            §4. Choosing writes <code className="font-mono">cover.jpg</code> and records the choice
+            in the document; the embedded picture follows on the next re-tag.
           </DialogDescription>
         </DialogHeader>
 
@@ -85,7 +85,6 @@ export function CoverPicker({
                     : "border-line bg-surface-1 hover:border-line-strong",
                 )}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={option.url}
                   alt={option.label}

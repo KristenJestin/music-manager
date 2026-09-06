@@ -1,0 +1,154 @@
+import { expect, test, type Page } from "@playwright/test";
+import { resolveSource, signIn, waitForStatus } from "./helpers.ts";
+
+/**
+ * The library screens, against a library that really has files in it.
+ *
+ * The album that `import-album.spec.ts` places is the subject. Playwright is configured
+ * single-worker and serial here (`playwright.config.ts`), and the specs run in file-name
+ * order, so `import-album` has finished before this one starts — but depending on that
+ * silently would make this spec fail for a confusing reason when somebody runs it alone. So
+ * it checks, and imports the fixture itself if the library is empty.
+ */
+
+/** Make sure at least one album is on disk, importing the fixture if not. */
+async function ensureLibrary(page: Page): Promise<void> {
+  await page.goto("/library");
+  const cards = page.getByTestId("album-card");
+  if ((await cards.count()) > 0) return;
+
+  const importId = await resolveSource(page, "fixture://discovery");
+  await page.getByTestId("wizard-next").click();
+  await page.waitForURL(/release=/, { timeout: 120_000 });
+  await page.getByTestId("wizard-next").click();
+  await page.waitForURL(/step=3/, { timeout: 120_000 });
+  await page.getByTestId("wizard-next").click();
+  await page.waitForURL(/step=4/, { timeout: 120_000 });
+  await page.getByTestId("wizard-start").click();
+  await page.waitForURL(new RegExp(`/imports/${importId}`), { timeout: 120_000 });
+  await waitForStatus(page, "Done");
+  await page.goto("/library");
+  await expect(cards.first()).toBeVisible({ timeout: 60_000 });
+}
+
+test.describe("the library", () => {
+  test("the grid, an album, and the metadata tab's profile switch", async ({ page }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+
+    /* ---- the grid ---------------------------------------------------------- */
+
+    await expect(page.getByRole("heading", { name: "Albums" })).toBeVisible();
+    const cards = page.getByTestId("album-card");
+    await expect(cards.first()).toBeVisible();
+
+    // The filters are links, so a filtered view is a URL. "All" must hold every album.
+    const total = await cards.count();
+    await page.getByTestId("library-filters-all").click();
+    await expect(cards).toHaveCount(total);
+
+    // Searching for something that cannot match empties the grid rather than erroring.
+    await page.getByTestId("library-search").fill("zzz-no-such-album");
+    await page.getByTestId("library-search").press("Enter");
+    await expect(page.getByTestId("library-empty")).toBeVisible();
+    await page.goto("/library");
+
+    /* ---- one album --------------------------------------------------------- */
+
+    const title = await cards.first().getAttribute("data-album-title");
+    await cards.first().click();
+    await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
+    await expect(page.getByTestId("album-title")).toHaveText(title ?? "");
+    await expect(page.getByTestId("album-tracks")).toBeVisible();
+    await expect(page.getByTestId("album-tracks").locator("tbody tr").first()).toBeVisible();
+
+    /* ---- the metadata tab, and the profile switch -------------------------- */
+
+    await page.getByTestId("album-tab-metadata").click();
+    await page.waitForURL(/tab=metadata/, { timeout: 60_000 });
+    const tagMap = page.getByTestId("tag-map");
+    await expect(tagMap).toBeVisible();
+
+    // The superset is the whole map; a profile is a strict subset of it. That is the entire
+    // claim of §5, and it is visible as a row count.
+    const supersetRows = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
+    expect(supersetRows).toBeGreaterThan(50);
+
+    await page.getByTestId("profile-navidrome").click();
+    await page.waitForURL(/profile=navidrome/, { timeout: 60_000 });
+    const navidromeRows = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
+    expect(navidromeRows).toBeGreaterThan(0);
+    expect(navidromeRows).toBeLessThan(supersetRows);
+
+    // Plex ignores MusicBrainz identifiers entirely, so that row must disappear for it —
+    // and reappear for the superset, because a profile changes the view and not the files.
+    await page.getByTestId("profile-plex").click();
+    await page.waitForURL(/profile=plex/, { timeout: 60_000 });
+    await expect(tagMap.getByTestId("tag-row-musicbrainz_recordingid")).toHaveCount(0);
+    await page.getByTestId("profile-global").click();
+    await expect(tagMap.getByTestId("tag-row-musicbrainz_recordingid")).toHaveCount(1);
+
+    /* ---- the format-key columns ------------------------------------------- */
+
+    await page.getByTestId("format-keys-toggle").click();
+    await page.waitForURL(/keys=true/, { timeout: 60_000 });
+    await expect(tagMap.getByRole("columnheader", { name: "Vorbis" })).toBeVisible();
+    await expect(tagMap.getByRole("columnheader", { name: "ID3v2.4" })).toBeVisible();
+    await expect(tagMap.getByRole("columnheader", { name: "MP4" })).toBeVisible();
+  });
+
+  test("DB vs files opens every file and finds no drift on a freshly tagged album", async ({
+    page,
+  }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+    await page.getByTestId("album-card").first().click();
+    await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
+
+    await page.getByTestId("album-tab-tags").click();
+    await page.waitForURL(/tab=tags/, { timeout: 60_000 });
+    // One toolbox round trip per file, so it is given room.
+    await expect(page.getByTestId("db-vs-files")).toBeVisible({ timeout: 120_000 });
+    await expect(
+      page.getByText("The file holds exactly what the database says.").first(),
+    ).toBeVisible({ timeout: 120_000 });
+  });
+
+  test("the MusicBrainz tab shows the identifiers and the decision that chose them", async ({
+    page,
+  }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+    await page.getByTestId("album-card").first().click();
+    await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
+
+    await page.getByTestId("album-tab-mb").click();
+    await page.waitForURL(/tab=mb/, { timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: "Identifiers" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Matching decision" })).toBeVisible();
+
+    await page.getByTestId("album-tab-history").click();
+    await page.waitForURL(/tab=history/, { timeout: 60_000 });
+    await expect(page.getByTestId("album-history")).toBeVisible();
+  });
+
+  test("tracks and artists list what is on disk", async ({ page }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+
+    await page.goto("/library/tracks");
+    await expect(page.getByTestId("tracks-table")).toBeVisible();
+    const rows = page.getByTestId("tracks-table").locator("tbody tr");
+    expect(await rows.count()).toBeGreaterThan(0);
+
+    // A track page is one file: the document, its provenance, and where it came from.
+    await rows.first().click();
+    await page.waitForURL(/\/library\/tracks\//, { timeout: 60_000 });
+    await expect(page.getByTestId("track-title")).toBeVisible();
+    await expect(page.getByTestId("track-document")).toBeVisible();
+
+    await page.goto("/library/artists");
+    await expect(page.getByTestId("artists-table")).toBeVisible();
+    await expect(page.getByTestId("artists-table").locator("tbody tr").first()).toBeVisible();
+  });
+});

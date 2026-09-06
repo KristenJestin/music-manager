@@ -10,6 +10,11 @@
  * `use-job-events` does. The stream is opened only while there is something to follow: a run
  * that has finished will never write another line, and holding a Postgres `LISTEN` open for a
  * page nobody is watching is the sort of thing that is invisible until it is a problem.
+ *
+ * The loader's row and the stream's deltas are kept **apart** and merged during render, the
+ * way `use-job-events` keeps its two lists apart. Copying one into the other would mean an
+ * effect that re-synchronises them every time the route refetches — a cascading render, and a
+ * window in which the page shows the old run's counters against the new run's total.
  */
 import { useEffect, useRef, useState } from "react";
 import type { JobEventPayload } from "@mm/contracts";
@@ -26,6 +31,16 @@ export interface RetagSnapshot {
   readonly scope: string;
 }
 
+/** What the stream knows: which run, and the counters that have moved since. */
+interface Delta {
+  readonly runId: string;
+  readonly status?: string;
+  readonly total?: number;
+  readonly done?: number;
+  readonly changed?: number;
+  readonly failed?: number;
+}
+
 const NAMES = [
   "retag.queued",
   "retag.started",
@@ -40,31 +55,32 @@ const FINISHED = new Set(["retag.done", "retag.failed", "retag.cancelled"]);
 export interface UseRetagProgressOptions {
   /** The run the loader found, if any. `null` means "nothing in flight". */
   readonly initial: RetagSnapshot | null;
-  /** Called once the run reaches an end state, so the route can refetch its rows. */
-  readonly onFinished?: (snapshot: RetagSnapshot) => void;
+  /**
+   * Called once the run reaches an end state, so the route can refetch its rows.
+   *
+   * No argument: the caller has the snapshot already (it is what this hook returns), and a
+   * callback that carried it would have to be fired from render, which is where side effects
+   * do not belong.
+   */
+  readonly onFinished?: () => void;
 }
 
 export function useRetagProgress({
   initial,
   onFinished,
 }: UseRetagProgressOptions): RetagSnapshot | null {
-  const [snapshot, setSnapshot] = useState<RetagSnapshot | null>(initial);
+  const [delta, setDelta] = useState<Delta | null>(null);
 
-  // The loader is the truth on every navigation; the stream only refines it in place.
-  useEffect(() => {
-    setSnapshot(initial);
-  }, [initial]);
-
-  const finished = useRef<((snapshot: RetagSnapshot) => void) | undefined>(undefined);
+  const finished = useRef<(() => void) | undefined>(undefined);
   useEffect(() => {
     finished.current = onFinished;
   }, [onFinished]);
 
-  const active =
-    initial !== null && (initial.status === "pending" || initial.status === "running");
+  const runId = initial?.runId ?? null;
+  const active = initial !== null && (initial.status === "pending" || initial.status === "running");
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || runId === null) return;
     const source = new EventSource("/api/events");
 
     const handle = (message: MessageEvent<string>): void => {
@@ -75,23 +91,20 @@ export function useRetagProgress({
         return;
       }
       const data = payload.data ?? {};
-      const runId = typeof data["runId"] === "string" ? data["runId"] : null;
-      if (runId === null) return;
+      if (data["runId"] !== runId) return;
 
-      setSnapshot((current) => {
-        if (current === null || current.runId !== runId) return current;
-        const next: RetagSnapshot = {
-          ...current,
-          done: typeof data["done"] === "number" ? data["done"] : current.done + 1,
-          total: typeof data["total"] === "number" ? data["total"] : current.total,
-          changed: typeof data["changed"] === "number" ? data["changed"] : current.changed,
-          failed: typeof data["failed"] === "number" ? data["failed"] : current.failed,
-          status: FINISHED.has(payload.type)
-            ? payload.type.slice("retag.".length)
-            : "running",
+      setDelta((current) => {
+        const base = current?.runId === runId ? current : { runId };
+        return {
+          runId,
+          status: FINISHED.has(payload.type) ? payload.type.slice("retag.".length) : "running",
+          // `retag.progress` carries one file, not a running total, so the counter is
+          // advanced here rather than read off the event.
+          done: typeof data["done"] === "number" ? data["done"] : (base.done ?? 0) + 1,
+          ...(typeof data["total"] === "number" ? { total: data["total"] } : {}),
+          ...(typeof data["changed"] === "number" ? { changed: data["changed"] } : {}),
+          ...(typeof data["failed"] === "number" ? { failed: data["failed"] } : {}),
         };
-        if (FINISHED.has(payload.type)) finished.current?.(next);
-        return next;
       });
     };
 
@@ -100,7 +113,30 @@ export function useRetagProgress({
     return () => {
       source.close();
     };
-  }, [active]);
+  }, [active, runId]);
 
-  return snapshot;
+  const merged: RetagSnapshot | null =
+    initial === null
+      ? null
+      : delta === null || delta.runId !== initial.runId
+        ? initial
+        : {
+            ...initial,
+            ...(delta.status === undefined ? {} : { status: delta.status }),
+            ...(delta.total === undefined ? {} : { total: delta.total }),
+            // The loader's count and the stream's count race; the larger of the two is the
+            // honest answer, and it never goes backwards under somebody's eyes.
+            done: Math.max(initial.done, delta.done ?? 0),
+            ...(delta.changed === undefined ? {} : { changed: delta.changed }),
+            ...(delta.failed === undefined ? {} : { failed: delta.failed }),
+          };
+
+  // The end of a run is announced from an effect, not from render: the caller reacts by
+  // refetching its rows, and starting that during render is how a page loops for ever.
+  const status = merged?.status ?? null;
+  useEffect(() => {
+    if (status !== null && FINISHED.has(`retag.${status}`)) finished.current?.();
+  }, [status]);
+
+  return merged;
 }

@@ -29,7 +29,11 @@ import {
   isSchemaOverridden,
 } from "#/server/services/schema-version.ts";
 import { filesBehindCount } from "#/server/services/quality.ts";
-import { testAllSources, testSource, type SourceTestResult } from "#/server/services/source-tests.ts";
+import {
+  testAllSources,
+  testSource,
+  type SourceTestResult,
+} from "#/server/services/source-tests.ts";
 import {
   SETTING_DEFINITIONS,
   SOURCE_NAMES,

@@ -50,10 +50,7 @@ export interface GeneralSettingsPayload {
   readonly resolved: { host: string; container: string };
 }
 
-function fieldsOf(
-  keys: readonly SettingKey[],
-  settings: Record<string, unknown>,
-): SettingField[] {
+function fieldsOf(keys: readonly SettingKey[], settings: Record<string, unknown>): SettingField[] {
   return keys.map((key) => ({
     key,
     value: maskSetting(key, settings[key] as never),

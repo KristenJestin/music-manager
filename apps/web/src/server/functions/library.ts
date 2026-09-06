@@ -267,10 +267,12 @@ export const removeTrack = createServerFn({ method: "POST", strict: STRICT })
 export const redownload = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(
-    z.object({ albumId: z.string().optional(), trackId: z.string().optional() }).refine(
-      (value) => value.albumId !== undefined || value.trackId !== undefined,
-      "Give an album id or a track id.",
-    ),
+    z
+      .object({ albumId: z.string().optional(), trackId: z.string().optional() })
+      .refine(
+        (value) => value.albumId !== undefined || value.trackId !== undefined,
+        "Give an album id or a track id.",
+      ),
   )
   .handler(async ({ data }): Promise<readonly RedownloadPlan[]> => {
     try {
