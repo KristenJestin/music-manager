@@ -112,7 +112,7 @@ function Discover() {
     setBusy(item.id);
     void dismissDiscoverItem({ data: { itemId: item.id } }).then(() => {
       setBusy(null);
-      toast(`Hidden — ${item.title} will not be suggested again.`, "ok");
+      toast(`Hidden: ${item.title} will not be suggested again.`, "ok");
       reload();
     }, fail);
   };
@@ -249,7 +249,7 @@ function Discover() {
       <Callout tone="info" className="mb-5">
         <b>Every item here is a MusicBrainz ID.</b> Import finds the album on YouTube Music
         (ytmusicapi) or the track by a duration-ranked YouTube search, then opens the normal wizard
-        at step 2 with the release preselected — same candidates, same mapping, same confirmation as
+        at step 2 with the release preselected, and the same candidates, mapping and confirmation as
         a pasted URL.
       </Callout>
 
@@ -473,7 +473,7 @@ function SectionHeading({
 function Empty({ synced, what }: { synced: boolean; what: string }) {
   return (
     <div className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-fg-2">
-      {synced ? what : "Nothing has been computed yet — press “Sync now”."}
+      {synced ? what : "Nothing has been computed yet. Press “Sync now”."}
     </div>
   );
 }
@@ -508,7 +508,7 @@ function ItemRow({
       <div className="min-w-0 grow">
         <div className="truncate">
           <span className="font-medium">{item.title}</span>
-          <span className="text-fg-2"> — {item.artist}</span>
+          <span className="text-fg-2"> by {item.artist}</span>
           {wide ? (
             <ToneBadge tone="muted" outline className="ml-1.5">
               {isTrack ? "track" : "album"}

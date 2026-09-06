@@ -84,7 +84,7 @@ function Dashboard() {
         />
         <StatTile
           label="Metadata quality"
-          value={stats.metadataQuality === null ? "—" : pct(stats.metadataQuality)}
+          value={stats.metadataQuality === null ? "n/a" : pct(stats.metadataQuality)}
           sub="computed in P07"
           tone={stats.metadataQuality === null ? "muted" : "ok"}
           icon={<Shield className="size-3.5" aria-hidden="true" />}
@@ -129,7 +129,7 @@ function Dashboard() {
                       <div className="truncate font-medium">
                         {entry.job.title ?? entry.job.url}
                         {entry.job.artist === null ? null : (
-                          <span className="text-fg-2"> — {entry.job.artist}</span>
+                          <span className="text-fg-2"> by {entry.job.artist}</span>
                         )}
                         <ToneBadge outline className="ml-2">
                           {entry.job.kind}

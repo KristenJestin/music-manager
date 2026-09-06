@@ -33,7 +33,7 @@ export function ReviewScreen({ payload }: { readonly payload: InboxListPayload }
     }).then(
       (result) => {
         setBusy(false);
-        toast(result.resumed ? "Decision saved — the job resumes." : "Decision saved.", "ok");
+        toast(result.resumed ? "Decision saved; the job resumes." : "Decision saved.", "ok");
         void router.invalidate();
         void router.navigate(
           result.nextId === null
@@ -52,7 +52,7 @@ export function ReviewScreen({ payload }: { readonly payload: InboxListPayload }
     <>
       <PageHeader
         title="Review queue"
-        description="Decisions the matcher would not take on its own. Each item shows its preselected answer — Enter accepts it."
+        description="Decisions the matcher would not take on its own. Each item shows its preselected answer; Enter accepts it."
       />
 
       {items.length === 0 ? (

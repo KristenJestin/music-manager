@@ -207,7 +207,7 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
           >
             <Check className="size-4" aria-hidden="true" />
             {busy ? "Saving…" : "Confirm & resume"}
-            <Kbd className="ml-1">↵</Kbd>
+            <Kbd className="ml-1">Enter</Kbd>
           </Button>
         </div>
       </div>
