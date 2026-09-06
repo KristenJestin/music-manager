@@ -119,7 +119,13 @@ export class ToolboxClient {
    */
   private unwrap<T>(result: { data?: T; error?: unknown; response: Response }, what: string): T {
     if (result.error !== undefined) {
-      const error = MMError.fromBody(result.error, `${what} failed.`);
+      // The HTTP status goes into the *fallback message*, not only into the field: a step that
+      // stores `{code:"UNKNOWN", message:"POST /extract failed."}` in `job_steps.error` told a
+      // reader nothing, and that is exactly how a 422 from a stale image stayed invisible.
+      const error = MMError.fromBody(
+        result.error,
+        `${what} failed with HTTP ${String(result.response.status)}.`,
+      );
       throw new MMError(error.code, error.message, {
         hint: error.hint,
         action: error.action,
@@ -346,10 +352,16 @@ export class ToolboxClient {
     );
 
     if (!response.ok) {
-      throw MMError.fromBody(
+      const decoded = MMError.fromBody(
         await response.json().catch(() => null),
-        `POST /download failed with HTTP ${response.status}.`,
+        `POST /download failed with HTTP ${String(response.status)}.`,
       );
+      throw new MMError(decoded.code, decoded.message, {
+        hint: decoded.hint,
+        action: decoded.action,
+        details: decoded.details,
+        status: decoded.status ?? response.status,
+      });
     }
     if (response.body === null) {
       throw new MMError("UNKNOWN", "POST /download returned an empty stream.");

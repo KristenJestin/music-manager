@@ -16,6 +16,7 @@
  *  - `skipped` — nothing to do (`replaygain` disabled, every track already present).
  *                Treated exactly like `done` for the purpose of moving on.
  */
+import type { MMErrorBody } from "@mm/contracts";
 import type { ImportStatus, StepName, StepStatus } from "#/server/db/schema/index.ts";
 
 /** The eight steps, in execution order. Index in this array *is* the progression. */
@@ -43,7 +44,12 @@ export interface StepResult {
    * `awaiting_review`; anything else is a deliberate pause.
    */
   readonly blockedAs?: Extract<ImportStatus, "awaiting_confirm" | "awaiting_review" | "paused">;
-  readonly error?: { code: string; message: string; hint?: string; action?: string };
+  /**
+   * The failure, in the one shape the whole system uses — including `status` (the HTTP code a
+   * bridge call came back with) and `details`. It used to be a narrower inline type, which
+   * silently dropped both on the way into `job_steps.error`.
+   */
+  readonly error?: MMErrorBody;
 }
 
 /** Position of a step in the pipeline, or -1 when the name is not one of ours. */

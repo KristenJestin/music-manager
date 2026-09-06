@@ -70,9 +70,76 @@ export const mmErrorBodySchema = z.object({
   hint: z.string().optional(),
   action: z.string().optional(),
   details: z.record(z.string(), z.unknown()).optional(),
+  /**
+   * The HTTP status the failure arrived with, when it arrived over HTTP.
+   *
+   * It used to be set by `ToolboxClient.unwrap` and then dropped by `toBody()`, so it reached
+   * neither `job_steps.error` nor the MCP server: every toolbox refusal read as an untyped
+   * `UNKNOWN` and a reader had no way to tell a 409 from a 422 from a 500.
+   */
+  status: z.number().int().optional(),
 });
 
 export type MMErrorBody = z.infer<typeof mmErrorBodySchema>;
+
+/**
+ * FastAPI's own failure body — `{"detail": …}` — which is **not** our shape.
+ *
+ * The toolbox raises `{code, message, hint, action}` for everything it means to say, but
+ * pydantic answers a malformed request *before* any of our code runs, and it answers in its
+ * own dialect. Discarding that body (which is what `fromBody` used to do) turned the single
+ * most diagnosable failure there is — "you sent a field I do not know" — into `UNKNOWN`.
+ */
+const fastApiDetailSchema = z.object({
+  detail: z.union([
+    z.string(),
+    z.array(
+      z.object({
+        loc: z.array(z.union([z.string(), z.number()])).optional(),
+        msg: z.string().optional(),
+        type: z.string().optional(),
+      }),
+    ),
+  ]),
+});
+
+type FastApiDetail = z.infer<typeof fastApiDetailSchema>["detail"];
+
+/** `[{loc:["body","cookies_content"],msg:"Extra inputs are not permitted"}]` → one sentence. */
+function describeFastApiDetail(detail: FastApiDetail): string {
+  if (typeof detail === "string") return detail;
+  const lines = detail.map((item) => {
+    const where = (item.loc ?? [])
+      .map(String)
+      .filter((part) => part !== "body")
+      .join(".");
+    const what = item.msg ?? item.type ?? "invalid";
+    return where === "" ? what : `${where}: ${what}`;
+  });
+  return lines.join("; ");
+}
+
+/** True when pydantic refused a field the caller sent — the "stale image" signature. */
+function isExtraForbidden(detail: FastApiDetail): boolean {
+  return typeof detail !== "string" && detail.some((item) => item.type === "extra_forbidden");
+}
+
+/** Enough of an unrecognised body to act on, never enough to flood a log line. */
+function summarise(body: unknown, limit = 400): string | null {
+  if (body === null || body === undefined) return null;
+  const text = typeof body === "string" ? body : safeStringify(body);
+  const trimmed = text.trim();
+  if (trimmed === "" || trimmed === "{}" || trimmed === "null") return null;
+  return trimmed.length <= limit ? trimmed : `${trimmed.slice(0, limit)}…`;
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
+}
 
 /**
  * A failure with a code the UI can decode and an action it can offer.
@@ -118,15 +185,51 @@ export class MMError extends Error {
       ...(this.hint === undefined ? {} : { hint: this.hint }),
       ...(this.action === undefined ? {} : { action: this.action }),
       ...(this.details === undefined ? {} : { details: this.details }),
+      ...(this.status === undefined ? {} : { status: this.status }),
     };
   }
 
-  /** Rebuild an `MMError` from a toolbox body, or from a row read back out of the database. */
+  /**
+   * Rebuild an `MMError` from a toolbox body, or from a row read back out of the database.
+   *
+   * **A body that is not ours is kept, not thrown away.** Three cases, in order:
+   *
+   *  1. our `{code, message, …}` — decoded as-is, `status` included;
+   *  2. FastAPI's `{"detail": …}` — pydantic refused the request before any of our code ran,
+   *     and what it says is the whole diagnosis. It becomes the message, and the raw body
+   *     survives in `details.body`;
+   *  3. anything else — summarised into the message rather than dropped, so a caller reading
+   *     `job_steps.error` sees what the far end actually said.
+   */
   static fromBody(body: unknown, fallback = "Unknown error."): MMError {
     const parsed = mmErrorBodySchema.safeParse(body);
-    if (!parsed.success) return new MMError("UNKNOWN", fallback);
-    const { code, message, hint, action, details } = parsed.data;
-    return new MMError(code, message, { hint, action, details });
+    if (parsed.success) {
+      const { code, message, hint, action, details, status } = parsed.data;
+      return new MMError(code, message, { hint, action, details, status });
+    }
+
+    const fastapi = fastApiDetailSchema.safeParse(body);
+    if (fastapi.success) {
+      const described = describeFastApiDetail(fastapi.data.detail);
+      const stale = isExtraForbidden(fastapi.data.detail);
+      return new MMError("INVALID_INPUT", `${fallback} ${described}`.trim(), {
+        details: { body: summarise(body) ?? described },
+        ...(stale
+          ? {
+              hint:
+                "The service rejected a field this app sends, which usually means its image is " +
+                "older than the code calling it.",
+              action: "Rebuild the toolbox image (`bun run stack:up --build`)",
+            }
+          : { action: "Check the request" }),
+      });
+    }
+
+    const summary = summarise(body);
+    if (summary === null) return new MMError("UNKNOWN", fallback);
+    return new MMError("UNKNOWN", `${fallback} The service answered: ${summary}`, {
+      details: { body: summary },
+    });
   }
 
   /** Wrap anything thrown into the one shape the rest of the system knows. */

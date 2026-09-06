@@ -25,13 +25,22 @@ import {
   trackStateEnum,
 } from "./enums.ts";
 
-/** `{code, message, hint, action}` — the same shape on both sides of the TS↔Python bridge. */
+/**
+ * `{code, message, hint, action}` — the same shape on both sides of the TS↔Python bridge.
+ *
+ * Field for field `MMErrorBody` of `@mm/contracts`, restated here rather than imported so that
+ * the schema module stays free of anything but Drizzle. `status` joined it when `toBody()`
+ * started serialising the HTTP code: without the column type knowing about it, a 422 from the
+ * toolbox reached this row at runtime and was invisible to every reader at compile time.
+ */
 export interface StoredError {
   readonly code: string;
   readonly message: string;
   readonly hint?: string;
   readonly action?: string;
   readonly details?: Record<string, unknown>;
+  /** The HTTP status a bridge failure arrived with, when it arrived over HTTP. */
+  readonly status?: number;
 }
 
 /** Per-import switches. Defaults come from `settings`; these are the overrides for this job. */
@@ -44,6 +53,16 @@ export interface ImportOptions {
   readonly force?: boolean;
   /** `--yes`: `confirm` does not block. */
   readonly autoConfirm?: boolean;
+  /**
+   * **Who** did the confirming, for the `decisions` row `confirm` writes.
+   *
+   * `autoConfirm` says only *that* the gate is open, and `confirm` used to infer `"cli --yes"`
+   * from it — so a release chosen through the Console wizard, through `/api/v1` or through the
+   * MCP server was all logged to the audit trail as a CLI decision. Every caller that opens the
+   * gate now names itself; absent means the CLI, which is the one caller that has no other way
+   * of opening it.
+   */
+  readonly confirmedBy?: string;
   /** MBID of the release the CLI or the fixtures picked. */
   readonly releaseMbid?: string;
 }
