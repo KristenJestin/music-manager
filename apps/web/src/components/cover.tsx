@@ -10,7 +10,7 @@
  * The gradient is one of the eleven of `styles.css`, chosen from the seed so it is stable, and
  * the letter in the middle is what makes two adjacent rows tellable apart at 36 px.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 import { coverIndex } from "#/lib/format.ts";
@@ -92,6 +92,30 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
   const title = label ?? "";
   const url = src === undefined || src === null || src === "" || src === broken ? null : src;
 
+  /**
+   * React never replays a `load` or an `error` that fired before hydration (owner review
+   * B10): a server-rendered page whose image is already in the browser cache finishes it
+   * during the HTML parse, so `onLoad` is simply never called and the tile used to stay
+   * `opacity-0` for ever — the real cover loaded, and invisible. An image element already
+   * carries the answer, so the mount reads it out of the DOM instead of waiting for an event
+   * that has been and gone: a non-zero `naturalWidth` on a `complete` image means those
+   * pixels are decoded and on screen.
+   *
+   * Only the *positive* half is read here. `complete` with a zero `naturalWidth` is
+   * ambiguous — it is a 404 in a browser and a plain "this DOM never loads images" in the
+   * test environments — and a missed failure now costs nothing, because a failed image with
+   * an empty `alt` represents nothing and the gradient is already underneath it.
+   *
+   * The ref is keyed on the URL, so pointing the tile at another image re-runs the check.
+   */
+  const settle = useCallback(
+    (node: HTMLImageElement | null) => {
+      if (node === null || url === null) return;
+      if (node.complete && node.naturalWidth > 0) setLoaded(url);
+    },
+    [url],
+  );
+
   return (
     <div
       data-slot="cover"
@@ -105,31 +129,33 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
       </span>
       {url === null ? null : (
         /*
-         * Transparent until it has actually loaded, and with no `alt`.
+         * No `alt`, and no opacity that depends on a React state.
          *
          * A cover is decoration over a tile that already reads: the wrapper carries the title,
          * and an `alt` here would put the album's name *inside* the 36 px square as soon as the
          * image 404s — which is precisely what a YouTube thumbnail URL from a fixture, or a
-         * release the Cover Art Archive has never had a front for, does. Hidden-until-loaded
-         * means the failure mode is the gradient we drew before and nothing else.
+         * release the Cover Art Archive has never had a front for, does. With an empty `alt`
+         * the HTML specification already says a failed image represents *nothing*, and an
+         * image still in flight paints nothing either, so the gradient underneath is the
+         * placeholder on its own. Hiding the element until a state said otherwise bought no
+         * pixel, and cost the whole tile whenever that state never arrived.
          */
         <img
+          ref={settle}
           src={url}
           alt=""
           aria-hidden="true"
           loading="lazy"
           decoding="async"
           data-testid="cover-image"
+          data-loaded={loaded === url ? true : undefined}
           onLoad={() => {
             setLoaded(url);
           }}
           onError={() => {
             setBroken(url);
           }}
-          className={cn(
-            "absolute inset-0 size-full object-cover",
-            loaded === url ? "opacity-100" : "opacity-0",
-          )}
+          className="absolute inset-0 size-full object-cover"
         />
       )}
     </div>

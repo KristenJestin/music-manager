@@ -481,6 +481,73 @@ describe("the small ones", () => {
     expect(screen.getByText("D")).not.toBeNull();
   });
 
+  /**
+   * The hydration race of owner review B10.
+   *
+   * A server-rendered page whose cover is already in the browser cache finishes loading it
+   * before React attaches its listeners, so `onLoad` never fires. The tile used to be
+   * `opacity-0` until that event, which meant "for ever" — the real cover, loaded and
+   * invisible. `settled()` below is that browser: an `<img>` that is already `complete` when
+   * React mounts it, with no event to come.
+   */
+  const settled = (naturalWidth: number) => {
+    const proto = window.HTMLImageElement.prototype;
+    const previous = {
+      complete: Object.getOwnPropertyDescriptor(proto, "complete"),
+      naturalWidth: Object.getOwnPropertyDescriptor(proto, "naturalWidth"),
+    };
+    Object.defineProperty(proto, "complete", { configurable: true, get: () => true });
+    Object.defineProperty(proto, "naturalWidth", { configurable: true, get: () => naturalWidth });
+    return () => {
+      if (previous.complete) Object.defineProperty(proto, "complete", previous.complete);
+      else Reflect.deleteProperty(proto, "complete");
+      if (previous.naturalWidth)
+        Object.defineProperty(proto, "naturalWidth", previous.naturalWidth);
+      else Reflect.deleteProperty(proto, "naturalWidth");
+    };
+  };
+
+  it("Cover never hides the image behind a state, so a missed onLoad cannot blank it", () => {
+    render(<Cover seed="imp_1" label="Discovery" src="https://example.invalid/front-250" />);
+    // No load event has fired and none is coming: the image must still be paintable.
+    expect(screen.getByTestId("cover-image").className).not.toContain("opacity-0");
+  });
+
+  it("Cover reads an image that finished loading before hydration out of the DOM", () => {
+    const restore = settled(250);
+    try {
+      const { container } = render(
+        <Cover seed="imp_1" label="Discovery" src="https://example.invalid/front-250" />,
+      );
+      const image = screen.getByTestId("cover-image");
+      expect(image.className).not.toContain("opacity-0");
+      // No `fireEvent.load` anywhere: the tile knows on its own.
+      expect(image.getAttribute("data-loaded")).toBe("true");
+      expect(container.querySelector("[data-slot=cover]")?.getAttribute("data-has-image")).toBe(
+        "true",
+      );
+    } finally {
+      restore();
+    }
+  });
+
+  it("Cover claims nothing for an image the DOM cannot vouch for", () => {
+    // `complete` with no pixels is a 404 in a browser and "this DOM never loads images" in a
+    // test one, so the tile stays honest and simply keeps drawing the gradient under it.
+    const restore = settled(0);
+    try {
+      const { container } = render(
+        <Cover seed="imp_1" label="Discovery" src="https://example.invalid/front-250" />,
+      );
+      expect(
+        container.querySelector("[data-slot=cover]")?.getAttribute("data-has-image"),
+      ).toBeNull();
+      expect(screen.getByText("D")).not.toBeNull();
+    } finally {
+      restore();
+    }
+  });
+
   it("coverArtFront builds a release front URL, and nothing without an MBID", () => {
     expect(coverArtFront("a1b2")).toBe("https://coverartarchive.org/release/a1b2/front-250");
     expect(coverArtFront("a1b2", 500)).toBe("https://coverartarchive.org/release/a1b2/front-500");
