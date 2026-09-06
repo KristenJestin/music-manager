@@ -29,7 +29,7 @@
  * that into an import. The item is keyed on the album, so a scan that later completes the
  * album closes it.
  */
-import { and, desc, eq, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -553,10 +553,27 @@ async function reconcile(
       });
   }
 
-  // Anything this run did not propose is gone — unless you already acted on it.
+  /*
+   * Anything this run did not propose is gone — with two deliberate exceptions.
+   *
+   * `status <> 'imported'` keeps what you have already acted on, so the page can still say
+   * "you queued this" instead of quietly forgetting.
+   *
+   * `sync_id is not null` keeps what a *person* asked for: "Add discography" on a similar
+   * artist inserts rows no sync produced, and they are meant to survive until they are
+   * imported or dismissed. Spelling it out matters — `ne(sync_id, …)` is already false for a
+   * NULL in SQL, so the rows would survive either way, but by accident rather than on purpose,
+   * and the next reader would have to rediscover three-valued logic to know which it was.
+   */
   await db
     .delete(discoverItems)
-    .where(and(ne(discoverItems.syncId, syncId), ne(discoverItems.status, "imported")));
+    .where(
+      and(
+        isNotNull(discoverItems.syncId),
+        ne(discoverItems.syncId, syncId),
+        ne(discoverItems.status, "imported"),
+      ),
+    );
 }
 
 /**
