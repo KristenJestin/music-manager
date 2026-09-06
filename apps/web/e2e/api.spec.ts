@@ -22,15 +22,36 @@ async function mintKey(page: Page, name: string, scopes: readonly string[]): Pro
 
   await typeInto(page.getByTestId("key-name"), name);
 
-  // The chips are a toggle group and two are on by default; clear them, then tick ours.
+  /*
+   * The chips are a toggle group with two on by default, so each one is set to what this call
+   * wants rather than cleared and re-ticked.
+   *
+   * Resolved from `getByRole("button")` and **not** from `getByRole("button", {pressed:true})`:
+   * `.all()` hands back `nth(0…n-1)` locators against the filter it was given, and that filter
+   * is re-evaluated at click time — so clearing the first pressed chip makes the second one
+   * vanish from the set, and `nth(1)` waits thirty seconds for an element that no longer
+   * matches. Filtering on a property the click itself changes is the trap; the set of buttons
+   * is stable, their `aria-pressed` is not.
+   */
   const scopeGroup = page.getByTestId("key-scopes");
-  for (const chip of await scopeGroup.getByRole("button", { pressed: true }).all()) {
-    await chip.click();
-  }
-  for (const scope of scopes) {
-    await scopeGroup.getByRole("button", { name: scope, exact: true }).click();
+  for (const chip of await scopeGroup.getByRole("button").all()) {
+    const label = ((await chip.textContent()) ?? "").trim();
+    const on = (await chip.getAttribute("aria-pressed")) === "true";
+    if (on !== scopes.includes(label)) await chip.click();
   }
 
+  /*
+   * Wait on the three things Create is disabled for, rather than on Create itself.
+   *
+   * The button is `disabled` until React has a name and at least one scope in *state*, and the
+   * server-rendered HTML is on screen well before React attaches — so a click can land on a
+   * button that is still disabled and Playwright then waits thirty seconds and reports only
+   * "element is not enabled", which says nothing about which of the three inputs was missing.
+   * Asserting them separately turns that into a failure that names its own cause.
+   */
+  await expect(page.getByTestId("key-name")).toHaveValue(name);
+  await expect(scopeGroup.getByRole("button", { pressed: true })).toHaveCount(scopes.length);
+  await expect(page.getByTestId("create-key")).toBeEnabled({ timeout: 30_000 });
   await page.getByTestId("create-key").click();
 
   // Shown once, and only once. If this panel is missing the key is unrecoverable.
@@ -135,20 +156,39 @@ test.describe("the REST API", () => {
     expect(await docs.text()).toContain("/api/openapi.json");
   });
 
-  test("the event stream is Server-Sent Events, and needs a scope", async ({ page, request }) => {
+  test("the event stream is Server-Sent Events, and needs a scope", async ({
+    page,
+    request,
+    baseURL,
+  }) => {
     await signIn(page);
     const key = await mintKey(page, "e2e-events", ["imports:read"]);
 
-    // `?since=0` replays from the start of the journal, which is what makes this assertable
-    // without racing a live import.
-    const stream = await request.get("/api/v1/events?since=0", {
+    /*
+     * Plain `fetch`, not the `request` fixture.
+     *
+     * `request.get()` resolves when the **body** is complete, and an event stream's body is
+     * never complete — the call simply timed out after thirty seconds against a perfectly
+     * healthy 200. Reading the headers and then the first chunk off the stream is both what a
+     * real SSE client does and a stronger assertion: it proves the endpoint *emits* something
+     * rather than merely agreeing to a content type.
+     */
+    const controller = new AbortController();
+    const stream = await fetch(`${baseURL ?? ""}/api/v1/events?since=0`, {
       headers: { "x-api-key": key, accept: "text/event-stream" },
-      timeout: 30_000,
+      signal: controller.signal,
     });
-    expect(stream.status()).toBe(200);
-    expect(stream.headers()["content-type"]).toContain("text/event-stream");
+    expect(stream.status).toBe(200);
+    expect(stream.headers.get("content-type")).toContain("text/event-stream");
     // Nitro and nginx both buffer by default, which would defeat the whole endpoint.
-    expect(stream.headers()["x-accel-buffering"]).toBe("no");
+    expect(stream.headers.get("x-accel-buffering")).toBe("no");
+
+    // The stream opens with a comment line so a proxy cannot sit on the headers.
+    const reader = stream.body?.getReader();
+    expect(reader, "an event stream must have a body").toBeTruthy();
+    const first = await reader?.read();
+    expect(new TextDecoder().decode(first?.value)).toContain(":");
+    controller.abort();
 
     // The paged form of the same journal, for a client that would rather not hold a socket.
     const history = await request.get("/api/v1/events/history?limit=5", {

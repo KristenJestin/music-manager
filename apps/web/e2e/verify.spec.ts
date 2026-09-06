@@ -72,9 +72,25 @@ test.describe("settings › integrations", () => {
     ).toBeVisible({ timeout: 60_000 });
   });
 
-  test("the notifications block says where its delivery lives", async ({ page }) => {
-    await expect(page.getByText("delivery coming in P08")).toBeVisible();
-    await expect(page.getByTestId("chips-notify-channel")).toBeVisible();
+  /*
+   * P07b asserted the badge that said "delivery coming in P08". P08 is the delivery, so the
+   * badge is gone and the assertion had to become one about behaviour rather than about a
+   * promise: the channels are the three real transports, and the Test button — which sends
+   * *now*, whatever the event list says — is on the page.
+   */
+  test("the notifications block offers the three real channels, and can send a test", async ({
+    page,
+  }) => {
+    const channels = page.getByTestId("chips-notify-channel");
+    await expect(channels).toBeVisible();
+    for (const label of ["None", "ntfy", "Discord", "Email (SMTP)"]) {
+      await expect(channels.getByRole("button", { name: label, exact: true })).toBeVisible();
+    }
+    // A signed, retried callback is a *webhook* and lives on Settings › API & agents; it is
+    // deliberately no longer one of these channels.
+    await expect(channels.getByRole("button", { name: "Webhook", exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("chips-notify-events")).toBeVisible();
+    await expect(page.getByTestId("notifications-test")).toBeVisible();
   });
 
   test("a saved value is read back by the settings store", async ({ page }) => {
