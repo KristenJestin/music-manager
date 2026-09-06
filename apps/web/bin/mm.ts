@@ -58,7 +58,7 @@ import {
   cancelImport,
   listImports,
   pauseImport,
-  retryStep,
+  rewindTo,
   stepsOf,
 } from "#/server/services/jobs/index.ts";
 import {
@@ -296,12 +296,15 @@ async function cmdRetry(args: Args): Promise<number> {
   if (!(STEP_ORDER as readonly string[]).includes(step)) {
     throw new MMError("INVALID_INPUT", `Unknown step "${step}". One of: ${STEP_ORDER.join(", ")}.`);
   }
-  const outcome = await retryStep(id, step as StepName, { db: db(), only: true });
-  line(`retried ${step}: ${outcome.ran[0]?.result.status ?? "?"}`);
+  // Rewind here, run nowhere. The CLI used to execute the step in its own process, which on
+  // `--step download` opened a second download beside the worker's and earned the job a
+  // `409 LOCKED` from the toolbox (owner review C3). The worker owns execution.
+  await rewindTo(id, step as StepName, db());
+  line(`rewound to ${step}; queued for the worker`);
 
   const boss = createBoss({ producer: true });
   await boss.start();
-  if (outcome.step === "download") await enqueueDownload(boss, { importId: id });
+  if (step === "download") await enqueueDownload(boss, { importId: id });
   else await enqueueImportStep(boss, { importId: id, reason: "retry" });
   await stopBoss(boss);
 

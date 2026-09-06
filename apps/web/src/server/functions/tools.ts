@@ -290,7 +290,7 @@ export const redownloadMissing = createServerFn({ method: "POST", strict: STRICT
       const { libraryTracks, importTracks } = await import("#/server/db/schema/index.ts");
       const { eq } = await import("drizzle-orm");
       const { enqueue } = await import("#/server/services/queue.ts");
-      const { retryStep } = await import("#/server/services/jobs/index.ts");
+      const { rewindTo } = await import("#/server/services/jobs/index.ts");
 
       const [track] = await database
         .select()
@@ -313,7 +313,7 @@ export const redownloadMissing = createServerFn({ method: "POST", strict: STRICT
         })
         .where(eq(importTracks.id, track.importTrackId));
 
-      await retryStep(track.importId, "download");
+      await rewindTo(track.importId, "download", database);
       await enqueue(track.importId, "re-download of a missing file", "download");
       return { importId: track.importId, queued: true };
     } catch (error) {

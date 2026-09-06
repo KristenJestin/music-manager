@@ -22,7 +22,7 @@ import {
   cancelImport,
   listImports,
   pauseImport,
-  retryStep,
+  rewindTo,
   runStep,
 } from "#/server/services/jobs/index.ts";
 import { jobDetail, setImportOptions } from "#/server/services/console.queries.ts";
@@ -407,16 +407,12 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         });
       }
       if ((await getImport(id, db())) === null) throw notFound(id);
-      const outcome = await retryStep(id, step as StepName, { db: db(), only: true });
-      await enqueue(id, "api retry", outcome.step === "download" ? "download" : undefined);
+      // Rewind, then queue. Running the step here would put a second downloader in the web
+      // process, next to the worker's — see `rewindTo` and owner review C3.
+      await rewindTo(id, step as StepName, db());
+      await enqueue(id, "api retry", step as StepName);
       const fresh = await getImport(id, db());
-      return c.json(
-        {
-          import: toImport(fresh as Import),
-          status: outcome.ran[0]?.result.status ?? "unknown",
-        },
-        200,
-      );
+      return c.json({ import: toImport(fresh as Import), status: "queued" }, 200);
     },
   );
 

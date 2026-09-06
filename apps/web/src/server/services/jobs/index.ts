@@ -14,12 +14,16 @@
  *  2. **A step is idempotent.** Running it twice must be indistinguishable from running it
  *     once. `retryStep` is therefore nothing more than "start again from this step".
  */
+import { rmSync } from "node:fs";
 import { and, asc, desc, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
+import { hostPath } from "#/server/paths.ts";
 import {
+  importTracks,
   imports,
   jobSteps,
+  libraryTracks,
   type Import,
   type ImportStatus,
   type StepName,
@@ -37,7 +41,13 @@ import {
   STEP_ORDER,
   type StepResult,
 } from "./machine.ts";
-import { makeContext, requireImport, type ContextOptions, type StepContext } from "./context.ts";
+import {
+  makeContext,
+  requireImport,
+  resolvePaths,
+  type ContextOptions,
+  type StepContext,
+} from "./context.ts";
 import { resolveStep } from "./steps/resolve.ts";
 import { matchStep } from "./steps/match.ts";
 import { confirmStep } from "./steps/confirm.ts";
@@ -173,14 +183,24 @@ export async function runStep(
   const moved = transition(step, result);
   await endStep(db, importId, step, result, moved.stepStatus);
 
+  // A failure the machine is going to repair by itself (`restartAt`) is a warning, not an
+  // error: it does not stop the job, so a red line in the journal would be a lie.
+  const repaired = result.status === "failed" && moved.continues;
+
   await emit(
     {
       importId,
       step,
-      level: result.status === "failed" ? "error" : result.status === "blocked" ? "warn" : "info",
-      type: `step.${result.status}`,
+      level: repaired
+        ? "warn"
+        : result.status === "failed"
+          ? "error"
+          : result.status === "blocked"
+            ? "warn"
+            : "info",
+      type: repaired ? "step.restarting" : `step.${result.status}`,
       message: result.message ?? `${step} ${result.status}`,
-      data: { attempt, ...(result.data ?? {}) },
+      data: { attempt, restartAt: moved.step, ...(result.data ?? {}) },
     },
     db,
   );
@@ -190,7 +210,9 @@ export async function runStep(
     .set({
       step: moved.step,
       status: moved.status,
-      error: result.error ?? null,
+      // The row's `error` is "why this job is stopped". A job the machine is rewinding is not
+      // stopped, so it must not carry one — the Console paints it as a red banner.
+      error: moved.continues ? null : (result.error ?? null),
       updatedAt: new Date(),
       ...(isTerminal(moved.status) ? { finishedAt: new Date() } : {}),
     })
@@ -365,13 +387,23 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 /* controls                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Rewind to `step` and run from there. Every later step is forgotten, not deleted. */
-export async function retryStep(
+/**
+ * Rewind the rows to `step`. **Nothing is executed.**
+ *
+ * This is the half of "retry" that is safe to call from an HTTP request, and splitting it out
+ * is the fix for the owner's C3. `retryStep` used to be the only entry point, and it ends with
+ * `runImport` — so the Console's Retry button ran the step *inside the web process*, in
+ * parallel with the worker, whatever the queue thought. On a job sitting at `download` that
+ * meant a second `POST /download` while the first was still streaming, the toolbox answering
+ * `409 LOCKED`, and the job going `failed` for a reason that was entirely our own doing.
+ * Callers that are not the worker now rewind here and put the job on a queue; the worker, and
+ * only the worker, runs steps.
+ */
+export async function rewindTo(
   importId: string,
   step: StepName,
-  options: RunOptions = {},
-): Promise<RunOutcome> {
-  const db = options.db ?? defaultDb();
+  db: Database = defaultDb(),
+): Promise<void> {
   await requireImport(importId, db);
 
   const later = stepsFrom(step);
@@ -399,7 +431,82 @@ export async function retryStep(
     .where(eq(imports.id, importId));
 
   await emit({ importId, step, type: "import.status", message: `Retrying from ${step}.` }, db);
-  return await runImport(importId, options);
+}
+
+/**
+ * Rewind to `step` and run from there, in this process.
+ *
+ * Only the worker and the tests may call this: it blocks for as long as the pipeline takes and
+ * it ignores every queue. Everything else wants `rewindTo` followed by `enqueue`.
+ */
+export async function retryStep(
+  importId: string,
+  step: StepName,
+  options: RunOptions = {},
+): Promise<RunOutcome> {
+  const db = options.db ?? defaultDb();
+  await rewindTo(importId, step, db);
+  return await runImport(importId, { ...options, db });
+}
+
+/**
+ * Put one video back to "never downloaded", so the next `download` fetches it again.
+ *
+ * The three things that make `download` skip a track are cleared together, because clearing
+ * only some of them is a retry that silently does nothing: the `library_tracks` row (which
+ * makes `alreadyInLibrary` true), the work file on disk (which makes `fileReady` true) and the
+ * row's own `state`. The mapping — recording, title, position, confidence — is deliberately
+ * left alone: this is a retry, not a re-match.
+ */
+export async function resetTrack(
+  importId: string,
+  trackId: string,
+  db: Database = defaultDb(),
+): Promise<void> {
+  const [track] = await db
+    .select()
+    .from(importTracks)
+    .where(and(eq(importTracks.id, trackId), eq(importTracks.importId, importId)))
+    .limit(1);
+  if (track === undefined) {
+    throw new MMError("NOT_FOUND", `No track ${trackId} on import ${importId}.`);
+  }
+
+  const paths = resolvePaths(await loadSettings(db));
+  for (const relative of [track.downloadPath, track.libraryPath]) {
+    if (relative === null) continue;
+    await db.delete(libraryTracks).where(eq(libraryTracks.path, relative));
+    // `force: true`: a file another process removed first is the outcome we wanted anyway.
+    rmSync(hostPath(paths, relative), { force: true });
+  }
+
+  await db
+    .update(importTracks)
+    .set({
+      state: "pending",
+      downloadPath: null,
+      downloadedBytes: null,
+      libraryPath: null,
+      fingerprint: null,
+      fingerprintOk: null,
+      attempts: 0,
+      error: null,
+      note: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(importTracks.id, trackId));
+
+  await emit(
+    {
+      importId,
+      trackId,
+      step: "download",
+      type: "track.progress",
+      message: `${track.sourceTitle}: queued for another download`,
+      data: { stage: "retry" },
+    },
+    db,
+  );
 }
 
 /** Where a resume would restart, from what `job_steps` says. */

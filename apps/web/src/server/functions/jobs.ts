@@ -21,8 +21,9 @@ import {
   bumpImport,
   cancelImport,
   pauseImport,
+  resetTrack,
   resumeStepOf,
-  retryStep,
+  rewindTo,
 } from "#/server/services/jobs/index.ts";
 import {
   jobCounts,
@@ -119,8 +120,9 @@ export const retryJob = createServerFn({ method: "POST", strict: STRICT })
     try {
       const from = data.step ?? (await resumeStepOf(data.id, db()));
       // Rewind the step rows without running anything here: the worker owns execution, and a
-      // download started inside an HTTP request would die with the request.
-      await retryStep(data.id, from, { db: db(), only: true });
+      // download started inside an HTTP request would die with the request — or, worse, race
+      // the worker's own download for the toolbox's single slot (owner review C3).
+      await rewindTo(data.id, from, db());
       await enqueue(data.id, "console retry", from);
       return { step: from };
     } catch (error) {
@@ -135,6 +137,11 @@ export const retryJob = createServerFn({ method: "POST", strict: STRICT })
  * the most walking: a failure is discovered from a notification or from the Inbox, and the
  * answer is almost always "run it again". Returns `null` when nothing has failed, so the
  * palette can say so instead of pretending it did something.
+ *
+ * `rewindTo` and not `retryStep`, like every other caller: the palette entry landed on `main`
+ * while this branch was removing the last of them, and `retryStep` ends in `runImport` — so a
+ * ⌘K away from the job page would have started a download inside an HTTP request, beside the
+ * worker, for the toolbox's single slot. That is the owner's C3, one keystroke further away.
  */
 export const retryLastFailed = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
@@ -144,9 +151,32 @@ export const retryLastFailed = createServerFn({ method: "POST", strict: STRICT }
       if (summary === undefined) return null;
       const id = summary.job.id;
       const from = await resumeStepOf(id, db());
-      await retryStep(id, from, { db: db(), only: true });
+      await rewindTo(id, from, db());
       await enqueue(id, "palette retry", from);
       return { importId: id, step: from };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Retry **one track**, not the whole album (owner review C6).
+ *
+ * A single video that lost a bot check, or whose file was removed behind our back, used to
+ * cost a re-run of the entire import — and the owner had no button for it at all, only a
+ * track sitting at `failed` with no visible reason. This puts that one row back to
+ * "not downloaded", rewinds the job to `download` and queues it: every other track keeps its
+ * file, and `download` skips the ones that are already on disk.
+ */
+export const retryTrack = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1), trackId: z.string().min(1) }))
+  .handler(async ({ data }): Promise<{ step: StepName }> => {
+    try {
+      await resetTrack(data.id, data.trackId, db());
+      await rewindTo(data.id, "download", db());
+      await enqueue(data.id, "console retry track", "download");
+      return { step: "download" };
     } catch (error) {
       return toFailure(error);
     }
