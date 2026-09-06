@@ -277,7 +277,12 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       }
     }
 
-    await ctx.say("track.started", `${track.sourceTitle}: downloading`, { trackId: track.id });
+    await ctx.say("track.started", `${track.sourceTitle}: downloading`, {
+      trackId: track.id,
+      // Named, so the row says "download" from the first instant rather than "working" for
+      // the second or two before yt-dlp's first progress line arrives.
+      data: { stage: "download", done: downloaded, total: tracks.length },
+    });
 
     let attempt = 0;
     let lastError: MMError | null = null;

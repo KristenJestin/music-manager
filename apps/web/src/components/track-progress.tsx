@@ -19,7 +19,7 @@
 import { cn } from "cn";
 import type { JobEventPayload } from "@mm/contracts";
 import { ProgressBar } from "#/components/progress-bar.tsx";
-import { bytes, delta } from "#/lib/format.ts";
+import { bytes, mmss } from "#/lib/format.ts";
 
 /** Lines that mean "this track is no longer in flight". */
 const TERMINAL = new Set(["track.done", "track.failed", "track.skipped"]);
@@ -104,7 +104,8 @@ export interface TrackProgressProps {
  */
 export function TrackProgress({ activity, className }: TrackProgressProps) {
   const speed = speedLabel(activity.speed);
-  const eta = activity.eta === null || activity.eta <= 0 ? null : delta(activity.eta);
+  // `mmss`, not `delta`: an ETA is a duration, and `delta` prints the sign of an offset.
+  const eta = activity.eta === null || activity.eta <= 0 ? null : mmss(activity.eta);
   const parts = [
     activity.percent === null ? null : `${String(activity.percent)}%`,
     speed,
