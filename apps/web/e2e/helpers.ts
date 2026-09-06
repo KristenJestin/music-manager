@@ -1,7 +1,7 @@
 /**
  * What every spec needs: signing in, and waiting for a job to stop moving.
  */
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /** The administrator `scripts/e2e-web.ts` bootstraps. */
 export const ADMIN = {
@@ -73,6 +73,27 @@ export async function shellReady(page: Page): Promise<void> {
 export async function pressGlobal(page: Page, key: string): Promise<void> {
   await shellReady(page);
   await page.locator("body").press(key);
+}
+
+/**
+ * Put text into a Console text field, the way a person does.
+ *
+ * **`fill()` does not drive these inputs.** `components/ui/input.tsx` wraps Base UI's `Input`,
+ * and setting `value` through the native setter — which is what `fill()` does — does not reach
+ * React's `onChange`: the DOM shows the new text for an instant, the next render puts the old
+ * value back, and the form state never changed. The symptom is a save that quietly writes what
+ * was there before, or a button that stays disabled because the field it watches still reads
+ * empty. Verified by hand in a real browser: typing and Delete both work, `fill()` does not.
+ *
+ * Select-all and type **over** the selection rather than deleting first: a numeric field
+ * coerces its empty intermediate state to `0`, and the new digits would then land after it.
+ */
+export async function typeInto(field: Locator, text: string): Promise<void> {
+  await field.click();
+  await field.press("ControlOrMeta+a");
+  if (text === "") await field.press("Delete");
+  else await field.pressSequentially(text);
+  await expect(field).toHaveValue(text);
 }
 
 /**

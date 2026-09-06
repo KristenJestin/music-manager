@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import { signIn, typeInto } from "./helpers.ts";
 
 /**
  * `/tools` — the diagnostics page.
@@ -75,7 +75,7 @@ test.describe("tools", () => {
   });
 
   test("Test a URL runs an extract without downloading anything", async ({ page }) => {
-    await page.getByTestId("url-input").fill("fixture://discovery");
+    await typeInto(page.getByTestId("url-input"), "fixture://discovery");
     await page.getByTestId("url-extract").click();
     const result = page.getByTestId("url-result");
     await expect(result).toBeVisible({ timeout: 60_000 });
@@ -84,7 +84,7 @@ test.describe("tools", () => {
   });
 
   test("an unknown URL comes back decoded, not as a stack trace", async ({ page }) => {
-    await page.getByTestId("url-input").fill("fixture://nothing-like-this");
+    await typeInto(page.getByTestId("url-input"), "fixture://nothing-like-this");
     await page.getByTestId("url-extract").click();
     const result = page.getByTestId("url-result");
     await expect(result).toBeVisible({ timeout: 60_000 });

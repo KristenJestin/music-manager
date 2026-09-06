@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import { signIn, typeInto } from "./helpers.ts";
 
 /**
  * The Navidrome read-back, from the Console.
@@ -13,6 +13,12 @@ import { signIn } from "./helpers.ts";
  *  - the album's Navidrome tab offers a rescan instead of showing an empty table;
  *  - the password field never renders the stored value.
  */
+/*
+ * Serial, and for a reason: these specs write to the settings store, and other pages read it.
+ * Run in parallel they would be testing one another's leftovers.
+ */
+test.describe.configure({ mode: "serial" });
+
 test.describe("settings › integrations", () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page);
@@ -49,15 +55,21 @@ test.describe("settings › integrations", () => {
   });
 
   test("Test reports a failure against a server that is not there", async ({ page }) => {
-    await page.getByTestId("navidrome-url").fill("http://127.0.0.1:4599");
-    await page.getByTestId("navidrome-user").fill("admin");
+    await typeInto(page.getByTestId("navidrome-url"), "http://127.0.0.1:4599");
+    await typeInto(page.getByTestId("navidrome-user"), "admin");
     await page.getByTestId("navidrome-test").click();
-    // A failure is a *result*: it lands in the toast and in the status row, not in an error page.
+    /*
+     * The assertion is on the **status row**, not on the toast.
+     *
+     * A failure is a result, and a result belongs in the page: the toast is a four-second
+     * courtesy and asserting on it would be timing the animation rather than the behaviour.
+     * What must be true is that the page is still there and now says the server is not
+     * answering — never that it silently stays on the last good status.
+     */
     await expect(page.getByTestId("settings-integrations")).toBeVisible();
-    await expect(page.getByTestId("toaster")).toContainText(
-      /did not answer|No answer|not answering/,
-      { timeout: 60_000 },
-    );
+    await expect(
+      page.getByTestId("settings-integrations").getByText(/not answering|not configured/),
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test("the notifications block says where its delivery lives", async ({ page }) => {
@@ -66,7 +78,7 @@ test.describe("settings › integrations", () => {
   });
 
   test("a saved value is read back by the settings store", async ({ page }) => {
-    await page.getByTestId("navidrome-url").fill("http://navidrome.test:4533");
+    await typeInto(page.getByTestId("navidrome-url"), "http://navidrome.test:4533");
     await page.getByTestId("integrations-save").click();
     await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
       timeout: 60_000,
@@ -75,10 +87,18 @@ test.describe("settings › integrations", () => {
     await page.reload();
     await expect(page.getByTestId("navidrome-url")).toHaveValue("http://navidrome.test:4533");
 
-    // Put it back, and prove it went back: the other specs must not inherit a half-configured
-    // server, and a toast is not evidence that the store was written.
-    await page.getByTestId("navidrome-url").fill("");
+    /*
+     * Put it back, and wait for the toast *before* reloading.
+     *
+     * A reload on its own aborts the save that is still in flight ("Failed to fetch") and
+     * leaves the store holding the previous value. The toast says the server function came
+     * back; the reload after it is what proves the store really kept the answer.
+     */
+    await typeInto(page.getByTestId("navidrome-url"), "");
     await page.getByTestId("integrations-save").click();
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
     await page.reload();
     await expect(page.getByTestId("navidrome-url")).toHaveValue("");
   });
@@ -100,7 +120,7 @@ test.describe("settings › downloader", () => {
     await page.goto("/settings/downloader");
     await expect(page.getByTestId("settings-downloader")).toBeVisible({ timeout: 60_000 });
 
-    await page.getByTestId("input-jitter-min").fill("7000");
+    await typeInto(page.getByTestId("input-jitter-min"), "7000");
     await page.getByTestId("downloader-save").click();
     await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
       timeout: 60_000,
@@ -109,8 +129,11 @@ test.describe("settings › downloader", () => {
     await page.reload();
     await expect(page.getByTestId("input-jitter-min")).toHaveValue("7000");
 
-    await page.getByTestId("input-jitter-min").fill("5000");
+    await typeInto(page.getByTestId("input-jitter-min"), "5000");
     await page.getByTestId("downloader-save").click();
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
     await page.reload();
     await expect(page.getByTestId("input-jitter-min")).toHaveValue("5000");
   });
