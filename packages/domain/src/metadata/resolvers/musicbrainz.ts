@@ -26,36 +26,7 @@ import {
 } from "./musicbrainz-types.ts";
 import { PatchBuilder } from "./patch.ts";
 import { creditsFromRelations, mbidFieldFor, performedWork, urlOfType } from "./relations.ts";
-
-/**
- * MusicBrainz tags are folk taxonomy: mostly genres, sometimes a mood. `MOOD` takes only the
- * tags in this vocabulary, so "seen live" and "french house" never end up in it (§2.4).
- */
-const MOOD_VOCABULARY: ReadonlySet<string> = new Set([
-  "aggressive",
-  "atmospheric",
-  "calm",
-  "chill",
-  "dark",
-  "dreamy",
-  "energetic",
-  "epic",
-  "euphoric",
-  "happy",
-  "hypnotic",
-  "melancholic",
-  "melancholy",
-  "mellow",
-  "nostalgic",
-  "party",
-  "peaceful",
-  "relaxing",
-  "romantic",
-  "sad",
-  "sensual",
-  "uplifting",
-  "upbeat",
-]);
+import { MOOD_VOCABULARY } from "./vocabulary.ts";
 
 /** Fields that only exist for classical repertoire; §2.4's movement block. */
 const CLASSICAL_FIELDS = ["movement", "movementnumber", "movementtotal", "showmovement"] as const;
@@ -231,6 +202,47 @@ export function fromMusicBrainzWork(work: MbWork, options: { fetchedAt: string }
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   mergeWorkInto(patch, work);
   return patch.build();
+}
+
+export interface ArtistResolverOptions {
+  readonly fetchedAt: string;
+}
+
+/**
+ * An artist looked up on its own (`inc=url-rels`).
+ *
+ * It exists for one field the release lookup structurally cannot give: §2.2 sources
+ * `WEBSITE` from the **artist's** url-rels, and a release response carries the release's. The
+ * release resolver therefore leaves `website` *missing* rather than n/a, and this resolver is
+ * what fills it once the artist has actually been asked.
+ *
+ * It deliberately produces **only** that field. The artist credits already come from the
+ * release and the recording, where they carry join phrases and credited names; re-deriving
+ * them here from a single artist entity would win the merge on tie-breaking order and quietly
+ * replace "Daft Punk feat. Romanthony" with "Daft Punk".
+ */
+export function fromMusicBrainzArtist(
+  artist: MbArtistLike,
+  options: ArtistResolverOptions,
+): DocumentPatch {
+  const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
+  patch.setOrNa(
+    "website",
+    urlOfType(artist.relations, "official homepage"),
+    "the artist has no official homepage in MusicBrainz",
+  );
+  return patch.build();
+}
+
+/** `inc=url-rels` adds relations to an artist; the shared type does not declare them. */
+export interface MbArtistLike {
+  readonly id?: string;
+  readonly name?: string;
+  readonly "sort-name"?: string;
+  readonly country?: string;
+  readonly relations?: readonly MbRelation[];
+  readonly genres?: readonly { readonly name?: string; readonly count?: number }[];
+  readonly tags?: readonly { readonly name?: string; readonly count?: number }[];
 }
 
 function mergeWorkInto(patch: PatchBuilder, work: MbWork): void {

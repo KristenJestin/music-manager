@@ -15,7 +15,10 @@ import {
   fromApp,
   fromCoverArtArchiveIndex,
   fromDeezerTrack,
+  fromLastfmTags,
+  fromListenBrainzTags,
   fromLrclib,
+  fromMusicBrainzArtist,
   fromMusicBrainzRecording,
   fromMusicBrainzRelease,
   fromMusicBrainzWork,
@@ -27,6 +30,8 @@ import {
   type AppProvenance,
   type CaaIndex,
   type DeezerTrack,
+  type LastfmTagInput,
+  type ListenBrainzTagInput,
   type LrclibEntry,
   type MbRecording,
   type MbRelease,
@@ -35,6 +40,7 @@ import {
   type YouTubeResolverOptions,
   type YtdlpEntry,
 } from "./resolvers/index.ts";
+import type { MbArtistLike } from "./resolvers/musicbrainz.ts";
 import { TAG_SCHEMA_VERSION } from "./schema.ts";
 
 /** A cached response plus the instant it was fetched — one entry of the raw cache. */
@@ -50,13 +56,27 @@ export interface TrackResolutionInput {
   };
   readonly recording?: Cached<MbRecording>;
   readonly work?: Cached<MbWork>;
+  /** The credited artists, looked up on their own — the only source of `WEBSITE` (§2.2). */
+  readonly artists?: readonly Cached<MbArtistLike>[];
   readonly coverArt?: Cached<CaaIndex>;
   /** The LRCLIB entry already chosen out of a search (see `chooseLrclibEntry`). */
   readonly lyrics?: Cached<LrclibEntry | null>;
   readonly deezer?: Cached<DeezerTrack>;
   readonly acoustId?: Cached<AcoustIdResponse> & Omit<AcoustIdOptions, "fetchedAt">;
   readonly youtube?: Cached<YtdlpEntry> & Omit<YouTubeResolverOptions, "fetchedAt">;
+  /** Last.fm top tags, track's first then the artist's — the §4 genre fallback. */
+  readonly lastfm?: Cached<readonly LastfmTagInput[]>;
+  /** ListenBrainz community tags — the last link of the genre chain. */
+  readonly listenbrainz?: Cached<readonly ListenBrainzTagInput[]>;
+  /** How many `GENRE` values at most, and the vote floor under which a tag is noise. */
+  readonly tagOptions?: { readonly maxGenres?: number; readonly minCount?: number };
   readonly rsgain?: Cached<RsgainResult> & { readonly opus: boolean };
+  /**
+   * Patches the caller built itself, applied just before `app` and therefore below every
+   * resolver above in `SOURCE_PRECEDENCE`. The YouTube-thumbnail cover fallback of §4 is one:
+   * it is not a Cover Art Archive answer, so it cannot travel as one.
+   */
+  readonly extra?: readonly DocumentPatch[];
   readonly app: Omit<AppProvenance, "fetchedAt"> & { readonly fetchedAt: string };
   /** Values you entered or confirmed. They are locked and win every merge (§1). */
   readonly locked?: Readonly<Record<string, Field>>;
@@ -81,6 +101,9 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
   if (input.work !== undefined) {
     patches.push(fromMusicBrainzWork(input.work.data, { fetchedAt: input.work.fetchedAt }));
   }
+  for (const artist of input.artists ?? []) {
+    patches.push(fromMusicBrainzArtist(artist.data, { fetchedAt: artist.fetchedAt }));
+  }
   if (input.coverArt !== undefined) {
     patches.push(
       fromCoverArtArchiveIndex(input.coverArt.data, { fetchedAt: input.coverArt.fetchedAt }),
@@ -96,11 +119,33 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
     const { data, fetchedAt, ...options } = input.acoustId;
     patches.push(fromAcoustId(data, { ...options, fetchedAt }));
   }
+  // The genre chain of §4. Both sit below MusicBrainz in `SOURCE_PRECEDENCE`, so they can
+  // only fill a `GENRE` MusicBrainz left missing — the preference is data, not control flow.
+  if (input.lastfm !== undefined) {
+    patches.push(
+      fromLastfmTags(input.lastfm.data, {
+        fetchedAt: input.lastfm.fetchedAt,
+        limit: input.tagOptions?.maxGenres ?? 3,
+        minCount: input.tagOptions?.minCount ?? 0,
+      }),
+    );
+  }
+  if (input.listenbrainz !== undefined) {
+    patches.push(
+      fromListenBrainzTags(input.listenbrainz.data, {
+        fetchedAt: input.listenbrainz.fetchedAt,
+        limit: input.tagOptions?.maxGenres ?? 3,
+        minCount: input.tagOptions?.minCount ?? 0,
+      }),
+    );
+  }
   if (input.rsgain !== undefined) {
     patches.push(
       fromRsgain(input.rsgain.data, { fetchedAt: input.rsgain.fetchedAt, opus: input.rsgain.opus }),
     );
   }
+
+  for (const patch of input.extra ?? []) patches.push(patch);
 
   patches.push(fromApp({ ...input.app }));
 

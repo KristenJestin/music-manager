@@ -26,15 +26,32 @@ export type { CaaImage, CaaIndex } from "./coverartarchive.ts";
 export { fromDeezerTrack } from "./deezer.ts";
 export type { DeezerTrack } from "./deezer.ts";
 
+export { countedTags as lastfmCountedTags, fromLastfmTags } from "./lastfm.ts";
+export type { LastfmOptions, LastfmTagInput } from "./lastfm.ts";
+
+export { countedTags as listenBrainzCountedTags, fromListenBrainzTags } from "./listenbrainz.ts";
+export type { ListenBrainzOptions, ListenBrainzTagInput } from "./listenbrainz.ts";
+
 export { chooseLrclibEntry, fromLrclib } from "./lrclib.ts";
 export type { LrclibEntry, LrclibOptions } from "./lrclib.ts";
 
 export {
+  fromMusicBrainzArtist,
   fromMusicBrainzRecording,
   fromMusicBrainzRelease,
   fromMusicBrainzWork,
 } from "./musicbrainz.ts";
-export type { ReleaseResolverOptions } from "./musicbrainz.ts";
+export type { ArtistResolverOptions, MbArtistLike, ReleaseResolverOptions } from "./musicbrainz.ts";
+
+export {
+  genresFromTags,
+  isGenreTag,
+  isMoodTag,
+  MOOD_VOCABULARY,
+  moodsFromTags as moodsFromCountedTags,
+  titleCase,
+} from "./vocabulary.ts";
+export type { CountedTag } from "./vocabulary.ts";
 
 export type {
   MbArtist,
@@ -57,7 +74,13 @@ export type { YouTubeResolverOptions, YtdlpEntry } from "./youtube.ts";
 export { creditFromRelation, creditsFromRelations } from "./relations.ts";
 export { PatchBuilder } from "./patch.ts";
 
-/** Default conflict order for `merge` — earlier wins. */
+/**
+ * Default conflict order for `merge` — earlier wins.
+ *
+ * The genre chain of §4 — MusicBrainz, then Last.fm, then ListenBrainz — is this list, not a
+ * special case somewhere: the two folksonomy sources sit below MusicBrainz, so they can only
+ * ever fill a `GENRE` that MusicBrainz left missing.
+ */
 export const SOURCE_PRECEDENCE: readonly SourceId[] = Object.freeze([
   "user",
   "musicbrainz",
@@ -66,6 +89,9 @@ export const SOURCE_PRECEDENCE: readonly SourceId[] = Object.freeze([
   "rsgain",
   "lrclib",
   "deezer",
+  "lastfm",
+  "listenbrainz",
+  "wikimedia",
   "app",
   "youtube",
 ]);
