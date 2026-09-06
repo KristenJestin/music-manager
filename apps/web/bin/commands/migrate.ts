@@ -31,6 +31,18 @@ const out = (...parts: unknown[]): void => {
   console.log(parts.join(" "));
 };
 
+/**
+ * A warning goes to stderr, not stdout.
+ *
+ * `--json` promises the report and nothing else on stdout, because that is what a script
+ * parses; the rename banner printed there made `mm migrate v1 --rename-to-template --json`
+ * emit a document no JSON parser accepts. stderr keeps the warning in front of the person who
+ * typed the flag — which is the whole point of it — without putting it in the pipe.
+ */
+const warn = (...parts: unknown[]): void => {
+  console.warn(parts.join(" "));
+};
+
 const flagString = (args: CliArgs, name: string): string | undefined =>
   typeof args.flags[name] === "string" ? (args.flags[name] as string) : undefined;
 
@@ -89,8 +101,8 @@ export async function cmdMigrate(args: CliArgs): Promise<number> {
   }
 
   if (renameToTemplate && !dryRun) {
-    out(RENAME_WARNING);
-    out("");
+    warn(RENAME_WARNING);
+    warn("");
   }
 
   const env = serverEnv();
