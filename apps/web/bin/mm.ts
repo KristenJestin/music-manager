@@ -83,6 +83,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
+import { cmdMigrate } from "./commands/migrate.ts";
 
 /* ------------------------------------------------------------------ */
 /* argument parsing                                                    */
@@ -1095,8 +1096,17 @@ const USAGE = `mm — Music Manager
                                           re-project from the raw cache; offline, no re-download
   mm retag runs | show <run id> | cancel <run id>             the runs, and the per-file diffs
 
+  mm migrate v1 --db <postgres url> --library <dir> [--dry-run] [--rename-to-template]
+                [--limit N] [--resume] [--i-have-a-backup] [--verify] [--json]
+                                          take over a v1 library and database (P11)
+  mm migrate runs | show <run id>          past migrations, and their reports
+
+Remote (P08): --url http://host:3000 --token mm_…   drive another installation over /api/v1.
+  Also read from MM_URL / MM_TOKEN, or ~/.config/mm/config.toml. \`mm --url … help\` lists the
+  remote verbs; \`match\`, \`doc\` and \`sources\` are in-process only.
+
 Environment: DATABASE_URL, MM_TOOLBOX_URL, MM_FIXTURES, MM_LIBRARY_ROOT, MM_TOOLBOX_LIBRARY_ROOT,
-             MM_MB_CONTACT, MM_ACOUSTID_KEY, MM_LASTFM_KEY, MM_FANARTTV_KEY.
+             MM_MB_CONTACT, MM_ACOUSTID_KEY, MM_LASTFM_KEY, MM_FANARTTV_KEY, MM_URL, MM_TOKEN.
 `;
 
 async function main(): Promise<number> {
@@ -1130,6 +1140,8 @@ async function main(): Promise<number> {
       return await cmdTools(args);
     case "library":
       return await cmdLibrary(args);
+    case "migrate":
+      return await cmdMigrate(args);
     case "retag":
       return await cmdRetag(args);
     case "cancel":
@@ -1148,8 +1160,42 @@ async function main(): Promise<number> {
   }
 }
 
+/**
+ * Remote mode (P08), decided before anything local is touched.
+ *
+ * `mm --url … --token …` drives another installation over `/api/v1`. The two modules it needs
+ * are pulled in **dynamically and only here**, because they are the only part of this CLI that
+ * is allowed to run on a machine with no database: a static import would be harmless today and
+ * would break the moment somebody adds a module-level `serverEnv()` to something they pull in.
+ *
+ * A `RemoteError` is printed in the same shape as a local `MMError`, so the two modes fail
+ * identically — which is the whole claim being made by "the same commands".
+ */
+async function maybeRemote(): Promise<number | null> {
+  const args = parseArgs(process.argv.slice(2));
+  const { resolveRemote } = await import("./remote.ts");
+  const config = resolveRemote(args.flags);
+  if (config === null) return null;
+
+  const { ApiClient, RemoteError } = await import("./remote.ts");
+  const { runRemote } = await import("./remote-commands.ts");
+  try {
+    return await runRemote(new ApiClient(config), args);
+  } catch (error) {
+    if (error instanceof RemoteError) {
+      console.error(`\n${error.code}: ${error.message}`);
+      if (error.hint !== undefined) console.error(`hint: ${error.hint}`);
+      if (error.action !== undefined) console.error(`try : ${error.action}`);
+      return 1;
+    }
+    console.error(`\n${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+}
+
 try {
-  process.exit(await main());
+  const remote = await maybeRemote();
+  process.exit(remote ?? (await main()));
 } catch (error) {
   fail(error);
 }

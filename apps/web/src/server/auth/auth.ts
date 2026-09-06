@@ -21,6 +21,7 @@
  *    so it lives where the rest of the operational facts live and is read at boot.
  */
 import { betterAuth } from "better-auth";
+import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db as defaultDb, schema, type Database } from "#/server/db/client.ts";
@@ -122,7 +123,55 @@ export function buildAuth(options: AuthOptions = {}) {
      * ambient response is the whole of the bug described above, and removing the plugin makes
      * that impossible rather than merely unlikely.
      */
-    plugins: options.allowSignUp === true ? [] : [tanstackStartCookies()],
+    plugins: options.allowSignUp === true ? [] : [apiKeyPlugin(), tanstackStartCookies()],
+  });
+}
+
+/**
+ * The `apiKey` plugin (`docs/phases/P08-api-agents.md` § Clés d'API).
+ *
+ * In 1.7 this left the core package: it is `@better-auth/api-key`, version-locked to
+ * `better-auth` itself. `better-auth/plugins` has no `apiKey` export, and an import from
+ * there does not merely fail at runtime — it fails to compile, which is the good outcome.
+ *
+ * The four settings that are not defaults, and why:
+ *
+ *  - **`defaultPrefix: "mm_"`.** A leaked key should be greppable and self-identifying, and
+ *    `start` (the first six characters, prefix included) is what the Settings table shows in
+ *    place of a secret it cannot show.
+ *  - **`rateLimit.maxRequests: 600` per minute**, against a default of *ten per day*. That
+ *    default is sized for a public SaaS handing keys to strangers; here the caller is the
+ *    owner's own agent walking their own library, and ten requests a day would make the CLI
+ *    unusable before it finished one import. It is still a ceiling: a runaway loop is capped
+ *    rather than allowed to hammer MusicBrainz through us.
+ *  - **`keyExpiration.minExpiresIn: 1` day, `maxExpiresIn: 3650` days.** The library's own
+ *    ceiling is one year, which would force a self-hosted installation to re-issue a key
+ *    annually for no threat it actually faces. "Never expires" stays available (`expiresIn:
+ *    null`) and is the default the Settings form offers.
+ *  - **`enableMetadata: true`**, because the wildcard scope is stored there: `permissions`
+ *    holds the ten expanded `resource:action` pairs the plugin needs to reason about, and
+ *    the metadata remembers that the user asked for `*`, so the table can say so.
+ *
+ * `enableSessionForAPIKeys` stays **off**. It would let an `x-api-key` header mint an ambient
+ * session for *every* endpoint in the app, including `/api/auth/*` and the server functions —
+ * which would silently promote a `library:read` key to a full Console login. Scope checking
+ * happens in `server/api/auth.ts` instead, where it can see which scope the route needs.
+ */
+function apiKeyPlugin() {
+  return apiKey({
+    defaultPrefix: "mm_",
+    defaultKeyLength: 48,
+    requireName: true,
+    enableMetadata: true,
+    enableSessionForAPIKeys: false,
+    startingCharactersConfig: { shouldStore: true, charactersLength: 9 },
+    rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 600 },
+    keyExpiration: {
+      defaultExpiresIn: null,
+      disableCustomExpiresTime: false,
+      minExpiresIn: 1,
+      maxExpiresIn: 3650,
+    },
   });
 }
 

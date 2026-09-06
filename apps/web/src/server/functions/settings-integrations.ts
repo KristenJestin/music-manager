@@ -7,12 +7,14 @@
  *    masked form (`set (5 chars, …in)`), and an empty string on save means "leave it alone"
  *    rather than "clear it" — otherwise loading the page and pressing Save would wipe the
  *    credential, which is the classic way a settings form loses a password.
- *  - **Notifications are stored, not delivered.** P08 owns the transports; storing the
- *    intention now means the upgrade is a worker change and not a form change.
+ *  - **Notifications are delivered here as of P08.** The channel, its target and the events
+ *    are settings; `services/notifications.ts` owns the three transports, and `testNotification`
+ *    sends one now against the values in the form.
  *  - **The backup is documents and cache** (`docs/03-metadonnees.md` §8): restoring is
  *    re-projecting, so the export does not carry a single audio byte.
  */
 import { z } from "zod";
+import { notifiableEventSchema } from "@mm/contracts";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
@@ -22,6 +24,7 @@ import {
   type NavidromeStatus,
 } from "#/server/services/navidrome.ts";
 import { loadSettings, maskSetting, setSetting } from "#/server/services/settings.ts";
+import { send as sendNotification, type DeliveryOutcome } from "#/server/services/notifications.ts";
 
 const form = z.object({
   navidromeEnabled: z.boolean(),
@@ -32,19 +35,35 @@ const form = z.object({
   navidromeRescanOnVerify: z.boolean(),
   navidromeWaitTimeoutMs: z.number().int().min(1_000).max(3_600_000),
   notificationsEnabled: z.boolean(),
-  notificationsChannel: z.enum(["none", "webhook", "ntfy", "email"]),
+  notificationsChannel: z.enum(["none", "ntfy", "discord", "email"]),
+  /** Empty means "unchanged", like every other secret on this tab. */
   notificationsTarget: z.string(),
-  notificationsEvents: z.array(
-    z.enum(["job_failed", "inbox_opened", "scan_report", "verify_mismatch"]),
-  ),
+  notificationsEvents: z.array(notifiableEventSchema),
+  /* SMTP, used only by `notificationsChannel: "email"`. */
+  smtpHost: z.string(),
+  smtpPort: z.number().int().min(1).max(65_535),
+  smtpUser: z.string(),
+  /** Empty means "unchanged". */
+  smtpPassword: z.string(),
+  smtpFrom: z.string(),
+  smtpTls: z.boolean(),
 });
 
 export type IntegrationsForm = z.infer<typeof form>;
 
+/** The fields of this tab where an empty submission means "unchanged", not "clear". */
+const SECRET_FIELDS = new Set(["navidromePassword", "smtpPassword", "notificationsTarget"]);
+
 export interface IntegrationsPayload {
-  readonly values: Omit<IntegrationsForm, "navidromePassword">;
+  readonly values: Omit<
+    IntegrationsForm,
+    "navidromePassword" | "smtpPassword" | "notificationsTarget"
+  >;
   /** `set (5 chars, …in)` or `""`. Never the value. */
   readonly passwordMask: string;
+  readonly smtpPasswordMask: string;
+  /** The notification target is a topic URL or a Discord webhook: a secret in practice. */
+  readonly notificationsTargetMask: string;
   readonly navidrome: NavidromeStatus;
 }
 
@@ -63,10 +82,18 @@ export const fetchIntegrationSettings = createServerFn({ method: "GET", strict: 
           navidromeWaitTimeoutMs: settings.navidromeWaitTimeoutMs,
           notificationsEnabled: settings.notificationsEnabled,
           notificationsChannel: settings.notificationsChannel,
-          notificationsTarget: settings.notificationsTarget,
           notificationsEvents: settings.notificationsEvents,
+          smtpHost: settings.smtpHost,
+          smtpPort: settings.smtpPort,
+          smtpUser: settings.smtpUser,
+          smtpFrom: settings.smtpFrom,
+          smtpTls: settings.smtpTls,
         },
         passwordMask: String(maskSetting("navidromePassword", settings.navidromePassword)),
+        smtpPasswordMask: String(maskSetting("smtpPassword", settings.smtpPassword)),
+        notificationsTargetMask: String(
+          maskSetting("notificationsTarget", settings.notificationsTarget),
+        ),
         navidrome: await navidromeStatus({ db: database, settings }),
       };
     } catch (error) {
@@ -82,7 +109,9 @@ export const saveIntegrationSettings = createServerFn({ method: "POST", strict: 
       const database = db();
       let saved = 0;
       for (const [key, value] of Object.entries(data)) {
-        if (key === "navidromePassword" && value === "") continue;
+        // An empty secret means "leave it alone". A settings form must not be able to erase
+        // a credential just because it was never shown the current one.
+        if (SECRET_FIELDS.has(key) && value === "") continue;
         await setSetting(key as keyof IntegrationsForm, value, { db: database });
         saved += 1;
       }
@@ -250,3 +279,48 @@ export const importBackup = createServerFn({ method: "POST", strict: STRICT })
       }
     },
   );
+
+/**
+ * The notifications "Test" button (P08).
+ *
+ * Like `testNavidrome`, it takes the values *in the form* so that a target can be checked
+ * before it is saved. The stored settings supply everything else — the SMTP block in
+ * particular, which has no reason to be re-sent from the page just to send one message.
+ *
+ * An empty `target` means "use the stored one", which is the same rule the save handler
+ * applies: the field is masked on load, so an untouched form has nothing in it.
+ */
+export const testNotification = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z.object({
+      channel: z.enum(["none", "ntfy", "discord", "email"]).optional(),
+      target: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }): Promise<DeliveryOutcome> => {
+    try {
+      const database = db();
+      const stored = await loadSettings(database);
+      const settings = {
+        ...stored,
+        notificationsChannel: data.channel ?? stored.notificationsChannel,
+        notificationsTarget:
+          data.target === undefined || data.target === ""
+            ? stored.notificationsTarget
+            : data.target,
+      };
+      return await sendNotification(
+        {
+          event: "import.done",
+          title: "Music Manager — test notification",
+          body: "If you are reading this, the channel works.",
+          path: "/settings/integrations",
+          priority: "low",
+        },
+        { settings, db: database },
+      );
+    } catch (error) {
+      return toFailure(error);
+    }
+  });

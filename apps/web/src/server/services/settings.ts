@@ -12,6 +12,7 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
+import { notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
 import {
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_WEIGHTS,
@@ -476,29 +477,48 @@ export const SETTING_DEFINITIONS = {
     "Where a deleted file goes. Nothing is ever unlinked: `delete` is a move into this directory.",
   ),
 
-  /* ---- notifications (the delivery lands in P08) ---- */
+  /*
+   * ---- notifications (P07b stored them, P08 delivers them) ----
+   *
+   * P07b defined these four keys with a placeholder vocabulary (`job_failed`, `inbox_opened`,
+   * …) and said in as many words that the transports arrive in P08. They do, and the event
+   * names are now the five of `docs/phases/P08-api-agents.md` — the same five a *webhook*
+   * subscribes to, shared from `@mm/contracts` so a notification and a webhook can never
+   * disagree about what "an import finished" is called.
+   *
+   * `webhook` is gone from the channel list on purpose. A generic signed HTTP callback is no
+   * longer a notification *channel*; it is the `webhooks` table, which has retries, an HMAC
+   * signature and a delivery log. Leaving a second, worse implementation of it here would
+   * have made "which of the two do I use?" a question with no good answer.
+   */
   notificationsEnabled: define(
     z.boolean(),
     false,
-    "Announce failures, Inbox items and scan reports somewhere. The transports arrive in P08.",
+    "Announce finished imports, failures and Inbox items on one channel.",
   ),
   notificationsChannel: define(
-    z.enum(["none", "webhook", "ntfy", "email"]),
+    z.enum(["none", "ntfy", "discord", "email"]),
     "none",
-    "Where a notification goes. Stored now, delivered in P08.",
+    "Where a notification goes. Signed HTTP callbacks are webhooks, configured separately.",
   ),
   notificationsTarget: define(
     z.string(),
     "",
-    "The webhook URL, ntfy topic or e-mail address the channel writes to.",
+    "The ntfy topic URL, the Discord webhook URL, or the destination e-mail address.",
+    { secret: true },
   ),
-  notificationsEvents: define<
-    ("job_failed" | "inbox_opened" | "scan_report" | "verify_mismatch")[]
-  >(
-    z.array(z.enum(["job_failed", "inbox_opened", "scan_report", "verify_mismatch"])),
-    ["job_failed", "inbox_opened"],
+  notificationsEvents: define<NotifiableEvent[]>(
+    z.array(notifiableEventSchema),
+    ["import.failed", "review.needed"],
     "Which events are worth a notification.",
   ),
+  /* ---- SMTP, for `notificationsChannel: "email"` ---- */
+  smtpHost: define(z.string(), "", "SMTP server host. Empty disables the e-mail channel."),
+  smtpPort: define(z.number().int().min(1).max(65_535), 587, "SMTP port. 465 implies TLS."),
+  smtpUser: define(z.string(), "", "SMTP username. Empty sends unauthenticated."),
+  smtpPassword: define(z.string(), "", "SMTP password.", { secret: true }),
+  smtpFrom: define(z.string(), "", "The `From:` address. Defaults to the SMTP user."),
+  smtpTls: define(z.boolean(), true, "Use STARTTLS (or implicit TLS on port 465)."),
 
   /* ---- the library, on both sides of the bridge ---- */
   libraryRoot: define(

@@ -39,7 +39,10 @@
     "e2e:web": "bun run scripts/e2e-web.ts",
     "e2e-verify": "bun run scripts/e2e-verify.ts",
     "e2e:verify": "bun run scripts/e2e-verify.ts",
-    "navidrome:record": "bun run apps/web/src/server/integrations/navidrome/record-cassettes.ts"
+    "navidrome:record": "bun run apps/web/src/server/integrations/navidrome/record-cassettes.ts",
+    "e2e-migrate": "bun run scripts/e2e-migrate.ts",
+    "e2e:migrate": "bun run scripts/e2e-migrate.ts",
+    "fixtures:v1": "bun run fixtures/v1/generate.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

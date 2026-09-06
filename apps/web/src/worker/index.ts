@@ -24,6 +24,7 @@ import {
 import { loadSettings } from "#/server/services/settings.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
+import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
   createBoss,
   CRON_QUEUES,
@@ -34,8 +35,10 @@ import {
   stopBoss,
   type DownloadJob,
   type ImportStepJob,
+  type WebhookJob,
 } from "./queues.ts";
 import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
+import { registerMigrateHandlers } from "./handlers/migrate.ts";
 
 const log = (message: string, extra: Record<string, unknown> = {}): void => {
   console.log(
@@ -109,6 +112,9 @@ export async function startWorker(): Promise<Worker> {
   /* ---- retag: the background re-projection of docs/03 §8 (P07a) ---- */
   await registerRetagHandlers(boss, { signal: shutdown.signal, log });
 
+  /* ---- migrate: take over a v1 library and database (P11) ---- */
+  await registerMigrateHandlers(boss, { db: db(), signal: shutdown.signal, log });
+
   /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
   await boss.work<ScanJob>(
     QUEUES.scan,
@@ -129,10 +135,28 @@ export async function startWorker(): Promise<Worker> {
     await handleYtdlpUpdate({ db: db(), log });
   });
 
+  /* ---- webhook deliveries (P08) ---- */
+  //
+  // The handler is deliberately thin: `deliver()` records the outcome on the row and then
+  // *throws* on failure, which is what pg-boss reads as "retry me". The backoff policy is on
+  // the send side (`enqueueWebhookDelivery`), so the number of attempts is one fact in one
+  // place rather than a handler counter and a queue option that can drift apart.
+  await boss.work<WebhookJob>(
+    QUEUES.webhook,
+    { localConcurrency: 4, pollingIntervalSeconds: 1 },
+    async (jobs: Job<WebhookJob>[]) => {
+      for (const job of jobs) {
+        log("webhook.deliver", { deliveryId: job.data.deliveryId, jobId: job.id });
+        await deliverWebhook(job.data.deliveryId, { db: db() });
+      }
+    },
+  );
+
   /* ---- registered, not implemented yet ---- */
   const HANDLED = new Set<string>([
     QUEUES.retag,
     QUEUES.scan,
+    QUEUES.webhook,
     "cron.refresh-sources",
     "cron.scan",
     "cron.ytdlp-update",

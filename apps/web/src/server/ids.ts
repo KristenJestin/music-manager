@@ -31,6 +31,10 @@ export const ID_PREFIXES = {
   retagRun: "rtg",
   retagDiff: "rtd",
   libraryScan: "scn",
+  /** One `mm migrate v1` invocation (P11). */
+  migrationRun: "mig",
+  /** One v1 song's migration state (P11). */
+  migrationRow: "mv1",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;
