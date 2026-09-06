@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Activity, AlertTriangle, Disc3, FolderOpen, Inbox, Plus, Shield } from "lucide-react";
 import { Callout } from "#/components/callout.tsx";
-import { Cover, coverArtFront } from "#/components/cover.tsx";
+import { Cover, albumCoverSources, coverArtFront } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { PipelineDots } from "#/components/pipeline-dots.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_app/")({
 });
 
 function Dashboard() {
-  const { stats, active, review, system, activity } = Route.useLoaderData();
+  const { stats, active, review, system, activity, recent } = Route.useLoaderData();
   const now = new Date();
 
   return (
@@ -187,6 +187,60 @@ function Dashboard() {
                     </div>
                     <ToneBadge tone="warn">{humanise(item.type)}</ToneBadge>
                     <TimeAgo at={item.createdAt} now={now} className="text-2xs text-fg-3" />
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/*
+           * What actually arrived (owner review C8). The tiles count the library; this says
+           * what is *in* it, newest first, with the cover it was filed with.
+           */}
+          <section className="rounded-xl border border-line bg-surface-1">
+            <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
+              <h2 className="text-sm font-semibold">Recently added</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/library" />}
+              >
+                Library
+              </Button>
+            </header>
+            <div className="flex flex-col" data-testid="dashboard-recent">
+              {recent.length === 0 ? (
+                <p className="px-3.5 py-8 text-center text-fg-2">
+                  Nothing in the library yet. The first import lands here.
+                </p>
+              ) : (
+                recent.map((album) => (
+                  <Link
+                    key={album.id}
+                    to="/library/albums/$id"
+                    params={{ id: album.id }}
+                    className="flex items-center gap-3 border-b border-line px-3.5 py-2.5 last:border-b-0 hover:bg-surface-2"
+                  >
+                    <Cover
+                      size="sm"
+                      src={albumCoverSources(album)}
+                      seed={album.id}
+                      label={album.title}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{album.title}</div>
+                      <div className="truncate text-xs text-fg-2">
+                        {album.albumArtist}
+                        {album.year === null ? "" : ` · ${String(album.year)}`}
+                      </div>
+                    </div>
+                    {album.presentCount >= album.trackCount ? null : (
+                      <ToneBadge tone="warn">
+                        {album.presentCount}/{album.trackCount}
+                      </ToneBadge>
+                    )}
+                    <TimeAgo at={album.addedAt} now={now} className="text-2xs text-fg-3" />
                   </Link>
                 ))
               )}

@@ -15,8 +15,10 @@ import {
   dashboardStats,
   jobCounts,
   listJobs,
+  recentAlbums,
   type DashboardStats,
   type JobSummary,
+  type RecentAlbum,
 } from "#/server/services/console.queries.ts";
 import { serverEnv } from "#/server/env.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
@@ -113,6 +115,8 @@ export interface DashboardPayload {
   readonly review: readonly InboxItem[];
   readonly system: readonly SystemCheck[];
   readonly activity: readonly JobEventPayload[];
+  /** The last albums that landed in the library, newest first (owner review C8). */
+  readonly recent: readonly RecentAlbum[];
 }
 
 /**
@@ -165,14 +169,17 @@ export const fetchDashboard = createServerFn({ method: "GET", strict: STRICT })
   .inputValidator(z.object({}).default({}))
   .handler(async (): Promise<DashboardPayload> => {
     try {
-      const [stats, active, review, system, activity] = await Promise.all([
+      // One loader, one round trip: the recent albums ride with the tiles rather than costing
+      // the dashboard a second request of its own.
+      const [stats, active, review, system, activity, recent] = await Promise.all([
         dashboardStats(db()),
         listJobs({ status: "active", limit: 6 }, db()),
         listInbox({ status: "open" }, db()),
         systemChecks(),
         recentActivity(8),
+        recentAlbums(10, db()),
       ]);
-      return { stats, active, review: review.slice(0, 5), system, activity };
+      return { stats, active, review: review.slice(0, 5), system, activity, recent };
     } catch (error) {
       return toFailure(error);
     }

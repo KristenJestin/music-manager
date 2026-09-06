@@ -16,7 +16,7 @@ import { Download, Tag, Trash2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
@@ -86,7 +86,13 @@ function TrackPage() {
   return (
     <>
       <div className="mb-4 flex flex-wrap items-start gap-4">
-        <Cover size="lg" seed={album?.id ?? track.id} label={track.title} />
+        {/* A track's picture is its album's: the placed cover.jpg, then the Cover Art Archive. */}
+        <Cover
+          size="lg"
+          seed={album?.id ?? track.id}
+          label={track.title}
+          src={albumCoverSources(album, 500)}
+        />
         <div className="min-w-0 grow">
           <div className="text-2xs tracking-wider text-fg-2 uppercase">
             Track {String(track.trackNumber ?? 0).padStart(2, "0")}

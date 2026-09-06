@@ -13,6 +13,7 @@ import { z } from "zod";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 
+import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
@@ -69,6 +70,28 @@ function Tracks() {
       className: "w-10",
       cell: (row) => (
         <span className="text-fg-3">{String(row.trackNumber ?? 0).padStart(2, "0")}</span>
+      ),
+    },
+    {
+      key: "cover",
+      header: "",
+      className: "w-8",
+      headClassName: "w-8",
+      /*
+       * The album's cover, not the track's: a file has no picture of its own. The gradient
+       * with the initial is what a row falls back to, as everywhere else.
+       */
+      cell: (row) => (
+        <Cover
+          size="xs"
+          seed={row.albumId ?? row.id}
+          label={row.albumTitle ?? row.title}
+          src={albumCoverSources({
+            id: row.albumId,
+            releaseMbid: row.albumReleaseMbid,
+            coverPath: row.albumCoverPath,
+          })}
+        />
       ),
     },
     {

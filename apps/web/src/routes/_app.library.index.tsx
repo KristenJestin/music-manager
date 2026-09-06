@@ -16,9 +16,10 @@ import { z } from "zod";
 import { PROFILE_IDS } from "@mm/domain";
 import { LayoutGrid, Plus, ShieldCheck } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";
 
 import { Callout } from "#/components/callout.tsx";
-import { Cover, coverArtFront } from "#/components/cover.tsx";
+import { albumCoverSources, Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
@@ -155,41 +156,65 @@ function Albums() {
           onValueChange={setQuery}
           onSubmit={submit}
         />
-        <select
-          data-testid="library-sort"
+        <Select
           value={params.sort}
-          onChange={(event) => {
+          onValueChange={(next: string | null) => {
+            if (next === null) return;
             void navigate({
               to: "/library",
-              search: { ...params, sort: event.target.value as typeof params.sort },
+              search: { ...params, sort: next as typeof params.sort },
             });
           }}
-          className="h-7 rounded-lg border border-line bg-surface-1 px-2 text-xs"
         >
-          {ALBUM_SORTS.map((sort) => (
-            <option key={sort} value={sort}>
-              {SORT_LABELS[sort]}
-            </option>
-          ))}
-        </select>
-        <select
-          data-testid="library-profile"
+          <SelectTrigger
+            size="sm"
+            data-testid="library-sort"
+            aria-label="Sort albums"
+            className="border-line bg-surface-1 text-xs"
+          >
+            <span data-slot="select-value" className="truncate">
+              {SORT_LABELS[params.sort]}
+            </span>
+          </SelectTrigger>
+          <SelectContent className="text-xs">
+            {ALBUM_SORTS.map((sort) => (
+              <SelectItem key={sort} value={sort} className="text-xs">
+                {SORT_LABELS[sort]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
           value={params.profile}
-          onChange={(event) => {
+          onValueChange={(next: string | null) => {
+            if (next === null) return;
             void navigate({
               to: "/library",
-              search: { ...params, profile: event.target.value as typeof params.profile },
+              search: { ...params, profile: next as typeof params.profile },
             });
           }}
-          className="h-7 rounded-lg border border-line bg-surface-1 px-2 text-xs"
         >
-          <option value="global">Global (superset)</option>
-          {PROFILE_IDS.map((id) => (
-            <option key={id} value={id}>
-              {id}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            size="sm"
+            data-testid="library-profile"
+            aria-label="Scoring profile"
+            className="border-line bg-surface-1 text-xs"
+          >
+            <span data-slot="select-value" className="truncate">
+              {params.profile === "global" ? "Global (superset)" : params.profile}
+            </span>
+          </SelectTrigger>
+          <SelectContent className="text-xs">
+            <SelectItem value="global" className="text-xs">
+              Global (superset)
+            </SelectItem>
+            {PROFILE_IDS.map((id) => (
+              <SelectItem key={id} value={id} className="text-xs">
+                {id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <FilterChips
@@ -229,13 +254,14 @@ function Albums() {
                 className="group/album flex flex-col gap-1.5"
               >
                 <div className="relative">
-                  {/* The real front from the Cover Art Archive; the gradient stays underneath
-                      it for a release that has none. */}
+                  {/* The `cover.jpg` this library actually holds, then the Cover Art Archive,
+                      then the gradient — the same order everywhere an album is drawn
+                      (owner review C10). */}
                   <Cover
                     size="full"
                     seed={album.id}
                     label={album.title}
-                    src={coverArtFront(album.releaseMbid)}
+                    src={albumCoverSources(album)}
                   />
                   {incomplete ? (
                     <ToneBadge tone="warn" className="absolute top-1.5 left-1.5">

@@ -15,7 +15,7 @@
  * delete removes the files it can name and the rows that point at them, and it says how many
  * of each; it never walks a directory looking for things to remove.
  */
-import { existsSync, rmSync, readdirSync, rmdirSync } from "node:fs";
+import { existsSync, rmSync, readdirSync, rmdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
@@ -532,6 +532,13 @@ export interface TrackRow {
   readonly artist: string | null;
   readonly albumId: string | null;
   readonly albumTitle: string | null;
+  /**
+   * The parent album's cover, as the two things a tile needs to find it: the release it was
+   * matched to (the Cover Art Archive front) and whether a `cover.jpg` was placed beside the
+   * files (`/api/cover`). A track has no picture of its own — it shows its album's.
+   */
+  readonly albumReleaseMbid: string | null;
+  readonly albumCoverPath: string | null;
   readonly trackNumber: number | null;
   readonly duration: number | null;
   readonly format: string | null;
@@ -594,6 +601,8 @@ export async function trackList(
       artist: track.artist,
       albumId: track.albumId,
       albumTitle: album?.title ?? null,
+      albumReleaseMbid: album?.releaseMbid ?? null,
+      albumCoverPath: album?.coverPath ?? null,
       trackNumber: track.trackNumber,
       duration: track.duration,
       format: track.format,
@@ -1080,6 +1089,71 @@ export async function fetchMissing(
     gained: [...missingBefore].filter((field) => !missingAfter.has(field)).sort(),
     failed,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* the placed cover                                                    */
+/* ------------------------------------------------------------------ */
+
+/** What `/api/cover` needs to answer with the JPEG beside an album's audio files. */
+export interface PlacedCover {
+  /** Absolute host path — never sent to a browser, only read from. */
+  readonly file: string;
+  readonly contentType: string;
+  readonly bytes: number;
+  /** `mtime` and size, as a weak ETag, so a re-render is a 304 rather than a re-send. */
+  readonly etag: string;
+}
+
+const COVER_TYPES: Readonly<Record<string, string>> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
+
+/**
+ * The `cover.jpg` actually on disk for an album, if there is one.
+ *
+ * The caller gives an **album id**, never a path: the row is what says where the file is, so
+ * nothing a browser sends can be walked out of the library. `cover_path` is the row's own
+ * answer and `<folder>/cover.jpg` is the convention `place` follows, so an album whose row
+ * predates that column still shows its picture.
+ *
+ * `null` means "no picture here" and the endpoint turns it into a 404 — which is precisely the
+ * signal `<Cover>` needs to fall through to the Cover Art Archive.
+ */
+export async function placedCover(
+  albumId: string,
+  db: Database = defaultDb(),
+): Promise<PlacedCover | null> {
+  const [album] = await db
+    .select({ folder: libraryAlbums.folder, coverPath: libraryAlbums.coverPath })
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.id, albumId))
+    .limit(1);
+  if (album === undefined) return null;
+
+  const settings = await loadSettings(db);
+  const paths = resolvePaths(settings);
+  const candidates = [album.coverPath, `${album.folder}/cover.jpg`].filter(
+    (entry): entry is string => entry !== null && entry !== "",
+  );
+
+  for (const relative of candidates) {
+    const file = hostPath(paths, relative);
+    if (!existsSync(file)) continue;
+    const stats = statSync(file);
+    if (!stats.isFile()) continue;
+    const extension = relative.slice(relative.lastIndexOf(".") + 1).toLowerCase();
+    return {
+      file,
+      contentType: COVER_TYPES[extension] ?? "application/octet-stream",
+      bytes: stats.size,
+      etag: `W/"${stats.size.toString(16)}-${stats.mtimeMs.toString(16)}"`,
+    };
+  }
+  return null;
 }
 
 /* ------------------------------------------------------------------ */

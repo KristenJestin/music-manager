@@ -305,6 +305,67 @@ export interface DashboardStats {
   readonly metadataQuality: number | null;
 }
 
+/**
+ * One line of the dashboard's "Recently added": an album, as a list of ten needs it.
+ *
+ * `releaseMbid` and `coverPath` travel rather than a rendered URL, for the reason `JobSummary`
+ * gives about thumbnails: the Console derives the picture from them itself
+ * (`components/cover.tsx`, `albumCoverSources`), so an album that gains a cover shows it on the
+ * next render instead of on the next import.
+ */
+export interface RecentAlbum {
+  readonly id: string;
+  readonly title: string;
+  readonly albumArtist: string;
+  readonly year: number | null;
+  readonly releaseMbid: string | null;
+  readonly coverPath: string | null;
+  readonly trackCount: number;
+  readonly presentCount: number;
+  /** `library_albums.created_at` — when the album entered the library, not when it was released. */
+  readonly addedAt: string;
+}
+
+/**
+ * The last albums added to the library, newest first.
+ *
+ * One indexed scan of one table: no documents, no scores, nothing per row. The dashboard is
+ * the first page every visit renders, and "what did I import lately" must not cost what
+ * `/library` costs.
+ */
+export async function recentAlbums(
+  limit = 10,
+  db: Database = defaultDb(),
+): Promise<readonly RecentAlbum[]> {
+  const rows = await db
+    .select({
+      id: libraryAlbums.id,
+      title: libraryAlbums.title,
+      albumArtist: libraryAlbums.albumArtist,
+      year: libraryAlbums.year,
+      releaseMbid: libraryAlbums.releaseMbid,
+      coverPath: libraryAlbums.coverPath,
+      trackCount: libraryAlbums.trackCount,
+      presentCount: libraryAlbums.presentCount,
+      createdAt: libraryAlbums.createdAt,
+    })
+    .from(libraryAlbums)
+    .orderBy(desc(libraryAlbums.createdAt))
+    .limit(Math.min(Math.max(limit, 1), 50));
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    albumArtist: row.albumArtist,
+    year: row.year,
+    releaseMbid: row.releaseMbid,
+    coverPath: row.coverPath,
+    trackCount: row.trackCount,
+    presentCount: row.presentCount,
+    addedAt: row.createdAt.toISOString(),
+  }));
+}
+
 export async function dashboardStats(db: Database = defaultDb()): Promise<DashboardStats> {
   const [statuses, openItems, albums, tracks] = await Promise.all([
     db.select({ status: imports.status, total: count() }).from(imports).groupBy(imports.status),
