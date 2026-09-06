@@ -69,14 +69,32 @@ export const ADMIN = {
  *
  * A full page load rather than a client navigation: the cookie is set by Better Auth's own
  * response, and every loader above has already cached "there is no session".
+ *
+ * **Attempted more than once, on purpose.** Postgres is shared between every checkout on this
+ * machine (`CLAUDE.md`: one server, one database each), and a server under several agents at
+ * once occasionally drops a connection. When it lands on the session lookup the Console shows
+ * *"Something went wrong! Failed to get session"* and the run dies on whichever test happened
+ * to be signing in — seen once as `DrizzleQueryError … cause: Error: read ECONNRESET`, with
+ * `pg-boss` reporting "Connection terminated unexpectedly" in the same second. Nothing about
+ * that is a claim this suite makes, and the next attempt gets a fresh connection.
+ *
+ * `/login` redirects a signed-in browser to the dashboard, so a retry that finds no form is a
+ * retry that has already succeeded.
  */
 export async function signIn(page: Page): Promise<void> {
-  await page.goto("/login");
-  await page.getByTestId("login-email").fill(ADMIN.email);
-  await page.getByTestId("login-password").fill(ADMIN.password);
-  await page.getByTestId("login-submit").click();
-  await page.waitForURL(/\/$/, { timeout: 60_000 });
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(async () => {
+    await page.goto("/login");
+    const email = page.getByTestId("login-email");
+    if ((await email.count()) > 0) {
+      await email.fill(ADMIN.email);
+      await page.getByTestId("login-password").fill(ADMIN.password);
+      await page.getByTestId("login-submit").click();
+    }
+    await page.waitForURL(/\/$/, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+      timeout: 15_000,
+    });
+  }).toPass({ timeout: 120_000, intervals: [1_000, 2_000, 5_000] });
   // The dashboard arrives through a full load, which the patched `goto` above did not make —
   // so the one navigation that escapes the fixture waits for hydration here instead.
   await shellReady(page);
