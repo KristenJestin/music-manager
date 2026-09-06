@@ -912,7 +912,15 @@ function StepMatch({
       : ([...candidates.releases, ...candidates.recordings].find((entry) => entry.preselected) ??
         null);
   const shown = candidates?.releases ?? [];
-  const extra = manual.filter((entry) => !shown.some((known) => known.id === entry.id));
+  /*
+   * A manual search (or a pasted MBID) is scored on its own, so its first result comes back
+   * flagged `preselected` — which would paint a second "preselected" badge on a card the
+   * algorithm never proposed, next to the one it did. The preselection belongs to the original
+   * ranking; a card added by hand is only ever an extra choice.
+   */
+  const extra = manual
+    .filter((entry) => !shown.some((known) => known.id === entry.id))
+    .map((entry) => (entry.preselected ? { ...entry, preselected: false } : entry));
 
   const runSearch = (): void => {
     if (query.trim() === "") return;
