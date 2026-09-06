@@ -81,6 +81,11 @@ test.describe("the MCP server, through the official SDK client", () => {
       "get_settings",
       "update_settings",
       "ytdlp_update",
+      // The four the external test report asked for (§9, §10, §11).
+      "get_status",
+      "discover_sync",
+      "scan",
+      "relocate",
     ]) {
       expect(names, `${expected} should be advertised`).toContain(expected);
     }
@@ -91,6 +96,8 @@ test.describe("the MCP server, through the official SDK client", () => {
       ["search_library", { query: "discovery", limit: 3 }, "albums"],
       ["list_imports", { limit: 5 }, null],
       ["get_settings", {}, "pathTemplate"],
+      // `get_status` is the tool an agent is told to reach for first; it must answer.
+      ["get_status", {}, "problems"],
     ] as const) {
       const called = await client.callTool({ name: tool, arguments: args });
       expect(called.isError ?? false, `${tool} should not answer with an error`).toBe(false);
