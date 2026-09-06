@@ -27,7 +27,14 @@ async function filesBehind(page: Page): Promise<number> {
   return Number.parseInt((await badge.innerText()).trim(), 10);
 }
 
-/** Set the schema override through the Settings page, as a person would. */
+/**
+ * Set the schema override through the Settings page, as a person would.
+ *
+ * It asserts the value **after a reload**, not the toast. The toast says "N setting(s) saved",
+ * and `N` may be zero — which is exactly what happened when the form accepted a keystroke
+ * before React was attached to it: the page saved the values the loader had put there, said so
+ * cheerfully, and the override never moved. A round trip is the only honest confirmation.
+ */
 async function setOverride(page: Page, value: number): Promise<void> {
   await page.goto("/settings/metadata");
   const field = page.getByTestId("setting-tagSchemaVersionOverride");
@@ -35,6 +42,11 @@ async function setOverride(page: Page, value: number): Promise<void> {
   await field.fill(String(value));
   await page.getByTestId("settings-save").click();
   await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
+
+  await page.reload();
+  await expect(page.getByTestId("setting-tagSchemaVersionOverride")).toHaveValue(String(value), {
+    timeout: 60_000,
+  });
 }
 
 /** Wait for the run in flight to finish, whatever it was. */

@@ -29,6 +29,8 @@ import { ToneBadge } from "#/components/status-badge.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { ChipGroup, ChipMulti, FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SettingsForm } from "#/components/settings/settings-form.tsx";
+import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { SchemaHeading } from "#/components/library/schema.tsx";
 import { TagMapTable, type FormatColumns } from "#/components/library/tag-map-table.tsx";
 import { pct } from "#/lib/format.ts";
@@ -61,6 +63,8 @@ function MetadataSettings() {
   const [testing, setTesting] = useState(false);
   const [profile, setProfile] = useState("all");
   const [format, setFormat] = useState<FormatColumns>("vorbis");
+  // Nothing on this page accepts input until React is attached to it; see `SettingsForm`.
+  const hydrated = useHydrated();
 
   const value = <T,>(key: string, fallback: T): T => (values[key] as T | undefined) ?? fallback;
   const set = (key: string, next: unknown): void => {
@@ -106,7 +110,7 @@ function MetadataSettings() {
   const schema = payload.schema;
 
   return (
-    <div className="flex flex-col gap-3.5" data-testid="settings-metadata">
+    <SettingsForm hydrated={hydrated} testId="settings-metadata">
       {/* ---- MusicBrainz ---- */}
       <Section title="MusicBrainz" description="The reference. Everything else refines it.">
         <FormRow
@@ -703,7 +707,7 @@ function MetadataSettings() {
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
-    </div>
+    </SettingsForm>
   );
 }
 

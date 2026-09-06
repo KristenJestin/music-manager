@@ -18,6 +18,8 @@ import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import { SettingsForm } from "#/components/settings/settings-form.tsx";
+import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { ChipGroup, FormRow, ReadOnly, Section, Toggle } from "#/components/settings/controls.tsx";
 import {
   fetchGeneralSettings,
@@ -42,6 +44,8 @@ function LibrarySettings() {
   const [preview, setPreview] = useState(payload.preview);
   const [templateError, setTemplateError] = useState("");
   const [saving, setSaving] = useState(false);
+  // Nothing on this page accepts input until React is attached to it; see `SettingsForm`.
+  const hydrated = useHydrated();
 
   const value = <T,>(key: string, fallback: T): T => (values[key] as T | undefined) ?? fallback;
   const set = (key: string, next: unknown): void => {
@@ -93,7 +97,7 @@ function LibrarySettings() {
   };
 
   return (
-    <div className="flex flex-col gap-3.5" data-testid="settings-library">
+    <SettingsForm hydrated={hydrated} testId="settings-library">
       <Section
         title="Library"
         description="The one directory Navidrome also mounts. Every path stored in a row is relative to it."
@@ -338,6 +342,6 @@ function LibrarySettings() {
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>
-    </div>
+    </SettingsForm>
   );
 }
