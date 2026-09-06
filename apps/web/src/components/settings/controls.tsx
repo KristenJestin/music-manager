@@ -1,15 +1,18 @@
 /**
  * The four form controls the Settings pages are built from.
  *
- * The Console has no `<select>` or switch in `components/ui/` because shadcn's are heavier
- * than this page needs; these four are the prototype's own `row`, `sel`, `tg` and `chip`
- * rendered with the Console's tokens. They stay deliberately dumb — value in, `onChange` out,
- * no state — so that a settings page is one object of values and one Save button, and never a
- * dozen little pieces of state that can disagree with each other.
+ * They are the prototype's own `row`, `tg` and `chip` rendered with the Console's tokens, and
+ * they stay deliberately dumb — value in, `onChange` out, no state — so that a settings page is
+ * one object of values and one Save button, and never a dozen little pieces of state that can
+ * disagree with each other. `Toggle` is a thin wrapper over the shadcn/Base UI `Switch` rather
+ * than a pill of its own (owner review C11); the wrapper is what keeps its thirty call sites
+ * from having to know the primitive's prop names.
  */
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { Check } from "lucide-react";
 import { cn } from "cn";
+import { Label } from "#/components/ui/label.tsx";
+import { Switch } from "#/components/ui/switch.tsx";
 
 /** Label on the left, control on the right, help text under the label. */
 export function FormRow({
@@ -68,7 +71,15 @@ export function Section({
   );
 }
 
-/** A boolean, as the prototype's pill switch. */
+/**
+ * A boolean, as the shadcn/Base UI `Switch`.
+ *
+ * It was a hand-rolled `<button role="switch">` until the owner review (C11): the pill was
+ * drawn here, the keyboard behaviour was whatever a button gives you, and it was the only
+ * control on the Settings pages that did not come from `components/ui/`. The wrapper stays,
+ * because thirty call sites pass `checked` / `onChange` / `label` / `testId` and none of them
+ * should have to know about `onCheckedChange` or about the label being a sibling element.
+ */
 export function Toggle({
   checked,
   onChange,
@@ -80,33 +91,26 @@ export function Toggle({
   readonly label?: string;
   readonly testId?: string;
 }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
+  const id = useId();
+  const control = (
+    <Switch
+      id={id}
+      size="sm"
+      checked={checked}
       aria-label={label}
       data-testid={testId}
-      onClick={() => {
-        onChange(!checked);
-      }}
-      className="flex items-center gap-2 text-xs"
-    >
-      <span
-        className={cn(
-          "relative inline-flex h-4 w-7 items-center rounded-full border transition-colors",
-          checked ? "border-primary-edge bg-primary" : "border-line-strong bg-surface-3",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute size-2.5 rounded-full bg-background transition-transform",
-            checked ? "translate-x-3.5" : "translate-x-0.5",
-          )}
-        />
-      </span>
-      {label === undefined ? null : <span className="text-fg-1">{label}</span>}
-    </button>
+      onCheckedChange={onChange}
+    />
+  );
+  if (label === undefined) return control;
+  return (
+    <span className="flex items-center gap-2">
+      {control}
+      {/* The word beside the switch toggles it too — a `<button>` is a labelable element. */}
+      <Label htmlFor={id} className="text-xs font-normal text-fg-1">
+        {label}
+      </Label>
+    </span>
   );
 }
 

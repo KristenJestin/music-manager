@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { LogIn, Music4 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { Callout } from "#/components/callout.tsx";
 import { signIn } from "#/lib/auth-client.ts";
@@ -85,24 +86,24 @@ function Login() {
         >
           <label className="flex flex-col gap-1.5">
             <span className="text-2xs font-medium text-fg-2">Email</span>
-            <input
+            <Input
               data-testid="login-email"
               type="email"
               name="email"
               autoComplete="username"
               required
-              className="h-8 rounded-md border border-line-strong bg-background px-2.5 outline-none focus:border-primary"
+              className="bg-background text-sm"
             />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-2xs font-medium text-fg-2">Password</span>
-            <input
+            <Input
               data-testid="login-password"
               type="password"
               name="password"
               autoComplete="current-password"
               required
-              className="h-8 rounded-md border border-line-strong bg-background px-2.5 outline-none focus:border-primary"
+              className="bg-background text-sm"
             />
           </label>
 

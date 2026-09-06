@@ -354,8 +354,8 @@ function DownloaderSettings() {
           label="Extra yt-dlp arguments"
           help="One per line. The escape hatch for the next YouTube change."
         >
-          <textarea
-            className="min-h-16 w-full max-w-form rounded-md border border-line-strong bg-surface-2 px-2 py-1.5 font-mono text-2xs"
+          <Textarea
+            className="w-full max-w-form bg-surface-2 font-mono text-2xs md:text-2xs"
             value={form.ytdlpExtraArgs.join("\n")}
             data-testid="input-extra-args"
             onChange={(event) => {

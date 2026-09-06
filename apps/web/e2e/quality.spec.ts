@@ -115,7 +115,9 @@ test.describe("metadata quality and the tag schema", () => {
 
     // The profile re-scores the same albums; it never changes how many there are, because it
     // changes the view and not the files.
-    await page.getByTestId("quality-profile").selectOption("navidrome");
+    // A Base UI `Select`, not a native one since owner review C11: click, then pick the option.
+    await page.getByTestId("quality-profile").click();
+    await page.getByRole("option", { name: /^Navidrome/ }).click();
     await page.waitForURL(/profile=navidrome/, { timeout: 60_000 });
     await expect(page.getByTestId("quality-row")).toHaveCount(all, { timeout: 30_000 });
     await expect(page.getByText("Visible in navidrome")).toBeVisible();

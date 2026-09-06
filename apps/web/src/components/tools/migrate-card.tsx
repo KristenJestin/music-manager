@@ -20,7 +20,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { AlertTriangle, Database, Eye, Play } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
+import { Checkbox } from "#/components/ui/checkbox.tsx";
 import { Input } from "#/components/ui/input.tsx";
+import { Label } from "#/components/ui/label.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
@@ -216,42 +218,52 @@ export function MigrateCard() {
           </span>
         </label>
 
-        <label className="flex items-start gap-2 text-2xs text-fg-2">
-          <input
-            type="checkbox"
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="migrate-rename"
             data-testid="migrate-rename"
             checked={renameToTemplate}
-            onChange={(event) => {
-              setRenameToTemplate(event.target.checked);
+            onCheckedChange={(next) => {
+              setRenameToTemplate(next);
             }}
           />
-          <span>
-            Rename files to the v2 template.{" "}
-            <span className="text-warn">
-              Navidrome identifies files by path: renaming loses play counts and favourites.
+          <Label
+            htmlFor="migrate-rename"
+            className="items-start text-2xs leading-normal font-normal text-fg-2"
+          >
+            <span>
+              Rename files to the v2 template.{" "}
+              <span className="text-warn">
+                Navidrome identifies files by path: renaming loses play counts and favourites.
+              </span>
             </span>
-          </span>
-        </label>
+          </Label>
+        </div>
 
-        <label className="flex items-start gap-2 text-2xs text-fg-2">
-          <input
-            type="checkbox"
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="migrate-backup"
             data-testid="migrate-backup"
             checked={backupConfirmed}
-            onChange={(event) => {
-              setHasBackup(event.target.checked);
+            onCheckedChange={(next) => {
+              setHasBackup(next);
             }}
           />
-          <span>
-            I have a backup of the library and of the v1 database.
-            {acknowledged === null ? null : (
-              <span suppressHydrationWarning className="text-fg-3">
-                {" "}
-                Confirmed {timeAgo(acknowledged)}.
-              </span>
-            )}
-          </span>
-        </label>
+          <Label
+            htmlFor="migrate-backup"
+            className="items-start text-2xs leading-normal font-normal text-fg-2"
+          >
+            <span>
+              I have a backup of the library and of the v1 database.
+              {acknowledged === null ? null : (
+                <span suppressHydrationWarning className="text-fg-3">
+                  {" "}
+                  Confirmed {timeAgo(acknowledged)}.
+                </span>
+              )}
+            </span>
+          </Label>
+        </div>
 
         <div className="flex flex-wrap gap-1.5">
           <Button

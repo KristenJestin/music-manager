@@ -19,6 +19,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { toast as toastManager } from "#/components/ui/toast.tsx";
 import { fetchShell, type ShellPayload } from "#/server/functions/dashboard.ts";
 
 export interface Toast {
@@ -65,17 +66,30 @@ export function ShellProvider({
     });
   }, []);
 
+  /*
+   * The queue itself is Base UI's — `ui/toast`'s module-level manager, which works outside
+   * React and is what `<Toaster />` renders. This context keeps the shape it always had
+   * (`toast(message, tone)`, numeric ids, a readable `toasts` list) and delegates: the numeric
+   * id is handed to the manager as its string id, so `dismissToast` is a `close`, and the list
+   * is kept in step by the manager's own `onRemove` rather than by a second timer.
+   */
   const toast = useCallback((message: string, tone: Toast["tone"] = "info") => {
     const id = nextToastId.current;
     nextToastId.current += 1;
+    toastManager.add({
+      id: String(id),
+      title: message,
+      type: tone,
+      timeout: TOAST_MS,
+      onRemove: () => {
+        setToasts((current) => current.filter((entry) => entry.id !== id));
+      },
+    });
     setToasts((current) => [...current, { id, message, tone }]);
-    setTimeout(() => {
-      setToasts((current) => current.filter((entry) => entry.id !== id));
-    }, TOAST_MS);
   }, []);
 
   const dismissToast = useCallback((id: number) => {
-    setToasts((current) => current.filter((entry) => entry.id !== id));
+    toastManager.close(String(id));
   }, []);
 
   useEffect(() => {

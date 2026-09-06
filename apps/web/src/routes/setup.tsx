@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Music4, UserPlus } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { Callout } from "#/components/callout.tsx";
 import { signIn } from "#/lib/auth-client.ts";
@@ -75,37 +76,37 @@ function Setup() {
         >
           <label className="flex flex-col gap-1.5">
             <span className="text-2xs font-medium text-fg-2">Email</span>
-            <input
+            <Input
               data-testid="setup-email"
               type="email"
               name="email"
               autoComplete="username"
               required
-              className="h-8 rounded-md border border-line-strong bg-background px-2.5 outline-none focus:border-primary"
+              className="bg-background text-sm"
             />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-2xs font-medium text-fg-2">Password</span>
-            <input
+            <Input
               data-testid="setup-password"
               type="password"
               name="password"
               autoComplete="new-password"
               required
               minLength={8}
-              className="h-8 rounded-md border border-line-strong bg-background px-2.5 outline-none focus:border-primary"
+              className="bg-background text-sm"
             />
             <span className="text-2xs text-fg-3">At least 8 characters.</span>
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-2xs font-medium text-fg-2">Confirm password</span>
-            <input
+            <Input
               data-testid="setup-confirm"
               type="password"
               name="confirm"
               autoComplete="new-password"
               required
-              className="h-8 rounded-md border border-line-strong bg-background px-2.5 outline-none focus:border-primary"
+              className="bg-background text-sm"
             />
           </label>
 

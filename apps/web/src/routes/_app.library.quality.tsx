@@ -20,6 +20,8 @@ import { PROFILE_IDS } from "@mm/domain";
 import { FolderTree, Layers, Settings2, ShieldCheck, Sparkles, Tag } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
+import { Checkbox } from "#/components/ui/checkbox.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
@@ -75,6 +77,13 @@ function Quality() {
   const profiled = params.profile !== "global";
   const scoreOf = (quality: (typeof payload.rows)[number]["quality"]): number | null =>
     profiled ? quality.byProfile[params.profile as never] : quality.score;
+
+  /** What the closed profile selector reads. `Select` shows a label, not the search value. */
+  const profileLabel = ((): string => {
+    const entry = payload.profiles.find((item) => item.id === params.profile);
+    if (entry === undefined) return "Global (superset)";
+    return `${entry.name}${entry.status === "verified" ? " (verified)" : ""}`;
+  })();
 
   const act = (label: string, run: () => Promise<string>): void => {
     setBusy(label);
@@ -366,25 +375,38 @@ function Quality() {
       {/* ---- profile ---- */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="text-2xs text-fg-2">Profile</span>
-        <select
-          data-testid="quality-profile"
+        <Select
           value={params.profile}
-          onChange={(event) => {
+          onValueChange={(next: string | null) => {
+            if (next === null) return;
             void navigate({
               to: "/library/quality",
-              search: { ...params, profile: event.target.value as typeof params.profile },
+              search: { ...params, profile: next as typeof params.profile },
             });
           }}
-          className="h-7 rounded-lg border border-line bg-surface-1 px-2 text-xs"
         >
-          <option value="global">Global (superset)</option>
-          {payload.profiles.map((profile) => (
-            <option key={profile.id} value={profile.id}>
-              {profile.name}
-              {profile.status === "verified" ? " (verified)" : ""}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            size="sm"
+            data-testid="quality-profile"
+            aria-label="Scoring profile"
+            className="border-line bg-surface-1 text-xs"
+          >
+            <span data-slot="select-value" className="truncate">
+              {profileLabel}
+            </span>
+          </SelectTrigger>
+          <SelectContent className="text-xs">
+            <SelectItem value="global" className="text-xs">
+              Global (superset)
+            </SelectItem>
+            {payload.profiles.map((profile) => (
+              <SelectItem key={profile.id} value={profile.id} className="text-xs">
+                {profile.name}
+                {profile.status === "verified" ? " (verified)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <span className="text-2xs text-fg-3">
           {profiled
             ? (() => {
@@ -459,12 +481,11 @@ function Quality() {
                   className="border-b border-line last:border-b-0 hover:bg-surface-2"
                 >
                   <td className="px-2.5 py-1.5">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       aria-label={`Select ${row.title}`}
                       data-testid={`quality-select-${row.albumId}`}
                       checked={selected.includes(row.albumId)}
-                      onChange={() => {
+                      onCheckedChange={() => {
                         toggle(row.albumId);
                       }}
                     />

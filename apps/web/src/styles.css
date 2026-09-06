@@ -288,6 +288,43 @@
     @apply font-mono text-xs;
   }
 
+  /*
+   * The hand cursor, restored once for the whole Console (owner review C1).
+   *
+   * Tailwind v4's Preflight dropped the `cursor: pointer` that browsers give `button`, so
+   * every button, tab and menu entry came out with the arrow. This is the one place that
+   * fixes it: putting `cursor-pointer` on each component instead would have to be re-done
+   * every time `components/ui/**` is re-added with the shadcn CLI.
+   *
+   * The `role=` selectors are the Base UI parts that are not a `<button>` — a menu item, a
+   * select option and a tab are `<div>`s — and `label[for]` is the label that focuses the
+   * control it names. Anchors keep the browser's own pointer.
+   */
+  button,
+  summary,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"] {
+    cursor: pointer;
+  }
+
+  /*
+   * A control that cannot be used says so. Both selectors outrank the element selectors
+   * above, so order inside the layer does not matter. `data-disabled` is left to Base UI's
+   * own `pointer-events-none`; it also lands on wrappers, where `not-allowed` would be wrong.
+   */
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   ::selection {
     @apply bg-primary-soft;
   }
