@@ -23,6 +23,7 @@ import {
   testUrl,
   updateYtdlp,
 } from "#/server/services/tools.ts";
+import { systemStatus } from "#/server/services/status.ts";
 import { lastScan, recentScans } from "#/server/services/scan.ts";
 import { enqueueLibraryScan } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
@@ -216,6 +217,29 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
       const jobId = await enqueueLibraryScan({ trigger: "api" });
       return c.json({ queued: true, jobId }, 202);
     },
+  );
+
+  /* ---- status: the four moving parts, in one answer ---- */
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/status",
+      tags: [TAG],
+      summary: "Which half of this installation is broken?",
+      description:
+        "Database, toolbox (reachable, fixtures mode, binary versions), Navidrome, and whether " +
+        "a **worker** is alive to drain the queues — plus the last import that failed, with " +
+        "its error in full. `/health` says the stack answers; this says whether it works.\n\n" +
+        "`problems` is the actionable list and is empty exactly when `ok` is true. Like every " +
+        "route in this file it never throws: a dead component is a field, not a 500.",
+      middleware: [requireScope("tools:read")] as const,
+      responses: {
+        200: { content: { "application/json": { schema: anyJson } }, description: "The status" },
+        ...FAILURES,
+      },
+    }),
+    async (c) =>
+      c.json((await systemStatus({ db: db() })) as unknown as Record<string, unknown>, 200),
   );
 
   return app;

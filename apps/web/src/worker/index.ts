@@ -22,7 +22,11 @@ import {
   type RunOutcome,
 } from "#/server/services/jobs/index.ts";
 import { loadSettings } from "#/server/services/settings.ts";
+import { beatWorker } from "#/server/services/status.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
+
+/** How often the worker says it is alive. A third of `WORKER_STALE_MS`, so one miss is fine. */
+const WORKER_BEAT_MS = 30_000;
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
@@ -232,6 +236,19 @@ export async function startWorker(): Promise<Worker> {
   const outdated = await queueOutdated(boss, { db: db(), trigger: "schema" });
   if (outdated !== null) log("re-tag queued for files behind the tag schema", { runId: outdated });
 
+  /*
+   * The heartbeat. Nothing else in the system could answer "is anything draining the queues?",
+   * so `get_status` could not either — and "queued" reads exactly like "running" from outside.
+   * One row, overwritten; `unref()` so this timer is never the reason the process stays up.
+   */
+  await beatWorker(db());
+  const heartbeat = setInterval(() => {
+    void beatWorker(db()).catch((error: unknown) => {
+      log("heartbeat failed", { error: MMError.from(error).message });
+    });
+  }, WORKER_BEAT_MS);
+  heartbeat.unref?.();
+
   const settings = await loadSettings(db());
   log("worker ready", {
     fixtures: env.MM_FIXTURES,
@@ -244,6 +261,7 @@ export async function startWorker(): Promise<Worker> {
     boss,
     async stop() {
       shutdown.abort();
+      clearInterval(heartbeat);
       // `graceful` lets the step that is running finish its current write before the
       // connection goes away; anything it did not reach is still in the database.
       await stopBoss(boss);
