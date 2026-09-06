@@ -265,8 +265,21 @@ export function compareAlbum(written: Map<string, string[]>, read: ReadBack): Ve
       wrote("originaldate"),
       isoDate(album.originalReleaseDate),
     ),
-    row("genres[]", "genre", wrote("genre"), names(album.genres)),
-    row("moods[]", "mood", wrote("mood"), album.moods),
+    /*
+     * GENRE and MOOD are **track** tags, so they are compared against the track.
+     *
+     * Navidrome's album-level `genres` is the union of every track's, which on a varied album
+     * is a dozen values against the three this track carries — comparing the two would report
+     * a mismatch on a library that is perfectly tagged. The album list is the fallback only
+     * for a server that exposes no per-song genres at all.
+     */
+    row(
+      "genres[]",
+      "genre",
+      wrote("genre"),
+      names(song.genres).length > 0 ? names(song.genres) : (song.genre ?? names(album.genres)),
+    ),
+    row("moods[]", "mood", wrote("mood"), (song.moods ?? []).length > 0 ? song.moods : album.moods),
     row("releaseTypes[]", "releasetype", wrote("releasetype"), album.releaseTypes),
     row("recordLabels[]", "label", wrote("label"), names(album.recordLabels)),
     row(
@@ -307,11 +320,21 @@ export function compareAlbum(written: Map<string, string[]>, read: ReadBack): Ve
       wrote("explicit").map((value) => (value === "1" ? "explicit" : "clean")),
       song.explicitStatus,
     ),
+    /*
+     * `contributors` is Navidrome's merged credit list — composer, lyricist, producer,
+     * engineer and performer in one array, each tagged with its role. PERFORMER is the only
+     * one of those the tag map calls `performer`, so the list is filtered to that role before
+     * it is compared; against the whole list, an album with a producer and one guest vocalist
+     * reads back as a permanent mismatch.
+     */
     row(
       "contributors",
       "performer",
       wrote("performer").map((value) => value.replace(/\s*\(.*\)$/, "")),
-      (song.contributors ?? []).map((entry) => entry.artist?.name ?? "").filter(Boolean),
+      (song.contributors ?? [])
+        .filter((entry) => (entry.role ?? "").toLowerCase() === "performer")
+        .map((entry) => entry.artist?.name ?? "")
+        .filter(Boolean),
     ),
     row("coverArt", "front_cover", wrote("front_cover"), read.coverOk ? "front cover" : null),
   ];

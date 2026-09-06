@@ -36,7 +36,10 @@
     "cache:seed-fixtures": "bun run apps/web/src/server/integrations/seed-fixtures.ts",
     "cache-seed-fixtures": "bun run apps/web/src/server/integrations/seed-fixtures.ts",
     "e2e-web": "bun run scripts/e2e-web.ts",
-    "e2e:web": "bun run scripts/e2e-web.ts"
+    "e2e:web": "bun run scripts/e2e-web.ts",
+    "e2e-verify": "bun run scripts/e2e-verify.ts",
+    "e2e:verify": "bun run scripts/e2e-verify.ts",
+    "navidrome:record": "bun run apps/web/src/server/integrations/navidrome/record-cassettes.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

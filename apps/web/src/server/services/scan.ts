@@ -218,16 +218,27 @@ export function compareTags(
     fieldOf.set(key, tag.field);
   }
 
-  // ffprobe lower-cases some keys and keeps others as written; index case-insensitively.
+  /*
+   * What ffprobe reports is not quite what mutagen wrote, in two specific ways — and both,
+   * left uncorrected, report *every file in the library* as drifted:
+   *
+   *  - a **repeated** Vorbis comment comes back as one string with the values joined by `;`
+   *    (`Thomas Bangalter;Guy-Manuel de Homem-Christo`), not as a list;
+   *  - a few keys are **renamed** into ffmpeg's own generic vocabulary, so `ALBUMARTIST`
+   *    arrives as `ALBUM_ARTIST`, `TRACKNUMBER` as `TRACK`, `DISCNUMBER` as `DISC`.
+   *
+   * Splitting on `;` is safe where splitting on `,` would not be: `COMPOSERSORT` legitimately
+   * carries a comma inside one value (`Bangalter, Thomas`).
+   */
   const actual = new Map<string, string[]>();
   for (const [key, value] of Object.entries(fileTags)) {
     const upper = key.toUpperCase();
     const values = Array.isArray(value)
       ? value.map((item) => String(item))
-      : String(value ?? "").split(/\r?\n/);
+      : String(value ?? "").split(/[;\n]/);
     actual.set(
       upper,
-      values.filter((item) => item.trim() !== ""),
+      values.map((item) => item.trim()).filter((item) => item !== ""),
     );
   }
 
@@ -235,7 +246,8 @@ export function compareTags(
   for (const [key, values] of expected) {
     // Pictures and lyrics do not survive ffprobe's tag dictionary in a comparable form.
     if (SKIP_DRIFT.has(key)) continue;
-    const got = actual.get(key) ?? [];
+    const alias = FFPROBE_ALIASES[key];
+    const got = actual.get(key) ?? (alias === undefined ? [] : (actual.get(alias) ?? []));
     const left = new Set(values.map((value) => value.trim().toLowerCase()));
     const right = new Set(got.map((value) => value.trim().toLowerCase()));
     const same = left.size === right.size && [...left].every((value) => right.has(value));
@@ -256,6 +268,18 @@ export function compareTags(
  * `LYRICS` is megabytes of LRC that ffprobe truncates, and the picture blocks are binary.
  * Reporting them as drift on every single file would drown the four real findings.
  */
+/**
+ * The canonical Vorbis keys ffmpeg renames on the way out.
+ *
+ * Measured against the toolbox's own `/probe` on a file this project wrote, not guessed:
+ * everything else in the Picard table comes back under the name mutagen used.
+ */
+const FFPROBE_ALIASES: Readonly<Record<string, string>> = {
+  ALBUMARTIST: "ALBUM_ARTIST",
+  TRACKNUMBER: "TRACK",
+  DISCNUMBER: "DISC",
+};
+
 const SKIP_DRIFT = new Set([
   "LYRICS",
   "UNSYNCEDLYRICS",

@@ -319,22 +319,37 @@ export const redownloadMissing = createServerFn({ method: "POST", strict: STRICT
 export const fixDrift = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ trackIds: z.array(z.string().min(1)).min(1) }))
-  .handler(async ({ data }): Promise<{ queued: boolean; count: number }> => {
+  .handler(async ({ data }): Promise<{ queued: boolean; count: number; runIds: string[] }> => {
     try {
+      const database = db();
+      const { createRun } = await import("#/server/services/retag.ts");
+      const { enqueueRetag } = await import("#/worker/handlers/retag.ts");
       const { createBoss, ensureQueues, stopBoss } = await import("#/worker/queues.ts");
+
+      // `onlyBehind: false` — a drifted file is at the current schema version by definition;
+      // what is wrong with it is the *file*, not the projection it was written from.
+      const runs = [];
+      for (const trackId of data.trackIds) {
+        runs.push(
+          await createRun({
+            db: database,
+            scope: "track",
+            targetId: trackId,
+            onlyBehind: false,
+            trigger: "manual",
+          }),
+        );
+      }
+
       const boss = createBoss({ producer: true });
       try {
         await boss.start();
         await ensureQueues(boss);
-        await boss.send(
-          "retag",
-          { libraryTrackIds: data.trackIds, reason: "drift", dryRun: false },
-          { retryLimit: 0 },
-        );
+        for (const run of runs) await enqueueRetag(boss, { runId: run.id });
       } finally {
         await stopBoss(boss);
       }
-      return { queued: true, count: data.trackIds.length };
+      return { queued: true, count: data.trackIds.length, runIds: runs.map((run) => run.id) };
     } catch (error) {
       return toFailure(error);
     }

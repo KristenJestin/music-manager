@@ -136,16 +136,9 @@ function discoveryDocument(): TrackDocument {
   put("artists", ["Daft Punk"]);
   put("date", "2001-02-26");
   put("originaldate", "2001-02-26");
-  put("genre", [
-    "electronic",
-    "house",
-    "dance",
-    "ambient",
-    "ambient house",
-    "breakbeat",
-    "electro",
-    "french house",
-  ]);
+  // The *track's* three genres, not the album's eight: Navidrome's album list is the
+  // union over every track, and GENRE is a track tag.
+  put("genre", ["house", "electronic", "dance"]);
   put("mood", ["party"]);
   put("releasetype", ["album"]);
   put("label", ["Virgin"]);
@@ -255,7 +248,35 @@ describe("compareAlbum", () => {
     const rows = compareAlbum(writtenValues(discoveryDocument()), {
       ...read,
       album: { ...read.album, moods: [] },
+      song: { ...read.song, moods: [] },
     });
     expect(rows.find((row) => row.name === "moods[]")?.status).toBe("not_indexed");
+  });
+
+  it("compares genres against the track, not against the album's union of them", async () => {
+    const read = await readBack();
+    // The album carries eight genres because fourteen tracks contributed to it; the track
+    // carries three. Judging one track against the union would fail a perfect library.
+    expect((read.album.genres ?? []).length).toBeGreaterThan((read.song.genres ?? []).length);
+    const rows = compareAlbum(writtenValues(discoveryDocument()), read);
+    expect(rows.find((row) => row.name === "genres[]")?.status).toBe("ok");
+  });
+
+  it("compares contributors against the performer role alone, not the merged credits", async () => {
+    const read = await readBack();
+    const merged = (read.song.contributors ?? []).map((entry) => entry.role);
+    // Navidrome merges composer, producer and performer into one array…
+    expect(merged).toContain("producer");
+    const rows = compareAlbum(writtenValues(discoveryDocument()), {
+      ...read,
+      song: {
+        ...read.song,
+        contributors: [
+          ...(read.song.contributors ?? []),
+          { role: "performer", artist: { name: "Romanthony" } },
+        ],
+      },
+    });
+    expect(rows.find((row) => row.name === "contributors")).toBeUndefined();
   });
 });
