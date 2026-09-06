@@ -12,7 +12,12 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { DEFAULT_WEIGHTS } from "@mm/domain";
+import {
+  DEFAULT_PATH_TEMPLATE,
+  DEFAULT_WEIGHTS,
+  DISC_MODES,
+  validatePathTemplate,
+} from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { settings as settingsTable } from "#/server/db/schema/index.ts";
 
@@ -232,6 +237,19 @@ export const SETTING_DEFINITIONS = {
   replayGainReferenceLoudness: define(z.number(), -18, "rsgain's reference loudness, in LUFS."),
 
   /* ---- placement (docs/04 § Étapes, `place`) ---- */
+  pathTemplate: define(
+    z.string().refine((value) => validatePathTemplate(value).ok, {
+      message:
+        "unusable template — every token must exist and {title} must appear, or two tracks of an album would share a file name",
+    }),
+    DEFAULT_PATH_TEMPLATE,
+    "Where a track is filed, as a template. The default is the layout `packages/domain/paths` ships, byte for byte. Tokens: {albumArtist} {album} {year} {disc} {disc-} {track} {track:02} {title} {artist} {ext} {mbid}.",
+  ),
+  discMode: define(
+    z.enum(DISC_MODES),
+    "prefix",
+    "How a multi-disc release is numbered: `prefix` (1-01), `folder` (Disc 1/01) or `continuous` (numbered straight through).",
+  ),
   sanitizeMode: define(
     sanitizeMode,
     "windows",
@@ -474,7 +492,7 @@ export const SETTING_DEFINITIONS = {
     "",
     "The webhook URL, ntfy topic or e-mail address the channel writes to.",
   ),
-  notificationsEvents: define(
+  notificationsEvents: define<("job_failed" | "inbox_opened" | "scan_report" | "verify_mismatch")[]>(
     z.array(z.enum(["job_failed", "inbox_opened", "scan_report", "verify_mismatch"])),
     ["job_failed", "inbox_opened"],
     "Which events are worth a notification.",

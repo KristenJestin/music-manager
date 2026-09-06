@@ -22,6 +22,25 @@ import {
   stopBoss,
 } from "#/worker/queues.ts";
 
+/**
+ * Ask for a library scan (P07b).
+ *
+ * The queue is `singleton`, so pressing "Scan now" while the nightly run is going joins it
+ * rather than starting a second walk of the same tree.
+ */
+export async function enqueueLibraryScan(
+  job: { trigger?: string; driftLimit?: number } = {},
+): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    return await boss.send("scan", job, { singletonKey: "library-scan", retryLimit: 0 });
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
 export async function enqueue(importId: string, reason: string, step?: StepName): Promise<void> {
   const boss = createBoss({ producer: true });
   try {
