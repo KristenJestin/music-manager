@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { Link, createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import {
+  ArrowRight,
   ArrowUpNarrowWide,
   ExternalLink,
   Fingerprint,
@@ -16,12 +17,17 @@ import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
-import { Stepper } from "#/components/stepper.tsx";
-import { ImportStatusBadge, ToneBadge, TrackStateBadge } from "#/components/status-badge.tsx";
+import { PipelineStepper } from "#/components/pipeline-dots.tsx";
+import {
+  ImportStatusBadge,
+  STEP_STATUS_META,
+  ToneBadge,
+  TrackStateBadge,
+} from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { dateTime, mmss, short } from "#/lib/format.ts";
-import { STEPS, type ImportStatus } from "#/server/db/schema/enums.vocab.ts";
+import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import { bumpJob, cancelJob, fetchJob, pauseJob, retryJob } from "#/server/functions/jobs.ts";
 
@@ -90,7 +96,6 @@ function JobPage() {
     );
   };
 
-  const stepIndex = STEPS.indexOf(job.step);
   const release = (match ?? {}) as { releaseMbid?: string; mapped?: number; extras?: number };
 
   const columns: Column<ImportTrack>[] = [
@@ -114,10 +119,14 @@ function JobPage() {
     },
     {
       key: "recording",
-      header: "→ MusicBrainz recording",
+      header: (
+        <span className="inline-flex items-center gap-1">
+          <ArrowRight className="size-3" aria-hidden="true" /> MusicBrainz recording
+        </span>
+      ),
       cell: (track) =>
         track.trackTitle === null ? (
-          <span className="text-fg-3">— not bound —</span>
+          <span className="text-fg-3">not bound</span>
         ) : (
           <div className="min-w-0">
             <div className="truncate">{track.trackTitle}</div>
@@ -132,7 +141,7 @@ function JobPage() {
       header: "Conf.",
       cell: (track) =>
         track.confidence === null ? (
-          <span className="text-fg-3">—</span>
+          <span className="text-fg-3">not scored</span>
         ) : (
           <ScoreBar value={track.confidence} />
         ),
@@ -150,7 +159,7 @@ function JobPage() {
             <Fingerprint className="size-3" aria-hidden="true" /> differs
           </ToneBadge>
         ) : (
-          <span className="text-fg-3">—</span>
+          <span className="text-fg-3">not checked</span>
         ),
     },
     {
@@ -158,7 +167,7 @@ function JobPage() {
       header: "File",
       cell: (track) => (
         <span className="block max-w-64 truncate font-mono text-2xs text-fg-2">
-          {track.libraryPath ?? "—"}
+          {track.libraryPath ?? "not placed"}
         </span>
       ),
     },
@@ -176,7 +185,7 @@ function JobPage() {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-semibold tracking-tight">{job.title ?? job.url}</h1>
-            {job.artist === null ? null : <span className="text-fg-2">— {job.artist}</span>}
+            {job.artist === null ? null : <span className="text-fg-2">by {job.artist}</span>}
             <ImportStatusBadge status={job.status} />
             <ToneBadge outline>{job.kind}</ToneBadge>
             {live ? (
@@ -193,12 +202,7 @@ function JobPage() {
               </a>
             )}
           </div>
-          <Stepper
-            className="mt-2.5"
-            steps={[...STEPS]}
-            current={stepIndex}
-            done={job.status === "done" ? STEPS.length : stepIndex}
-          />
+          <PipelineStepper className="mt-2.5" step={job.step} status={job.status} />
         </div>
         <div className="flex shrink-0 gap-2">
           {job.status === "failed" ? (
@@ -269,7 +273,7 @@ function JobPage() {
 
       {job.error === null ? null : (
         <Callout tone="danger" className="mb-3.5">
-          <b>{job.error.code}</b> — {job.error.hint ?? job.error.message}
+          <b>{job.error.code}</b>: {job.error.hint ?? job.error.message}
           <div className="mt-1.5 font-mono text-2xs opacity-80">{job.error.message}</div>
         </Callout>
       )}
@@ -320,9 +324,9 @@ function JobPage() {
               ) : (
                 <KeyValueList
                   items={[
-                    { label: "Title", value: job.title ?? "—" },
-                    { label: "Artist", value: job.artist ?? "—" },
-                    { label: "Year", value: job.year ?? "—" },
+                    { label: "Title", value: job.title ?? "not resolved" },
+                    { label: "Artist", value: job.artist ?? "not resolved" },
+                    { label: "Year", value: job.year ?? "not resolved" },
                     {
                       label: "MBID",
                       value: <span className="font-mono text-2xs">{job.releaseMbid}</span>,
@@ -377,10 +381,12 @@ function JobPage() {
                     entry.row === null ? (
                       <span className="text-fg-3">not run</span>
                     ) : (
-                      <span>
-                        {entry.row.status}
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        <ToneBadge tone={STEP_STATUS_META[entry.row.status].tone}>
+                          {STEP_STATUS_META[entry.row.status].label}
+                        </ToneBadge>
                         {entry.row.message === null ? null : (
-                          <span className="text-fg-2"> · {entry.row.message}</span>
+                          <span className="text-fg-2">{entry.row.message}</span>
                         )}
                       </span>
                     ),
