@@ -42,6 +42,19 @@ function pad(value: string, width: number): string {
   return value.length >= width ? value.slice(0, width) : value.padEnd(width, " ");
 }
 
+/**
+ * What to write in the name column.
+ *
+ * A similar-artist row *is* the artist: its `title` and its `artist` are the same string, so
+ * the generic `artist — title` printed `Cassius — Cassius`, which reads like a record nobody
+ * made. Exported so `discover.cli.test.ts` can pin it without a database.
+ */
+export function labelOf(item: DiscoverItemView): string {
+  return item.kind === "similar_artist" || item.artist === item.title
+    ? item.title
+    : `${item.artist} — ${item.title}`;
+}
+
 function printItems(title: string, items: readonly DiscoverItemView[], limit: number): void {
   out("");
   out(`${title} (${String(items.length)})`);
@@ -52,7 +65,7 @@ function printItems(title: string, items: readonly DiscoverItemView[], limit: nu
   for (const item of items.slice(0, limit)) {
     const score = `${String(Math.round(item.score * 100))}%`.padStart(4, " ");
     out(
-      ` ${score}  ${pad(`${item.artist} — ${item.title}`, 46)}  ${item.inLibrary ? "in library" : "          "}  ${item.reason}`,
+      ` ${score}  ${pad(labelOf(item), 46)}  ${item.inLibrary ? "in library" : "          "}  ${item.reason}`,
     );
   }
   if (items.length > limit) out(`  … and ${String(items.length - limit)} more (--limit)`);
