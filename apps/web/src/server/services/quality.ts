@@ -168,17 +168,60 @@ const EMPTY_PROFILES: Readonly<Record<ProfileId, null>> = Object.freeze(
   Object.fromEntries(PROFILE_IDS.map((id) => [id, null])) as Record<ProfileId, null>,
 );
 
+/**
+ * What the `source` column of the tag map names, when it names MusicBrainz.
+ *
+ * The whole point of splitting this out is that "Fetch from MusicBrainz" must be a *claim*
+ * about where the field comes from, not a default. `originalfilename`'s source is
+ * `` `<youtube id>.<ext>` ``, and telling a reader to fetch it from MusicBrainz — which the
+ * old `return` at the bottom did for every unmatched field — is advice that cannot work.
+ */
+const MUSICBRAINZ_MARKERS = [
+  "mbid",
+  "recording",
+  "release",
+  "release-group",
+  "work",
+  "medium",
+  "track",
+  "artist",
+  "url-rels",
+  "mb ",
+  "mb genres",
+  "mb tags",
+  "classical works",
+];
+
 /** A field's value comes from somewhere; that somewhere is what the "Fetch" button does. */
-function actionFor(field: string): string {
+export function actionFor(field: string): string {
   const tag = tagByField(field);
-  const source = tag?.source ?? "";
+  const source = (tag?.source ?? "").toLowerCase();
+  if (source === "") return "Edit by hand";
+
+  /* The specific non-MusicBrainz sources, each with the thing that actually refreshes it. */
   if (source.includes("lrclib")) return "Retry LRCLIB";
-  if (source.includes("acoustid")) return "Fingerprint";
+  if (source.includes("acoustid") || source.includes("fpcalc")) return "Fingerprint";
   if (source.includes("rsgain") || source.includes("replaygain")) return "Run ReplayGain";
   if (source.includes("last.fm") || source.includes("lastfm")) return "Fetch from Last.fm";
+  if (source.includes("listenbrainz")) return "Fetch from ListenBrainz";
+  if (source.includes("deezer")) return "Fetch from Deezer";
   if (source.includes("cover") || source.includes("artwork")) return "Fetch artwork";
-  if (source.includes("relation")) return "Fetch MB relations";
-  return "Fetch from MusicBrainz";
+  if (source.includes("relation") || source.includes("-rels")) return "Fetch MB relations";
+  if (source.includes("yt-dlp") || source.includes("youtube")) {
+    return "Comes from the source video — re-import to refresh it";
+  }
+  if (source.includes("local analysis")) return "Analyse the file";
+  if (source === "application") return "Written by Music Manager itself — re-tag";
+  if (source.includes("heuristic")) return "Derived, not fetched — edit by hand";
+
+  /*
+   * Only now may the answer be MusicBrainz, and only when the source says so. Anything left
+   * over is a field nobody fetches: saying "edit by hand" is less useful than a fetch button
+   * and more useful than a fetch button that does nothing.
+   */
+  return MUSICBRAINZ_MARKERS.some((marker) => source.includes(marker))
+    ? "Fetch from MusicBrainz"
+    : "Edit by hand";
 }
 
 /** True when the document carries usable lyrics — synced or plain. */
@@ -211,6 +254,15 @@ export function scoreAlbum(
   album: LibraryAlbum,
   loaded: readonly LoadedTrack[],
   currentSchema: number,
+  /**
+   * The ids whose file is really on disk, when the caller has checked.
+   *
+   * Omit it and `presentCount` counts *rows*, which is what the grid wants: it renders
+   * hundreds of albums and must not stat the whole library to do it. `albumDetail` passes the
+   * set, because "13/13 present" over an empty directory is the failure this parameter exists
+   * to stop — an agent read it, concluded the library was healthy, and it was not there at all.
+   */
+  onDisk?: ReadonlySet<string>,
 ): AlbumQuality {
   const documents = loaded
     .map((entry) => entry.document)
@@ -300,7 +352,10 @@ export function scoreAlbum(
     missing,
     naCount: overall.na.length,
     trackCount: album.trackCount,
-    presentCount: tracks.length,
+    presentCount:
+      onDisk === undefined
+        ? tracks.length
+        : tracks.filter((track) => onDisk.has(track.libraryTrackId)).length,
     documentCount: documents.length,
     schemaVersion: schemaVersions.length === 0 ? null : Math.min(...schemaVersions),
     filesBehind: tracks.filter((track) => track.behind).length,

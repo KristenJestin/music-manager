@@ -278,8 +278,20 @@ export async function albumDetail(
     .where(eq(libraryTracks.albumId, albumId))
     .orderBy(libraryTracks.discNumber, libraryTracks.trackNumber);
 
+  /*
+   * `present` used to be the literal `true`, which made it worthless: an album whose files had
+   * been deleted behind our back reported 13/13 present while `retag` failed thirteen times
+   * with `NOT_FOUND`. A row is a claim about a file; only the filesystem settles it. One
+   * `existsSync` per track and no toolbox round trip, which is what keeps this affordable
+   * (`compareWithFiles` is the expensive one, and it stays a tab you open on purpose).
+   */
+  const paths = resolvePaths(settings);
+  const onDisk = new Set(
+    tracks.filter((track) => existsSync(hostPath(paths, track.path))).map((track) => track.id),
+  );
+
   const loaded = await documentsOfTracks(tracks, db);
-  const quality = scoreAlbum(album, loaded, currentSchema);
+  const quality = scoreAlbum(album, loaded, currentSchema, onDisk);
   const documents = loaded
     .map((entry) => entry.document)
     .filter((document): document is TrackDocument => document !== null);
@@ -321,7 +333,7 @@ export async function albumDetail(
       recordingMbid: track.recordingMbid,
       trackMbid: track.trackMbid,
       tagSchemaVersion: track.tagSchemaVersion,
-      present: true,
+      present: onDisk.has(track.id),
       videoId: source?.videoId ?? null,
       importId: track.importId,
       importTrackId: track.importTrackId,

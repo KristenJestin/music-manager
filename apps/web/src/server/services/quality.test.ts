@@ -10,7 +10,14 @@ import { describe, expect, it } from "vitest";
 import { field, projectDocument, type TrackDocument } from "@mm/domain";
 import type { LibraryAlbum, LibraryTrack } from "#/server/db/schema/index.ts";
 import { projectionHash } from "#/server/services/jobs/steps/tag.ts";
-import { matchesFilter, scoreAlbum, summarise, tagMapRows, type LoadedTrack } from "./quality.ts";
+import {
+  actionFor,
+  matchesFilter,
+  scoreAlbum,
+  summarise,
+  tagMapRows,
+  type LoadedTrack,
+} from "./quality.ts";
 
 const AT = "2026-09-05T00:00:00.000Z";
 
@@ -260,5 +267,52 @@ describe("tagMapRows", () => {
     const mbid = tagMapRows().find((row) => row.field === "musicbrainz_recordingid");
     // Plex runs its own matcher and ignores MusicBrainz identifiers entirely.
     expect(mbid?.readers).not.toContain("plex");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* MCP test report §4 and §14                                          */
+/* ------------------------------------------------------------------ */
+
+describe("presentCount is a fact about the disk, when the caller has checked", () => {
+  const two = [loaded(), loaded({ track: track({ id: "ltr_2", trackNumber: 2 }) })];
+
+  it("counts rows when no set is supplied — the grid, which must not stat the library", () => {
+    expect(scoreAlbum(album(), two, 1).presentCount).toBe(2);
+  });
+
+  it("counts only what is on disk when the set is supplied", () => {
+    // `get_album` answered `13/13 present` over an empty directory while `retag` failed
+    // thirteen times with NOT_FOUND. Half a set means half a count.
+    expect(scoreAlbum(album(), two, 1, new Set(["ltr_1"])).presentCount).toBe(1);
+    expect(scoreAlbum(album(), two, 1, new Set()).presentCount).toBe(0);
+  });
+});
+
+describe("actionFor never promises MusicBrainz for a field MusicBrainz does not have", () => {
+  it("sends `originalfilename` back to the source video, not to MusicBrainz", () => {
+    // Its source is `` `<youtube id>.<ext>` ``; the old default said "Fetch from MusicBrainz".
+    expect(actionFor("originalfilename")).not.toContain("MusicBrainz");
+    expect(actionFor("originalfilename")).toContain("source video");
+  });
+
+  it("keeps the actions that were already right", () => {
+    expect(actionFor("lyrics")).toBe("Retry LRCLIB");
+    expect(actionFor("acoustid")).toBe("Fingerprint");
+    expect(actionFor("replaygain_track_gain")).toBe("Run ReplayGain");
+  });
+
+  it("still says MusicBrainz for the fields that really come from it", () => {
+    for (const field of ["title", "album", "musicbrainz_recordingid", "isrc"]) {
+      expect(actionFor(field), field).toBe("Fetch from MusicBrainz");
+    }
+  });
+
+  it("says so plainly for a field this app writes itself", () => {
+    expect(actionFor("musicmanager_tagschema")).toContain("re-tag");
+  });
+
+  it("never invents an action for a field the tag map does not know", () => {
+    expect(actionFor("not_a_field_at_all")).toBe("Edit by hand");
   });
 });
