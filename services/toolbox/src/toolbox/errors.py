@@ -132,6 +132,9 @@ ERROR_CATALOG: Final[tuple[ErrorSpec, ...]] = (
         status=404,
         patterns=(
             "video unavailable",
+            # yt-dlp says "This video is unavailable" as often as the terse
+            # "Video unavailable", and the two share no substring.
+            "video is unavailable",
             "this video is no longer available",
             "removed by the uploader",
             "not available in your country",

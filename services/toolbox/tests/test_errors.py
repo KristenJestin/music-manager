@@ -84,6 +84,11 @@ def test_classification_is_case_insensitive():
     assert classify_message("VIDEO UNAVAILABLE") is ErrorCode.YTDLP_UNAVAILABLE
 
 
+def test_the_full_sentence_form_is_classified_too():
+    """What a dead watch?v= id actually returns, and what used to fall through to UNKNOWN."""
+    assert classify_message("This video is unavailable") is ErrorCode.YTDLP_UNAVAILABLE
+
+
 def test_locked_when_a_second_download_starts(fixture_client: TestClient, tmp_path: Path):
     body = {"url": "fixture://discovery#0", "dest_dir": str(tmp_path), "id": "held"}
     DOWNLOAD_LOCK.acquire()
