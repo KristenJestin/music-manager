@@ -1,0 +1,3010 @@
+{
+  "recordedAt": "2026-09-06T04:23:17.976Z",
+  "serverVersion": "navidrome 0.63.2 (be10f89c)",
+  "entries": {
+    "ping": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true
+      }
+    },
+    "getScanStatus": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "scanStatus": {
+          "scanning": false,
+          "count": 14,
+          "folderCount": 1,
+          "lastScan": "2026-09-06T04:22:49.93629781Z",
+          "scanType": "quick-selective",
+          "elapsedTime": 936297810
+        }
+      }
+    },
+    "getAlbumList2?type=newest&size=10&offset=0": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "albumList2": {
+          "album": [
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "coverArt": "al-5uyTzKQ1kby4HgQ5kbXY5Y_6a9ce2c1",
+              "songCount": 14,
+              "duration": 70,
+              "created": "2026-09-05T22:27:37.422881219Z",
+              "year": 2001,
+              "genre": "electronic",
+              "userRating": 0,
+              "genres": [
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "dance"
+                },
+                {
+                  "name": "ambient"
+                },
+                {
+                  "name": "ambient house"
+                },
+                {
+                  "name": "breakbeat"
+                },
+                {
+                  "name": "electro"
+                },
+                {
+                  "name": "french house"
+                }
+              ],
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "isCompilation": false,
+              "sortName": "discovery",
+              "discTitles": [],
+              "originalReleaseDate": {
+                "year": 2001,
+                "month": 2,
+                "day": 26
+              },
+              "releaseDate": {
+                "year": 2001,
+                "month": 2,
+                "day": 26
+              },
+              "releaseTypes": [
+                "album"
+              ],
+              "recordLabels": [
+                {
+                  "name": "Virgin"
+                }
+              ],
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "explicitStatus": "clean",
+              "version": ""
+            }
+          ]
+        }
+      }
+    },
+    "getStarred2": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "starred2": {}
+      }
+    },
+    "search3?query=Discovery": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "searchResult3": {
+          "album": [
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "coverArt": "al-5uyTzKQ1kby4HgQ5kbXY5Y_6a9ce2c1",
+              "songCount": 14,
+              "duration": 70,
+              "created": "2026-09-05T22:27:37.422881219Z",
+              "year": 2001,
+              "genre": "electronic",
+              "userRating": 0,
+              "genres": [
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "dance"
+                },
+                {
+                  "name": "ambient"
+                },
+                {
+                  "name": "ambient house"
+                },
+                {
+                  "name": "breakbeat"
+                },
+                {
+                  "name": "electro"
+                },
+                {
+                  "name": "french house"
+                }
+              ],
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "isCompilation": false,
+              "sortName": "discovery",
+              "discTitles": [],
+              "originalReleaseDate": {
+                "year": 2001,
+                "month": 2,
+                "day": 26
+              },
+              "releaseDate": {
+                "year": 2001,
+                "month": 2,
+                "day": 26
+              },
+              "releaseTypes": [
+                "album"
+              ],
+              "recordLabels": [
+                {
+                  "name": "Virgin"
+                }
+              ],
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "explicitStatus": "clean",
+              "version": ""
+            }
+          ]
+        }
+      }
+    },
+    "getAlbum?id=5uyTzKQ1kby4HgQ5kbXY5Y": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "album": {
+          "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+          "name": "Discovery",
+          "artist": "Daft Punk",
+          "artistId": "3jNKy5fB1vQxr39XQn97jr",
+          "coverArt": "al-5uyTzKQ1kby4HgQ5kbXY5Y_6a9ce2c1",
+          "songCount": 14,
+          "duration": 70,
+          "created": "2026-09-05T22:27:37.422881219Z",
+          "year": 2001,
+          "genre": "electronic",
+          "userRating": 0,
+          "genres": [
+            {
+              "name": "electronic"
+            },
+            {
+              "name": "house"
+            },
+            {
+              "name": "dance"
+            },
+            {
+              "name": "ambient"
+            },
+            {
+              "name": "ambient house"
+            },
+            {
+              "name": "breakbeat"
+            },
+            {
+              "name": "electro"
+            },
+            {
+              "name": "french house"
+            }
+          ],
+          "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+          "isCompilation": false,
+          "sortName": "discovery",
+          "discTitles": [],
+          "originalReleaseDate": {
+            "year": 2001,
+            "month": 2,
+            "day": 26
+          },
+          "releaseDate": {
+            "year": 2001,
+            "month": 2,
+            "day": 26
+          },
+          "releaseTypes": [
+            "album"
+          ],
+          "recordLabels": [
+            {
+              "name": "Virgin"
+            }
+          ],
+          "moods": [
+            "party"
+          ],
+          "artists": [
+            {
+              "id": "3jNKy5fB1vQxr39XQn97jr",
+              "name": "Daft Punk"
+            }
+          ],
+          "displayArtist": "Daft Punk",
+          "explicitStatus": "clean",
+          "version": "",
+          "song": [
+            {
+              "id": "ahjF34gaTM07XDu1E5UiMp",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "One More Time",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 1,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-ahjF34gaTM07XDu1E5UiMp_6a9ce2c1",
+              "size": 139094,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-01 - One More Time.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.470846378Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 123,
+              "comment": "Source: youtu.be/eZKgoOjJmrp · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "one more time",
+              "mediaType": "song",
+              "musicBrainzId": "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+              "isrc": [
+                "GBAHT1305744",
+                "GBDUW0000053"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "2IoCgo7WKeGVByuqT1r5UL",
+                    "name": "Anthony Wayne Moore"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "1YuuPb8TuHPkCydRQ6fkmF",
+                    "name": "Romanthony"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo • Anthony Wayne Moore",
+              "explicitStatus": "clean",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "One More Time",
+                  "musicBrainzId": "4bb47ffc-9006-32cf-8aa9-e213334550dc"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "ukDXX5DzD1UpZSDt3BtYk4",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Aerodynamic",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 2,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-ukDXX5DzD1UpZSDt3BtYk4_6a9ce2c1",
+              "size": 136192,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-02 - Aerodynamic.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.483253544Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/1SEue5asl3N · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "aerodynamic",
+              "mediaType": "song",
+              "musicBrainzId": "7c0e11a3-1c7a-4e6d-a14d-6e86d86dbaad",
+              "isrc": [
+                "GATIW0000057",
+                "GBDUW0000057"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Aerodynamic",
+                  "musicBrainzId": "861b67a5-e99f-3646-aaac-f29fbb01525b"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "2N00ovoZiatviSffDmMQtx",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Digital Love (The intros of 4:58 and 5:01 sound different)",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 3,
+              "year": 2001,
+              "genre": "electronic",
+              "coverArt": "mf-2N00ovoZiatviSffDmMQtx_6a9ce2c1",
+              "size": 136230,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-03 - Digital Love (The intros of 4:58 and 5:01 sound different).opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.472253544Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/5HBge0WgL9u · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "digital love",
+              "mediaType": "song",
+              "musicBrainzId": "15f16efc-8762-4151-95ab-c12d06268640",
+              "isrc": [
+                "GBDUW0000058"
+              ],
+              "genres": [
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "french house"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy-Manuel de Homem-Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "5BiOwcGtypKR2f8HMuiM9w",
+                    "name": "George Duke"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "6nTIgpW6lT7lDAuWQGr6i4",
+                    "name": "Carlos Sosa"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy-Manuel de Homem-Christo • George Duke • Carlos Sosa",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Digital Love",
+                  "musicBrainzId": "3ce28f52-096d-337a-b58b-d266aa95869b"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "THfeopum649Mqh1fNhZ4XK",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Harder, Better, Faster, Stronger",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 4,
+              "year": 2001,
+              "genre": "electronic",
+              "coverArt": "mf-THfeopum649Mqh1fNhZ4XK_6a9ce2c1",
+              "size": 136280,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-04 - Harder, Better, Faster, Stronger.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.479581784Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/fUvkYvMkisw · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "harder, better, faster, stronger",
+              "mediaType": "song",
+              "musicBrainzId": "f1a6a40f-78f5-4918-968d-f64363bae94c",
+              "isrc": [
+                "GBDUW0000059",
+                "GBDUW0600059"
+              ],
+              "genres": [
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy-Manuel de Homem-Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "4RUmjKMCenfjeLGzUc3X47",
+                    "name": "Edwin Birdsong"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy-Manuel de Homem-Christo • Edwin Birdsong",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Harder, Better, Faster, Stronger",
+                  "musicBrainzId": "fb670a7d-4e22-3f65-8d3f-7cf2c29c6601"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "bdn2Qy09eC3ccDRaH2pmzQ",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Crescendolls",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 5,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-bdn2Qy09eC3ccDRaH2pmzQ_6a9ce2c1",
+              "size": 136158,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-05 - Crescendolls.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.481331616Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/SjNsyxPSrUj · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "crescendolls",
+              "mediaType": "song",
+              "musicBrainzId": "d63ad586-1124-4df1-9a2b-c014d7b7cb02",
+              "isrc": [
+                "GBDUW0000060"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Crescendolls",
+                  "musicBrainzId": "cb00aedf-7e26-3263-9c9f-598ff8d0f175"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "pHgiiEXREFNQOK8N8l5xA6",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Nightvision",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 6,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-pHgiiEXREFNQOK8N8l5xA6_6a9ce2c1",
+              "size": 136158,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-06 - Nightvision.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.480463895Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/FSxdZF7diju · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "nightvision",
+              "mediaType": "song",
+              "musicBrainzId": "712edd8d-b413-4e4e-aca4-9b91fce2e65c",
+              "isrc": [
+                "GBDUW0000061"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "ambient"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Nightvision",
+                  "musicBrainzId": "acdddcd1-3080-3918-8e12-5b92ece45c8b"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "SMVAhy2kNWZWIz3IyljgVU",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Superheroes",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 7,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-SMVAhy2kNWZWIz3IyljgVU_6a9ce2c1",
+              "size": 136379,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-07 - Superheroes.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.473422731Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/1zATU0w6SVo · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "superheroes",
+              "mediaType": "song",
+              "musicBrainzId": "8a98614f-0533-44ef-890a-639cab407a2d",
+              "isrc": [
+                "GBDUW0000062"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "7z4D4B5sax071pkJzBvQmP",
+                    "name": "Barry Manilow"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "lyricist",
+                  "artist": {
+                    "id": "1GEZRU0h62j4lI7Hq3rgZT",
+                    "name": "Marty Panzer"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo • Barry Manilow",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Superheroes",
+                  "musicBrainzId": "ff2bd551-3ba4-36e7-aeb3-dc9fe39cfc76"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "6PZhAau1XGXKE0A9G49oNE",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "High Life",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 8,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-6PZhAau1XGXKE0A9G49oNE_6a9ce2c1",
+              "size": 136167,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-08 - High Life.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.474301246Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/jqU9OSfrQLh · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "high life",
+              "mediaType": "song",
+              "musicBrainzId": "07b720fc-0d6f-4342-a6df-876d1749de0b",
+              "isrc": [
+                "GBDUW0000063"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "High Life",
+                  "musicBrainzId": "9ed35100-eb13-3edd-a1df-f81c83fcf5ab"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "6ZH4F78sS4ipICMKoBsHkc",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Something About Us (album version)",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 9,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-6ZH4F78sS4ipICMKoBsHkc_6a9ce2c1",
+              "size": 136253,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-09 - Something About Us (album version).opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.484164388Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/AdiNyd3oUGV · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "something about us",
+              "mediaType": "song",
+              "musicBrainzId": "defbfcb2-7a5c-4456-be28-b7e5ccf92cc2",
+              "isrc": [
+                "GBDUW0000064",
+                "GBDUW0600064"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy-Manuel de Homem-Christo"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy-Manuel de Homem-Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Something About Us",
+                  "musicBrainzId": "e697cecb-961a-34a7-8e19-f505e319faf2"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "ZVNveTCPAiL53WPOTfh3R9",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Voyager",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 10,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-ZVNveTCPAiL53WPOTfh3R9_6a9ce2c1",
+              "size": 136164,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-10 - Voyager.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.475292714Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/xadQftI8cqe · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "voyager",
+              "mediaType": "song",
+              "musicBrainzId": "e1fe1d12-dac2-4325-ae1b-25e0ef06b998",
+              "isrc": [
+                "GBDUW0000065"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Voyager",
+                  "musicBrainzId": "126676fd-9f48-3d21-9ce4-701a132ad82d"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "FibnKZ1xvJIIAjLSboPnyR",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Veridis Quo",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 11,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-FibnKZ1xvJIIAjLSboPnyR_6a9ce2c1",
+              "size": 136167,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-11 - Veridis Quo.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.476297374Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/P-G0VTmQXRs · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "veridis quo",
+              "mediaType": "song",
+              "musicBrainzId": "2a220770-1150-4190-b0e0-57d89a0a7469",
+              "isrc": [
+                "GBDUW0000066"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "ambient house"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Veridis Quo",
+                  "musicBrainzId": "f7818f82-ac89-3443-8d8e-467f49e80b9f"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "N1q8DDm5kp9moLfgTY3weN",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Short Circuit",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 12,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-N1q8DDm5kp9moLfgTY3weN_6a9ce2c1",
+              "size": 136179,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-12 - Short Circuit.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.477561567Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/5yMj47jdeiE · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "short circuit",
+              "mediaType": "song",
+              "musicBrainzId": "3f60ae01-43cc-4db9-86ec-97b79f83764f",
+              "isrc": [
+                "GBDUW0000067"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "electro"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Short Circuit",
+                  "musicBrainzId": "6b929151-472b-3843-87da-3b25a3e35bbf"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "c4s3E0OZaaxwrXXy67VptH",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Face to Face",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 13,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-c4s3E0OZaaxwrXXy67VptH_6a9ce2c1",
+              "size": 136488,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-13 - Face to Face.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.482354262Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/4z6aYOUUxvg · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "face to face",
+              "mediaType": "song",
+              "musicBrainzId": "59038571-03ea-4ca4-965c-a57eae2aa138",
+              "isrc": [
+                "GBDUW0000068"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "7JX2mYTXk6Qa4vDMsg1Yya",
+                    "name": "Todd Imperatrice"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "7Dd3PnP0HmJheBxOuhNfEe",
+                    "name": "Todd Edwards"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "7Dd3PnP0HmJheBxOuhNfEe",
+                    "name": "Todd Edwards"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo • Todd Imperatrice",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Face to Face",
+                  "musicBrainzId": "a549442d-ef86-31ad-b912-a33bad71b01d"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "28EZQfzUBPVG0ONyjUdWQ2",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Too Long",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 14,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-28EZQfzUBPVG0ONyjUdWQ2_6a9ce2c1",
+              "size": 136238,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-14 - Too Long.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.4644657Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/WTKYv4o9wb2 · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "too long",
+              "mediaType": "song",
+              "musicBrainzId": "1a915a2d-e2f4-4300-a230-96fc9c8a7b60",
+              "isrc": [
+                "GBDUW0000069"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "breakbeat"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "1YuuPb8TuHPkCydRQ6fkmF",
+                    "name": "Romanthony"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1YuuPb8TuHPkCydRQ6fkmF",
+                    "name": "Romanthony"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy-Manuel de Homem-Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "2IoCgo7WKeGVByuqT1r5UL",
+                    "name": "Anthony Wayne Moore"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy-Manuel de Homem-Christo • Anthony Wayne Moore",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Too Long",
+                  "musicBrainzId": "dd6adb4b-d599-3b40-a4f2-ca88747f9b56"
+                }
+              ],
+              "movements": []
+            }
+          ]
+        }
+      }
+    },
+    "getSong?id=ahjF34gaTM07XDu1E5UiMp": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "song": {
+          "id": "ahjF34gaTM07XDu1E5UiMp",
+          "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+          "isDir": false,
+          "title": "One More Time",
+          "album": "Discovery",
+          "artist": "Daft Punk",
+          "track": 1,
+          "year": 2001,
+          "genre": "house",
+          "coverArt": "mf-ahjF34gaTM07XDu1E5UiMp_6a9ce2c1",
+          "size": 139094,
+          "contentType": "audio/ogg",
+          "suffix": "opus",
+          "duration": 5,
+          "bitRate": 122,
+          "path": "Daft Punk/Discovery/01-01 - One More Time.opus",
+          "discNumber": 1,
+          "created": "2026-09-05T22:27:37.470846378Z",
+          "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+          "artistId": "3jNKy5fB1vQxr39XQn97jr",
+          "type": "music",
+          "bpm": 123,
+          "comment": "Source: youtu.be/eZKgoOjJmrp · imported 2026-09-06 by Music Manager 0.0.0",
+          "sortName": "one more time",
+          "mediaType": "song",
+          "musicBrainzId": "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+          "isrc": [
+            "GBAHT1305744",
+            "GBDUW0000053"
+          ],
+          "genres": [
+            {
+              "name": "house"
+            },
+            {
+              "name": "electronic"
+            },
+            {
+              "name": "dance"
+            }
+          ],
+          "replayGain": {
+            "trackGain": 9.78,
+            "albumGain": 9.78,
+            "trackPeak": 0.063995,
+            "albumPeak": 0.063995
+          },
+          "channelCount": 1,
+          "samplingRate": 48000,
+          "bitDepth": 0,
+          "moods": [
+            "party"
+          ],
+          "artists": [
+            {
+              "id": "3jNKy5fB1vQxr39XQn97jr",
+              "name": "Daft Punk"
+            }
+          ],
+          "displayArtist": "Daft Punk",
+          "albumArtists": [
+            {
+              "id": "3jNKy5fB1vQxr39XQn97jr",
+              "name": "Daft Punk"
+            }
+          ],
+          "displayAlbumArtist": "Daft Punk",
+          "contributors": [
+            {
+              "role": "producer",
+              "artist": {
+                "id": "39HO9aHqcITFQn1dJQXKoR",
+                "name": "Thomas Bangalter"
+              }
+            },
+            {
+              "role": "producer",
+              "artist": {
+                "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                "name": "Guy‐Manuel de Homem‐Christo"
+              }
+            },
+            {
+              "role": "composer",
+              "artist": {
+                "id": "39HO9aHqcITFQn1dJQXKoR",
+                "name": "Thomas Bangalter"
+              }
+            },
+            {
+              "role": "composer",
+              "artist": {
+                "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                "name": "Guy‐Manuel de Homem‐Christo"
+              }
+            },
+            {
+              "role": "composer",
+              "artist": {
+                "id": "2IoCgo7WKeGVByuqT1r5UL",
+                "name": "Anthony Wayne Moore"
+              }
+            },
+            {
+              "role": "engineer",
+              "artist": {
+                "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                "name": "Nilesh Patel"
+              }
+            },
+            {
+              "role": "performer",
+              "subRole": "Vocal",
+              "artist": {
+                "id": "1YuuPb8TuHPkCydRQ6fkmF",
+                "name": "Romanthony"
+              }
+            }
+          ],
+          "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo • Anthony Wayne Moore",
+          "explicitStatus": "clean",
+          "groupings": [],
+          "works": [
+            {
+              "name": "One More Time",
+              "musicBrainzId": "4bb47ffc-9006-32cf-8aa9-e213334550dc"
+            }
+          ],
+          "movements": []
+        }
+      }
+    },
+    "getLyricsBySongId?id=ahjF34gaTM07XDu1E5UiMp": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "lyricsList": {
+          "structuredLyrics": [
+            {
+              "displayArtist": "Daft Punk",
+              "displayTitle": "One More Time",
+              "lang": "xxx",
+              "line": [
+                {
+                  "start": 30750,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 33180,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 46350,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 49250,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 63760,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 64920,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 67050,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 68830,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 71430,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 72840,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 75160,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 76940,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 79420,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 80820,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 82830,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 84690,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 86880,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 88370,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 90730,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 93100,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 96090,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 126080,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 127630,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 129860,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 131290,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 134150,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 135430,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 137670,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 138460,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 139950,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 142290,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 148690,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 152090,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 154500,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 156660,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 160700,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 164370,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 166490,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 170740,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 175120,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 179010,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 181390,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 183630,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 188520,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 191600,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 195430,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 199350,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 201800,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 204460,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 207310,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 211340,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 215060,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 218030,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 219100,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 221190,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 222650,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 225830,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 226990,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 229050,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 230840,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 233540,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 234670,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 236840,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 238570,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 241540,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 242710,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 244660,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 246410,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 249300,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 250490,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 252590,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 254440,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 256990,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 258090,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 260340,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 262030,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 265080,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 266000,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 268300,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 269830,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 272660,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 273930,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 276020,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 277650,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 280580,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 281750,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 283760,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 288450,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 289560,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 291760,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 293160,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 295990,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 297310,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 299510,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 301000,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 304090,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 305290,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 307320,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 309000,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 311960,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 313150,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 315130,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 316630,
+                  "value": "lyrics redacted"
+                },
+                {
+                  "start": 319190,
+                  "value": "lyrics redacted"
+                }
+              ],
+              "synced": true
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Daft Punk&count=5": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "FibnKZ1xvJIIAjLSboPnyR",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Veridis Quo",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 11,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-FibnKZ1xvJIIAjLSboPnyR_6a9ce2c1",
+              "size": 136167,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-11 - Veridis Quo.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.476297374Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/P-G0VTmQXRs · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "veridis quo",
+              "mediaType": "song",
+              "musicBrainzId": "2a220770-1150-4190-b0e0-57d89a0a7469",
+              "isrc": [
+                "GBDUW0000066"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "ambient house"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Veridis Quo",
+                  "musicBrainzId": "f7818f82-ac89-3443-8d8e-467f49e80b9f"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "ahjF34gaTM07XDu1E5UiMp",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "One More Time",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 1,
+              "year": 2001,
+              "genre": "house",
+              "coverArt": "mf-ahjF34gaTM07XDu1E5UiMp_6a9ce2c1",
+              "size": 139094,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-01 - One More Time.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.470846378Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 123,
+              "comment": "Source: youtu.be/eZKgoOjJmrp · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "one more time",
+              "mediaType": "song",
+              "musicBrainzId": "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+              "isrc": [
+                "GBAHT1305744",
+                "GBDUW0000053"
+              ],
+              "genres": [
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [
+                "party"
+              ],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "2IoCgo7WKeGVByuqT1r5UL",
+                    "name": "Anthony Wayne Moore"
+                  }
+                },
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "1YuuPb8TuHPkCydRQ6fkmF",
+                    "name": "Romanthony"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy‐Manuel de Homem‐Christo • Anthony Wayne Moore",
+              "explicitStatus": "clean",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "One More Time",
+                  "musicBrainzId": "4bb47ffc-9006-32cf-8aa9-e213334550dc"
+                }
+              ],
+              "movements": []
+            },
+            {
+              "id": "THfeopum649Mqh1fNhZ4XK",
+              "parent": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "isDir": false,
+              "title": "Harder, Better, Faster, Stronger",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 4,
+              "year": 2001,
+              "genre": "electronic",
+              "coverArt": "mf-THfeopum649Mqh1fNhZ4XK_6a9ce2c1",
+              "size": 136280,
+              "contentType": "audio/ogg",
+              "suffix": "opus",
+              "duration": 5,
+              "bitRate": 122,
+              "path": "Daft Punk/Discovery/01-04 - Harder, Better, Faster, Stronger.opus",
+              "discNumber": 1,
+              "created": "2026-09-05T22:27:37.479581784Z",
+              "albumId": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "artistId": "3jNKy5fB1vQxr39XQn97jr",
+              "type": "music",
+              "bpm": 0,
+              "comment": "Source: youtu.be/fUvkYvMkisw · imported 2026-09-06 by Music Manager 0.0.0",
+              "sortName": "harder, better, faster, stronger",
+              "mediaType": "song",
+              "musicBrainzId": "f1a6a40f-78f5-4918-968d-f64363bae94c",
+              "isrc": [
+                "GBDUW0000059",
+                "GBDUW0600059"
+              ],
+              "genres": [
+                {
+                  "name": "electronic"
+                },
+                {
+                  "name": "house"
+                },
+                {
+                  "name": "dance"
+                }
+              ],
+              "replayGain": {
+                "trackGain": 9.78,
+                "albumGain": 9.78,
+                "trackPeak": 0.063995,
+                "albumPeak": 0.063995
+              },
+              "channelCount": 1,
+              "samplingRate": 48000,
+              "bitDepth": 0,
+              "moods": [],
+              "artists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayArtist": "Daft Punk",
+              "albumArtists": [
+                {
+                  "id": "3jNKy5fB1vQxr39XQn97jr",
+                  "name": "Daft Punk"
+                }
+              ],
+              "displayAlbumArtist": "Daft Punk",
+              "contributors": [
+                {
+                  "role": "engineer",
+                  "artist": {
+                    "id": "2sIMTXwXBuZJRm9EDhNDNm",
+                    "name": "Nilesh Patel"
+                  }
+                },
+                {
+                  "role": "performer",
+                  "subRole": "Vocal",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "3jNKy5fB1vQxr39XQn97jr",
+                    "name": "Daft Punk"
+                  }
+                },
+                {
+                  "role": "producer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy‐Manuel de Homem‐Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "39HO9aHqcITFQn1dJQXKoR",
+                    "name": "Thomas Bangalter"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "1rRmq4rfHXoDSAlBIn3cXM",
+                    "name": "Guy-Manuel de Homem-Christo"
+                  }
+                },
+                {
+                  "role": "composer",
+                  "artist": {
+                    "id": "4RUmjKMCenfjeLGzUc3X47",
+                    "name": "Edwin Birdsong"
+                  }
+                }
+              ],
+              "displayComposer": "Thomas Bangalter • Guy-Manuel de Homem-Christo • Edwin Birdsong",
+              "explicitStatus": "",
+              "groupings": [],
+              "works": [
+                {
+                  "name": "Harder, Better, Faster, Stronger",
+                  "musicBrainzId": "fb670a7d-4e22-3f65-8d3f-7cf2c29c6601"
+                }
+              ],
+              "movements": []
+            }
+          ]
+        }
+      }
+    }
+  },
+  "binary": {
+    "getCoverArt?id=al-5uyTzKQ1kby4HgQ5kbXY5Y_6a9ce2c1&size=200": {
+      "contentType": "image/jpeg",
+      "bytesBase64": "/9j/2wCEAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDIBCQkJDAsMGA0NGDIhHCEyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMv/AABEIAMgAyAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYo="
+    }
+  }
+}

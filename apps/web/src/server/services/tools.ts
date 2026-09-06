@@ -49,16 +49,23 @@ export interface ToolsDeps {
   readonly fetch?: (url: string, init: RequestInit) => Promise<Response>;
 }
 
+/**
+ * The three things a diagnostic needs, resolved **lazily**.
+ *
+ * `db` and `box` are functions rather than values because opening either one parses the
+ * environment, and a unit test that injects both settings and a fake toolbox must be able to
+ * run without a `DATABASE_URL` — which is the whole point of injecting them.
+ */
 async function resolve(deps: ToolsDeps): Promise<{
-  db: Database;
+  db: () => Database;
   settings: Settings;
-  box: ToolboxClient;
+  box: () => ToolboxClient;
 }> {
-  const db = deps.db ?? defaultDb();
+  const settings = deps.settings ?? (await loadSettings(deps.db));
   return {
-    db,
-    settings: deps.settings ?? (await loadSettings(db)),
-    box: deps.toolbox ?? defaultToolbox(),
+    db: () => deps.db ?? defaultDb(),
+    settings,
+    box: () => deps.toolbox ?? defaultToolbox(),
   };
 }
 
@@ -93,7 +100,7 @@ export async function downloaderHealth(deps: ToolsDeps = {}): Promise<Downloader
     onUpdateFailure: settings.ytdlpOnUpdateFailure,
   };
   try {
-    const health = await box.health();
+    const health = await box().health();
     return {
       ...base,
       reachable: true,
@@ -128,7 +135,7 @@ export interface YtdlpUpdateOutcome {
 export async function updateYtdlp(deps: ToolsDeps = {}): Promise<YtdlpUpdateOutcome> {
   const { db, settings, box } = await resolve(deps);
   try {
-    const result = await box.updateYtdlp();
+    const result = await box().updateYtdlp();
     const outcome: YtdlpUpdateOutcome = {
       ok: result.ok,
       updated: result.changed,
@@ -147,17 +154,17 @@ export async function updateYtdlp(deps: ToolsDeps = {}): Promise<YtdlpUpdateOutc
           : `yt-dlp is unchanged (${result.current ?? "?"}, via ${result.method}).`,
         data: { ...outcome },
       },
-      db,
+      db(),
     );
     if (result.ok) {
-      await closeLibraryItem("ytdlp_update", "ytdlp", db);
+      await closeLibraryItem("ytdlp_update", "ytdlp", db());
     } else {
-      await raiseUpdateFailure(db, settings, result.output);
+      await raiseUpdateFailure(db(), settings, result.output);
     }
     return outcome;
   } catch (error) {
     const failure = MMError.from(error);
-    await raiseUpdateFailure(db, settings, failure.message);
+    await raiseUpdateFailure(db(), settings, failure.message);
     return {
       ok: false,
       updated: false,
@@ -197,7 +204,7 @@ export async function selftest(
 ): Promise<SelfTestResult & { error: string | null }> {
   const { box } = await resolve(deps);
   try {
-    const result = await box.selftestYtdlp(options);
+    const result = await box().selftestYtdlp(options);
     return { ...result, error: null };
   } catch (error) {
     return {
@@ -259,7 +266,7 @@ export async function cookiesStatus(deps: ToolsDeps = {}): Promise<CookiesStatus
   }
 
   try {
-    const result: CookiesTestResult = await box.testCookies({ path: settings.cookiesFile });
+    const result: CookiesTestResult = await box().testCookies({ path: settings.cookiesFile });
     return {
       mode: settings.cookiesMode,
       path: settings.cookiesFile,
@@ -445,7 +452,7 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
   const { box } = await resolve(deps);
   const started = Date.now();
   try {
-    const result = await box.extract(url);
+    const result = await box().extract(url);
     const entries = result.entries;
     return {
       url,
@@ -491,7 +498,7 @@ export async function errorCatalog(deps: ToolsDeps = {}): Promise<{
 }> {
   const { box } = await resolve(deps);
   try {
-    const catalog = await box.errorCatalog();
+    const catalog = await box().errorCatalog();
     return { entries: catalog.entries, error: null };
   } catch (error) {
     return { entries: [], error: MMError.from(error).message };
@@ -504,7 +511,7 @@ export async function workerLog(
   deps: ToolsDeps = {},
 ): Promise<readonly JobEventPayload[]> {
   const { db } = await resolve(deps);
-  const rows = await readEvents({ limit: options.limit ?? 200 }, db);
+  const rows = await readEvents({ limit: options.limit ?? 200 }, db());
   const tail = rows.slice(-(options.limit ?? 200));
   return options.level === "error" ? tail.filter((row) => row.level !== "info") : tail;
 }

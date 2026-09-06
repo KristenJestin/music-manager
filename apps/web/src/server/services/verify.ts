@@ -160,7 +160,14 @@ function names(list: readonly { name?: string }[] | undefined): string[] {
 /* what we wrote                                                       */
 /* ------------------------------------------------------------------ */
 
-/** The projected Vorbis pairs of one document, grouped by tag-map field. */
+/**
+ * The projected Vorbis pairs of one document, grouped by tag-map field.
+ *
+ * Plus one synthetic entry: `front_cover` is a picture, so `projectDocument` deliberately
+ * leaves it out of the key/value list (§2.6 — images travel as their own payload). The
+ * read-back still has to be able to say "we wrote a cover and the server has one", so the
+ * field is added here as a presence marker rather than as a value.
+ */
 export function writtenValues(document: TrackDocument): Map<string, string[]> {
   const out = new Map<string, string[]>();
   for (const tag of projectDocument(document, "vorbis")) {
@@ -168,6 +175,7 @@ export function writtenValues(document: TrackDocument): Map<string, string[]> {
     if (held === undefined) out.set(tag.field, [tag.value]);
     else held.push(tag.value);
   }
+  if (document.fields["front_cover"] !== undefined) out.set("front_cover", ["front cover"]);
   return out;
 }
 
@@ -305,7 +313,7 @@ export function compareAlbum(written: Map<string, string[]>, read: ReadBack): Ve
       wrote("performer").map((value) => value.replace(/\s*\(.*\)$/, "")),
       (song.contributors ?? []).map((entry) => entry.artist?.name ?? "").filter(Boolean),
     ),
-    row("coverArt", "front_cover", ["front cover"], read.coverOk ? "front cover" : null),
+    row("coverArt", "front_cover", wrote("front_cover"), read.coverOk ? "front cover" : null),
   ];
 
   return rows.filter((entry): entry is VerifyField => entry !== null);
