@@ -7,6 +7,13 @@ export default defineConfig({
     environment: "node",
     // `test/` holds the recorded cassettes of P04 and the suites that replay them; the
     // recordings sit next to the tests that use them rather than inside `src/`.
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "test/**/*.test.ts"],
+    // `bin/` joined the list in P08: the CLI's remote mode has real logic of its own
+    // (config precedence, SSE framing) that is worth testing without a server.
+    include: [
+      "src/**/*.test.ts",
+      "src/**/*.test.tsx",
+      "test/**/*.test.ts",
+      "bin/**/*.test.ts",
+    ],
   },
 });

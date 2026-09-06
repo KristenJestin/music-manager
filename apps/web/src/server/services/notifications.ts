@@ -132,7 +132,20 @@ export async function send(
  */
 function linkOf(notification: Notification): string | null {
   if (notification.path === undefined) return null;
-  const base = serverEnv().MM_WEB_URL.replace(/\/+$/, "");
+  /*
+   * A missing environment costs the link, not the message.
+   *
+   * `serverEnv()` parses the whole schema and throws when `DATABASE_URL` is absent. That is
+   * right for the worker and wrong here: "the import failed" is worth saying even from a
+   * process whose environment is half-configured, and swallowing the notification to protect
+   * a hyperlink would lose the one thing the operator needed to hear.
+   */
+  let base: string;
+  try {
+    base = serverEnv().MM_WEB_URL.replace(/\/+$/, "");
+  } catch {
+    return null;
+  }
   return `${base}${notification.path}`;
 }
 

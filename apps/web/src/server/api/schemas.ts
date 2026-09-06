@@ -13,14 +13,88 @@
  * unreadable in Scalar.
  */
 import { z } from "@hono/zod-openapi";
-import {
-  apiKeySchema,
-  apiPrincipalSchema,
-  jobEventSchema,
-  mmErrorBodySchema,
-  notifiableEventSchema,
-  webhookSchema,
+import { NOTIFIABLE_EVENTS, STEP_NAMES } from "@mm/contracts";
+import type {
+  ApiKeyView,
+  ApiPrincipal,
+  JobEventPayload,
+  MMErrorBody,
+  WebhookView,
 } from "@mm/contracts";
+
+/**
+ * ## Why the shared shapes are re-declared here rather than imported
+ *
+ * `@mm/contracts` builds its schemas with plain `zod`, as it must: it is loaded in the browser
+ * too and has no business depending on a server-side OpenAPI generator. `.openapi()` is an
+ * extension that `@hono/zod-openapi` applies to **its** zod. Under Bun the two resolve to one
+ * module and calling `.openapi()` on a contracts schema appears to work; under Vite's SSR
+ * module runner they are two distinct copies, and it fails at *import* time with
+ * `apiPrincipalSchema.openapi is not a function` — so `/api/v1` answered 500 before any
+ * handler ran, in `vite dev` only. Patching the other copy's prototype was tried and is worse:
+ * it depends on which of two module graphs wins, which is not a thing to build an API on.
+ *
+ * So the half-dozen shapes that cross this boundary are declared below with the local `z`, and
+ * each is annotated with the contracts **type** it must satisfy. A field added there and
+ * forgotten here is then a type error rather than a silently thinner API. The types are the
+ * contract; these are its OpenAPI projection.
+ */
+const mmErrorBodySchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  hint: z.string().optional(),
+  action: z.string().optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
+}) satisfies z.ZodType<MMErrorBody>;
+
+const apiPrincipalSchema = z.object({
+  kind: z.enum(["session", "apiKey"]),
+  userId: z.string(),
+  label: z.string(),
+  scopes: z.array(z.string()),
+}) satisfies z.ZodType<ApiPrincipal>;
+
+const apiKeySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  start: z.string().nullable(),
+  scopes: z.array(z.string()),
+  enabled: z.boolean(),
+  createdAt: z.string(),
+  expiresAt: z.string().nullable(),
+  lastRequest: z.string().nullable(),
+  requestCount: z.number(),
+  rateLimitEnabled: z.boolean(),
+  rateLimitMax: z.number().nullable(),
+  rateLimitTimeWindow: z.number().nullable(),
+}) satisfies z.ZodType<ApiKeyView>;
+
+const notifiableEventSchema = z.enum(NOTIFIABLE_EVENTS);
+
+const webhookSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  events: z.array(notifiableEventSchema),
+  enabled: z.boolean(),
+  createdAt: z.string(),
+  lastStatus: z.number().nullable(),
+  lastError: z.string().nullable(),
+  lastDeliveryAt: z.string().nullable(),
+  failureCount: z.number(),
+}) satisfies z.ZodType<WebhookView>;
+
+const jobEventSchema = z.object({
+  id: z.number(),
+  importId: z.string().nullable(),
+  trackId: z.string().nullable(),
+  step: z.enum(STEP_NAMES).nullable(),
+  level: z.enum(["info", "warn", "error"]),
+  type: z.string(),
+  message: z.string(),
+  data: z.record(z.string(), z.unknown()).nullable(),
+  at: z.string(),
+}) satisfies z.ZodType<JobEventPayload>;
 
 /* ------------------------------------------------------------------ */
 /* the common ones                                                     */
