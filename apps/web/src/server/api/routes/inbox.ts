@@ -60,7 +60,9 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
       },
       responses: {
         200: {
-          content: { "application/json": { schema: z.object({ items: z.array(inboxItemSchema) }) } },
+          content: {
+            "application/json": { schema: z.object({ items: z.array(inboxItemSchema) }) },
+          },
           description: "The items",
         },
         ...FAILURES,
@@ -140,7 +142,9 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
         {
           resolution:
             resolution ??
-            (accept ? { accepted: true, ...(item.preselected ?? {}) } : { accepted: false, action: "dismiss" }),
+            (accept
+              ? { accepted: true, ...(item.preselected ?? {}) }
+              : { accepted: false, action: "dismiss" }),
           decidedBy: "api",
           status: accept ? "resolved" : "dismissed",
         },

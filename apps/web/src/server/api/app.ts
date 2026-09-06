@@ -173,7 +173,7 @@ export function openApiDocument(): Record<string, unknown> {
         "issued in Settings › API & agents, or with the session cookie of a signed-in browser. " +
         "A session carries every scope; a key carries the scopes it was issued with. A missing " +
         "scope is a **403** naming the scope it wanted, never a 401.\n\n" +
-        "Errors are always `{\"error\": {\"code\", \"message\", \"hint?\", \"action?\"}}`.",
+        'Errors are always `{"error": {"code", "message", "hint?", "action?"}}`.',
     },
     servers: [{ url: "/", description: "This installation" }],
     tags: [

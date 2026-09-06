@@ -105,9 +105,7 @@ function ApiSettings() {
     {
       key: "token",
       header: "Token",
-      cell: (row) => (
-        <code className="font-mono text-2xs text-fg-3">{row.start ?? "mm_…"}…</code>
-      ),
+      cell: (row) => <code className="font-mono text-2xs text-fg-3">{row.start ?? "mm_…"}…</code>,
     },
     {
       key: "scopes",
@@ -285,8 +283,8 @@ function ApiSettings() {
           <a className="underline" href="/api/docs">
             /api/docs
           </a>
-          , an MCP server for agents at <code className="font-mono">/mcp</code>, and a CLI
-          (&nbsp;<code className="font-mono">mm import &lt;url&gt; --release &lt;mbid&gt;</code>
+          , an MCP server for agents at <code className="font-mono">/mcp</code>, and a CLI (&nbsp;
+          <code className="font-mono">mm import &lt;url&gt; --release &lt;mbid&gt;</code>
           &nbsp;). Agents can queue imports, read candidates and resolve reviews — with the same
           preselection you see.
         </span>

@@ -40,7 +40,7 @@ import {
   errorSchema,
   idParam,
   importDetailSchema,
-  importOptionsSchema,
+  type importOptionsSchema,
   importSchema,
   listImportsQuery,
   retryStepSchema,
@@ -103,9 +103,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       const rows = await listImports(
         {
           limit: limit + offset,
-          ...(status === undefined || status === "all"
-            ? {}
-            : { status: status as ImportStatus }),
+          ...(status === undefined || status === "all" ? {} : { status: status as ImportStatus }),
         },
         db(),
       );
@@ -258,8 +256,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       return c.json(
         {
           kind: result.kind,
-          releases:
-            result.kind === "album" ? (shown as unknown as Record<string, unknown>[]) : [],
+          releases: result.kind === "album" ? (shown as unknown as Record<string, unknown>[]) : [],
           recordings:
             result.kind === "single" ? (shown as unknown as Record<string, unknown>[]) : [],
           preselectedId: preselected?.id ?? null,

@@ -395,10 +395,7 @@ async function smtpSend(message: MailMessage, settings: Settings): Promise<void>
  * Kept here, next to the transports, so the ntfy title and the Discord embed title are the
  * same string, and so a caller in a job handler passes facts rather than prose.
  */
-export function describe(
-  event: NotifiableEvent,
-  data: Record<string, unknown>,
-): Notification {
+export function describe(event: NotifiableEvent, data: Record<string, unknown>): Notification {
   const text = (key: string, fallback: string): string => {
     const value = data[key];
     return typeof value === "string" && value !== "" ? value : fallback;

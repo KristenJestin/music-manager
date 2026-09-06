@@ -190,7 +190,7 @@ export function webhookRoutes(): OpenAPIHono<ApiEnv> {
       summary: "Register a webhook endpoint",
       description:
         "The response carries the HMAC secret once. Every delivery is signed with it as " +
-        "`x-mm-signature: t=<unix>,v1=<hex>`, computed over `\"<t>.<body>\"` — the timestamp " +
+        '`x-mm-signature: t=<unix>,v1=<hex>`, computed over `"<t>.<body>"` — the timestamp ' +
         "is inside the signed material so a captured delivery cannot be replayed for ever.",
       middleware: [requireScope("settings:write")] as const,
       request: {

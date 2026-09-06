@@ -108,7 +108,9 @@ async function printJob(api: ApiClient, id: string): Promise<void> {
   if (job.error !== null) line(`  error    ${job.error.code}: ${job.error.message}`);
   line("");
   for (const step of job.steps) {
-    line(` ${STATUS_MARK[step.status] ?? step.status} ${step.step.padEnd(12)} ${step.message ?? ""}`);
+    line(
+      ` ${STATUS_MARK[step.status] ?? step.status} ${step.step.padEnd(12)} ${step.message ?? ""}`,
+    );
   }
   const open = job.inbox.filter((item) => item.status === "open");
   if (open.length > 0) {
@@ -302,7 +304,9 @@ async function cmdLibrary(api: ApiClient, args: RemoteArgs): Promise<number> {
     }>("/library/albums", {
       limit: Number(flagString(args, "limit") ?? "100"),
       ...(flagString(args, "filter") === undefined ? {} : { filter: flagString(args, "filter") }),
-      ...(flagString(args, "profile") === undefined ? {} : { profile: flagString(args, "profile") }),
+      ...(flagString(args, "profile") === undefined
+        ? {}
+        : { profile: flagString(args, "profile") }),
     });
     if (asJson(args)) return dump(payload);
     const average = payload.stats["averageScore"];
@@ -414,7 +418,8 @@ async function cmdSettings(api: ApiClient, args: RemoteArgs): Promise<number> {
   if (sub === "set") {
     const key = args.positional[2];
     const raw = args.positional[3];
-    if (key === undefined || raw === undefined) throw new Error("usage: mm settings set <key> <value>");
+    if (key === undefined || raw === undefined)
+      throw new Error("usage: mm settings set <key> <value>");
     // The server parses with the key's own schema, so the CLI only has to decide whether the
     // text was meant as JSON. `true`, `12` and `["a"]` are; `some/path` is not.
     let value: unknown = raw;

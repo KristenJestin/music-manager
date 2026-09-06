@@ -118,7 +118,10 @@ describe("send", () => {
     const targetless = await send(note, {
       settings: settingsWith({ notificationsChannel: "ntfy", notificationsTarget: "" }),
     });
-    expect(targetless).toMatchObject({ delivered: false, reason: "The channel has no target URL." });
+    expect(targetless).toMatchObject({
+      delivered: false,
+      reason: "The channel has no target URL.",
+    });
 
     const hostless = await send(note, {
       settings: settingsWith({

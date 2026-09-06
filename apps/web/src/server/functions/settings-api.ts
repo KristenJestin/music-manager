@@ -164,9 +164,7 @@ export const testWebhookEndpoint = createServerFn({ method: "POST", strict: STRI
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ id: z.string().min(1) }))
   .handler(
-    async ({
-      data,
-    }): Promise<{ ok: boolean; status: number | null; error: string | null }> => {
+    async ({ data }): Promise<{ ok: boolean; status: number | null; error: string | null }> => {
       try {
         return await testSend(data.id, { db: db() });
       } catch (error) {

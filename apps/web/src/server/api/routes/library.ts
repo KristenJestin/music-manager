@@ -308,7 +308,8 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
     }),
     async (c) => {
       const body = c.req.valid("json");
-      const scope = body.trackId !== undefined ? "track" : body.albumId !== undefined ? "album" : "library";
+      const scope =
+        body.trackId !== undefined ? "track" : body.albumId !== undefined ? "album" : "library";
       const run = await createRun({
         db: db(),
         scope,
@@ -326,7 +327,14 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       if (body.queue) {
         await enqueueRetagRun(run.id);
         return c.json(
-          { runId: run.id, total: run.total, queued: true, status: null, changed: null, failed: null },
+          {
+            runId: run.id,
+            total: run.total,
+            queued: true,
+            status: null,
+            changed: null,
+            failed: null,
+          },
           200,
         );
       }

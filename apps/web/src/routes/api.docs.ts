@@ -30,7 +30,6 @@ const PAGE = `<!doctype html>
     </style>
   </head>
   <body>
-    <div id="app"></div>
     <div id="fallback">
       <h1>The documentation viewer could not load.</h1>
       <p>
@@ -42,21 +41,41 @@ const PAGE = `<!doctype html>
         <a href="/api/openapi.json">/api/openapi.json</a>.
       </p>
     </div>
-    <script>
-      // Show the explanation only if Scalar never arrives. A blank page is the one outcome
-      // worth ruling out.
-      setTimeout(function () {
-        if (!document.querySelector('#app').hasChildNodes()) {
-          document.getElementById('fallback').style.display = 'block';
-        }
-      }, 4000);
-    </script>
     <script
       id="api-reference"
       data-url="/api/openapi.json"
       data-configuration='{"theme":"kepler","darkMode":true,"hideDownloadButton":false}'
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1/dist/browser/standalone.min.js" crossorigin="anonymous"></script>
+    <script
+      id="scalar-bundle"
+      src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1/dist/browser/standalone.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      /*
+       * Show the explanation only when Scalar genuinely did not arrive.
+       *
+       * The first version of this checked whether an "#app" div had children, and was wrong in
+       * the one direction that matters: Scalar replaces its own "#api-reference" script rather
+       * than filling somebody else's container, so the banner appeared *over a working page*.
+       * (No backticks in this comment on purpose — it lives inside a template literal.)
+       * Telling someone a thing is broken while they are looking at it working is worse than
+       * saying nothing.
+       *
+       * So: the script's own "onerror" is the authority — it is the only signal that actually
+       * means "the CDN did not answer" — and the timer is a backstop for the case where the
+       * script loads but renders nothing, which it detects by looking for what Scalar itself
+       * puts in the DOM.
+       */
+      (function () {
+        var fallback = document.getElementById('fallback');
+        var show = function () { fallback.style.display = 'block'; };
+        document.getElementById('scalar-bundle').addEventListener('error', show);
+        setTimeout(function () {
+          if (!document.querySelector('[class*="scalar"], .references-layout')) show();
+        }, 8000);
+      })();
+    </script>
   </body>
 </html>`;
 

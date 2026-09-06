@@ -209,8 +209,15 @@ function parseJson<T>(raw: string | null): T | null {
  * — its secret is on somebody's disk — and a row that lingers disabled is a row somebody will
  * eventually re-enable instead of issuing a fresh one.
  */
-export async function revoke(id: string, userId: string, db: Database = defaultDb()): Promise<void> {
-  const [row] = await db.select({ referenceId: apikey.referenceId }).from(apikey).where(eq(apikey.id, id));
+export async function revoke(
+  id: string,
+  userId: string,
+  db: Database = defaultDb(),
+): Promise<void> {
+  const [row] = await db
+    .select({ referenceId: apikey.referenceId })
+    .from(apikey)
+    .where(eq(apikey.id, id));
   if (row === undefined || row.referenceId !== userId) {
     throw new MMError("NOT_FOUND", `No API key with id ${id}.`, { status: 404 });
   }

@@ -58,7 +58,9 @@ export interface WebhookDeps {
  */
 export function signPayload(body: string, secret: string, at: Date = new Date()): string {
   const timestamp = Math.floor(at.getTime() / 1000);
-  const digest = createHmac("sha256", secret).update(`${String(timestamp)}.${body}`).digest("hex");
+  const digest = createHmac("sha256", secret)
+    .update(`${String(timestamp)}.${body}`)
+    .digest("hex");
   return `t=${String(timestamp)},v1=${digest}`;
 }
 
@@ -216,9 +218,7 @@ export async function dispatch(
   const db = deps.db ?? defaultDb();
   try {
     const rows = await db.select().from(webhooks).where(eq(webhooks.enabled, "true"));
-    const interested = rows.filter(
-      (row) => row.events.length === 0 || row.events.includes(event),
-    );
+    const interested = rows.filter((row) => row.events.length === 0 || row.events.includes(event));
     if (interested.length === 0) return { queued: 0 };
 
     const payload = buildPayload(event, data, { at: deps.now?.() });

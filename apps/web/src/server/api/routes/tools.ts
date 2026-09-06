@@ -85,15 +85,26 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
   /* ---- reads ---- */
   for (const [path, summary, run] of [
     ["cookies", "The YouTube cookies' status", async () => await cookiesStatus({ db: db() })],
-    ["latencies", "Round-trip time to every external source", async () => ({
-      services: await serviceLatencies({ db: db() }),
-    })],
-    ["errors", "The error catalogue: every code, its hint and its action", async () =>
-      await errorCatalog({ db: db() })],
-    ["scans", "Recent library scans", async () => ({
-      scans: await recentScans(10, db()),
-      last: await lastScan(db()),
-    })],
+    [
+      "latencies",
+      "Round-trip time to every external source",
+      async () => ({
+        services: await serviceLatencies({ db: db() }),
+      }),
+    ],
+    [
+      "errors",
+      "The error catalogue: every code, its hint and its action",
+      async () => await errorCatalog({ db: db() }),
+    ],
+    [
+      "scans",
+      "Recent library scans",
+      async () => ({
+        scans: await recentScans(10, db()),
+        last: await lastScan(db()),
+      }),
+    ],
   ] as const) {
     app.openapi(
       createRoute({
@@ -175,7 +186,8 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
         ...FAILURES,
       },
     }),
-    async (c) => c.json((await selftest({}, { db: db() })) as unknown as Record<string, unknown>, 200),
+    async (c) =>
+      c.json((await selftest({}, { db: db() })) as unknown as Record<string, unknown>, 200),
   );
 
   app.openapi(
@@ -191,7 +203,9 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
       responses: {
         202: {
           content: {
-            "application/json": { schema: z.object({ queued: z.boolean(), jobId: z.string().nullable() }) },
+            "application/json": {
+              schema: z.object({ queued: z.boolean(), jobId: z.string().nullable() }),
+            },
           },
           description: "Queued",
         },

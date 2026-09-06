@@ -130,8 +130,7 @@ export async function handleYtdlpUpdate(deps: HandlerDeps = {}): Promise<void> {
         await announce(
           "cookies.expiring",
           {
-            message:
-              cookies.problems.length > 0 ? cookies.problems.join("; ") : cookies.note,
+            message: cookies.problems.length > 0 ? cookies.problems.join("; ") : cookies.note,
             expiresAt: cookies.expiresAt ?? "",
             expired: cookies.expired,
             authenticated: cookies.authenticated,

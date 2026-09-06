@@ -100,13 +100,11 @@ const jobEventSchema = z.object({
 /* the common ones                                                     */
 /* ------------------------------------------------------------------ */
 
-export const errorSchema = z
-  .object({ error: mmErrorBodySchema })
-  .openapi("Error", {
-    description:
-      "Every failure, everywhere, in one shape. `code` is stable and machine-readable; " +
-      "`hint` and `action` are for a human or an agent deciding what to do next.",
-  });
+export const errorSchema = z.object({ error: mmErrorBodySchema }).openapi("Error", {
+  description:
+    "Every failure, everywhere, in one shape. `code` is stable and machine-readable; " +
+    "`hint` and `action` are for a human or an agent deciding what to do next.",
+});
 
 /** The id in a path. Named so the document says `imp_…` rather than `string`. */
 export const idParam = z.string().min(1).openapi({ example: "imp_01K4XQ7N8ZC3RB2VMD9T6HFPGA" });
@@ -358,9 +356,9 @@ export const settingsSchema = z
  * second copy that drifts. Each value is validated by that key's own zod schema inside
  * `setSetting`, which is where the authority already lives.
  */
-export const patchSettingsSchema = z
-  .record(z.string(), z.unknown())
-  .openapi("SettingsPatch", { description: "A partial settings object. Unknown keys are refused." });
+export const patchSettingsSchema = z.record(z.string(), z.unknown()).openapi("SettingsPatch", {
+  description: "A partial settings object. Unknown keys are refused.",
+});
 
 export const healthSchema = z
   .object({
@@ -389,7 +387,10 @@ export const keySchema = apiKeySchema.openapi("ApiKey");
 export const createKeySchema = z
   .object({
     name: z.string().min(1).openapi({ example: "claude-desktop" }),
-    scopes: z.array(z.string()).min(1).openapi({ example: ["imports:write", "library:read"] }),
+    scopes: z
+      .array(z.string())
+      .min(1)
+      .openapi({ example: ["imports:write", "library:read"] }),
     expiresInDays: z.number().int().min(1).max(3650).nullable().default(null),
   })
   .openapi("CreateApiKey");

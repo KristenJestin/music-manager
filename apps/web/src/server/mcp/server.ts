@@ -130,11 +130,19 @@ interface ToolSpec {
   readonly scope: ApiScope;
   readonly title: string;
   readonly description: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- one heterogeneous table of
-  // tools, each with its own zod shape; the shapes are checked at each registration site.
-  readonly inputSchema: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above.
-  readonly run: (args: any) => Promise<unknown>;
+  readonly inputSchema: Record<string, z.ZodType>;
+  /**
+   * Declared with **method syntax**, deliberately.
+   *
+   * Each tool below writes its own parameter type — `{ importId: string }`, `{ query: string;
+   * limit: number }` — and this is one array holding all fourteen. A function *property*
+   * (`run: (args: X) => …`) is checked contravariantly under `strictFunctionTypes`, so none of
+   * them would be assignable to a common signature and the table would need an `any`. A
+   * *method* is checked bivariantly, which is exactly the trade this table wants: the argument
+   * is validated against `inputSchema` by the SDK before `run` is ever called, so the narrow
+   * type is a description of what the schema already guarantees rather than an unchecked claim.
+   */
+  run(args: Record<string, unknown>): Promise<unknown>;
 }
 
 /**
@@ -587,7 +595,7 @@ export function toolTable(): ToolSpec[] {
         "Set one or more keys. Each value is validated against that key's own schema; an " +
         "unknown key refuses the whole call. `get_settings` lists what exists.",
       inputSchema: {
-        patch: z.record(z.string(), z.unknown()).describe("`{ \"key\": value }` pairs."),
+        patch: z.record(z.string(), z.unknown()).describe('`{ "key": value }` pairs.'),
       },
       run: async (args: { patch: Record<string, unknown> }) => {
         const unknown = Object.keys(args.patch).filter((key) => !isSettingKey(key));
@@ -654,8 +662,10 @@ export function buildMcpServer(principal: ApiPrincipal): McpServer {
         description: `${tool.description}\n\nRequires the \`${tool.scope}\` scope.`,
         inputSchema: tool.inputSchema,
       },
-      async (args: unknown) => {
+      async (args: Record<string, unknown>) => {
         try {
+          // The SDK has already parsed `args` against `inputSchema`, so this is the validated
+          // shape the tool declared — not a hopeful cast.
           return json(await tool.run(args));
         } catch (error) {
           return failed(error instanceof Error ? error.message : String(error));
