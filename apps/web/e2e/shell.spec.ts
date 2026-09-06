@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { pressGlobal, shellReady, signIn } from "./helpers.ts";
+import { pressGlobal, shellReady, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The Console shell: the parts that are on every page, and the keyboard.
@@ -13,7 +13,9 @@ test.describe("the shell", () => {
   });
 
   test("the paste box takes a URL straight into the wizard", async ({ page }) => {
-    await page.getByTestId("url-paste").fill("fixture://discovery");
+    // `typeInto`, not `fill`: the paste box is a Base UI input and does not see a value set
+    // through the native setter (see helpers.ts). Its Enter handler reads React state.
+    await typeInto(page.getByTestId("url-paste"), "fixture://discovery");
     await page.getByTestId("url-paste").press("Enter");
     await page.waitForURL(/\/import\/new/, { timeout: 120_000 });
     await expect(page.getByTestId("source-count")).toBeVisible({ timeout: 120_000 });
@@ -30,7 +32,7 @@ test.describe("the shell", () => {
   });
 
   test("a shortcut does not fire while you are typing into a field", async ({ page }) => {
-    await page.getByTestId("url-paste").fill("no");
+    await typeInto(page.getByTestId("url-paste"), "no");
     await page.getByTestId("url-paste").press("r");
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByTestId("url-paste")).toHaveValue("nor");
