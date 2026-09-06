@@ -62,7 +62,7 @@ test.describe("importing an album", () => {
     await page.getByTestId("wizard-next").click();
     await page.waitForURL(/step=4/, { timeout: 120_000 });
     await expect(page.getByTestId("summary-tracks")).toHaveText(
-      "14 bound · 1 extra skipped · 0 uncovered",
+      "14 bound, 1 extra skipped, 0 uncovered",
     );
     await expect(page.getByTestId("option-fingerprint")).toHaveAttribute("aria-checked", "true");
 
