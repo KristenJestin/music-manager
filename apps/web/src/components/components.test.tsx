@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MappingLine, ReleaseCandidate } from "@mm/domain";
 import { Callout } from "./callout.tsx";
-import { Cover } from "./cover.tsx";
+import { Cover, coverArtFront } from "./cover.tsx";
 import { DataTable } from "./data-table.tsx";
 import { KeyValueList } from "./key-value.tsx";
 import { LogViewer } from "./log-viewer.tsx";
@@ -424,6 +424,24 @@ describe("the small ones", () => {
     const second = render(<Cover seed="imp_1" label="Discovery" />).container.innerHTML;
     expect(first).toBe(second);
     expect(first).toContain("D");
+  });
+
+  it("Cover shows the real image when it has one, and falls back when it breaks", () => {
+    render(<Cover seed="imp_1" label="Discovery" src="https://example.invalid/front-250" />);
+    const image = screen.getByTestId("cover-image");
+    expect(image.getAttribute("src")).toBe("https://example.invalid/front-250");
+    expect(image.getAttribute("alt")).toBe("Discovery");
+    fireEvent.error(image);
+    expect(screen.queryByTestId("cover-image")).toBeNull();
+    // The gradient and the initial were underneath the whole time.
+    expect(screen.getByText("D")).not.toBeNull();
+  });
+
+  it("coverArtFront builds a release front URL, and nothing without an MBID", () => {
+    expect(coverArtFront("a1b2")).toBe("https://coverartarchive.org/release/a1b2/front-250");
+    expect(coverArtFront("a1b2", 500)).toBe("https://coverartarchive.org/release/a1b2/front-500");
+    expect(coverArtFront(null)).toBeNull();
+    expect(coverArtFront("   ")).toBeNull();
   });
 
   it("KeyValueList drops a pair asked to hide when empty", () => {
