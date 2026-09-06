@@ -8,5 +8,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "bin/**/*.ts", "vite.config.ts", "drizzle.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "bin/**/*.ts",
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "test/**/*.ts"
+  ]
 }

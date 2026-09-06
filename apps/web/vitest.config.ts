@@ -5,6 +5,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    // `test/` holds the recorded cassettes of P04 and the suites that replay them; the
+    // recordings sit next to the tests that use them rather than inside `src/`.
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "test/**/*.test.ts"],
   },
 });

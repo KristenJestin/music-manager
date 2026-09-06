@@ -1,0 +1,1379 @@
+{
+  "recordedAt": "2026-09-06T00:28:52.191Z",
+  "note": "Community tags for the recording, and the similar-artists graph P09 will read.",
+  "entries": [
+    {
+      "method": "GET",
+      "url": "https://api.listenbrainz.org/1/metadata/recording/?recording_mbids=60fa767a-d85d-4991-82bc-4294e0b11ae7&inc=tag",
+      "status": 200,
+      "body": {
+        "60fa767a-d85d-4991-82bc-4294e0b11ae7": {
+          "recording": {
+            "isrcs": ["GBDUW0000053", "GBAHT1305744"],
+            "length": 320746,
+            "name": "One More Time",
+            "rels": [
+              {
+                "artist_mbid": "c2be8eb6-c2e6-4051-898a-7d111e1e5784",
+                "artist_name": "Romanthony",
+                "type": "vocal"
+              }
+            ],
+            "url_rels": [
+              {
+                "type": "free streaming",
+                "url": "https://www.deezer.com/track/3135553"
+              },
+              {
+                "type": "streaming",
+                "url": "https://tidal.com/track/1550546"
+              },
+              {
+                "type": "streaming",
+                "url": "https://music.apple.com/us/song/697195462"
+              },
+              {
+                "type": "free streaming",
+                "url": "https://open.spotify.com/track/0DiWol3AO6WpXZgp0goxAV"
+              }
+            ]
+          },
+          "tag": {
+            "artist": [
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "nu-disco"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "05247982-e44f-4c58-96f8-a5453be69f5f",
+                "tag": "electro house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "31be54b2-4d0c-42df-aa44-c496c7b4c3c3",
+                "tag": "r&b"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "640fb6e1-c2b9-40be-bbd0-4da3c4d4832c",
+                "tag": "organic house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "351424dd-91a3-4cf2-9edb-5df647743ec0",
+                "tag": "nu disco"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "988e91a3-3341-416d-b7f8-7dbef6848dac",
+                "tag": "synth-pop"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "bab69b07-8bb9-4415-b666-c37609cef80b",
+                "tag": "club"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "c4a69842-f891-4569-9506-1882aa5db433",
+                "tag": "electronic rock"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "dance music"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "dj tools / acapellas"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "53a3cea3-17af-4421-a07a-5824b540aeb5",
+                "tag": "electronica"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "9a339aa8-a0e5-450c-95a7-b11517bb508f",
+                "tag": "trap"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 18,
+                "genre_mbid": "5acda04e-995d-4f79-9a66-5fe6a977ce15",
+                "tag": "french house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 4,
+                "genre_mbid": "a04d680b-b5c5-4f6a-87a3-f9f1ff98e3ea",
+                "tag": "disco"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "d5c8b95a-fcf6-4c1d-b98c-a7cb4efb494f",
+                "tag": "jackin house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "3976e9ba-16d0-461d-b732-99408a0374ba",
+                "tag": "edm"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "cae57e98-c939-4b0e-ae49-8e0cb1bdc91d",
+                "tag": "electroclash"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "bb55e7aa-ec06-4605-b867-ee66938713e1",
+                "tag": "french electro"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "house music"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "dance and electronica"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "synthpop"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "60f00d05-df4d-496e-8f5a-c45c03a56ad4",
+                "tag": "electro"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "indie dance"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 20,
+                "genre_mbid": "a2782cb6-1cd0-477c-a61d-b3f8b42dd1b3",
+                "tag": "house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 40,
+                "genre_mbid": "89255676-1f14-4dd8-bbad-fca839d6aff4",
+                "tag": "electronic"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 8,
+                "tag": "french"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "french touch"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 5,
+                "genre_mbid": "e5bba957-8c91-496a-a675-c6d0c6b51c33",
+                "tag": "dance"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "vocoder"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "genre_mbid": "fe4ba6a1-9873-4fd0-a12b-a70c81818514",
+                "tag": "funk"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "leftfield house"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "film score"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "tag": "european"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "41fe3260-fcc1-450b-bd5a-803886c56912",
+                "tag": "techno"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 1,
+                "genre_mbid": "911c7bbb-172d-4df8-9478-dbff4296e791",
+                "tag": "pop"
+              },
+              {
+                "artist_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                "count": 2,
+                "tag": "left-field house"
+              }
+            ],
+            "recording": [
+              {
+                "count": 9,
+                "genre_mbid": "a2782cb6-1cd0-477c-a61d-b3f8b42dd1b3",
+                "tag": "house"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "53a3cea3-17af-4421-a07a-5824b540aeb5",
+                "tag": "electronica"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "41fe3260-fcc1-450b-bd5a-803886c56912",
+                "tag": "techno"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "60f00d05-df4d-496e-8f5a-c45c03a56ad4",
+                "tag": "electro"
+              },
+              {
+                "count": 3,
+                "genre_mbid": "a04d680b-b5c5-4f6a-87a3-f9f1ff98e3ea",
+                "tag": "disco"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "7d0c6a6b-5d56-4b1e-a8c7-e32194f246b9",
+                "tag": "soft rock"
+              },
+              {
+                "count": 4,
+                "genre_mbid": "e5bba957-8c91-496a-a675-c6d0c6b51c33",
+                "tag": "dance"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "797e2e85-5ffd-495c-a757-8b4079052f0e",
+                "tag": "pop rock"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "70adb285-e1f7-458a-823f-5cbda5e291c4",
+                "tag": "progressive house"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "bab69b07-8bb9-4415-b666-c37609cef80b",
+                "tag": "club"
+              },
+              {
+                "count": 1,
+                "tag": "elektro"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "aac07ae0-8acf-4249-b5c0-2762b53947a2",
+                "tag": "big beat"
+              },
+              {
+                "count": 7,
+                "genre_mbid": "89255676-1f14-4dd8-bbad-fca839d6aff4",
+                "tag": "electronic"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "tag": "rock"
+              },
+              {
+                "count": 1,
+                "tag": "trip-hop"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "5acda04e-995d-4f79-9a66-5fe6a977ce15",
+                "tag": "french house"
+              },
+              {
+                "count": 1,
+                "tag": "electronica dance"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "8f8cbcde-3948-4be5-8bf0-8073f13e4b60",
+                "tag": "euro house"
+              },
+              {
+                "count": 1,
+                "tag": "party"
+              },
+              {
+                "count": 1,
+                "tag": "pop_electro_downtempo"
+              },
+              {
+                "count": 1,
+                "tag": "left-field house"
+              },
+              {
+                "count": 7,
+                "tag": "club/dance"
+              }
+            ],
+            "release_group": [
+              {
+                "count": 1,
+                "tag": "trip-hop"
+              },
+              {
+                "count": 14,
+                "genre_mbid": "89255676-1f14-4dd8-bbad-fca839d6aff4",
+                "tag": "electronic"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "cc38aba3-48ed-439a-83b9-f81a34a66598",
+                "tag": "downtempo"
+              },
+              {
+                "count": 3,
+                "genre_mbid": "e5bba957-8c91-496a-a675-c6d0c6b51c33",
+                "tag": "dance"
+              },
+              {
+                "count": 20,
+                "genre_mbid": "a2782cb6-1cd0-477c-a61d-b3f8b42dd1b3",
+                "tag": "house"
+              },
+              {
+                "count": 3,
+                "genre_mbid": "60f00d05-df4d-496e-8f5a-c45c03a56ad4",
+                "tag": "electro"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "53a3cea3-17af-4421-a07a-5824b540aeb5",
+                "tag": "electronica"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "a04d680b-b5c5-4f6a-87a3-f9f1ff98e3ea",
+                "tag": "disco"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "1f9c4b4a-c43d-40bd-b806-357153641fd0",
+                "tag": "tech house"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "b739a895-85ed-4ad3-8717-4e9ef5387dd8",
+                "tag": "dance-pop"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "62e4c7cb-a2b3-462b-8d96-1b0d66ee6cf3",
+                "tag": "funky house"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "10fd28e3-51aa-4110-a3dd-032d8a141f99",
+                "tag": "boogie"
+              },
+              {
+                "count": 4,
+                "genre_mbid": "70adb285-e1f7-458a-823f-5cbda5e291c4",
+                "tag": "progressive house"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "bab69b07-8bb9-4415-b666-c37609cef80b",
+                "tag": "club"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "05247982-e44f-4c58-96f8-a5453be69f5f",
+                "tag": "electro house"
+              },
+              {
+                "count": 8,
+                "genre_mbid": "5acda04e-995d-4f79-9a66-5fe6a977ce15",
+                "tag": "french house"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "8f8cbcde-3948-4be5-8bf0-8073f13e4b60",
+                "tag": "euro house"
+              },
+              {
+                "count": 1,
+                "tag": "nu-disco"
+              },
+              {
+                "count": 1,
+                "tag": "left-field house"
+              },
+              {
+                "count": 4,
+                "tag": "club/dance"
+              },
+              {
+                "count": 2,
+                "genre_mbid": "4dcf868a-cbcb-4969-beff-d75c91d0bd47",
+                "tag": "synth funk"
+              },
+              {
+                "count": 1,
+                "genre_mbid": "f6cd97fb-7c7c-483e-9f98-e5c0abe1b1b2",
+                "tag": "electro-disco"
+              },
+              {
+                "count": 1,
+                "tag": "offizielle charts"
+              },
+              {
+                "count": 1,
+                "tag": "leftfield house"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://labs.api.listenbrainz.org/similar-artists/json?artist_mbids=056e4f3e-d505-4dad-8ec1-d04f521cbb56&algorithm=session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30",
+      "status": 200,
+      "body": [
+        {
+          "artist_mbid": "c6d571dd-c0ae-4ac8-9500-780b1b9b25e5",
+          "name": "Nile Rodgers",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 10016,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "e21857d5-3256-4547-afb3-4b6ded592596",
+          "name": "Gorillaz",
+          "comment": "virtual band",
+          "type": "Group",
+          "gender": null,
+          "score": 8405,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "fa0e2024-95ff-44b6-9a86-f0ab120b6a72",
+          "name": "Todd Edwards",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 8367,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+          "name": "Radiohead",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 8197,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "c8b03190-306c-4120-bb0b-6f2ebfc06ea9",
+          "name": "The Weeknd",
+          "comment": "Canadian R&B singer",
+          "type": "Person",
+          "gender": "Male",
+          "score": 7493,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "cc197bad-dc9c-440d-a5b5-d52ba2e14234",
+          "name": "Coldplay",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 7210,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "98764c37-c165-4aae-85eb-02c8114ded63",
+          "name": "DJ Falcon",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 7178,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "860b2707-6153-4e3a-aa57-74d2b42c55b5",
+          "name": "Justice",
+          "comment": "French electro house, Gaspard Augé & Xavier de Rosnay",
+          "type": "Group",
+          "gender": null,
+          "score": 6318,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8bfac288-ccc5-448d-9573-c33ea2aa5c30",
+          "name": "Red Hot Chili Peppers",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 6200,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "164f0d73-1234-4e2c-8743-d77bf2191051",
+          "name": "Ye",
+          "comment": "formerly Kanye West",
+          "type": "Person",
+          "gender": "Male",
+          "score": 6161,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "9c9f1380-2516-4fc9-a3e6-f9f61941d090",
+          "name": "Muse",
+          "comment": "UK rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 6161,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "1946a82a-f927-40c2-8235-38d64f50d043",
+          "name": "The Chemical Brothers",
+          "comment": "British electronic music duo",
+          "type": "Group",
+          "gender": null,
+          "score": 5951,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+          "name": "The Beatles",
+          "comment": "UK rock band, “The Fab Four”",
+          "type": "Group",
+          "gender": null,
+          "score": 5902,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "ada7a83c-e3e1-40f1-93f9-3e73dbc9298a",
+          "name": "Arctic Monkeys",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 5787,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "c485632c-b784-4ee9-8ea1-c5fb365681fc",
+          "name": "MGMT",
+          "comment": "US pop rock group",
+          "type": "Group",
+          "gender": null,
+          "score": 5702,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "c5ce487b-0462-444e-a184-4de0fef7e028",
+          "name": "Julian Casablancas",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 5694,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "0383dadf-2a4e-4d10-a46a-e9e041da8eb3",
+          "name": "Queen",
+          "comment": "UK rock group",
+          "type": "Group",
+          "gender": null,
+          "score": 5641,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "381086ea-f511-4aba-bdf9-71c753dc5077",
+          "name": "Kendrick Lamar",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 5605,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8970d868-0723-483b-a75b-51088913d3d4",
+          "name": "Moby",
+          "comment": "electronic musician Richard Melville Hall",
+          "type": "Person",
+          "gender": "Male",
+          "score": 5549,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "fd3c3f9f-a471-498e-ab3a-940ac20b6bbd",
+          "name": "Panda Bear",
+          "comment": "Noah Lennox from Animal Collective",
+          "type": "Person",
+          "gender": "Male",
+          "score": 5538,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+          "name": "David Bowie",
+          "comment": "English singer‐songwriter",
+          "type": "Person",
+          "gender": "Male",
+          "score": 5512,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "5b11f4ce-a62d-471e-81fc-a69a8278c7da",
+          "name": "Nirvana",
+          "comment": "1980s–1990s US grunge band",
+          "type": "Group",
+          "gender": null,
+          "score": 5365,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "4a4ee089-93b1-4470-af9a-6ff575d32704",
+          "name": "The Prodigy",
+          "comment": "UK electronic group, main member Liam Howlett",
+          "type": "Group",
+          "gender": null,
+          "score": 5326,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f59c5520-5f46-4d2c-b2c4-822eabf53419",
+          "name": "Linkin Park",
+          "comment": "American rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 5078,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "95e1ead9-4d31-4808-a7ac-32c3614c116b",
+          "name": "The Killers",
+          "comment": "American rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 5072,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "73e5e69d-3554-40d8-8516-00cb38737a1c",
+          "name": "Rihanna",
+          "comment": "Barbadian R&B/pop singer",
+          "type": "Person",
+          "gender": "Female",
+          "score": 5046,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b7539c32-53e7-4908-bda3-81449c367da6",
+          "name": "Lana Del Rey",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 5035,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "83d91898-7763-47d7-b03b-b92132375c47",
+          "name": "Pink Floyd",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 5033,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "6d7b7cd4-254b-4c25-83f6-dd20f98ceacd",
+          "name": "M83",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4980,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "10adbe5e-a2c0-4bf3-8249-2b4cbf6e6ca8",
+          "name": "Massive Attack",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4969,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f27ec8db-af05-4f36-916e-3d57f91ecf5e",
+          "name": "Michael Jackson",
+          "comment": "“King of Pop”",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4962,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "11ae9fbb-f3d7-4a47-936f-4c0a04d3b3b5",
+          "name": "The White Stripes",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4872,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f181961b-20f7-459e-89de-920ef03c7ed0",
+          "name": "The Strokes",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4837,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "67f66c07-6e61-4026-ade5-7e782fad3a5d",
+          "name": "Foo Fighters",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4823,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "1c70a3fc-fa3c-4be1-8b55-c3192db8a884",
+          "name": "Röyksopp",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4754,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "012151a8-0f9a-44c9-997f-ebd68b5389f9",
+          "name": "Imagine Dragons",
+          "comment": "American pop rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 4752,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "2f548675-008d-4332-876c-108b0c7ab9c5",
+          "name": "Sia",
+          "comment": "Australian singer‐songwriter",
+          "type": "Person",
+          "gender": "Female",
+          "score": 4710,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8538e728-ca0b-4321-b7e5-cff6565dd4c0",
+          "name": "Depeche Mode",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4668,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b95ce3ff-3d05-4e87-9e01-c97b66af13d4",
+          "name": "Eminem",
+          "comment": "US rapper",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4533,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "084308bd-1654-436f-ba03-df6697104e19",
+          "name": "Green Day",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4503,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "2307602e-a3ce-4f37-bb2b-d54f1980ed5f",
+          "name": "Paul Williams",
+          "comment": "US songwriter/soft rock vocalist",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4471,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "309c62ba-7a22-4277-9f67-4a162526d18a",
+          "name": "Beck",
+          "comment": "alt rock, multi‐instrumentalist Beck Hansen",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4413,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "4a00ec9d-c635-463a-8cd4-eb61725f0c60",
+          "name": "deadmau5",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4356,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "cb67438a-7f50-4f2b-a6f1-2bb2729fd538",
+          "name": "Air",
+          "comment": "French band",
+          "type": "Group",
+          "gender": null,
+          "score": 4354,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "aa7a2827-f74b-473c-bd79-03d065835cf7",
+          "name": "Franz Ferdinand",
+          "comment": "Scottish rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 4292,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "c5c2ea1c-4bde-4f4d-bd0b-47b200bf99d6",
+          "name": "The xx",
+          "comment": "UK indie/dream pop trio",
+          "type": "Group",
+          "gender": null,
+          "score": 4221,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "650e7db6-b795-4eb5-a702-5ea2fc46c848",
+          "name": "Lady Gaga",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 4212,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8d455809-96b3-4bb6-8829-ea4beb580d35",
+          "name": "Phoenix",
+          "comment": "French indie band",
+          "type": "Group",
+          "gender": null,
+          "score": 4176,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "afb680f2-b6eb-4cd7-a70b-a63b25c763d5",
+          "name": "Bruno Mars",
+          "comment": "US singer",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4170,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "52074ba6-e495-4ef3-9bb4-0703888a9f68",
+          "name": "Arcade Fire",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4158,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "0ab49580-c84f-44d4-875f-d83760ea2cfe",
+          "name": "Maroon 5",
+          "comment": "American pop rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 4151,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "34c63966-445c-4613-afe1-4f0e1e53ae9a",
+          "name": "Fatboy Slim",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4125,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "9fff2f8a-21e6-47de-a2b8-7f449929d43f",
+          "name": "Drake",
+          "comment": "Canadian rapper",
+          "type": "Person",
+          "gender": "Male",
+          "score": 4077,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "ba853904-ae25-4ebb-89d6-c44cfbd71bd2",
+          "name": "Blur",
+          "comment": "UK alternative rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 4073,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "122d63fc-8671-43e4-9752-34e846d62a9c",
+          "name": "Katy Perry",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 4071,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 4050,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "33ca19f4-18c8-4411-98df-ac23890ce9f5",
+          "name": "Ellie Goulding",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 4035,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "6fe07aa5-fec0-4eca-a456-f29bff451b04",
+          "name": "Weezer",
+          "comment": "American rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 4010,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "678d88b2-87b0-403b-b63d-5da7465aecc3",
+          "name": "Led Zeppelin",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3974,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f22942a1-6f70-4f48-866e-238cb2308fbd",
+          "name": "Aphex Twin",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3960,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+          "name": "Nine Inch Nails",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3960,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "7dc8f5bd-9d0b-4087-9f73-dc164950bbd8",
+          "name": "Queens of the Stone Age",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3920,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+          "name": "Tame Impala",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3904,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "9beb62b2-88db-4cea-801e-162cd344ee53",
+          "name": "Beastie Boys",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3883,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "c85cfd6b-b1e9-4a50-bd55-eb725f04f7d5",
+          "name": "Avicii",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3877,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "2aaf7396-6ab8-40f3-9776-a41c42c8e26b",
+          "name": "LCD Soundsystem",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3874,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "69ee3720-a7cb-4402-b48d-a02c366f2bcf",
+          "name": "The Cure",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3870,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "eb6de5f6-98f8-4b5a-bfdc-f87fa4936baa",
+          "name": "Kavinsky",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3836,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b1570544-93ab-4b2b-8398-131735394202",
+          "name": "Crystal Castles",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3826,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8dd98bdc-80ec-4e93-8509-2f46bafc09a7",
+          "name": "Calvin Harris",
+          "comment": "Scottish DJ and producer",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3815,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "a3cb23fc-acd3-4ce0-8f36-1e5aa6a18432",
+          "name": "U2",
+          "comment": "Irish rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 3800,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b8a7c51f-362c-4dcb-a259-bc6e0095f0a6",
+          "name": "Ed Sheeran",
+          "comment": "UK singer‐songwriter",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3782,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "149f91ef-1287-46da-9a8e-87fee02f1471",
+          "name": "Pharrell Williams",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3757,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+          "name": "The Rolling Stones",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3714,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
+          "name": "Metallica",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3711,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+          "name": "Lorde",
+          "comment": "New Zealand singer‐songwriter",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3690,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "d15721d8-56b4-453d-b506-fc915b14cba2",
+          "name": "The Black Keys",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3682,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "9c306413-56b6-4ff6-982a-7e4b87d01340",
+          "name": "Chilly Gonzales",
+          "comment": "Canadian musician Jason Charles Beck",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3640,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "596ffa74-3d08-44ef-b113-765d43d12738",
+          "name": "Justin Timberlake",
+          "comment": "",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3576,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "ba0d6274-db14-4ef5-b28d-657ebde1a396",
+          "name": "The Smashing Pumpkins",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3576,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "e0e1a584-dd0a-4bd1-88d1-c4c62895039d",
+          "name": "Foster the People",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3574,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "af37c51c-0790-4a29-b995-456f98a6b8c9",
+          "name": "Vampire Weekend",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3564,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "ea4dfa26-f633-4da6-a52a-f49ea4897b58",
+          "name": "R.E.M.",
+          "comment": "American rock band",
+          "type": "Group",
+          "gender": null,
+          "score": 3550,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "87c5dedd-371d-4a53-9f7f-80522fb7f3cb",
+          "name": "Björk",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3543,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "73fdb566-a9b1-494c-9f32-51768ec9fd27",
+          "name": "OutKast",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3540,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f467181e-d5e0-4285-b47e-e853dcc89ee7",
+          "name": "Ratatat",
+          "comment": "US electronic rock duo",
+          "type": "Group",
+          "gender": null,
+          "score": 3498,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "39ab1aed-75e0-4140-bd47-540276886b60",
+          "name": "Oasis",
+          "comment": "Noel & Liam Gallagher",
+          "type": "Group",
+          "gender": null,
+          "score": 3498,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "3798b104-01cb-484c-a3b0-56adc6399b80",
+          "name": "Rage Against the Machine",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3466,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+          "name": "Pixies",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3381,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "20244d07-534f-4eff-b4d4-930878889970",
+          "name": "Taylor Swift",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3368,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11",
+          "name": "Portishead",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3286,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "69158f97-4c07-4c4e-baf8-4e4ab1ed666e",
+          "name": "Boards of Canada",
+          "comment": "Scottish electronic duo",
+          "type": "Group",
+          "gender": null,
+          "score": 3285,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "79239441-bfd5-4981-a70c-55c3f15c1287",
+          "name": "Madonna",
+          "comment": "“Queen of Pop”",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3272,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "cc2c9c3c-b7bc-4b8b-84d8-4fbd8779e493",
+          "name": "Adele",
+          "comment": "UK soul/jazz singer",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3259,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "45a663b5-b1cb-4a91-bff6-2bef7bbfdd76",
+          "name": "Britney Spears",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3221,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f82bcf78-5b69-4622-a5ef-73800768d9ac",
+          "name": "JAŸ-Z",
+          "comment": "US rapper",
+          "type": "Person",
+          "gender": "Male",
+          "score": 3219,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "23a03e33-a603-404e-bcbf-2c00159d7067",
+          "name": "The Offspring",
+          "comment": "American punk",
+          "type": "Group",
+          "gender": null,
+          "score": 3216,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "6ffb8ea9-2370-44d8-b678-e9237bbd347b",
+          "name": "Kings of Leon",
+          "comment": "",
+          "type": "Group",
+          "gender": null,
+          "score": 3208,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "7cf0ea9d-86b9-4dad-ba9e-2355a64899ea",
+          "name": "M.I.A.",
+          "comment": "hip hop artist Maya Arulpragasam",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3173,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        },
+        {
+          "artist_mbid": "f4fdbb4c-e4b7-47a0-b83b-d91bbfcfa387",
+          "name": "Ariana Grande",
+          "comment": "",
+          "type": "Person",
+          "gender": "Female",
+          "score": 3156,
+          "reference_mbid": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
+        }
+      ]
+    }
+  ]
+}
