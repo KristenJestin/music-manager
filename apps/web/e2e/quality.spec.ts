@@ -18,13 +18,26 @@ import { expect, test, signIn, typeInto } from "./helpers.ts";
  * the audio stream is never touched.
  */
 
+/**
+ * The text of an element that may not be there, read in **one** call.
+ *
+ * `if (await locator.count() > 0) await locator.innerText()` is a check followed by an act, and
+ * `/library/quality` refreshes itself while a re-tag runs: the element can be counted and then
+ * gone, and `innerText` then waits thirty seconds for something that has just been removed.
+ * That is how this spec failed a run — `locator.innerText: Timeout 30000ms exceeded, waiting
+ * for getByTestId('files-behind')`, on a page that had simply moved on. `allInnerTexts()` asks
+ * once and answers `[]` when there is nothing, so there is no window between the two.
+ */
+async function textOrNothing(page: Page, testId: string): Promise<string | undefined> {
+  return (await page.getByTestId(testId).allInnerTexts())[0];
+}
+
 /** Read the "files behind" number out of the schema callout. */
 async function filesBehind(page: Page): Promise<number> {
   await page.goto("/library/quality");
   await expect(page.getByTestId("schema-callout")).toBeVisible({ timeout: 60_000 });
-  const badge = page.getByTestId("files-behind");
-  if ((await badge.count()) === 0) return 0;
-  return Number.parseInt((await badge.innerText()).trim(), 10);
+  const badge = await textOrNothing(page, "files-behind");
+  return badge === undefined ? 0 : Number.parseInt(badge.trim(), 10);
 }
 
 /**
@@ -55,9 +68,8 @@ async function waitForRetag(page: Page): Promise<void> {
     .poll(
       async () => {
         await page.goto("/library/quality");
-        const bar = page.getByTestId("retag-progress");
-        if ((await bar.count()) === 0) return "idle";
-        return (await bar.innerText()).includes("running") ? "running" : "idle";
+        const bar = await textOrNothing(page, "retag-progress");
+        return bar !== undefined && bar.includes("running") ? "running" : "idle";
       },
       { timeout: 180_000, intervals: [2000] },
     )
