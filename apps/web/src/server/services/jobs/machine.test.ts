@@ -115,6 +115,39 @@ describe("terminal and resumable statuses", () => {
   });
 });
 
+describe("a step that names where to restart", () => {
+  // Owner review C6: `verify` finds that a file it placed has disappeared. That is a track to
+  // fetch again, not an import to abandon — and a plain `failed` left the job stuck, because
+  // `resumePoint` restarts at the first step that is not done, which was `verify` itself.
+  it("rewinds instead of stopping the job", () => {
+    expect(transition("verify", { status: "failed", restartAt: "download" })).toEqual({
+      step: "download",
+      status: "running",
+      stepStatus: "failed",
+      continues: true,
+    });
+  });
+
+  it("refuses to jump forward, so it cannot become a second pipeline order", () => {
+    expect(transition("download", { status: "failed", restartAt: "verify" })).toEqual({
+      step: "download",
+      status: "failed",
+      stepStatus: "failed",
+      continues: false,
+    });
+    expect(transition("verify", { status: "failed", restartAt: "verify" }).continues).toBe(false);
+  });
+
+  it("is ignored on any outcome but a failure", () => {
+    expect(transition("verify", { status: "done", restartAt: "download" })).toEqual({
+      step: "verify",
+      status: "done",
+      stepStatus: "done",
+      continues: false,
+    });
+  });
+});
+
 describe("resumePoint", () => {
   it("restarts at the first step that did not finish", () => {
     expect(resumePoint({ resolve: "done", match: "done", confirm: "blocked" })).toBe("confirm");

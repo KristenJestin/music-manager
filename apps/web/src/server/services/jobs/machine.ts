@@ -50,6 +50,16 @@ export interface StepResult {
    * silently dropped both on the way into `job_steps.error`.
    */
   readonly error?: MMErrorBody;
+  /**
+   * Where the job goes instead of stopping, when a step failed for a reason an earlier step
+   * can repair on its own.
+   *
+   * `verify` is the case this exists for: a file that was placed and has since disappeared is
+   * not an import to abandon, it is a track to download again (owner review C6). The step says
+   * so; the machine rewinds; nothing about the mapping is lost. Only meaningful with
+   * `status: "failed"`, and only backwards — a step may not use it to skip ahead.
+   */
+  readonly restartAt?: StepName;
 }
 
 /** Position of a step in the pipeline, or -1 when the name is not one of ours. */
@@ -110,8 +120,16 @@ export function transition(step: StepName, result: StepResult): Transition {
         stepStatus: "blocked",
         continues: false,
       };
-    case "failed":
+    case "failed": {
+      // A step that named an earlier step to restart from is not a dead job: the machine
+      // rewinds and keeps going. Forwards is refused on purpose — that would let a step skip
+      // the ones between, and `restartAt` would become a second, unreviewable pipeline order.
+      const back = result.restartAt;
+      if (back !== undefined && isBefore(back, step)) {
+        return { step: back, status: "running", stepStatus: "failed", continues: true };
+      }
       return { step, status: "failed", stepStatus: "failed", continues: false };
+    }
   }
 }
 

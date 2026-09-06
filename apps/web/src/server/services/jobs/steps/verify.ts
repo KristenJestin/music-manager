@@ -17,14 +17,17 @@
  * rebooting would teach the operator to distrust the pipeline for no reason.
  */
 import { existsSync, statSync } from "node:fs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
-import { libraryTracks } from "#/server/db/schema/index.ts";
+import { jobSteps, libraryTracks } from "#/server/db/schema/index.ts";
 import { hostPath } from "#/server/paths.ts";
 import { navidromeConfig } from "#/server/services/navidrome.ts";
 import { verifyAlbum, type AlbumVerification } from "#/server/services/verify.ts";
 import type { StepResult } from "../machine.ts";
-import type { StepContext } from "../context.ts";
+import { updateTrack, type StepContext } from "../context.ts";
+
+/** How many times a placed file that vanished may be downloaded again before giving up. */
+const MAX_REDOWNLOADS = 2;
 
 export async function verifyStep(ctx: StepContext): Promise<StepResult> {
   const tracks = await ctx.mappedTracks();
@@ -63,15 +66,61 @@ export async function verifyStep(ctx: StepContext): Promise<StepResult> {
   }
 
   if (missing.length > 0) {
+    // Two rewinds and no more. A file that vanishes again the moment it is written is a disk,
+    // a sync client or an antivirus — something a third download will not fix, and an
+    // orchestrator that keeps trying is a loop nobody asked for.
+    const [row] = await ctx.db
+      .select({ attempt: jobSteps.attempt })
+      .from(jobSteps)
+      .where(and(eq(jobSteps.importId, ctx.job.id), eq(jobSteps.step, "verify")))
+      .limit(1);
+    const giveUp = (row?.attempt ?? 1) > MAX_REDOWNLOADS;
+
+    /*
+     * A file that was placed and is no longer there is a track to fetch again, not an import
+     * to abandon (owner review C6). The owner's CHVRCHES run stopped here with
+     * `STEP_FAILED — Missing: … 04 My Enemy.opus`, and every Retry re-ran `verify`, found the
+     * same hole and failed again — because `resumePoint` restarts at the first step that is
+     * not done, and `verify` was it.
+     *
+     * So put the affected tracks back to "not downloaded", drop the `library_tracks` rows that
+     * point at nothing, and ask the machine to rewind to `download`. The mapping, the
+     * documents and the twelve files that *are* there are untouched: `download` skips a track
+     * whose file is on disk, so exactly the hole is refilled.
+     */
+    for (const track of placed) {
+      if (giveUp) break;
+      const relative = track.libraryPath;
+      if (relative === null || !missing.includes(relative)) continue;
+      await ctx.db.delete(libraryTracks).where(eq(libraryTracks.path, relative));
+      await updateTrack(ctx, track.id, {
+        state: "pending",
+        libraryPath: null,
+        downloadPath: null,
+        downloadedBytes: null,
+        error: null,
+        note: "the placed file had disappeared; downloading it again",
+      });
+      await ctx.say("track.progress", `${track.sourceTitle}: file gone, downloading it again`, {
+        trackId: track.id,
+        level: "warn",
+        data: { stage: "missing", path: relative },
+      });
+    }
     return {
       status: "failed",
-      message: `${String(missing.length)} placed file(s) are missing from the library.`,
-      data: { missing },
+      ...(giveUp ? {} : { restartAt: "download" as const }),
+      message: giveUp
+        ? `${String(missing.length)} placed file(s) are missing and came back missing after ${String(MAX_REDOWNLOADS)} download(s).`
+        : `${String(missing.length)} placed file(s) had disappeared; downloading them again.`,
+      data: { missing, restarted: giveUp ? 0 : missing.length },
       error: {
         code: "STEP_FAILED",
         message: `Missing: ${missing.slice(0, 3).join(", ")}`,
-        hint: "Something moved or deleted the files after they were placed.",
-        action: "Retry the import",
+        hint: giveUp
+          ? "The files were downloaded again and disappeared again: something outside this app is removing them."
+          : "Something moved or deleted the files after they were placed.",
+        action: giveUp ? "Check the library directory" : "Nothing — the job is fetching them again",
       },
     };
   }
