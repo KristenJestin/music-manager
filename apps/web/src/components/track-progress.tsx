@@ -1,0 +1,137 @@
+/**
+ * What one track is doing *right now*, read from the journal rather than from a column.
+ *
+ * The owner's C2 and C7: "téléchargement lent, aucun détail", "tagging sans info". Everything
+ * needed to answer that already travels — `download` emits a `track.progress` line every two
+ * seconds carrying yt-dlp's `downloaded` / `total` / `speed` / `eta`, and its `postprocess`
+ * sub-steps (`ExtractAudio`, `MoveFiles`) come down the same pipe; `fingerprint`, `tag` and
+ * `place` now open each track with a `track.started`. So the live state is a **fold over the
+ * events the page already has**, not a new column written four times a second:
+ *
+ *  - nothing is polled, and nothing is written to Postgres on the hot path;
+ *  - a reload is identical to having watched it, because the loader re-reads the same rows;
+ *  - the fold is a pure function, so it is unit-testable without a browser.
+ *
+ * `liveTracks` keeps only the *last* line per track, and a terminal line (`track.done`,
+ * `track.failed`, `track.skipped`) removes the track from the map — a finished track shows its
+ * state badge, not a stale 87%.
+ */
+import { cn } from "cn";
+import type { JobEventPayload } from "@mm/contracts";
+import { ProgressBar } from "#/components/progress-bar.tsx";
+import { bytes, delta } from "#/lib/format.ts";
+
+/** Lines that mean "this track is no longer in flight". */
+const TERMINAL = new Set(["track.done", "track.failed", "track.skipped"]);
+
+/** Lines that describe a track in flight. */
+const LIVE = new Set(["track.started", "track.progress", "track.waiting"]);
+
+export interface TrackActivity {
+  /** `download`, `ExtractAudio`, `tag`, `waiting`… whatever the step called this phase. */
+  readonly stage: string | null;
+  /** 0–100, only while bytes are moving. */
+  readonly percent: number | null;
+  /** Bytes per second, from yt-dlp. */
+  readonly speed: number | null;
+  /** Seconds left, from yt-dlp. */
+  readonly eta: number | null;
+  /** The journal line itself, which is always a complete sentence. */
+  readonly message: string;
+  /** True while the track is queueing for the toolbox's single download slot. */
+  readonly waiting: boolean;
+}
+
+function numberOf(data: Record<string, unknown> | null, key: string): number | null {
+  const value = data?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function stringOf(data: Record<string, unknown> | null, key: string): string | null {
+  const value = data?.[key];
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+/**
+ * Fold a journal into "what is each track doing", newest line wins.
+ *
+ * Deliberately tolerant: an event whose `data` the orchestrator has not filled in yet still
+ * produces an entry with its message, because a sentence with no percentage is still infinitely
+ * more than the blank cell the owner was looking at.
+ */
+export function liveTracks(events: readonly JobEventPayload[]): ReadonlyMap<string, TrackActivity> {
+  const live = new Map<string, TrackActivity>();
+  for (const event of events) {
+    const trackId = event.trackId;
+    if (trackId === null) continue;
+    if (TERMINAL.has(event.type)) {
+      live.delete(trackId);
+      continue;
+    }
+    if (!LIVE.has(event.type)) continue;
+    const data = event.data;
+    const previous = live.get(trackId);
+    const percent = numberOf(data, "percent");
+    live.set(trackId, {
+      // A `postprocess` line carries no percentage; keeping the previous one would freeze the
+      // bar at 98% under the word "ExtractAudio", which reads like a stall.
+      stage: stringOf(data, "stage") ?? (event.type === "track.waiting" ? "waiting" : null),
+      percent: percent ?? (event.type === "track.progress" ? null : (previous?.percent ?? null)),
+      speed: numberOf(data, "speed"),
+      eta: numberOf(data, "eta"),
+      message: event.message,
+      waiting: event.type === "track.waiting",
+    });
+  }
+  return live;
+}
+
+/** `1.4 MB/s`, or nothing when yt-dlp did not say. */
+function speedLabel(speed: number | null): string | null {
+  return speed === null || speed <= 0 ? null : `${bytes(speed)}/s`;
+}
+
+export interface TrackProgressProps {
+  readonly activity: TrackActivity;
+  readonly className?: string;
+}
+
+/**
+ * One line of live detail under a track: the phase, the bar, the speed and the ETA.
+ *
+ * Rendered only for a track that is in flight — every other row keeps the compact state badge
+ * it always had.
+ */
+export function TrackProgress({ activity, className }: TrackProgressProps) {
+  const speed = speedLabel(activity.speed);
+  const eta = activity.eta === null || activity.eta <= 0 ? null : delta(activity.eta);
+  const parts = [
+    activity.percent === null ? null : `${String(activity.percent)}%`,
+    speed,
+    eta === null ? null : `${eta} left`,
+  ].filter((part): part is string => part !== null);
+
+  return (
+    <div data-testid="track-progress" className={cn("mt-1 min-w-0", className)}>
+      <div className="flex items-center gap-1.5 text-2xs text-fg-2">
+        <span
+          className={cn("truncate font-mono", activity.waiting ? "text-warn" : "text-fg-2")}
+          title={activity.message}
+        >
+          {activity.stage ?? "working"}
+        </span>
+        {parts.length === 0 ? null : (
+          <span className="shrink-0 font-mono text-fg-3">{parts.join(" · ")}</span>
+        )}
+      </div>
+      {activity.percent === null ? null : (
+        <ProgressBar
+          className="mt-1"
+          value={activity.percent / 100}
+          tone={activity.waiting ? "warn" : "info"}
+          label={activity.message}
+        />
+      )}
+    </div>
+  );
+}

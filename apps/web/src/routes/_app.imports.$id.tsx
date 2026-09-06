@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Link, createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -25,11 +25,19 @@ import {
   TrackStateBadge,
 } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import { liveTracks, TrackProgress } from "#/components/track-progress.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { dateTime, mmss, short } from "#/lib/format.ts";
 import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
-import { bumpJob, cancelJob, fetchJob, pauseJob, retryJob } from "#/server/functions/jobs.ts";
+import {
+  bumpJob,
+  cancelJob,
+  fetchJob,
+  pauseJob,
+  retryJob,
+  retryTrack,
+} from "#/server/functions/jobs.ts";
 
 /**
  * `/imports/:id` — one job, live.
@@ -76,25 +84,49 @@ function JobPage() {
     importId: job.id,
     initial,
     enabled: !finished,
-    onEvent: (event) => {
-      if (event.type.startsWith("step.") || event.type.startsWith("inbox.")) refetch();
-    },
+    // **Every** line is a reason to re-read the rows, not only the step boundaries (owner
+    // review C5). A 28-track download emits nothing but `track.*` for twenty minutes, so the
+    // old filter left the Tracks table, the "n/m placed" counter and the Steps block frozen at
+    // whatever they said when the page loaded — which is precisely "le détail d'un job ne se
+    // met pas à jour tout seul". `refetch` already collapses a burst into one query per 700 ms,
+    // so the cost of widening this is one query per second at the very worst.
+    onEvent: refetch,
     onTerminal: () => {
       void router.invalidate();
     },
   });
 
-  const act = (run: () => Promise<unknown>, message: string): void => {
+  /** What each track is doing right now, folded out of the journal. */
+  const activity = useMemo(() => liveTracks(events), [events]);
+
+  // The controls are disabled while their own call is in flight, so a page that has not
+  // refreshed yet cannot be clicked "plein de fois" into a queue of duplicate retries (C5).
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const act = (key: string, run: () => Promise<unknown>, message: string): void => {
+    if (busy !== null) return;
+    setBusy(key);
     void run().then(
       () => {
         toast(message, "ok");
+        setBusy(null);
         void router.invalidate();
       },
       (error: unknown) => {
+        setBusy(null);
         toast(error instanceof Error ? error.message : "That did not work.", "danger");
       },
     );
   };
+
+  /** True while the worker owns this job: retrying now would only queue a second run. */
+  const running = ACTIVE.includes(job.status);
+
+  /** The newest live sentence, for the step that is currently running. */
+  const currentStage = useMemo(() => {
+    const last = [...activity.values()].at(-1);
+    return last === undefined ? null : last.message;
+  }, [activity]);
 
   const release = (match ?? {}) as { releaseMbid?: string; mapped?: number; extras?: number };
 
@@ -110,12 +142,32 @@ function JobPage() {
     {
       key: "youtube",
       header: "YouTube",
-      cell: (track) => (
-        <div className="min-w-0">
-          <div className="truncate">{track.sourceTitle}</div>
-          <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
-        </div>
-      ),
+      cell: (track) => {
+        const now = activity.get(track.id);
+        return (
+          <div className="min-w-0">
+            <div className="truncate">{track.sourceTitle}</div>
+            {now === undefined ? (
+              <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
+            ) : (
+              <TrackProgress activity={now} />
+            )}
+            {/* The API has carried `tracks[].error` since MCP-FIX-1; the page never showed it,
+                so a track sat at `failed` with no reason and no way out (owner review C6). */}
+            {track.error === null ? null : (
+              <div
+                data-testid="track-error"
+                className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs text-danger"
+              >
+                <b className="font-mono">{track.error.code}</b>
+                <span className="min-w-0 truncate" title={track.error.message}>
+                  {track.error.hint ?? track.error.message}
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "recording",
@@ -174,7 +226,30 @@ function JobPage() {
     {
       key: "state",
       header: "Status",
-      cell: (track) => <TrackStateBadge state={track.state} />,
+      cell: (track) => (
+        <div className="flex items-center gap-1.5">
+          <TrackStateBadge state={track.state} />
+          {/* One track, one retry. Re-running the whole album to fetch a single video that
+              lost a bot check is what the owner had to do until now (C6). */}
+          {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
+            <Button
+              size="sm"
+              variant="outline"
+              data-testid="track-retry"
+              disabled={busy !== null}
+              onClick={() => {
+                act(
+                  `track:${track.id}`,
+                  async () => await retryTrack({ data: { id: job.id, trackId: track.id } }),
+                  "Track queued for another download.",
+                );
+              }}
+            >
+              <RotateCcw className="size-3" aria-hidden="true" /> Retry track
+            </Button>
+          ) : null}
+        </div>
+      ),
     },
   ];
 
@@ -193,7 +268,11 @@ function JobPage() {
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-semibold tracking-tight">{job.title ?? job.url}</h1>
             {job.artist === null ? null : <span className="text-fg-2">by {job.artist}</span>}
-            <ImportStatusBadge status={job.status} />
+            {/* Named, because "Done" is also what a *step* badge says a few sections lower,
+                and a test that looks for the word finds whichever comes first. */}
+            <span data-testid="job-status">
+              <ImportStatusBadge status={job.status} />
+            </span>
             <ToneBadge outline>{job.kind}</ToneBadge>
             {live ? (
               <ToneBadge tone="info" title="Receiving server-sent events">
@@ -212,16 +291,28 @@ function JobPage() {
           <PipelineStepper className="mt-2.5" step={job.step} status={job.status} />
         </div>
         <div className="flex shrink-0 gap-2">
-          {job.status === "failed" ? (
+          {/* Shown for every job a worker could still do something with, and **disabled while
+              it runs**: the owner's C5 was "j'ai le temps de cliquer plein de fois sur Retry",
+              and every one of those clicks used to start a step. A retry is only meaningful
+              once the worker has let go.
+
+              A `done` job keeps the button on purpose. Retrying one re-runs `verify` — the
+              resume point of a job whose every step finished — which is exactly "check this
+              album again", and the one gesture that repairs a file deleted from under the
+              library (C6). A cancelled job is the only one with nothing to offer. */}
+          {job.status === "cancelled" ? null : (
             <Button
               data-testid="job-retry"
+              disabled={busy !== null || running}
+              title={running ? "The worker is running this job." : undefined}
               onClick={() => {
-                act(async () => await retryJob({ data: { id: job.id } }), "Retrying.");
+                act("retry", async () => await retryJob({ data: { id: job.id } }), "Queued.");
               }}
             >
-              <RotateCcw className="size-4" aria-hidden="true" /> Retry
+              <RotateCcw className="size-4" aria-hidden="true" />{" "}
+              {busy === "retry" ? "Queueing…" : running ? "Running…" : "Retry"}
             </Button>
-          ) : null}
+          )}
           {inbox.length > 0 ? (
             <Button
               nativeButton={false}
@@ -235,8 +326,9 @@ function JobPage() {
               <Button
                 variant="outline"
                 data-testid="job-pause"
+                disabled={busy !== null}
                 onClick={() => {
-                  act(async () => await pauseJob({ data: { id: job.id } }), "Paused.");
+                  act("pause", async () => await pauseJob({ data: { id: job.id } }), "Paused.");
                 }}
               >
                 <Pause className="size-4" aria-hidden="true" /> Pause
@@ -244,8 +336,10 @@ function JobPage() {
               <Button
                 variant="outline"
                 data-testid="job-bump"
+                disabled={busy !== null}
                 onClick={() => {
                   act(
+                    "bump",
                     async () => await bumpJob({ data: { id: job.id, by: 10 } }),
                     "Moved up the queue.",
                   );
@@ -255,21 +349,13 @@ function JobPage() {
               </Button>
             </>
           ) : null}
-          {job.status === "paused" ? (
-            <Button
-              onClick={() => {
-                act(async () => await retryJob({ data: { id: job.id } }), "Resumed.");
-              }}
-            >
-              <RotateCcw className="size-4" aria-hidden="true" /> Resume
-            </Button>
-          ) : null}
           {["done", "cancelled"].includes(job.status) ? null : (
             <Button
               variant="destructive"
               data-testid="job-cancel"
+              disabled={busy !== null}
               onClick={() => {
-                act(async () => await cancelJob({ data: { id: job.id } }), "Cancelled.");
+                act("cancel", async () => await cancelJob({ data: { id: job.id } }), "Cancelled.");
               }}
             >
               <XCircle className="size-4" aria-hidden="true" /> Cancel
@@ -392,7 +478,14 @@ function JobPage() {
                         <ToneBadge tone={STEP_STATUS_META[entry.row.status].tone}>
                           {STEP_STATUS_META[entry.row.status].label}
                         </ToneBadge>
-                        {entry.row.message === null ? null : (
+                        {/* A running step has no message yet — its row is only written when it
+                            ends. The live sub-step is the one thing worth showing there, and
+                            it is exactly what C2/C7 asked for. */}
+                        {entry.row.status === "running" && currentStage !== null ? (
+                          <span data-testid="step-stage" className="text-fg-2">
+                            {currentStage}
+                          </span>
+                        ) : entry.row.message === null ? null : (
                           <span className="text-fg-2">{entry.row.message}</span>
                         )}
                       </span>

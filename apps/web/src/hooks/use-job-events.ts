@@ -39,6 +39,10 @@ const SUBSCRIBED = [
   "track.progress",
   "track.done",
   "preferences.learned",
+  // `verify` names its own lines; without these the read-back is invisible until the step ends.
+  "verify.progress",
+  "verify.album",
+  "verify.failed",
 ] as const;
 
 export interface UseJobEventsOptions {

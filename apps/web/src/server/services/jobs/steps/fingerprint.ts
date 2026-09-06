@@ -181,6 +181,13 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
       continue;
     }
 
+    // fpcalc is seconds per file and AcoustID is a network round trip; say which track, or the
+    // page shows nothing at all between "fingerprint started" and its summary (owner review C7).
+    await ctx.say("track.started", `${track.sourceTitle}: fingerprinting`, {
+      trackId: track.id,
+      data: { stage: "fingerprint", done: checked, total: tracks.length },
+    });
+
     const result = await ctx.toolbox.fingerprint(containerPath(ctx.paths, track.downloadPath));
     checked += 1;
 

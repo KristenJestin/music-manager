@@ -175,6 +175,14 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     const relative = track.downloadPath;
     if (relative === null || !existsSync(hostPath(ctx.paths, relative))) continue;
 
+    // Which track is being worked on, before the work starts. Tagging an album is a minute of
+    // silence otherwise — the owner's C7 — because the only line this loop wrote was the one
+    // that said a track was *finished*.
+    await ctx.say("track.started", `${track.sourceTitle}: reading sources and writing tags`, {
+      trackId: track.id,
+      data: { stage: "tag", done: written, total: toWrite.length },
+    });
+
     const document = await documentFor(ctx, track);
     documents.set(track.id, document);
 

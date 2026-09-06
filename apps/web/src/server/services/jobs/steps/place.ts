@@ -343,6 +343,11 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     const document = await documentOf(ctx, track.id);
     if (document === null) continue;
 
+    await ctx.say("track.started", `${track.sourceTitle}: filing into the library`, {
+      trackId: track.id,
+      data: { stage: "place", done: placed, total: movable.length },
+    });
+
     const extension = (source ?? track.libraryPath ?? ".opus").split(".").pop() ?? "opus";
     const input = pathInputFor(document, track, extension);
     const relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
