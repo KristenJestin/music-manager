@@ -133,14 +133,19 @@ test.describe("owner review 2", () => {
   test("C9: the toast is shadcn's Base UI toast", async ({ page }) => {
     await signIn(page);
 
-    // Saving a setting is the one toast in the app that depends on nothing else running —
-    // `settings.spec.ts` reads the same one.
-    await page.goto("/settings/integrations");
-    await page.getByTestId("integrations-save").click();
-
     const toaster = page.getByTestId("toaster");
-    await expect(toaster).toBeVisible({ timeout: 60_000 });
-    await expect(toaster).toContainText(/setting\(s\) saved/, { timeout: 60_000 });
+
+    /*
+     * Saving a setting is the one toast in the app that depends on nothing else running —
+     * `settings.spec.ts` reads the same one. Retried for the reason `signIn` is: Postgres is
+     * shared between every checkout on this machine, and a dropped connection on the session
+     * lookup raises *"Failed to get session"* instead, which is not a claim this test makes.
+     */
+    await expect(async () => {
+      await page.goto("/settings/integrations");
+      await page.getByTestId("integrations-save").click();
+      await expect(toaster).toContainText(/setting\(s\) saved/, { timeout: 20_000 });
+    }).toPass({ timeout: 120_000, intervals: [1_000, 2_000, 5_000] });
 
     // The Base UI parts, which the hand-rolled div never had: the `data-slot` root and the
     // viewport, plus the swipe axis Base UI publishes on every toast it manages.
