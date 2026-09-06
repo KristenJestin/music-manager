@@ -14,7 +14,8 @@ import { ReviewCard } from "#/components/review-card.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
-import { humanise, timeAgo } from "#/lib/format.ts";
+import { humanise } from "#/lib/format.ts";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import { resolveItem, type InboxListPayload, type InboxOption } from "#/server/functions/inbox.ts";
 
 export function ReviewScreen({ payload }: { readonly payload: InboxListPayload }) {
@@ -87,7 +88,7 @@ export function ReviewScreen({ payload }: { readonly payload: InboxListPayload }
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-1">
                   <ToneBadge tone="warn">{humanise(item.type)}</ToneBadge>
-                  <span className="text-3xs text-fg-3">{timeAgo(item.createdAt, now)}</span>
+                  <TimeAgo at={item.createdAt} now={now} className="text-3xs text-fg-3" />
                 </span>
               </Link>
             ))}

@@ -46,8 +46,14 @@ export function bytes(value: number | null | undefined): string {
 /**
  * `12 min ago`.
  *
- * `now` is a parameter rather than a call to `Date.now()` so that a server render and the
- * hydration that follows it cannot disagree, and so the tests are not time-dependent.
+ * `now` is a parameter rather than a call to `Date.now()` so that every row of a table is
+ * dated against one instant, and so the tests are not time-dependent.
+ *
+ * It does **not** make a server render and the hydration that follows it agree, which this
+ * comment used to claim: the caller writes `const now = new Date()` inside its component, and
+ * that line runs once on the server and again in the browser a second or a minute later. Only
+ * a value carried in the payload could make the two identical, and none is. Render the result
+ * through `components/time-ago.tsx`, which declares the difference expected instead.
  */
 export function timeAgo(at: Date | string | null | undefined, now: Date = new Date()): string {
   if (at === null || at === undefined) return "never";

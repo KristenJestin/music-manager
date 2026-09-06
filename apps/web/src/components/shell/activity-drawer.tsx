@@ -60,7 +60,19 @@ export function ActivityDrawer() {
                 />
                 <span className="min-w-0">
                   <span className="block text-xs">{event.message}</span>
-                  <span className="mt-0.5 block text-2xs text-fg-3">
+                  {/*
+                   * `suppressHydrationWarning`, because the text here is a *relative* time.
+                   *
+                   * The server renders "just now" and the browser hydrates a second or a
+                   * minute later and renders "1 min ago" — a text mismatch, which React does
+                   * not merely warn about: it throws the server HTML away and re-renders the
+                   * whole tree on the client. On a page whose shell is this drawer that is a
+                   * second hydration for every page load, and it was visible in the E2E run
+                   * as "Hydration failed because the server rendered text didn't match".
+                   * There is nothing to fix in the value — both readings are right at the
+                   * moment they were taken — so the difference is declared expected.
+                   */}
+                  <span suppressHydrationWarning className="mt-0.5 block text-2xs text-fg-3">
                     {event.step ?? event.type} · {timeAgo(event.at, now)}
                   </span>
                 </span>

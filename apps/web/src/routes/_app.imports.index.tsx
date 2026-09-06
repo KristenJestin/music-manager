@@ -10,7 +10,7 @@ import { ProgressBar } from "#/components/progress-bar.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { cn } from "cn";
-import { timeAgo } from "#/lib/format.ts";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import { bumpJob, fetchJobs, retryJob } from "#/server/functions/jobs.ts";
 import type { JobSummary } from "#/server/services/console.queries.ts";
 
@@ -144,7 +144,7 @@ function Jobs() {
     {
       key: "updated",
       header: "Updated",
-      cell: (entry) => <span className="text-fg-2">{timeAgo(entry.job.updatedAt, now)}</span>,
+      cell: (entry) => <TimeAgo at={entry.job.updatedAt} now={now} className="text-fg-2" />,
     },
     {
       key: "actions",

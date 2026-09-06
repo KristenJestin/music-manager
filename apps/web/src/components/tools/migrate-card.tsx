@@ -26,6 +26,7 @@ import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useMigrationProgress } from "#/hooks/use-migration-progress.ts";
 import { timeAgo } from "#/lib/format.ts";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import {
   confirmMigrationBackup,
   fetchMigration,
@@ -244,7 +245,10 @@ export function MigrateCard() {
           <span>
             I have a backup of the library and of the v1 database.
             {acknowledged === null ? null : (
-              <span className="text-fg-3"> Confirmed {timeAgo(acknowledged)}.</span>
+              <span suppressHydrationWarning className="text-fg-3">
+                {" "}
+                Confirmed {timeAgo(acknowledged)}.
+              </span>
             )}
           </span>
         </label>
@@ -316,7 +320,7 @@ function MigrationSummary({ run }: { readonly run: MigrationRunView }) {
     <div data-testid="migrate-report" className="flex flex-col gap-2 border-t border-line pt-3">
       <div className="flex flex-wrap items-baseline gap-2 text-2xs">
         <span className="font-medium">{run.dryRun ? "Last preview" : "Last migration"}</span>
-        <span className="text-fg-3">{timeAgo(run.createdAt)}</span>
+        <TimeAgo at={run.createdAt} className="text-fg-3" />
         <span className="text-fg-3">{run.database}</span>
       </div>
 

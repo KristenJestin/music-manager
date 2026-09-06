@@ -11,6 +11,7 @@ import { Bell, Command as CommandIcon, MonitorPlay } from "lucide-react";
 import { cn } from "cn";
 import { Kbd } from "#/components/kbd.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
+import { useHydrated } from "#/hooks/use-hydrated.ts";
 
 export interface Crumb {
   readonly label: string;
@@ -22,6 +23,14 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
   const navigate = useNavigate();
   const { setPaletteOpen, setDrawerOpen, data } = useShell();
   const [url, setUrl] = useState("");
+  /*
+   * The two overlay buttons are pure React state, so a click before hydration does exactly
+   * nothing — silently. `useHydrated` is the pattern the forms already use for this: the
+   * control is disabled until it can work, which tells a person the truth and makes
+   * Playwright's `click()` wait for hydration without needing to know that is what it is
+   * waiting for. The E2E suite met the untreated version as a drawer that never opened.
+   */
+  const hydrated = useHydrated();
 
   const submit = (event: FormEvent): void => {
     event.preventDefault();
@@ -89,6 +98,7 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         title="Activity"
         aria-label="Activity"
         data-testid="open-drawer"
+        disabled={!hydrated}
         onClick={() => {
           setDrawerOpen(true);
         }}
@@ -104,6 +114,7 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         title="Command palette"
         aria-label="Command palette"
         data-testid="open-palette"
+        disabled={!hydrated}
         onClick={() => {
           setPaletteOpen(true);
         }}

@@ -95,7 +95,16 @@ function Diag({
       <span className={`size-2 shrink-0 rounded-full ${DOT[tone]}`} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-medium">{name}</div>
-        <div className="truncate text-2xs text-fg-2">{detail}</div>
+        {/*
+         * `suppressHydrationWarning`: several of these details carry a relative time
+         * ("last 2 min ago", "first lapses in 3 d"), which the server and the browser read
+         * from two different instants. See `components/time-ago.tsx` for the whole story;
+         * the attribute has to sit on the element whose own text differs, and here the time
+         * is glued into a longer sentence rather than standing on its own.
+         */}
+        <div suppressHydrationWarning className="truncate text-2xs text-fg-2">
+          {detail}
+        </div>
       </div>
       <div className="flex shrink-0 gap-1.5">{children}</div>
     </div>
@@ -803,7 +812,8 @@ function ScanPanel({
       testId="tools-scan"
       actions={
         <>
-          <span className="self-center text-2xs text-fg-3">
+          {/* A relative time inside a sentence: see components/time-ago.tsx. */}
+          <span suppressHydrationWarning className="self-center text-2xs text-fg-3">
             {data.scan.at === null
               ? "never run"
               : `last ${timeAgo(data.scan.at, now)}${data.scan.durationMs === null ? "" : ` · ${(data.scan.durationMs / 1000).toFixed(1)}s`}`}

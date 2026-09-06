@@ -19,7 +19,8 @@ import { SearchInput } from "#/components/search-input.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
-import { bytes, mmss, pct, timeAgo } from "#/lib/format.ts";
+import { bytes, mmss, pct } from "#/lib/format.ts";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import { TRACK_FILTERS } from "#/lib/library-filters.ts";
 import type { TrackRow } from "#/server/services/library.ts";
 import { fetchTracks } from "#/server/functions/library.ts";
@@ -124,7 +125,7 @@ function Tracks() {
     {
       key: "added",
       header: "Added",
-      cell: (row) => <span className="text-fg-3">{timeAgo(row.addedAt, now)}</span>,
+      cell: (row) => <TimeAgo at={row.addedAt} now={now} className="text-fg-3" />,
     },
   ];
 

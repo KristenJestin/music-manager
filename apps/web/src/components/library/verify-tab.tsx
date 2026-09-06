@@ -115,10 +115,12 @@ export function VerifyTab({ payload, onVerified }: VerifyTabProps) {
               {payload.navidrome.songCount === null
                 ? "no scan reported"
                 : `${String(payload.navidrome.songCount)} songs indexed`}{" "}
-              ·{" "}
-              {verification === null
-                ? "never verified"
-                : `last verified ${timeAgo(verification.at, now)}`}
+              · {/* A relative time: see activity-drawer.tsx for why it is declared unstable. */}
+              <span suppressHydrationWarning>
+                {verification === null
+                  ? "never verified"
+                  : `last verified ${timeAgo(verification.at, now)}`}
+              </span>
               .
             </>
           ) : (

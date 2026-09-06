@@ -7,6 +7,7 @@ import { PipelineDots } from "#/components/pipeline-dots.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { bytes, humanise, pct, timeAgo } from "#/lib/format.ts";
 import { fetchDashboard } from "#/server/functions/dashboard.ts";
@@ -185,7 +186,7 @@ function Dashboard() {
                       <div className="truncate text-xs text-fg-2">{item.summary ?? ""}</div>
                     </div>
                     <ToneBadge tone="warn">{humanise(item.type)}</ToneBadge>
-                    <span className="text-2xs text-fg-3">{timeAgo(item.createdAt, now)}</span>
+                    <TimeAgo at={item.createdAt} now={now} className="text-2xs text-fg-3" />
                   </Link>
                 ))
               )}
@@ -237,7 +238,8 @@ function Dashboard() {
                     className="border-b border-line px-3.5 py-2 last:border-b-0 text-xs"
                   >
                     <div className="truncate">{event.message}</div>
-                    <div className="text-2xs text-fg-3">
+                    {/* A relative time inside a sentence: see components/time-ago.tsx. */}
+                    <div suppressHydrationWarning className="text-2xs text-fg-3">
                       {event.step ?? event.type} · {timeAgo(event.at, now)}
                     </div>
                   </div>
