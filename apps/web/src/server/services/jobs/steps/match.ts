@@ -263,19 +263,24 @@ async function raiseNotices(
 /**
  * Where this job's MusicBrainz documents come from.
  *
- * In fixtures mode, from the recorded cassette — which is *not* copied into the raw cache, on
- * purpose: the cassettes are pruned to the fields the matcher reads, and seeding them would
- * leave P04's document build reading a MusicBrainz release with its relations amputated. The
- * document side has recorded sources of its own. Outside fixtures mode, from the network,
- * through P04's limiter and cache.
+ * The choice follows the **URL**, exactly like `resolve` deciding whether a source is
+ * `fixture://` and exactly like `mm match` deciding whether to load a cassette — never the
+ * global `MM_FIXTURES` switch on its own. A `fixture://…` job replays its recorded cassette —
+ * which is *not* copied into the raw cache, on purpose: the cassettes are pruned to the fields
+ * the matcher reads, and seeding them would leave P04's document build reading a MusicBrainz
+ * release with its relations amputated. The document side has recorded sources of its own.
+ * Any other URL goes to the network, through P04's limiter and cache.
+ *
+ * Tying this to `ctx.fixtures` instead once let a test that flips `MM_FIXTURES` off for a
+ * `fixture://` job (to reach the one thing fixtures mode auto-confirms past) fall through to
+ * `liveGateway` and hit real MusicBrainz — a `fixture://` URL must stay offline whatever the
+ * mode, the same way `resolve` never asks the toolbox for one for real.
  */
 async function gatewayFor(ctx: StepContext): Promise<MbGateway | null> {
-  if (ctx.fixtures) {
-    const name = cassetteNameOf(ctx.job.url);
-    const cassette = name === null ? null : loadCassette(name);
-    if (cassette === null) return null;
-    return cassetteGateway(cassette);
-  }
+  const name = cassetteNameOf(ctx.job.url);
+  const cassette = name === null ? null : loadCassette(name);
+  if (cassette !== null) return cassetteGateway(cassette);
+  if (ctx.fixtures) return null;
   return liveGateway(await sourceContextFor(ctx.db, ctx.signal));
 }
 
