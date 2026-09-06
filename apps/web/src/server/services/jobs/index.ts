@@ -108,6 +108,11 @@ async function beginStep(db: Database, importId: string, step: StepName): Promis
         startedAt: new Date(),
         finishedAt: null,
         error: null,
+        // The previous run's sentence is not this run's sentence. Leaving it made `download`
+        // sit at `running` under "No mapped track to download." from the attempt before —
+        // a message that reads like a live diagnosis and is a stale one.
+        message: null,
+        result: null,
         updatedAt: new Date(),
       })
       .where(eq(jobSteps.id, existing.id));
@@ -328,7 +333,14 @@ export async function retryStep(
   const later = stepsFrom(step);
   await db
     .update(jobSteps)
-    .set({ status: "pending", finishedAt: null, error: null, updatedAt: new Date() })
+    .set({
+      status: "pending",
+      finishedAt: null,
+      error: null,
+      message: null,
+      result: null,
+      updatedAt: new Date(),
+    })
     .where(and(eq(jobSteps.importId, importId), inArray(jobSteps.step, [...later])));
 
   await db
