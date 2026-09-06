@@ -79,8 +79,15 @@ test.describe("metadata quality and the tag schema", () => {
     await page.waitForURL(/filter=below80/, { timeout: 60_000 });
     expect(await page.getByTestId("quality-row").count()).toBeLessThanOrEqual(all);
 
+    // Not `/\/library\/quality/`: that pattern also matches the *current* URL, which still
+    // carries `?filter=below80` — a substring match, not an exact one — so `waitForURL` was
+    // returning immediately against the page as it stood before this click's navigation, and
+    // the row count read straight after was the below80 view's, not "all"'s. `filter=all` is
+    // the search schema's default, so TanStack Router omits it: bare path, no query at all.
     await page.getByTestId("quality-filters-all").click();
-    await page.waitForURL(/\/library\/quality/, { timeout: 60_000 });
+    await page.waitForURL((url) => url.pathname === "/library/quality" && url.search === "", {
+      timeout: 60_000,
+    });
     expect(await page.getByTestId("quality-row").count()).toBe(all);
 
     // The profile re-scores the same albums; it never changes how many there are, because it

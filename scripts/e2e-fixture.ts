@@ -23,16 +23,50 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { SQL } from "bun";
-import { bun, capture, dockerIsRunning, repoRoot, resolveDocker } from "./lib.ts";
+import {
+  bun,
+  capture,
+  createFreshDatabase,
+  dockerIsRunning,
+  dropDatabaseIfExists,
+  findFreePort,
+  repoRoot,
+  resolveDocker,
+  withDatabaseName,
+} from "./lib.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+/**
+ * A database of its own, per process, rather than resetting whatever `DATABASE_URL` already
+ * pointed at — which was the developer's or another agent's real `mm` database by default.
+ * `MM_E2E_DB` pins a name for a caller that wants a stable one.
+ */
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_fixture_${String(process.pid)}`;
+const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
-const WEB_URL = process.env["MM_WEB_URL"] ?? "http://localhost:3000";
-const LIBRARY = resolve(repoRoot, ".local/library");
+/**
+ * Never `:3000` by default: a script that silently reused whatever answered there once mistook
+ * an unrelated app for itself and reported zero SSE frames with no error
+ * (`orchestration/reports/P07a-build-1.md` §6, "l'environnement"). A free port picked by the OS
+ * cannot collide with something else already running, on `:3000` or otherwise.
+ */
+const WEB_PORT = process.env["MM_WEB_PORT"]
+  ? Number.parseInt(process.env["MM_WEB_PORT"], 10)
+  : await findFreePort();
+const WEB_URL = process.env["MM_WEB_URL"] ?? `http://localhost:${String(WEB_PORT)}`;
+/**
+ * A library directory of its own, per process, under the same bind mount the toolbox and
+ * Navidrome already see — so two runs (or a run and a developer's own `bun run dev`) never
+ * write into the same album folder or fight over `.mm-work`.
+ */
+const LIBRARY_SUBDIR =
+  process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `.mm-e2e-fixture-${String(process.pid)}`;
+const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
+const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
 const COMPOSE = ["-f", "docker-compose.dev.yml", "-f", "docker-compose.fixtures.yml"];
 
 /** Slice pace of the fixture download. Slow enough to interrupt, fast enough to finish. */
@@ -64,6 +98,8 @@ const childEnv: Record<string, string> = {
   DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
+  MM_LIBRARY_ROOT: LIBRARY,
+  MM_TOOLBOX_LIBRARY_ROOT: TOOLBOX_LIBRARY_ROOT,
 };
 
 /* ------------------------------------------------------------------ */
@@ -100,10 +136,10 @@ type Child = ReturnType<typeof Bun.spawn>;
 
 const running: Child[] = [];
 
-function spawnChild(cmd: string[], label: string): Child {
+function spawnChild(cmd: string[], label: string, cwd = repoRoot): Child {
   const log = Bun.file(join(repoRoot, ".local", `e2e-${label}.log`)).writer();
   const child = Bun.spawn(cmd, {
-    cwd: repoRoot,
+    cwd,
     env: childEnv,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -259,7 +295,7 @@ async function probe(relative: string): Promise<{ tags: Record<string, string>; 
   const response = await fetch(`${TOOLBOX_URL}/probe`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ path: `/library/${relative}` }),
+    body: JSON.stringify({ path: `${TOOLBOX_LIBRARY_ROOT}/${relative}` }),
   });
   if (!response.ok) die(`probe failed: HTTP ${String(response.status)}`);
   return (await response.json()) as { tags: Record<string, string>; codec: string };
@@ -284,13 +320,15 @@ async function main(): Promise<void> {
   await toolboxReady();
   info(`toolbox healthy at ${TOOLBOX_URL}, fixtures mode on`);
 
-  const reset = await capture({
-    label: "db reset",
-    cmd: [bun, "run", "scripts/db.ts", "reset"],
+  info(`creating ${TEST_DB}`);
+  await createFreshDatabase(ADMIN_DATABASE_URL, TEST_DB);
+  const migrate = await capture({
+    label: "db migrate",
+    cmd: [bun, "run", join("apps", "web", "src", "server", "db", "migrate.ts")],
     env: childEnv,
   });
-  if (reset.code !== 0) die(`db reset failed:\n${reset.stdout}${reset.stderr}`);
-  info("database reset and migrated");
+  if (migrate.code !== 0) die(`db migrate failed:\n${migrate.stdout}${migrate.stderr}`);
+  info("database created and migrated");
 
   // P04: fixtures mode is no longer a branch in the code, it is a pre-filled raw cache. The
   // recorded source responses are written into `source_cache` under the keys the real clients
@@ -509,8 +547,14 @@ async function startWebIfNeeded(): Promise<Child | "reused" | null> {
     info(`reusing the web server already on ${WEB_URL}`);
     return "reused";
   }
-  info("starting the web dev server (this takes a few seconds)");
-  spawnChild([bun, "run", "--cwd", "apps/web", "dev"], "web");
+  info(`starting the web dev server on ${WEB_URL} (this takes a few seconds)`);
+  // Not `bun run --cwd apps/web dev`: that script hardcodes `--port 3000`, which is exactly the
+  // fixed port this run must not depend on.
+  spawnChild(
+    [bun, "x", "vite", "dev", "--port", String(WEB_PORT), "--strictPort"],
+    "web",
+    join(repoRoot, "apps", "web"),
+  );
   const deadline = Date.now() + 120_000;
   for (;;) {
     if (await webAnswers()) {
@@ -575,6 +619,14 @@ try {
 } finally {
   await stopEverything();
   await sql.end();
+  // Leave nothing behind for the next run to trip over: a fresh port and database exist only
+  // because this run picked them, so nothing else can depend on them surviving.
+  if (process.env["MM_E2E_DB"] === undefined) {
+    await dropDatabaseIfExists(ADMIN_DATABASE_URL, TEST_DB);
+  }
+  if (process.env["MM_E2E_LIBRARY_SUBDIR"] === undefined) {
+    rmSync(LIBRARY, { recursive: true, force: true });
+  }
 }
 
 process.exit(failures === 0 ? 0 : 1);

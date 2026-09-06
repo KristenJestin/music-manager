@@ -27,7 +27,15 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { SQL } from "bun";
-import { bun, repoRoot, webDir } from "./lib.ts";
+import {
+  bun,
+  createFreshDatabase,
+  dropDatabaseIfExists,
+  findFreePort,
+  repoRoot,
+  webDir,
+  withDatabaseName,
+} from "./lib.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -36,12 +44,26 @@ import { bun, repoRoot, webDir } from "./lib.ts";
 const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
 const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
 
-/** A port of its own, because :3000 is often taken and :3100 is the manual dev server. */
-const PORT = Number.parseInt(process.env["MM_E2E_PORT"] ?? "3170", 10);
+/**
+ * A port of its own, chosen fresh by the OS unless `MM_E2E_PORT` pins one. Several agents run
+ * on this machine at once (`CLAUDE.md`'s process-safety note); a fixed default — `:3000` most
+ * of all, but a fixed `:3170` has the same problem between two concurrent `bun run e2e` — is
+ * exactly the kind of collision that made two runs fight over one database (see below).
+ */
+const PORT = process.env["MM_E2E_PORT"]
+  ? Number.parseInt(process.env["MM_E2E_PORT"], 10)
+  : await findFreePort();
 const BASE_URL = `http://localhost:${String(PORT)}`;
 
-const TEST_DB = "mm_web_e2e";
-const TEST_DATABASE_URL = ADMIN_DATABASE_URL.replace(/\/[^/?]+(\?|$)/, `/${TEST_DB}$1`);
+/**
+ * A database of its own, per process. `MM_E2E_DB` pins one for a caller that wants a stable
+ * name; otherwise the PID makes two concurrent runs use two different databases instead of
+ * dropping and recreating the same `mm_web_e2e` out from under each other — the failure P07a
+ * and P07b hit running `bun run e2e` at the same time (`orchestration/reports/P07a-build-1.md`
+ * §6, "non fait").
+ */
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_web_e2e_${String(process.pid)}`;
+const TEST_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 
 const ADMIN_EMAIL = "e2e@music-manager.test";
 const ADMIN_PASSWORD = "e2e-password-01";
@@ -113,14 +135,7 @@ function describe(error: unknown): string {
 
 async function resetDatabase(): Promise<void> {
   say(`recreating ${TEST_DB}`);
-  const admin = new SQL(ADMIN_DATABASE_URL);
-  // Terminate anything still attached from a previous run, or the drop blocks forever.
-  await admin.unsafe(
-    `select pg_terminate_backend(pid) from pg_stat_activity where datname = '${TEST_DB}'`,
-  );
-  await admin.unsafe(`drop database if exists ${TEST_DB}`);
-  await admin.unsafe(`create database ${TEST_DB}`);
-  await admin.end();
+  await createFreshDatabase(ADMIN_DATABASE_URL, TEST_DB);
 
   await must("migrate", [bun, "run", join(webDir, "src", "server", "db", "migrate.ts")]);
   await must("seed the recorded sources", [
@@ -280,6 +295,11 @@ try {
 } finally {
   say("stopping what this script started");
   stopEverything();
+  // Free the per-PID database rather than leaving it for the next run to trip over — with a
+  // fresh port and database every time, there is no reason for one to survive its own run.
+  if (process.env["MM_E2E_DB"] === undefined) {
+    await dropDatabaseIfExists(ADMIN_DATABASE_URL, TEST_DB);
+  }
 }
 
 process.exit(code);

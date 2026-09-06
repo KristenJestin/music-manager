@@ -3,9 +3,11 @@
  * Windows (PowerShell or Git Bash) and Linux: no shell, no bash-isms, no `make`.
  */
 import { existsSync } from "node:fs";
+import { createServer } from "node:net";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { SQL } from "bun";
 
 /** Absolute path of the repository root (the directory holding package.json). */
 export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -110,4 +112,64 @@ export function bunx(tool: string, ...args: string[]): string[] {
 /** A `bun run --cwd <dir> <script>` invocation. */
 export function bunRun(cwd: string, script: string, ...args: string[]): string[] {
   return [bun, "run", "--cwd", cwd, script, ...args];
+}
+
+/**
+ * Ask the OS for a TCP port nobody is listening on, by binding to port 0 and reading back
+ * what the kernel assigned, then releasing it immediately.
+ *
+ * Used so that concurrent E2E runs (this machine routinely has several agents on it at once,
+ * `CLAUDE.md`'s process-safety note) never fight over a fixed port like `:3000` or `:3170` —
+ * each run picks its own, and an explicit `PORT`/`MM_E2E_PORT` env var still overrides it.
+ */
+export async function findFreePort(): Promise<number> {
+  return await new Promise((resolvePort, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address !== null ? address.port : 0;
+      server.close((closeError) => {
+        if (closeError) reject(closeError);
+        else resolvePort(port);
+      });
+    });
+  });
+}
+
+/**
+ * Create a fresh, empty database on the same server as `adminUrl`, dropping it first if a
+ * previous run left one behind (an interrupted script, or a stale name reused on purpose).
+ * `adminUrl` is only ever used to *issue* the `create database` / `drop database` statements;
+ * the database it names itself is never touched.
+ */
+export async function createFreshDatabase(adminUrl: string, name: string): Promise<void> {
+  const admin = new SQL(adminUrl);
+  try {
+    await admin.unsafe(
+      `select pg_terminate_backend(pid) from pg_stat_activity where datname = '${name}'`,
+    );
+    await admin.unsafe(`drop database if exists ${name}`);
+    await admin.unsafe(`create database ${name}`);
+  } finally {
+    await admin.end();
+  }
+}
+
+/** Drop a database this run created, freeing it for the next one. Safe to call if it never was. */
+export async function dropDatabaseIfExists(adminUrl: string, name: string): Promise<void> {
+  const admin = new SQL(adminUrl);
+  try {
+    await admin.unsafe(
+      `select pg_terminate_backend(pid) from pg_stat_activity where datname = '${name}'`,
+    );
+    await admin.unsafe(`drop database if exists ${name}`);
+  } finally {
+    await admin.end();
+  }
+}
+
+/** Replace the database name in a `postgres://…/name` URL, keeping host, port and credentials. */
+export function withDatabaseName(url: string, name: string): string {
+  return url.replace(/\/[^/?]+(\?|$)/, `/${name}$1`);
 }

@@ -21,20 +21,51 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { SQL } from "bun";
-import { bun, capture, dockerIsRunning, repoRoot, resolveDocker } from "./lib.ts";
+import {
+  bun,
+  capture,
+  createFreshDatabase,
+  dockerIsRunning,
+  dropDatabaseIfExists,
+  repoRoot,
+  resolveDocker,
+  withDatabaseName,
+} from "./lib.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
 /* ------------------------------------------------------------------ */
 
-const DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+const ADMIN_DATABASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
+/**
+ * A database of its own, per process — not the shared `mm` database this used to reset by
+ * default, which a concurrent `bun run dev` or another agent's run could be using at the same
+ * moment. `MM_E2E_DB` pins a name for a caller that wants a stable one.
+ */
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_verify_${String(process.pid)}`;
+const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
 const NAVIDROME_URL = process.env["MM_NAVIDROME_URL"] ?? "http://localhost:4533";
 const NAVIDROME_USER = process.env["MM_NAVIDROME_USER"] ?? "admin";
 /** `ND_DEVAUTOCREATEADMINPASSWORD` in docker-compose.dev.yml. */
 const NAVIDROME_PASSWORD = process.env["MM_NAVIDROME_PASSWORD"] ?? "admin";
 
-const LIBRARY = resolve(repoRoot, ".local/library");
+/**
+ * A library directory of its own, per process, under the bind mount the toolbox and Navidrome
+ * both already see — so this run's "delete a file" / "edit a tag by hand" sabotage never lands
+ * on an album a developer or another run is looking at.
+ *
+ * **Not dot-prefixed.** `.mm-work` is dot-prefixed on purpose so Navidrome's scanner ignores it
+ * (`CLAUDE.md`) — which is exactly wrong here: this script's whole point is a *real* Navidrome
+ * read-back, and a scanner that skips the directory leaves `getAlbumList2` empty forever, so
+ * `waitForScan` spins until `NAVIDROME_SCAN_TIMEOUT` no matter how fast Navidrome's own scan
+ * actually finishes (confirmed against Navidrome 0.63.2: `getScanStatus` after a normal, real
+ * scan of this directory).
+ */
+const LIBRARY_SUBDIR =
+  process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `mm-e2e-verify-${String(process.pid)}`;
+const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
+const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
 const ALBUM_DIR = join(LIBRARY, "Daft Punk", "Discovery (2001)");
 const COMPOSE = ["-f", "docker-compose.dev.yml", "-f", "docker-compose.fixtures.yml"];
 
@@ -43,6 +74,8 @@ const childEnv: Record<string, string> = {
   DATABASE_URL,
   MM_TOOLBOX_URL: TOOLBOX_URL,
   MM_FIXTURES: "1",
+  MM_LIBRARY_ROOT: LIBRARY,
+  MM_TOOLBOX_LIBRARY_ROOT: TOOLBOX_LIBRARY_ROOT,
 };
 
 /* ------------------------------------------------------------------ */
@@ -220,7 +253,7 @@ async function writeTag(relative: string, key: string, value: string): Promise<v
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      path: `/library/${relative}`,
+      path: `${TOOLBOX_LIBRARY_ROOT}/${relative}`,
       tags: [{ key, value }],
       clear: false,
       sidecar_lrc: false,
@@ -233,7 +266,7 @@ async function probeTag(relative: string, key: string): Promise<string> {
   const response = await fetch(`${TOOLBOX_URL}/probe`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ path: `/library/${relative}` }),
+    body: JSON.stringify({ path: `${TOOLBOX_LIBRARY_ROOT}/${relative}` }),
   });
   if (!response.ok) die(`toolbox /probe failed: HTTP ${String(response.status)}`);
   const body = (await response.json()) as { tags: Record<string, string> };
@@ -287,12 +320,14 @@ async function main(): Promise<void> {
   const serverVersion = await navidromeReady();
   info(`navidrome ${serverVersion} at ${NAVIDROME_URL}`);
 
-  const reset = await capture({
-    label: "db reset",
-    cmd: [bun, "run", "scripts/db.ts", "reset"],
+  info(`creating ${TEST_DB}`);
+  await createFreshDatabase(ADMIN_DATABASE_URL, TEST_DB);
+  const migrate = await capture({
+    label: "db migrate",
+    cmd: [bun, "run", join("apps", "web", "src", "server", "db", "migrate.ts")],
     env: childEnv,
   });
-  if (reset.code !== 0) die(`db reset failed:\n${reset.stdout}${reset.stderr}`);
+  if (migrate.code !== 0) die(`db migrate failed:\n${migrate.stdout}${migrate.stderr}`);
   const seeded = await capture({
     label: "seed fixtures",
     cmd: [bun, "run", "apps/web/src/server/integrations/seed-fixtures.ts"],
@@ -518,15 +553,26 @@ async function main(): Promise<void> {
 const trim = (value: string, width = 34): string =>
   value.length <= width ? value : `${value.slice(0, width - 1)}…`;
 
-try {
-  await main();
+async function cleanup(): Promise<void> {
   await stopEverything();
   await sql.end();
+  // Leave nothing behind for the next run to trip over: a fresh database and library
+  // directory exist only because this run picked them.
+  if (process.env["MM_E2E_DB"] === undefined) {
+    await dropDatabaseIfExists(ADMIN_DATABASE_URL, TEST_DB);
+  }
+  if (process.env["MM_E2E_LIBRARY_SUBDIR"] === undefined) {
+    rmSync(LIBRARY, { recursive: true, force: true });
+  }
+}
+
+try {
+  await main();
+  await cleanup();
   console.log("\ne2e-verify: green\n");
   process.exit(0);
 } catch (error) {
   console.error(error);
-  await stopEverything();
-  await sql.end();
+  await cleanup();
   process.exit(1);
 }
