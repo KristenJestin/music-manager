@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
@@ -181,7 +181,14 @@ function JobPage() {
   return (
     <>
       <div className="mb-4 flex items-start gap-4">
-        <Cover size="lg" seed={job.id} label={job.title ?? job.url} />
+        {/* Cover Art Archive once `match` bound a release, the YouTube thumbnail before
+            that, the gradient only if neither loads (owner review B10). */}
+        <Cover
+          size="lg"
+          src={coverArtFront(job.releaseMbid, 500) ?? detail.thumbnail}
+          seed={job.id}
+          label={job.title ?? job.url}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-semibold tracking-tight">{job.title ?? job.url}</h1>

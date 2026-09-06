@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Activity, AlertTriangle, Disc3, FolderOpen, Inbox, Plus, Shield } from "lucide-react";
 import { Callout } from "#/components/callout.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { PipelineDots } from "#/components/pipeline-dots.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
@@ -124,7 +124,12 @@ function Dashboard() {
                     params={{ id: entry.job.id }}
                     className="flex items-center gap-3 border-b border-line px-3.5 py-2.5 last:border-b-0 hover:bg-surface-2"
                   >
-                    <Cover size="sm" seed={entry.job.id} label={entry.job.title ?? entry.job.url} />
+                    <Cover
+                      size="sm"
+                      src={coverArtFront(entry.job.releaseMbid) ?? entry.thumbnail}
+                      seed={entry.job.id}
+                      label={entry.job.title ?? entry.job.url}
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">
                         {entry.job.title ?? entry.job.url}

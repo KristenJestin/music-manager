@@ -2,7 +2,7 @@ import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { Plus, RotateCcw } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
-import { Cover } from "#/components/cover.tsx";
+import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { PipelineDots } from "#/components/pipeline-dots.tsx";
@@ -78,7 +78,14 @@ function Jobs() {
       header: "",
       className: "w-10",
       cell: (entry) => (
-        <Cover size="sm" seed={entry.job.id} label={entry.job.title ?? entry.job.url} />
+        // The archive front once a release is bound, the YouTube thumbnail before that, and
+        // the gradient only when neither exists or loads (owner review B10).
+        <Cover
+          size="sm"
+          src={coverArtFront(entry.job.releaseMbid) ?? entry.thumbnail}
+          seed={entry.job.id}
+          label={entry.job.title ?? entry.job.url}
+        />
       ),
     },
     {

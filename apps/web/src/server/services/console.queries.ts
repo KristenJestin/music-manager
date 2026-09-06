@@ -26,6 +26,7 @@ import {
   type JobStep,
   type StepName,
 } from "#/server/db/schema/index.ts";
+import { youtubeThumbnail } from "#/server/services/documents.ts";
 
 /* ------------------------------------------------------------------ */
 /* the job list                                                        */
@@ -38,6 +39,15 @@ export interface JobSummary {
   readonly tracksDone: number;
   /** Open Inbox items blocking this job. The list shows a "Review" button when non-zero. */
   readonly openItems: number;
+  /**
+   * The YouTube thumbnail of the first video, so the tile can show what was imported rather
+   * than a gradient with a letter on it (owner review B10).
+   *
+   * Only the *fallback* travels: once `match` has bound a release, the Console derives the
+   * Cover Art Archive front from `job.releaseMbid` itself — one fewer column to keep current,
+   * and a release that gains a cover shows it on the next render rather than the next import.
+   */
+  readonly thumbnail: string | null;
 }
 
 /** Statuses the `active` filter of `/imports` covers. */
@@ -98,14 +108,28 @@ export async function listJobs(
     .where(and(inArray(inboxItems.importId, ids), eq(inboxItems.status, "open")))
     .groupBy(inboxItems.importId);
 
+  // One row per import — the first video, which is what the source looked like.
+  const firstVideos = await db
+    .selectDistinctOn([importTracks.importId], {
+      importId: importTracks.importId,
+      raw: importTracks.raw,
+    })
+    .from(importTracks)
+    .where(inArray(importTracks.importId, ids))
+    .orderBy(importTracks.importId, importTracks.position);
+
   const byId = new Map(tallies.map((row) => [row.importId, row]));
   const openById = new Map(open.map((row) => [row.importId, Number(row.total)]));
+  const thumbnailById = new Map(
+    firstVideos.map((row) => [row.importId, youtubeThumbnail(row.raw as never)]),
+  );
 
   return jobs.map((job) => ({
     job,
     tracksTotal: Number(byId.get(job.id)?.total ?? 0),
     tracksDone: Number(byId.get(job.id)?.done ?? 0),
     openItems: openById.get(job.id) ?? 0,
+    thumbnail: thumbnailById.get(job.id) ?? null,
   }));
 }
 
@@ -151,6 +175,8 @@ export interface JobDetail {
   readonly steps: readonly { step: StepName; row: JobStep | null }[];
   readonly inbox: readonly InboxItem[];
   readonly tracksDone: number;
+  /** As in `JobSummary`: the first video's thumbnail, the fallback under the CAA front. */
+  readonly thumbnail: string | null;
 }
 
 export async function jobDetail(
@@ -184,6 +210,7 @@ export async function jobDetail(
     inbox: items,
     tracksDone: tracks.filter((track) => ["placed", "done", "skipped"].includes(track.state))
       .length,
+    thumbnail: tracks[0] === undefined ? null : youtubeThumbnail(tracks[0].raw as never),
   };
 }
 
