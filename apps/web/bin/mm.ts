@@ -73,6 +73,20 @@ import {
   type SettingKey,
 } from "#/server/services/settings.ts";
 import { createBoss, enqueueDownload, enqueueImportStep, stopBoss } from "#/worker/queues.ts";
+import { enqueueRetag } from "#/worker/handlers/retag.ts";
+import {
+  albumDetail,
+  albumGrid,
+  artistList,
+  trackList,
+} from "#/server/services/library.ts";
+import {
+  cancelRun,
+  createRun,
+  listRuns,
+  runToCompletion,
+  runView,
+} from "#/server/services/retag.ts";
 import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
 
 /* ------------------------------------------------------------------ */
@@ -838,6 +852,219 @@ async function cmdControl(args: Args, action: "cancel" | "pause" | "bump"): Prom
   return 0;
 }
 
+/* ------------------------------------------------------------------ */
+/* mm library — what is on disk (P07a)                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `mm library …` — the same numbers the Console shows, on a terminal.
+ *
+ * It reads through `library.service` and `quality.service` rather than querying tables, so a
+ * score printed here and a score drawn there can never be computed two different ways.
+ */
+async function cmdLibrary(args: Args): Promise<number> {
+  const sub = args.positional[1] ?? "albums";
+  const profile = flagString(args, "profile");
+  const scored = (quality: { score: number | null; byProfile: Record<string, number | null> }) =>
+    profile === undefined ? quality.score : (quality.byProfile[profile] ?? null);
+
+  if (sub === "albums" || sub === "quality") {
+    const payload = await albumGrid(
+      {
+        ...(flagString(args, "filter") === undefined
+          ? {}
+          : { filter: flagString(args, "filter") as never }),
+        ...(profile === undefined ? {} : { profile: profile as never }),
+      },
+      db(),
+    );
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(payload, null, 2));
+      return 0;
+    }
+    line(
+      `${String(payload.stats.albums)} album(s) · ${String(payload.stats.tracks)} track(s) · metadata ${payload.stats.averageScore === null ? "—" : (payload.stats.averageScore * 100).toFixed(0) + "%"} on average`,
+    );
+    line(
+      `schema v${String(payload.stats.currentSchema)}${payload.stats.schemaOverridden ? " (override in force)" : ""} · ${String(payload.stats.filesBehind)} file(s) behind, ${String(payload.stats.filesCurrent)} current`,
+    );
+    line("");
+    line("SCORE  TRACKS  SCHEMA  ALBUM");
+    for (const album of payload.albums) {
+      const score = scored(album.quality);
+      line(
+        `${(score === null ? "  —" : `${(score * 100).toFixed(0).padStart(3)}%`).padEnd(6)} ${`${String(album.presentCount)}/${String(album.trackCount)}`.padStart(6)}  ${`v${String(album.quality.schemaVersion ?? 0)}${album.quality.filesBehind > 0 ? "!" : " "}`.padEnd(6)}  ${album.albumArtist} — ${album.title}  ${album.id}`,
+      );
+    }
+    return 0;
+  }
+
+  if (sub === "tracks") {
+    const payload = await trackList(
+      {
+        ...(flagString(args, "search") === undefined
+          ? {}
+          : { search: flagString(args, "search") as string }),
+        ...(flagString(args, "filter") === undefined
+          ? {}
+          : { filter: flagString(args, "filter") as never }),
+        limit: Number(flagString(args, "limit") ?? "50"),
+      },
+      db(),
+    );
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(payload, null, 2));
+      return 0;
+    }
+    line(`${String(payload.total)} track(s) match · schema v${String(payload.currentSchema)}`);
+    for (const track of payload.tracks) {
+      line(
+        `${track.behind ? "!" : " "} ${(track.score === null ? "  —" : `${(track.score * 100).toFixed(0).padStart(3)}%`)}  ${track.path}`,
+      );
+    }
+    return 0;
+  }
+
+  if (sub === "show") {
+    const id = args.positional[2];
+    if (id === undefined) throw new MMError("INVALID_INPUT", "usage: mm library show <album id>");
+    const detail = await albumDetail(id, db());
+    if (detail === null) throw new MMError("NOT_FOUND", `No album with id ${id}.`);
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(detail, null, 2));
+      return 0;
+    }
+    line(`${detail.album.albumArtist} — ${detail.album.title}`);
+    line(`  folder      ${detail.album.folder}`);
+    line(`  release     ${detail.album.releaseMbid ?? "— (imported without MusicBrainz)"}`);
+    line(
+      `  tracks      ${String(detail.quality.presentCount)}/${String(detail.quality.trackCount)}  ·  schema v${String(detail.quality.schemaVersion ?? 0)} (current v${String(detail.currentSchema)})`,
+    );
+    line(
+      `  metadata    ${detail.quality.score === null ? "—" : (detail.quality.score * 100).toFixed(0) + "%"}  ·  ${String(detail.quality.missing.length)} missing, ${String(detail.quality.naCount)} n/a, ${String(detail.quality.driftCount)} drifting`,
+    );
+    line("");
+    for (const entry of detail.quality.missing.slice(0, 30)) {
+      line(
+        `  ${entry.level.padEnd(12)} ${entry.vorbis.padEnd(28)} ${String(entry.tracks)} track(s)   ${entry.action}`,
+      );
+    }
+    return 0;
+  }
+
+  if (sub === "artists") {
+    for (const artist of await artistList({}, db())) {
+      line(
+        `${artist.name.padEnd(36)} ${String(artist.albums).padStart(3)} album(s)  ${String(artist.tracks).padStart(4)} track(s)  ${artist.mbid ?? ""}`,
+      );
+    }
+    return 0;
+  }
+
+  throw new MMError("INVALID_INPUT", "usage: mm library albums|tracks|artists|show <id>");
+}
+
+/* ------------------------------------------------------------------ */
+/* mm retag — the background re-projection of docs/03 §8 (P07a)        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `mm retag …`
+ *
+ * Unlike `mm import`, this runs **in this process** by default, and that is not an
+ * inconsistency: the reason the CLI refuses to run a pipeline is the single global download
+ * slot, and a re-tag downloads nothing. It reads the raw cache, projects, and writes tag
+ * blocks. `--queue` hands it to the worker instead, which is what the Console does.
+ */
+async function cmdRetag(args: Args): Promise<number> {
+  const sub = args.positional[1] ?? "run";
+
+  if (sub === "runs") {
+    for (const run of await listRuns({ limit: Number(flagString(args, "limit") ?? "20") }, db())) {
+      line(
+        `${run.id}  ${run.status.padEnd(10)} ${run.dryRun ? "dry " : "    "} ${run.scope.padEnd(8)} v${String(run.schemaVersion)}  ${String(run.done)}/${String(run.total)} done, ${String(run.changed)} changed, ${String(run.failed)} failed`,
+      );
+    }
+    return 0;
+  }
+
+  if (sub === "show") {
+    const id = args.positional[2];
+    if (id === undefined) throw new MMError("INVALID_INPUT", "usage: mm retag show <run id>");
+    const view = await runView(id, {}, db());
+    if (view === null) throw new MMError("NOT_FOUND", `No re-tag run with id ${id}.`);
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(view, null, 2));
+      return 0;
+    }
+    line(
+      `${view.run.id} · ${view.run.status} · ${view.run.dryRun ? "dry run" : "wrote files"} · projection v${String(view.run.schemaVersion)}`,
+    );
+    line(
+      `${String(view.run.done)}/${String(view.run.total)} file(s), ${String(view.run.changed)} changed, ${String(view.run.failed)} failed`,
+    );
+    for (const diff of view.diffs) {
+      const counts = `+${String(diff.added.length)} ~${String(diff.changed.length)} -${String(diff.removed.length)}`;
+      line("");
+      line(`  ${diff.path}   ${counts}${diff.error === null ? "" : `   ERROR ${diff.error.message}`}`);
+      for (const entry of diff.added) line(`    + ${entry.key}=${entry.after ?? ""}`);
+      for (const entry of diff.changed) {
+        line(`    ~ ${entry.key}: ${entry.before ?? ""} -> ${entry.after ?? ""}`);
+      }
+      for (const entry of diff.removed) line(`    - ${entry.key}=${entry.before ?? ""}`);
+    }
+    return 0;
+  }
+
+  if (sub === "cancel") {
+    const id = args.positional[2];
+    if (id === undefined) throw new MMError("INVALID_INPUT", "usage: mm retag cancel <run id>");
+    const run = await cancelRun(id, db());
+    line(run === null ? "Nothing to cancel; that run is not in flight." : `Cancelled ${run.id}.`);
+    return 0;
+  }
+
+  /* ---- run ---- */
+  const album = flagString(args, "album");
+  const track = flagString(args, "track");
+  const scope = track !== undefined ? "track" : album !== undefined ? "album" : "library";
+  const dryRun = flagBoolean(args, "dry-run");
+  const onlyBehind = !flagBoolean(args, "all");
+
+  const run = await createRun({
+    db: db(),
+    scope,
+    targetId: track ?? album ?? null,
+    dryRun,
+    onlyBehind,
+    trigger: "manual",
+  });
+
+  line(
+    `${dryRun ? "Dry run" : "Re-tag"} ${run.id}: ${String(run.total)} file(s) to projection v${String(run.schemaVersion)}.`,
+  );
+  if (run.total === 0) {
+    line("Nothing to do — every file in scope already carries that projection.");
+    return 0;
+  }
+
+  if (flagBoolean(args, "queue")) {
+    const boss = createBoss({ producer: true });
+    await boss.start();
+    await enqueueRetag(boss, { runId: run.id });
+    await stopBoss(boss);
+    line("Queued for the worker.");
+    return 0;
+  }
+
+  const finished = await runToCompletion(run.id, { db: db() });
+  line(
+    `${finished.status}: ${String(finished.done)}/${String(finished.total)} file(s), ${String(finished.changed)} changed, ${String(finished.failed)} failed.`,
+  );
+  if (dryRun) line(`Read the diff with:  mm retag show ${finished.id}`);
+  return finished.failed > 0 ? 1 : 0;
+}
+
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
@@ -862,6 +1089,14 @@ const USAGE = `mm — Music Manager
   mm scan identify <path> | trash <path>  fingerprint an orphan, or move a file to the trash
   mm tools [status|update|selftest]       the downloader, the cookies and the sources
   mm tools url <url> | mm tools errors    a dry-run extract, and the error decoder
+
+  mm library albums [--filter <f>] [--profile <p>] [--json]   what is on disk, scored
+  mm library tracks [--search s] [--filter f] [--limit n]     every file, one line each
+  mm library show <album id> [--json]     one album: identifiers, score, what is missing
+  mm library artists                      grouped as the folders name them
+  mm retag [--album <id>|--track <id>] [--dry-run] [--all] [--queue]
+                                          re-project from the raw cache; offline, no re-download
+  mm retag runs | show <run id> | cancel <run id>             the runs, and the per-file diffs
 
 Environment: DATABASE_URL, MM_TOOLBOX_URL, MM_FIXTURES, MM_LIBRARY_ROOT, MM_TOOLBOX_LIBRARY_ROOT,
              MM_MB_CONTACT, MM_ACOUSTID_KEY, MM_LASTFM_KEY, MM_FANARTTV_KEY.
@@ -896,6 +1131,10 @@ async function main(): Promise<number> {
       return await cmdScan(args);
     case "tools":
       return await cmdTools(args);
+    case "library":
+      return await cmdLibrary(args);
+    case "retag":
+      return await cmdRetag(args);
     case "cancel":
     case "pause":
     case "bump":

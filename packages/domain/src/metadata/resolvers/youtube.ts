@@ -84,6 +84,37 @@ export function fromYouTubeEntry(
 
   /* ---- fallbacks read from the auto-generated description ---- */
   const parsed = parseYouTubeDescription(entry.description);
+
+  /*
+   * The YouTube Music tags themselves (P07a).
+   *
+   * yt-dlp lifts `track`, `artist`, `album` and `release_year` straight off a YouTube Music
+   * entry, and until now they were read only by the *matcher* — the document ignored them,
+   * because a matched import gets all four from MusicBrainz and the merge would drop them
+   * anyway.
+   *
+   * "Import without MusicBrainz" is the case where nothing else provides them, and a document
+   * with no TITLE is not a document: `place` would file every track of the album as
+   * `Unknown Artist/Unknown Album/NN <video title>`. So they are resolved here, at this
+   * resolver's low confidence, which means a real MusicBrainz value still wins every time —
+   * the precedence of §1 has not changed, only the fallback has stopped being empty.
+   *
+   * `title` falls back to the video title, and `artist` to the uploader, because a channel
+   * name is a worse answer than an artist tag and a better one than nothing.
+   */
+  patch.set("title", entry.track ?? entry.title ?? null);
+  patch.set("artist", entry.artist ?? entry.uploader ?? entry.channel ?? null);
+  patch.set("albumartist", entry.artist ?? entry.uploader ?? entry.channel ?? null);
+  patch.set("album", entry.album ?? null);
+  if (entry.playlist_index !== undefined && entry.playlist_index !== null) {
+    patch.set("tracknumber", entry.playlist_index);
+  }
+  // The description's release date is more precise than a bare year, so it wins below.
+  if (entry.release_year !== undefined && (parsed === null || parsed.releasedOn === null)) {
+    patch.set("date", String(entry.release_year));
+    patch.set("originalyear", entry.release_year);
+  }
+
   if (parsed === null) return patch.build();
 
   patch.set("copyright", parsed.copyright);

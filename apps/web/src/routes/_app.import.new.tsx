@@ -93,7 +93,12 @@ export const Route = createFileRoute("/_app/import/new")({
         replace: true,
       });
     }
-    if (deps.step < 3 || deps.release === undefined || candidates.kind === "single") {
+    if (
+      deps.step < 3 ||
+      deps.release === undefined ||
+      deps.release === NO_MUSICBRAINZ ||
+      candidates.kind === "single"
+    ) {
       return { source, candidates, mapping: null };
     }
 
@@ -107,6 +112,19 @@ export const Route = createFileRoute("/_app/import/new")({
 });
 
 const STEP_NAMES = ["Source", "MusicBrainz match", "Track mapping", "Options & start"];
+
+/**
+ * The `release` search value that means **import without MusicBrainz** (P07a).
+ *
+ * A sentinel rather than an absent value, because "no release chosen yet" and "no release, on
+ * purpose" are different states and the URL has to be able to tell them apart — otherwise a
+ * reload of the second one would silently become the first and re-preselect a release.
+ *
+ * It is not an MBID, so nothing downstream can mistake it for one: the loader skips the
+ * mapping call, step 3 is skipped entirely (there is no tracklist to map against), and
+ * `startImport` receives `releaseMbid: null`.
+ */
+const NO_MUSICBRAINZ = "none";
 
 export interface WizardOptions {
   readonly fingerprint: boolean;
@@ -223,7 +241,12 @@ function Wizard() {
             go({ step: 1 });
           }}
           onContinue={() => {
-            go({ step: single === true ? 4 : 3 });
+            // Without MusicBrainz there is no tracklist to map against, so step 3 has nothing
+            // to show: the mapping *is* the source's own order.
+            go({ step: single === true || params.release === NO_MUSICBRAINZ ? 4 : 3 });
+          }}
+          onSkipMusicBrainz={() => {
+            go({ release: NO_MUSICBRAINZ, step: 4 });
           }}
         />
       ) : null}
@@ -339,9 +362,51 @@ function StepTail({
     [candidates, release],
   );
 
+  /** Import without MusicBrainz: the source's own order is the mapping. */
+  const untagged = release === NO_MUSICBRAINZ;
+
   const start = (): void => {
     onBusy(true);
     onError(null);
+
+    if (untagged) {
+      const videos = source?.videos ?? [];
+      if (videos.length === 0) {
+        onBusy(false);
+        onError("The source has no videos to import.");
+        return;
+      }
+      void startImport({
+        data: {
+          importId,
+          releaseMbid: null,
+          releaseGroupMbid: null,
+          album: source?.hints.album ?? source?.title ?? "Unknown Album",
+          albumArtist: source?.hints.artist ?? source?.uploader ?? "Unknown Artist",
+          year: source?.hints.year ?? null,
+          trackTotal: videos.length,
+          bindings: videos.map((video, index) => ({
+            position: video.index,
+            trackPosition: index + 1,
+            mediumPosition: 1,
+            trackMbid: null,
+            recordingMbid: null,
+            trackTitle: video.ytTrack ?? video.title,
+            confidence: 1,
+          })),
+          options,
+          priority,
+        },
+      }).then((result) => {
+        onBusy(false);
+        toast(
+          `Import queued without MusicBrainz — ${String(result.mapped)} track(s), tagged from YouTube alone.`,
+          "ok",
+        );
+        void navigate({ to: "/imports/$id", params: { id: result.importId } });
+      }, onFail);
+      return;
+    }
 
     const tracksByIndex = new Map(
       (mapping?.tracks ?? []).map((track) => [track.absoluteIndex, track]),
@@ -420,20 +485,27 @@ function StepTail({
     <StepOptions
       source={source}
       mapping={mapping}
-      releaseTitle={chosenRelease?.title ?? chosenRecording?.title ?? mapping?.releaseTitle ?? ""}
-      releaseArtist={
-        chosenRelease?.artist ?? chosenRecording?.artist ?? mapping?.releaseArtist ?? ""
+      releaseTitle={
+        untagged
+          ? (source?.hints.album ?? source?.title ?? "Unknown Album")
+          : (chosenRelease?.title ?? chosenRecording?.title ?? mapping?.releaseTitle ?? "")
       }
-      bound={bound}
-      extras={extras}
-      uncovered={uncovered}
+      releaseArtist={
+        untagged
+          ? (source?.hints.artist ?? source?.uploader ?? "Unknown Artist")
+          : (chosenRelease?.artist ?? chosenRecording?.artist ?? mapping?.releaseArtist ?? "")
+      }
+      untagged={untagged}
+      bound={untagged ? (source?.videos.length ?? 0) : bound}
+      extras={untagged ? 0 : extras}
+      uncovered={untagged ? 0 : uncovered}
       options={options}
       setOptions={setOptions}
       priority={priority}
       setPriority={setPriority}
       busy={busy}
       onBack={() => {
-        onStep(single ? 2 : 3);
+        onStep(single || untagged ? 2 : 3);
       }}
       onStart={start}
     />
@@ -685,6 +757,7 @@ function StepMatch({
   onSearch,
   onBack,
   onContinue,
+  onSkipMusicBrainz,
 }: {
   readonly source: SourceView | null;
   readonly candidates: CandidatesView | null;
@@ -694,6 +767,7 @@ function StepMatch({
   readonly onSearch: (query: string) => Promise<readonly ReleaseCandidate[]>;
   readonly onBack: () => void;
   readonly onContinue: () => void;
+  readonly onSkipMusicBrainz: () => void;
 }) {
   const [query, setQuery] = useState("");
   const [manual, setManual] = useState<readonly ReleaseCandidate[]>([]);
@@ -785,10 +859,25 @@ function StepMatch({
           </div>
 
           <Callout className="mt-3.5">
-            Nothing fits? Paste the MBID of the right release above — the mapping is computed
-            against whatever you pin, even if the search never proposed it. Importing without
-            MusicBrainz at all arrives with the library screens in P07; until then a release has to
-            be chosen, because it is what every tag is derived from.
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                Nothing fits? Paste the MBID of the right release above — the mapping is computed
+                against whatever you pin, even if the search never proposed it. If MusicBrainz
+                genuinely does not have this — a live set, a bootleg, an unregistered artist —
+                import it from the YouTube tags alone. The album is then flagged{" "}
+                <b>untagged</b> in the library, with its own filter on the Quality page, so it
+                can be finished the day a release appears.
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                data-testid="import-without-mb"
+                onClick={onSkipMusicBrainz}
+              >
+                Import without MusicBrainz
+              </Button>
+            </div>
           </Callout>
         </>
       )}
@@ -987,6 +1076,7 @@ function StepOptions({
   mapping,
   releaseTitle,
   releaseArtist,
+  untagged,
   bound,
   extras,
   uncovered,
@@ -1002,6 +1092,8 @@ function StepOptions({
   readonly mapping: MappingViewPayload | null;
   readonly releaseTitle: string;
   readonly releaseArtist: string;
+  /** Import without MusicBrainz: no release, tags from the YouTube metadata alone. */
+  readonly untagged: boolean;
   readonly bound: number;
   readonly extras: number;
   readonly uncovered: number;
@@ -1021,6 +1113,15 @@ function StepOptions({
 
   return (
     <>
+      {untagged ? (
+        <Callout tone="warn" className="mb-3.5" data-testid="untagged-notice">
+          <b>Importing without MusicBrainz.</b> The tags will come from the YouTube metadata
+          alone — title, artist, album, year — so there will be no identifiers, no credits, no
+          release date and no cover from the archive. The album is flagged <b>untagged</b> in
+          the library and has its own filter on the Quality page; picking a release later and
+          re-tagging fills in everything, offline, without re-downloading a byte.
+        </Callout>
+      ) : null}
       <div className="split-grid">
         <div className="flex flex-col gap-3.5">
           <section className="rounded-xl border border-line bg-surface-1">

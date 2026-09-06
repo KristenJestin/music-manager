@@ -60,7 +60,16 @@ import { updateTrack, type StepContext } from "../context.ts";
 
 /** A mapping supplied from outside — the CLI's `--mapping`, or a fixture. */
 export interface SuppliedMapping {
-  readonly releaseMbid: string;
+  /**
+   * `null` is "import without MusicBrainz" (P07a).
+   *
+   * The wizard's step 2 offers it for a source MusicBrainz genuinely does not have — a live
+   * set, a bootleg, an artist who never registered. The mapping is then the source's own
+   * order, the document is built from the YouTube tags alone, and the album is flagged
+   * `untagged` in the library so it can be found and finished later. Nothing else in the
+   * pipeline changes; a release simply never gets persisted on the job.
+   */
+  readonly releaseMbid: string | null;
   readonly releaseGroupMbid?: string | null;
   readonly album?: string;
   readonly albumArtist?: string;
@@ -73,7 +82,8 @@ export interface SuppliedMapping {
     readonly trackPosition: number;
     readonly mediumPosition?: number;
     readonly trackMbid?: string;
-    readonly recordingMbid: string;
+    /** `null` when the import has no MusicBrainz release behind it. */
+    readonly recordingMbid: string | null;
     readonly trackTitle: string;
     readonly confidence?: number;
   }[];
@@ -681,13 +691,32 @@ async function applySupplied(
     mapped += 1;
   }
 
-  await persistRelease(ctx, {
-    id: supplied.releaseMbid,
-    releaseGroupId: supplied.releaseGroupMbid ?? null,
-    ...(supplied.album === undefined ? {} : { title: supplied.album }),
-    ...(supplied.albumArtist === undefined ? {} : { artist: supplied.albumArtist }),
-    year: supplied.year ?? null,
-  });
+  if (supplied.releaseMbid === null) {
+    // "Import without MusicBrainz": there is no release to persist, but the album and artist
+    // the source claimed are still what the document and the folder name will be built from,
+    // so they are recorded here exactly as a matched release would have been.
+    await ctx.db
+      .update(imports)
+      .set({
+        ...(supplied.album === undefined || supplied.album === ""
+          ? {}
+          : { title: supplied.album }),
+        ...(supplied.albumArtist === undefined || supplied.albumArtist === ""
+          ? {}
+          : { artist: supplied.albumArtist }),
+        ...(supplied.year === undefined || supplied.year === null ? {} : { year: supplied.year }),
+        updatedAt: new Date(),
+      })
+      .where(eq(imports.id, ctx.job.id));
+  } else {
+    await persistRelease(ctx, {
+      id: supplied.releaseMbid,
+      releaseGroupId: supplied.releaseGroupMbid ?? null,
+      ...(supplied.album === undefined ? {} : { title: supplied.album }),
+      ...(supplied.albumArtist === undefined ? {} : { artist: supplied.albumArtist }),
+      year: supplied.year ?? null,
+    });
+  }
 
   if (extras > 0) {
     const leftovers = rows.filter((row) => !byPosition.has(row.position));
@@ -733,7 +762,16 @@ async function applySupplied(
 
   return {
     status: "done",
-    message: `${String(mapped)} track(s) mapped, ${String(extras)} extra (supplied mapping)`,
-    data: { releaseMbid: supplied.releaseMbid, mapped, extras, supplied: true },
+    message:
+      supplied.releaseMbid === null
+        ? `${String(mapped)} track(s) mapped from the source's own order, ${String(extras)} extra (no MusicBrainz release)`
+        : `${String(mapped)} track(s) mapped, ${String(extras)} extra (supplied mapping)`,
+    data: {
+      releaseMbid: supplied.releaseMbid,
+      mapped,
+      extras,
+      supplied: true,
+      untagged: supplied.releaseMbid === null,
+    },
   };
 }

@@ -389,7 +389,15 @@ export const fetchMapping = createServerFn({ method: "GET", strict: STRICT })
 
 const startInput = z.object({
   importId: z.string().min(1),
-  releaseMbid: z.string().min(1),
+  /**
+   * `null` is **import without MusicBrainz** (P07a).
+   *
+   * P06 deferred this because an album with no release needed the library screens to be
+   * findable and finishable; they exist now, so step 2 offers it for a source MusicBrainz
+   * genuinely does not have. The document is then built from the YouTube tags alone and the
+   * album carries an `untagged` badge with its own filter on `/library` and `/library/quality`.
+   */
+  releaseMbid: z.string().min(1).nullable(),
   releaseGroupMbid: z.string().nullable().default(null),
   album: z.string().default(""),
   albumArtist: z.string().default(""),
@@ -404,7 +412,7 @@ const startInput = z.object({
         trackPosition: z.number().int().min(1),
         mediumPosition: z.number().int().min(1).default(1),
         trackMbid: z.string().nullable().default(null),
-        recordingMbid: z.string().min(1),
+        recordingMbid: z.string().min(1).nullable(),
         trackTitle: z.string().default(""),
         confidence: z.number().min(0).max(1).default(1),
       }),
