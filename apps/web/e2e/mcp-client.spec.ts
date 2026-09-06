@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { expect, test, type Page } from "@playwright/test";
-import { signIn } from "./helpers.ts";
+import type { Page } from "@playwright/test";
+import { expect, test, signIn } from "./helpers.ts";
 
 /**
  * `/mcp`, driven by the **official SDK client** rather than by hand-written JSON-RPC.

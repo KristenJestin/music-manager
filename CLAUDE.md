@@ -265,7 +265,7 @@ is the only thing that talks to compose:
   database you are about to touch — read it before anything destructive.
 - Never delete `.local/` in `v2/`. Yours is `<worktree>/.local/`.
 - **Never drop a database, remove a container, an image or a worktree by pattern** (`LIKE
-  'mm_%'`, `docker ps -q --filter name=mm-`, `psql -c "select datname ... where datname like"`).
+'mm_%'`, `docker ps -q --filter name=mm-`, `psql -c "select datname ... where datname like"`).
   Other agents run their own isolated stacks at the same time with names from the same family.
   Delete only the exact names you created, as printed by `bun run stack:info`. That rule exists
   because P08-P11-verify-1 dropped `mm_web_e2e_<pid>` from under a running Playwright suite of

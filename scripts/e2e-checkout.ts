@@ -32,12 +32,18 @@ const FALLBACK_DATABASE_URL = "postgres://mm:mm@localhost:5432/mm";
  * A scratch name no other run on this machine can produce — the process id **and** six random
  * characters.
  *
- * The process id alone was the name, and it is not unique: Windows recycles process ids
- * quickly, several agents run these suites at once, and each of them drops its own
- * `mm_web_e2e_<pid>` on the way out. A run watched its database vanish underneath it mid-suite
- * and turned into `PostgresError: database "mm_web_e2e_36456" does not exist` reported through
- * Better Auth as a plain *"Sign-in failed."* on the login page, sixty tests from the cause.
- * Six random characters cost nothing and end the whole class.
+ * The process id alone was the name, and `mm_web_e2e_<pid>` is a shape another agent can
+ * recognise and act on. One did: a sibling verification run tidied up by dropping databases
+ * *by pattern* and took this suite's live one with it, mid-run
+ * (`../orchestration/reports/P08-P11-verify-1.md` §8; `CLAUDE.md` now forbids deleting
+ * anything by pattern). What that looked like from inside was
+ * `PostgresError: database "mm_web_e2e_36456" does not exist`, reported through Better Auth as
+ * a plain *"Sign-in failed."* on the login page, sixty tests away from its cause.
+ *
+ * The rule against pattern deletion is the real fix and it belongs in `CLAUDE.md`. This is the
+ * belt to go with it, and it also closes a second door: Windows recycles process ids quickly,
+ * so a run that ends and one that starts can genuinely claim the same name. Six random
+ * characters cost nothing.
  *
  * Lowercase alphanumerics only, because this ends up inside an unquoted SQL identifier and in
  * a directory name.
