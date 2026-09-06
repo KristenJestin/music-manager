@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "library_tracks_album_recording_idx" ON "library_tracks" USING btree ("album_id","recording_mbid") WHERE "library_tracks"."album_id" is not null and "library_tracks"."recording_mbid" is not null;--> statement-breakpoint
+CREATE UNIQUE INDEX "library_tracks_album_position_idx" ON "library_tracks" USING btree ("album_id",coalesce("disc_number", 1),"track_number") WHERE "library_tracks"."album_id" is not null and "library_tracks"."track_number" is not null;

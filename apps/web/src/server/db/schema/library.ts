@@ -8,6 +8,7 @@
  * Paths are stored **library-relative** and with `/` separators, never host-absolute: the
  * same rows are read by the worker on Windows and by the toolbox inside Linux.
  */
+import { sql } from "drizzle-orm";
 import {
   bigint,
   doublePrecision,
@@ -85,6 +86,38 @@ export const libraryTracks = pgTable(
     uniqueIndex("library_tracks_path_idx").on(table.path),
     index("library_tracks_recording_idx").on(table.recordingMbid),
     index("library_tracks_album_idx").on(table.albumId),
+    /*
+     * **A track's identity is not its path.**
+     *
+     * It was, and changing `pathTemplate` then re-importing an album produced a second row per
+     * track: twenty-five rows for a thirteen-track record, thirteen of them pointing at files
+     * that no longer existed. `quality.trackCount` then said 25, the score was computed on it,
+     * `relocate` classified the ghosts as `missing-file` and could not remove them (it moves
+     * files, it never deletes a row), and `verify` picked a ghost as "the album's first track"
+     * and gave up. One setting change, four wrong answers — that is data corruption, not an
+     * inconvenience.
+     *
+     * The real identity is what MusicBrainz already gives us: **the recording, inside the
+     * album**. A partial unique index is the right shape for it because `recording_mbid` is
+     * legitimately null for an untagged import, and Postgres does not constrain what does not
+     * exist.
+     */
+    uniqueIndex("library_tracks_album_recording_idx")
+      .on(table.albumId, table.recordingMbid)
+      .where(sql`${table.albumId} is not null and ${table.recordingMbid} is not null`),
+    /*
+     * And the position inside the album is the identity of an untagged track: two files cannot
+     * both be track 4 of the same album. Partial for the same reason — a row with no track
+     * number is a file we know too little about to constrain.
+     *
+     * `coalesce(disc_number, 1)` rather than the column, because a unique index treats two
+     * nulls as *distinct*: without it, the single-disc case — where the document simply never
+     * carried a `discnumber` — would be exempt from the constraint, and the single-disc case is
+     * the one this bug was reported on.
+     */
+    uniqueIndex("library_tracks_album_position_idx")
+      .on(table.albumId, sql`coalesce(${table.discNumber}, 1)`, table.trackNumber)
+      .where(sql`${table.albumId} is not null and ${table.trackNumber} is not null`),
   ],
 );
 

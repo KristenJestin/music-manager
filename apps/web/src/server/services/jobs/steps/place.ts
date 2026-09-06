@@ -16,7 +16,7 @@
  */
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import {
   renderAlbumFolder,
   renderPathTemplate,
@@ -132,6 +132,73 @@ async function upsertAlbum(
   return id;
 }
 
+/**
+ * The row this track already has, whatever it is called today.
+ *
+ * Three lookups, in order of how much they prove:
+ *
+ *  1. **the path** — the file is literally already there;
+ *  2. **(album, recording MBID)** — MusicBrainz's own identity for "this recording, on this
+ *     record", and the only one that survives a rename;
+ *  3. **(album, disc, track)** — the fallback for an untagged import, which has no MBID.
+ *
+ * Only the first existed, and that is the whole of bug C in the second MCP test report:
+ * changing `pathTemplate` and re-importing renamed every file, so every lookup missed, so
+ * every track was inserted a second time. An album of thirteen tracks became twenty-five rows
+ * — twelve real and thirteen pointing at files that no longer existed — and four separate
+ * features started answering with the wrong number.
+ */
+export async function findLibraryTrack(
+  ctx: Pick<StepContext, "db">,
+  album: string,
+  identity: {
+    readonly path: string;
+    readonly recordingMbid: string | null;
+    readonly discNumber: number | null;
+    readonly trackNumber: number | null;
+  },
+): Promise<{ id: string } | null> {
+  const [byPath] = await ctx.db
+    .select({ id: libraryTracks.id })
+    .from(libraryTracks)
+    .where(eq(libraryTracks.path, identity.path))
+    .limit(1);
+  if (byPath !== undefined) return byPath;
+
+  if (identity.recordingMbid !== null && identity.recordingMbid !== "") {
+    const [byRecording] = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(
+        and(
+          eq(libraryTracks.albumId, album),
+          eq(libraryTracks.recordingMbid, identity.recordingMbid),
+        ),
+      )
+      .limit(1);
+    if (byRecording !== undefined) return byRecording;
+  }
+
+  if (identity.trackNumber !== null) {
+    const [byPosition] = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(
+        and(
+          eq(libraryTracks.albumId, album),
+          identity.discNumber === null
+            ? isNull(libraryTracks.discNumber)
+            : eq(libraryTracks.discNumber, identity.discNumber),
+          eq(libraryTracks.trackNumber, identity.trackNumber),
+        ),
+      )
+      .limit(1);
+    if (byPosition !== undefined) return byPosition;
+  }
+
+  return null;
+}
+
 async function upsertLibraryTrack(
   ctx: StepContext,
   album: string,
@@ -140,11 +207,12 @@ async function upsertLibraryTrack(
   relative: string,
   size: number,
 ): Promise<void> {
-  const [row] = await ctx.db
-    .select({ id: libraryTracks.id })
-    .from(libraryTracks)
-    .where(eq(libraryTracks.path, relative))
-    .limit(1);
+  const row = await findLibraryTrack(ctx, album, {
+    path: relative,
+    recordingMbid: track.recordingMbid,
+    discNumber: number(document, "discnumber"),
+    trackNumber: number(document, "tracknumber") ?? track.trackPosition,
+  });
 
   const values = {
     albumId: album,
@@ -164,12 +232,18 @@ async function upsertLibraryTrack(
   };
 
   let libraryTrackId: string;
-  if (row === undefined) {
+  if (row === null) {
     libraryTrackId = newId("libraryTrack");
     await ctx.db.insert(libraryTracks).values({ id: libraryTrackId, path: relative, ...values });
   } else {
     libraryTrackId = row.id;
-    await ctx.db.update(libraryTracks).set(values).where(eq(libraryTracks.id, row.id));
+    // `path` is now part of what an update writes: the row was found by identity, so this is
+    // the rename that a template change means. It used to be the lookup key and therefore
+    // could never be updated — a second row appeared instead.
+    await ctx.db
+      .update(libraryTracks)
+      .set({ ...values, path: relative })
+      .where(eq(libraryTracks.id, row.id));
   }
 
   // The document now describes a file in the library, not one in the work directory.

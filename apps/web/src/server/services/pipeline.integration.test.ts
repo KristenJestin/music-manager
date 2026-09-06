@@ -81,7 +81,7 @@ const { drizzle } = await import("drizzle-orm/postgres-js");
 const { resetServerEnv } = await import("#/server/env.ts");
 const { db } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
-const { eq } = await import("drizzle-orm");
+const { and, eq } = await import("drizzle-orm");
 const events = await import("./events.ts");
 const cache = await import("./cache.ts");
 const inbox = await import("./inbox.ts");
@@ -309,6 +309,100 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       const tracks = await db().select().from(schema.libraryTracks);
       expect(tracks).toHaveLength(14);
     }, 300_000);
+
+    /*
+     * The regression that made this a priority-one bug: an album that doubled.
+     *
+     * `pathTemplate` decides the file *name*, and a library track's identity used to be its
+     * path — so changing the template and re-importing renamed every file and inserted a
+     * second row for every track. The report measured twenty-five rows for a thirteen-track
+     * album, thirteen of them pointing at files that no longer existed, and `trackCount`, the
+     * completeness score, `relocate` and `verify` each answered differently and wrongly.
+     */
+    it("does not duplicate a row when the path template changes under it", async () => {
+      const before = await db().select().from(schema.libraryTracks);
+      expect(before).toHaveLength(14);
+
+      // The same layout with the dash removed: every file of the album gets a new name.
+      await settings.setSetting(
+        "pathTemplate",
+        "{albumArtist}/{album} ({year})/{disc-}{track:02} {title}.{ext}",
+        { setBy: "test" },
+      );
+      try {
+        const again = await imports.createFromUrl("fixture://discovery", {
+          autoConfirm: true,
+          force: true,
+        });
+        const outcome = await jobs.runImport(again.job.id);
+        expect(outcome.status).toBe("done");
+
+        const after = await db().select().from(schema.libraryTracks);
+        expect(after).toHaveLength(14);
+
+        // Each row followed its file to the new name rather than leaving a ghost behind.
+        expect(after.filter((track) => track.path.includes(" - ")).length).toBe(0);
+        const albums = await db().select().from(schema.libraryAlbums);
+        expect(albums[0]?.trackCount).toBe(14);
+
+        // And the identity that made that possible is the recording, not the path.
+        const mbids = new Set(after.map((track) => track.recordingMbid));
+        expect(mbids.size).toBe(14);
+      } finally {
+        await settings.unsetSetting("pathTemplate");
+      }
+    }, 300_000);
+
+    /*
+     * "Pause on disagreement" has to mean it, even when there is nothing left to measure.
+     *
+     * `place` clears `downloadPath`, so a `fingerprint` re-run over a placed import found no
+     * file to fingerprint, counted zero disagreements and returned `done` — walking straight
+     * past its own open questions. That is how the report's import finished `done` with five
+     * `fingerprint_mismatch` items still open: "le step est passé sans les attendre".
+     */
+    it("blocks on an unanswered fingerprint mismatch even with nothing left to measure", async () => {
+      await settings.setSetting("verifyFingerprint", true, { setBy: "test" });
+      const [track] = await db()
+        .select()
+        .from(schema.importTracks)
+        .where(
+          and(eq(schema.importTracks.importId, importId), eq(schema.importTracks.role, "mapped")),
+        )
+        .limit(1);
+      expect(track).toBeDefined();
+
+      // The state the report describes: a placed track (no `downloadPath`), a stored verdict
+      // of "disagrees", and a question nobody has answered.
+      await db()
+        .update(schema.importTracks)
+        .set({ fingerprintOk: false })
+        .where(eq(schema.importTracks.id, track?.id ?? ""));
+      await inbox.openInboxItem(
+        {
+          type: "fingerprint_mismatch",
+          importId,
+          trackId: track?.id ?? null,
+          title: "Fingerprint disagrees",
+          preselected: { action: "accept" },
+        },
+        db(),
+      );
+
+      const blocked = await jobs.runStep(importId, "fingerprint", { db: db() });
+      expect(blocked.status).toBe("blocked");
+      expect(blocked.blockedAs).toBe("awaiting_review");
+
+      // And answering it is what lets the step through — the same act, over any surface.
+      await inbox.resolveInboxBatch(
+        { importId, type: "fingerprint_mismatch" },
+        { accept: true, decidedBy: "test" },
+        db(),
+      );
+      const through = await jobs.runStep(importId, "fingerprint", { db: db() });
+      expect(through.status).toBe("done");
+      await settings.unsetSetting("verifyFingerprint");
+    }, 120_000);
 
     it("re-runs a single step without disturbing the rest", async () => {
       const before = await db().select().from(schema.libraryTracks);

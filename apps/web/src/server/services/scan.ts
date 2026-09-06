@@ -159,6 +159,15 @@ export interface DuplicateGroup {
   readonly files: readonly { readonly trackId: string; readonly path: string }[];
 }
 
+/** One row merged away because another row was the same track under another name. */
+export interface MergedTrack {
+  readonly keptId: string;
+  readonly keptPath: string;
+  readonly removedId: string;
+  readonly removedPath: string;
+  readonly on: "recording" | "position";
+}
+
 export interface ScanReport {
   readonly at: string;
   readonly root: string;
@@ -169,6 +178,13 @@ export interface ScanReport {
   readonly missing: readonly MissingFile[];
   readonly drift: readonly DriftedTrack[];
   readonly duplicates: readonly DuplicateGroup[];
+  /**
+   * Rows that were the *same track under two paths* and have been merged into one.
+   *
+   * Distinct from `duplicates`, which is two files of the same recording and is reported and
+   * never touched. This is one file and two rows — a bookkeeping error, not a decision.
+   */
+  readonly merged: readonly MergedTrack[];
   /** True when the drift pass stopped at its cap rather than at the end of the library. */
   readonly driftTruncated: boolean;
   readonly probed: number;
@@ -289,6 +305,153 @@ const SKIP_DRIFT = new Set([
 ]);
 
 /* ------------------------------------------------------------------ */
+/* two rows, one track                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Merge `library_tracks` rows that describe the same track under two paths.
+ *
+ * This is the disk-aware half of the fix for the duplication a `pathTemplate` change caused
+ * (`orchestration/feedback/2026-09-07-mcp-test-report-2.md` §C). The unique indexes stop it
+ * happening again and the migration made the existing data satisfy them, but only a process
+ * that can *stat a file* knows which of two rows is the ghost — and that is this one, because
+ * the scan has just walked the tree.
+ *
+ * The rule is exactly the one the report asks for: **keep the row whose file exists.** When
+ * both exist, or neither does, keep the one the rest of the app already points at (a metadata
+ * document, then an import, then the most recent write) — the same order the migration uses,
+ * so the two never disagree.
+ *
+ * Two identities, in the order of how much they prove: the recording MBID inside the album,
+ * then the position inside it. Nothing outside an album is touched: a row with no `album_id`
+ * has no identity to be duplicated *against*.
+ */
+export async function mergeDuplicateTracks(
+  db: Database,
+  onDisk: ReadonlySet<string>,
+): Promise<MergedTrack[]> {
+  const rows = await db
+    .select({
+      id: libraryTracks.id,
+      albumId: libraryTracks.albumId,
+      recordingMbid: libraryTracks.recordingMbid,
+      discNumber: libraryTracks.discNumber,
+      trackNumber: libraryTracks.trackNumber,
+      path: libraryTracks.path,
+      importTrackId: libraryTracks.importTrackId,
+      updatedAt: libraryTracks.updatedAt,
+    })
+    .from(libraryTracks);
+
+  const documented = new Set(
+    (
+      await db
+        .select({ id: metadataDocuments.libraryTrackId })
+        .from(metadataDocuments)
+        .where(isNotNull(metadataDocuments.libraryTrackId))
+    )
+      .map((row) => row.id)
+      .filter((id): id is string => id !== null),
+  );
+
+  type Row = (typeof rows)[number];
+  /** Strongest evidence first; a lower number wins. */
+  const rank = (row: Row): readonly number[] => [
+    onDisk.has(row.path) ? 0 : 1,
+    documented.has(row.id) ? 0 : 1,
+    row.importTrackId === null ? 1 : 0,
+    -row.updatedAt.getTime(),
+  ];
+  const better = (a: Row, b: Row): Row => {
+    const left = rank(a);
+    const right = rank(b);
+    for (let i = 0; i < left.length; i += 1) {
+      if ((left[i] ?? 0) !== (right[i] ?? 0)) return (left[i] ?? 0) < (right[i] ?? 0) ? a : b;
+    }
+    return a.id <= b.id ? a : b;
+  };
+
+  const groups = new Map<string, { on: "recording" | "position"; rows: Row[] }>();
+  for (const row of rows) {
+    if (row.albumId === null) continue;
+    const key =
+      row.recordingMbid !== null && row.recordingMbid !== ""
+        ? { on: "recording" as const, key: `r:${row.albumId}:${row.recordingMbid}` }
+        : row.trackNumber === null
+          ? null
+          : {
+              on: "position" as const,
+              key: `p:${row.albumId}:${String(row.discNumber ?? 1)}:${String(row.trackNumber)}`,
+            };
+    if (key === null) continue;
+    const group = groups.get(key.key) ?? { on: key.on, rows: [] };
+    group.rows.push(row);
+    groups.set(key.key, group);
+  }
+
+  const merged: MergedTrack[] = [];
+  for (const group of groups.values()) {
+    if (group.rows.length < 2) continue;
+    const keep = group.rows.reduce(better);
+    for (const row of group.rows) {
+      if (row.id === keep.id) continue;
+      // The document follows the row that survives, so a re-tag still has something to project
+      // — the alternative is a `metadata_documents` row pointing at nothing.
+      if (!documented.has(keep.id)) {
+        await db
+          .update(metadataDocuments)
+          .set({ libraryTrackId: keep.id, updatedAt: new Date() })
+          .where(eq(metadataDocuments.libraryTrackId, row.id));
+        documented.add(keep.id);
+      }
+      await db.delete(libraryTracks).where(eq(libraryTracks.id, row.id));
+      merged.push({
+        keptId: keep.id,
+        keptPath: keep.path,
+        removedId: row.id,
+        removedPath: row.path,
+        on: group.on,
+      });
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Recount `track_count` and `present_count` from the rows that are actually there.
+ *
+ * Called after a merge, because the counters were computed when the ghosts still existed —
+ * one album reported twenty-five tracks for a thirteen-track record, and the completeness
+ * score was a fraction of that twenty-five.
+ */
+async function refreshAlbumCounts(
+  db: Database,
+  onDisk: ReadonlyMap<string, WalkedFile>,
+): Promise<void> {
+  const rows = await db
+    .select({ albumId: libraryTracks.albumId, path: libraryTracks.path })
+    .from(libraryTracks)
+    .where(isNotNull(libraryTracks.albumId));
+
+  const counts = new Map<string, { total: number; present: number }>();
+  for (const row of rows) {
+    if (row.albumId === null) continue;
+    const held = counts.get(row.albumId) ?? { total: 0, present: 0 };
+    held.total += 1;
+    if (onDisk.has(row.path)) held.present += 1;
+    counts.set(row.albumId, held);
+  }
+
+  for (const [albumId, count] of counts) {
+    await db
+      .update(libraryAlbums)
+      .set({ trackCount: count.total, presentCount: count.present, updatedAt: new Date() })
+      .where(eq(libraryAlbums.id, albumId));
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* the scan                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -317,6 +480,19 @@ export async function runScan(options: ScanOptions = {}): Promise<{
     await say(`Walking ${root}.`);
     const files = walkLibrary(root);
     const onDisk = new Map(files.map((file) => [file.path, file]));
+
+    /*
+     * Merge before counting anything.
+     *
+     * Otherwise every number below — `tracked`, `missing`, the album counters — is computed on
+     * rows that are about to disappear, and the report would describe a library that no longer
+     * exists by the time it is read.
+     */
+    const merged = await mergeDuplicateTracks(db, new Set(onDisk.keys()));
+    if (merged.length > 0) {
+      await refreshAlbumCounts(db, onDisk);
+      await say(`Merged ${String(merged.length)} duplicate library row(s).`);
+    }
 
     const rows = await db
       .select({
@@ -445,6 +621,7 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       missing,
       drift,
       duplicates,
+      merged,
       driftTruncated,
       probed,
       notes,
@@ -622,6 +799,89 @@ export async function lastScan(db: Database = defaultDb()): Promise<LibraryScan 
 /** The report of one run, parsed. */
 export function reportOf(scan: LibraryScan): ScanReport | null {
   return scan.report === null ? null : (scan.report as unknown as ScanReport);
+}
+
+/** One run by id. */
+export async function getScan(id: string, db: Database = defaultDb()): Promise<LibraryScan | null> {
+  const [row] = await db.select().from(libraryScans).where(eq(libraryScans.id, id)).limit(1);
+  return row ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* the report, small enough to read                                    */
+/* ------------------------------------------------------------------ */
+
+export interface ScanSummary {
+  readonly scanId: string;
+  readonly status: string;
+  readonly trigger: string;
+  readonly startedAt: string;
+  readonly finishedAt: string | null;
+  readonly durationMs: number | null;
+  readonly error: string | null;
+  /** Every finding, counted in full — these never depend on `limit`. */
+  readonly counts: {
+    readonly filesSeen: number;
+    readonly tracked: number;
+    readonly orphans: number;
+    readonly missing: number;
+    readonly drift: number;
+    readonly duplicates: number;
+    readonly merged: number;
+    readonly probed: number;
+  };
+  readonly orphans: { readonly items: readonly OrphanFile[]; readonly more: number };
+  readonly missing: { readonly items: readonly MissingFile[]; readonly more: number };
+  readonly drift: { readonly items: readonly DriftedTrack[]; readonly more: number };
+  readonly duplicates: { readonly items: readonly DuplicateGroup[]; readonly more: number };
+  readonly merged: { readonly items: readonly MergedTrack[]; readonly more: number };
+  readonly driftTruncated: boolean;
+  readonly notes: readonly string[];
+}
+
+/**
+ * A scan report an agent can actually read.
+ *
+ * The stored report holds every orphan and every drifted field, which is right for the Console
+ * (it paginates) and useless over MCP, where the answer is one JSON blob in a context window.
+ * Each list is cut to `limit` and told how many it left behind — from the **full** array, never
+ * from the slice, which is the mistake `moreErrors`/`moreDiffs` made in `retag`.
+ */
+export function summariseScan(scan: LibraryScan, limit = 10): ScanSummary {
+  const report = reportOf(scan);
+  const cut = <T>(rows: readonly T[] | undefined): { items: readonly T[]; more: number } => {
+    const all = rows ?? [];
+    return { items: all.slice(0, limit), more: Math.max(0, all.length - limit) };
+  };
+
+  return {
+    scanId: scan.id,
+    status: scan.status,
+    trigger: scan.trigger,
+    startedAt: scan.startedAt.toISOString(),
+    finishedAt: scan.finishedAt?.toISOString() ?? null,
+    durationMs: scan.durationMs,
+    error: scan.error,
+    counts: {
+      filesSeen: report?.filesSeen ?? scan.filesSeen,
+      tracked: report?.tracked ?? scan.tracked,
+      orphans: report?.orphans.length ?? scan.orphans,
+      missing: report?.missing.length ?? scan.missing,
+      drift: report?.drift.length ?? scan.drift,
+      duplicates: report?.duplicates.length ?? scan.duplicates,
+      merged: report?.merged?.length ?? 0,
+      probed: report?.probed ?? 0,
+    },
+    orphans: cut(report?.orphans),
+    missing: cut(report?.missing),
+    drift: cut(report?.drift),
+    duplicates: cut(report?.duplicates),
+    merged: cut(report?.merged),
+    driftTruncated: report?.driftTruncated ?? false,
+    notes:
+      report?.notes ??
+      (scan.status === "done" ? [] : [`This scan is \`${scan.status}\`, so it has no report yet.`]),
+  };
 }
 
 /** How many library tracks there are at all — the denominator of every scan number. */
