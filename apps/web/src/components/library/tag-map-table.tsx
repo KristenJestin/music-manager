@@ -40,7 +40,7 @@ const STATE_LABEL: Record<TagState, string> = {
   present: "present",
   missing: "missing",
   na: "n/a",
-  unknown: "—",
+  unknown: "n/a",
 };
 
 const GROUP_LABEL: Record<string, string> = {
@@ -168,7 +168,7 @@ export function TagMapTable({
                     {keys.map((key) => (
                       <td key={key} className="px-2.5 py-1.5 font-mono text-2xs text-fg-2">
                         {(key === "vorbis" ? row.vorbis : key === "id3v24" ? row.id3 : row.mp4) ??
-                          "—"}
+                          "n/a"}
                       </td>
                     ))}
                     {columns === "source" ? (

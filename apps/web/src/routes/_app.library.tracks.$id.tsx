@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_app/library/tracks/$id")({
 
 /** Render one document value as text, whatever shape it has. */
 function render(value: unknown): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "not set";
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
   if (typeof value === "boolean") return value ? "yes" : "no";
@@ -60,7 +60,7 @@ function TrackPage() {
   if (detail === null) {
     return (
       <Callout tone="warn">
-        No track with that id — <Link to="/library/tracks">back to the tracks</Link>.
+        No track with that id. <Link to="/library/tracks">Back to the tracks</Link>.
       </Callout>
     );
   }
@@ -217,7 +217,7 @@ function TrackPage() {
                   label: "YouTube",
                   value:
                     source === null ? (
-                      "—"
+                      "none"
                     ) : (
                       <a
                         href={`https://youtu.be/${source.videoId}`}
@@ -229,12 +229,12 @@ function TrackPage() {
                       </a>
                     ),
                 },
-                { label: "Uploader", value: source?.uploader ?? "—" },
+                { label: "Uploader", value: source?.uploader ?? "unknown" },
                 {
                   label: "Import",
                   value:
                     job === null ? (
-                      "—"
+                      "none"
                     ) : (
                       <Link
                         to="/imports/$id"
@@ -259,7 +259,7 @@ function TrackPage() {
                 },
                 {
                   label: "Confidence",
-                  value: source === null ? "—" : pct(source.confidence),
+                  value: source === null ? "not scored" : pct(source.confidence),
                 },
               ]}
             />
@@ -283,7 +283,7 @@ function TrackPage() {
                   label: "Album",
                   value:
                     album === null ? (
-                      "—"
+                      "none"
                     ) : (
                       <Link
                         to="/library/albums/$id"

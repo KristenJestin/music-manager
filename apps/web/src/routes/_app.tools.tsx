@@ -374,7 +374,7 @@ function DownloaderPanel({
             ? "ok"
             : "warn"
         }
-        detail={`${versions.ffmpeg ?? "missing"} · ${versions.fpcalc ?? "missing"} · ${versions.rsgain ?? "missing"} — from ${data.toolbox.url}`}
+        detail={`${versions.ffmpeg ?? "missing"} · ${versions.fpcalc ?? "missing"} · ${versions.rsgain ?? "missing"}, from ${data.toolbox.url}`}
       />
 
       <Diag
@@ -444,7 +444,7 @@ function DownloaderPanel({
         tone={tagSchema.behind === null ? "muted" : tagSchema.behind > 0 ? "warn" : "ok"}
         detail={
           tagSchema.behind === null
-            ? "— files behind · the re-tag queue reports the count on the Quality page"
+            ? "file count unknown · the re-tag queue reports it on the Quality page"
             : `${String(tagSchema.behind)} file(s) behind · re-tag runs from the raw cache, with no re-download`
         }
       >
@@ -497,7 +497,11 @@ function ServicesPanel({
             />
             <span className="truncate">{service.label}</span>
             <span className="ml-auto font-mono text-2xs text-fg-2">
-              {service.enabled ? (service.ok ? `${String(service.latencyMs)} ms` : "—") : "off"}
+              {service.enabled
+                ? service.ok
+                  ? `${String(service.latencyMs)} ms`
+                  : "no answer"
+                : "off"}
             </span>
           </div>
         ))}
@@ -567,7 +571,7 @@ function UrlTestPanel({
         ) : (
           <Callout tone="danger" data-testid="url-result">
             <div>
-              <b className="font-mono">{result.error?.code}</b> — {result.error?.message}
+              <b className="font-mono">{result.error?.code}</b>: {result.error?.message}
               {result.error?.hint === "" ? null : (
                 <div className="mt-0.5 text-fg-2">{result.error?.hint}</div>
               )}
@@ -603,14 +607,15 @@ function ErrorDecoder({
       // `break-words` and a width, not `truncate`: a pattern is what you would grep a log for,
       // so it has to be readable in full even when it wraps onto three lines.
       className: "w-64 max-w-64 font-mono text-2xs break-words whitespace-normal text-fg-2",
-      cell: (row) => ((row.patterns ?? []).length === 0 ? "—" : (row.patterns ?? []).join(" · ")),
+      cell: (row) =>
+        (row.patterns ?? []).length === 0 ? "none" : (row.patterns ?? []).join(" · "),
     },
     { key: "cause", header: "Cause", cell: (row) => row.hint },
     {
       key: "action",
       header: "Fix",
       className: "w-40",
-      cell: (row) => (row.action === "" ? <span className="text-fg-3">—</span> : row.action),
+      cell: (row) => (row.action === "" ? <span className="text-fg-3">none</span> : row.action),
     },
   ];
 
@@ -673,7 +678,7 @@ function ScanPanel({
                 const best = result.candidates[0];
                 return best === undefined
                   ? "Fingerprinted, but AcoustID knows nothing about it."
-                  : `Best match: ${best.title} — ${best.artist} (${(best.score * 100).toFixed(0)}%).`;
+                  : `Best match: ${best.title} by ${best.artist} (${(best.score * 100).toFixed(0)}%).`;
               });
             }}
           >
@@ -865,7 +870,7 @@ function ScanPanel({
               columns={orphanColumns}
               rows={report.orphans.slice(0, 25)}
               rowKey={(row) => row.path}
-              empty="None — every file on disk has a row."
+              empty="None; every file on disk has a row."
             />
           </ScanSection>
           <ScanSection
@@ -877,7 +882,7 @@ function ScanPanel({
               columns={missingColumns}
               rows={report.missing.slice(0, 25)}
               rowKey={(row) => row.trackId}
-              empty="None — every row points at a file."
+              empty="None; every row points at a file."
             />
           </ScanSection>
           <ScanSection title="Tag drift" count={report.drift.length}>
@@ -886,7 +891,7 @@ function ScanPanel({
               columns={driftColumns}
               rows={report.drift.slice(0, 25)}
               rowKey={(row) => row.trackId}
-              empty={`None — ${String(report.probed)} file(s) probed and every tag matched its document.`}
+              empty={`None; ${String(report.probed)} file(s) probed and every tag matched its document.`}
             />
           </ScanSection>
           <ScanSection title="Duplicates (same recording)" count={report.duplicates.length}>
@@ -895,7 +900,7 @@ function ScanPanel({
               columns={duplicateColumns}
               rows={report.duplicates.slice(0, 25)}
               rowKey={(row) => row.recordingMbid}
-              empty="None — no recording appears twice."
+              empty="None; no recording appears twice."
             />
           </ScanSection>
         </div>

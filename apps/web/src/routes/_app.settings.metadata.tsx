@@ -416,7 +416,7 @@ function MetadataSettings() {
         <div className="py-3">
           <Callout tone="info" className="mb-3">
             The reference is the <b>Picard tag mapping</b>: the standard superset across all formats
-            — Vorbis for Opus and FLAC, ID3v2.4 for MP3, MP4 atoms for AAC. We write{" "}
+            : Vorbis for Opus and FLAC, ID3v2.4 for MP3, MP4 atoms for AAC. We write{" "}
             <b>{payload.tagMap.length} tags</b> whenever the sources have data, including the ones
             today&rsquo;s consumer ignores. Servers and players are <b>profiles</b> that describe
             what is <i>read back</i>; <b>a profile never changes what is written</b>.
@@ -431,7 +431,7 @@ function MetadataSettings() {
                 { value: "all", label: `All (${String(payload.tagMap.length)})` },
                 ...payload.profiles.map((entry) => ({
                   value: entry.id,
-                  label: `${entry.name} ${String(entry.reads)}${entry.status === "verified" ? " ✓" : ""}`,
+                  label: `${entry.name} ${String(entry.reads)}${entry.status === "verified" ? " (verified)" : ""}`,
                 })),
               ]}
               onChange={setProfile}
@@ -476,7 +476,7 @@ function MetadataSettings() {
                 if (entry === undefined) return null;
                 return (
                   <>
-                    <b>{entry.name}</b> — {entry.note} Lyrics: {entry.lyrics.join(", ")}. Sidecars:{" "}
+                    <b>{entry.name}</b>: {entry.note} Lyrics: {entry.lyrics.join(", ")}. Sidecars:{" "}
                     {entry.sidecars.join(", ")}. <b>This filter changes the view, not the files.</b>
                   </>
                 );
@@ -503,7 +503,7 @@ function MetadataSettings() {
           <Callout tone="info" className="mb-3">
             <Layers className="inline size-3.5" aria-hidden="true" /> Two forgotten fields are two
             resolvers, a version bump, and a background re-tag that reads the{" "}
-            <b>raw source cache</b> — no network, no re-download, the audio stream is never touched.
+            <b>raw source cache</b>: no network, no re-download, the audio stream is never touched.
             Each file gets a visible diff before it is written.
           </Callout>
 
@@ -607,7 +607,7 @@ function MetadataSettings() {
             ))}
           </ul>
           <p className="mt-2 text-2xs text-fg-3">
-            Which of these are written is a Library &amp; files setting — this table says who
+            Which of these are written is a Library &amp; files setting; this table says who
             benefits.
           </p>
         </div>

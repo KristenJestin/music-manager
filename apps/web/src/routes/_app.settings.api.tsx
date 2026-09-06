@@ -285,7 +285,7 @@ function ApiSettings() {
           </a>
           , an MCP server for agents at <code className="font-mono">/mcp</code>, and a CLI (&nbsp;
           <code className="font-mono">mm import &lt;url&gt; --release &lt;mbid&gt;</code>
-          &nbsp;). Agents can queue imports, read candidates and resolve reviews — with the same
+          &nbsp;). Agents can queue imports, read candidates and resolve reviews, with the same
           preselection you see.
         </span>
       </Callout>
@@ -294,7 +294,7 @@ function ApiSettings() {
         <Callout tone="warn" data-testid="revealed-secret">
           <span className="flex min-w-0 flex-col gap-1.5">
             <strong>
-              Copy this {revealed.what} now — it is not stored and will never be shown again.
+              Copy this {revealed.what} now: it is not stored and will never be shown again.
             </strong>
             <span className="flex items-center gap-2">
               <code

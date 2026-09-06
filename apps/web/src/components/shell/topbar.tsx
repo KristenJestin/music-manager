@@ -72,7 +72,15 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
             placeholder="Paste a YouTube URL to import…"
             className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-fg-3"
           />
-          <Kbd>⌘K</Kbd>
+          {/*
+           * The Apple command glyph on a Windows machine is a rune, not a hint (owner review
+           * A4/B9). `CommandIcon` is already imported for the palette button; the modifier is
+           * spelled out for everyone else.
+           */}
+          <Kbd>
+            <CommandIcon className="inline size-3 align-middle" aria-hidden="true" />
+            <span className="sr-only">Command or Control</span> K
+          </Kbd>
         </label>
       </form>
 

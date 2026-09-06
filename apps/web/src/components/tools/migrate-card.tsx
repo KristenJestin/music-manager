@@ -210,8 +210,8 @@ export function MigrateCard() {
             }}
           />
           <span className="text-2xs text-fg-3">
-            Must be the v2 library root, or a directory inside it — the migration keeps the v1
-            paths, so the two are the same folder.
+            Must be the v2 library root, or a directory inside it: the migration keeps the v1 paths,
+            so the two are the same folder.
           </span>
         </label>
 
@@ -329,7 +329,7 @@ function MigrationSummary({ run }: { readonly run: MigrationRunView }) {
 
       {run.dryRun ? (
         <p className="text-2xs text-fg-3" data-testid="migrate-writes">
-          Dry run: {run.writes} row(s) written outside the migration&rsquo;s own tables — it must be
+          Dry run: {run.writes} row(s) written outside the migration&rsquo;s own tables; it must be
           0.
         </p>
       ) : null}
@@ -341,7 +341,7 @@ function MigrationSummary({ run }: { readonly run: MigrationRunView }) {
               {report.albums.map((album) => (
                 <li key={`${album.folder}`} className="flex justify-between gap-2">
                   <span className="truncate">
-                    {album.artist} — {album.title}
+                    {album.artist}, {album.title}
                   </span>
                   <span className="shrink-0 text-fg-3">
                     {album.tracks} tr

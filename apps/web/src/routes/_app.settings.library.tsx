@@ -295,7 +295,10 @@ function LibrarySettings() {
         title="Audio"
         description="Keep the native stream. No transcoding means no fake quality."
       >
-        <FormRow label="yt-dlp format selector" help="`bestaudio` — never re-encode.">
+        <FormRow
+          label="yt-dlp format selector"
+          help="Opus first; the toolbox remuxes by stream copy and never re-encodes."
+        >
           <Input
             data-testid="setting-downloadFormat"
             className="h-7 max-w-xs font-mono text-xs"

@@ -102,7 +102,7 @@ function Quality() {
     <>
       <PageHeader
         title="Metadata quality"
-        description="Scored against the standard superset — the Picard tag mapping. Switch the profile to see what one server or player actually reads back; it never changes what we write."
+        description="Scored against the standard superset, the Picard tag mapping. Switch the profile to see what one server or player actually reads back; it never changes what we write."
         actions={
           <>
             <Button
@@ -170,7 +170,7 @@ function Quality() {
           label="Drift"
           value={stats.driftTracks}
           tone={stats.driftTracks === 0 ? "ok" : "warn"}
-          sub="tracks · file ≠ database"
+          sub="tracks · the file differs from the database"
           to="/library/quality"
           search={{ filter: "drift", profile: params.profile }}
         />
@@ -247,7 +247,7 @@ function Quality() {
                       const run = await startRetag({
                         data: { scope: "library", targetId: null, dryRun: false, onlyBehind: true },
                       });
-                      return `Re-tag queued for ${String(run.total)} file(s) — projection v${String(run.schemaVersion)}, from the raw cache.`;
+                      return `Re-tag queued for ${String(run.total)} file(s), from the raw cache (projection v${String(run.schemaVersion)}).`;
                     });
                   }}
                 >
@@ -293,7 +293,7 @@ function Quality() {
           {payload.profiles.map((profile) => (
             <option key={profile.id} value={profile.id}>
               {profile.name}
-              {profile.status === "verified" ? " ✓" : ""}
+              {profile.status === "verified" ? " (verified)" : ""}
             </option>
           ))}
         </select>
@@ -422,7 +422,7 @@ function Quality() {
                   <td className="max-w-72 px-2.5 py-1.5">
                     <span className="flex flex-wrap gap-1">
                       {row.quality.missing.length === 0 ? (
-                        <span className="text-fg-3">—</span>
+                        <span className="text-fg-3">none</span>
                       ) : (
                         row.quality.missing.slice(0, 6).map((entry) => (
                           <span
@@ -450,7 +450,7 @@ function Quality() {
                   </td>
                   <td className="px-2.5 py-1.5">
                     {row.quality.driftCount === 0 ? (
-                      <span className="text-fg-3">—</span>
+                      <span className="text-fg-3">none</span>
                     ) : (
                       <ToneBadge tone="warn">{row.quality.driftCount}</ToneBadge>
                     )}
@@ -480,13 +480,14 @@ function Quality() {
       </div>
 
       <Callout tone="info" className="mt-3">
-        Score = the share of applicable tags actually written, weighted by level (required ×3,
-        recommended ×2, optional ×1). Tags a release says do not exist — no work relations, one
-        disc, no explicit flag — are <b>n/a</b> and leave the denominator rather than counting
-        against it. <b>Global</b> scores the superset; a <b>profile</b> scores only what that
-        consumer reads back, and never changes what is written. The full table is in{" "}
+        Score = the share of applicable tags actually written, weighted by level (required counts
+        three times, recommended twice, optional once). Tags a release says do not exist (no work
+        relations, one disc, no explicit flag) are <b>n/a</b> and leave the denominator rather than
+        counting against it. <b>Global</b> scores the superset; a <b>profile</b> scores only what
+        that consumer reads back, and never changes what is written. The full table is in{" "}
         <Link to="/settings/metadata" className="text-primary">
-          Settings › Metadata &amp; matching
+          <Settings2 className="inline size-3" aria-hidden="true" /> Settings, Metadata &amp;
+          matching
         </Link>
         .
       </Callout>

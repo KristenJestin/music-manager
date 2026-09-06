@@ -12,7 +12,7 @@
  */
 import type { ReactNode } from "react";
 import { cn } from "cn";
-import { Layers, Minus, Plus, RefreshCw } from "lucide-react";
+import { ArrowRight, Layers, Minus, Plus, RefreshCw } from "lucide-react";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 
@@ -40,7 +40,7 @@ export function SchemaBadge({
       className={className}
       title={
         behind
-          ? `Written by projection v${String(version)}; the current one is v${String(current)}. A re-tag reads the raw cache — no network, no re-download, the audio is not touched.`
+          ? `Written by projection v${String(version)}; the current one is v${String(current)}. A re-tag reads the raw cache: no network, no re-download, the audio is not touched.`
           : `MUSICMANAGER_TAGSCHEMA=${String(version)}, which is current.`
       }
     >
@@ -122,7 +122,9 @@ function Row({
         {line.before === undefined ? null : (
           <span className="text-danger line-through">{line.before}</span>
         )}
-        {line.before !== undefined && line.after !== undefined ? " → " : null}
+        {line.before !== undefined && line.after !== undefined ? (
+          <ArrowRight className="mx-1 inline size-3 align-middle" aria-hidden="true" />
+        ) : null}
         {line.after === undefined ? null : <span className="text-ok">{line.after}</span>}
       </span>
     </div>

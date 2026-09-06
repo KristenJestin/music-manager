@@ -65,7 +65,7 @@ function DownloaderSettings() {
           {health.pin === "" ? null : <> · pinned {health.pin}</>} · auto-update{" "}
           {health.autoUpdate ? health.updateCron : "off"}
           {health.fixtures ? " · fixtures mode (never updated)" : ""}
-          {health.reachable ? null : <> — {health.error ?? "the toolbox is not answering"}</>}
+          {health.reachable ? null : <>: {health.error ?? "the toolbox is not answering"}</>}
           <div className="mt-2 flex gap-1.5">
             <Button
               size="sm"

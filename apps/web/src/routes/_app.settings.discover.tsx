@@ -106,7 +106,7 @@ function DiscoverSettings() {
         </FormRow>
         <FormRow
           label="ListenBrainz user"
-          help="Where Navidrome scrobbles. Empty means no collaborative filtering — the discography block still works."
+          help="Where Navidrome scrobbles. Empty means no collaborative filtering; the discography block still works."
         >
           <Input
             data-testid="setting-listenbrainzUser"
@@ -220,7 +220,7 @@ function DiscoverSettings() {
 
       <Section
         title="Navidrome playlist"
-        description="Optional, off by default. Navidrome can only play what Navidrome has, so this pushes the recommended tracks you already own — not the ones you do not."
+        description="Optional, off by default. Navidrome can only play what Navidrome has, so this pushes the recommended tracks you already own, not the ones you do not."
       >
         <FormRow label="Push a playlist after each sync">
           <Toggle

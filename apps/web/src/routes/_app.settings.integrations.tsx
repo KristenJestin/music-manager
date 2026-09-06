@@ -223,7 +223,7 @@ function Integrations() {
 
       <Section
         title="Notifications"
-        description="One channel, told about the events you tick. For machine-to-machine callbacks with a signature and retries, use the webhooks on Settings › API & agents instead."
+        description="One channel, told about the events you tick. For machine-to-machine callbacks with a signature and retries, use the webhooks on the API & agents tab instead."
       >
         <FormRow label="Enabled">
           <Toggle
@@ -265,7 +265,7 @@ function Integrations() {
             placeholder={
               loaded.notificationsTargetMask === ""
                 ? "not set"
-                : `${loaded.notificationsTargetMask} — leave empty to keep`
+                : `${loaded.notificationsTargetMask}; leave empty to keep`
             }
             value={form.notificationsTarget}
             data-testid="input-notifications-target"
@@ -359,7 +359,7 @@ function Integrations() {
               placeholder={
                 loaded.smtpPasswordMask === ""
                   ? "not set"
-                  : `${loaded.smtpPasswordMask} — leave empty to keep`
+                  : `${loaded.smtpPasswordMask}; leave empty to keep`
               }
               value={form.smtpPassword}
               onChange={(event) => {
@@ -470,7 +470,7 @@ function Integrations() {
 
       <Callout tone="neutral">
         <div>
-          Credentials are never exported and never returned by the API — a backup you cannot paste
+          Credentials are never exported and never returned by the API: a backup you cannot paste
           into a support thread is a backup nobody makes.
         </div>
       </Callout>

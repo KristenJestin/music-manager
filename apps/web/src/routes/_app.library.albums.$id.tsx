@@ -106,7 +106,7 @@ function Album() {
   if (album === null) {
     return (
       <Callout tone="warn">
-        No album with that id. It may have been deleted —{" "}
+        No album with that id. It may have been deleted.{" "}
         <Link to="/library">back to the library</Link>.
       </Callout>
     );
@@ -136,7 +136,7 @@ function Album() {
       const run = await startRetag({
         data: { scope: "album", targetId: id, dryRun, onlyBehind: false },
       });
-      return `${dryRun ? "Dry run" : "Re-tag"} queued for ${String(run.total)} file(s) — projection v${String(run.schemaVersion)}, from the raw cache.`;
+      return `${dryRun ? "Dry run" : "Re-tag"} queued for ${String(run.total)} file(s), from the raw cache (projection v${String(run.schemaVersion)}).`;
     });
   };
 
@@ -215,7 +215,7 @@ function Album() {
                 const result = await fetchMissingTags({ data: { albumId: id } });
                 return result.gained.length === 0
                   ? `Asked ${String(result.tracks)} track(s) again (${String(result.requests)} request(s)); the sources had nothing new.`
-                  : `Gained ${result.gained.join(", ")} — ${pct(result.scoreBefore)} → ${pct(result.scoreAfter)}.`;
+                  : `Gained ${result.gained.join(", ")}: ${pct(result.scoreBefore)} to ${pct(result.scoreAfter)}.`;
               });
             }}
           >
@@ -429,7 +429,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       header: "Source",
       cell: (row) =>
         row.videoId === null ? (
-          <span className="text-fg-3">—</span>
+          <span className="text-fg-3">no video</span>
         ) : (
           <a
             href={`https://youtu.be/${row.videoId}`}
@@ -597,7 +597,7 @@ function MetadataTab({
             {behind ? (
               <>
                 {quality.filesBehind} file(s) were written by an older projection. The re-tag reads
-                the raw cache — no network, no re-download, the audio stream is not touched — and
+                the raw cache (no network, no re-download, the audio stream is not touched) and
                 shows a diff per file first.
               </>
             ) : (
@@ -738,7 +738,7 @@ function CompareTab({
               onRetag(false);
             }}
           >
-            Write DB → files
+            Write DB to files
           </Button>
         </div>
       </Callout>
@@ -771,7 +771,7 @@ function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
   const ids = album.identifiers;
   const mb = (kind: string, id: string | null) =>
     id === null || id === "" ? (
-      <span className="text-fg-3">—</span>
+      <span className="text-fg-3">not set</span>
     ) : (
       <a
         href={`https://musicbrainz.org/${kind}/${id}`}
@@ -793,12 +793,12 @@ function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
             { label: "Release", value: mb("release", ids.releaseMbid) },
             { label: "Release group", value: mb("release-group", ids.releaseGroupMbid) },
             { label: "Artist", value: mb("artist", ids.artistMbid) },
-            { label: "Barcode", value: ids.barcode ?? "—" },
-            { label: "Catalog number", value: ids.catalogNumber ?? "—" },
-            { label: "Label", value: ids.label ?? "—" },
-            { label: "Country", value: ids.country ?? "—" },
-            { label: "Media", value: ids.media ?? "—" },
-            { label: "Genres", value: ids.genres.length === 0 ? "—" : ids.genres.join(", ") },
+            { label: "Barcode", value: ids.barcode ?? "not set" },
+            { label: "Catalog number", value: ids.catalogNumber ?? "not set" },
+            { label: "Label", value: ids.label ?? "not set" },
+            { label: "Country", value: ids.country ?? "not set" },
+            { label: "Media", value: ids.media ?? "not set" },
+            { label: "Genres", value: ids.genres.length === 0 ? "none" : ids.genres.join(", ") },
           ]}
         />
         {album.wizardImportId === null ? null : (
@@ -817,7 +817,7 @@ function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
         <h2 className="mb-2 text-xs font-medium">Matching decision</h2>
         {album.decision === null ? (
           <p className="text-xs text-fg-2">
-            No decision recorded. This album was not matched through the wizard — an import without
+            No decision recorded. This album was not matched through the wizard: an import without
             MusicBrainz, or a release supplied on the command line.
           </p>
         ) : (

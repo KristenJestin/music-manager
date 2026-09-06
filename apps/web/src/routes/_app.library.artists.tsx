@@ -53,19 +53,19 @@ function Artists() {
     {
       key: "country",
       header: "Country",
-      cell: (row) => <span className="text-fg-2">{row.country ?? "—"}</span>,
+      cell: (row) => <span className="text-fg-2">{row.country ?? "not set"}</span>,
     },
     {
       key: "sort",
       header: "Sort name",
-      cell: (row) => <span className="text-fg-2">{row.sortName ?? "—"}</span>,
+      cell: (row) => <span className="text-fg-2">{row.sortName ?? "not set"}</span>,
     },
     {
       key: "mbid",
       header: "MBID",
       cell: (row) =>
         row.mbid === null ? (
-          <span className="font-mono text-2xs text-fg-3">—</span>
+          <span className="font-mono text-2xs text-fg-3">not linked</span>
         ) : (
           <a
             href={`https://musicbrainz.org/artist/${row.mbid}`}
@@ -116,7 +116,7 @@ function Artists() {
               search: { q: row.name, filter: "all", sort: "artist", profile: "global" },
             });
           }}
-          empty="No artist yet — the library is empty."
+          empty="No artist yet: the library is empty."
         />
       </div>
     </>

@@ -78,14 +78,14 @@ function Tracks() {
     {
       key: "artist",
       header: "Artist",
-      cell: (row) => <span className="text-fg-2">{row.artist ?? "—"}</span>,
+      cell: (row) => <span className="text-fg-2">{row.artist ?? "unknown"}</span>,
     },
     {
       key: "album",
       header: "Album",
       cell: (row) =>
         row.albumId === null ? (
-          <span className="text-fg-3">—</span>
+          <span className="text-fg-3">no album</span>
         ) : (
           <Link
             to="/library/albums/$id"

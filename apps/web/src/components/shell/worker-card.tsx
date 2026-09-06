@@ -33,7 +33,7 @@ export function WorkerCard() {
       </div>
 
       {current === null ? (
-        <p className="mt-1.5 text-fg-3">Idle — nothing downloading.</p>
+        <p className="mt-1.5 text-fg-3">Idle: nothing downloading.</p>
       ) : (
         <>
           <Link
@@ -44,7 +44,7 @@ export function WorkerCard() {
             <span className="text-fg-3">↓ </span>
             {current.title}
             {current.artist === null ? null : (
-              <span className="text-fg-3"> — {current.artist}</span>
+              <span className="text-fg-3"> by {current.artist}</span>
             )}
           </Link>
           <ProgressBar

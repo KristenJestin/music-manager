@@ -205,7 +205,7 @@ function Albums() {
 
       {albums.length === 0 ? (
         <Callout tone="info" data-testid="library-empty">
-          Nothing here yet. An album appears once its files have been placed —{" "}
+          Nothing here yet. An album appears once its files have been placed.{" "}
           <Link to="/import/new" className="text-primary">
             start an import
           </Link>
@@ -239,7 +239,7 @@ function Albums() {
                     <ToneBadge
                       tone="info"
                       className="absolute right-1.5 bottom-1.5"
-                      title="Imported from the YouTube tags alone — no MusicBrainz release."
+                      title="Imported from the YouTube tags alone, with no MusicBrainz release."
                     >
                       untagged
                     </ToneBadge>

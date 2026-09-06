@@ -77,7 +77,7 @@ export function PipelineDots({ step, status, className }: PipelineDotsProps) {
     <div
       data-slot="pipeline"
       className={cn("flex gap-0.5", className)}
-      title={STEPS.join(" › ")}
+      title={STEPS.join(", ")}
       aria-label={`${step}, ${status}`}
     >
       {STEPS.map((name, position) => {

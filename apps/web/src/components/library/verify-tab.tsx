@@ -180,7 +180,7 @@ export function VerifyTab({ payload, onVerified }: VerifyTabProps) {
       {verification === null ? (
         <Callout tone="warn" data-testid="verify-empty">
           <div>
-            This album has never been read back. Trigger a rescan, then verify — a scan that has not
+            This album has never been read back. Trigger a rescan, then verify: a scan that has not
             run since the album was placed is the usual reason a freshly imported album is
             invisible.
           </div>
