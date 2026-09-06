@@ -27,7 +27,17 @@ const LIBRARY_CONTAINER = "/library/.mm-itest";
 
 const BASE_URL = process.env["DATABASE_URL"] ?? "postgres://mm:mm@localhost:5432/mm";
 const TOOLBOX_URL = process.env["MM_TOOLBOX_URL"] ?? "http://localhost:8100";
-const TEST_DB = "mm_itest";
+
+/**
+ * `<this checkout's database>_itest`, not a fixed `mm_itest`.
+ *
+ * Postgres is shared between every checkout on the machine (`CLAUDE.md`: one server, one
+ * database each), so a constant name is a name two agents own at once — and this suite drops
+ * and recreates it in `beforeAll`. Deriving it from `DATABASE_URL` gives `mm_itest` in `v2/`,
+ * exactly as before, and `mm_<slug>_itest` in a worktree.
+ */
+const BASE_DB = /\/([^/?]+)(\?|$)/.exec(BASE_URL)?.[1] ?? "mm";
+const TEST_DB = `${BASE_DB}_itest`;
 const TEST_URL = BASE_URL.replace(/\/[^/?]+(\?|$)/, `/${TEST_DB}$1`);
 
 /** The whole suite needs both halves of the stack; ask them before deciding to run. */
