@@ -195,10 +195,44 @@ except one thing: **the single download slot**.
   yourself.** Several agents run on this machine at once, each with its own dev server, and a
   filter like `CommandLine -like '*index.ts*'` matches all of them — an agent doing this once
   killed another agent's `bun run --hot src/index.ts` on the mistaken belief it owned `:3000`
-  (`orchestration/reports/P06-build-1.md`). List a process tree from a PID you started, verify
-  it, and only then kill that tree (`taskkill /PID <pid> /T /F` on Windows). Use `PORT=3100+`
-  (or a script's own dedicated port, e.g. `bun run e2e`'s `:3170`) for ad hoc dev servers so
-  `:3000` is left to whoever is already using it.
+  (`orchestration/reports/P06-build-1.md`). It happened again in P07: `Get-CimInstance
+Win32_Process | Where-Object { $_.CommandLine -like '*worker*index.ts*' } | taskkill` killed
+  a sibling agent's `bun run scripts/e2e-web.ts` worker mid-suite
+  (`orchestration/reports/P07a-build-1.md`, opening incident). Both times the tool was a
+  pattern match across _all_ processes on the machine, run because it was faster than tracking
+  a PID — it is not: list a process tree from a PID you started, verify it, and only then kill
+  that tree.
+
+  **Bun**, from a handle you hold (`Bun.spawn`'s return value has `.pid`):
+
+  ```ts
+  const proc = Bun.spawn(["bun", "run", "worker/index.ts"], { ... });
+  // ... later, to stop only this tree:
+  if (process.platform === "win32") {
+    Bun.spawnSync(["taskkill", "/PID", String(proc.pid), "/T", "/F"]);
+  } else {
+    proc.kill(9); // Bun.spawn already tracks and reaps the child; no pattern match involved.
+  }
+  ```
+
+  **PowerShell**, when the handle is gone (a previous run, a different shell) and only the PID
+  is known — verify the tree belongs to you _before_ killing it, in two separate steps, never
+  one that both finds and kills:
+
+  ```powershell
+  # 1. Verify: what is this PID, and what did it spawn?
+  Get-CimInstance Win32_Process -Filter "ProcessId = $pid"
+  Get-CimInstance Win32_Process -Filter "ParentProcessId = $pid"   # its children, same way
+
+  # 2. Only then, kill that one tree by PID — never by -Filter "CommandLine -like …" or
+  #    Stop-Process -Name, both of which match every process on the machine that looks similar,
+  #    not just yours.
+  taskkill /PID $pid /T /F
+  ```
+
+  Use `PORT=3100+` (or a script's own dedicated port, e.g. `bun run e2e`'s default is chosen
+  freely by the OS, never `:3170` or `:3000` fixed) for ad hoc dev servers so a fixed port is
+  never the thing two agents fight over.
 
 ## Generated files — never edit by hand
 
