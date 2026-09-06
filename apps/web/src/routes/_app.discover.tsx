@@ -33,7 +33,7 @@ import { ScoreBar } from "#/components/score-bar.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
-import { short, timeAgo } from "#/lib/format.ts";
+import { dateTime, short, timeAgo } from "#/lib/format.ts";
 import type { DiscoverItemView, DiscoverView } from "#/server/services/discover.ts";
 import {
   addArtistDiscography,
@@ -176,8 +176,18 @@ function Discover() {
         <header className="flex items-center justify-between border-b border-line px-4 py-2.5">
           <h2 className="font-semibold">Listening signals</h2>
           <span className="text-2xs text-fg-3">
+            {/*
+             * The absolute instant until React has attached, the relative one after.
+             *
+             * "4 minutes ago" is computed from `Date.now()`, which is a different number on
+             * the server and in the browser — the one class of value that hydrates as a text
+             * mismatch and makes React throw away the tree. The instant itself is fixed, so
+             * rendering it first is stable by construction, and `useHydrated` is the
+             * sanctioned way to swap afterwards (it is what every form on this app uses to
+             * know the same thing).
+             */}
             {synced
-              ? `last sync ${timeAgo(view.lastSync?.at)} · window ${String(signals.windowDays)} days`
+              ? `last sync ${hydrated ? timeAgo(view.lastSync?.at) : dateTime(view.lastSync?.at)} · window ${String(signals.windowDays)} days`
               : "never synced"}
           </span>
         </header>
