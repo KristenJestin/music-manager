@@ -13,7 +13,7 @@
  * says so, with a copy button, and it stays until dismissed rather than disappearing on the
  * next re-render.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Bot, Check, Copy, Plus, Send, Trash2 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
@@ -62,6 +62,17 @@ function ApiSettings() {
   const [revealed, setRevealed] = useState<{ label: string; secret: string; what: string } | null>(
     null,
   );
+  /*
+   * The panel sits at the top of the page and the Create button at the bottom of it, so a key
+   * minted from the form appeared entirely off-screen: the drive read the truncated `mm_…`
+   * prefix in the table, concluded the token was never shown, and was right about everything
+   * except where to look (DRIVE-1 §B7). Bringing it into view is the whole fix — the panel
+   * itself, with its copy button, has been correct since P08.
+   */
+  const secretRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (revealed !== null) secretRef.current?.scrollIntoView({ block: "center" });
+  }, [revealed]);
 
   const [keyName, setKeyName] = useState("");
   const [keyScopes, setKeyScopes] = useState<string[]>(["imports:write", "library:read"]);
@@ -291,43 +302,51 @@ function ApiSettings() {
       </Callout>
 
       {revealed === null ? null : (
-        <Callout tone="warn" data-testid="revealed-secret">
-          <span className="flex min-w-0 flex-col gap-1.5">
-            <strong>
-              Copy this {revealed.what} now: it is not stored and will never be shown again.
-            </strong>
-            <span className="flex items-center gap-2">
-              <code
-                className="min-w-0 flex-1 truncate rounded-md border border-line bg-surface-2 px-2 py-1 font-mono text-2xs"
-                data-testid="secret-value"
-              >
-                {revealed.secret}
-              </code>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  copy(revealed.secret, revealed.what);
-                }}
-              >
-                <Copy className="size-3.5" aria-hidden="true" />
-                Copy
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                data-testid="dismiss-secret"
-                onClick={() => {
-                  setRevealed(null);
-                }}
-              >
-                <Check className="size-3.5" aria-hidden="true" />
-                Done
-              </Button>
+        <div ref={secretRef}>
+          <Callout tone="warn" data-testid="revealed-secret">
+            <span className="flex min-w-0 flex-col gap-1.5">
+              <strong>
+                Copy this {revealed.what} now: it is not stored and will never be shown again.
+              </strong>
+              <span className="flex items-center gap-2">
+                {/*
+                Wrapped, not truncated. This is the one screen whose entire purpose is to hand
+                a token to a person or an agent, and the previous version showed `mm_jppzdj…`
+                with the rest of it clipped by CSS (DRIVE-1 §B7) — readable only from the DOM
+                inspector, which is not a user interface.
+              */}
+                <code
+                  className="min-w-0 flex-1 rounded-md border border-line bg-surface-2 px-2 py-1 font-mono text-2xs break-all"
+                  data-testid="secret-value"
+                >
+                  {revealed.secret}
+                </code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    copy(revealed.secret, revealed.what);
+                  }}
+                >
+                  <Copy className="size-3.5" aria-hidden="true" />
+                  Copy
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  data-testid="dismiss-secret"
+                  onClick={() => {
+                    setRevealed(null);
+                  }}
+                >
+                  <Check className="size-3.5" aria-hidden="true" />
+                  Done
+                </Button>
+              </span>
+              <span className="text-2xs">for “{revealed.label}”</span>
             </span>
-            <span className="text-2xs">for “{revealed.label}”</span>
-          </span>
-        </Callout>
+          </Callout>
+        </div>
       )}
 
       <Section

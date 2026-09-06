@@ -233,7 +233,166 @@ export function optionsFor(item: InboxItem): InboxOption[] {
         },
       ];
     }
+    case "orphan_files": {
+      const total = typeof payload["total"] === "number" ? payload["total"] : 0;
+      return [
+        {
+          id: "keep",
+          label: "Leave them where they are",
+          detail: `The ${String(total)} file(s) stay on disk, unknown to the database. Nothing is moved or deleted.`,
+          preselected: true,
+          value: { action: "keep_all", accepted: true },
+        },
+        {
+          id: "trash",
+          label: "Move them to the trash directory",
+          detail:
+            "A move, never a delete: they end up under the trash directory from Settings and can be put back.",
+          preselected: false,
+          value: { action: "trash_orphans" },
+        },
+        {
+          id: "later",
+          label: "Later — identify them on the Tools page first",
+          detail: "Tools can fingerprint each one and say what it thinks it is.",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
+    case "duplicate_recording": {
+      const files = Array.isArray(payload["files"]) ? payload["files"] : [];
+      return [
+        {
+          id: "keep",
+          label: "Keep both copies",
+          detail: "Legitimate more often than not: an album and a compilation share the recording.",
+          preselected: true,
+          value: { action: "keep_all", accepted: true },
+        },
+        {
+          id: "trash",
+          label: `Move the other ${String(Math.max(0, files.length - 1))} copy/copies to the trash`,
+          detail: "The first path is kept; the rest are moved to the trash directory.",
+          preselected: false,
+          value: { action: "trash_duplicates" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
+    case "verify_mismatch": {
+      return [
+        {
+          id: "accept",
+          label: "Accept what Navidrome reports",
+          detail:
+            "Some fields are simply not indexed by the server; accepting says this album is as good as it gets there.",
+          preselected: true,
+          value: { action: "accept_navidrome", accepted: true },
+        },
+        {
+          id: "reverify",
+          label: "Rescan and compare again",
+          detail: "Ask Navidrome for this album once more; a mismatch often survives one scan.",
+          preselected: false,
+          value: { action: "reverify" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
+    case "album_incomplete": {
+      return [
+        {
+          id: "accept",
+          label: "Accept the album as it is",
+          detail: "It stays in the library, short of the tracks it never had.",
+          preselected: true,
+          value: { action: "accept_partial", accepted: true },
+        },
+        {
+          id: "later",
+          label: "Later — find the missing tracks in Discover",
+          detail: "Discover is the page that turns a gap into an import.",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
+    case "ytdlp_update": {
+      return [
+        {
+          id: "update",
+          label: "Try the update again now",
+          detail: "Runs the same update, and says what came back this time.",
+          preselected: true,
+          value: { action: "update_ytdlp" },
+        },
+        {
+          id: "accept",
+          label: "Carry on with the version installed",
+          detail:
+            "YouTube changes its extractor faster than anything else here; an old yt-dlp is the usual cause of a download that stops working.",
+          preselected: false,
+          value: { action: "keep_version", accepted: true },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
+    case "cookies_expiring": {
+      return [
+        {
+          id: "renewed",
+          label: "I have refreshed the cookies",
+          detail: "Paste or upload a fresh cookies.txt in Settings → Downloader, then take this.",
+          preselected: true,
+          value: { action: "cookies_renewed", accepted: true },
+        },
+        {
+          id: "anonymous",
+          label: "Carry on without cookies",
+          detail: "Anonymous downloads still work for most public videos.",
+          preselected: false,
+          value: { action: "keep_anonymous", accepted: true },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
     default: {
+      /*
+       * The generic pair, kept for a type nobody has written a card for yet.
+       *
+       * It used to serve seven of the twelve types, and it was the reason `orphan_files` read
+       * "Accept the proposed answer" without saying *what* was being accepted (`keep_all`),
+       * next to none of the actions Tools offers on the very same orphan (DRIVE-1 §B6).
+       * `docs/04` § Inbox asks for a preselected answer **and** alternatives; two buttons, one
+       * of which is "Later", is not alternatives.
+       */
       return [
         {
           id: "accept",

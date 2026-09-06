@@ -134,9 +134,47 @@ describe("optionsFor", () => {
   });
 
   it("carries the item's own preselection through for a type it has no special card for", () => {
+    // `migration_conflict` has no card of its own; the generic pair is what it gets.
     const options = optionsFor(
-      item({ type: "ytdlp_update", preselected: { action: "update", version: "2026.09.02" } }),
+      item({ type: "duplicate_recording", preselected: { action: "keep_all" } }),
     );
-    expect(options[0]?.value).toEqual({ action: "update", version: "2026.09.02", accepted: true });
+    expect(options[0]?.value).toMatchObject({ action: "keep_all", accepted: true });
+  });
+
+  /*
+   * DRIVE-1 §B6: seven of the twelve types shared one generic pair — "Accept the proposed
+   * answer" (which never said *what* was being accepted) and "Later". `docs/04` § Inbox asks
+   * for a preselected answer **and** alternatives, and the alternatives have to be the actions
+   * the rest of the app already offers on the same subject.
+   */
+  it("gives every library-scoped type a real alternative, not just Accept and Later", () => {
+    for (const type of [
+      "orphan_files",
+      "duplicate_recording",
+      "verify_mismatch",
+      "ytdlp_update",
+      "cookies_expiring",
+      "job_failed",
+    ] as const) {
+      const options = optionsFor(item({ type }));
+      expect(options.length, type).toBeGreaterThanOrEqual(2);
+      expect(options[0]?.preselected, type).toBe(true);
+      expect(options[0]?.label, type).not.toBe("Accept the proposed answer");
+      // At least one answer that is neither the preselection nor "not now".
+      const real = options.filter((option) => !option.preselected && option.dismiss !== true);
+      expect(real.length, type).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("offers to trash the orphans, and says it is a move rather than a delete", () => {
+    const options = optionsFor(
+      item({
+        type: "orphan_files",
+        payload: { total: 2, orphans: [{ path: "a.opus" }, { path: "b.opus" }] },
+      }),
+    );
+    const trash = options.find((option) => option.id === "trash");
+    expect(trash?.value).toEqual({ action: "trash_orphans" });
+    expect(trash?.detail).toMatch(/never a delete/i);
   });
 });

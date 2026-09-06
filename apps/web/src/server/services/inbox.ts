@@ -333,7 +333,29 @@ async function applyResolution(
   db: Database,
 ): Promise<void> {
   const action = resolution["action"];
-  if (typeof action !== "string" || item.importId === null) return;
+  if (typeof action !== "string") return;
+
+  /* ---- the library-scoped answers, which have no import behind them ---- */
+
+  if (action === "trash_orphans" || action === "trash_duplicates") {
+    await trash(action === "trash_orphans" ? orphanPaths(item) : duplicatePaths(item), db);
+    return;
+  }
+  if (action === "update_ytdlp") {
+    const { updateYtdlp } = await import("#/server/services/tools.ts");
+    await updateYtdlp({ db });
+    return;
+  }
+  if (action === "reverify") {
+    const albumId = item.payload["subject"];
+    if (typeof albumId === "string" && albumId !== "") {
+      const { verifyAlbum } = await import("#/server/services/verify.ts");
+      await verifyAlbum(albumId, { db });
+    }
+    return;
+  }
+
+  if (item.importId === null) return;
   const importId = item.importId;
 
   if (action === "cancel") {
@@ -358,6 +380,48 @@ async function applyResolution(
       : await resumeStepOf(importId, db);
   await retryStep(importId, from, { db, only: true });
   await enqueue(importId, "inbox retry", from);
+}
+
+/** The paths an `orphan_files` item is about. */
+function orphanPaths(item: InboxItem): string[] {
+  const orphans = item.payload["orphans"];
+  if (!Array.isArray(orphans)) return [];
+  return orphans
+    .map((entry) => (entry as { path?: unknown }).path)
+    .filter((path): path is string => typeof path === "string" && path !== "");
+}
+
+/** Every copy of a `duplicate_recording` item **except the first**, which is the one kept. */
+function duplicatePaths(item: InboxItem): string[] {
+  const files = item.payload["files"];
+  if (!Array.isArray(files)) return [];
+  return files
+    .slice(1)
+    .map((entry) => (entry as { path?: unknown }).path)
+    .filter((path): path is string => typeof path === "string" && path !== "");
+}
+
+/**
+ * Move files to the trash directory — never `unlink`.
+ *
+ * The same rule the Tools page follows (decision 062): a scan finding is a heuristic, and a
+ * heuristic must not be allowed to destroy an original. A file that has already gone is not an
+ * error here — the report it came from may be an hour old.
+ */
+async function trash(paths: readonly string[], db: Database): Promise<void> {
+  if (paths.length === 0) return;
+  const { loadSettings } = await import("#/server/services/settings.ts");
+  const { resolvePaths } = await import("#/server/services/jobs/context.ts");
+  const { trashFile } = await import("#/server/services/scan.ts");
+  const settings = await loadSettings(db);
+  const map = resolvePaths(settings);
+  for (const path of paths) {
+    try {
+      trashFile(map, path, settings.trashDir);
+    } catch {
+      // Already gone, or moved by somebody else. Answering the question is what matters.
+    }
+  }
 }
 
 /** Close every open item of an import — used when a job is cancelled. */
