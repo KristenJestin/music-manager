@@ -39,6 +39,7 @@ import {
   yearScore,
 } from "./signals.ts";
 import type {
+  FitLine,
   MatchingConfig,
   Penalty,
   ReleaseCandidate,
@@ -79,13 +80,14 @@ function tracklistFit(
   uncovered: number;
   signal: number | null;
   meanAbsDelta: number | null;
+  lines: readonly FitLine[];
 } {
   const detailed =
     candidate.detailed ?? (candidate.release.media ?? []).some((m) => (m.tracks ?? []).length > 0);
   const tracks = detailed ? flattenTracks(candidate.release) : [];
   if (tracks.length === 0) {
     const total = trackTotal(candidate.release);
-    return { fit: 0, fitOf: total, uncovered: total, signal: null, meanAbsDelta: null };
+    return { fit: 0, fitOf: total, uncovered: total, signal: null, meanAbsDelta: null, lines: [] };
   }
   const result = assign(input.videos, tracks, config);
   return {
@@ -94,6 +96,15 @@ function tracklistFit(
     uncovered: result.uncoveredTracks.length,
     signal: result.fitOf === 0 ? null : unit(result.fit / result.fitOf),
     meanAbsDelta: result.meanAbsDelta,
+    // The same assignment, narrowed to what a card can show without a second lookup.
+    lines: result.lines.map((line) => ({
+      videoIndex: line.videoIndex,
+      videoTitle: line.videoTitle,
+      trackPosition: line.trackN,
+      trackTitle: line.trackTitle,
+      delta: line.delta,
+      status: line.status,
+    })),
   };
 }
 
@@ -246,6 +257,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       uncovered,
       signal: fitSignal,
       meanAbsDelta,
+      lines: fitLines,
     } = tracklistFit(input, candidate, config);
 
     const signals: ReleaseSignals = {
@@ -296,6 +308,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       fitOf,
       uncovered,
       durDelta: meanAbsDelta,
+      fitLines,
       signals,
       penalties,
       why: [],

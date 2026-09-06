@@ -55,6 +55,7 @@ export type {
   AlbumHints,
   BorrowRelease,
   ExtraVideo,
+  FitLine,
   MappingLine,
   MappingResult,
   MappingSignals,

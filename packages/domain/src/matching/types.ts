@@ -167,6 +167,26 @@ export interface Penalty {
   readonly amount: number;
 }
 
+/**
+ * One line of a candidate's tracklist fit: which video would land on which of its tracks.
+ *
+ * The fit is already what decides between two pressings of the same album, and the card
+ * already prints it as "13/13" — this is the same arithmetic with its working shown, so the
+ * question "why is that release better than this one?" has an answer on the card rather than
+ * three steps later. Deliberately narrower than `MappingLine`: no signals, no reasons, nothing
+ * that would multiply by twelve candidates into a payload nobody reads.
+ */
+export interface FitLine {
+  readonly videoIndex: number;
+  readonly videoTitle: string;
+  /** Position within the medium, or `null` when the video binds to nothing. */
+  readonly trackPosition: number | null;
+  readonly trackTitle: string | null;
+  /** `video − track` in seconds. */
+  readonly delta: number | null;
+  readonly status: MappingStatus;
+}
+
 /** One scored release candidate — the shape `wizard.releaseCandidates` is drawn from. */
 export interface ReleaseCandidate {
   readonly id: string;
@@ -197,6 +217,8 @@ export interface ReleaseCandidate {
   readonly uncovered: number;
   /** Mean |video − track| over the covered tracks, in seconds. */
   readonly durDelta: number | null;
+  /** The fit, line by line. Empty when the tracklist was never looked up. */
+  readonly fitLines: readonly FitLine[];
   readonly signals: ReleaseSignals;
   readonly penalties: readonly Penalty[];
   readonly why: readonly string[];

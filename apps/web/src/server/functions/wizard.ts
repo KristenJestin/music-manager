@@ -39,6 +39,7 @@ import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { pauseImport, runStep } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf, setImportOptions } from "#/server/services/console.queries.ts";
+import { youtubeThumbnail } from "#/server/services/documents.ts";
 import {
   hintsFor,
   mappingFor,
@@ -63,6 +64,8 @@ export interface SourceVideo {
   readonly durationSeconds: number | null;
   readonly uploader: string | null;
   readonly ytTrack: string | null;
+  /** The best thumbnail yt-dlp reported for this video, or `null` when it kept none. */
+  readonly thumbnail: string | null;
 }
 
 export interface SourceView {
@@ -73,6 +76,14 @@ export interface SourceView {
   readonly uploader: string | null;
   readonly videos: readonly SourceVideo[];
   readonly totalSeconds: number;
+  /**
+   * What the source looks like: the first video's thumbnail.
+   *
+   * A YouTube-generated release playlist has no picture of its own — every entry carries the
+   * same square cover as its frame — so the first one is the album's, and step 1 can show the
+   * record rather than a letter on a gradient.
+   */
+  readonly thumbnail: string | null;
   /** What the YouTube tags and the description agree the album is. */
   readonly hints: {
     readonly album: string | null;
@@ -103,6 +114,7 @@ function toSourceView(
       durationSeconds: row.sourceDuration,
       uploader: row.uploader,
       ytTrack: typeof track === "string" ? track : null,
+      thumbnail: youtubeThumbnail(raw as never),
     };
   });
   const matchVideos = rows.map((row) => ({
@@ -134,6 +146,7 @@ function toSourceView(
     uploader: job.artist,
     videos,
     totalSeconds: rows.reduce((sum, row) => sum + (row.sourceDuration ?? 0), 0),
+    thumbnail: videos.find((video) => video.thumbnail !== null)?.thumbnail ?? null,
     hints: {
       album: hints.album ?? null,
       artist: hints.artist ?? null,
