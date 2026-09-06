@@ -120,6 +120,30 @@ export function normalizeTitle(raw: string): string {
 }
 
 /**
+ * The release-type word YouTube Music puts in front of an auto-generated playlist's title.
+ *
+ * A playlist YouTube generated for a release — the `OLAK5uy_…` ones the paste box is mostly
+ * fed — is titled "Album - Love Is Dead", "Single - Get Lucky", "EP - Wild Youth". The word is
+ * the *kind* of release, not part of its name, and MusicBrainz has never heard of it: left in,
+ * it becomes the album hint, then the search query, and the right release does not come back.
+ *
+ * The dash must be surrounded by whitespace so a title that merely starts with those letters
+ * ("EP-ic Journey", "Single-Minded") is left alone.
+ */
+const RELEASE_TYPE_PREFIX = /^\s*(?:album|single|ep)\s+[-–—]\s+/i;
+
+/**
+ * Drop the "Album - " / "Single - " / "EP - " prefix of a YouTube-generated playlist title.
+ *
+ * Returns the input unchanged when there is no such prefix, and when stripping it would leave
+ * nothing — a playlist actually called "Album -" keeps its name rather than losing it.
+ */
+export function stripReleaseTypePrefix(raw: string): string {
+  const stripped = raw.replace(RELEASE_TYPE_PREFIX, "").trim();
+  return stripped === "" ? raw.trim() : stripped;
+}
+
+/**
  * Normalize an artist/uploader name: fold accents/case, drop a leading "The ",
  * a YouTube "- Topic" auto-channel suffix, and a trailing feat. credit.
  */

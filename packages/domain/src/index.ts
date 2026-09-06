@@ -113,7 +113,12 @@ export type {
 } from "./paths/template.ts";
 
 /* ---- normalisation (docs 04, §Algorithme de présélection) ---- */
-export { normalizeArtist, normalizeTitle, titleSimilarity } from "./normalize/title.ts";
+export {
+  normalizeArtist,
+  normalizeTitle,
+  stripReleaseTypePrefix,
+  titleSimilarity,
+} from "./normalize/title.ts";
 export { parseYouTubeDescription } from "./normalize/youtube-description.ts";
 export type { YouTubeCredit, YouTubeDescription } from "./normalize/youtube-description.ts";
 

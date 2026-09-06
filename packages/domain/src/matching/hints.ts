@@ -19,6 +19,7 @@
  */
 
 import { parseYouTubeDescription } from "../normalize/youtube-description.ts";
+import { stripReleaseTypePrefix } from "../normalize/title.ts";
 import type { AlbumHints, MatchVideo } from "./types.ts";
 
 /** The most frequent non-empty value, or `null`. Ties go to the first seen, for determinism. */
@@ -63,9 +64,17 @@ export function albumHints(videos: readonly MatchVideo[], fallback: HintFallback
   const parsed =
     described?.description == null ? null : parseYouTubeDescription(described.description);
 
+  /*
+   * The import row's own title is the *playlist* title, and for a YouTube-generated release
+   * playlist that reads "Album - Love Is Dead". The type word is not part of the name, so it
+   * is dropped here rather than at each of the three call sites — the whole reason the hints
+   * are computed in one place.
+   */
+  const fallbackAlbum =
+    fallback.album == null || fallback.album === "" ? null : stripReleaseTypePrefix(fallback.album);
+
   return {
-    album:
-      majority(videos.map((video) => video.ytAlbum)) ?? parsed?.album ?? fallback.album ?? null,
+    album: majority(videos.map((video) => video.ytAlbum)) ?? parsed?.album ?? fallbackAlbum,
     artist:
       majority(videos.map((video) => video.ytArtist ?? video.uploader)) ??
       parsed?.albumArtist ??

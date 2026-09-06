@@ -10,6 +10,7 @@
  * because those columns are matched on the video id, not on the row.
  */
 import { eq } from "drizzle-orm";
+import { stripReleaseTypePrefix } from "@mm/domain";
 import { imports, importTracks, type ImportKind } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import type { ExtractEntry, ExtractResult } from "#/server/toolbox/client.ts";
@@ -81,6 +82,13 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
   }
 
   const kind = classify(ctx.job.url, extract);
+  /*
+   * `OLAK5uy_…` playlists come back titled "Album - Love Is Dead": YouTube names the *kind* of
+   * release in front of the release. Stored as-is it is what the wizard shows, what the album
+   * hint falls back to and what the folder would be named, so it is dropped on the way in.
+   */
+  const rawTitle = extract.title ?? extract.entries[0]?.title ?? null;
+  const title = rawTitle === null ? null : stripReleaseTypePrefix(rawTitle);
   const known = new Map(existing.map((row) => [row.videoId, row]));
 
   for (const entry of extract.entries) {
@@ -117,7 +125,7 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     .update(imports)
     .set({
       kind,
-      title: extract.title ?? extract.entries[0]?.title ?? null,
+      title,
       artist: extract.uploader ?? extract.entries[0]?.uploader ?? null,
       updatedAt: new Date(),
     })
@@ -126,6 +134,6 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
   return {
     status: "done",
     message: `${String(extract.entries.length)} video(s), kind ${kind}`,
-    data: { videos: extract.entries.length, kind, title: extract.title ?? null },
+    data: { videos: extract.entries.length, kind, title },
   };
 }

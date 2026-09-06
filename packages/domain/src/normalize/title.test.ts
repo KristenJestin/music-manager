@@ -2,7 +2,12 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { normalizeArtist, normalizeTitle, titleSimilarity } from "./title.ts";
+import {
+  normalizeArtist,
+  normalizeTitle,
+  stripReleaseTypePrefix,
+  titleSimilarity,
+} from "./title.ts";
 
 describe("normalizeTitle", () => {
   it("lowercases and collapses whitespace", () => {
@@ -113,5 +118,31 @@ describe("titleSimilarity", () => {
     const s = titleSimilarity("anything at all", "totally different words");
     expect(s).toBeGreaterThanOrEqual(0);
     expect(s).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("stripReleaseTypePrefix", () => {
+  it("drops the release-type word YouTube puts in front of a generated playlist", () => {
+    // Verbatim from `POST /extract` on the owner's OLAK5uy_ playlist (2026-09-06).
+    expect(stripReleaseTypePrefix("Album - Love Is Dead")).toBe("Love Is Dead");
+    expect(stripReleaseTypePrefix("Single - Get Lucky")).toBe("Get Lucky");
+    expect(stripReleaseTypePrefix("EP - Wild Youth")).toBe("Wild Youth");
+  });
+
+  it("is case-insensitive and accepts the en and em dashes", () => {
+    expect(stripReleaseTypePrefix("album – Discovery")).toBe("Discovery");
+    expect(stripReleaseTypePrefix("ALBUM — Discovery")).toBe("Discovery");
+  });
+
+  it("leaves a title that merely starts with those letters alone", () => {
+    expect(stripReleaseTypePrefix("EP-ic Journey")).toBe("EP-ic Journey");
+    expect(stripReleaseTypePrefix("Single-Minded")).toBe("Single-Minded");
+    expect(stripReleaseTypePrefix("Albums of the Year")).toBe("Albums of the Year");
+    expect(stripReleaseTypePrefix("Love Is Dead")).toBe("Love Is Dead");
+  });
+
+  it("keeps the name rather than emptying it, and strips only the first prefix", () => {
+    expect(stripReleaseTypePrefix("Album -")).toBe("Album -");
+    expect(stripReleaseTypePrefix("Album - Single - Songs")).toBe("Single - Songs");
   });
 });
