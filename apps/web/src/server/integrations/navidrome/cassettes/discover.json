@@ -1,0 +1,397 @@
+{
+  "recordedAt": "2026-09-06T00:00:00.000Z",
+  "serverVersion": "navidrome 0.63.2 (be10f89c)",
+  "note": "Hand-authored from the shapes `discovery.json` recorded off Navidrome 0.63.2 — same envelope, same field spellings (`{year,month,day}` dates, `starred` as an instant, `playCount`/`played` per user) — extended with the four views P09 reads and with a listening history the recorded single-album server does not have. Re-record against a populated server with `bun run navidrome:record` once one exists.",
+  "entries": {
+    "ping": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "serverVersion": "0.63.2 (be10f89c)",
+        "openSubsonic": true
+      }
+    },
+    "getAlbumList2?type=frequent&size=50&offset=0": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "albumList2": {
+          "album": [
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "year": 2001,
+              "genre": "French House",
+              "genres": [{ "name": "French House" }, { "name": "Electronic" }],
+              "songCount": 14,
+              "duration": 3660,
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "playCount": 128,
+              "played": "2026-09-04T21:12:00Z",
+              "starred": "2026-02-11T09:03:00Z",
+              "userRating": 5
+            },
+            {
+              "id": "3kdJustWoman00000000000",
+              "name": "Woman",
+              "artist": "Justice",
+              "year": 2016,
+              "genre": "Electro",
+              "genres": [{ "name": "Electro" }, { "name": "French House" }],
+              "songCount": 10,
+              "duration": 2820,
+              "playCount": 143,
+              "played": "2026-09-05T18:40:00Z",
+              "userRating": 5
+            },
+            {
+              "id": "2tiCurrents000000000000",
+              "name": "Currents",
+              "artist": "Tame Impala",
+              "year": 2015,
+              "genre": "Psychedelic Pop",
+              "genres": [{ "name": "Psychedelic Pop" }],
+              "songCount": 13,
+              "duration": 3140,
+              "playCount": 91,
+              "played": "2026-08-30T22:05:00Z",
+              "userRating": 4
+            },
+            {
+              "id": "1raInRainbows00000000",
+              "name": "In Rainbows",
+              "artist": "Radiohead",
+              "year": 2007,
+              "genre": "Alternative Rock",
+              "genres": [{ "name": "Alternative Rock" }],
+              "songCount": 10,
+              "duration": 2560,
+              "playCount": 64,
+              "played": "2026-05-02T20:15:00Z"
+            },
+            {
+              "id": "9chChaleurHumaine0000",
+              "name": "Chaleur humaine",
+              "artist": "Christine and the Queens",
+              "year": 2014,
+              "genre": "Art Pop",
+              "genres": [{ "name": "Art Pop" }, { "name": "Synthpop" }],
+              "songCount": 12,
+              "duration": 2740,
+              "playCount": 44,
+              "played": "2026-08-19T19:22:00Z"
+            },
+            {
+              "id": "7foBlonde000000000000",
+              "name": "Blonde",
+              "artist": "Frank Ocean",
+              "year": 2016,
+              "genre": "Art Pop",
+              "genres": [{ "name": "Art Pop" }],
+              "songCount": 17,
+              "duration": 3620,
+              "playCount": 38,
+              "played": "2026-07-28T23:47:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getAlbumList2?type=recent&size=50&offset=0": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "albumList2": {
+          "album": [
+            {
+              "id": "3kdJustWoman00000000000",
+              "name": "Woman",
+              "artist": "Justice",
+              "year": 2016,
+              "genre": "Electro",
+              "genres": [{ "name": "Electro" }],
+              "songCount": 10,
+              "playCount": 143,
+              "played": "2026-09-05T18:40:00Z",
+              "userRating": 5
+            },
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "year": 2001,
+              "genre": "French House",
+              "genres": [{ "name": "French House" }],
+              "songCount": 14,
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "playCount": 128,
+              "played": "2026-09-04T21:12:00Z",
+              "starred": "2026-02-11T09:03:00Z",
+              "userRating": 5
+            },
+            {
+              "id": "2tiCurrents000000000000",
+              "name": "Currents",
+              "artist": "Tame Impala",
+              "year": 2015,
+              "genre": "Psychedelic Pop",
+              "genres": [{ "name": "Psychedelic Pop" }],
+              "songCount": 13,
+              "playCount": 91,
+              "played": "2026-08-30T22:05:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getAlbumList2?type=starred&size=50&offset=0": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "albumList2": {
+          "album": [
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "year": 2001,
+              "genre": "French House",
+              "genres": [{ "name": "French House" }],
+              "songCount": 14,
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "playCount": 128,
+              "played": "2026-09-04T21:12:00Z",
+              "starred": "2026-02-11T09:03:00Z",
+              "userRating": 5
+            }
+          ]
+        }
+      }
+    },
+    "getStarred2": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "starred2": {
+          "album": [
+            {
+              "id": "5uyTzKQ1kby4HgQ5kbXY5Y",
+              "name": "Discovery",
+              "artist": "Daft Punk",
+              "year": 2001,
+              "genre": "French House",
+              "genres": [{ "name": "French House" }],
+              "songCount": 14,
+              "musicBrainzId": "d073287b-d1bd-4f11-a933-a4386f8cf701",
+              "playCount": 128,
+              "played": "2026-09-04T21:12:00Z",
+              "starred": "2026-02-11T09:03:00Z",
+              "userRating": 5
+            }
+          ],
+          "song": [
+            {
+              "id": "songOneMoreTime000000",
+              "title": "One More Time",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "track": 1,
+              "year": 2001,
+              "genre": "French House",
+              "duration": 320,
+              "playCount": 41,
+              "played": "2026-09-04T21:12:00Z",
+              "starred": "2026-02-11T09:04:00Z",
+              "userRating": 5
+            },
+            {
+              "id": "songSafeAndSound00000",
+              "title": "Safe and Sound",
+              "album": "Woman",
+              "artist": "Justice",
+              "track": 1,
+              "year": 2016,
+              "genre": "Electro",
+              "duration": 353,
+              "playCount": 37,
+              "played": "2026-09-05T18:40:00Z",
+              "starred": "2026-03-02T10:11:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Justice&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songSafeAndSound00000",
+              "title": "Safe and Sound",
+              "album": "Woman",
+              "artist": "Justice",
+              "genre": "Electro",
+              "duration": 353,
+              "playCount": 37,
+              "played": "2026-09-05T18:40:00Z"
+            },
+            {
+              "id": "songDanceJustice00000",
+              "title": "D.A.N.C.E.",
+              "album": "Cross",
+              "artist": "Justice",
+              "genre": "French House",
+              "duration": 242,
+              "playCount": 29,
+              "played": "2026-09-01T17:02:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Daft Punk&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songOneMoreTime000000",
+              "title": "One More Time",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "genre": "French House",
+              "duration": 320,
+              "playCount": 41,
+              "played": "2026-09-04T21:12:00Z"
+            },
+            {
+              "id": "songDigitalLove000000",
+              "title": "Digital Love",
+              "album": "Discovery",
+              "artist": "Daft Punk",
+              "genre": "French House",
+              "duration": 301,
+              "playCount": 33,
+              "played": "2026-09-03T08:55:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Tame Impala&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songLetItHappen00000",
+              "title": "Let It Happen",
+              "album": "Currents",
+              "artist": "Tame Impala",
+              "genre": "Psychedelic Pop",
+              "duration": 467,
+              "playCount": 24,
+              "played": "2026-08-30T22:05:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Radiohead&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songWeirdFishes000000",
+              "title": "Weird Fishes / Arpeggi",
+              "album": "In Rainbows",
+              "artist": "Radiohead",
+              "genre": "Alternative Rock",
+              "duration": 318,
+              "playCount": 15,
+              "played": "2026-05-02T20:15:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Christine and the Queens&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songSaintClaude000000",
+              "title": "Saint Claude",
+              "album": "Chaleur humaine",
+              "artist": "Christine and the Queens",
+              "genre": "Art Pop",
+              "duration": 259,
+              "playCount": 12,
+              "played": "2026-08-19T19:22:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getTopSongs?artist=Frank Ocean&count=20": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "topSongs": {
+          "song": [
+            {
+              "id": "songNikes00000000000",
+              "title": "Nikes",
+              "album": "Blonde",
+              "artist": "Frank Ocean",
+              "genre": "Art Pop",
+              "duration": 314,
+              "playCount": 11,
+              "played": "2026-07-28T23:47:00Z"
+            }
+          ]
+        }
+      }
+    },
+    "getPlaylists": {
+      "subsonic-response": {
+        "status": "ok",
+        "version": "1.16.1",
+        "type": "navidrome",
+        "openSubsonic": true,
+        "playlists": { "playlist": [] }
+      }
+    }
+  },
+  "binary": {}
+}

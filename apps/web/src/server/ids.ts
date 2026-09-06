@@ -35,6 +35,10 @@ export const ID_PREFIXES = {
   migrationRun: "mig",
   /** One v1 song's migration state (P11). */
   migrationRow: "mv1",
+  /** One Discover proposal (P09). */
+  discoverItem: "dsc",
+  /** One Discover sync run (P09). */
+  discoverSync: "dsy",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

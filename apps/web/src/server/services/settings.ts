@@ -477,6 +477,68 @@ export const SETTING_DEFINITIONS = {
     "Where a deleted file goes. Nothing is ever unlinked: `delete` is a move into this directory.",
   ),
 
+  /* ---- Discover (P09, docs/05-recommandations.md) ---- */
+  discoverEnabled: define(
+    z.boolean(),
+    true,
+    "Compute recommendations at all. Off leaves the page with its empty state and skips the cron.",
+  ),
+  discoverCron: define(
+    z.string().min(1),
+    "0 6 * * *",
+    "When `cron.discover` refreshes the recommendations, as a five-field cron expression.",
+  ),
+  discoverWindowDays: define(
+    z.number().int().min(1).max(3650),
+    30,
+    "The sliding window the listening signals are read over. `you played Justice 43× this month`.",
+  ),
+  discoverTopArtists: define(
+    z.number().int().min(1).max(50),
+    8,
+    "How many of your most-played artists get a discography comparison against MusicBrainz.",
+  ),
+  discoverMaxItems: define(
+    z.number().int().min(1).max(200),
+    40,
+    "Ceiling on the `Recommended for you` list, after diversity and the redundancy penalty.",
+  ),
+  discoverMaxPerArtist: define(
+    z.number().int().min(1).max(20),
+    3,
+    "How many recommendations one artist may occupy before the redundancy penalty pushes the rest down.",
+  ),
+  discoverIncludeTypes: define<("Album" | "EP" | "Single" | "Other")[]>(
+    z.array(z.enum(["Album", "EP", "Single", "Other"])),
+    ["Album", "EP"],
+    "Which MusicBrainz release-group primary types count as a discography gap.",
+  ),
+  discoverExcludeLive: define(
+    z.boolean(),
+    true,
+    "Ignore release-groups whose secondary types include Live.",
+  ),
+  discoverExcludeCompilations: define(
+    z.boolean(),
+    true,
+    "Ignore release-groups whose secondary types include Compilation.",
+  ),
+  listenbrainzUser: define(
+    z.string(),
+    "",
+    "The ListenBrainz account your listens are scrobbled to. Empty means no collaborative filtering.",
+  ),
+  discoverPlaylistEnabled: define(
+    z.boolean(),
+    false,
+    "After a sync, push the recommendations Navidrome already has as a playlist, so Feishin shows them.",
+  ),
+  discoverPlaylistName: define(
+    z.string().min(1),
+    "Recommended",
+    "Name of that playlist. It is replaced wholesale on each sync, never appended to.",
+  ),
+
   /*
    * ---- notifications (P07b stored them, P08 delivers them) ----
    *

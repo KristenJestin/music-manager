@@ -25,6 +25,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { put } from "#/server/services/cache.ts";
 import { absentPayload } from "./cached.ts";
 import { queryKey, type LyricsQuery } from "./lrclib.ts";
+import { seedDiscoverFixtures } from "./seed-discover.ts";
 
 /** `packages/domain/fixtures/`, from `apps/web/src/server/integrations/`. */
 const FIXTURE_ROOT = resolve(
@@ -120,6 +121,11 @@ export async function seedFixtures(db: Database = defaultDb()): Promise<SeedRepo
     );
     await write("lrclib", queryKey("search", query), track.position === 1 ? lyricsSearch : []);
   }
+
+  /* ---- Discover (P09): the rows its two services read offline ---- */
+  const discover = await seedDiscoverFixtures(db);
+  bySource["discover"] = discover;
+  rows += discover;
 
   return { rows, bySource };
 }

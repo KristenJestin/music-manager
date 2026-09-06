@@ -37,6 +37,8 @@ export type CookiesTestResult = components["schemas"]["CookiesTestResult"];
 export type ToolVersions = components["schemas"]["ToolVersions"];
 export type ErrorCatalog = components["schemas"]["ErrorCatalog"];
 export type ErrorCatalogEntry = components["schemas"]["ErrorCatalogEntry"];
+export type YtMusicSearchResult = components["schemas"]["YtMusicSearchResult"];
+export type YtMusicCandidate = components["schemas"]["YtMusicCandidate"];
 
 /** One line of the `POST /download` NDJSON stream (`services/toolbox/.../download.py`). */
 export type DownloadEvent =
@@ -150,6 +152,33 @@ export class ToolboxClient {
         signal: this.signal(),
       });
       return this.unwrap(result, "POST /extract");
+    });
+  }
+
+  /**
+   * Find the YouTube Music album playlist (`OLAK5uy_…`) or song behind an artist/album pair.
+   *
+   * This is the half of Discover that turns a MusicBrainz id into something importable
+   * (`docs/05-recommandations.md` § La boucle). It is a *search*: the answer is a ranked list
+   * of candidates, and the caller decides — nothing here ever queues a download.
+   */
+  async searchYtMusic(request: {
+    artist: string;
+    album?: string;
+    title?: string;
+    limit?: number;
+  }): Promise<YtMusicSearchResult> {
+    return await this.call("POST /ytmusic/search", async () => {
+      const result = await this.http.POST("/ytmusic/search", {
+        body: {
+          artist: request.artist,
+          limit: request.limit ?? 10,
+          ...(request.album === undefined ? {} : { album: request.album }),
+          ...(request.title === undefined ? {} : { title: request.title }),
+        },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /ytmusic/search");
     });
   }
 

@@ -28,6 +28,7 @@ import type {
   NavidromeIdentity,
   SubsonicAlbum,
   SubsonicEnvelope,
+  SubsonicPlaylist,
   SubsonicScanStatus,
   SubsonicSearchResult,
   SubsonicSong,
@@ -49,6 +50,9 @@ export interface NavidromeConfig {
 
 /** Injected by the cassette tests so the client can be proven without a server. */
 export type NavidromeFetch = (url: string, init: RequestInit) => Promise<Response>;
+
+/** Subsonic query parameters. A list is repeated, not joined — see `urlFor`. */
+export type SubsonicParams = Record<string, string | number | boolean | readonly string[]>;
 
 export interface NavidromeClientOptions {
   readonly fetch?: NavidromeFetch;
@@ -107,9 +111,19 @@ export class NavidromeClient {
     };
   }
 
-  private urlFor(view: string, params: Record<string, string | number | boolean>): string {
+  /**
+   * A value may be a list: Subsonic repeats the parameter rather than joining it, which is how
+   * `createPlaylist` receives its songs (`songId=a&songId=b&…`).
+   */
+  private urlFor(view: string, params: SubsonicParams): string {
     const query = new URLSearchParams(this.authParams());
-    for (const [key, value] of Object.entries(params)) query.set(key, String(value));
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        for (const one of value) query.append(key, String(one));
+      } else {
+        query.set(key, String(value));
+      }
+    }
     return `${this.baseUrl}/rest/${view}?${query.toString()}`;
   }
 
@@ -128,10 +142,7 @@ export class NavidromeClient {
    * can offer a button: 40 is a bad password, 50 is a user without the right, 70 is
    * "not found", and everything else is reported as it came.
    */
-  private async get(
-    view: string,
-    params: Record<string, string | number | boolean> = {},
-  ): Promise<SubsonicEnvelope> {
+  private async get(view: string, params: SubsonicParams = {}): Promise<SubsonicEnvelope> {
     this.requireConfigured();
     const url = this.urlFor(view, params);
     let response: Response;
@@ -360,6 +371,57 @@ export class NavidromeClient {
       artistCount: options.artistCount ?? 0,
     });
     return NavidromeClient.payload<SubsonicSearchResult>(envelope, "searchResult3") ?? {};
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* playlists — P09's optional "Recommended" list                     */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Every playlist this user can see.
+   *
+   * Read before writing, because "push the recommendations to Navidrome" must **replace** one
+   * list rather than create a twelfth one called `Recommended`. Subsonic has no upsert, so the
+   * lookup by name is the upsert.
+   */
+  async getPlaylists(): Promise<readonly SubsonicPlaylist[]> {
+    const envelope = await this.get("getPlaylists");
+    const payload = NavidromeClient.payload<{ playlist?: SubsonicPlaylist[] }>(
+      envelope,
+      "playlists",
+    );
+    return payload?.playlist ?? [];
+  }
+
+  /** Create a playlist from a list of song ids. Subsonic answers with the playlist it made. */
+  async createPlaylist(
+    name: string,
+    songIds: readonly string[],
+  ): Promise<SubsonicPlaylist | undefined> {
+    const envelope = await this.get("createPlaylist", { name, songId: songIds });
+    return NavidromeClient.payload<SubsonicPlaylist>(envelope, "playlist");
+  }
+
+  /**
+   * Replace the contents of an existing playlist.
+   *
+   * `updatePlaylist` only appends and removes by index, so "make it exactly this" is
+   * remove-every-index-then-add: the indices are sent descending because each removal shifts
+   * the ones after it, and a caller who sends them ascending deletes every other track.
+   */
+  async replacePlaylist(
+    playlistId: string,
+    songIds: readonly string[],
+    currentCount: number,
+  ): Promise<void> {
+    const removals = Array.from({ length: currentCount }, (_, index) =>
+      String(currentCount - 1 - index),
+    );
+    await this.get("updatePlaylist", {
+      playlistId,
+      ...(removals.length === 0 ? {} : { songIndexToRemove: removals }),
+      ...(songIds.length === 0 ? {} : { songIdToAdd: songIds }),
+    });
   }
 }
 

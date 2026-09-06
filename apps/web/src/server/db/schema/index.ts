@@ -11,6 +11,7 @@
  *  - `library`   what is on disk;
  *  - `metadata`  raw cache, documents, artists;
  *  - `inbox`     pending questions and the decisions taken;
+ *  - `discover`  the recommendation set, its "not interested" memory and its runs (P09);
  *  - `settings`  the typed KV store;
  *  - `auth`      Better Auth's four tables (P06).
  */
@@ -24,6 +25,7 @@ export * from "./inbox.ts";
 export * from "./retag.ts";
 export * from "./scan.ts";
 export * from "./migration.ts";
+export * from "./discover.ts";
 export * from "./settings.ts";
 export * from "./auth.ts";
 export * from "./webhooks.ts";

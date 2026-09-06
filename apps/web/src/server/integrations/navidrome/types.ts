@@ -70,6 +70,14 @@ export interface SubsonicSong {
   }[];
   readonly displayComposer?: string;
   readonly sortName?: string;
+  /* The listening signals P09 reads. Per user, and absent when the user never played it. */
+  readonly playCount?: number;
+  /** ISO instant of the last play. */
+  readonly played?: string;
+  /** ISO instant at which it was starred; absent means not starred. */
+  readonly starred?: string;
+  /** 1–5. */
+  readonly userRating?: number;
 }
 
 export interface SubsonicAlbum {
@@ -93,6 +101,25 @@ export interface SubsonicAlbum {
   readonly explicitStatus?: string;
   readonly isCompilation?: boolean;
   readonly song?: readonly SubsonicSong[];
+  /* The listening signals P09 reads (`getAlbumList2?type=frequent`, `getStarred2`). */
+  readonly playCount?: number;
+  readonly played?: string;
+  readonly starred?: string;
+  readonly userRating?: number;
+}
+
+/** What `getPlaylists` / `createPlaylist` answer. P09 writes one list and only one. */
+export interface SubsonicPlaylist {
+  readonly id: string;
+  readonly name?: string;
+  readonly comment?: string;
+  readonly owner?: string;
+  readonly public?: boolean;
+  readonly songCount?: number;
+  readonly duration?: number;
+  readonly created?: string;
+  readonly changed?: string;
+  readonly entry?: readonly SubsonicSong[];
 }
 
 export interface SubsonicScanStatus {
