@@ -191,6 +191,14 @@ except one thing: **the single download slot**.
 - Media binaries (`ffmpeg`, `fpcalc`, `rsgain`, `yt-dlp`) are **not required on the host** —
   they live in the toolbox image. `GET localhost:8100/health` reports their versions, and a
   `null` there means the image is broken.
+- **Never terminate processes by name or command-line pattern; only by a PID you spawned
+  yourself.** Several agents run on this machine at once, each with its own dev server, and a
+  filter like `CommandLine -like '*index.ts*'` matches all of them — an agent doing this once
+  killed another agent's `bun run --hot src/index.ts` on the mistaken belief it owned `:3000`
+  (`orchestration/reports/P06-build-1.md`). List a process tree from a PID you started, verify
+  it, and only then kill that tree (`taskkill /PID <pid> /T /F` on Windows). Use `PORT=3100+`
+  (or a script's own dedicated port, e.g. `bun run e2e`'s `:3170`) for ad hoc dev servers so
+  `:3000` is left to whoever is already using it.
 
 ## Generated files — never edit by hand
 
