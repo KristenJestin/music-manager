@@ -16,6 +16,7 @@ import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
 import { createRun, runToCompletion } from "#/server/services/retag.ts";
+import { relocate } from "#/server/services/relocate.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { enqueueRetagRun } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
@@ -25,6 +26,7 @@ import {
   idParam,
   listAlbumsQuery,
   listTracksQuery,
+  relocateSchema,
   retagSchema,
   searchQuery,
   verifySchema,
@@ -378,6 +380,44 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
         albumId === undefined
           ? await verifyLibrary({ db: db(), rescan })
           : await verifyAlbum(albumId, { db: db(), rescan });
+      return c.json(report as unknown as Record<string, unknown>, 200);
+    },
+  );
+
+  /* ---- relocate: the other half of a `pathTemplate` change (decision 074) ---- */
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/relocate",
+      tags: [TAG],
+      summary: "Re-file the library against the current path template",
+      description:
+        "`retag` re-projects the tags and never touches a path, so a library keeps its old " +
+        "names for ever after `pathTemplate` changes. This moves the files that no longer " +
+        "match it, through the toolbox (a rename inside one mount, so atomic), updates the " +
+        "rows, and asks Navidrome to rescan.\n\n" +
+        "`dryRun: true` is the default and changes nothing. **Navidrome identifies a file by " +
+        "its path, so a real move loses that track's play count and its favourites.** A " +
+        "destination that already exists is skipped, never overwritten.",
+      middleware: [requireScope("library:write")] as const,
+      request: {
+        body: { content: { "application/json": { schema: relocateSchema } }, required: true },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
+          description: "The report",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const { albumId, dryRun } = c.req.valid("json");
+      const report = await relocate({
+        db: db(),
+        dryRun,
+        ...(albumId === undefined ? {} : { albumId }),
+      });
       return c.json(report as unknown as Record<string, unknown>, 200);
     },
   );

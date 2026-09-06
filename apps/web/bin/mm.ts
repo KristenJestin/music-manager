@@ -82,6 +82,7 @@ import {
   runToCompletion,
   runView,
 } from "#/server/services/retag.ts";
+import { relocate } from "#/server/services/relocate.ts";
 import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
 import { cmdDiscover } from "./commands/discover.ts";
 import { cmdMigrate } from "./commands/migrate.ts";
@@ -1064,6 +1065,69 @@ async function cmdRetag(args: Args): Promise<number> {
   return finished.failed > 0 ? 1 : 0;
 }
 
+/* ------------------------------------------------------------------ */
+/* mm relocate — re-file against the path template (decision 074)      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `mm relocate [--album <id>] [--apply] [--json]`
+ *
+ * Dry by default, and loudly. `retag` re-projects the tags of a file; nothing re-projected its
+ * *path*, so a library that predates a `pathTemplate` change keeps its old names for ever.
+ * `--apply` is the only thing that moves a byte, and the warning above it is the one from the
+ * v1 migration: Navidrome identifies a file by its path, so a move costs that track its play
+ * count and its favourites.
+ */
+async function cmdRelocate(args: Args): Promise<number> {
+  const album = flagString(args, "album");
+  const apply = flagBoolean(args, "apply");
+  const report = await relocate({
+    db: db(),
+    dryRun: !apply,
+    ...(album === undefined ? {} : { albumId: album }),
+  });
+
+  if (flagBoolean(args, "json")) {
+    line(JSON.stringify(report, null, 2));
+    return report.failed > 0 ? 1 : 0;
+  }
+
+  line(`Template: ${report.template}`);
+  line(
+    `${String(report.scanned)} file(s) scanned, ${String(report.inPlace)} already in place, ${String(report.planned)} off-template.`,
+  );
+  for (const move of report.moves) line(`  ${move.from}\n    -> ${move.to}`);
+  if (report.planned > report.moves.length) {
+    line(`  … and ${String(report.planned - report.moves.length)} more.`);
+  }
+  for (const entry of report.blocked) line(`  blocked (${entry.reason}): ${entry.path}`);
+  for (const failure of report.errors) {
+    line(`  failed: ${failure.path} — ${failure.code}: ${failure.message}`);
+  }
+
+  if (!apply) {
+    if (report.planned > 0) {
+      line("");
+      line("Nothing was moved. Navidrome identifies a file by its path, so applying this loses");
+      line("the play count and the favourites of every track it moves.");
+      line("Apply it with:  mm relocate --apply");
+    }
+    return 0;
+  }
+
+  line(
+    `Moved ${String(report.moved)}, skipped ${String(report.skipped)}, failed ${String(report.failed)}.`,
+  );
+  if (report.rescan !== null) {
+    line(
+      report.rescan.error === null
+        ? "Navidrome was asked to rescan."
+        : `Navidrome could not be asked to rescan: ${report.rescan.error}`,
+    );
+  }
+  return report.failed > 0 ? 1 : 0;
+}
+
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
@@ -1100,6 +1164,7 @@ const USAGE = `mm — Music Manager
   mm retag [--album <id>|--track <id>] [--dry-run] [--all] [--queue]
                                           re-project from the raw cache; offline, no re-download
   mm retag runs | show <run id> | cancel <run id>             the runs, and the per-file diffs
+  mm relocate [--album <id>] [--apply] [--json]               re-file against pathTemplate; dry by default
 
   mm migrate v1 --db <postgres url> --library <dir> [--dry-run] [--rename-to-template]
                 [--limit N] [--resume] [--i-have-a-backup] [--verify] [--json]
@@ -1151,6 +1216,8 @@ async function main(): Promise<number> {
       return await cmdMigrate(args);
     case "retag":
       return await cmdRetag(args);
+    case "relocate":
+      return await cmdRelocate(args);
     case "cancel":
     case "pause":
     case "bump":

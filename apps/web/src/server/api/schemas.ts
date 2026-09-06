@@ -14,6 +14,9 @@
  */
 import { z } from "@hono/zod-openapi";
 import { NOTIFIABLE_EVENTS, STEP_NAMES } from "@mm/contracts";
+// The import-status vocabulary, from the import-free module the `pgEnum` is built from — so
+// the query filter and the column can never name different sets.
+import { IMPORT_STATUSES } from "#/server/db/schema/enums.vocab.ts";
 import type {
   ApiKeyView,
   ApiPrincipal,
@@ -201,7 +204,13 @@ export const importDetailSchema = importSchema
   .openapi("ImportDetail");
 
 export const listImportsQuery = paginationQuery.extend({
-  status: z.string().optional().openapi({ description: "Filter on one import status." }),
+  // A free `z.string()` reached the `where` clause and Postgres answered with the failed
+  // statement, leaking the column list of `imports` into an error body. The closed vocabulary
+  // is the column's own, so an unknown value is a 400 naming the eight that exist.
+  status: z
+    .enum(["all", ...IMPORT_STATUSES])
+    .optional()
+    .openapi({ description: "Filter on one import status.", example: "awaiting_review" }),
   q: z.string().optional().openapi({ description: "Substring of the title or the URL." }),
 });
 
@@ -340,6 +349,20 @@ export const verifySchema = z
     rescan: z.boolean().default(false),
   })
   .openapi("Verify");
+
+/**
+ * `POST /library/relocate`.
+ *
+ * `dryRun` defaults to **true**, unlike `retag`'s: a re-tag rewrites a tag block and can be
+ * run again, a relocate moves files and takes Navidrome's play counts with them. The safe
+ * default is the one you would have chosen if you had read the warning.
+ */
+export const relocateSchema = z
+  .object({
+    albumId: z.string().optional().openapi({ description: "Omit for the whole library." }),
+    dryRun: z.boolean().default(true),
+  })
+  .openapi("Relocate");
 
 /* ------------------------------------------------------------------ */
 /* settings, tools, events                                             */
