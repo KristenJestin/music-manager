@@ -40,8 +40,10 @@ Documentation is in French; the UI, code identifiers and commit messages are in 
 ```
 apps/web/              TanStack Start on Bun: Console UI, server functions, /api/v1, MCP, worker, CLI
   src/routes/          file-based routes; a route with `server.handlers` and no component is an API endpoint
-  src/server/          server-only code: env, db, services
+  src/server/          server-only code: env, db, auth, services, server functions
   src/components/ui/   shadcn/ui components (Base UI) — do not hand-edit, re-add with the CLI
+  src/components/      the shared Console components; `shell/` is the frame around every page
+  e2e/                 Playwright specs for the Console (`bun run e2e`)
 packages/domain/       pure TypeScript: tag map, metadata document, resolvers, completeness, matching
 packages/contracts/    shared zod schemas + the generated toolbox client (toolbox/ is generated)
 services/toolbox/      Python (uv, FastAPI): yt-dlp, mutagen, fpcalc, rsgain — stateless, no database
@@ -66,7 +68,8 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run toolbox:openapi`             | regenerate `packages/contracts/toolbox/` from the FastAPI app                    |
 | `bun run worker`                      | the job orchestrator (pg-boss): steps, the single download slot, cron            |
 | `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`                   |
-| `bun run e2e-fixture`                 | the offline vertical slice, end to end (`bun run e2e` is an alias)               |
+| `bun run e2e-fixture`                 | the offline vertical slice, end to end (CLI, worker, toolbox — no browser)       |
+| `bun run e2e`                         | the Console's Playwright tests: brings up its own app, worker and database       |
 | `bun run compose:up` / `compose:down` | the dev stack alone                                                              |
 
 `bun run check` must be green at the end of every phase, and the previous phases' fixture E2E
@@ -102,7 +105,14 @@ must still pass.
   second caller. The worker clears its own queues on startup on that basis.
 - **The tag map in `packages/domain` is the only source of tag names.** The toolbox receives
   already-projected key/value pairs; it knows nothing about MusicBrainz.
-- **Drizzle is the sole owner of the schema.** Python never touches the database.
+- **Drizzle is the sole owner of the schema.** Python never touches the database, and Better
+  Auth's four tables are hand-written in `src/server/db/schema/auth.ts` rather than generated
+  into a second schema file. `advanced.database.validateSchema` re-checks them at boot, so a
+  drift from the library is a startup error rather than a 500 later.
+- **One account.** The Console has a single administrator, created once from `MM_ADMIN_EMAIL` /
+  `MM_ADMIN_PASSWORD` or from `/setup` while the `user` table is empty. Public sign-up is off.
+  Every route and every server function requires a session except `/health` and `/api/auth/*`;
+  `apps/web/src/server/functions/functions.guard.test.ts` is what keeps that true.
 - Python: `ruff`, `pyright` strict, `pydantic` v2, `structlog` for JSON logs.
 - **Commits follow the Angular convention**: `type(scope): subject` (`feat`, `fix`, `chore`,
   `docs`, `test`, `refactor`…), scope is the phase (`feat(P03): …`), body explains the why
@@ -111,8 +121,18 @@ must still pass.
   (`agent-browser open/snapshot/click/fill/screenshot…`). **Never** use an agent's built-in
   browser tool or an MCP browser/navigation tool for these — an agent doing so is a mistake,
   not a valid alternative. `@playwright/test` is for non-regression scenarios only, reusing
-  the same Chromium `agent-browser` already has installed (`executablePath`), never a
-  separate Playwright browser install.
+  the Chromium already in the cache (`executablePath`, resolved by `apps/web/e2e/chromium.ts`;
+  `MM_E2E_CHROMIUM` overrides it), never a separate Playwright browser install — do **not**
+  run `playwright install`. Two host quirks are handled there and worth knowing: the
+  `chromium_headless_shell` build hangs on launch, so the full `chrome-win64/chrome.exe` of the
+  same revision is used with `--no-sandbox`; and **Playwright runs under Node, not Bun**,
+  because it drives Chromium over file descriptors 3 and 4 that Bun does not pass through.
+  `bun run e2e` is still the entry point; it shells out to `node` for that one step.
+- **Server functions declare `createServerFn` literally.** The Vite plugin recognises
+  `createServerFn(...).handler(...)` syntactically in order to replace the handler with an RPC
+  stub in the browser bundle. A helper that returns a pre-configured builder defeats it and
+  ships Drizzle, `postgres` and Better Auth to the client; so does any **non-handler export**
+  from a server-function module. See `apps/web/src/server/functions/base.ts`.
 
 ## Toolbox
 
