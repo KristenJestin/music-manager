@@ -205,7 +205,7 @@
             "type": "object"
           },
           "format": {
-            "default": "bestaudio",
+            "default": "bestaudio[acodec=opus]/bestaudio/best",
             "title": "Format",
             "type": "string"
           },
@@ -345,6 +345,7 @@
           "YTDLP_AGE",
           "YTDLP_PRIVATE",
           "FFMPEG_MISSING",
+          "DOWNLOAD_CONTAINER",
           "TAG_WRITE_FAILED",
           "PLACE_CONFLICT",
           "LOCKED",

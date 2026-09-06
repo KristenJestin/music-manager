@@ -61,13 +61,19 @@ from toolbox.tagmap import (
     split_performer,
 )
 
-__all__ = ["detect_format", "read_tags", "sidecar_path", "write_tags"]
+__all__ = ["TAGGABLE_SUFFIXES", "detect_format", "read_tags", "sidecar_path", "write_tags"]
 
 Grouped = OrderedDict[str, list[str]]
 
 _VORBIS_SUFFIXES: Final[frozenset[str]] = frozenset({".opus", ".ogg", ".oga", ".flac"})
 _ID3_SUFFIXES: Final[frozenset[str]] = frozenset({".mp3", ".mp2"})
 _MP4_SUFFIXES: Final[frozenset[str]] = frozenset({".m4a", ".mp4", ".m4b", ".aac"})
+
+#: Every container :func:`detect_format` can place a tag block in. The downloader reads this
+#: to decide whether the file yt-dlp handed back still has to be remuxed: a `.webm` — which
+#: is what `bestaudio` yields on YouTube — is not on this list, and letting it reach `/tag`
+#: is exactly the `Unsupported container '.webm'` failure the owner hit.
+TAGGABLE_SUFFIXES: Final[frozenset[str]] = _VORBIS_SUFFIXES | _ID3_SUFFIXES | _MP4_SUFFIXES
 
 #: Keys a writer consumes as part of a compound frame rather than on their own.
 _ID3_CONSUMED: Final[frozenset[str]] = frozenset(

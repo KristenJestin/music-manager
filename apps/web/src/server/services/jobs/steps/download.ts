@@ -44,13 +44,38 @@ function targetRelative(ctx: StepContext, track: ImportTrack): string {
   return `${workFolder(ctx.paths, ctx.job.id)}/${track.id}.opus`;
 }
 
-/** True when a previous run already produced a non-empty file for this track. */
+/**
+ * Containers `tag` can actually write to — the same list as the toolbox's
+ * `TAGGABLE_SUFFIXES`. A `.webm` left behind by an older, pre-remux download must **not**
+ * count as "already downloaded": reusing it would walk straight back into
+ * `TAG_WRITE_FAILED — Unsupported container '.webm'` on every retry.
+ */
+const TAGGABLE_SUFFIXES = new Set([
+  ".opus",
+  ".ogg",
+  ".oga",
+  ".flac",
+  ".mp3",
+  ".mp2",
+  ".m4a",
+  ".mp4",
+  ".m4b",
+  ".aac",
+]);
+
+function taggable(relative: string): boolean {
+  const dot = relative.lastIndexOf(".");
+  return dot === -1 ? false : TAGGABLE_SUFFIXES.has(relative.slice(dot).toLowerCase());
+}
+
+/** True when a previous run already produced a non-empty, taggable file for this track. */
 function fileReady(ctx: StepContext, track: ImportTrack): string | null {
   const candidates = [
     ...(track.downloadPath === null ? [] : [track.downloadPath]),
     targetRelative(ctx, track),
   ];
   for (const relative of candidates) {
+    if (!taggable(relative)) continue;
     const absolute = hostPath(ctx.paths, relative);
     if (existsSync(absolute) && statSync(absolute).size > 0) return relative;
   }

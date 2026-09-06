@@ -27,10 +27,11 @@ import structlog
 
 from toolbox import fixtures
 from toolbox.config import fixture_delay_seconds, fixtures_enabled
-from toolbox.errors import ToolboxError, classify_ytdlp_error
+from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
-from toolbox.ytdlp import build_options, downloaded_path, extract_info, needs_audio_extraction
+from toolbox.tagging import TAGGABLE_SUFFIXES
+from toolbox.ytdlp import audio_extraction_codec, build_options, downloaded_path, extract_info
 
 __all__ = ["MEDIA_TYPE", "ndjson_download"]
 
@@ -120,13 +121,14 @@ class _Worker:
                 postprocessor_hooks=[self._postprocess],
                 overwrites=False,
             )
-            # No re-encoding: `bestaudio` normally yields a pure audio container that only
-            # has to be renamed. FFmpegExtractAudio is added only when the selection fell
-            # back to something carrying video.
+            # No re-encoding, ever: FFmpegExtractAudio with a `preferredcodec` that matches
+            # the stream already selected makes ffmpeg copy the packets into a container we
+            # can tag (`.opus` for YouTube's itag 251, which arrives as WebM/Matroska).
             preflight = extract_info(self.request.url, options, download=False)
-            if needs_audio_extraction(preflight):
+            codec = audio_extraction_codec(preflight)
+            if codec is not None:
                 options["postprocessors"] = [
-                    {"key": "FFmpegExtractAudio", "preferredcodec": "best", "preferredquality": "0"}
+                    {"key": "FFmpegExtractAudio", "preferredcodec": codec, "preferredquality": None}
                 ]
             info = extract_info(self.request.url, options, download=True)
             self._finish(info)
@@ -153,6 +155,14 @@ class _Worker:
         path = downloaded_path(info)
         if path is None or not path.is_file():
             raise ValueError("yt-dlp reported no output file for this download.")
+        if path.suffix.lower() not in TAGGABLE_SUFFIXES:
+            # Fail here rather than three steps later: `/tag` would only say
+            # "Unsupported container", by which point the file is already in the library.
+            raise ToolboxError(
+                ErrorCode.DOWNLOAD_CONTAINER,
+                f"yt-dlp produced '{path.suffix or path.name}', which cannot hold tags.",
+                details={"path": str(path), "format_id": str(info.get("format_id") or "")},
+            )
         self.out.put(
             {
                 "event": "done",

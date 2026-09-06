@@ -23,6 +23,8 @@ export const MM_ERROR_CODES = [
   "YTDLP_PRIVATE",
   "YTDLP_UNAVAILABLE",
   "FFMPEG_MISSING",
+  /** yt-dlp handed back a container no tagger can write to — a `.webm`, typically. */
+  "DOWNLOAD_CONTAINER",
   "TAG_WRITE_FAILED",
   "PLACE_CONFLICT",
   "LOCKED",

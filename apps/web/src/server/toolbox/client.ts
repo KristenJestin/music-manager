@@ -40,6 +40,14 @@ export type ErrorCatalogEntry = components["schemas"]["ErrorCatalogEntry"];
 export type YtMusicSearchResult = components["schemas"]["YtMusicSearchResult"];
 export type YtMusicCandidate = components["schemas"]["YtMusicCandidate"];
 
+/**
+ * Fallback format selector, mirroring `DEFAULT_FORMAT` in the toolbox's `models.py`.
+ *
+ * Opus first: on YouTube that is itag 251, which the toolbox remuxes into `.opus` by stream
+ * copy. Plain `bestaudio` used to leave a `.webm` behind that no tagger can write to.
+ */
+export const DEFAULT_DOWNLOAD_FORMAT = "bestaudio[acodec=opus]/bestaudio/best";
+
 /** One line of the `POST /download` NDJSON stream (`services/toolbox/.../download.py`). */
 export type DownloadEvent =
   | {
@@ -317,7 +325,7 @@ export class ToolboxClient {
           url: options.url,
           dest_dir: options.destDir,
           id: options.id,
-          format: options.format ?? "bestaudio",
+          format: options.format ?? DEFAULT_DOWNLOAD_FORMAT,
         }),
         ...(options.signal === undefined ? {} : { signal: options.signal }),
       }),

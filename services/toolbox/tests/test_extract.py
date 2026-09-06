@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from toolbox import extract as extract_module
 from toolbox.errors import ErrorCode
 from toolbox.models import ExtractRequest
-from toolbox.ytdlp import needs_audio_extraction, result_from_info
+from toolbox.ytdlp import result_from_info
 
 INFO_VIDEO: dict[str, Any] = {
     "id": "eZKgoOjJmrp",
@@ -123,19 +123,3 @@ def test_a_yt_dlp_failure_becomes_a_catalogued_error(monkeypatch: pytest.MonkeyP
     with pytest.raises(ToolboxError) as raised:
         extract_module.extract(ExtractRequest(url="https://youtu.be/eZKgoOjJmrp"))
     assert raised.value.code is ErrorCode.YTDLP_UNAVAILABLE
-
-
-@pytest.mark.parametrize(
-    ("info", "expected"),
-    [
-        ({"vcodec": "none", "acodec": "opus"}, False),
-        ({"vcodec": "vp9"}, True),
-        ({"requested_formats": [{"vcodec": "none"}, {"vcodec": "avc1"}]}, True),
-        ({"requested_formats": [{"vcodec": "none"}]}, False),
-        ({}, False),
-    ],
-)
-def test_audio_extraction_is_only_added_when_the_container_carries_video(
-    info: dict[str, Any], expected: bool
-):
-    assert needs_audio_extraction(info) is expected

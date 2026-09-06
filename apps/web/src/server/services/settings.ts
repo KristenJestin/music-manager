@@ -112,8 +112,8 @@ export const SETTING_DEFINITIONS = {
   ),
   downloadFormat: define(
     z.string().min(1),
-    "bestaudio",
-    "yt-dlp format selector. Never re-encode.",
+    "bestaudio[acodec=opus]/bestaudio/best",
+    "yt-dlp format selector. Opus first, and never re-encode: the toolbox remuxes by stream copy.",
   ),
 
   /* ---- matching and confirmation (docs/04 § Algorithme) ---- */

@@ -15,6 +15,7 @@ from yt_dlp.utils import DownloadError
 from toolbox import download as download_module
 from toolbox.errors import ErrorCode
 from toolbox.lock import DOWNLOAD_LOCK
+from toolbox.models import DEFAULT_FORMAT
 
 
 def events(client: TestClient, body: dict[str, Any]) -> list[dict[str, Any]]:
@@ -242,4 +243,4 @@ def test_continue_is_always_on_and_the_output_template_uses_the_id(
     worker.run()
     assert captured["continuedl"] is True
     assert captured["outtmpl"].endswith("trk.%(ext)s")
-    assert captured["format"] == "bestaudio"
+    assert captured["format"] == DEFAULT_FORMAT

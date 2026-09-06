@@ -19,13 +19,14 @@ from typing import Any, cast
 from yt_dlp import YoutubeDL  # pyright: ignore[reportMissingTypeStubs]
 
 from toolbox.models import ExtractEntry, ExtractResult, Thumbnail, YtdlpOptions
+from toolbox.tagging import TAGGABLE_SUFFIXES
 
 __all__ = [
+    "audio_extraction_codec",
     "build_options",
     "downloaded_path",
     "entry_from_info",
     "extract_info",
-    "needs_audio_extraction",
     "result_from_info",
     "yt_dlp_version",
 ]
@@ -78,13 +79,7 @@ def extract_info(url: str, options: Mapping[str, Any], *, download: bool = False
         return cast(InfoDict, ydl.sanitize_info(cast(Any, info)))
 
 
-def needs_audio_extraction(info: Mapping[str, Any]) -> bool:
-    """True when the selected format is not already a pure audio container.
-
-    The spec forbids re-encoding: with ``bestaudio`` yt-dlp normally hands back a webm/opus
-    or m4a stream that only needs to be renamed. ``FFmpegExtractAudio`` is added only when
-    the selection fell back to something carrying video.
-    """
+def _carries_video(info: Mapping[str, Any]) -> bool:
     vcodec = info.get("vcodec")
     if isinstance(vcodec, str) and vcodec not in {"none", ""}:
         return True
@@ -97,6 +92,29 @@ def needs_audio_extraction(info: Mapping[str, Any]) -> bool:
             if str(selected.get("vcodec", "none")) not in {"none", ""}:
                 return True
     return False
+
+
+def audio_extraction_codec(info: Mapping[str, Any]) -> str | None:
+    """The ``FFmpegExtractAudio`` ``preferredcodec``, or ``None`` when nothing to do.
+
+    ``bestaudio`` on YouTube selects itag 251: **Opus inside WebM/Matroska**. That has no
+    video stream, so the old "only extract when there is video" rule left the file as
+    ``.webm`` — a container mutagen cannot tag, which is where the owner's import died with
+    ``TAG_WRITE_FAILED — Unsupported container '.webm'``. The real question is not "is there
+    video" but "can this container hold a tag block"; :data:`toolbox.tagging.TAGGABLE_SUFFIXES`
+    answers it, so the two can never drift apart.
+
+    Nothing is ever re-encoded. ``preferredcodec="opus"`` on an Opus stream and
+    ``preferredcodec="best"`` on anything else both make yt-dlp pick ``acodec="copy"``: the
+    packets are moved into Ogg (or MP4) untouched, same bitrate, same duration.
+    """
+    ext = info.get("ext")
+    suffix = f".{ext}".lower() if isinstance(ext, str) and ext else ""
+    if suffix in TAGGABLE_SUFFIXES and not _carries_video(info):
+        return None
+    acodec = info.get("acodec")
+    codec = acodec.split(".")[0].lower() if isinstance(acodec, str) else ""
+    return "opus" if codec == "opus" else "best"
 
 
 def _thumbnails(info: Mapping[str, Any]) -> list[Thumbnail]:

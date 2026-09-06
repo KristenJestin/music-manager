@@ -41,6 +41,7 @@ class ErrorCode(StrEnum):
     YTDLP_AGE = "YTDLP_AGE"
     YTDLP_PRIVATE = "YTDLP_PRIVATE"
     FFMPEG_MISSING = "FFMPEG_MISSING"
+    DOWNLOAD_CONTAINER = "DOWNLOAD_CONTAINER"
     TAG_WRITE_FAILED = "TAG_WRITE_FAILED"
     PLACE_CONFLICT = "PLACE_CONFLICT"
     LOCKED = "LOCKED"
@@ -143,6 +144,13 @@ ERROR_CATALOG: Final[tuple[ErrorSpec, ...]] = (
         action="Open settings",
         status=500,
         patterns=("ffmpeg not found", "ffprobe and ffmpeg not found", "ffmpeg is not installed"),
+    ),
+    ErrorSpec(
+        code=ErrorCode.DOWNLOAD_CONTAINER,
+        message="The downloaded file is in a container that cannot hold tags.",
+        hint="The audio was not remuxed out of its video container.",
+        action="Check the download format",
+        status=422,
     ),
     ErrorSpec(
         code=ErrorCode.TAG_WRITE_FAILED,

@@ -8,11 +8,12 @@ field here is a breaking change for `apps/web`.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = [
+    "DEFAULT_FORMAT",
     "ArtworkRequest",
     "ArtworkResult",
     "CookiesTestRequest",
@@ -49,6 +50,10 @@ __all__ = [
     "YtMusicSearchRequest",
     "YtMusicSearchResult",
 ]
+
+#: Default yt-dlp format selector. Opus first — that is itag 251 on YouTube, which the
+#: downloader then remuxes into `.opus` by stream copy, so nothing is ever re-encoded.
+DEFAULT_FORMAT: Final[str] = "bestaudio[acodec=opus]/bestaudio/best"
 
 # --------------------------------------------------------------------------------------
 # Shared building blocks
@@ -174,7 +179,7 @@ class DownloadRequest(YtdlpOptions):
     url: str
     dest_dir: str
     id: str = Field(description="Opaque id echoed in every event; used as the file stem.")
-    format: str = "bestaudio"
+    format: str = DEFAULT_FORMAT
 
 
 # --------------------------------------------------------------------------------------
