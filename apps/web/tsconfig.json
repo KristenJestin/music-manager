@@ -14,6 +14,8 @@
     "bin/**/*.ts",
     "vite.config.ts",
     "drizzle.config.ts",
+    "playwright.config.ts",
+    "e2e/**/*.ts",
     "test/**/*.ts"
   ]
 }
