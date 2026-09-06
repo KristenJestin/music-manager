@@ -95,7 +95,8 @@ export interface MbLabelInfo {
 export interface MbReleaseGroup {
   readonly id?: string;
   readonly title?: string;
-  readonly "primary-type"?: string;
+  /** MusicBrainz sends `null` — not an absent key — for a group with no primary type. */
+  readonly "primary-type"?: string | null;
   readonly "secondary-types"?: readonly string[];
   readonly "first-release-date"?: string;
   readonly genres?: readonly MbGenre[];

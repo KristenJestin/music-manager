@@ -346,7 +346,7 @@ function releaseTypes(release: MbRelease): string[] {
   const group = release["release-group"];
   if (group === undefined) return [];
   return [group["primary-type"], ...(group["secondary-types"] ?? [])]
-    .filter((type): type is string => type !== undefined && type !== "")
+    .filter((type): type is string => typeof type === "string" && type !== "")
     .map((type) => type.toLowerCase());
 }
 

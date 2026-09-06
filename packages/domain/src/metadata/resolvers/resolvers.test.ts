@@ -89,6 +89,19 @@ describe("fromMusicBrainzRelease", () => {
     expect(missing.fields?.["title"]).toBeUndefined();
     expect(missing.fields?.["album"]?.value).toBe("Discovery");
   });
+
+  it("survives a release group whose primary type is null", () => {
+    // MusicBrainz sends `"primary-type": null` — not an absent key — for the release groups
+    // of obscure artists, which used to throw `type.toLowerCase is not a function` and fail
+    // the whole `tag` step of a single import.
+    const untyped = {
+      ...release,
+      "release-group": { ...release["release-group"], "primary-type": null },
+    };
+    const patch = fromMusicBrainzRelease(untyped, { trackPosition: 1, fetchedAt: at });
+    expect(patch.fields?.["releasetype"]).toBeUndefined();
+    expect(patch.fields?.["album"]?.value).toBe("Discovery");
+  });
 });
 
 describe("fromMusicBrainzRecording", () => {
