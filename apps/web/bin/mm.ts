@@ -15,6 +15,7 @@
 import { readFileSync } from "node:fs";
 import { MMError } from "@mm/contracts";
 import {
+  albumHints,
   canonicalValue,
   tagByField,
   trackCompleteness,
@@ -461,12 +462,9 @@ async function prepareMatch(url: string): Promise<PreparedMatch> {
       kind: cassette.kind,
       source: `${cassette.name} (recorded ${cassette.recordedAt.slice(0, 10)})`,
       videos: cassette.videos,
-      hints: {
-        album: cassette.source.album ?? null,
-        artist: cassette.source.artist ?? null,
-        year: cassette.source.year ?? null,
-        label: cassette.source.label ?? null,
-      },
+      // Derived, not read off `cassette.source` — the step derives them, so the command has
+      // to derive them too or it would be scoring a different question.
+      hints: albumHints(cassette.videos),
       gateway: cassetteGateway(cassette),
     };
   }
@@ -483,17 +481,11 @@ async function prepareMatch(url: string): Promise<PreparedMatch> {
     ytAlbum: entry.album ?? null,
     ytReleaseYear: entry.release_year ?? null,
   }));
-  const first = videos[0];
   return {
     kind: extract.kind === "video" || videos.length <= 1 ? "single" : "album",
     source: url,
     videos,
-    hints: {
-      album: first?.ytAlbum ?? extract.title ?? null,
-      artist: first?.ytArtist ?? extract.uploader ?? null,
-      year: first?.ytReleaseYear ?? null,
-      label: null,
-    },
+    hints: albumHints(videos, { album: extract.title, artist: extract.uploader }),
     gateway: liveGateway(await sourceContextFor(db())),
   };
 }

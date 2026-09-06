@@ -13,6 +13,7 @@
 import { eq } from "drizzle-orm";
 import { decisions, imports } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
+import { learnPreferences } from "#/server/services/matching.preferences.ts";
 import type { StepResult } from "../machine.ts";
 import type { StepContext } from "../context.ts";
 
@@ -58,9 +59,19 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
 
   await ctx.db.update(imports).set({ updatedAt: new Date() }).where(eq(imports.id, ctx.job.id));
 
+  // A confirmed release is the one piece of evidence about your taste that is not a guess, so
+  // it is what the country/format preferences are learned from (P05). It reads the decision
+  // log, needs several agreeing decisions before it moves anything, and writes only to
+  // `settings`, where `mm settings list` shows it — never silently (`docs/04` § Ce que l'algo
+  // ne fait jamais). It cannot affect this job: the release is already chosen.
+  const learned = await learnPreferences(ctx.db);
+  for (const change of learned?.changes ?? []) {
+    await ctx.say("preferences.learned", change, { level: "info" });
+  }
+
   return {
     status: "done",
     message: `Confirmed automatically (${decidedBy}): ${String(mapped.length)} track(s).`,
-    data: { decidedBy, tracks: mapped.length },
+    data: { decidedBy, tracks: mapped.length, learnedFrom: learned?.from ?? 0 },
   };
 }

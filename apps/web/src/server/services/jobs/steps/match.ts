@@ -1,27 +1,48 @@
 /**
- * Step 2 — `match` (app). **A stub in P03**, as the phase specification says.
+ * Step 2 — `match` (app). The real one, as of P05.
  *
- * P05 brings the real thing: scored MusicBrainz candidates, tracklist fit, the global 1:1
- * assignment of `docs/04-pipeline-et-matching.md`. Until then this step only *applies* a
- * mapping that somebody else decided:
+ * P03 shipped this as a stub that could only *apply* a mapping somebody else had decided.
+ * What replaces it does the work of `docs/04-pipeline-et-matching.md` § Algorithme de
+ * présélection: it searches MusicBrainz, scores the candidates with the engine of
+ * `@mm/domain/matching`, proposes a 1:1 mapping, and writes all of it down.
  *
- *  - in fixtures mode, the recorded Discovery release — videos 1–14 onto tracks 1–14, video
- *    15 flagged `extra`;
- *  - from the CLI, `--mapping <file.json>`, which is the escape hatch that lets a real URL be
- *    imported before P05 exists.
+ * Three properties are load-bearing, and none of them is about scoring:
  *
- * Anything else stops on an `ambiguous_release` Inbox item rather than guessing. A stub that
- * invented a plausible mapping would be worse than one that admits it cannot choose —
- * decision 002 is that the algorithm never chooses for you.
+ *  - **It never decides.** The result carries a preselection and the reasons for it. `confirm`
+ *    is still the only step that commits, and it still blocks without `--yes` or fixtures mode
+ *    whatever the score says — decision 002, and `docs/04`: "Le seuil « safe » […] ne saute
+ *    pas la confirmation."
+ *  - **It blocks only when a decision is genuinely required.** An ambiguous release or an
+ *    ambiguous recording parks the job in `awaiting_review`, because choosing wrongly there
+ *    changes what gets downloaded. Uncovered tracks and extra videos raise an Inbox item and
+ *    let the job continue: they are notices, and the album imports fine without them.
+ *  - **It stays idempotent.** Re-running it re-searches (out of the cache, so free), re-scores
+ *    deterministically, rewrites the same rows and re-opens the same Inbox items rather than
+ *    piling up duplicates.
+ *
+ * The two escape hatches of P03 survive untouched and take priority, because they are what
+ * lets somebody import a record the matcher gets wrong: `--mapping <file.json>` supplies the
+ * whole answer, and `--release <mbid>` pins the release and lets the mapping be computed
+ * against it.
  */
 import { eq } from "drizzle-orm";
-import { imports } from "#/server/db/schema/index.ts";
+import type { MappingResult, MatchVideo, ReleaseCandidate, RecordingCandidate } from "@mm/domain";
+import { albumHints, flattenTracks, mapping as mappingEngine } from "@mm/domain";
+import { imports, type ImportTrack } from "#/server/db/schema/index.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
 import {
-  isDiscoveryFixture,
-  matchDiscovery,
-  type FixtureMatch,
-} from "#/server/services/sources/fixtures.ts";
+  cassetteGateway,
+  liveGateway,
+  type MbGateway,
+} from "#/server/services/matching.gateway.ts";
+import { cassetteNameOf, loadCassette } from "#/server/services/matching.cassettes.ts";
+import {
+  configFromSettings,
+  matchAlbum,
+  matchSingle,
+  type MatchBudget,
+} from "#/server/services/matching.service.ts";
+import { sourceContextFor } from "#/server/services/matching.context.ts";
 import type { StepResult } from "../machine.ts";
 import { updateTrack, type StepContext } from "../context.ts";
 
@@ -54,62 +75,65 @@ export function mappingFromOptions(job: {
   return supplied === undefined || supplied === null ? null : (supplied as SuppliedMapping);
 }
 
-function fromFixture(match: FixtureMatch): SuppliedMapping {
+/* ------------------------------------------------------------------ */
+/* the videos, as the engine wants them                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One `import_tracks` row as a `MatchVideo`.
+ *
+ * The YouTube Music tags come out of the verbatim `raw` payload `resolve` kept. Reading them
+ * here rather than promoting them to columns is deliberate: they are source data, they belong
+ * to whatever yt-dlp decided to call them this month, and the matcher is the only thing that
+ * cares.
+ */
+export function toMatchVideo(row: ImportTrack): MatchVideo {
+  const raw = row.raw;
+  const text = (key: string): string | null => {
+    const value = raw[key];
+    return typeof value === "string" && value.trim() !== "" ? value : null;
+  };
+  const year = raw["release_year"];
+  const fingerprintMbid = row.acoustidMbid;
+
   return {
-    releaseMbid: match.releaseMbid,
-    releaseGroupMbid: match.releaseGroupMbid,
-    album: match.album,
-    albumArtist: match.albumArtist,
-    year: match.year,
-    trackTotal: match.trackTotal,
-    tracks: match.mapping.map((entry) => ({
-      position: entry.position,
-      trackPosition: entry.trackPosition,
-      mediumPosition: entry.mediumPosition,
-      trackMbid: entry.trackMbid,
-      recordingMbid: entry.recordingMbid,
-      trackTitle: entry.trackTitle,
-      confidence: entry.confidence,
-    })),
+    id: row.videoId,
+    index: row.position,
+    title: row.sourceTitle,
+    durationSeconds: row.sourceDuration,
+    uploader: row.uploader,
+    ytTrack: text("track"),
+    ytArtist: text("artist"),
+    ytAlbum: text("album"),
+    ytReleaseYear: typeof year === "number" ? year : null,
+    description: text("description"),
+    // Normally empty at `match` time — `fingerprint` runs after `download`. It is read anyway
+    // so that re-running `match` on a job that already fingerprinted uses what was learned.
+    ...(fingerprintMbid === null
+      ? {}
+      : { acoustid: [{ recordingMbid: fingerprintMbid, score: 1 }] }),
   };
 }
 
-export async function matchStep(ctx: StepContext): Promise<StepResult> {
-  const videos = await ctx.tracks();
-  const options = ctx.job.options as unknown as Record<string, unknown>;
+/* ------------------------------------------------------------------ */
+/* persistence                                                         */
+/* ------------------------------------------------------------------ */
 
-  const supplied =
-    mappingFromOptions({ options }) ??
-    (isDiscoveryFixture(ctx.job.url) ? fromFixture(matchDiscovery(videos.length)) : null);
-
-  if (supplied === null) {
-    await openInboxItem(
-      {
-        type: "ambiguous_release",
-        importId: ctx.job.id,
-        title: `Choose the release for “${ctx.job.title ?? ctx.job.url}”`,
-        summary:
-          "P03 ships the matcher as a stub. Supply a release and a mapping with " +
-          "`mm import --mapping <file.json>`, or wait for the scored candidates of P05.",
-        payload: { url: ctx.job.url, videos: videos.length },
-      },
-      ctx.db,
-    );
-    return {
-      status: "blocked",
-      blockedAs: "awaiting_review",
-      message: "No mapping available: the matcher is a stub until P05.",
-    };
-  }
-
-  const byPosition = new Map(supplied.tracks.map((entry) => [entry.position, entry]));
+/** Write one proposed mapping onto the import's rows. */
+async function persistMapping(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  proposal: MappingResult,
+): Promise<{ mapped: number; extras: number }> {
+  const byVideoId = new Map(rows.map((row) => [row.videoId, row]));
   let mapped = 0;
   let extras = 0;
 
-  for (const video of videos) {
-    const hit = byPosition.get(video.position);
-    if (hit === undefined) {
-      await updateTrack(ctx, video.id, {
+  for (const line of proposal.lines) {
+    const row = byVideoId.get(line.videoId);
+    if (row === undefined) continue;
+    if (line.trackN === null) {
+      await updateTrack(ctx, row.id, {
         role: "extra",
         trackMbid: null,
         recordingMbid: null,
@@ -121,7 +145,432 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
       extras += 1;
       continue;
     }
-    await updateTrack(ctx, video.id, {
+    await updateTrack(ctx, row.id, {
+      role: "mapped",
+      trackMbid: line.trackMbid,
+      recordingMbid: line.recordingMbid,
+      trackTitle: line.trackTitle,
+      trackPosition: line.trackN,
+      mediumPosition: line.mediumPosition ?? 1,
+      confidence: line.confidence,
+    });
+    mapped += 1;
+  }
+  return { mapped, extras };
+}
+
+/** Write the chosen release onto the import itself. */
+async function persistRelease(
+  ctx: StepContext,
+  release: {
+    id: string;
+    releaseGroupId?: string | null;
+    title?: string;
+    artist?: string;
+    year?: number | null;
+  },
+): Promise<void> {
+  await ctx.db
+    .update(imports)
+    .set({
+      releaseMbid: release.id,
+      releaseGroupMbid: release.releaseGroupId ?? null,
+      ...(release.title === undefined || release.title === "" ? {} : { title: release.title }),
+      ...(release.artist === undefined || release.artist === "" ? {} : { artist: release.artist }),
+      ...(release.year === undefined || release.year === null ? {} : { year: release.year }),
+      updatedAt: new Date(),
+    })
+    .where(eq(imports.id, ctx.job.id));
+}
+
+/**
+ * The two notices: videos nobody wanted, tracks nobody covered.
+ *
+ * Both carry a preselected answer that keeps the import going, because both describe a
+ * situation the user can perfectly well accept. Neither blocks.
+ */
+async function raiseNotices(
+  ctx: StepContext,
+  proposal: MappingResult,
+  releaseMbid: string | null,
+): Promise<void> {
+  if (proposal.extraVideos.length > 0) {
+    const count = proposal.extraVideos.length;
+    await openInboxItem(
+      {
+        type: "extra_videos",
+        importId: ctx.job.id,
+        title: `${String(count)} video(s) outside the tracklist`,
+        summary: proposal.extraVideos.map((video) => video.title).join(", "),
+        payload: {
+          videos: proposal.extraVideos.map((video) => ({
+            id: video.videoId,
+            position: video.index,
+            title: video.title,
+            durationSeconds: video.durationSeconds,
+            why: video.why,
+          })),
+        },
+        preselected: { action: "ignore" },
+      },
+      ctx.db,
+    );
+  }
+
+  if (proposal.uncoveredTracks.length > 0) {
+    const count = proposal.uncoveredTracks.length;
+    await openInboxItem(
+      {
+        type: "uncovered_tracks",
+        importId: ctx.job.id,
+        title: `${String(count)} track(s) of the release have no video`,
+        summary: proposal.uncoveredTracks
+          .map((track) => `${String(track.position)}. ${track.title}`)
+          .join(", "),
+        payload: {
+          releaseMbid,
+          tracks: proposal.uncoveredTracks.map((track) => ({
+            position: track.position,
+            mediumPosition: track.mediumPosition,
+            title: track.title,
+            recordingMbid: track.recordingMbid,
+            lengthSeconds: track.lengthSeconds,
+          })),
+        },
+        preselected: { action: "import anyway" },
+      },
+      ctx.db,
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* the gateway for this job                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Where this job's MusicBrainz documents come from.
+ *
+ * In fixtures mode, from the recorded cassette — which is *not* copied into the raw cache, on
+ * purpose: the cassettes are pruned to the fields the matcher reads, and seeding them would
+ * leave P04's document build reading a MusicBrainz release with its relations amputated. The
+ * document side has recorded sources of its own. Outside fixtures mode, from the network,
+ * through P04's limiter and cache.
+ */
+async function gatewayFor(ctx: StepContext): Promise<MbGateway | null> {
+  if (ctx.fixtures) {
+    const name = cassetteNameOf(ctx.job.url);
+    const cassette = name === null ? null : loadCassette(name);
+    if (cassette === null) return null;
+    return cassetteGateway(cassette);
+  }
+  return liveGateway(await sourceContextFor(ctx.db, ctx.signal));
+}
+
+/* ------------------------------------------------------------------ */
+/* the step                                                            */
+/* ------------------------------------------------------------------ */
+
+/** How many candidates are kept on `job_steps.result` for the wizard to offer. */
+const KEPT_CANDIDATES = 12;
+
+/** Trim a candidate list to what the Console needs, so one row does not carry a megabyte. */
+function keep<T>(candidates: readonly T[]): T[] {
+  return candidates.slice(0, KEPT_CANDIDATES);
+}
+
+export async function matchStep(ctx: StepContext): Promise<StepResult> {
+  const rows = await ctx.tracks();
+  if (rows.length === 0) {
+    return { status: "failed", message: "Nothing to match: the import has no videos." };
+  }
+
+  const options = ctx.job.options as unknown as Record<string, unknown>;
+  const supplied = mappingFromOptions({ options });
+
+  // The escape hatch wins outright: somebody told us the answer.
+  if (supplied !== null) return await applySupplied(ctx, rows, supplied);
+
+  const videos = rows.map(toMatchVideo);
+  const gateway = await gatewayFor(ctx);
+  if (gateway === null) {
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `No recorded MusicBrainz data for ${ctx.job.url} in fixtures mode.`,
+      data: { url: ctx.job.url },
+    };
+  }
+
+  return ctx.job.kind === "single" || rows.length === 1
+    ? await matchOneRecording(ctx, rows, videos, gateway)
+    : await matchOneAlbum(ctx, rows, videos, gateway);
+}
+
+/* ---- album ---- */
+
+async function matchOneAlbum(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  videos: readonly MatchVideo[],
+  gateway: MbGateway,
+): Promise<StepResult> {
+  const hints = albumHints(videos, {
+    album: ctx.job.title,
+    artist: ctx.job.artist,
+    year: ctx.job.year,
+  });
+  const result = await matchAlbum(gateway, { videos, hints }, ctx.settings);
+  const pinned = ctx.job.options.releaseMbid;
+
+  // `--release <mbid>` pins the release; the mapping is still computed, against that one.
+  const chosen =
+    pinned === undefined
+      ? result.ranking.preselected
+      : (result.ranking.candidates.find((candidate) => candidate.id === pinned) ??
+        result.ranking.preselected);
+
+  if (chosen === null || chosen === undefined) {
+    await openInboxItem(
+      {
+        type: "ambiguous_release",
+        importId: ctx.job.id,
+        title: `No MusicBrainz release matches “${hints.album ?? ctx.job.url}”`,
+        summary: "The search came back empty. Supply one with `mm import --release <mbid>`.",
+        payload: { url: ctx.job.url, queries: result.queries, videos: videos.length },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: "No release candidate: the Inbox is asking which release to use.",
+      data: { budget: result.budget, queries: result.queries },
+    };
+  }
+
+  const release =
+    chosen.id === result.ranking.preselected?.id
+      ? result.release
+      : await gateway.lookupRelease(chosen.id);
+  const proposal =
+    release === null
+      ? null
+      : mappingEngine.assign(videos, flattenTracks(release), configFromSettings(ctx.settings));
+
+  if (proposal === null) {
+    return {
+      status: "failed",
+      message: `Release ${chosen.id} has no tracklist.`,
+      data: { budget: result.budget },
+    };
+  }
+
+  await persistRelease(ctx, chosen);
+  const { mapped, extras } = await persistMapping(ctx, rows, proposal);
+  await raiseNotices(ctx, proposal, chosen.id);
+
+  const data = {
+    kind: "album" as const,
+    releaseMbid: chosen.id,
+    mapped,
+    extras,
+    uncovered: proposal.uncoveredTracks.length,
+    safe: chosen.safe,
+    ambiguous: result.ranking.ambiguous,
+    margin: result.ranking.margin,
+    budget: result.budget satisfies MatchBudget,
+    queries: result.queries,
+    candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+    mapping: proposal.lines,
+  };
+
+  // The only blocking case: two candidates that would import differently, close enough that
+  // preferring one would be a guess.
+  if (result.ranking.ambiguous && pinned === undefined) {
+    const runnerUp = result.ranking.candidates[1];
+    await openInboxItem(
+      {
+        type: "ambiguous_release",
+        importId: ctx.job.id,
+        title: `Two releases of “${chosen.title}” are equally likely`,
+        summary:
+          `${describe(chosen)} scores ${String(chosen.score)}, ` +
+          `${runnerUp === undefined ? "the runner-up" : describe(runnerUp)} ${String(runnerUp?.score ?? 0)} — ` +
+          `and they would not import the same tracks.`,
+        payload: {
+          margin: result.ranking.margin,
+          candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+        },
+        preselected: { releaseMbid: chosen.id },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `Two releases are within ${String(result.ranking.margin)}: the Inbox is asking.`,
+      data,
+    };
+  }
+
+  return {
+    status: "done",
+    message:
+      `${String(mapped)} track(s) mapped, ${String(extras)} extra, ` +
+      `${String(proposal.uncoveredTracks.length)} uncovered — ${describe(chosen)}`,
+    data,
+  };
+}
+
+function describe(candidate: ReleaseCandidate): string {
+  const parts = [candidate.country ?? "??", candidate.format ?? "?", candidate.date ?? ""];
+  return `${candidate.title} (${parts.filter((part) => part !== "").join(" ")})`;
+}
+
+/* ---- single ---- */
+
+async function matchOneRecording(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  videos: readonly MatchVideo[],
+  gateway: MbGateway,
+): Promise<StepResult> {
+  const video = videos[0];
+  const row = rows[0];
+  if (video === undefined || row === undefined) {
+    return { status: "failed", message: "Nothing to match." };
+  }
+
+  const result = await matchSingle(gateway, { video }, ctx.settings);
+  const chosen = result.ranking.preselected;
+
+  if (chosen === null || chosen.borrow === null) {
+    await openInboxItem(
+      {
+        type: "ambiguous_recording",
+        importId: ctx.job.id,
+        trackId: row.id,
+        title: `No MusicBrainz recording matches “${video.title}”`,
+        summary: "Nothing scored high enough to propose, or nothing it found is on a release.",
+        payload: {
+          queries: result.queries,
+          candidates: keep<RecordingCandidate>(result.ranking.candidates),
+        },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: "No recording candidate: the Inbox is asking.",
+      data: { budget: result.budget, queries: result.queries },
+    };
+  }
+
+  await persistRelease(ctx, {
+    id: chosen.borrow.id,
+    title: chosen.borrow.title,
+    artist: chosen.artist,
+    year: chosen.borrow.date === null ? null : Number(chosen.borrow.date.slice(0, 4)),
+  });
+  await updateTrack(ctx, row.id, {
+    role: "mapped",
+    trackMbid: null,
+    recordingMbid: chosen.id,
+    trackTitle: chosen.title,
+    trackPosition: chosen.borrow.trackPosition ?? 1,
+    mediumPosition: 1,
+    confidence: chosen.score,
+  });
+
+  const data = {
+    kind: "single" as const,
+    recordingMbid: chosen.id,
+    releaseMbid: chosen.borrow.id,
+    safe: chosen.safe,
+    ambiguous: result.ranking.ambiguous,
+    margin: result.ranking.margin,
+    budget: result.budget satisfies MatchBudget,
+    queries: result.queries,
+    candidates: keep<RecordingCandidate>(result.ranking.candidates),
+  };
+
+  if (result.ranking.ambiguous) {
+    const runnerUp = result.ranking.candidates[1];
+    await openInboxItem(
+      {
+        type: "ambiguous_recording",
+        importId: ctx.job.id,
+        trackId: row.id,
+        title: `Two recordings of “${chosen.title}” are equally likely`,
+        summary:
+          `${chosen.borrow.title} (${chosen.borrow.type ?? "release"}) at ${clock(chosen.length)} ` +
+          `against ${runnerUp?.borrow?.title ?? "the runner-up"} ` +
+          `(${runnerUp?.borrow?.type ?? "release"}) at ${clock(runnerUp?.length ?? null)}.`,
+        payload: {
+          margin: result.ranking.margin,
+          candidates: keep<RecordingCandidate>(result.ranking.candidates),
+        },
+        preselected: { recordingMbid: chosen.id, releaseMbid: chosen.borrow.id },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `Two recordings are within ${String(result.ranking.margin)}: the Inbox is asking.`,
+      data,
+    };
+  }
+
+  return {
+    status: "done",
+    message: `“${chosen.title}” by ${chosen.artist}, filed under “${chosen.borrow.title}”`,
+    data,
+  };
+}
+
+function clock(seconds: number | null): string {
+  if (seconds === null) return "?";
+  const total = Math.round(seconds);
+  return `${String(Math.floor(total / 60))}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/* ---- the escape hatch ---- */
+
+/**
+ * Apply a mapping decided outside the matcher (`mm import --mapping <file.json>`).
+ *
+ * Kept from P03 verbatim in behaviour. It is the thing that makes a wrong preselection
+ * survivable without waiting for a fix, and P05 does not get to remove it just because it now
+ * has an opinion of its own.
+ */
+async function applySupplied(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  supplied: SuppliedMapping,
+): Promise<StepResult> {
+  const byPosition = new Map(supplied.tracks.map((entry) => [entry.position, entry]));
+  let mapped = 0;
+  let extras = 0;
+
+  for (const row of rows) {
+    const hit = byPosition.get(row.position);
+    if (hit === undefined) {
+      await updateTrack(ctx, row.id, {
+        role: "extra",
+        trackMbid: null,
+        recordingMbid: null,
+        trackTitle: null,
+        trackPosition: null,
+        mediumPosition: null,
+        confidence: null,
+      });
+      extras += 1;
+      continue;
+    }
+    await updateTrack(ctx, row.id, {
       role: "mapped",
       trackMbid: hit.trackMbid ?? null,
       recordingMbid: hit.recordingMbid,
@@ -133,33 +582,27 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
     mapped += 1;
   }
 
-  await ctx.db
-    .update(imports)
-    .set({
-      releaseMbid: supplied.releaseMbid,
-      releaseGroupMbid: supplied.releaseGroupMbid ?? null,
-      ...(supplied.album === undefined ? {} : { title: supplied.album }),
-      ...(supplied.albumArtist === undefined ? {} : { artist: supplied.albumArtist }),
-      ...(supplied.year === undefined || supplied.year === null ? {} : { year: supplied.year }),
-      updatedAt: new Date(),
-    })
-    .where(eq(imports.id, ctx.job.id));
+  await persistRelease(ctx, {
+    id: supplied.releaseMbid,
+    releaseGroupId: supplied.releaseGroupMbid ?? null,
+    ...(supplied.album === undefined ? {} : { title: supplied.album }),
+    ...(supplied.albumArtist === undefined ? {} : { artist: supplied.albumArtist }),
+    year: supplied.year ?? null,
+  });
 
-  // The videos nobody claimed are the `extra_videos` case of `docs/04` § Inbox. It is a
-  // notice, not a gate: the album can be imported without them.
   if (extras > 0) {
-    const leftovers = videos.filter((video) => !byPosition.has(video.position));
+    const leftovers = rows.filter((row) => !byPosition.has(row.position));
     await openInboxItem(
       {
         type: "extra_videos",
         importId: ctx.job.id,
         title: `${String(extras)} video(s) outside the tracklist`,
-        summary: leftovers.map((video) => video.sourceTitle).join(", "),
+        summary: leftovers.map((row) => row.sourceTitle).join(", "),
         payload: {
-          videos: leftovers.map((video) => ({
-            id: video.id,
-            position: video.position,
-            title: video.sourceTitle,
+          videos: leftovers.map((row) => ({
+            id: row.id,
+            position: row.position,
+            title: row.sourceTitle,
           })),
         },
         preselected: { action: "ignore" },
@@ -168,8 +611,6 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
     );
   }
 
-  // A track of the release that no video covers: `uncovered_tracks`. Also a notice — the
-  // album is simply incomplete, which is exactly what the Inbox item is for.
   const covered = new Set(supplied.tracks.map((entry) => entry.trackPosition));
   const uncovered =
     supplied.trackTotal === undefined
@@ -193,7 +634,7 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
 
   return {
     status: "done",
-    message: `${String(mapped)} track(s) mapped, ${String(extras)} extra`,
-    data: { releaseMbid: supplied.releaseMbid, mapped, extras },
+    message: `${String(mapped)} track(s) mapped, ${String(extras)} extra (supplied mapping)`,
+    data: { releaseMbid: supplied.releaseMbid, mapped, extras, supplied: true },
   };
 }
