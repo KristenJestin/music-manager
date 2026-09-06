@@ -13,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { stripReleaseTypePrefix } from "@mm/domain";
 import { imports, importTracks, type ImportKind } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
+import { cookieJar } from "#/server/services/cookies.ts";
 import type { ExtractEntry, ExtractResult } from "#/server/toolbox/client.ts";
 import type { StepResult } from "../machine.ts";
 import type { StepContext } from "../context.ts";
@@ -67,7 +68,9 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     };
   }
 
-  const extract = await ctx.toolbox.extract(ctx.job.url);
+  // The same session the download step will use: a resolve that authenticates differently
+  // would pass the bot check and then hand the download a URL it cannot fetch.
+  const extract = await ctx.toolbox.extract(ctx.job.url, cookieJar(ctx.settings));
   if (extract.entries.length === 0) {
     return {
       status: "failed",
