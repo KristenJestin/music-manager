@@ -68,11 +68,11 @@ test.describe("the shell", () => {
   });
 
   /**
-   * P07 built these pages, so the placeholder they used to show is gone.
+   * Every entry in the sidebar leads somewhere real — and now every one of them is built.
    *
-   * What the shell still has to guarantee is the property the old assertion stood for: every
-   * entry in the sidebar leads somewhere real. `/discover` is the one that still says which
-   * phase builds it, and it is the only one left that should.
+   * P07 replaced its own placeholders and left `/discover` as the last one, asserted here by
+   * the phase name it advertised. P09 built it, so the exception is gone and the rule is the
+   * whole list: no `coming-soon` anywhere, and a heading on each page.
    */
   test("every Library and System entry leads to a real page", async ({ page }) => {
     for (const path of ["/library", "/library/tracks", "/library/quality", "/discover", "/tools"]) {
@@ -83,8 +83,6 @@ test.describe("the shell", () => {
     // `/settings` is a layout: it redirects to its first tab rather than rendering alone.
     await page.goto("/settings");
     await expect(page.getByTestId("settings-nav")).toBeVisible();
-
-    // `/discover` was the last placeholder; P09 built it, so it is in the loop above now.
   });
 
   test("the dashboard tiles link where they say they do", async ({ page }) => {
