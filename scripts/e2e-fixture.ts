@@ -34,7 +34,7 @@ import {
   resolveDocker,
   withDatabaseName,
 } from "./lib.ts";
-import { describeStack, e2eStack } from "./e2e-checkout.ts";
+import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -48,7 +48,7 @@ const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
  * pointed at — which was the developer's or another agent's real `mm` database by default.
  * `MM_E2E_DB` pins a name for a caller that wants a stable one.
  */
-const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_fixture_${String(process.pid)}`;
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_fixture_${RUN_TAG}`;
 const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 const TOOLBOX_URL = STACK.toolboxUrl;
 /**
@@ -66,8 +66,7 @@ const WEB_URL = process.env["MM_WEB_URL"] ?? `http://localhost:${String(WEB_PORT
  * Navidrome already see — so two runs (or a run and a developer's own `bun run dev`) never
  * write into the same album folder or fight over `.mm-work`.
  */
-const LIBRARY_SUBDIR =
-  process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `.mm-e2e-fixture-${String(process.pid)}`;
+const LIBRARY_SUBDIR = process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `.mm-e2e-fixture-${RUN_TAG}`;
 const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
 const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
 /**

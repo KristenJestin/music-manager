@@ -31,7 +31,7 @@ import {
   resolveDocker,
   withDatabaseName,
 } from "./lib.ts";
-import { describeStack, e2eStack } from "./e2e-checkout.ts";
+import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -45,7 +45,7 @@ const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
  * default, which a concurrent `bun run dev` or another agent's run could be using at the same
  * moment. `MM_E2E_DB` pins a name for a caller that wants a stable one.
  */
-const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_verify_${String(process.pid)}`;
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_e2e_verify_${RUN_TAG}`;
 const DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 const TOOLBOX_URL = STACK.toolboxUrl;
 const NAVIDROME_URL = STACK.navidromeUrl;
@@ -65,8 +65,7 @@ const NAVIDROME_PASSWORD = process.env["MM_NAVIDROME_PASSWORD"] ?? "admin";
  * actually finishes (confirmed against Navidrome 0.63.2: `getScanStatus` after a normal, real
  * scan of this directory).
  */
-const LIBRARY_SUBDIR =
-  process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `mm-e2e-verify-${String(process.pid)}`;
+const LIBRARY_SUBDIR = process.env["MM_E2E_LIBRARY_SUBDIR"] ?? `mm-e2e-verify-${RUN_TAG}`;
 const LIBRARY = resolve(repoRoot, ".local/library", LIBRARY_SUBDIR);
 const TOOLBOX_LIBRARY_ROOT = `/library/${LIBRARY_SUBDIR}`;
 const ALBUM_DIR = join(LIBRARY, "Daft Punk", "Discovery (2001)");

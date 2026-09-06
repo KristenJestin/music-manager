@@ -40,7 +40,7 @@ import {
   webDir,
   withDatabaseName,
 } from "./lib.ts";
-import { describeStack, e2eStack } from "./e2e-checkout.ts";
+import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -52,14 +52,14 @@ const ADMIN_DATABASE_URL = STACK.adminDatabaseUrl;
 const TOOLBOX_URL = STACK.toolboxUrl;
 
 /** The v2 database under test, and the scratch database standing in for v1. */
-const V2_DB = process.env["MM_E2E_DB"] ?? `mm_migrate_e2e_${String(process.pid)}`;
+const V2_DB = process.env["MM_E2E_DB"] ?? `mm_migrate_e2e_${RUN_TAG}`;
 /**
  * Per process, like the v2 one beside it. A fixed `mm_v1_fixture` was the last shared name
  * left in these runners: two runs on this machine — two agents, or the three consecutive runs
  * of a stabilisation pass — dropped and recreated the *same* v1 installation out from under
  * each other, and the loser migrated a database that had just been emptied.
  */
-const V1_DB = process.env["MM_V1_FIXTURE_DB"] ?? `mm_v1_fixture_${String(process.pid)}`;
+const V1_DB = process.env["MM_V1_FIXTURE_DB"] ?? `mm_v1_fixture_${RUN_TAG}`;
 const V2_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, V2_DB);
 const V1_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, V1_DB);
 
@@ -77,7 +77,7 @@ const V1_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, V1_DB);
  * later /tag on it answers "No such file" for a file that is plainly on the host. A fresh name
  * per run is picked up correctly every time, and is removed again at the end.
  */
-const LIBRARY_LEAF = process.env["MM_E2E_LIBRARY_LEAF"] ?? `.mm-migrate-${String(process.pid)}`;
+const LIBRARY_LEAF = process.env["MM_E2E_LIBRARY_LEAF"] ?? `.mm-migrate-${RUN_TAG}`;
 const LIBRARY = resolve(repoRoot, ".local", "library", LIBRARY_LEAF);
 const TOOLBOX_LIBRARY = `/library/${LIBRARY_LEAF}`;
 

@@ -28,6 +28,22 @@ import type { Checkout } from "./checkout.ts";
 /** Where a database can be created: the server, on a database that certainly exists. */
 const FALLBACK_DATABASE_URL = "postgres://mm:mm@localhost:5432/mm";
 
+/**
+ * A scratch name no other run on this machine can produce — the process id **and** six random
+ * characters.
+ *
+ * The process id alone was the name, and it is not unique: Windows recycles process ids
+ * quickly, several agents run these suites at once, and each of them drops its own
+ * `mm_web_e2e_<pid>` on the way out. A run watched its database vanish underneath it mid-suite
+ * and turned into `PostgresError: database "mm_web_e2e_36456" does not exist` reported through
+ * Better Auth as a plain *"Sign-in failed."* on the login page, sixty tests from the cause.
+ * Six random characters cost nothing and end the whole class.
+ *
+ * Lowercase alphanumerics only, because this ends up inside an unquoted SQL identifier and in
+ * a directory name.
+ */
+export const RUN_TAG = `${String(process.pid)}_${Math.random().toString(36).slice(2, 8)}`;
+
 export interface E2EStack {
   readonly checkout: Checkout;
   /**

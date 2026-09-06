@@ -36,7 +36,7 @@ import {
   webDir,
   withDatabaseName,
 } from "./lib.ts";
-import { describeStack, e2eStack } from "./e2e-checkout.ts";
+import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -59,13 +59,14 @@ const PORT = process.env["MM_E2E_PORT"]
 const BASE_URL = `http://localhost:${String(PORT)}`;
 
 /**
- * A database of its own, per process. `MM_E2E_DB` pins one for a caller that wants a stable
- * name; otherwise the PID makes two concurrent runs use two different databases instead of
+ * A database of its own, per run. `MM_E2E_DB` pins one for a caller that wants a stable
+ * name; otherwise `RUN_TAG` makes two concurrent runs use two different databases instead of
  * dropping and recreating the same `mm_web_e2e` out from under each other — the failure P07a
  * and P07b hit running `bun run e2e` at the same time (`orchestration/reports/P07a-build-1.md`
- * §6, "non fait").
+ * §6, "non fait"). The tag is not the process id alone; see `e2e-checkout.ts` for the run that
+ * watched its own database disappear because a sibling had held that id first.
  */
-const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_web_e2e_${String(process.pid)}`;
+const TEST_DB = process.env["MM_E2E_DB"] ?? `mm_web_e2e_${RUN_TAG}`;
 const TEST_DATABASE_URL = withDatabaseName(ADMIN_DATABASE_URL, TEST_DB);
 
 const ADMIN_EMAIL = "e2e@music-manager.test";
