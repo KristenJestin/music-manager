@@ -120,6 +120,16 @@ describe("aggregate", () => {
     expect(folded.genres[0]?.plays).toBe(15);
   });
 
+  it("counts a genre once per observation, however many times it is spelled", () => {
+    const folded = aggregate(
+      [observation({ id: "a", genres: ["electronic", "Electronic", "house"], playCount: 10 })],
+      { now: NOW, windowDays: 30 },
+    );
+    // Both genres are on the same record, so they carry the same weight. Anything else means
+    // one name was counted twice and now leads a ranking it did not earn.
+    expect(folded.genres.map((genre) => genre.plays)).toEqual([10, 10]);
+  });
+
   it("uses a newer top-song play than the album row knows about", () => {
     const stale = observation({ id: "album:1", played: "2026-06-01T00:00:00Z" });
     const without = aggregate([stale], { now: NOW, windowDays: 30 });
@@ -173,6 +183,20 @@ describe("the Subsonic projection", () => {
       starred: true,
       rating: 5,
     });
+  });
+
+  it("folds the primary genre Navidrome also repeats inside `genres`", () => {
+    // Exactly what a real Navidrome answers: `genre` is the first entry of `genres` again.
+    // Concatenating the two gave that genre double the plays of every other one on the record.
+    const one = observationOfAlbum({
+      id: "x",
+      name: "Discovery",
+      artist: "Daft Punk",
+      genre: "electronic",
+      genres: [{ name: "electronic" }, { name: "house" }, { name: "french house" }],
+      playCount: 42,
+    });
+    expect(one.genres).toEqual(["electronic", "house", "french house"]);
   });
 
   it("treats an absent counter as zero rather than as a missing artist", () => {

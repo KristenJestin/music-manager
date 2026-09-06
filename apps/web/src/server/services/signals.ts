@@ -198,9 +198,15 @@ export function aggregate(
     entry.starred = entry.starred || item.starred;
     artists.set(key, entry);
 
+    // One observation contributes its weight **once per distinct genre**. `genresOf` already
+    // folds the duplicate Navidrome sends, but the guard belongs here too: `aggregate` takes
+    // observations from anywhere, and a repeated name would otherwise inflate exactly one
+    // genre — the one the server considers primary — which is the ranking's first row.
+    const counted = new Set<string>();
     for (const raw of item.genres) {
       const genre = raw.trim().toLowerCase();
-      if (genre === "") continue;
+      if (genre === "" || counted.has(genre)) continue;
+      counted.add(genre);
       const found = genres.get(genre) ?? { name: genre, plays: 0 };
       found.plays += weight;
       genres.set(genre, found);
@@ -230,13 +236,29 @@ export function aggregate(
 /* reading Navidrome                                                   */
 /* ------------------------------------------------------------------ */
 
-/** Subsonic sends `genre` (one) and `genres` (many). Take the union, keep the order. */
+/**
+ * Subsonic sends `genre` (one) and `genres` (many). Take the union, keep the order.
+ *
+ * A **union**, not a concatenation, and the difference is not academic: Navidrome puts the
+ * primary genre in `genre` *and* repeats it inside `genres`, so an album tagged
+ * `electronic; house; french house` arrives with `electronic` twice. Concatenating gave that
+ * one genre double the weight of every other genre on the same record — on a library of one
+ * album, `electronic 126` against `house 63` — which is the same class of bug as counting an
+ * album once per Subsonic view, one level further down. The first spelling wins, because
+ * `genre` is the one Navidrome considers primary.
+ */
 function genresOf(item: SubsonicAlbum | SubsonicSong): string[] {
   const out: string[] = [];
-  if (typeof item.genre === "string" && item.genre.trim() !== "") out.push(item.genre);
-  for (const entry of item.genres ?? []) {
-    if (typeof entry.name === "string" && entry.name.trim() !== "") out.push(entry.name);
-  }
+  const seen = new Set<string>();
+  const add = (name: unknown): void => {
+    if (typeof name !== "string" || name.trim() === "") return;
+    const key = name.trim().toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(name);
+  };
+  add(item.genre);
+  for (const entry of item.genres ?? []) add(entry.name);
   return out;
 }
 
