@@ -21,7 +21,7 @@
  * Navidrome is not started for a worktree unless `--navidrome` is passed: it is a conformance
  * target, not a dependency of the app, and one scanner per worktree is a lot of scanning.
  */
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { SQL } from "bun";
 import {
@@ -104,11 +104,90 @@ async function toolboxAnswers(url: string): Promise<boolean> {
 /* up                                                                  */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* is the toolbox image older than the toolbox source?                 */
+/* ------------------------------------------------------------------ */
+
+/** Where the toolbox image is built from. Everything under it is part of the image. */
+const TOOLBOX_SOURCE = join(repoRoot, "services", "toolbox");
+
+/** Newest mtime under `dir`, ignoring the caches nobody builds from. */
+function newestMtime(dir: string): { at: number; path: string } {
+  let best = { at: 0, path: "" };
+  const skip = new Set([".venv", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"]);
+  const walk = (current: string): void => {
+    let entries;
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (skip.has(entry.name)) continue;
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      try {
+        const at = statSync(full).mtimeMs;
+        if (at > best.at) best = { at, path: full };
+      } catch {
+        /* a file that vanished between readdir and stat is not a staleness signal */
+      }
+    }
+  };
+  walk(dir);
+  return best;
+}
+
+/**
+ * Warn when the running toolbox image predates the code it is built from.
+ *
+ * This is the failure that cost a whole debugging session on 2026-09-06 and is written up in
+ * `orchestration/feedback/2026-09-06-mcp-test-report.md` §3: `cookies_content` was added to
+ * `services/toolbox/src/toolbox/models.py`, the image was not rebuilt, and pydantic answered
+ * every `POST /extract` with `422 extra_forbidden`. Every import failed. Nothing said why —
+ * the app reported `UNKNOWN`, and the one true fact, "the image is older than the code", was
+ * only visible by comparing two timestamps that nobody had a reason to compare.
+ *
+ * So the comparison happens on every `up`. It is a **warning**, never a failure: a rebuild is
+ * minutes, a stale image is usually harmless, and a script that refused to start the stack
+ * over a file's mtime would be worse than the bug it guards against.
+ */
+async function warnIfImageIsStale(docker: string, project: string): Promise<void> {
+  const image = `${project}-toolbox`;
+  const { stdout, code } = await capture({
+    label: "toolbox image age",
+    cmd: [docker, "image", "inspect", image, "--format", "{{.Created}}"],
+  });
+  if (code !== 0) return; // no image yet: `up` is about to build one.
+
+  const builtAt = Date.parse(stdout.trim());
+  if (!Number.isFinite(builtAt)) return;
+
+  const newest = newestMtime(TOOLBOX_SOURCE);
+  if (newest.at <= builtAt) return;
+
+  const hours = Math.round((newest.at - builtAt) / 3_600_000);
+  console.warn(
+    `\n!!! the toolbox image "${image}" is older than services/toolbox/\n` +
+      `    image built   ${new Date(builtAt).toISOString()}\n` +
+      `    newest source ${new Date(newest.at).toISOString()}  (${newest.path.slice(repoRoot.length + 1)})\n` +
+      `    ${hours <= 0 ? "less than an hour" : `about ${String(hours)} hour(s)`} behind.\n` +
+      "    A field added to the toolbox's models but missing from the image makes every call\n" +
+      "    fail with HTTP 422 `extra_forbidden`, which reads as a bug in the app.\n" +
+      "    Rebuild it:  bun run stack:up --build\n",
+  );
+}
+
 /**
  * Bring this checkout's stack up and leave it up. Returns the resolved environment so that
  * `bun run dev` can hand it straight to the web app.
  */
-export async function stackUp(options: { navidrome?: boolean } = {}): Promise<DevEnv> {
+export async function stackUp(
+  options: { navidrome?: boolean; build?: boolean } = {},
+): Promise<DevEnv> {
   const resolved = devEnv({ preferPortless: process.env["PORTLESS_URL"] !== undefined });
   const info = resolved.checkout;
   const docker = await needDocker();
@@ -123,13 +202,22 @@ export async function stackUp(options: { navidrome?: boolean } = {}): Promise<De
     ? []
     : ["toolbox", ...(options.navidrome === true ? ["navidrome"] : [])];
 
-  say(`docker compose -p ${info.composeProject} up -d ${services.join(" ")}`.trim());
+  // `--build` rebuilds the image and recreates the container from it; without it compose
+  // reuses whatever image is already tagged, however old.
+  const buildArgs = options.build === true ? ["--build", "--force-recreate"] : [];
+
+  say(
+    `docker compose -p ${info.composeProject} up -d ${[...buildArgs, ...services].join(" ")}`.trim(),
+  );
   const code = await run({
     label: "compose up",
-    cmd: [docker, ...composeArgs(info), "up", "-d", ...services],
+    cmd: [docker, ...composeArgs(info), "up", "-d", ...buildArgs, ...services],
     env: { ...resolved.env, ...composeEnv(info) },
   });
   if (code !== 0) process.exit(code);
+
+  // After the build, not before: a `--build` run has just made the answer "no".
+  if (options.build !== true) await warnIfImageIsStale(docker, info.composeProject);
 
   if (info.isPrimary) {
     say("waiting for postgres to report healthy");
@@ -216,7 +304,10 @@ if (import.meta.main) {
   const command = process.argv[2] ?? "info";
   switch (command) {
     case "up":
-      await stackUp({ navidrome: process.argv.includes("--navidrome") });
+      await stackUp({
+        navidrome: process.argv.includes("--navidrome"),
+        build: process.argv.includes("--build"),
+      });
       break;
     case "down":
       await stackDown();
@@ -225,7 +316,7 @@ if (import.meta.main) {
       console.log(describeCheckout(devEnv()));
       break;
     default:
-      console.error(`unknown command "${command}". Use: up | down | info`);
+      console.error(`unknown command "${command}". Use: up [--build] [--navidrome] | down | info`);
       process.exit(2);
   }
 }
