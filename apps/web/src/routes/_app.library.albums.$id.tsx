@@ -700,18 +700,35 @@ function CompareTab({
       row.diff !== null &&
       (row.diff.added.length > 0 || row.diff.changed.length > 0 || row.diff.removed.length > 0),
   );
+  /*
+   * A file that could not be read is not a file that agrees.
+   *
+   * The summary used to count only *drift*, so an album whose files were all missing from
+   * disk was announced as "They agree" above fourteen rows each saying "The file is not on
+   * disk" — the page contradicting itself in one screen. A row we could not compare is
+   * counted here and named separately below.
+   */
+  const unreadable = rows.filter((row) => row.error !== null);
+  const settled = drifting.length === 0 && unreadable.length === 0;
 
   return (
     <>
-      <Callout tone={drifting.length === 0 ? "ok" : "warn"} className="mb-3">
+      <Callout tone={settled ? "ok" : "warn"} className="mb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             Every file was opened through the toolbox&rsquo;s{" "}
             <code className="font-mono">/probe</code> and compared, key by key, with what the
             database says it should hold.{" "}
-            {drifting.length === 0
+            {settled
               ? "They agree."
-              : `${String(drifting.length)} of ${String(rows.length)} file(s) differ.`}{" "}
+              : [
+                  drifting.length === 0
+                    ? null
+                    : `${String(drifting.length)} of ${String(rows.length)} file(s) differ`,
+                  unreadable.length === 0 ? null : `${String(unreadable.length)} could not be read`,
+                ]
+                  .filter((part): part is string => part !== null)
+                  .join(", ") + "."}{" "}
             The database is the source of truth, so &ldquo;fix&rdquo; means writing it back out.
           </div>
           <Button
