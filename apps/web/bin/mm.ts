@@ -73,6 +73,7 @@ import {
   type SettingKey,
 } from "#/server/services/settings.ts";
 import { createBoss, enqueueDownload, enqueueImportStep, stopBoss } from "#/worker/queues.ts";
+import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
 
 /* ------------------------------------------------------------------ */
 /* argument parsing                                                    */
@@ -855,6 +856,13 @@ const USAGE = `mm — Music Manager
   mm doc rebuild <id> [--offline]        offline by default; exits 1 if anything left the machine
   mm sources                             which credentials are set, and every source's TTL
 
+  mm verify <album> [--rescan] [--json]  read one album back through Navidrome, field by field
+  mm verify --all [--json]               the whole library, with one scan for all of it
+  mm scan [run|last] [--drift-limit N]   walk the library: orphans, missing, drift, duplicates
+  mm scan identify <path> | trash <path>  fingerprint an orphan, or move a file to the trash
+  mm tools [status|update|selftest]       the downloader, the cookies and the sources
+  mm tools url <url> | mm tools errors    a dry-run extract, and the error decoder
+
 Environment: DATABASE_URL, MM_TOOLBOX_URL, MM_FIXTURES, MM_LIBRARY_ROOT, MM_TOOLBOX_LIBRARY_ROOT,
              MM_MB_CONTACT, MM_ACOUSTID_KEY, MM_LASTFM_KEY, MM_FANARTTV_KEY.
 `;
@@ -882,6 +890,12 @@ async function main(): Promise<number> {
       return await cmdDoc(args);
     case "sources":
       return await cmdSources();
+    case "verify":
+      return await cmdVerify(args);
+    case "scan":
+      return await cmdScan(args);
+    case "tools":
+      return await cmdTools(args);
     case "cancel":
     case "pause":
     case "bump":
