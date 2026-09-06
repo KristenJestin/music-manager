@@ -75,13 +75,7 @@ test.describe("the shell", () => {
    * phase builds it, and it is the only one left that should.
    */
   test("every Library and System entry leads to a real page", async ({ page }) => {
-    for (const path of [
-      "/library",
-      "/library/tracks",
-      "/library/quality",
-      "/discover",
-      "/tools",
-    ]) {
+    for (const path of ["/library", "/library/tracks", "/library/quality", "/discover", "/tools"]) {
       await page.goto(path);
       await expect(page.getByTestId("coming-soon")).toHaveCount(0);
       await expect(page.locator("h1").first()).toBeVisible();
