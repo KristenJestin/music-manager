@@ -453,14 +453,26 @@ async function main(): Promise<void> {
   section("4 · delete a file → the scan reports it missing → re-download");
   /* ---------------------------------------------------------------- */
 
-  const victim = join(ALBUM_DIR, "05 - Crescendolls.opus");
+  /*
+   * The file this section sabotages, named once.
+   *
+   * It was spelled out at five call sites, and the three SQL ones still said
+   * `%05 Crescendolls.opus` long after the path template had become `{track:02} - {title}`.
+   * The `like` matched nothing, so "the missing track still knows which video it came from"
+   * failed — and the check after it, which compares the mapping before and after the
+   * re-download, passed on `undefined === undefined`, which is worse than failing. One
+   * constant, and a guard below so that comparison can never be vacuous again.
+   */
+  const VICTIM = "05 - Crescendolls.opus";
+  const victimLike = `%${VICTIM}`;
+  const victim = join(ALBUM_DIR, VICTIM);
   const victimSize = statSync(victim).size;
   unlinkSync(victim);
-  info(`deleted 05 Crescendolls.opus (${String(victimSize)} bytes)`);
+  info(`deleted ${VICTIM} (${String(victimSize)} bytes)`);
 
   const afterDelete = await mm(["scan", "run", "--json"], { allowFailure: true });
   const scan1 = JSON.parse(afterDelete.stdout) as ScanReport;
-  const missing = scan1.missing.find((entry) => entry.path.endsWith("05 - Crescendolls.opus"));
+  const missing = scan1.missing.find((entry) => entry.path.endsWith(VICTIM));
   check(
     missing !== undefined,
     "the scan reports the file as missing",
@@ -472,13 +484,13 @@ async function main(): Promise<void> {
   const mapping = await sql<{ recording_mbid: string; track_mbid: string; video_id: string }[]>`
     select it.recording_mbid, it.track_mbid, it.video_id
       from library_tracks lt join import_tracks it on it.id = lt.import_track_id
-     where lt.path like '%05 Crescendolls.opus'`;
+     where lt.path like ${victimLike}`;
   const before = mapping[0];
   check(before !== undefined, "the missing track still knows which video it came from");
 
   await sql`update import_tracks set state = 'pending', download_path = null, library_path = null
              where id = (select import_track_id from library_tracks
-                          where path like '%05 Crescendolls.opus')`;
+                          where path like ${victimLike})`;
   await mm(["retry", importId, "--step", "download"]);
   const resumed = await waitForImport(importId);
   check(resumed === "done", "the re-download finished", resumed);
@@ -491,11 +503,12 @@ async function main(): Promise<void> {
   const after = await sql<{ recording_mbid: string; track_mbid: string; video_id: string }[]>`
     select it.recording_mbid, it.track_mbid, it.video_id
       from library_tracks lt join import_tracks it on it.id = lt.import_track_id
-     where lt.path like '%05 Crescendolls.opus'`;
+     where lt.path like ${victimLike}`;
   check(
-    after[0]?.recording_mbid === before?.recording_mbid &&
-      after[0]?.track_mbid === before?.track_mbid &&
-      after[0]?.video_id === before?.video_id,
+    before !== undefined &&
+      after[0]?.recording_mbid === before.recording_mbid &&
+      after[0]?.track_mbid === before.track_mbid &&
+      after[0]?.video_id === before.video_id,
     "the mapping survived the re-download",
     `${String(after[0]?.video_id)} → ${String(after[0]?.recording_mbid)}`,
   );
