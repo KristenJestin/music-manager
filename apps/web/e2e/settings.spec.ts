@@ -73,22 +73,24 @@ test.describe("settings", () => {
 
     const tagMap = page.getByTestId("settings-tag-map");
     await expect(tagMap).toBeVisible();
-    const superset = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
+    const rows = tagMap.locator("tbody tr[data-testid^='tag-row-']");
+    const superset = await rows.count();
     expect(superset).toBeGreaterThan(50);
 
     // The format switcher changes the key column, not the rows.
     await expect(tagMap.getByRole("columnheader", { name: "Vorbis" })).toBeVisible();
     await page.getByTestId("tagmap-format").getByRole("button", { name: "ID3v2.4" }).click();
     await expect(tagMap.getByRole("columnheader", { name: "ID3v2.4" })).toBeVisible();
-    expect(await tagMap.locator("tbody tr[data-testid^='tag-row-']").count()).toBe(superset);
+    await expect(rows).toHaveCount(superset, { timeout: 30_000 });
 
     // A consumer profile is a strict subset, and says so above the table.
     await page
       .getByTestId("tagmap-profile")
       .getByRole("button", { name: /Navidrome/ })
       .click();
-    const filtered = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
-    expect(filtered).toBeLessThan(superset);
+    // Polled: the click re-renders the table, and a `count()` taken in the same tick is the
+    // *unfiltered* one — the mistake that failed `library.spec.ts` with 103 < 103.
+    await expect.poll(async () => await rows.count(), { timeout: 30_000 }).toBeLessThan(superset);
     await expect(page.getByText("This filter changes the view, not the files.")).toBeVisible();
 
     /* ---- the round trip ---------------------------------------------------- */

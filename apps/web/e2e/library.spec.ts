@@ -77,16 +77,26 @@ test.describe("the library", () => {
     const tagMap = page.getByTestId("tag-map");
     await expect(tagMap).toBeVisible();
 
-    // The superset is the whole map; a profile is a strict subset of it. That is the entire
-    // claim of §5, and it is visible as a row count.
-    const supersetRows = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
+    /*
+     * The superset is the whole map; a profile is a strict subset of it. That is the entire
+     * claim of §5, and it is visible as a row count.
+     *
+     * **Polled, not read once.** `waitForURL` resolves on the address bar, and the address bar
+     * changes before the loader's answer is rendered: a `count()` taken straight after it is
+     * the *previous* profile's, and the assertion then reads `expect(103).toBeLessThan(103)` —
+     * which is exactly how this failed, once, on a loaded machine. The row count is the thing
+     * the profile is supposed to change, so it is the thing to wait on.
+     */
+    const rows = tagMap.locator("tbody tr[data-testid^='tag-row-']");
+    const supersetRows = await rows.count();
     expect(supersetRows).toBeGreaterThan(50);
 
     await page.getByTestId("profile-navidrome").click();
     await page.waitForURL(/profile=navidrome/, { timeout: 60_000 });
-    const navidromeRows = await tagMap.locator("tbody tr[data-testid^='tag-row-']").count();
-    expect(navidromeRows).toBeGreaterThan(0);
-    expect(navidromeRows).toBeLessThan(supersetRows);
+    await expect
+      .poll(async () => await rows.count(), { timeout: 30_000 })
+      .toBeLessThan(supersetRows);
+    expect(await rows.count()).toBeGreaterThan(0);
 
     // Plex ignores MusicBrainz identifiers entirely, so that row must disappear for it —
     // and reappear for the superset, because a profile changes the view and not the files.
