@@ -272,6 +272,68 @@
         "title": "ErrorBody",
         "type": "object"
       },
+      "ErrorCatalog": {
+        "description": "Payload of ``GET /errors``.",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorCatalogEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "title": "ErrorCatalog",
+        "type": "object"
+      },
+      "ErrorCatalogEntry": {
+        "description": "One row of ``GET /errors`` — the Console's error decoder, straight from ``errors.py``.",
+        "properties": {
+          "action": {
+            "description": "Label of the single button the Console offers. Empty = none.",
+            "title": "Action",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "hint": {
+            "description": "Why it happens, in one sentence.",
+            "title": "Hint",
+            "type": "string"
+          },
+          "message": {
+            "description": "What the operator is told when nothing more specific is known.",
+            "title": "Message",
+            "type": "string"
+          },
+          "patterns": {
+            "description": "Case-insensitive substrings that identify this failure in a yt-dlp message.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint",
+          "action",
+          "status"
+        ],
+        "title": "ErrorCatalogEntry",
+        "type": "object"
+      },
       "ErrorCode": {
         "description": "Every failure mode the toolbox knows how to name.",
         "enum": [
@@ -1791,6 +1853,28 @@
         "summary": "Download",
         "tags": [
           "download"
+        ]
+      }
+    },
+    "/errors": {
+      "get": {
+        "description": "The failure taxonomy, so the Console's decoder and the toolbox cannot drift apart.\n\n`docs/07-ui.md` gives Tools an \"error decoder\" table: what a yt-dlp message means and\nwhich button fixes it. Duplicating that table in TypeScript would guarantee it goes stale\nthe first time a pattern is added here, so it is served from the one place that owns it.",
+        "operationId": "errorCatalog",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorCatalog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Error Catalog",
+        "tags": [
+          "meta"
         ]
       }
     },

@@ -23,6 +23,7 @@ import {
 } from "#/server/services/jobs/index.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
+import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
 import {
   createBoss,
   CRON_QUEUES,
@@ -34,6 +35,7 @@ import {
   type DownloadJob,
   type ImportStepJob,
 } from "./queues.ts";
+import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
 
 const log = (message: string, extra: Record<string, unknown> = {}): void => {
   console.log(
@@ -104,15 +106,56 @@ export async function startWorker(): Promise<Worker> {
     },
   );
 
+  /* ---- retag: the background re-projection of docs/03 §8 (P07a) ---- */
+  await registerRetagHandlers(boss, { signal: shutdown.signal, log });
+
+  /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
+  await boss.work<ScanJob>(
+    QUEUES.scan,
+    { localConcurrency: 1, pollingIntervalSeconds: 5 },
+    async (jobs: Job<ScanJob>[]) => {
+      for (const job of jobs) {
+        log("scan", { jobId: job.id, trigger: job.data.trigger });
+        await handleScan(job, { db: db(), signal: shutdown.signal, log });
+      }
+    },
+  );
+
+  /* ---- the two crons P07b owns ---- */
+  await boss.work("cron.scan", { localConcurrency: 1 }, async () => {
+    await enqueueScan(boss, { trigger: "cron" });
+  });
+  await boss.work("cron.ytdlp-update", { localConcurrency: 1 }, async () => {
+    await handleYtdlpUpdate({ db: db(), log });
+  });
+
   /* ---- registered, not implemented yet ---- */
+  const HANDLED = new Set<string>([
+    QUEUES.retag,
+    QUEUES.scan,
+    "cron.refresh-sources",
+    "cron.scan",
+    "cron.ytdlp-update",
+  ]);
   for (const name of [QUEUES.retag, QUEUES.scan, ...Object.keys(CRON_QUEUES)]) {
+    if (HANDLED.has(name)) continue;
     await boss.work(name, { localConcurrency: 1 }, async (jobs: Job<object>[]) => {
       log("queue not implemented yet", { queue: name, jobs: jobs.length });
     });
   }
 
+  // The nightly scan and the yt-dlp refresh follow their settings; the rest keep the
+  // declared default. A cron expression is a setting because "3 a.m." is not 3 a.m. for
+  // everyone, and a library scan at the wrong hour is a fan spinning up during dinner.
+  const schedules = await loadSettings(db());
   for (const [name, cron] of Object.entries(CRON_QUEUES)) {
-    await boss.schedule(name, cron);
+    const expression =
+      name === "cron.scan"
+        ? schedules.scanCron
+        : name === "cron.ytdlp-update"
+          ? schedules.ytdlpUpdateCron
+          : cron;
+    await boss.schedule(name, expression);
   }
 
   /* ---- resume whatever the last worker left behind ---- */
@@ -150,6 +193,13 @@ export async function startWorker(): Promise<Worker> {
       );
     }
   }
+
+  // A bump of the tag schema is noticed here rather than by a person: the version the process
+  // projects to has just been read, the library says which files are behind it, and §8's whole
+  // claim is that the difference is closed in the background. Nothing is queued when there is
+  // nothing behind, which is the answer on every boot but the one after a bump.
+  const outdated = await queueOutdated(boss, { db: db(), trigger: "schema" });
+  if (outdated !== null) log("re-tag queued for files behind the tag schema", { runId: outdated });
 
   const settings = await loadSettings(db());
   log("worker ready", {

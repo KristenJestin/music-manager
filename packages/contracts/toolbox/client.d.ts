@@ -64,6 +64,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Error Catalog
+         * @description The failure taxonomy, so the Console's decoder and the toolbox cannot drift apart.
+         *
+         *     `docs/07-ui.md` gives Tools an "error decoder" table: what a yt-dlp message means and
+         *     which button fixes it. Duplicating that table in TypeScript would guarantee it goes stale
+         *     the first time a pattern is added here, so it is served from the one place that owns it.
+         */
+        get: operations["errorCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/extract": {
         parameters: {
             query?: never;
@@ -398,6 +422,44 @@ export interface components {
             hint: string;
             /** Message */
             message: string;
+        };
+        /**
+         * ErrorCatalog
+         * @description Payload of ``GET /errors``.
+         */
+        ErrorCatalog: {
+            /** Entries */
+            entries: components["schemas"]["ErrorCatalogEntry"][];
+        };
+        /**
+         * ErrorCatalogEntry
+         * @description One row of ``GET /errors`` — the Console's error decoder, straight from ``errors.py``.
+         */
+        ErrorCatalogEntry: {
+            /**
+             * Action
+             * @description Label of the single button the Console offers. Empty = none.
+             */
+            action: string;
+            /** Code */
+            code: string;
+            /**
+             * Hint
+             * @description Why it happens, in one sentence.
+             */
+            hint: string;
+            /**
+             * Message
+             * @description What the operator is told when nothing more specific is known.
+             */
+            message: string;
+            /**
+             * Patterns
+             * @description Case-insensitive substrings that identify this failure in a yt-dlp message.
+             */
+            patterns?: string[];
+            /** Status */
+            status: number;
         };
         /**
          * ErrorCode
@@ -1006,6 +1068,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    errorCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorCatalog"];
                 };
             };
         };

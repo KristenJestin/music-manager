@@ -22,5 +22,6 @@ export * from "./library.ts";
 export * from "./metadata.ts";
 export * from "./inbox.ts";
 export * from "./retag.ts";
+export * from "./scan.ts";
 export * from "./settings.ts";
 export * from "./auth.ts";

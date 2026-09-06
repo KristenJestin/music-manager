@@ -103,6 +103,26 @@ class Health(BaseModel):
     versions: ToolVersions
 
 
+class ErrorCatalogEntry(BaseModel):
+    """One row of ``GET /errors`` — the Console's error decoder, straight from ``errors.py``."""
+
+    code: str
+    message: str = Field(description="What the operator is told when nothing more specific is known.")
+    hint: str = Field(description="Why it happens, in one sentence.")
+    action: str = Field(description="Label of the single button the Console offers. Empty = none.")
+    status: int
+    patterns: list[str] = Field(
+        default_factory=list[str],
+        description="Case-insensitive substrings that identify this failure in a yt-dlp message.",
+    )
+
+
+class ErrorCatalog(BaseModel):
+    """Payload of ``GET /errors``."""
+
+    entries: list[ErrorCatalogEntry]
+
+
 # --------------------------------------------------------------------------------------
 # /extract
 # --------------------------------------------------------------------------------------

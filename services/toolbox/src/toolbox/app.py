@@ -25,7 +25,7 @@ from toolbox import probe as probe_module
 from toolbox import replaygain as rg_module
 from toolbox.config import fixtures_enabled, toolbox_token
 from toolbox.download import MEDIA_TYPE, ndjson_download
-from toolbox.errors import ErrorBody, ToolboxError
+from toolbox.errors import ERROR_CATALOG, ErrorBody, ToolboxError
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import (
     ArtworkRequest,
@@ -33,6 +33,8 @@ from toolbox.models import (
     CookiesTestRequest,
     CookiesTestResult,
     DownloadRequest,
+    ErrorCatalog,
+    ErrorCatalogEntry,
     ExtractRequest,
     ExtractResult,
     FingerprintRequest,
@@ -129,6 +131,29 @@ def health() -> Health:
     )
     return Health(
         ok=True, fixtures=fixtures_enabled(), downloading=DOWNLOAD_LOCK.held, versions=versions
+    )
+
+
+@app.get("/errors", operation_id="errorCatalog", tags=["meta"])
+def error_catalog() -> ErrorCatalog:
+    """The failure taxonomy, so the Console's decoder and the toolbox cannot drift apart.
+
+    `docs/07-ui.md` gives Tools an "error decoder" table: what a yt-dlp message means and
+    which button fixes it. Duplicating that table in TypeScript would guarantee it goes stale
+    the first time a pattern is added here, so it is served from the one place that owns it.
+    """
+    return ErrorCatalog(
+        entries=[
+            ErrorCatalogEntry(
+                code=spec.code.value,
+                message=spec.message,
+                hint=spec.hint,
+                action=spec.action,
+                status=spec.status,
+                patterns=list(spec.patterns),
+            )
+            for spec in ERROR_CATALOG
+        ]
     )
 
 

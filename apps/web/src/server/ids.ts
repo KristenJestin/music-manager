@@ -30,6 +30,7 @@ export const ID_PREFIXES = {
   decision: "dec",
   retagRun: "rtg",
   retagDiff: "rtd",
+  libraryScan: "scn",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

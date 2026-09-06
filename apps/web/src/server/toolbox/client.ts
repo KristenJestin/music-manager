@@ -30,6 +30,13 @@ export type ToolboxHealthResult = components["schemas"]["Health"];
 export type Tag = components["schemas"]["Tag"];
 export type Picture = components["schemas"]["Picture"];
 export type OnExists = components["schemas"]["OnExists"];
+export type UpdateResult = components["schemas"]["UpdateResult"];
+export type SelfTestResult = components["schemas"]["SelfTestResult"];
+export type SelfTestCheck = components["schemas"]["SelfTestCheck"];
+export type CookiesTestResult = components["schemas"]["CookiesTestResult"];
+export type ToolVersions = components["schemas"]["ToolVersions"];
+export type ErrorCatalog = components["schemas"]["ErrorCatalog"];
+export type ErrorCatalogEntry = components["schemas"]["ErrorCatalogEntry"];
 
 /** One line of the `POST /download` NDJSON stream (`services/toolbox/.../download.py`). */
 export type DownloadEvent =
@@ -128,6 +135,14 @@ export class ToolboxClient {
     });
   }
 
+  /** `GET /errors` — the failure taxonomy behind the Console's error decoder. */
+  async errorCatalog(): Promise<ErrorCatalog> {
+    return await this.call("GET /errors", async () => {
+      const result = await this.http.GET("/errors", { signal: this.signal() });
+      return this.unwrap(result, "GET /errors");
+    });
+  }
+
   async extract(url: string): Promise<ExtractResult> {
     return await this.call("POST /extract", async () => {
       const result = await this.http.POST("/extract", {
@@ -215,6 +230,44 @@ export class ToolboxClient {
         signal: this.signal(),
       });
       return this.unwrap(result, "POST /artwork/prepare");
+    });
+  }
+
+  /**
+   * `POST /ytdlp/update` — refresh the downloader (decision 012).
+   *
+   * Given its own five-minute budget: `pip install --upgrade` on a cold cache is slow, and a
+   * timeout in the middle of it leaves a half-installed package, which is the one outcome
+   * worse than an out-of-date one.
+   */
+  async updateYtdlp(): Promise<UpdateResult> {
+    return await this.call("POST /ytdlp/update", async () => {
+      const result = await this.http.POST("/ytdlp/update", {
+        signal: AbortSignal.timeout(Math.max(this.timeoutMs, 300_000)),
+      });
+      return this.unwrap(result, "POST /ytdlp/update");
+    });
+  }
+
+  /** `POST /ytdlp/selftest` — is the downloader usable at all? `network` also hits YouTube. */
+  async selftestYtdlp(options: { network?: boolean; url?: string } = {}): Promise<SelfTestResult> {
+    return await this.call("POST /ytdlp/selftest", async () => {
+      const result = await this.http.POST("/ytdlp/selftest", {
+        body: { network: options.network ?? false, url: options.url ?? null },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /ytdlp/selftest");
+    });
+  }
+
+  /** `POST /cookies/test` — parse a cookie jar offline and say whether it is a session. */
+  async testCookies(options: { path?: string; content?: string }): Promise<CookiesTestResult> {
+    return await this.call("POST /cookies/test", async () => {
+      const result = await this.http.POST("/cookies/test", {
+        body: { path: options.path ?? null, content: options.content ?? null },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /cookies/test");
     });
   }
 
