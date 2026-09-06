@@ -18,6 +18,7 @@
  *  - **No credential is ever returned**, only whether one is set.
  */
 import { MMError } from "@mm/contracts";
+import { TOOLBOX_CONTRACT_HASH, TOOLBOX_SCHEMA_VERSION } from "@mm/contracts/toolbox/contract";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { serverEnv } from "#/server/env.ts";
 import { ACOUSTID_BASE } from "#/server/integrations/acoustid.ts";
@@ -78,11 +79,88 @@ async function resolve(deps: ToolsDeps): Promise<{
 /* the downloader                                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Whether the running image implements the contract this code was generated against.
+ *
+ * `matches: false` is the diagnosis for the failure that opened both MCP test reports: a
+ * container older than the app sending to it, which answers `422 extra_forbidden` on a field
+ * its models have never heard of. Every other signal says the toolbox is healthy, because the
+ * binaries inside it are.
+ */
+export interface ToolboxContract {
+  readonly expected: string;
+  /** `null` when the image predates the contract statement — which is itself a mismatch. */
+  readonly actual: string | null;
+  readonly schemaVersion: number;
+  readonly matches: boolean;
+  /** Said in words, and empty when it matches. */
+  readonly note: string;
+}
+
+export function compareContract(health: {
+  contract_hash?: string | undefined;
+  schema_version?: number | undefined;
+}): ToolboxContract {
+  const actual = health.contract_hash ?? "";
+  const schemaVersion = health.schema_version ?? 0;
+
+  if (actual === "" || schemaVersion === 0) {
+    return {
+      expected: TOOLBOX_CONTRACT_HASH,
+      actual: null,
+      schemaVersion,
+      matches: false,
+      note:
+        "The toolbox image does not report a contract hash at all, so it was built before " +
+        "this check existed and is certainly older than this code. Rebuild it: " +
+        "`bun run stack:up --build`.",
+    };
+  }
+
+  if (schemaVersion !== TOOLBOX_SCHEMA_VERSION) {
+    return {
+      expected: TOOLBOX_CONTRACT_HASH,
+      actual,
+      schemaVersion,
+      // Two hashes computed by two different algorithms are not comparable, and reporting a
+      // difference between them would send somebody to rebuild an image that is fine.
+      matches: true,
+      note:
+        `The toolbox states contract statement v${String(schemaVersion)} and this app speaks ` +
+        `v${String(TOOLBOX_SCHEMA_VERSION)}; the hashes are not comparable, so staleness cannot be judged.`,
+    };
+  }
+
+  if (actual === TOOLBOX_CONTRACT_HASH) {
+    return {
+      expected: TOOLBOX_CONTRACT_HASH,
+      actual,
+      schemaVersion,
+      matches: true,
+      note: "",
+    };
+  }
+
+  return {
+    expected: TOOLBOX_CONTRACT_HASH,
+    actual,
+    schemaVersion,
+    matches: false,
+    note:
+      `The toolbox image implements contract ${actual} and this app was generated against ` +
+      `${TOOLBOX_CONTRACT_HASH}: the container is not the one this code was built for. Calls ` +
+      "will fail with HTTP 422 `extra_forbidden` on fields its models do not know, which reads " +
+      "like a bug in the app. Rebuild it: `bun run stack:up --build`.",
+  };
+}
+
 export interface DownloaderHealth {
   readonly reachable: boolean;
   readonly fixtures: boolean;
   readonly downloading: boolean;
   readonly versions: ToolVersions;
+  /** Absent when the toolbox could not be reached at all. */
+  readonly contract: ToolboxContract | null;
   readonly channel: Settings["ytdlpChannel"];
   readonly pin: string;
   readonly autoUpdate: boolean;
@@ -98,6 +176,7 @@ export async function downloaderHealth(deps: ToolsDeps = {}): Promise<Downloader
     fixtures: false,
     downloading: false,
     versions: { "yt-dlp": null, ffmpeg: null, fpcalc: null, rsgain: null } as ToolVersions,
+    contract: null,
     channel: settings.ytdlpChannel,
     pin: settings.ytdlpPin,
     autoUpdate: settings.ytdlpAutoUpdate,
@@ -112,6 +191,7 @@ export async function downloaderHealth(deps: ToolsDeps = {}): Promise<Downloader
       fixtures: health.fixtures,
       downloading: health.downloading,
       versions: health.versions,
+      contract: compareContract(health),
       error: null,
     };
   } catch (error) {

@@ -17,7 +17,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { appMeta, imports } from "#/server/db/schema/index.ts";
 import { navidromeStatus } from "#/server/services/navidrome.ts";
-import { downloaderHealth, toolboxTarget } from "#/server/services/tools.ts";
+import { downloaderHealth, toolboxTarget, type ToolboxContract } from "#/server/services/tools.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { serverEnv } from "#/server/env.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
@@ -144,6 +144,15 @@ export interface SystemStatus {
     readonly downloading: boolean;
     /** yt-dlp, ffmpeg, fpcalc, rsgain. A `null` means the image is broken. */
     readonly versions: Record<string, string | null>;
+    /**
+     * Whether the image implements the API this code was generated against.
+     *
+     * The one failure this whole file was written for and could not see: a container older
+     * than the app, answering `422 extra_forbidden` while `reachable: true`, `error: null`
+     * and four healthy binary versions say nothing is wrong. Staleness was detectable on the
+     * host (`scripts/stack.ts` compares mtimes) and nowhere an agent could look.
+     */
+    readonly contract: ToolboxContract | null;
     readonly error: string | null;
   };
   readonly navidrome: {
@@ -218,6 +227,7 @@ export async function systemStatus(options: StatusOptions = {}): Promise<SystemS
     fixtures: health?.fixtures ?? false,
     downloading: health?.downloading ?? false,
     versions: (health?.versions ?? {}) as Record<string, string | null>,
+    contract: health?.contract ?? null,
     error:
       health?.error ??
       (downloader !== null && "error" in downloader ? (downloader.error ?? null) : null),
@@ -236,6 +246,11 @@ export async function systemStatus(options: StatusOptions = {}): Promise<SystemS
     problems.push(
       `The toolbox image is missing ${broken.join(", ")} — rebuild it with \`bun run stack:up --build\`.`,
     );
+  }
+  // A reachable toolbox with the four binaries present can still be the wrong toolbox. This is
+  // the check that names it instead of leaving a 422 to be misread as an application bug.
+  if (toolbox.reachable && toolbox.contract !== null && !toolbox.contract.matches) {
+    problems.push(toolbox.contract.note);
   }
   if (!worker.alive) problems.push(worker.note);
   if (nav !== null && nav.enabled && nav.configured && !nav.ok) {

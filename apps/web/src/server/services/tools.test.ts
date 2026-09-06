@@ -8,9 +8,16 @@
  */
 import { describe, expect, it } from "vitest";
 import { MMError } from "@mm/contracts";
+import { TOOLBOX_CONTRACT_HASH, TOOLBOX_SCHEMA_VERSION } from "@mm/contracts/toolbox/contract";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { defaults, type Settings } from "./settings.ts";
-import { cookiesStatus, downloaderHealth, serviceLatencies, testUrl } from "./tools.ts";
+import {
+  compareContract,
+  cookiesStatus,
+  downloaderHealth,
+  serviceLatencies,
+  testUrl,
+} from "./tools.ts";
 
 const settings = (patch: Partial<Settings> = {}): Settings => ({ ...defaults(), ...patch });
 
@@ -20,6 +27,54 @@ const fakeToolbox = (methods: Partial<ToolboxClient>): ToolboxClient =>
 
 const jsonResponse = (status = 200): Response =>
   new Response("{}", { status, headers: { "content-type": "application/json" } });
+
+/*
+ * The failure that opened both MCP test reports: a container older than the code calling it.
+ * Everything else about it looks healthy — it answers, it has its four binaries — and the only
+ * symptom is a 422 on a field its pydantic models have never heard of, which reads as a bug in
+ * the app. These three cases are the whole of the detection.
+ */
+describe("compareContract", () => {
+  it("matches when the image implements the contract this code was generated against", () => {
+    const verdict = compareContract({
+      schema_version: TOOLBOX_SCHEMA_VERSION,
+      contract_hash: TOOLBOX_CONTRACT_HASH,
+    });
+    expect(verdict.matches).toBe(true);
+    expect(verdict.note).toBe("");
+    expect(verdict.actual).toBe(TOOLBOX_CONTRACT_HASH);
+  });
+
+  it("calls a different hash a stale image, and names the rebuild", () => {
+    const verdict = compareContract({
+      schema_version: TOOLBOX_SCHEMA_VERSION,
+      contract_hash: "0000000000000000",
+    });
+    expect(verdict.matches).toBe(false);
+    expect(verdict.note).toContain("stack:up --build");
+    expect(verdict.note).toContain("extra_forbidden");
+  });
+
+  it("treats an image that reports no contract at all as stale", () => {
+    // Every image built before this check existed — including the one that produced the
+    // original `UNKNOWN / 500` in the report, which `get_status` called healthy.
+    const verdict = compareContract({});
+    expect(verdict.matches).toBe(false);
+    expect(verdict.actual).toBe(null);
+    expect(verdict.note).toContain("does not report a contract hash");
+  });
+
+  it("refuses to judge across contract-statement versions rather than guessing", () => {
+    const verdict = compareContract({
+      schema_version: TOOLBOX_SCHEMA_VERSION + 1,
+      contract_hash: "0000000000000000",
+    });
+    // Two hashes from two algorithms are not comparable; reporting a difference would send
+    // somebody to rebuild an image that is perfectly current.
+    expect(verdict.matches).toBe(true);
+    expect(verdict.note).toContain("not comparable");
+  });
+});
 
 describe("downloaderHealth", () => {
   it("reports the versions and the settings that steer them", async () => {
@@ -37,6 +92,11 @@ describe("downloaderHealth", () => {
               fpcalc: "1.5.1",
               rsgain: "3.5",
             },
+            // A live toolbox states which contract it implements; `downloaderHealth` compares
+            // it with the one the client was generated from. An image that reports neither is
+            // an image built before the check existed — covered separately below.
+            schema_version: TOOLBOX_SCHEMA_VERSION,
+            contract_hash: TOOLBOX_CONTRACT_HASH,
           }),
       }),
     });
@@ -45,6 +105,8 @@ describe("downloaderHealth", () => {
     expect(health.channel).toBe("nightly");
     expect(health.pin).toBe("2026.08.14");
     expect(health.error).toBe(null);
+    expect(health.contract?.matches).toBe(true);
+    expect(health.contract?.note).toBe("");
   });
 
   it("comes back with `reachable: false` rather than throwing when the toolbox is down", async () => {

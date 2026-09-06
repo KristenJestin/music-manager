@@ -578,6 +578,12 @@ export interface components {
          */
         Health: {
             /**
+             * Contract Hash
+             * @description Hash of the API this image actually implements: its operations and every model's field names, required set and whether it accepts extras. The app compares it with the hash it generated its client from, which is the only way it can tell 'the toolbox is old' from 'the app is wrong' before a call fails with 422.
+             * @default
+             */
+            contract_hash: string;
+            /**
              * Downloading
              * @description True while the single download slot is taken.
              */
@@ -586,6 +592,12 @@ export interface components {
             fixtures: boolean;
             /** Ok */
             ok: boolean;
+            /**
+             * Schema Version
+             * @description Version of the contract *statement* — see `toolbox/contract.py`. An older image omits it, and `0` is how the caller recognises one.
+             * @default 0
+             */
+            schema_version: number;
             versions: components["schemas"]["ToolVersions"];
         };
         /**

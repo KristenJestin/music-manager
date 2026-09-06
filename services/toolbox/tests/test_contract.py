@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
 from toolbox.app import PUBLIC_PATHS, app
+from toolbox.contract import SCHEMA_VERSION, contract_hash
 
 #: Every route the phase promises, with the operation id the generated client exposes.
 EXPECTED_OPERATIONS: dict[tuple[str, str], str] = {
@@ -92,3 +95,52 @@ def test_requests_reject_unknown_fields(client: TestClient):
     """Parse, do not cast: a typo in a field name is an error, not a silent no-op."""
     response = client.post("/extract", json={"url": "fixture://discovery", "cookiez": "x"})
     assert response.status_code == 422
+
+
+# --------------------------------------------------------------------------------------
+# The contract statement: what stops a stale image looking healthy
+# --------------------------------------------------------------------------------------
+
+
+def test_health_states_the_contract_this_image_implements():
+    """`GET /health` carries the hash the app compares against its generated client.
+
+    Without it, a container one commit behind the app answers `ok: true` with four healthy
+    binary versions while every call fails `422 extra_forbidden` — the failure that opened
+    both MCP test reports and that nothing on this side could name.
+    """
+    body = TestClient(app).get("/health").json()
+    assert body["schema_version"] == SCHEMA_VERSION
+    assert body["contract_hash"] == contract_hash(app.openapi())
+    assert len(body["contract_hash"]) == 16
+
+
+def test_the_hash_is_stable_across_calls():
+    assert contract_hash(app.openapi()) == contract_hash(app.openapi())
+
+
+def test_prose_does_not_change_the_hash():
+    """A reworded docstring must not read as a stale image, or the warning stops being read."""
+    document = json.loads(json.dumps(app.openapi()))
+    before = contract_hash(document)
+    document["info"]["description"] = "rewritten"
+    for path in document["paths"].values():
+        for operation in path.values():
+            operation["summary"] = "rewritten"
+            operation["description"] = "rewritten"
+    assert contract_hash(document) == before
+
+
+def test_a_new_model_field_changes_the_hash():
+    """The one thing that must be caught: a field the old image's models would refuse."""
+    document = json.loads(json.dumps(app.openapi()))
+    before = contract_hash(document)
+    document["components"]["schemas"]["TagRequest"]["properties"]["brand_new"] = {"type": "string"}
+    assert contract_hash(document) != before
+
+
+def test_a_removed_route_changes_the_hash():
+    document = json.loads(json.dumps(app.openapi()))
+    before = contract_hash(document)
+    del document["paths"]["/probe"]
+    assert contract_hash(document) != before

@@ -114,6 +114,22 @@ class Health(BaseModel):
     fixtures: bool
     downloading: bool = Field(description="True while the single download slot is taken.")
     versions: ToolVersions
+    schema_version: int = Field(
+        default=0,
+        description=(
+            "Version of the contract *statement* — see `toolbox/contract.py`. An older image "
+            "omits it, and `0` is how the caller recognises one."
+        ),
+    )
+    contract_hash: str = Field(
+        default="",
+        description=(
+            "Hash of the API this image actually implements: its operations and every model's "
+            "field names, required set and whether it accepts extras. The app compares it with "
+            "the hash it generated its client from, which is the only way it can tell "
+            "'the toolbox is old' from 'the app is wrong' before a call fails with 422."
+        ),
+    )
 
 
 class ErrorCatalogEntry(BaseModel):

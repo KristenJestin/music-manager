@@ -24,6 +24,7 @@ from toolbox import place as place_module
 from toolbox import probe as probe_module
 from toolbox import replaygain as rg_module
 from toolbox.config import fixtures_enabled, toolbox_token
+from toolbox.contract import SCHEMA_VERSION, contract_hash
 from toolbox.download import MEDIA_TYPE, ndjson_download
 from toolbox.errors import ERROR_CATALOG, ErrorBody, ToolboxError
 from toolbox.lock import DOWNLOAD_LOCK
@@ -130,7 +131,15 @@ def health() -> Health:
         }
     )
     return Health(
-        ok=True, fixtures=fixtures_enabled(), downloading=DOWNLOAD_LOCK.held, versions=versions
+        ok=True,
+        fixtures=fixtures_enabled(),
+        downloading=DOWNLOAD_LOCK.held,
+        versions=versions,
+        schema_version=SCHEMA_VERSION,
+        # Computed from the document this very process serves, so it cannot be a constant that
+        # somebody forgot to bump: an image whose models differ from the source it was built
+        # from produces a different hash by construction. FastAPI caches `app.openapi()`.
+        contract_hash=contract_hash(app.openapi()),
     )
 
 
