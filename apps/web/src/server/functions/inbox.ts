@@ -173,6 +173,42 @@ export function optionsFor(item: InboxItem): InboxOption[] {
             },
           ];
     }
+    case "job_failed": {
+      /*
+       * The two things a person does with a failed job, and nothing else: run it again, or
+       * give up on it. Both are carried out by `resolveInboxItem`, so the API and the MCP
+       * server answer this card exactly as the Console does (`docs/04` § Inbox).
+       */
+      const step = typeof payload["step"] === "string" ? payload["step"] : null;
+      const code = typeof payload["code"] === "string" ? payload["code"] : "UNKNOWN";
+      const hint = typeof payload["hint"] === "string" ? payload["hint"] : null;
+      return [
+        {
+          id: "retry",
+          label: step === null ? "Retry the import" : `Retry from ${step}`,
+          detail:
+            hint ??
+            `The error was ${code}. Everything from that step on is run again; nothing earlier is repeated.`,
+          preselected: true,
+          value: { action: "retry", ...(step === null ? {} : { step }) },
+        },
+        {
+          id: "cancel",
+          label: "Cancel this import",
+          detail: "Give up on it. Nothing further is written to the library.",
+          preselected: false,
+          value: { action: "cancel" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          detail: "Leave the failure open and come back to it.",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
     case "fingerprint_mismatch": {
       return [
         {

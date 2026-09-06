@@ -27,7 +27,7 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "#/server/services/events.ts";
-import { closeItemsOf } from "#/server/services/inbox.ts";
+import { closeItemsOf, openInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
   isTerminal,
@@ -244,6 +244,7 @@ async function announce(
       },
       db,
     );
+    await raiseFailure(db, importId, step, result);
     return;
   }
   await emit(
@@ -253,6 +254,49 @@ async function announce(
       type: "import.status",
       message: `${status}: ${result.message ?? step}`,
       data: { step, status },
+    },
+    db,
+  );
+}
+
+/**
+ * A failed job becomes a question, not just a red row in a list.
+ *
+ * `job_failed` was in the vocabulary (`enums.vocab.ts`), in the Inbox options test and in
+ * `docs/04` § Inbox — "avec code d'erreur décodé" — and **no producer existed**: two failed
+ * jobs left `/review` saying "Nothing to decide" and the NEEDS YOU tile at zero, so a failure
+ * was only discoverable by walking the Jobs list (DRIVE-1 §A3). The Inbox is the one place
+ * that is supposed to be able to say "something needs you"; a failure is the plainest example
+ * there is.
+ *
+ * The item is idempotent per import (`openInboxItem` refreshes rather than piling up), so a
+ * job that fails, is retried and fails again is one question, not three. Its payload carries
+ * the **decoded** error — the same `{code, message, hint, action}` the toolbox bridge and the
+ * error decoder speak — because "UNKNOWN" with a developer's sentence under it is what the
+ * previous drive had to read off the screen.
+ */
+async function raiseFailure(
+  db: Database,
+  importId: string,
+  step: StepName,
+  result: StepResult,
+): Promise<void> {
+  const error: Record<string, unknown> = { ...(result.error ?? {}) };
+  const code = typeof error["code"] === "string" ? error["code"] : "UNKNOWN";
+  const message =
+    result.message ?? (typeof error["message"] === "string" ? error["message"] : null);
+  const hint = typeof error["hint"] === "string" ? error["hint"] : null;
+
+  await openInboxItem(
+    {
+      type: "job_failed",
+      importId,
+      title: `The import failed at ${step}: ${code}`,
+      summary: [message, hint].filter((part): part is string => part !== null).join(" — "),
+      payload: { step, error, code, ...(hint === null ? {} : { hint }) },
+      // Retrying is what the person almost always wants, and it is the answer that lets the
+      // job carry on — the property every preselection in this Inbox has.
+      preselected: { action: "retry", step },
     },
     db,
   );

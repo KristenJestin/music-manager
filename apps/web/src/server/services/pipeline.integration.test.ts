@@ -88,6 +88,7 @@ const inbox = await import("./inbox.ts");
 const settings = await import("./settings.ts");
 const imports = await import("./imports.ts");
 const jobs = await import("./jobs/index.ts");
+const { optionsFor } = await import("#/server/functions/inbox.ts");
 
 resetServerEnv();
 
@@ -227,6 +228,116 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       expect(decisions).toHaveLength(1);
       expect(decisions[0]?.decidedBy).toBe("test");
     });
+  });
+
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * A failed job is a question — DRIVE-1 §A3.
+   *
+   * `job_failed` existed in the vocabulary, in `docs/04` § Inbox and in the options test, and
+   * nothing ever raised one: `/review` said "Nothing to decide" with two failed jobs on the
+   * Jobs page. And the two answers a failure has — run it again, give up — have to *happen*,
+   * from the Console and from `/api/v1` and from MCP alike, which is why they are carried out
+   * by `resolveInboxItem` rather than by each of the three callers.
+   */
+  describe("a failed job, in the Inbox", () => {
+    async function failOne(): Promise<string> {
+      // A fixture URL the toolbox has never heard of: `resolve` fails with a decoded error
+      // rather than throwing something shapeless.
+      const created = await imports.createFromUrl(`fixture://no-such-fixture-${newSuffix()}`, {
+        resolveNow: false,
+      });
+      const result = await jobs.runStep(created.job.id, "resolve");
+      expect(result.status).toBe("failed");
+      return created.job.id;
+    }
+
+    let suffix = 0;
+    function newSuffix(): string {
+      suffix += 1;
+      return String(suffix);
+    }
+
+    it("raises one item, carrying the step and the decoded error code", async () => {
+      const importId = await failOne();
+
+      const open = await inbox.listInbox({ status: "open", importId, type: "job_failed" });
+      expect(open).toHaveLength(1);
+      const item = open[0];
+      expect(item?.payload["step"]).toBe("resolve");
+      expect(typeof item?.payload["code"]).toBe("string");
+      expect(item?.title).toContain("resolve");
+      // The preselection is the answer that lets the job carry on, like every other card.
+      expect(item?.preselected).toMatchObject({ action: "retry" });
+
+      // Idempotent per import: failing again refreshes the question, never adds a second one.
+      await jobs.runStep(importId, "resolve");
+      expect(await inbox.listInbox({ status: "open", importId, type: "job_failed" })).toHaveLength(
+        1,
+      );
+    });
+
+    it("offers Retry, Cancel and Later rather than “Accept the proposed answer”", async () => {
+      const importId = await failOne();
+      const [item] = await inbox.listInbox({ status: "open", importId, type: "job_failed" });
+      expect(item).toBeDefined();
+
+      const options = optionsFor(item!);
+      expect(options.map((option) => option.id)).toEqual(["retry", "cancel", "later"]);
+      expect(options[0]?.preselected).toBe(true);
+      expect(options[0]?.value).toMatchObject({ action: "retry", step: "resolve" });
+    });
+
+    it("cancels the import when the answer is Cancel — from anywhere, not just the Console", async () => {
+      const importId = await failOne();
+      const [item] = await inbox.listInbox({ status: "open", importId, type: "job_failed" });
+
+      // `decidedBy: "api"` is what `/api/v1/inbox/{id}/resolve` passes; the effect must be the
+      // same one the Console gets, because it is the same function.
+      await inbox.resolveInboxItem(item!.id, {
+        resolution: { action: "cancel" },
+        decidedBy: "api",
+      });
+
+      const after = await imports.getImport(importId);
+      expect(after?.status).toBe("cancelled");
+      // Cancelling a job closes every question it had left, including this one.
+      expect(await inbox.listInbox({ status: "open", importId })).toHaveLength(0);
+    });
+
+    it("runs the failed step again when the answer is Retry", async () => {
+      const importId = await failOne();
+      const [item] = await inbox.listInbox({ status: "open", importId, type: "job_failed" });
+      const [before] = await db()
+        .select()
+        .from(schema.jobSteps)
+        .where(eq(schema.jobSteps.importId, importId));
+
+      // `decidedBy: "mcp"` is what `resolve_inbox` passes. It answers the same card, through
+      // the same function, and the job moves — which is the whole claim.
+      await inbox.resolveInboxItem(item!.id, {
+        resolution: { action: "retry", step: "resolve" },
+        decidedBy: "mcp",
+      });
+
+      const [after] = await db()
+        .select()
+        .from(schema.jobSteps)
+        .where(eq(schema.jobSteps.importId, importId));
+      expect(after?.attempt).toBe((before?.attempt ?? 0) + 1);
+
+      /*
+       * This fixture can only ever fail — the URL names nothing — so the retry fails too, and
+       * that is the interesting half: the question comes back rather than the job disappearing
+       * quietly into the Jobs list a second time.
+       */
+      const job = await imports.getImport(importId);
+      expect(job?.step).toBe("resolve");
+      const reopened = await inbox.listInbox({ status: "open", importId, type: "job_failed" });
+      expect(reopened).toHaveLength(1);
+      expect(reopened[0]?.id).not.toBe(item!.id);
+    }, 60_000);
   });
 
   /* ---------------------------------------------------------------- */

@@ -18,9 +18,11 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   decisions,
   inboxItems,
+  STEPS,
   type InboxItem,
   type InboxStatus,
   type InboxType,
+  type StepName,
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
@@ -190,6 +192,8 @@ export async function resolveInboxItem(
     db,
   );
 
+  await applyResolution(item, options.resolution, db);
+
   return updated ?? item;
 }
 
@@ -306,6 +310,54 @@ export async function resolveInboxBatch(
   }
 
   return { resolved, failed, imports: [...imports] };
+}
+
+/**
+ * Carry out an answer that is an **action** rather than a value.
+ *
+ * Most items are answered with data — a release MBID, "accept as partial" — and the caller
+ * then puts the job back on the queue. Two answers are not data at all: `retry` and `cancel`
+ * are things that have to happen to the job, and until now they happened nowhere. "Cancel this
+ * import" has been on the `uncovered_tracks` and `ambiguous_release` cards since P06 and only
+ * ever wrote a `decisions` row; a `job_failed` item would have had the same problem.
+ *
+ * It lives here rather than in the four callers (Console, `/api/v1`, MCP, CLI) precisely
+ * because `docs/04` says an item "se résout par l'API comme par l'interface" — one
+ * implementation is the only way that sentence stays true. `jobs/index.ts` imports this module
+ * for `openInboxItem`, so the import back is dynamic; it is also the reason a caller that
+ * never resolves an action never loads the step machine.
+ */
+async function applyResolution(
+  item: InboxItem,
+  resolution: Record<string, unknown>,
+  db: Database,
+): Promise<void> {
+  const action = resolution["action"];
+  if (typeof action !== "string" || item.importId === null) return;
+  const importId = item.importId;
+
+  if (action === "cancel") {
+    const { cancelImport } = await import("#/server/services/jobs/index.ts");
+    await cancelImport(importId, db);
+    return;
+  }
+
+  if (action !== "retry") return;
+
+  /*
+   * Rewind, then hand the job back to the worker — never run it here. A retry from an HTTP
+   * request that executed the steps inline would die with the request, and `download` is not
+   * even allowed to run outside the single global queue.
+   */
+  const { retryStep, resumeStepOf } = await import("#/server/services/jobs/index.ts");
+  const { enqueue } = await import("#/server/services/queue.ts");
+  const asked = resolution["step"] ?? item.preselected?.["step"];
+  const from =
+    typeof asked === "string" && (STEPS as readonly string[]).includes(asked)
+      ? (asked as StepName)
+      : await resumeStepOf(importId, db);
+  await retryStep(importId, from, { db, only: true });
+  await enqueue(importId, "inbox retry", from);
 }
 
 /** Close every open item of an import — used when a job is cancelled. */
