@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   Play,
   RefreshCw,
+  Sparkles,
   Search,
 } from "lucide-react";
 import type { BorrowRelease, MappingLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
@@ -712,6 +713,29 @@ function StepTail({
         onChange={(videoId, absoluteIndex) => {
           setOverrides((current) => ({ ...current, [videoId]: absoluteIndex }));
         }}
+        /*
+         * The prototype's three group actions (`prototypes/A-console`, step 3), which the app
+         * shipped without: on a fifteen-row table the only way to undo a wrong idea was
+         * fifteen dropdowns. All three are pure edits to `overrides`, so nothing is submitted
+         * and Back still discards everything.
+         */
+        onAutoAssign={() => {
+          setOverrides({});
+        }}
+        onByPosition={() => {
+          const videos = mapping?.videos ?? [];
+          const tracks = mapping?.tracks ?? [];
+          setOverrides(
+            Object.fromEntries(
+              videos.map((video, index) => [video.videoId, tracks[index]?.absoluteIndex ?? null]),
+            ),
+          );
+        }}
+        onClearAll={() => {
+          setOverrides(
+            Object.fromEntries((mapping?.videos ?? []).map((video) => [video.videoId, null])),
+          );
+        }}
         onBack={() => {
           onStep(2);
         }}
@@ -1362,6 +1386,9 @@ function StepMapping({
   extras,
   uncovered,
   onChange,
+  onAutoAssign,
+  onByPosition,
+  onClearAll,
   onBack,
   onContinue,
 }: {
@@ -1373,6 +1400,12 @@ function StepMapping({
   readonly extras: number;
   readonly uncovered: number;
   readonly onChange: (videoId: string, absoluteIndex: number | null) => void;
+  /** Throw away every edit and go back to what the matcher proposed. */
+  readonly onAutoAssign: () => void;
+  /** Video 1 to track 1, video 2 to track 2 — the fallback for a shuffled tracklist. */
+  readonly onByPosition: () => void;
+  /** Unbind everything: every video becomes an extra, and none is downloaded. */
+  readonly onClearAll: () => void;
   readonly onBack: () => void;
   readonly onContinue: () => void;
 }) {
@@ -1410,6 +1443,26 @@ function StepMapping({
         </span>
         <span className="ml-auto text-fg-2">
           mean |Δ| {mapping.meanAbsDelta === null ? "n/a" : `${mapping.meanAbsDelta.toFixed(1)}s`}
+        </span>
+      </div>
+
+      {/*
+        The group actions of the prototype's step 3. Fifteen rows and no way to undo a wrong
+        idea except fifteen dropdowns was the gap; none of these submits anything.
+      */}
+      <div className="mb-2 flex flex-wrap items-center gap-2" data-testid="mapping-bulk">
+        <span className="text-2xs text-fg-2">Apply to every row:</span>
+        <Button variant="outline" size="xs" disabled={busy} onClick={onAutoAssign}>
+          <Sparkles className="size-3.5" aria-hidden="true" /> Auto-assign
+        </Button>
+        <Button variant="outline" size="xs" disabled={busy} onClick={onByPosition}>
+          By position
+        </Button>
+        <Button variant="outline" size="xs" disabled={busy} onClick={onClearAll}>
+          Clear all
+        </Button>
+        <span className="text-2xs text-fg-3">
+          Auto-assign restores the matcher's proposal; Clear all makes every video an extra.
         </span>
       </div>
 

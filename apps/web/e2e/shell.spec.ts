@@ -51,6 +51,21 @@ test.describe("the shell", () => {
     await expect(page.getByTestId("palette-input")).toBeHidden();
   });
 
+  test("the palette does things as well as going places", async ({ page }) => {
+    /*
+     * The prototype's ⌘K carries actions; ours shipped as navigation only (DRIVE-1 §4). "Scan
+     * library" is the safest of the four to actually press: it queues a job the worker owns
+     * and touches nothing.
+     */
+    await shellReady(page);
+    await pressGlobal(page, "ControlOrMeta+k");
+    await expect(page.getByTestId("palette-input")).toBeVisible();
+    await typeInto(page.getByTestId("palette-input"), "Scan library");
+    await page.getByTestId("palette-action-scan").click();
+    await expect(page.getByTestId("palette-input")).toBeHidden();
+    await expect(page.getByText(/Scan queued/)).toBeVisible({ timeout: 60_000 });
+  });
+
   test("the activity drawer opens and shows the journal", async ({ page }) => {
     await page.getByTestId("open-drawer").click();
     const drawer = page.getByTestId("activity-drawer");

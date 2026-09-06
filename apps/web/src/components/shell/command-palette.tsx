@@ -11,13 +11,19 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   Activity,
   Disc3,
+  Download,
   Home,
   Inbox,
   LogOut,
+  Music,
   Plus,
+  RotateCcw,
+  Scan,
   Settings,
   Shield,
+  ShieldCheck,
   Sparkles,
+  Users,
   Wrench,
   MonitorPlay,
 } from "lucide-react";
@@ -33,6 +39,9 @@ import {
 } from "#/components/ui/command.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
 import { signOut } from "#/lib/auth-client.ts";
+import { retryLastFailed } from "#/server/functions/jobs.ts";
+import { runYtdlpUpdate, startScan } from "#/server/functions/tools.ts";
+import { verifyAll } from "#/server/functions/verify.ts";
 
 const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
@@ -49,20 +58,100 @@ const GO: readonly Destination[] = [
   { to: "/imports", label: "Jobs", icon: Activity },
   { to: "/review", label: "Review queue", icon: Inbox, shortcut: "R" },
   { to: "/library", label: "Albums", icon: Disc3 },
+  { to: "/library/tracks", label: "Tracks", icon: Music },
+  { to: "/library/artists", label: "Artists", icon: Users },
   { to: "/library/quality", label: "Library quality", icon: Shield },
   { to: "/discover", label: "Discover", icon: Sparkles },
   { to: "/tools", label: "Tools & diagnostics", icon: Wrench },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
+/**
+ * The **action** half of the palette (`prototypes/A-console`, the ⌘K overlay).
+ *
+ * The palette shipped as navigation only, which is half of what a command palette is for: the
+ * prototype's entries are things you *do* — update yt-dlp, scan the library, verify it against
+ * Navidrome, retry the import that just failed — and each of them otherwise costs a page load
+ * and a hunt for a button (DRIVE-1 §4, "Palette ⌘K").
+ *
+ * Each one reports what happened in a toast, because a command palette that closes silently
+ * has not told you whether it worked. They are deliberately the *idempotent* ones: nothing
+ * here deletes, downloads or overwrites, so a mistyped ⌘K costs nothing.
+ */
+interface PaletteAction {
+  readonly id: string;
+  readonly label: string;
+  readonly icon: typeof Home;
+  readonly run: () => Promise<string>;
+}
+
 export function CommandPalette() {
   const navigate = useNavigate();
   const { paletteOpen, setPaletteOpen, toast } = useShell();
   const [query, setQuery] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const close = (): void => {
     setPaletteOpen(false);
     setQuery("");
+  };
+
+  const ACTIONS: readonly PaletteAction[] = [
+    {
+      id: "scan",
+      label: "Scan library",
+      icon: Scan,
+      run: async () => {
+        await startScan({ data: {} });
+        return "Scan queued. Tools reports it when the worker lands.";
+      },
+    },
+    {
+      id: "ytdlp",
+      label: "Update yt-dlp now",
+      icon: Download,
+      run: async () => {
+        const result = await runYtdlpUpdate();
+        return result.updated
+          ? `yt-dlp updated to ${result.to ?? "the latest build"}.`
+          : `yt-dlp is at ${result.from ?? "its current build"}; nothing to update.`;
+      },
+    },
+    {
+      id: "verify",
+      label: "Verify library in Navidrome",
+      icon: ShieldCheck,
+      run: async () => {
+        const report = await verifyAll({ data: {} });
+        return `${String(report.verified)} album(s) compared, ${String(report.withMismatch)} with a mismatch.`;
+      },
+    },
+    {
+      id: "retry",
+      label: "Retry last failed import",
+      icon: RotateCcw,
+      run: async () => {
+        const retried = await retryLastFailed();
+        if (retried === null) return "Nothing has failed. There is no import to retry.";
+        void navigate({ to: "/imports/$id", params: { id: retried.importId } });
+        return `Retrying from ${retried.step}.`;
+      },
+    },
+  ];
+
+  const act = (action: PaletteAction): void => {
+    close();
+    setBusy(true);
+    void action.run().then(
+      (message) => {
+        setBusy(false);
+        toast(message, "ok");
+      },
+      (error: unknown) => {
+        setBusy(false);
+        toast(error instanceof Error ? error.message : "That did not work.", "danger");
+      },
+    );
   };
 
   const isUrl = URL_SHAPE.test(query.trim());
@@ -124,6 +213,22 @@ export function CommandPalette() {
                 {destination.shortcut === undefined ? null : (
                   <CommandShortcut>{destination.shortcut}</CommandShortcut>
                 )}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Do">
+            {ACTIONS.map((action) => (
+              <CommandItem
+                key={action.id}
+                value={action.label}
+                disabled={busy}
+                data-testid={`palette-action-${action.id}`}
+                onSelect={() => {
+                  act(action);
+                }}
+              >
+                <action.icon className="size-4" aria-hidden="true" />
+                {action.label}
               </CommandItem>
             ))}
           </CommandGroup>

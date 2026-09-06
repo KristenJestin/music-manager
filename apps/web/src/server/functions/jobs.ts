@@ -128,6 +128,30 @@ export const retryJob = createServerFn({ method: "POST", strict: STRICT })
     }
   });
 
+/**
+ * Retry the most recent failed import — the palette's "Retry last failed".
+ *
+ * The prototype's ⌘K carries *actions*, not only navigation, and this is the one that saves
+ * the most walking: a failure is discovered from a notification or from the Inbox, and the
+ * answer is almost always "run it again". Returns `null` when nothing has failed, so the
+ * palette can say so instead of pretending it did something.
+ */
+export const retryLastFailed = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .handler(async (): Promise<{ importId: string; step: StepName } | null> => {
+    try {
+      const [summary] = await listJobs({ status: "failed", limit: 1 }, db());
+      if (summary === undefined) return null;
+      const id = summary.job.id;
+      const from = await resumeStepOf(id, db());
+      await retryStep(id, from, { db: db(), only: true });
+      await enqueue(id, "palette retry", from);
+      return { importId: id, step: from };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
 export const resumeJob = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ id: z.string().min(1) }))

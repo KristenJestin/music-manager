@@ -56,6 +56,40 @@ function uncoveredTracks(payload: Record<string, unknown>): {
     .map((position) => ({ position, title: "not covered by any video", lengthSeconds: null }));
 }
 
+/**
+ * The two sides of a `fingerprint_mismatch`, as `steps/fingerprint.ts` writes them.
+ *
+ * `expected` is the binding you confirmed, `heard` is the recording AcoustID names. The
+ * prototype (`prototypes/A-console`, the `fingerprint_mismatch` branch of the Review page)
+ * shows them side by side, and it is right to: the question is not "do you accept?" but
+ * "which of these two is the track in this file?", and that is a comparison, not a sentence.
+ */
+function fingerprintSides(payload: Record<string, unknown>): {
+  expected: { title: string; recordingMbid: string | null };
+  heard: { title: string; recordingMbid: string | null; score: number | null };
+} | null {
+  const expected = payload["expected"];
+  const heard = payload["heard"];
+  if (typeof expected !== "object" || expected === null) return null;
+  if (typeof heard !== "object" || heard === null) return null;
+  const left = expected as Record<string, unknown>;
+  const right = heard as Record<string, unknown>;
+  const text = (value: unknown, fallback: string): string =>
+    typeof value === "string" && value.trim() !== "" ? value : fallback;
+  const mbid = (value: unknown): string | null => (typeof value === "string" ? value : null);
+  return {
+    expected: {
+      title: text(left["title"], "the track you confirmed"),
+      recordingMbid: mbid(left["recordingMbid"]),
+    },
+    heard: {
+      title: text(right["title"], "nothing it recognises"),
+      recordingMbid: mbid(right["recordingMbid"]),
+      score: typeof right["score"] === "number" ? right["score"] : null,
+    },
+  };
+}
+
 function extraVideos(payload: Record<string, unknown>): { title: string }[] {
   const raw = payload["videos"];
   if (!Array.isArray(raw)) return [];
@@ -97,6 +131,7 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
 
   const uncovered = item.type === "uncovered_tracks" ? uncoveredTracks(item.payload) : [];
   const extras = item.type === "extra_videos" ? extraVideos(item.payload) : [];
+  const sides = item.type === "fingerprint_mismatch" ? fingerprintSides(item.payload) : null;
 
   return (
     <div
@@ -136,6 +171,34 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {sides === null ? null : (
+          <div className="split-even-grid" data-testid="fingerprint-sides">
+            <div className="rounded-md border border-line bg-background p-3">
+              <h3 className="mb-1.5 text-2xs font-semibold tracking-wider text-fg-2 uppercase">
+                Mapping — what you confirmed
+              </h3>
+              <div className="text-xs font-medium">{sides.expected.title}</div>
+              <div className="font-mono text-2xs text-fg-3">
+                {sides.expected.recordingMbid ?? "no recording MBID"}
+              </div>
+            </div>
+            <div className="rounded-md border border-line bg-background p-3">
+              <h3 className="mb-1.5 flex items-center gap-1.5 text-2xs font-semibold tracking-wider text-fg-2 uppercase">
+                AcoustID — what the file sounds like
+                {sides.heard.score === null ? null : (
+                  <ToneBadge tone={sides.heard.score >= 0.9 ? "danger" : "warn"}>
+                    score {sides.heard.score.toFixed(2)}
+                  </ToneBadge>
+                )}
+              </h3>
+              <div className="text-xs font-medium">{sides.heard.title}</div>
+              <div className="font-mono text-2xs text-fg-3">
+                {sides.heard.recordingMbid ?? "no recording MBID"}
+              </div>
+            </div>
           </div>
         )}
 
