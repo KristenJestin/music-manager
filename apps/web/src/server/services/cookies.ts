@@ -4,7 +4,7 @@
  * Three modes, because a path is only convenient on a laptop. On a real server the operator
  * has a browser export in the clipboard and no way to put a file inside the toolbox
  * container, so `paste` stores the jar in the settings and the toolbox writes it to a private
- * temporary file for the duration of each call (owner review B6, decision 054).
+ * temporary file for the duration of each call (owner review B6, decision 072).
  *
  * Nothing here logs, returns or formats the jar's *contents* except into the object handed
  * straight to the toolbox client. `describe()` is what anything human-facing may use.

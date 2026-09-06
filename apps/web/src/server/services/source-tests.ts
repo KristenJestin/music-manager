@@ -148,7 +148,7 @@ export async function testSource(
         async () => {
           // A synthetic fingerprint: AcoustID checks the key before it looks at the audio,
           // so "invalid fingerprint" back means the credential got through, and "invalid API
-          // key" back is a real failure rather than the shrug it used to be (decision 053).
+          // key" back is a real failure rather than the shrug it used to be (decision 073).
           const answer = await acoustid.lookup(ctx, "AQAAA0mUaEkSRZEGAA", 224);
           const who = says("acoustidKey", config.origin.acoustidKey);
           return answer === null

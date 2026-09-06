@@ -121,7 +121,7 @@ export async function lookup(
         // Decision 011 already says silence is not disagreement.
         //
         // A rejected *key* arrives as a 400 too, and it is the opposite of silence: nothing
-        // will ever be measured until someone fixes it. It leaves as an error (decision 053).
+        // will ever be measured until someone fixes it. It leaves as an error (decision 073).
         if (error instanceof MMError && error.status === 400 && !isKeyRejection(error)) {
           return null;
         }
