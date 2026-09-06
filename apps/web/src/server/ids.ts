@@ -28,6 +28,8 @@ export const ID_PREFIXES = {
   metadataDocument: "doc",
   inboxItem: "ibx",
   decision: "dec",
+  retagRun: "rtg",
+  retagDiff: "rtd",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;
