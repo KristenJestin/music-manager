@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Nineteen tools and two resource families over the *same service layer* the REST API and the
+ * Twenty tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same nineteen, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than nineteen of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -42,12 +42,19 @@ import { createFromUrl, getImport } from "#/server/services/imports.ts";
 import { jobDetail, setImportOptions } from "#/server/services/console.queries.ts";
 import { listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
-import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
+import { listInbox, resolveInboxBatch } from "#/server/services/inbox.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
-import { discoverList, syncDiscover } from "#/server/services/discover.ts";
-import { createRun, runToCompletion, runView } from "#/server/services/retag.ts";
+import { discoverList, explainDiscover, syncDiscover } from "#/server/services/discover.ts";
+import {
+  abbreviateChange,
+  createRun,
+  DIFF_VALUE_LIMIT,
+  runToCompletion,
+  runView,
+} from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
 import { systemStatus } from "#/server/services/status.ts";
+import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
 import {
@@ -57,7 +64,12 @@ import {
   setSetting,
 } from "#/server/services/settings.ts";
 import { enqueue, enqueueLibraryScan, enqueueRetagRun } from "#/server/services/queue.ts";
-import { IMPORT_STATUSES, type ImportStatus } from "#/server/db/schema/enums.vocab.ts";
+import {
+  IMPORT_STATUSES,
+  INBOX_TYPES,
+  type ImportStatus,
+  type InboxType,
+} from "#/server/db/schema/enums.vocab.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 
 /** MCP answers with content blocks; every tool here returns one block of JSON. */
@@ -171,17 +183,15 @@ function summariseCandidate(candidate: object): Record<string, unknown> {
   };
 }
 
-/** `[{path, code, message}]`, cut to `limit` — a failure list, not a failure dump. */
-function truncateErrors<T>(
-  rows: readonly T[],
-  limit: number,
-  map: (row: T) => { path: string; code: string; message: string },
-): { errors: { path: string; code: string; message: string }[]; more: number } {
-  return {
-    errors: rows.slice(0, limit).map(map),
-    more: Math.max(0, rows.length - limit),
-  };
-}
+/*
+ * There is no `truncateErrors` helper here any more, on purpose.
+ *
+ * It computed `more` as `rows.length - limit` over rows the caller had *already* cut to
+ * `limit`, so it could only ever answer 0 — `moreErrors: 0` on a run hiding eleven errors,
+ * `moreDiffs: 0` on one hiding twenty-six. A list that has been truncated cannot count what it
+ * no longer contains, so every "more" below is computed against a total obtained separately:
+ * `runView().totals` (counted in SQL) and `summariseScan` (which cuts the full arrays itself).
+ */
 
 /* ------------------------------------------------------------------ */
 /* the tools                                                           */
@@ -211,7 +221,7 @@ interface ToolSpec {
  * The tools of the spec, as data — P08's fourteen, P09's `list_discover`, and the four the
  * external MCP test report asked for: `get_status`, `discover_sync`, `scan` and `relocate`.
  *
- * A table rather than nineteen `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  */
@@ -267,6 +277,10 @@ export function toolTable(): ToolSpec[] {
             releaseGroupMbid: item.releaseGroupMbid,
             recordingMbid: item.recordingMbid,
           }));
+        const found =
+          payload.discography.length +
+          payload.recommendations.length +
+          payload.similarArtists.length;
         return {
           lastSync: payload.lastSync,
           windowDays: payload.signals.windowDays,
@@ -275,6 +289,22 @@ export function toolTable(): ToolSpec[] {
           discography: trim(payload.discography),
           recommendations: trim(payload.recommendations),
           similarArtists: trim(payload.similarArtists),
+          /*
+           * Three empty blocks next to a successful `lastSync` read as "Discover is broken",
+           * and the second MCP test report drew exactly that conclusion. The reason is always
+           * knowable — no ListenBrainz user, no Navidrome, nothing played in the window — so
+           * it is said here, in the same words `discover_sync` uses.
+           */
+          notes:
+            found > 0
+              ? []
+              : explainDiscover({
+                  settings: await loadSettings(db()),
+                  totalPlays: payload.signals.totalPlays,
+                  topArtists: payload.signals.topArtists.length,
+                  signalsError: payload.signals.error,
+                  found,
+                }),
         };
       },
     },
@@ -321,7 +351,11 @@ export function toolTable(): ToolSpec[] {
       title: "Get one import",
       description:
         "One import in full: every step and its outcome, the source videos, and any open Inbox " +
-        "items blocking it. If `inbox` is non-empty the job is waiting for a decision.",
+        "items blocking it. If `inbox` is non-empty the job is waiting for a decision.\n\n" +
+        "Each entry of `tracks` carries the mapping the matcher settled on — `trackPosition`, " +
+        "`mediumPosition`, `recordingMbid`, `trackMbid`, `trackTitle` — which is exactly the " +
+        "shape `confirm_mapping.bindings[]` expects. Re-confirming an import without losing " +
+        "its identifiers is therefore a copy, not a guess.",
       inputSchema: { importId: z.string().min(1) },
       run: async (args: { importId: string }) => {
         const detail = await jobDetail(args.importId, db());
@@ -349,6 +383,20 @@ export function toolTable(): ToolSpec[] {
             durationSeconds: track.sourceDuration,
             state: track.state,
             attempts: track.attempts,
+            /*
+             * The mapping, in `confirm_mapping.bindings[]`'s own vocabulary.
+             *
+             * These four columns have always been on the row; nothing exposed them, so an
+             * agent re-confirming an import had to send `recordingMbid: null` on every track.
+             * The `fingerprint` step then compared the audio against a mapping with no
+             * identifiers and disagreed thirteen times out of thirteen — a self-inflicted
+             * pile of Inbox items whose payload contained the value that was withheld here.
+             */
+            trackPosition: track.trackPosition,
+            mediumPosition: track.mediumPosition,
+            recordingMbid: track.recordingMbid,
+            trackMbid: track.trackMbid,
+            trackTitle: track.trackTitle,
             // The reason lived in `import_tracks.error` all along and was simply not read
             // here, so `state: "failed"` was the whole of what an agent could learn.
             error: track.error ?? null,
@@ -430,7 +478,13 @@ export function toolTable(): ToolSpec[] {
         "reduces the rest to `{id, title, artist, year, score, fit, why}`. That is the pair a " +
         "decision is actually made between; the other ten repeat the same thirteen `fitLines` " +
         'verbatim and cost about ten times more to read than they inform. `detail: "full"` ' +
-        "returns everything, for when a candidate further down needs inspecting.",
+        "returns everything, for when a candidate further down needs inspecting.\n\n" +
+        "**Each `fitLines` entry is a ready-made binding.** It carries `videoIndex` (which is " +
+        "`confirm_mapping`'s `position`), `trackPosition`, `mediumPosition`, `recordingMbid`, " +
+        "`trackMbid` and `trackTitle`, so confirming the preselection is a copy of the lines " +
+        "whose `status` is not `unbound` — no identifier has to be invented, and none has to " +
+        "be sent as `null`. Sending `recordingMbid: null` is what makes the `fingerprint` " +
+        "step disagree with your own mapping on every track.",
       inputSchema: {
         importId: z.string().min(1),
         detail: z.enum(["summary", "full"]).default("summary"),
@@ -673,30 +727,73 @@ export function toolTable(): ToolSpec[] {
     {
       name: "resolve_inbox",
       scope: "review:write",
-      title: "Answer an Inbox item",
+      title: "Answer one or many Inbox items",
       description:
-        "Answer a blocked question and let the import continue. `accept: true` takes the " +
-        "preselected answer; `false` dismisses it. The decision is logged with `decidedBy: mcp`.",
+        "Answer blocked questions and let the imports continue. `accept: true` takes each " +
+        "item's preselected answer; `false` dismisses them. Every decision is logged with " +
+        "`decidedBy: mcp`.\n\n" +
+        "**Three ways to say which items**, and exactly one must be given: `itemId` for one, " +
+        "`itemIds` for a list, or `importId` to take every item still open on that import. A " +
+        "batch is not a convenience: thirteen fingerprint mismatches answered one at a time " +
+        "were thirteen round trips *and* thirteen restarts of the same job, each racing the " +
+        "last. Here every item is resolved first and each affected import is re-queued **once** " +
+        "at the end. `type` narrows an `importId` batch to one kind of question.",
       inputSchema: {
-        itemId: z.string().min(1),
+        itemId: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("One item. Mutually exclusive with the two below."),
+        itemIds: z
+          .array(z.string().min(1))
+          .min(1)
+          .max(200)
+          .optional()
+          .describe("Several items, answered the same way."),
+        importId: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Every item still open on this import. `list_inbox` shows them first."),
+        type: z
+          .enum(INBOX_TYPES)
+          .optional()
+          .describe("With `importId`: only items of this kind, e.g. `fingerprint_mismatch`."),
         accept: z.boolean().default(true),
       },
-      run: async (args: { itemId: string; accept: boolean }) => {
-        const item = await getInboxItem(args.itemId, db());
-        if (item === null) throw new Error(`No Inbox item with id ${args.itemId}.`);
-        const updated = await resolveInboxItem(
-          args.itemId,
+      run: async (args: {
+        itemId?: string;
+        itemIds?: string[];
+        importId?: string;
+        type?: InboxType;
+        accept: boolean;
+      }) => {
+        const outcome = await resolveInboxBatch(
           {
-            resolution: args.accept
-              ? { accepted: true, ...(item.preselected ?? {}) }
-              : { accepted: false, action: "dismiss" },
-            decidedBy: "mcp",
-            status: args.accept ? "resolved" : "dismissed",
+            ...(args.itemId === undefined ? {} : { itemId: args.itemId }),
+            ...(args.itemIds === undefined ? {} : { itemIds: args.itemIds }),
+            ...(args.importId === undefined ? {} : { importId: args.importId }),
+            ...(args.type === undefined ? {} : { type: args.type }),
           },
+          { accept: args.accept, decidedBy: "mcp" },
           db(),
         );
-        if (item.importId !== null) await enqueue(item.importId, "mcp inbox resolved");
-        return { id: updated.id, status: updated.status, resumed: item.importId };
+
+        // One restart per import, after every answer is written — not one per answer.
+        for (const importId of outcome.imports) {
+          await enqueue(importId, "mcp inbox resolved");
+        }
+
+        return {
+          resolved: outcome.resolved,
+          failed: outcome.failed,
+          /** One entry per import, however many of its items were answered. */
+          resumed: outcome.imports,
+          note:
+            outcome.resolved.length === 0 && outcome.failed.length === 0
+              ? "Nothing was open to answer."
+              : `${String(outcome.resolved.length)} item(s) ${args.accept ? "resolved" : "dismissed"}, ${String(outcome.imports.length)} import(s) re-queued once.`,
+        };
       },
     },
     {
@@ -833,10 +930,18 @@ export function toolTable(): ToolSpec[] {
            * Postgres. A tool whose description promises "use `dryRun` first to see the diff"
            * has to actually carry the diff and the failures.
            */
-          const view = await runView(finished.id, { limit: args.limit }, db());
+          /*
+           * `limit` is asked for twice as many rows as it will show, because a run's errors
+           * and its diffs are two disjoint subsets of the same rows: a slice of `limit` rows
+           * that happened to be all failures would show `limit` errors and no diff at all.
+           * The *counts* below never come from this slice — `view.totals` is counted in SQL
+           * over the whole run, which is the fix for `moreErrors`/`moreDiffs` always being 0.
+           */
+          const view = await runView(finished.id, { limit: args.limit * 2 }, db());
           const rows = view?.diffs ?? [];
+          const totals = view?.totals ?? { rows: 0, failed: 0, changed: 0 };
           const broken = rows.filter((row) => row.error !== null);
-          const { errors, more } = truncateErrors(broken, args.limit, (row) => ({
+          const errors = broken.slice(0, args.limit).map((row) => ({
             path: row.path,
             code: row.error?.code ?? "UNKNOWN",
             message: row.error?.message ?? "No reason recorded.",
@@ -846,6 +951,7 @@ export function toolTable(): ToolSpec[] {
               row.error === null &&
               (row.added.length > 0 || row.removed.length > 0 || row.changed.length > 0),
           );
+          const shownDiffs = changedRows.slice(0, args.limit);
           return {
             runId: finished.id,
             total: finished.total,
@@ -854,19 +960,23 @@ export function toolTable(): ToolSpec[] {
             status: finished.status,
             dryRun: args.dryRun,
             errors,
-            moreErrors: more,
+            moreErrors: Math.max(0, totals.failed - errors.length),
             // The diff is what a dry run is *for*, so it travels on a dry run and is left out
             // of a real one, where it would only describe what has already been written.
             ...(args.dryRun
               ? {
-                  diff: changedRows.slice(0, args.limit).map((row) => ({
+                  diff: shownDiffs.map((row) => ({
                     path: row.path,
-                    added: row.added,
-                    removed: row.removed,
-                    changed: row.changed,
+                    // A tag value is abbreviated on the way *out*, never on the way into a
+                    // file: `ACOUSTID_FINGERPRINT` is two kilobytes of base64 per track and
+                    // `LYRICS` has no upper bound at all.
+                    added: row.added.map((change) => abbreviateChange(change)),
+                    removed: row.removed.map((change) => abbreviateChange(change)),
+                    changed: row.changed.map((change) => abbreviateChange(change)),
                     unchanged: row.unchanged,
                   })),
-                  moreDiffs: Math.max(0, changedRows.length - args.limit),
+                  moreDiffs: Math.max(0, totals.changed - shownDiffs.length),
+                  valuesAbbreviatedOver: DIFF_VALUE_LIMIT,
                 }
               : {}),
           };
@@ -961,7 +1071,13 @@ export function toolTable(): ToolSpec[] {
         "Read this first when anything is not behaving. It is the difference between " +
         "'the toolbox is not running', 'the toolbox refused the request' and 'nothing is " +
         "consuming the queue' — three failures that look identical from every other tool. " +
-        "`problems` is the list to act on and is empty when `ok` is true.",
+        "`problems` is the list to act on and is empty when `ok` is true.\n\n" +
+        "`toolbox.contract` is the fourth of those failures and the least visible: a container " +
+        "**older than the code calling it**. It reports the hash of the API it really " +
+        "implements and this compares it with the one the client was generated from, because " +
+        "an image one commit behind answers `422 extra_forbidden` on a field its models have " +
+        "never heard of — while `reachable: true`, `error: null` and four healthy binary " +
+        "versions all say nothing is wrong. `matches: false` means `bun run stack:up --build`.",
       inputSchema: {},
       run: async () => await systemStatus({ db: db() }),
     },
@@ -1011,8 +1127,49 @@ export function toolTable(): ToolSpec[] {
           note:
             jobId === null
               ? "The scan could not be queued. Check `get_status`."
-              : "Queued. Poll `get_status` for the worker, then read the report from the Console or `mm scan last`.",
+              : "Queued. `get_status.worker.alive` says whether anything will pick it up; " +
+                "`get_scan_report` reads the result once it has run.",
         };
+      },
+    },
+    {
+      name: "get_scan_report",
+      scope: "tools:read",
+      title: "Read what a scan found",
+      description:
+        "The result of a library scan: how many files were walked, and the orphans, missing " +
+        "files, tag drift, duplicate recordings and merged rows it found.\n\n" +
+        "Without `scanId` this is the most recent run, whatever its state — a `running` one " +
+        "answers with its status and no findings, which is how you know the worker took it. " +
+        "`scan` only *queues* the walk, and until this tool existed its result was reachable " +
+        "from the Console and the CLI but from no MCP tool at all: an agent could start a " +
+        "reconciliation and never learn what it said.\n\n" +
+        "`counts` is complete and never depends on `limit`; each list is cut to `limit` and " +
+        "carries `more` — how many it left out, counted before the cut.",
+      inputSchema: {
+        scanId: z.string().min(1).optional().describe("Omit for the most recent run."),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .default(10)
+          .describe("How many entries per list. The counts are always full."),
+      },
+      run: async (args: { scanId?: string; limit: number }) => {
+        if (args.scanId !== undefined) {
+          const scan = await getScan(args.scanId, db());
+          if (scan === null) throw new Error(`No library scan with id ${args.scanId}.`);
+          return summariseScan(scan, args.limit);
+        }
+        const [latest] = await recentScans(1, db());
+        if (latest === undefined) {
+          return {
+            scanId: null,
+            note: "No library scan has ever run on this installation. Start one with `scan`.",
+          };
+        }
+        return summariseScan(latest, args.limit);
       },
     },
     {

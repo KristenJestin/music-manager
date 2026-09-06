@@ -69,6 +69,11 @@ const jobs = await import("#/server/services/jobs/index.ts");
 const settings = await import("#/server/services/settings.ts");
 const status = await import("#/server/services/status.ts");
 const relocateService = await import("#/server/services/relocate.ts");
+const retag = await import("#/server/services/retag.ts");
+const scan = await import("#/server/services/scan.ts");
+const inboxService = await import("#/server/services/inbox.ts");
+const place = await import("#/server/services/jobs/steps/place.ts");
+const discover = await import("#/server/services/discover.ts");
 const { toolTable } = await import("./server.ts");
 
 resetServerEnv();
@@ -515,5 +520,403 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
       expect(message).not.toContain("select");
       expect(message).not.toContain("release_group_mbid");
     }
+  });
+
+  /* ================================================================ */
+  /* The second test report                                            */
+  /* ================================================================ */
+
+  /* ---------------------------------------------------------------- */
+  /* A — a truncated list cannot count what it does not contain        */
+  /* ---------------------------------------------------------------- */
+
+  describe("A retag counts before it truncates", () => {
+    beforeAll(async () => {
+      // Three tracks of one album, none of them on disk, so every one of them fails with a
+      // reason. `limit` then has more to hide than it shows — which is the whole point.
+      await db().insert(schema.libraryAlbums).values({
+        id: "alb_more",
+        albumArtist: "Ghosts",
+        title: "Nothing Here",
+        year: 2020,
+        folder: "Ghosts/Nothing Here (2020)",
+        trackCount: 3,
+        presentCount: 0,
+      });
+      for (const index of [1, 2, 3]) {
+        await db()
+          .insert(schema.libraryTracks)
+          .values({
+            id: `ltr_more_${String(index)}`,
+            albumId: "alb_more",
+            title: `Track ${String(index)}`,
+            discNumber: 1,
+            trackNumber: index,
+            path: `Ghosts/Nothing Here (2020)/0${String(index)} - Track ${String(index)}.opus`,
+            format: "opus",
+          });
+      }
+    });
+
+    it("reports how many errors it left out, from the full count", async () => {
+      const result = (await call("retag", {
+        albumId: "alb_more",
+        dryRun: true,
+        onlyBehind: false,
+        limit: 1,
+      })) as { failed: number; errors: unknown[]; moreErrors: number };
+
+      expect(result.failed).toBe(3);
+      expect(result.errors).toHaveLength(1);
+      // `moreErrors` was `Math.max(0, rows.length - limit)` on rows already cut to `limit`, so
+      // it could only answer 0 — while eleven errors were hidden. Now: total minus shown.
+      expect(result.moreErrors).toBe(2);
+    }, 60_000);
+
+    it("counts a run's rows in SQL, independently of the slice it returns", async () => {
+      const run = await retag.createRun({
+        db: db(),
+        scope: "album",
+        targetId: "alb_more",
+        dryRun: true,
+        onlyBehind: false,
+        trigger: "manual",
+      });
+      const finished = await retag.runToCompletion(run.id, { db: db() });
+      const view = await retag.runView(finished.id, { limit: 1 }, db());
+      expect(view?.diffs).toHaveLength(1);
+      expect(view?.totals.rows).toBe(3);
+      expect(view?.totals.failed).toBe(3);
+    }, 60_000);
+
+    /* ---- G — a diff a reader can read ---- */
+
+    it("G abbreviates a tag value that is kilobytes long", () => {
+      const long = "AQADtJQibVHCoNzx".repeat(200);
+      const abbreviated = retag.abbreviateValue(long);
+      expect(abbreviated.length).toBeLessThan(long.length);
+      expect(abbreviated).toContain(`(${String(long.length)} chars)`);
+      // Short values are untouched: this is about `ACOUSTID_FINGERPRINT` and `LYRICS`, not
+      // about every tag in the projection.
+      expect(retag.abbreviateValue("Daft Punk")).toBe("Daft Punk");
+      const change = retag.abbreviateChange({
+        key: "ACOUSTID_FINGERPRINT",
+        field: "acoustid_fingerprint",
+        after: long,
+      });
+      expect(change.after?.length ?? 0).toBeLessThan(long.length);
+      expect(change.key).toBe("ACOUSTID_FINGERPRINT");
+    });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* B — the identifiers a faithful confirm_mapping needs              */
+  /* ---------------------------------------------------------------- */
+
+  describe("B the mapping's identifiers are readable", () => {
+    it("get_import carries recordingMbid, trackPosition and mediumPosition per track", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const detail = (await call("get_import", { importId: created.job.id })) as {
+        tracks: {
+          position: number;
+          trackPosition: number | null;
+          mediumPosition: number | null;
+          recordingMbid: string | null;
+          trackMbid: string | null;
+        }[];
+      };
+      expect(detail.tracks.length).toBeGreaterThan(0);
+      // Every key `confirm_mapping.bindings[]` asks for, on the same object.
+      for (const key of ["trackPosition", "mediumPosition", "recordingMbid", "trackMbid"]) {
+        expect(detail.tracks[0]).toHaveProperty(key);
+      }
+    }, 120_000);
+
+    it("get_candidates puts them on every fit line, so a faithful confirm is a copy", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const result = (await call("get_candidates", {
+        importId: created.job.id,
+        detail: "full",
+        limit: 3,
+      })) as {
+        preselectedId: string | null;
+        candidates: {
+          id: string;
+          fitLines: {
+            videoIndex: number;
+            trackPosition: number | null;
+            mediumPosition: number | null;
+            recordingMbid: string | null;
+            trackMbid: string | null;
+          }[];
+        }[];
+      };
+
+      const preselected =
+        result.candidates.find((entry) => entry.id === result.preselectedId) ??
+        result.candidates[0];
+      const bound = (preselected?.fitLines ?? []).filter((line) => line.trackPosition !== null);
+      expect(bound.length).toBeGreaterThan(0);
+      // The value the report said the system knew and refused to hand over.
+      expect(bound.some((line) => line.recordingMbid !== null)).toBe(true);
+      expect(bound[0]).toHaveProperty("mediumPosition");
+    }, 120_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* C — one track is one row, whatever it is called                   */
+  /* ---------------------------------------------------------------- */
+
+  describe("C a track's identity is not its path", () => {
+    const RECORDING = "11111111-1111-4111-8111-111111111111";
+    const KEPT = "CHVRCHES/Every Open Eye (2015)/01 - Never Ending Circles.opus";
+    const GHOST = "CHVRCHES/Every Open Eye (2015)/01 Never Ending Circles.opus";
+
+    beforeAll(async () => {
+      await db().insert(schema.libraryAlbums).values({
+        id: "alb_dup",
+        albumArtist: "CHVRCHES",
+        title: "Every Open Eye",
+        year: 2015,
+        folder: "CHVRCHES/Every Open Eye (2015)",
+        trackCount: 1,
+        presentCount: 1,
+      });
+      mkdirSync(join(LIBRARY_HOST, "CHVRCHES", "Every Open Eye (2015)"), { recursive: true });
+      writeFileSync(join(LIBRARY_HOST, ...KEPT.split("/")), "not really audio");
+      await db().insert(schema.libraryTracks).values({
+        id: "ltr_dup_new",
+        albumId: "alb_dup",
+        recordingMbid: RECORDING,
+        title: "Never Ending Circles",
+        discNumber: 1,
+        trackNumber: 1,
+        path: KEPT,
+        format: "opus",
+      });
+    });
+
+    it("refuses a second row for the same recording of the same album", async () => {
+      await expect(
+        db().insert(schema.libraryTracks).values({
+          id: "ltr_dup_old",
+          albumId: "alb_dup",
+          recordingMbid: RECORDING,
+          title: "Never Ending Circles",
+          discNumber: 1,
+          trackNumber: 1,
+          // The old template's name — the exact shape of the twenty-five-row album.
+          path: GHOST,
+          format: "opus",
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("finds the existing row by recording when the file has been renamed", async () => {
+      const found = await place.findLibraryTrack({ db: db() }, "alb_dup", {
+        path: GHOST,
+        recordingMbid: RECORDING,
+        discNumber: 1,
+        trackNumber: 1,
+      });
+      expect(found?.id).toBe("ltr_dup_new");
+    });
+
+    it("finds it by position when there is no MusicBrainz id at all", async () => {
+      const found = await place.findLibraryTrack({ db: db() }, "alb_dup", {
+        path: "CHVRCHES/Every Open Eye (2015)/01 Something Else.opus",
+        recordingMbid: null,
+        discNumber: 1,
+        trackNumber: 1,
+      });
+      expect(found?.id).toBe("ltr_dup_new");
+    });
+
+    it("merges a database that predates the constraint, keeping the row whose file exists", async () => {
+      /*
+       * The constraint makes duplicates impossible to create, so the only way to test the
+       * repair is to *be* the database that had them: drop the indexes, insert the ghost, and
+       * let `scan` find it. That is exactly the installation the report was written against.
+       */
+      await db().$client`drop index library_tracks_album_recording_idx`;
+      await db().$client`drop index library_tracks_album_position_idx`;
+      await db().insert(schema.libraryTracks).values({
+        id: "ltr_dup_ghost",
+        albumId: "alb_dup",
+        recordingMbid: RECORDING,
+        title: "Never Ending Circles",
+        discNumber: 1,
+        trackNumber: 1,
+        // Nothing on disk at this path: this is the ghost.
+        path: GHOST,
+        format: "opus",
+      });
+      await db()
+        .update(schema.libraryAlbums)
+        .set({ trackCount: 2 })
+        .where(eq(schema.libraryAlbums.id, "alb_dup"));
+
+      const { report } = await scan.runScan({ db: db(), driftLimit: 0 });
+      expect(report.merged.length).toBeGreaterThan(0);
+
+      const rows = await db()
+        .select()
+        .from(schema.libraryTracks)
+        .where(eq(schema.libraryTracks.albumId, "alb_dup"));
+      expect(rows).toHaveLength(1);
+      // The survivor is the row whose file is on disk — not the newest, not the first.
+      expect(rows[0]?.id).toBe("ltr_dup_new");
+
+      const [album] = await db()
+        .select()
+        .from(schema.libraryAlbums)
+        .where(eq(schema.libraryAlbums.id, "alb_dup"))
+        .limit(1);
+      expect(album?.trackCount).toBe(1);
+
+      await db().$client`create unique index library_tracks_album_recording_idx
+        on library_tracks (album_id, recording_mbid)
+        where album_id is not null and recording_mbid is not null`;
+      await db().$client`create unique index library_tracks_album_position_idx
+        on library_tracks (album_id, coalesce(disc_number, 1), track_number)
+        where album_id is not null and track_number is not null`;
+    }, 120_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* E — a scan whose result an agent can read                         */
+  /* ---------------------------------------------------------------- */
+
+  describe("E get_scan_report", () => {
+    it("answers with the counts in full and the lists cut to `limit`", async () => {
+      // Four files nothing in the database has ever heard of.
+      mkdirSync(join(LIBRARY_HOST, "Orphans"), { recursive: true });
+      for (const index of [1, 2, 3, 4]) {
+        writeFileSync(join(LIBRARY_HOST, "Orphans", `${String(index)}.opus`), "not really audio");
+      }
+      const { scan: run } = await scan.runScan({ db: db(), driftLimit: 0 });
+
+      const report = (await call("get_scan_report", { scanId: run.id, limit: 2 })) as {
+        scanId: string;
+        status: string;
+        counts: { orphans: number; filesSeen: number };
+        orphans: { items: unknown[]; more: number };
+      };
+      expect(report.scanId).toBe(run.id);
+      expect(report.status).toBe("done");
+      expect(report.counts.orphans).toBeGreaterThanOrEqual(4);
+      expect(report.orphans.items).toHaveLength(2);
+      expect(report.orphans.more).toBe(report.counts.orphans - 2);
+    }, 120_000);
+
+    it("falls back to the most recent run when no id is given", async () => {
+      const report = (await call("get_scan_report")) as { scanId: string | null };
+      expect(report.scanId).not.toBeNull();
+    }, 60_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* F — a toolbox older than the code calling it                      */
+  /* ---------------------------------------------------------------- */
+
+  it("F get_status compares the toolbox's contract with the generated client", async () => {
+    const result = (await call("get_status")) as {
+      toolbox: {
+        reachable: boolean;
+        contract: { expected: string; actual: string | null; matches: boolean } | null;
+      };
+      problems: string[];
+    };
+    expect(result.toolbox.reachable).toBe(true);
+    expect(result.toolbox.contract).not.toBeNull();
+    // The stack was brought up from this checkout, so the image *is* this code's image.
+    expect(result.toolbox.contract?.actual).toBe(result.toolbox.contract?.expected);
+    expect(result.toolbox.contract?.matches).toBe(true);
+    expect(result.problems.join(" ")).not.toContain("stack:up --build");
+  }, 30_000);
+
+  /* ---------------------------------------------------------------- */
+  /* H — an empty Discover says why it is empty                        */
+  /* ---------------------------------------------------------------- */
+
+  it("H discover_sync explains a result of zero", async () => {
+    await settings.setSetting("discoverEnabled", true, { db: db(), setBy: "test" });
+    const report = (await call("discover_sync")) as {
+      status: string;
+      recommendations: number;
+      notes: string[];
+    };
+    expect(report.status).toBe("done");
+    // Neither source is configured in this database, and that is a reason, not a silence —
+    // whatever the counts happen to be.
+    expect(report.notes.length).toBeGreaterThan(0);
+    expect(report.notes.join(" ")).toContain("listenbrainzUser");
+    expect(report.notes.join(" ")).toContain("navidromeUrl");
+
+    // `list_discover` carries the same field, in the same words, so three empty blocks next to
+    // a successful `lastSync` cannot be read as "Discover is broken".
+    const list = (await call("list_discover")) as { notes: string[] };
+    expect(Array.isArray(list.notes)).toBe(true);
+
+    const explained = discover.explainDiscover({
+      settings: {
+        discoverEnabled: true,
+        navidromeUrl: "",
+        listenbrainzUser: "",
+        lastfmKey: "",
+        discoverWindowDays: 30,
+      },
+      totalPlays: 0,
+      topArtists: 0,
+      signalsError: null,
+      found: 0,
+    });
+    expect(explained.join(" ")).toContain("navidromeUrl");
+    expect(explained.join(" ")).toContain("listenbrainzUser");
+  }, 120_000);
+
+  /* ---------------------------------------------------------------- */
+  /* I — several answers, one restart                                  */
+  /* ---------------------------------------------------------------- */
+
+  it("I resolve_inbox answers a whole import's items and re-queues it once", async () => {
+    const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+    for (const index of [0, 1, 2]) {
+      // An item is idempotent per (type, import, track), which is what stops a retried step
+      // piling up questions — so three questions need three distinct tracks.
+      await db()
+        .insert(schema.inboxItems)
+        .values({
+          id: `inb_batch_${String(index)}`,
+          type: "fingerprint_mismatch",
+          importId: created.job.id,
+          trackId: null,
+          title: `Fingerprint disagrees on track ${String(index)}`,
+          preselected: { action: "accept" },
+        });
+    }
+
+    const open = await inboxService.listInbox({ importId: created.job.id, status: "open" }, db());
+    expect(open).toHaveLength(3);
+
+    const result = (await call("resolve_inbox", {
+      importId: created.job.id,
+      type: "fingerprint_mismatch",
+    })) as { resolved: unknown[]; resumed: string[]; failed: unknown[] };
+
+    expect(result.resolved).toHaveLength(3);
+    expect(result.failed).toHaveLength(0);
+    // Three answers, one restart — not three restarts racing each other.
+    expect(result.resumed).toEqual([created.job.id]);
+
+    const after = await inboxService.listInbox({ importId: created.job.id, status: "open" }, db());
+    expect(after).toHaveLength(0);
+  }, 120_000);
+
+  it("I refuses two ways of naming the same set, and none at all", async () => {
+    await expect(call("resolve_inbox", {})).rejects.toThrow(/itemId/);
+    await expect(call("resolve_inbox", { itemId: "inb_x", importId: "imp_x" })).rejects.toThrow(
+      /three ways/,
+    );
   });
 });

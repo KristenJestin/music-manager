@@ -36,15 +36,15 @@ describe("the tool table", () => {
     }
   });
 
-  it("carries the four tools the report asked for (§9, §10, §11)", () => {
-    for (const name of ["get_status", "discover_sync", "scan", "relocate"]) {
+  it("carries the tools the two reports asked for (§9, §10, §11 and E)", () => {
+    for (const name of ["get_status", "discover_sync", "scan", "relocate", "get_scan_report"]) {
       expect(byName.has(name), name).toBe(true);
     }
   });
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(19);
+    expect(tools.length).toBe(20);
   });
 });
 
