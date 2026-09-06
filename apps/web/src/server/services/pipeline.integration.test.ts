@@ -93,6 +93,12 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     await migrate(drizzle(client), { migrationsFolder: join(REPO_ROOT, "apps/web/drizzle") });
     await client.end();
 
+    // P04: fixtures mode is a pre-filled raw cache, not a branch in `tag`. The recorded
+    // responses go in under the keys the real clients use, so the pipeline below takes the
+    // production path with the network unplugged — which is the thing worth testing.
+    const { seedFixtures } = await import("#/server/integrations/seed-fixtures.ts");
+    await seedFixtures();
+
     rmSync(LIBRARY_HOST, { recursive: true, force: true });
     mkdirSync(LIBRARY_HOST, { recursive: true });
   }, 120_000);
