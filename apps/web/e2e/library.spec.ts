@@ -1,34 +1,28 @@
 import { expect, test, type Page } from "@playwright/test";
-import { resolveSource, signIn, waitForStatus } from "./helpers.ts";
+import { signIn } from "./helpers.ts";
 
 /**
  * The library screens, against a library that really has files in it.
  *
- * The album that `import-album.spec.ts` places is the subject. Playwright is configured
- * single-worker and serial here (`playwright.config.ts`), and the specs run in file-name
- * order, so `import-album` has finished before this one starts — but depending on that
- * silently would make this spec fail for a confusing reason when somebody runs it alone. So
- * it checks, and imports the fixture itself if the library is empty.
+ * The album that `import-album.spec.ts` places is the subject, and this spec **does not
+ * import one of its own**. The suite is single-worker and serial against one database
+ * (`playwright.config.ts`), specs run in file-name order, and `import-album` sorts before
+ * `library` — so the album is there by the time this runs.
+ *
+ * An earlier version drove the wizard itself when the library looked empty. It was worse in
+ * every way: it started a second import of the same source while the first one's job was
+ * still settling, it duplicated the coverage `import-album.spec.ts` already owns, and when it
+ * failed it failed *in the wizard*, which is not what this file is about. Waiting is honest
+ * and the failure message says exactly what is missing.
  */
 
-/** Make sure at least one album is on disk, importing the fixture if not. */
+/** Wait for the album `import-album.spec.ts` placed. */
 async function ensureLibrary(page: Page): Promise<void> {
   await page.goto("/library");
-  const cards = page.getByTestId("album-card");
-  if ((await cards.count()) > 0) return;
-
-  const importId = await resolveSource(page, "fixture://discovery");
-  await page.getByTestId("wizard-next").click();
-  await page.waitForURL(/release=/, { timeout: 120_000 });
-  await page.getByTestId("wizard-next").click();
-  await page.waitForURL(/step=3/, { timeout: 120_000 });
-  await page.getByTestId("wizard-next").click();
-  await page.waitForURL(/step=4/, { timeout: 120_000 });
-  await page.getByTestId("wizard-start").click();
-  await page.waitForURL(new RegExp(`/imports/${importId}`), { timeout: 120_000 });
-  await waitForStatus(page, "Done");
-  await page.goto("/library");
-  await expect(cards.first()).toBeVisible({ timeout: 60_000 });
+  await expect(
+    page.getByTestId("album-card").first(),
+    "the library is empty: import-album.spec.ts places the album these tests read, so run the whole suite rather than this file alone",
+  ).toBeVisible({ timeout: 120_000 });
 }
 
 test.describe("the library", () => {
