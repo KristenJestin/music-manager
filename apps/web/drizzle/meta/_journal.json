@@ -36,6 +36,20 @@
       "when": 1788667805524,
       "tag": "0004_graceful_quasimodo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788680601142,
+      "tag": "0005_faulty_mole_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788680914746,
+      "tag": "0006_lumpy_ma_gnuci",
+      "breakpoints": true
     }
   ]
 }

@@ -27,6 +27,8 @@ export const QUEUES = {
   retag: "retag",
   /** Walk the library and reconcile it with the database (P07). */
   scan: "scan",
+  /** Hand one event to one webhook endpoint, with retries (P08). */
+  webhook: "webhook.deliver",
 } as const;
 
 /** Scheduled work. Registered now, implemented in the phase named in the comment. */
@@ -52,6 +54,11 @@ export interface ImportStepJob {
 
 export interface DownloadJob {
   readonly importId: string;
+}
+
+/** One row of `webhook_deliveries`. The payload is in the row, not on the queue. */
+export interface WebhookJob {
+  readonly deliveryId: string;
 }
 
 /** The schema pg-boss owns. Separate from `public`, which Drizzle owns alone. */
@@ -81,6 +88,7 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
   await boss.createQueue(QUEUES.download, { policy: "singleton" });
   await boss.createQueue(QUEUES.retag, { policy: "standard" });
   await boss.createQueue(QUEUES.scan, { policy: "singleton" });
+  await boss.createQueue(QUEUES.webhook, { policy: "standard" });
   for (const name of Object.keys(CRON_QUEUES)) {
     await boss.createQueue(name, { policy: "singleton" });
   }
@@ -116,6 +124,26 @@ export async function enqueueDownload(
     retryLimit: 0,
     // A download of a long album must not be reclaimed while it is still running.
     expireInSeconds: 6 * 60 * 60,
+  });
+}
+
+/**
+ * Hand one webhook delivery to the worker.
+ *
+ * **The retry policy lives here, not in the handler.** Five attempts with exponential backoff
+ * is roughly eleven minutes of patience, which is the right amount for "the subscriber's box
+ * is rebooting" and the wrong amount for "the URL is a typo" — the latter fails five times
+ * cheaply and then stops, leaving five `failed` rows that say exactly what happened.
+ */
+export async function enqueueWebhookDelivery(
+  boss: PgBoss,
+  job: WebhookJob,
+): Promise<string | null> {
+  return await boss.send(QUEUES.webhook, job, {
+    retryLimit: 5,
+    retryDelay: 20,
+    retryBackoff: true,
+    expireInSeconds: 120,
   });
 }
 

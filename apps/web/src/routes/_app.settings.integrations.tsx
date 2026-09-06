@@ -11,6 +11,7 @@
 import { useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Download, Plug, Save, Upload } from "lucide-react";
+import { NOTIFIABLE_EVENTS } from "@mm/contracts";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -24,6 +25,7 @@ import {
   rescanNavidrome,
   saveIntegrationSettings,
   testNavidrome,
+  testNotification,
   type IntegrationsForm,
 } from "#/server/functions/settings-integrations.ts";
 import type { NavidromeStatus } from "#/server/services/navidrome.ts";
@@ -40,8 +42,10 @@ function Integrations() {
   const toast = useToast();
   const [form, setForm] = useState<IntegrationsForm>({
     ...loaded.values,
-    // Empty means "unchanged". Never prefilled with anything derived from the real password.
+    // Empty means "unchanged". Never prefilled with anything derived from the real value.
     navidromePassword: "",
+    smtpPassword: "",
+    notificationsTarget: "",
   });
   const [status, setStatus] = useState<NavidromeStatus>(loaded.navidrome);
   const [busy, setBusy] = useState<string | null>(null);
@@ -218,7 +222,7 @@ function Integrations() {
 
       <Section
         title="Notifications"
-        description="Stored now, delivered in P08. The intention is recorded so the upgrade is a worker change, not a form change."
+        description="One channel, told about the events you tick. For machine-to-machine callbacks with a signature and retries, use the webhooks on Settings › API & agents instead."
       >
         <FormRow label="Enabled">
           <Toggle
@@ -227,10 +231,8 @@ function Integrations() {
               set("notificationsEnabled", next);
             }}
             label={form.notificationsEnabled ? "on" : "off"}
+            testId="toggle-notifications"
           />
-          <ToneBadge tone="muted" outline>
-            delivery coming in P08
-          </ToneBadge>
         </FormRow>
         <FormRow label="Channel">
           <ChipGroup
@@ -238,8 +240,8 @@ function Integrations() {
             options={[
               { value: "none", label: "None" },
               { value: "ntfy", label: "ntfy" },
-              { value: "webhook", label: "Webhook" },
-              { value: "email", label: "Email" },
+              { value: "discord", label: "Discord" },
+              { value: "email", label: "Email (SMTP)" },
             ]}
             onChange={(next) => {
               set("notificationsChannel", next);
@@ -247,10 +249,25 @@ function Integrations() {
             testId="chips-notify-channel"
           />
         </FormRow>
-        <FormRow label="Target" help="The ntfy topic, the webhook URL, or the e-mail address.">
+        <FormRow
+          label="Target"
+          help={
+            form.notificationsChannel === "email"
+              ? "The destination e-mail address."
+              : form.notificationsChannel === "discord"
+                ? "The Discord incoming-webhook URL."
+                : "The full ntfy topic URL, e.g. https://ntfy.sh/my-topic."
+          }
+        >
           <Input
             className="w-full max-w-form font-mono text-xs"
+            placeholder={
+              loaded.notificationsTargetMask === ""
+                ? "not set"
+                : `${loaded.notificationsTargetMask} — leave empty to keep`
+            }
             value={form.notificationsTarget}
+            data-testid="input-notifications-target"
             onChange={(event) => {
               set("notificationsTarget", event.target.value);
             }}
@@ -259,18 +276,107 @@ function Integrations() {
         <FormRow label="Notify on">
           <ChipMulti
             values={form.notificationsEvents}
-            options={[
-              { value: "job_failed", label: "job failed" },
-              { value: "inbox_opened", label: "review needed" },
-              { value: "scan_report", label: "scan report" },
-              { value: "verify_mismatch", label: "read-back mismatch" },
-            ]}
+            options={NOTIFIABLE_EVENTS.map((event) => ({ value: event, label: event }))}
             onChange={(next) => {
               set("notificationsEvents", next);
             }}
+            testId="chips-notify-events"
           />
         </FormRow>
+        <FormRow label="Send a test" help="Delivers now, whatever the events above say.">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy !== null || form.notificationsChannel === "none"}
+            data-testid="notifications-test"
+            onClick={() => {
+              run("notify", async () => {
+                const outcome = await testNotification({
+                  data: {
+                    channel: form.notificationsChannel,
+                    target: form.notificationsTarget,
+                  },
+                });
+                if (!outcome.delivered) throw new Error(outcome.reason);
+                return `Test notification delivered over ${outcome.channel}.`;
+              });
+            }}
+          >
+            <Plug className="size-3.5" aria-hidden="true" />
+            Test
+          </Button>
+        </FormRow>
       </Section>
+
+      {form.notificationsChannel !== "email" ? null : (
+        <Section
+          title="SMTP"
+          description="Used only by the e-mail channel. Port 465 implies TLS; anything else uses STARTTLS when it is on."
+        >
+          <FormRow label="Host">
+            <Input
+              className="w-full max-w-form font-mono text-xs"
+              value={form.smtpHost}
+              data-testid="input-smtp-host"
+              onChange={(event) => {
+                set("smtpHost", event.target.value);
+              }}
+            />
+          </FormRow>
+          <FormRow label="Port">
+            <Input
+              className="w-32 text-xs"
+              type="number"
+              value={form.smtpPort}
+              onChange={(event) => {
+                set("smtpPort", Number(event.target.value));
+              }}
+            />
+          </FormRow>
+          <FormRow label="STARTTLS">
+            <Toggle
+              checked={form.smtpTls}
+              onChange={(next) => {
+                set("smtpTls", next);
+              }}
+              label={form.smtpTls ? "on" : "off"}
+            />
+          </FormRow>
+          <FormRow label="Username" help="Empty sends unauthenticated.">
+            <Input
+              className="w-full max-w-form font-mono text-xs"
+              value={form.smtpUser}
+              onChange={(event) => {
+                set("smtpUser", event.target.value);
+              }}
+            />
+          </FormRow>
+          <FormRow label="Password">
+            <Input
+              className="w-full max-w-form font-mono text-xs"
+              type="password"
+              placeholder={
+                loaded.smtpPasswordMask === ""
+                  ? "not set"
+                  : `${loaded.smtpPasswordMask} — leave empty to keep`
+              }
+              value={form.smtpPassword}
+              onChange={(event) => {
+                set("smtpPassword", event.target.value);
+              }}
+            />
+          </FormRow>
+          <FormRow label="From" help="Defaults to the username when empty.">
+            <Input
+              className="w-full max-w-form font-mono text-xs"
+              value={form.smtpFrom}
+              onChange={(event) => {
+                set("smtpFrom", event.target.value);
+              }}
+            />
+          </FormRow>
+        </Section>
+      )}
 
       <Section
         title="Backup"

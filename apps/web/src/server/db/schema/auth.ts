@@ -22,7 +22,15 @@
  * Auth's default names is what lets the library's own migrator and diagnostics recognise it.
  */
 import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 /** The single administrator of this installation, and whoever P08 adds after them. */
 export const user = pgTable("user", {
@@ -114,6 +122,70 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+/**
+ * The `apiKey` plugin's table (`docs/phases/P08-api-agents.md` § Clés d'API).
+ *
+ * Hand-written like the four above, and for the same reason. Three things about it are worth
+ * knowing before touching it:
+ *
+ *  - **The model is `apikey`, one word.** That is the name the plugin looks up
+ *    (`API_KEY_TABLE_NAME`), and the Drizzle adapter resolves `schema["apikey"][field]`. A
+ *    property called `apiKey` would validate as a missing table at boot.
+ *  - **The owner column is `referenceId`, not `userId`.** In 1.7 a key may belong to an
+ *    organisation rather than a user, so the plugin renamed it and dropped the foreign key.
+ *    There is one account here, so it is always the user's id — but the column keeps the
+ *    library's name, and there is deliberately no `references()`, because the library does
+ *    not guarantee what it points at.
+ *  - **`permissions` and `metadata` are `text`, not `jsonb`.** The plugin declares them as
+ *    `type: "string"` and does its own `JSON.stringify` on the way in. Storing them as
+ *    `jsonb` would hand Postgres a JSON string of a JSON object and read back a quoted blob.
+ *
+ * `key` holds the **hash** of the secret, never the secret: hashing is on (the plugin's
+ * default) and `disableKeyHashing` stays off. The plaintext exists exactly once, in the
+ * response to `POST /api-key/create`, which is why the Settings page shows it once and says so.
+ */
+export const apikey = pgTable(
+  "apikey",
+  {
+    id: text("id").primaryKey(),
+    /** Which of the plugin's key configurations this row belongs to. One here: `default`. */
+    configId: text("config_id").notNull().default("default"),
+    name: text("name"),
+    /** The first six characters, prefix included, so a row is recognisable in the table. */
+    start: text("start"),
+    prefix: text("prefix"),
+    /** The hashed secret. */
+    key: text("key").notNull(),
+    /** The owning user's id. See the note above on why this is not a foreign key. */
+    referenceId: text("reference_id").notNull(),
+    refillInterval: integer("refill_interval"),
+    refillAmount: integer("refill_amount"),
+    lastRefillAt: timestamp("last_refill_at", { withTimezone: true }),
+    enabled: boolean("enabled").notNull().default(true),
+    rateLimitEnabled: boolean("rate_limit_enabled").notNull().default(true),
+    rateLimitTimeWindow: integer("rate_limit_time_window"),
+    rateLimitMax: integer("rate_limit_max"),
+    requestCount: integer("request_count").notNull().default(0),
+    remaining: integer("remaining"),
+    /** Updated on every verified request. This is the "last used" column of Settings › API. */
+    lastRequest: timestamp("last_request", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+    /** `{"imports":["read","write"],…}`, JSON in a text column. See the note above. */
+    permissions: text("permissions"),
+    metadata: text("metadata"),
+  },
+  (table) => [
+    index("apikey_key_idx").on(table.key),
+    index("apikey_reference_id_idx").on(table.referenceId),
+    index("apikey_config_id_idx").on(table.configId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -129,3 +201,4 @@ export const accountRelations = relations(account, ({ one }) => ({
 
 export type AuthUser = typeof user.$inferSelect;
 export type AuthSession = typeof session.$inferSelect;
+export type ApiKeyRow = typeof apikey.$inferSelect;

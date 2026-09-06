@@ -38,6 +38,19 @@ export const MM_ERROR_CODES = [
   "CANCELLED",
   /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
   "UNAUTHORIZED",
+  /* --- the public API (P08) --- */
+  /**
+   * Authenticated, but the credential does not carry the scope this route needs.
+   *
+   * Deliberately distinct from `UNAUTHORIZED`: the fix for one is "sign in / check the key",
+   * and the fix for the other is "issue a key with that scope". An API that answered 401 to
+   * both would send people to replace a key that was working.
+   */
+  "FORBIDDEN",
+  /** The API key exceeded its rate limit, or exhausted its remaining uses. */
+  "RATE_LIMITED",
+  /** A network call the user is waiting on did not answer in time. */
+  "TIMEOUT",
   /* --- the Navidrome read-back (P07, docs/03 §7) --- */
   "NAVIDROME_NOT_CONFIGURED",
   "NAVIDROME_UNREACHABLE",
@@ -135,6 +148,10 @@ const RETRYABLE = new Set<string>([
   "YTDLP_NSIG",
   "YTDLP_FORMAT",
   "UNKNOWN",
+  // Both mean "the same request, later, would work" — which is the definition here.
+  // `FORBIDDEN` deliberately is not: no amount of waiting adds a scope to a key.
+  "RATE_LIMITED",
+  "TIMEOUT",
 ]);
 
 /** True when the failure is worth a backoff rather than a stop. */

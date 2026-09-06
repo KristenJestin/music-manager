@@ -19,6 +19,7 @@ import {
   ensureQueues,
   enqueueDownload,
   enqueueImportStep,
+  enqueueWebhookDelivery,
   stopBoss,
 } from "#/worker/queues.ts";
 
@@ -36,6 +37,43 @@ export async function enqueueLibraryScan(
     await boss.start();
     await ensureQueues(boss);
     return await boss.send("scan", job, { singletonKey: "library-scan", retryLimit: 0 });
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Ask the worker to run a re-tag run (P08's REST route, P07a's run).
+ *
+ * `handlers/retag.ts` owns `enqueueRetag`, but it also owns the batch handler, and importing
+ * that module from an HTTP route would drag the whole re-tag machinery into the web process.
+ * The dynamic import keeps it where it belongs — the same trick `dispatch()` uses.
+ */
+export async function enqueueRetagRun(runId: string): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    const { enqueueRetag } = await import("#/worker/handlers/retag.ts");
+    return await enqueueRetag(boss, { runId });
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Ask for one webhook delivery to go out (P08).
+ *
+ * Same short-lived producer as the rest of this module: `webhooks.dispatch()` is called from
+ * inside a job handler or an HTTP request, and neither should hold a pg-boss connection open
+ * for the life of the process just in case somebody subscribes to something.
+ */
+export async function enqueueWebhook(deliveryId: string): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    return await enqueueWebhookDelivery(boss, { deliveryId });
   } finally {
     await stopBoss(boss);
   }

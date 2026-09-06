@@ -27,6 +27,37 @@ export {
   type JobEventPayload,
   type StepName,
 } from "./events.ts";
+export {
+  API_ACTIONS,
+  API_RESOURCES,
+  API_SCOPES,
+  apiKeySchema,
+  apiPrincipalSchema,
+  apiScopeSchema,
+  EVENT_DESCRIPTIONS,
+  grants,
+  isApiScope,
+  NOTIFIABLE_EVENTS,
+  notifiableEventSchema,
+  parseScope,
+  permissionsOf,
+  SCOPE_DESCRIPTIONS,
+  SCOPE_ORDER,
+  scopesOf,
+  WEBHOOK_DELIVERY_HEADER,
+  WEBHOOK_EVENT_HEADER,
+  WEBHOOK_SIGNATURE_HEADER,
+  webhookPayloadSchema,
+  webhookSchema,
+  type ApiAction,
+  type ApiKeyView,
+  type ApiPrincipal,
+  type ApiResource,
+  type ApiScope,
+  type NotifiableEvent,
+  type WebhookPayload,
+  type WebhookView,
+} from "./api.ts";
 
 /** Every service in the stack answers `GET /health` with at least `{ ok: boolean }`. */
 export const healthSchema = z.object({
