@@ -25,6 +25,7 @@ import {
 } from "#/server/services/navidrome.ts";
 import { loadSettings, maskSetting, setSettings } from "#/server/services/settings.ts";
 import { send as sendNotification, type DeliveryOutcome } from "#/server/services/notifications.ts";
+import type { BackupPayload } from "#/server/services/backup.ts";
 
 const form = z.object({
   navidromeEnabled: z.boolean(),
@@ -173,16 +174,6 @@ export const rescanNavidrome = createServerFn({ method: "POST", strict: STRICT }
 /* backup                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface BackupPayload {
-  readonly version: 1;
-  readonly exportedAt: string;
-  readonly appVersion: string;
-  readonly counts: Record<string, number>;
-  readonly settings: Record<string, unknown>;
-  readonly documents: readonly Record<string, unknown>[];
-  readonly cache: readonly Record<string, unknown>[];
-}
-
 /**
  * Export the database's metadata: settings, documents and the raw source cache.
  *
@@ -190,38 +181,16 @@ export interface BackupPayload {
  * so it is the thing worth backing up. Credentials are **not** exported — a backup file that
  * carries your Last.fm key is a backup you cannot share with anyone, including a support
  * thread.
+ *
+ * The payload itself is built by `services/backup.ts`, because P10's `scripts/backup.sh` runs
+ * from a shell with no session and must produce the *same* file as this button.
  */
 export const exportBackup = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
   .handler(async (): Promise<BackupPayload> => {
     try {
-      const database = db();
-      const {
-        metadataDocuments,
-        sourceCache,
-        settings: settingsTable,
-      } = await import("#/server/db/schema/index.ts");
-      const { isSecretSetting, isSettingKey } = await import("#/server/services/settings.ts");
-      const { APP_VERSION } = await import("#/server/version.ts");
-
-      const documents = await database.select().from(metadataDocuments);
-      const cache = await database.select().from(sourceCache);
-      const rows = await database.select().from(settingsTable);
-
-      const exported: Record<string, unknown> = {};
-      for (const row of rows) {
-        if (isSettingKey(row.key) && !isSecretSetting(row.key)) exported[row.key] = row.value;
-      }
-
-      return {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        appVersion: APP_VERSION,
-        counts: { documents: documents.length, cache: cache.length, settings: rows.length },
-        settings: exported,
-        documents: documents as unknown as Record<string, unknown>[],
-        cache: cache as unknown as Record<string, unknown>[],
-      };
+      const { buildBackup } = await import("#/server/services/backup.ts");
+      return await buildBackup(db());
     } catch (error) {
       return toFailure(error);
     }
