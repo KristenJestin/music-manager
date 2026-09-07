@@ -227,41 +227,55 @@ export async function startWorker(): Promise<Worker> {
     async (jobs: Job<TrackStepJob>[]) => {
       for (const job of jobs) {
         const { importId, trackId, step } = job.data;
-        if (trackId === null) {
-          log("track.step album tail", { importId, jobId: job.id });
-          const tail = await runStep(importId, "tag", {
-            db: db(),
-            signal: shutdown.signal,
-            skipIfStopped: true,
-          });
-          // A failure is already on `job_steps` and in the journal; there is nothing to verify.
-          if (tail.status !== "done" && tail.status !== "skipped") continue;
-          if ((tail.data as { refused?: string } | undefined)?.refused !== undefined) continue;
-          await handOverToVerify(db(), importId);
-          await enqueueImportStep(boss, { importId, reason: "every track placed" });
-          continue;
-        }
-        // A duplicate message for a track that is running right now: drop it. The run in
-        // flight chains the next step itself, so nothing is lost by not doing it twice.
-        if (inFlight.has(trackId)) {
+        // The album-wide tail runs once. Two tracks that finish within the same second both
+        // ask for it, and `singletonKey` only deduplicates messages that are still *queued* —
+        // so the second one used to arrive while the first was measuring ReplayGain and run
+        // rsgain over the whole album a second time.
+        const key = trackId ?? `${importId}:album`;
+        if (inFlight.has(key)) {
           log("track.step already in flight", { importId, trackId, step });
           continue;
         }
-        inFlight.add(trackId);
-        log("track.step", { importId, trackId, step, jobId: job.id });
+        inFlight.add(key);
         try {
-          const outcome = await runTrackStep(importId, trackId, step, {
-            db: db(),
-            signal: shutdown.signal,
-          });
-          if (outcome.next !== null) {
-            await enqueueTrackStep(boss, { importId, trackId, step: outcome.next });
+          if (trackId === null) {
+            log("track.step album tail", { importId, jobId: job.id });
+            const tail = await runStep(importId, "tag", {
+              db: db(),
+              signal: shutdown.signal,
+              skipIfStopped: true,
+            });
+            // A failure is already on `job_steps` and in the journal; nothing to verify.
+            if (tail.status !== "done" && tail.status !== "skipped") continue;
+            if ((tail.data as { refused?: string } | undefined)?.refused !== undefined) continue;
+            await handOverToVerify(db(), importId);
+            await enqueueImportStep(boss, { importId, reason: "every track placed" });
             continue;
           }
+          /*
+           * **One message carries the whole chain**, rather than one message per step.
+           *
+           * A round trip through the queue costs up to a poll — a second — and three of them
+           * per track is a minute of nothing happening on a fourteen-track album, which would
+           * have made the pipelined path *slower* than the serial one it replaces. Looping
+           * here costs nothing and makes the order within a track a property of the loop
+           * rather than of the queue. Parallelism is unchanged: `localConcurrency` handlers
+           * each drive one track.
+           */
+          log("track.step", { importId, trackId, step, jobId: job.id });
+          let current: TrackStepJob["step"] | null = step;
+          while (current !== null) {
+            const outcome = await runTrackStep(importId, trackId, current, {
+              db: db(),
+              signal: shutdown.signal,
+            });
+            current = outcome.next;
+            if (shutdown.signal.aborted) break;
+          }
         } finally {
-          inFlight.delete(trackId);
+          inFlight.delete(key);
         }
-        await advance(importId);
+        if (trackId !== null) await advance(importId);
       }
     },
   );
