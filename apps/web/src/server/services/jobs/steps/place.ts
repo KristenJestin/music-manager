@@ -17,6 +17,7 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, eq, isNull } from "drizzle-orm";
+import { MMError } from "@mm/contracts";
 import {
   renderAlbumFolder,
   renderPathTemplate,
@@ -158,17 +159,37 @@ async function upsertAlbum(
     return existing.id;
   }
 
-  const id = newId("libraryAlbum");
-  await ctx.db.insert(libraryAlbums).values({
-    id,
-    releaseMbid: ctx.job.releaseMbid,
-    releaseGroupMbid,
-    albumArtist: input.albumArtist,
-    title: input.album,
-    year: year === null || Number.isNaN(year) ? null : year,
-    folder,
-  });
-  return id;
+  /*
+   * `onConflictDoUpdate`, not a plain insert.
+   *
+   * Since `place` runs once per track (decision 147), two tracks of the same album can reach
+   * this line at the same moment, both having found no row a millisecond earlier. `folder` is
+   * unique, so the loser used to fail the whole import on a duplicate key — the album's own
+   * identity racing itself. The upsert is the same statement for both of them, and
+   * `returning` gives each the id that actually exists.
+   */
+  const [row] = await ctx.db
+    .insert(libraryAlbums)
+    .values({
+      id: newId("libraryAlbum"),
+      releaseMbid: ctx.job.releaseMbid,
+      releaseGroupMbid,
+      albumArtist: input.albumArtist,
+      title: input.album,
+      year: year === null || Number.isNaN(year) ? null : year,
+      folder,
+    })
+    .onConflictDoUpdate({
+      target: libraryAlbums.folder,
+      set: {
+        releaseMbid: ctx.job.releaseMbid,
+        ...(releaseGroupMbid === null ? {} : { releaseGroupMbid }),
+        updatedAt: new Date(),
+      },
+    })
+    .returning({ id: libraryAlbums.id });
+  if (row === undefined) throw new MMError("UNKNOWN", `Could not open the album ${folder}.`);
+  return row.id;
 }
 
 /**
@@ -272,8 +293,15 @@ async function upsertLibraryTrack(
 
   let libraryTrackId: string;
   if (row === null) {
-    libraryTrackId = newId("libraryTrack");
-    await ctx.db.insert(libraryTracks).values({ id: libraryTrackId, path: relative, ...values });
+    // Same race as the album above, one row down: `path` is unique, and two per-track `place`
+    // jobs that disagree about who saw the row first must not turn into a duplicate key.
+    const [inserted] = await ctx.db
+      .insert(libraryTracks)
+      .values({ id: newId("libraryTrack"), path: relative, ...values })
+      .onConflictDoUpdate({ target: libraryTracks.path, set: values })
+      .returning({ id: libraryTracks.id });
+    if (inserted === undefined) return;
+    libraryTrackId = inserted.id;
   } else {
     libraryTrackId = row.id;
     // `path` is now part of what an update writes: the row was found by identity, so this is
@@ -339,7 +367,10 @@ function lyricsText(document: TrackDocument): string | null {
 async function cleanWorkDir(ctx: StepContext): Promise<void> {
   const work = hostPath(ctx.paths, workFolder(ctx.paths, ctx.job.id));
   if (!existsSync(work)) return;
-  const settled = await ctx.mappedTracks();
+  // `albumTracks`, never `mappedTracks`: this step runs once per track on the pipelined path
+  // (decision 147), and asking the *scoped* view whether every track has left would delete the
+  // work directory — and the next track's file with it — as soon as the first one was placed.
+  const settled = await ctx.albumTracks();
   const leftovers = readdirSync(work, { withFileTypes: true }).filter(
     (entry) => entry.isFile() && !entry.name.startsWith("."),
   );
@@ -349,6 +380,7 @@ async function cleanWorkDir(ctx: StepContext): Promise<void> {
 }
 
 export async function placeStep(ctx: StepContext): Promise<StepResult> {
+  const album = await ctx.albumTracks();
   const mapped = await ctx.mappedTracks();
   const movable = mapped.filter(
     (track) => track.state === "tagged" || track.state === "placed" || track.state === "done",
@@ -450,7 +482,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
       .update(libraryAlbums)
       .set({
         presentCount: present.length,
-        trackCount: Math.max(present.length, mapped.length),
+        trackCount: Math.max(present.length, album.length),
         coverPath: folder === null ? null : `${folder}/cover.jpg`,
         updatedAt: new Date(),
       })
