@@ -15,6 +15,7 @@ import { ReviewCard } from "./review-card.tsx";
 import { ScoreBar } from "./score-bar.tsx";
 import { SignalsRow } from "./signals-row.tsx";
 import { Stepper } from "./stepper.tsx";
+import { TrackProgress } from "./track-progress.tsx";
 import { ImportStatusBadge, scoreTone } from "./status-badge.tsx";
 import type { InboxCard } from "#/server/functions/inbox.ts";
 import type { MappingCandidateTrack, SourceVideo } from "#/server/functions/wizard.ts";
@@ -691,5 +692,54 @@ describe("the small ones", () => {
   it("ImportStatusBadge speaks English, not enum", () => {
     render(<ImportStatusBadge status="awaiting_review" />);
     expect(screen.getByText("Needs review")).toBeTruthy();
+  });
+});
+
+describe("TrackProgress — the Status column keeps its shape (owner review D4)", () => {
+  const busy = {
+    stage: "download",
+    percent: 22,
+    speed: 32_000,
+    eta: 4,
+    message: "Aerodynamic: downloading 22%",
+    waiting: false,
+  };
+
+  it("says the phase and the figures, which is what the owner could not see", () => {
+    render(<TrackProgress activity={busy} />);
+    const text = screen.getByTestId("track-progress").textContent ?? "";
+    expect(text).toContain("download");
+    expect(text).toContain("22%");
+    expect(text).toContain("31.3 KB/s");
+    expect(text).toContain("0:04 left");
+  });
+
+  it("**reserves its space when nothing is happening**, so a row never changes height", () => {
+    // The whole of D4's "le tableau saute": the block used to appear and disappear with the
+    // download. It is rendered either way now — same three lines, same bar — and only its
+    // text changes.
+    const { container: idle } = render(<TrackProgress activity={undefined} />);
+    const empty = idle.querySelector("[data-testid=track-progress]");
+    expect(empty?.getAttribute("data-active")).toBe("no");
+    expect(empty?.children.length).toBe(3);
+
+    cleanup();
+    const { container: live } = render(<TrackProgress activity={busy} />);
+    const filled = live.querySelector("[data-testid=track-progress]");
+    expect(filled?.getAttribute("data-active")).toBe("yes");
+    expect(filled?.children.length).toBe(3);
+  });
+
+  it("truncates every string it holds, so no figure can widen the column", () => {
+    const { container } = render(<TrackProgress activity={busy} />);
+    // The two text lines — the bar's own `<span>` carries no text and is not one of them.
+    const lines = [...container.querySelectorAll("span")].filter(
+      (span) => (span.textContent ?? "") !== "",
+    );
+    expect(lines.length).toBe(2);
+    for (const line of lines) {
+      expect(line.className).toContain("truncate");
+      expect(line.className).toContain("min-w-0");
+    }
   });
 });
