@@ -266,7 +266,10 @@ is the only thing that talks to compose:
   owner's dev server or worker. `bun run stack:down` from your worktree stops only `mm-<slug>`.
 - **Never `bun run db:reset`, `db:migrate` or `mm` with an inherited `DATABASE_URL`.** Go
   through the package scripts; they resolve the checkout. `bun run stack:info` tells you which
-  database you are about to touch — read it before anything destructive.
+  database you are about to touch — read it before anything destructive. Since 2026-09-07
+  `scripts/db.ts` resolves the checkout itself and **refuses** a worktree pointed at anything
+  but `mm_<slug>` — the hard-coded fallback on `mm` that wiped the owner's database is gone
+  (`../orchestration/reports/DRIVE-FIX-1.md` §6). Do not reintroduce a default URL anywhere.
 - Never delete `.local/` in `v2/`. Yours is `<worktree>/.local/`.
 - **Never drop a database, remove a container, an image or a worktree by pattern** (`LIKE
 'mm_%'`, `docker ps -q --filter name=mm-`, `psql -c "select datname ... where datname like"`).
