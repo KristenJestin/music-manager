@@ -38,6 +38,16 @@ export interface StepContext {
   readonly step: StepName;
   /** Aborted when the worker is shutting down or the job was cancelled. */
   readonly signal: AbortSignal | undefined;
+  /**
+   * The one track this run is about, or `null` for a run over the whole album.
+   *
+   * Set by the per-track queue (`track.step`): `fingerprint`, `tag` and `place` run once per
+   * track so that track N's local work overlaps track N+1's download (decision 147). A step
+   * that reads `mappedTracks()` therefore sees one row and needs no other change; a step that
+   * genuinely reasons about the *album* — cleaning the work directory, measuring ReplayGain,
+   * unifying the album-scope fields — must ask `albumTracks()` and say so.
+   */
+  readonly trackScope: string | null;
   /** Append one line to the journal, already tagged with this import and this step. */
   say(
     type: string,
@@ -50,8 +60,16 @@ export interface StepContext {
   ): Promise<void>;
   /** The import's videos, in source order. Re-read on every call. */
   tracks(): Promise<ImportTrack[]>;
-  /** The videos bound to a MusicBrainz track, in tracklist order. */
+  /** The videos bound to a MusicBrainz track, in tracklist order — **narrowed to the scope**. */
   mappedTracks(): Promise<ImportTrack[]>;
+  /** Every mapped video of the import, whatever the scope. The album's own view. */
+  albumTracks(): Promise<ImportTrack[]>;
+  /**
+   * Called by `download` the instant one track's file is ready, so the rest of that track's
+   * pipeline can start while the next download runs. `undefined` outside the worker, which is
+   * what keeps `runImport` a straight, serial pipeline for the CLI and the tests.
+   */
+  readonly onTrackDownloaded: ((trackId: string) => Promise<void>) | undefined;
 }
 
 export interface ContextOptions {
@@ -69,6 +87,10 @@ export interface ContextOptions {
    * not to `runStep` itself: the worker sets it, the CLI and the tests do not.
    */
   readonly skipIfStopped?: boolean;
+  /** Run the step for this one track only (the `track.step` queue). */
+  readonly trackId?: string;
+  /** See `StepContext.onTrackDownloaded`. */
+  readonly onTrackDownloaded?: (trackId: string) => Promise<void>;
 }
 
 /** Read one import, or explain that it does not exist. */
@@ -110,6 +132,14 @@ export async function makeContext(
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const job = await requireImport(importId, db);
+  const scope = options.trackId ?? null;
+
+  const everyMapped = async (): Promise<ImportTrack[]> =>
+    await db
+      .select()
+      .from(importTracks)
+      .where(and(eq(importTracks.importId, importId), eq(importTracks.role, "mapped")))
+      .orderBy(asc(importTracks.trackPosition));
 
   return {
     db,
@@ -120,6 +150,8 @@ export async function makeContext(
     job,
     step,
     signal: options.signal,
+    trackScope: scope,
+    onTrackDownloaded: options.onTrackDownloaded,
     async say(type, message, extra = {}) {
       await emit(
         {
@@ -142,12 +174,11 @@ export async function makeContext(
         .orderBy(asc(importTracks.position));
     },
     async mappedTracks() {
-      const rows = await db
-        .select()
-        .from(importTracks)
-        .where(and(eq(importTracks.importId, importId), eq(importTracks.role, "mapped")))
-        .orderBy(asc(importTracks.trackPosition));
-      return rows;
+      const rows = await everyMapped();
+      return scope === null ? rows : rows.filter((row) => row.id === scope);
+    },
+    async albumTracks() {
+      return await everyMapped();
     },
   };
 }

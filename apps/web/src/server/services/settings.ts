@@ -118,6 +118,12 @@ export const SETTING_DEFINITIONS = {
     "bestaudio[acodec=opus]/bestaudio/best",
     "yt-dlp format selector. Opus first, and never re-encode: the toolbox remuxes by stream copy.",
   ),
+  localStepConcurrency: define(
+    z.number().int().min(1).max(8),
+    3,
+    "How many tracks may be fingerprinted, tagged or filed at the same time. The download " +
+      "slot stays at one whatever this says; these steps are local and cheap.",
+  ),
 
   /* ---- matching and confirmation (docs/04 § Algorithme) ---- */
   safeThreshold: define(

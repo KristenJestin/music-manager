@@ -227,7 +227,13 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     }
 
     if (!force && (await alreadyInLibrary(ctx, track.recordingMbid))) {
-      await setTrackState(ctx, track.id, "skipped", { note: "already present" });
+      // A track *this* import has already filed must not be demoted to `skipped`. Since
+      // `place` runs per track (decision 147), a worker restarted mid-album meets its own
+      // earlier work in the library, and rewriting `placed` to `skipped` would lose the one
+      // fact the aggregate step rows are derived from.
+      if (track.state !== "placed" && track.state !== "done") {
+        await setTrackState(ctx, track.id, "skipped", { note: "already present" });
+      }
       await ctx.say("track.skipped", `${track.sourceTitle}: already present`, {
         trackId: track.id,
         data: { reason: "already present", recordingMbid: track.recordingMbid },
@@ -248,6 +254,7 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
         data: { reason: "already downloaded", path: ready },
       });
       reused += 1;
+      await ctx.onTrackDownloaded?.(track.id);
       continue;
     }
 
@@ -301,6 +308,11 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
         });
         downloaded += 1;
         lastError = null;
+        // The file is on disk: `fingerprint`, `tag` and `place` for *this* track can start now,
+        // on their own queue, while the loop goes on to the next download (decision 147). This
+        // step keeps the single slot and the jitter; it simply stops being the only thing
+        // happening. `undefined` outside the worker, so `runImport` stays strictly serial.
+        await ctx.onTrackDownloaded?.(track.id);
         break;
       } catch (error) {
         lastError = MMError.from(error);

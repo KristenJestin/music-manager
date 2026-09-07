@@ -59,6 +59,20 @@ import { verifyStep } from "./steps/verify.ts";
 
 export { STEP_ORDER } from "./machine.ts";
 export type { StepResult } from "./machine.ts";
+export {
+  failSettled,
+  handOverToVerify,
+  isLocalStep,
+  LOCAL_STEPS,
+  nextStepOfTrack,
+  nextTrackStep,
+  pauseForReview,
+  runTrackStep,
+  settleImport,
+  syncLocalSteps,
+  type LocalStep,
+  type Settlement,
+} from "./pipeline.ts";
 
 /** One implementation per step, in the order they run. */
 const STEP_FUNCTIONS: Record<StepName, (ctx: StepContext) => Promise<StepResult>> = {
@@ -248,8 +262,14 @@ export async function runStep(
   return result;
 }
 
-/** One journal line saying the import as a whole stopped, and why. */
-async function announce(
+/**
+ * One journal line saying the import as a whole stopped, and why.
+ *
+ * Exported since the pipelining of decision 147: a track that fails on the `track.step` queue
+ * is not allowed to stop the album on the spot — the downloads behind it must finish — so the
+ * conclusion is drawn later, by the worker, and it must read exactly like every other one.
+ */
+export async function announce(
   db: Database,
   importId: string,
   step: StepName,

@@ -23,6 +23,13 @@ export const QUEUES = {
   importStep: "import.step",
   /** The single global download slot. */
   download: "download",
+  /**
+   * One local step (`fingerprint`, `tag`, `place`) for **one track** — the pipelining of
+   * decision 147. Several tracks at once, one step at a time per track, and never a download:
+   * that is what lets track N be fingerprinted, tagged and filed while track N+1 is still
+   * coming down the single slot next door.
+   */
+  trackStep: "track.step",
   /** Re-tag files whose `MUSICMANAGER_TAGSCHEMA` is behind (P07). */
   retag: "retag",
   /** Walk the library and reconcile it with the database (P07). */
@@ -56,6 +63,17 @@ export interface DownloadJob {
   readonly importId: string;
 }
 
+/**
+ * One pipelined step for one track — or, with `trackId: null`, the album-wide tail of `tag`
+ * that closes the record once every track has been filed (ReplayGain and the album-scope
+ * fields, neither of which is knowable per track).
+ */
+export interface TrackStepJob {
+  readonly importId: string;
+  readonly trackId: string | null;
+  readonly step: "fingerprint" | "tag" | "place";
+}
+
 /** One row of `webhook_deliveries`. The payload is in the row, not on the queue. */
 export interface WebhookJob {
   readonly deliveryId: string;
@@ -86,6 +104,10 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
   await boss.createQueue(QUEUES.importStep, { policy: "standard" });
   // `singleton`: one active job at a time for the whole installation, which is the rule.
   await boss.createQueue(QUEUES.download, { policy: "singleton" });
+  // `standard`, not `singleton`: the whole point is that several *tracks* progress at once.
+  // What must not overlap is two steps of the same track, and that is guaranteed upstream —
+  // a track's next step is a function of its own row, and one message exists for it at a time.
+  await boss.createQueue(QUEUES.trackStep, { policy: "standard" });
   await boss.createQueue(QUEUES.retag, { policy: "standard" });
   await boss.createQueue(QUEUES.scan, { policy: "singleton" });
   await boss.createQueue(QUEUES.webhook, { policy: "standard" });
@@ -124,6 +146,30 @@ export async function enqueueDownload(
     retryLimit: 0,
     // A download of a long album must not be reclaimed while it is still running.
     expireInSeconds: 6 * 60 * 60,
+  });
+}
+
+/**
+ * Ask for one pipelined step of one track (or for the album's tail, with `trackId: null`).
+ *
+ * The `singletonKey` is the track and the step, so a duplicate — a resume that re-walks the
+ * album, a chain that fires twice — collapses into the message already waiting rather than
+ * running the step a second time. `retryLimit: 0` for the same reason as everywhere else here:
+ * a step that failed has written *why* on the track row, and pg-boss replaying it blindly
+ * would only bury that sentence under another one.
+ */
+export async function enqueueTrackStep(
+  boss: PgBoss,
+  job: TrackStepJob,
+  options: { priority?: number } = {},
+): Promise<string | null> {
+  return await boss.send(QUEUES.trackStep, job, {
+    singletonKey: `${job.trackId ?? "album"}:${job.step}`,
+    priority: options.priority ?? 0,
+    retryLimit: 0,
+    // Long enough for the album-wide tail of a big record (ReplayGain over 28 files), short
+    // enough that a worker killed mid-step does not hold the message for hours.
+    expireInSeconds: 60 * 60,
   });
 }
 

@@ -257,11 +257,18 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
    * was supposed to be and, for a re-run over placed files, was not.
    */
   const stillOpen = (await mismatchItems(ctx)).open;
-  const blocking = new Set([
-    ...disagreements.map((track) => track.id),
-    ...unanswered.map((track) => track.id),
-    ...stillOpen,
-  ]);
+  const blocking = new Set(
+    [
+      ...disagreements.map((track) => track.id),
+      ...unanswered.map((track) => track.id),
+      ...stillOpen,
+    ]
+      // Scoped to one track on the pipelined path (decision 147): another track's unanswered
+      // question is that track's business. Letting it block here would stop *this* track — and,
+      // one queue hop later, the download of every track after it, which is the exact opposite
+      // of "pause at track level without holding up the downloads".
+      .filter((id) => ctx.trackScope === null || id === ctx.trackScope),
+  );
 
   if (blocking.size > 0) {
     return {

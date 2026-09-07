@@ -17,7 +17,7 @@
  *                Treated exactly like `done` for the purpose of moving on.
  */
 import type { MMErrorBody } from "@mm/contracts";
-import type { ImportStatus, StepName, StepStatus } from "#/server/db/schema/index.ts";
+import type { ImportStatus, StepName, StepStatus, TrackState } from "#/server/db/schema/index.ts";
 
 /** The eight steps, in execution order. Index in this array *is* the progression. */
 export const STEP_ORDER = [
@@ -131,6 +131,90 @@ export function transition(step: StepName, result: StepResult): Transition {
       return { step, status: "failed", stepStatus: "failed", continues: false };
     }
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* the per-track half of the machine (decision 147)                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The three steps that run once per **track** rather than once per import.
+ *
+ * `download` is not one of them and never will be: it holds the single global slot, and the
+ * whole design rests on exactly one file coming down at a time (`docs/06-stack.md`). `verify`
+ * is not one either — it reads the album back from Navidrome, which only means anything once
+ * every file is in place.
+ */
+export const LOCAL_STEPS = ["fingerprint", "tag", "place"] as const;
+export type LocalStep = (typeof LOCAL_STEPS)[number];
+
+export function isLocalStep(step: StepName): step is LocalStep {
+  return (LOCAL_STEPS as readonly string[]).includes(step);
+}
+
+/**
+ * How far along the four pipelined stages a track state is: 0 = not downloaded, 4 = filed.
+ *
+ * `skipped` and `failed` are absent on purpose — they are not positions on this line, they are
+ * ways of leaving it, and every reader below says so explicitly rather than picking a number.
+ */
+const PROGRESS: Partial<Record<TrackState, number>> = {
+  pending: 0,
+  downloaded: 1,
+  fingerprinted: 2,
+  tagged: 3,
+  placed: 4,
+  done: 4,
+};
+
+/** True when the track will never move again by itself. */
+export function isTrackTerminal(state: TrackState): boolean {
+  return state === "skipped" || state === "failed";
+}
+
+/**
+ * The step this track needs next, or `null` when it needs nothing from the local queue.
+ *
+ * This is the whole of "the order within a track is guaranteed": the answer is a function of
+ * that one row, so two workers reading it cannot disagree, and a `tag` message cannot exist
+ * for a track whose row does not yet say `fingerprinted`.
+ */
+export function nextTrackStep(state: TrackState): LocalStep | null {
+  const rank = PROGRESS[state];
+  if (rank === undefined || rank === 0) return null;
+  return LOCAL_STEPS[rank - 1] ?? null;
+}
+
+/**
+ * True when the track has already been through `step` — or has left the line for good.
+ *
+ * `+ 2`, not `+ 1`: rank 1 (`downloaded`) is the state a track is in *before* `fingerprint`,
+ * because rank 0 is "not downloaded". A track has passed `LOCAL_STEPS[i]` once its rank is
+ * `i + 2` — `fingerprinted` (2) for `fingerprint` (0), `placed` (4) for `place` (2).
+ */
+export function hasPassed(state: TrackState, step: LocalStep): boolean {
+  if (isTrackTerminal(state)) return true;
+  return (PROGRESS[state] ?? 0) >= LOCAL_STEPS.indexOf(step) + 2;
+}
+
+/**
+ * What `job_steps` should say about one pipelined step, given every track of the album.
+ *
+ * The aggregate is *derived*, never written twice: `import_tracks.state` is the only ledger,
+ * and this is the projection of it that `queueStanding` — hence the head step and
+ * `queuePosition` the API publishes — reads.
+ */
+export function aggregateStatus(
+  tracks: readonly { readonly state: TrackState }[],
+  step: LocalStep,
+): { status: StepStatus; done: number; total: number } {
+  const active = tracks.filter((track) => track.state !== "skipped");
+  const total = active.length;
+  if (total === 0) return { status: "skipped", done: 0, total: 0 };
+  const done = active.filter((track) => hasPassed(track.state, step)).length;
+  if (done === total) return { status: "done", done, total };
+  const started = active.some((track) => (PROGRESS[track.state] ?? 0) >= 1);
+  return { status: started ? "running" : "pending", done, total };
 }
 
 /** Statuses from which nothing more will happen without a human. */

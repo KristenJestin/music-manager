@@ -16,9 +16,17 @@ import { db } from "#/server/db/client.ts";
 import { serverEnv } from "#/server/env.ts";
 import { emit } from "#/server/services/events.ts";
 import {
+  announce,
+  failSettled,
+  handOverToVerify,
+  nextStepOfTrack,
+  pauseForReview,
   resumableImports,
   runImport,
   runStep,
+  runTrackStep,
+  settleImport,
+  syncLocalSteps,
   type RunOutcome,
 } from "#/server/services/jobs/index.ts";
 import { loadSettings } from "#/server/services/settings.ts";
@@ -35,10 +43,12 @@ import {
   ensureQueues,
   enqueueDownload,
   enqueueImportStep,
+  enqueueTrackStep,
   QUEUES,
   stopBoss,
   type DownloadJob,
   type ImportStepJob,
+  type TrackStepJob,
   type WebhookJob,
 } from "./queues.ts";
 import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
@@ -93,7 +103,7 @@ export async function startWorker(): Promise<Worker> {
   // handler. On this checkout that meant a *cancelled* import taking the single download slot
   // for a minute while two legitimate jobs sat in `created`, which is the owner's C4 —
   // "les pistes sortent en 3 fois" — with a different first domino.
-  for (const queue of [QUEUES.importStep, QUEUES.download]) {
+  for (const queue of [QUEUES.importStep, QUEUES.download, QUEUES.trackStep]) {
     await boss.deleteAllJobs(queue);
   }
 
@@ -123,6 +133,39 @@ export async function startWorker(): Promise<Worker> {
     },
   );
 
+  /**
+   * Decide what an import does now that one of its tracks has stopped moving.
+   *
+   * Called after every per-track step and at the end of `download`. `settleImport` answers
+   * `wait` for as long as anything is still in flight, so this is a cheap read most of the
+   * time; the three other answers are the only ways an import ends on the pipelined path.
+   */
+  const advance = async (importId: string): Promise<void> => {
+    const settlement = await settleImport(db(), importId);
+    switch (settlement.action) {
+      case "wait":
+        return;
+      case "review":
+        // The owner's D5, literally: a fingerprint disagreement pauses *its track*, and the
+        // import turns `awaiting_review` only once everything else has finished — never while
+        // there are still files to fetch.
+        log("awaiting review", { importId, mismatches: settlement.tracks });
+        await pauseForReview(db(), importId, settlement.tracks);
+        return;
+      case "failed": {
+        const { step, result } = await failSettled(db(), importId, settlement.tracks);
+        log("import failed", { importId, step, tracks: settlement.tracks });
+        await announce(db(), importId, step, "failed", result);
+        return;
+      }
+      case "finish":
+        // `trackId: null` is the album-wide tail of `tag`: one value per album-scope field and
+        // ReplayGain over the whole record, neither of which a single track can answer.
+        await enqueueTrackStep(boss, { importId, trackId: null, step: "tag" });
+        return;
+    }
+  };
+
   /* ---- download: the single global slot ---- */
   await boss.work<DownloadJob>(
     QUEUES.download,
@@ -138,15 +181,87 @@ export async function startWorker(): Promise<Worker> {
           // pg-boss cannot know that, and the single download slot is too scarce to spend on
           // an album nobody is waiting for.
           skipIfStopped: true,
+          // The pipelining hook (decision 147). One file lands, one `track.step` message goes
+          // out, and the loop moves straight on to the next download: this callback is the
+          // entire mechanism, and its absence is why `runImport` — the CLI and the tests — is
+          // still a strictly serial pipeline.
+          onTrackDownloaded: async (trackId: string) => {
+            // The row decides, not the caller: a `download` that runs a second time (a Retry
+            // pressed mid-album) re-announces every file it finds, and announcing a track that
+            // is already being tagged as needing `fingerprint` would put a second chain behind
+            // it — two `place` jobs for one file, the second finding it already moved.
+            const step = await nextStepOfTrack(db(), trackId);
+            if (step === null) return;
+            await enqueueTrackStep(boss, { importId, trackId, step });
+          },
         });
-        // Whatever happened, the step machine has already recorded it. Ask for the job to be
-        // advanced again: if it failed or blocked, `runImport` will see that and stop. The one
-        // exception is a step `runStep` refused to run at all — the job is cancelled or paused,
-        // and advancing it here would undo that one queue hop later.
         const refused = (result.data as { refused?: string } | undefined)?.refused !== undefined;
-        if (!refused && (result.status === "done" || result.status === "skipped")) {
-          await enqueueImportStep(boss, { importId, reason: "download finished" });
+        if (refused) continue;
+        if (result.status === "done" || result.status === "skipped") {
+          // The tracks are already on the `track.step` queue; `advance` only concludes the
+          // import when the last of them has finished, and answers `wait` until then.
+          await syncLocalSteps(db(), importId);
+          await advance(importId);
         }
+      }
+    },
+  );
+
+  /* ---- track.step: fingerprint → tag → place, per track, several tracks at once ---- */
+  //
+  // `localConcurrency` is a setting because it is a judgement about *this* machine: these steps
+  // are fpcalc, mutagen and a rename, so they are cheap, but they all go through the one
+  // toolbox container and a number that is too high only moves the queue inside it.
+  const pacing = await loadSettings(db());
+  //
+  // **One step at a time per track, whatever the concurrency.** The database guard
+  // (`hasPassed`) refuses a step a track has already been through, but two *concurrent* runs of
+  // the same step would both pass it and then race on the same file — `place` moving it twice,
+  // `tag` writing it twice. Several tracks at once is the point; the same track twice never is.
+  // One process consumes this queue (`docs/06-stack.md`, one orchestrator), so a set of ids is
+  // the whole of the exclusion.
+  const inFlight = new Set<string>();
+  await boss.work<TrackStepJob>(
+    QUEUES.trackStep,
+    { localConcurrency: pacing.localStepConcurrency, pollingIntervalSeconds: 1 },
+    async (jobs: Job<TrackStepJob>[]) => {
+      for (const job of jobs) {
+        const { importId, trackId, step } = job.data;
+        if (trackId === null) {
+          log("track.step album tail", { importId, jobId: job.id });
+          const tail = await runStep(importId, "tag", {
+            db: db(),
+            signal: shutdown.signal,
+            skipIfStopped: true,
+          });
+          // A failure is already on `job_steps` and in the journal; there is nothing to verify.
+          if (tail.status !== "done" && tail.status !== "skipped") continue;
+          if ((tail.data as { refused?: string } | undefined)?.refused !== undefined) continue;
+          await handOverToVerify(db(), importId);
+          await enqueueImportStep(boss, { importId, reason: "every track placed" });
+          continue;
+        }
+        // A duplicate message for a track that is running right now: drop it. The run in
+        // flight chains the next step itself, so nothing is lost by not doing it twice.
+        if (inFlight.has(trackId)) {
+          log("track.step already in flight", { importId, trackId, step });
+          continue;
+        }
+        inFlight.add(trackId);
+        log("track.step", { importId, trackId, step, jobId: job.id });
+        try {
+          const outcome = await runTrackStep(importId, trackId, step, {
+            db: db(),
+            signal: shutdown.signal,
+          });
+          if (outcome.next !== null) {
+            await enqueueTrackStep(boss, { importId, trackId, step: outcome.next });
+            continue;
+          }
+        } finally {
+          inFlight.delete(trackId);
+        }
+        await advance(importId);
       }
     },
   );
