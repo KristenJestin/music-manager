@@ -309,6 +309,19 @@ function isYouTubeCover(document: TrackDocument): boolean {
  * with no document has no position, which is why the two arrays are walked in step rather than
  * indexed independently.
  */
+/**
+ * A multi-valued rendering, for a human.
+ *
+ * `canonicalValue` joins a list with U+001F, which is exactly right for comparing two values
+ * and exactly wrong on a screen or in a tool's answer: it came out as
+ * `house\u001felectronic\u001fdance`. The separator stays a control character where equality
+ * is decided; it becomes a semicolon — the separator the tag map itself uses for a list — the
+ * moment the value is shown.
+ */
+function readable(value: string): string {
+  return value.split("\u001f").join("; ");
+}
+
 function describeDivergences(
   documents: readonly TrackDocument[],
   tracks: readonly TrackQuality[],
@@ -331,7 +344,7 @@ function describeDivergences(
       field: divergence.field,
       vorbis: tag?.vorbis ?? divergence.field.toUpperCase(),
       values: divergence.values.map((entry) => ({
-        value: entry.value,
+        value: readable(entry.value),
         tracks: entry.tracks.map(numberOf),
       })),
       medium: divergence.medium ?? null,

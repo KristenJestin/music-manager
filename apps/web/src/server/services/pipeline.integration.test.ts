@@ -464,6 +464,22 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
         "a re-tag straight after the import must find nothing to change",
       ).toEqual([]);
       expect(view?.run.failed).toBe(0);
+
+      /*
+       * And it wrote nothing — not even to the database. `retagOne` rebuilds the document
+       * from the raw cache, and the builder used to *persist* what it rebuilt: a dry run
+       * therefore replaced the album-scope value in `metadata_documents` with the per-track
+       * one, so reading a diff silently undid the unification while claiming to change
+       * nothing. Found on a real library, not by reasoning about it.
+       */
+      const after = await db().select().from(schema.metadataDocuments);
+      expect(
+        albumScopeConsistency(
+          after.map(
+            (row) => row.document as unknown as Parameters<typeof albumScopeConsistency>[0][number],
+          ),
+        ).divergences,
+      ).toEqual([]);
     }, 300_000);
 
     it("is idempotent: the same import again downloads nothing", async () => {

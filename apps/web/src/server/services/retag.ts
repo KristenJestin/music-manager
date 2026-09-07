@@ -41,6 +41,7 @@ import {
   applyAlbumScopeTo,
   formatProjection,
   projectDocument,
+  trackCompleteness,
   type AlbumScopeResolution,
   type ProjectedTag,
   type TagFormat,
@@ -421,11 +422,21 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
 
     const format = formatOf(track.path);
 
-    /* ---- 1 · the document, from the raw cache, offline ---- */
+    /*
+     * ---- 1 · the document, from the raw cache, offline ----
+     *
+     * `persist: false`, and it matters twice. A **dry run** must write nothing at all, and the
+     * builder's own persistence is a write: it stored the per-track rebuild — the recording's
+     * genre, this video's ℗ line — over the album-scope value the `tag` step had put there, so
+     * reading the diff undid the unification without touching a file. And on a real run the
+     * document that belongs in the row is the one that was *projected*, which `stamp` writes a
+     * few lines below; persisting a different one first is at best redundant.
+     */
     const built = await rebuildDocument(track.importTrackId, {
       db: ctx.db,
       settings: ctx.settings,
       offline: true,
+      persist: false,
       ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
     });
     if (built.requests > 0) {
@@ -542,6 +553,10 @@ async function stamp(
     .update(metadataDocuments)
     .set({
       document: stamped as unknown as Record<string, unknown>,
+      // Re-scored here because the album-scope pass can *fill* a field this track had none of
+      // — the album has a genre, this recording had not — and a stale `completeness` would
+      // contradict the score the Quality page computes from the document itself.
+      completeness: trackCompleteness(stamped).score,
       tagSchemaVersion: ctx.schemaVersion,
       projectionHash: hash,
       updatedAt: new Date(),

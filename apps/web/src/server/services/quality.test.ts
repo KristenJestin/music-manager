@@ -236,6 +236,18 @@ describe("scoreAlbum names the album-scope divergences, not only their count", (
     expect(genre?.values.map((value) => value.tracks)).toEqual([[1], [2, 3]]);
   });
 
+  // `canonicalValue` joins a list with U+001F: right for equality, unreadable on a screen.
+  it("renders a multi-valued field with a separator a reader can see", () => {
+    const quality = scoreAlbum(
+      album(),
+      [withGenre(["house", "electronic"], 1), withGenre(["house"], 2)],
+      1,
+    );
+    const genre = quality.divergences.find((entry) => entry.field === "genre");
+    expect(genre?.values.map((value) => value.value)).toEqual(["house; electronic", "house"]);
+    expect(JSON.stringify(genre?.values)).not.toContain("u001f");
+  });
+
   it("says nothing when the tracks agree", () => {
     const quality = scoreAlbum(album(), [withGenre(["house"], 1), withGenre(["house"], 2)], 1);
     expect(quality.divergences).toEqual([]);
