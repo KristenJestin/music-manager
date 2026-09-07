@@ -26,9 +26,10 @@ import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts
 import { GENERAL_KEYS, inGroup } from "#/server/services/settings-groups.ts";
 import {
   SETTING_DEFINITIONS,
+  SETTING_MASK,
   loadSettings,
   maskSetting,
-  setSetting,
+  setSettings,
   type SettingKey,
 } from "#/server/services/settings.ts";
 
@@ -135,16 +136,19 @@ export const saveGeneralSettings = createServerFn({ method: "POST", strict: STRI
   .inputValidator(z.object({ values: z.record(z.string(), z.unknown()) }))
   .handler(async ({ data }): Promise<{ saved: readonly string[] }> => {
     try {
-      const saved: string[] = [];
+      const patch: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(data.values)) {
         if (!inGroup(GENERAL_KEYS, key)) {
           throw new MMError("INVALID_INPUT", `"${key}" is not a Library & files setting.`);
         }
         // A masked secret coming back unchanged means "leave it alone", not "set it to the mask".
-        if (SETTING_DEFINITIONS[key].secret === true && String(value).startsWith("set (")) continue;
-        await setSetting(key, value, { db: db(), setBy: "user" });
-        saved.push(key);
+        if (SETTING_DEFINITIONS[key].secret === true && value === SETTING_MASK) continue;
+        patch[key] = value;
       }
+      // One atomic write, the same one `PATCH /api/v1/settings` and MCP's `update_settings`
+      // use: a tab with one bad field saves none of its fields rather than the ones that
+      // happened to come first in the form (MCP-FIX-3 §1).
+      const { saved } = await setSettings(patch, { db: db(), setBy: "user" });
       return { saved };
     } catch (error) {
       return toFailure(error);

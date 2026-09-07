@@ -7,20 +7,20 @@
  *    `mm settings list` uses, so a credential cannot leak through the API that does not also
  *    leak through the terminal — and neither does. There is no query parameter to unmask;
  *    an API that could return the AcoustID key would be a worse place to keep it than a file.
- *  - **Each value is parsed by its own key's schema.** The patch body is an open record
- *    because the registry has some seventy keys, but nothing is written without going through
- *    `setSetting`, which parses. An unknown key is a 400 rather than a silent no-op, because
- *    a typo'd setting that reports success is how you spend an afternoon.
+ *  - **Each value is parsed by its own key's schema, and the patch is all-or-nothing.** The
+ *    body is an open record because the registry has some seventy keys, but nothing is written
+ *    without going through `setSettings`, which parses *every* value before writing *any* of
+ *    them. An unknown key is a 400 rather than a silent no-op, because a typo'd setting that
+ *    reports success is how you spend an afternoon; a bad value is a 400 that has written
+ *    nothing, because a caller cannot act on "half of your patch took, guess which half".
  */
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import {
-  isSettingKey,
   loadSettings,
   maskedSettings,
   SETTING_DEFINITIONS,
-  setSetting,
+  setSettings,
 } from "#/server/services/settings.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import { errorSchema, patchSettingsSchema, settingsSchema } from "#/server/api/schemas.ts";
@@ -130,22 +130,11 @@ export function settingsRoutes(): OpenAPIHono<ApiEnv> {
     }),
     async (c) => {
       const patch = c.req.valid("json");
-      const unknown = Object.keys(patch).filter((key) => !isSettingKey(key));
-      if (unknown.length > 0) {
-        throw new MMError("INVALID_INPUT", `Unknown setting(s): ${unknown.join(", ")}.`, {
-          hint: "GET /api/v1/settings/schema lists every key.",
-          details: { unknown },
-          status: 400,
-        });
-      }
-      const saved: string[] = [];
-      for (const [key, value] of Object.entries(patch)) {
-        if (!isSettingKey(key)) continue;
-        // `setSetting` parses with the key's own zod schema and throws INVALID_INPUT on a
-        // mismatch, which becomes a 400 with the key named in it.
-        await setSetting(key, value as never, { db: db(), setBy: "api" });
-        saved.push(key);
-      }
+      // `setSettings` parses every key *and every value* before it writes any of them, so a
+      // 400 from here means the store is untouched — not that half the patch took. See the
+      // note on the function: this route and MCP's `update_settings` share that guarantee
+      // because they share the implementation.
+      const { saved } = await setSettings(patch, { db: db(), setBy: "api" });
       return c.json({ saved, settings: maskedSettings(await loadSettings(db())) }, 200);
     },
   );

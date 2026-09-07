@@ -12,7 +12,7 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
+import { MMError, notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
 import {
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_WEIGHTS,
@@ -729,6 +729,78 @@ export async function setSetting<K extends SettingKey>(
       set: { value: parsed as never, setBy: options.setBy ?? "user", updatedAt: new Date() },
     });
   return parsed;
+}
+
+/**
+ * Write a whole patch, or write nothing at all.
+ *
+ * `setSetting` parses one value and immediately writes it, which is correct for one key and
+ * wrong for a patch: a loop over `Object.entries` writes every key that parses *before* the
+ * first one that does not, so `{maxGenres: 4, safeThreshold: "nawak"}` left `maxGenres` at 4
+ * and answered with an error, while `{safeThreshold: "nawak", maxGenres: 5}` — the same patch,
+ * the same refusal — left it alone. The caller could not know which half had taken, and the
+ * answer depended on JavaScript's key order (MCP-FIX-3 §1).
+ *
+ * So: **two phases**. Every key is checked and every value parsed first; only then is anything
+ * written, and the writes go in one transaction so a database failure mid-patch cannot split it
+ * either. The refusal names *all* the bad values rather than the first, because an agent that
+ * has to fix them one round trip at a time is being made to pay for our loop.
+ *
+ * This is the single write path for a patch: MCP's `update_settings`, `PATCH /api/v1/settings`
+ * and every Settings tab of the Console go through it, so none of them can be atomic while
+ * another is not.
+ */
+export async function setSettings(
+  patch: Record<string, unknown>,
+  options: { db?: Database; setBy?: string } = {},
+): Promise<{ saved: SettingKey[]; values: Partial<Settings> }> {
+  const database = options.db ?? defaultDb();
+  const setBy = options.setBy ?? "user";
+
+  const unknown = Object.keys(patch).filter((key) => !isSettingKey(key));
+  if (unknown.length > 0) {
+    throw new MMError("INVALID_INPUT", `Unknown setting(s): ${unknown.join(", ")}.`, {
+      hint: "`get_settings` (or GET /api/v1/settings/schema) lists every key. Nothing was written.",
+      details: { unknown },
+      status: 400,
+    });
+  }
+
+  /* Phase one: parse everything. Nothing below this block has touched the database. */
+  const parsed: { key: SettingKey; value: unknown }[] = [];
+  const problems: string[] = [];
+  for (const [key, raw] of Object.entries(patch)) {
+    if (!isSettingKey(key)) continue;
+    try {
+      parsed.push({ key, value: parseValue(key, raw) });
+    } catch (error) {
+      problems.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  if (problems.length > 0) {
+    throw new MMError("INVALID_INPUT", problems.join("; "), {
+      hint: `Nothing was written: a patch is all-or-nothing, so the other ${String(parsed.length)} key(s) kept their previous value.`,
+      details: { rejected: problems.length, keys: parsed.map((entry) => entry.key) },
+      status: 400,
+    });
+  }
+
+  /* Phase two: write, all of it or none of it. */
+  await database.transaction(async (tx) => {
+    for (const { key, value } of parsed) {
+      await tx
+        .insert(settingsTable)
+        .values({ key, value: value as never, setBy })
+        .onConflictDoUpdate({
+          target: settingsTable.key,
+          set: { value: value as never, setBy, updatedAt: new Date() },
+        });
+    }
+  });
+
+  const values = {} as Record<string, unknown>;
+  for (const { key, value } of parsed) values[key] = value;
+  return { saved: parsed.map((entry) => entry.key), values: values as Partial<Settings> };
 }
 
 /** Forget an override, returning the key to its default. */

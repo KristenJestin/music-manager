@@ -919,4 +919,67 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
       /three ways/,
     );
   });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-1 — a refused patch writes nothing, whatever the key order     */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-1 update_settings is atomic", () => {
+    /** The stored row, or `undefined` when the key has never been overridden. */
+    async function stored(key: string): Promise<unknown> {
+      const [row] = await db()
+        .select()
+        .from(schema.settings)
+        .where(eq(schema.settings.key, key))
+        .limit(1);
+      return row?.value;
+    }
+
+    it("writes nothing when one value is refused, whichever position it holds", async () => {
+      await call("update_settings", { patch: { maxGenres: 3 } });
+      expect(await stored("maxGenres")).toBe(3);
+
+      // The good key first: the old loop wrote it and *then* refused the call.
+      await expect(
+        call("update_settings", { patch: { maxGenres: 4, safeThreshold: "nawak" } }),
+      ).rejects.toThrow(/safeThreshold/);
+      expect(await stored("maxGenres")).toBe(3);
+
+      // The bad key first — the same patch, and it must behave identically.
+      await expect(
+        call("update_settings", { patch: { safeThreshold: "nawak", maxGenres: 5 } }),
+      ).rejects.toThrow(/safeThreshold/);
+      expect(await stored("maxGenres")).toBe(3);
+
+      // And the effective value the rest of the app reads never moved either.
+      expect((await settings.loadSettings(db())).maxGenres).toBe(3);
+    });
+
+    it("names every bad value at once rather than the first one", async () => {
+      await expect(
+        call("update_settings", {
+          patch: { safeThreshold: "nawak", sanitizeMode: "sideways", maxGenres: 2 },
+        }),
+      ).rejects.toThrow(/safeThreshold[\s\S]*sanitizeMode|sanitizeMode[\s\S]*safeThreshold/);
+      expect(await stored("maxGenres")).toBe(3);
+    });
+
+    it("still refuses an unknown key without writing the known ones", async () => {
+      await expect(
+        call("update_settings", { patch: { maxGenres: 2, cleBidon: 1 } }),
+      ).rejects.toThrow(/cleBidon/);
+      expect(await stored("maxGenres")).toBe(3);
+    });
+
+    it("writes the whole patch when every value fits", async () => {
+      const answer = (await call("update_settings", {
+        patch: { maxGenres: 4, safeThreshold: 0.9 },
+      })) as { saved: string[]; previous: Record<string, unknown>; effective: Record<string, unknown> };
+      expect(answer.saved.sort()).toEqual(["maxGenres", "safeThreshold"]);
+      expect(answer.previous["maxGenres"]).toBe(3);
+      expect(answer.effective["maxGenres"]).toBe(4);
+      expect(await stored("safeThreshold")).toBe(0.9);
+      await call("update_settings", { patch: { maxGenres: 3, safeThreshold: 0.95 } });
+    });
+  });
 });

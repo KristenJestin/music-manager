@@ -58,10 +58,9 @@ import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
 import {
-  isSettingKey,
   loadSettings,
   maskedSettings,
-  setSetting,
+  setSettings,
 } from "#/server/services/settings.ts";
 import { enqueue, enqueueLibraryScan, enqueueRetagRun } from "#/server/services/queue.ts";
 import {
@@ -1014,8 +1013,9 @@ export function toolTable(): ToolSpec[] {
       scope: "settings:write",
       title: "Change settings",
       description:
-        "Set one or more keys. Each value is validated against that key's own schema; an " +
-        "unknown key refuses the whole call. `get_settings` lists what exists.\n\n" +
+        "Set one or more keys. **The patch is atomic**: every key and every value is checked " +
+        "first, and a single bad value refuses the whole call without writing any of it — " +
+        "whatever order the keys are in. `get_settings` lists what exists.\n\n" +
         "The answer carries `previous` and `effective` beside `saved`, so a caller can see " +
         "what it changed and what the store now holds without a second `get_settings`. " +
         "Credentials read `set` in both, never their value.",
@@ -1023,17 +1023,11 @@ export function toolTable(): ToolSpec[] {
         patch: z.record(z.string(), z.unknown()).describe('`{ "key": value }` pairs.'),
       },
       run: async (args: { patch: Record<string, unknown> }) => {
-        const unknown = Object.keys(args.patch).filter((key) => !isSettingKey(key));
-        if (unknown.length > 0) throw new Error(`Unknown setting(s): ${unknown.join(", ")}.`);
-
         // Read before writing, so `previous` is what was there and not what we just put there.
         const before = maskedSettings(await loadSettings(db()));
-        const saved: string[] = [];
-        for (const [key, value] of Object.entries(args.patch)) {
-          if (!isSettingKey(key)) continue;
-          await setSetting(key, value as never, { db: db(), setBy: "mcp" });
-          saved.push(key);
-        }
+        // One call, two phases: `setSettings` parses every value before it writes any of them,
+        // so a refusal here has left the store exactly as `before` describes it.
+        const { saved } = await setSettings(args.patch, { db: db(), setBy: "mcp" });
         const after = maskedSettings(await loadSettings(db()));
 
         const narrow = (source: Record<string, unknown>): Record<string, unknown> =>

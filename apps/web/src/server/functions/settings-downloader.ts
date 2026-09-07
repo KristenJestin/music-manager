@@ -14,7 +14,12 @@ import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { loadSettings, maskSetting, setSetting } from "#/server/services/settings.ts";
+import {
+  SETTING_MASK,
+  loadSettings,
+  maskSetting,
+  setSettings,
+} from "#/server/services/settings.ts";
 import { downloaderHealth, type DownloaderHealth } from "#/server/services/tools.ts";
 
 const form = z.object({
@@ -84,16 +89,16 @@ export const saveDownloaderSettings = createServerFn({ method: "POST", strict: S
   .inputValidator(form)
   .handler(async ({ data }): Promise<{ saved: number }> => {
     try {
-      const database = db();
-      let saved = 0;
+      const patch: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(data)) {
         // A masked secret coming back unchanged means "leave it alone", not "set it to the
         // mask" — otherwise opening Settings and pressing Save would wipe the cookie jar.
-        if (key === "cookiesText" && String(value).startsWith("set (")) continue;
-        await setSetting(key as keyof DownloaderForm, value, { db: database });
-        saved += 1;
+        if (key === "cookiesText" && value === SETTING_MASK) continue;
+        patch[key] = value;
       }
-      return { saved };
+      // Atomic, like every other settings write. See `setSettings` (MCP-FIX-3 §1).
+      const { saved } = await setSettings(patch, { db: db(), setBy: "user" });
+      return { saved: saved.length };
     } catch (error) {
       return toFailure(error);
     }

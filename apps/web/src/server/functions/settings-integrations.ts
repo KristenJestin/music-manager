@@ -23,7 +23,7 @@ import {
   requestRescan,
   type NavidromeStatus,
 } from "#/server/services/navidrome.ts";
-import { loadSettings, maskSetting, setSetting } from "#/server/services/settings.ts";
+import { loadSettings, maskSetting, setSettings } from "#/server/services/settings.ts";
 import { send as sendNotification, type DeliveryOutcome } from "#/server/services/notifications.ts";
 
 const form = z.object({
@@ -106,16 +106,16 @@ export const saveIntegrationSettings = createServerFn({ method: "POST", strict: 
   .inputValidator(form)
   .handler(async ({ data }): Promise<{ saved: number }> => {
     try {
-      const database = db();
-      let saved = 0;
+      const patch: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(data)) {
         // An empty secret means "leave it alone". A settings form must not be able to erase
         // a credential just because it was never shown the current one.
         if (SECRET_FIELDS.has(key) && value === "") continue;
-        await setSetting(key as keyof IntegrationsForm, value, { db: database });
-        saved += 1;
+        patch[key] = value;
       }
-      return { saved };
+      // Atomic, like every other settings write. See `setSettings` (MCP-FIX-3 §1).
+      const { saved } = await setSettings(patch, { db: db(), setBy: "user" });
+      return { saved: saved.length };
     } catch (error) {
       return toFailure(error);
     }
@@ -253,7 +253,15 @@ export const importBackup = createServerFn({ method: "POST", strict: STRICT })
     }): Promise<{ settings: number; skipped: string[]; documents: number; cache: number }> => {
       try {
         const database = db();
-        const { isSecretSetting, isSettingKey } = await import("#/server/services/settings.ts");
+        /*
+         * Restoring a backup is the one settings write that is deliberately **not** atomic:
+         * a dump taken by an older version can carry a key whose schema has since tightened,
+         * and refusing the whole restore over one stale row would make the feature useless.
+         * So it is key by key, and what did not fit comes back in `skipped`.
+         */
+        const { isSecretSetting, isSettingKey, setSetting } = await import(
+          "#/server/services/settings.ts"
+        );
         let applied = 0;
         const skipped: string[] = [];
         for (const [key, value] of Object.entries(data.payload.settings)) {

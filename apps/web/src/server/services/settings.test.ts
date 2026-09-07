@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
   coerce,
@@ -42,6 +45,42 @@ describe("the registry", () => {
     expect(isSettingKey("sanitizeMode")).toBe(true);
     expect(isSettingKey("nonsense")).toBe(false);
     expect(isSettingKey("toString")).toBe(false);
+  });
+});
+
+/**
+ * One write path for a patch (MCP-FIX-3 §1).
+ *
+ * `setSettings` is what makes a patch atomic. A surface that loops over `setSetting` instead
+ * is atomic for one key and *not* for two, which is precisely the bug the third test report
+ * caught in `update_settings` — so the rule is enforced here rather than remembered: no
+ * multi-key write path may call `setSetting`.
+ */
+describe("every multi-key surface writes through setSettings", () => {
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const SURFACES = [
+    "../api/routes/settings.ts",
+    "../mcp/server.ts",
+    "../functions/settings-general.ts",
+    "../functions/settings-metadata.ts",
+    "../functions/settings-discover.ts",
+    "../functions/settings-downloader.ts",
+  ];
+
+  for (const relative of SURFACES) {
+    it(`${relative} does not write key by key`, () => {
+      const source = readFileSync(resolve(HERE, relative), "utf8");
+      // `setSettings(` must not match, hence the negative lookahead on the second `s`.
+      expect(source, relative).not.toMatch(/\bsetSetting(?!s)\s*\(/);
+      expect(source, relative).toMatch(/\bsetSettings\s*\(/);
+    });
+  }
+
+  it("leaves the backup restore alone, which is deliberately per key", () => {
+    const source = readFileSync(resolve(HERE, "../functions/settings-integrations.ts"), "utf8");
+    expect(source).toMatch(/\bsetSettings\s*\(/);
+    // It also calls `setSetting`, and says in a comment why a restore may not be all-or-nothing.
+    expect(source).toMatch(/deliberately \*\*not\*\* atomic/);
   });
 });
 

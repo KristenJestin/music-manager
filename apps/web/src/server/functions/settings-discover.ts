@@ -17,7 +17,7 @@ import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { DISCOVER_KEYS, inGroup } from "#/server/services/settings-groups.ts";
 import { navidromeConfig } from "#/server/services/navidrome.ts";
-import { SETTING_DEFINITIONS, loadSettings, setSetting } from "#/server/services/settings.ts";
+import { SETTING_DEFINITIONS, loadSettings, setSettings } from "#/server/services/settings.ts";
 
 export interface DiscoverSettingsPayload {
   readonly fields: readonly {
@@ -56,14 +56,13 @@ export const saveDiscoverSettings = createServerFn({ method: "POST", strict: STR
   .inputValidator(z.object({ values: z.record(z.string(), z.unknown()) }))
   .handler(async ({ data }): Promise<{ saved: readonly string[] }> => {
     try {
-      const saved: string[] = [];
-      for (const [key, value] of Object.entries(data.values)) {
+      for (const key of Object.keys(data.values)) {
         if (!inGroup(DISCOVER_KEYS, key)) {
           throw new MMError("INVALID_INPUT", `"${key}" is not a Discover setting.`);
         }
-        await setSetting(key, value, { db: db(), setBy: "user" });
-        saved.push(key);
       }
+      // Atomic, like every other settings write. See `setSettings` (MCP-FIX-3 §1).
+      const { saved } = await setSettings(data.values, { db: db(), setBy: "user" });
       return { saved };
     } catch (error) {
       return toFailure(error);
