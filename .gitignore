@@ -17,6 +17,10 @@ build/
 # local runtime state (postgres data, navidrome data, music library bind mount)
 .local/
 
+# scripts/backup.sh's default output (`docs/deploy.md` § Sauvegarde) — a pg_dump of the whole
+# production database, one `git add -A` away from landing in a commit if this were unignored.
+backups/
+
 # environment (secrets never enter this repo — see .env.example)
 .env
 .env.*

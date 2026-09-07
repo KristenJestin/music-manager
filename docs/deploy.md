@@ -71,7 +71,17 @@ docker compose -f docker-compose.prod.yml ps
 
 `smoke.sh` teste ce que teste un client : `/health`, les en-têtes de sécurité, la connexion, la
 limite de débit, et que le toolbox n'a **aucun port publié**. Il ne fait un import que si la
-pile est en mode fixtures (voir §10).
+pile est en mode fixtures (voir §10) — sur une installation réelle (`MM_FIXTURES=0`, le
+défaut), un `./scripts/smoke.sh` nu **ne télécharge rien du tout** ; il l'annonce par une ligne
+`?` plutôt que par un échec, ce qui se lit facilement comme « tout est passé » alors qu'aucun
+import n'a été tenté. Pour la preuve qui compte réellement — un import bout en bout, sans mode
+hors ligne — passez `--real` (dix à trente secondes le temps que MusicBrainz réponde, puis le
+téléchargement) :
+
+```bash
+./scripts/smoke.sh --real                 # prend la plus vieille vidéo de YouTube par défaut
+./scripts/smoke.sh --real-url 'https://…' # une autre URL
+```
 
 Le compte administrateur est créé au premier chargement d'une page, pas au démarrage du
 conteneur : ouvrez `MM_WEB_URL` une fois. Si vous avez laissé `MM_ADMIN_EMAIL` vide, cette
