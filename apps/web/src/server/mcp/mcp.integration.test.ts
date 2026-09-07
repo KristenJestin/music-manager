@@ -1354,6 +1354,106 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
       ).toBe(false);
     }, 120_000);
 
+    /*
+     * R4-1: the report's album scored 0.04 under its own tracks and `refresh_album` answered
+     * "the release says the same as before". Both facts were true and neither was the answer.
+     */
+    it("names the album-scope divergences and what they cost", async () => {
+      const albumId = "alb_divergent";
+      await db()
+        .insert(schema.libraryAlbums)
+        .values({
+          id: albumId,
+          releaseMbid: RELEASE,
+          releaseGroupMbid: GROUP,
+          albumArtist: "Daft Punk",
+          title: "Discovery",
+          folder: "Daft Punk/Discovery (divergence-test)",
+          trackCount: 2,
+          presentCount: 2,
+        })
+        .onConflictDoNothing();
+
+      // Two tracks of one album, each carrying its own recording's genre — the state the
+      // pipeline used to leave behind, written here by hand so the assertion is about the
+      // reporting and not about the pipeline.
+      const at = "2026-09-07T00:00:00.000Z";
+      const document = (genres: readonly string[]) => ({
+        schemaVersion: 2,
+        fields: {
+          title: { value: "t", source: "musicbrainz", confidence: 1, fetchedAt: at, locked: false },
+          genre: {
+            value: genres,
+            source: "musicbrainz",
+            confidence: 1,
+            fetchedAt: at,
+            locked: false,
+          },
+        },
+        na: {},
+      });
+      for (const [index, genres] of [["house"], ["synth-pop"]].entries()) {
+        const trackId = `ltr_div_${String(index)}`;
+        await db()
+          .insert(schema.libraryTracks)
+          .values({
+            id: trackId,
+            albumId,
+            path: `Daft Punk/Discovery (divergence-test)/0${String(index + 1)} - t.opus`,
+            title: "t",
+            artist: "Daft Punk",
+            trackNumber: index + 1,
+            discNumber: 1,
+          })
+          .onConflictDoNothing();
+        await db()
+          .insert(schema.metadataDocuments)
+          .values({
+            id: `mdo_div_${String(index)}`,
+            libraryTrackId: trackId,
+            document: document(genres) as unknown as Record<string, unknown>,
+            tagSchemaVersion: 2,
+          })
+          .onConflictDoNothing();
+      }
+
+      const album = (await call("get_album", { albumId })) as {
+        quality: {
+          score: number | null;
+          meanTrackScore: number | null;
+          penalty: number;
+          divergentFields: string[];
+          divergences: {
+            field: string;
+            vorbis: string;
+            action: string;
+            values: { value: string; tracks: number[] }[];
+          }[];
+        };
+      };
+      expect(album.quality.divergentFields).toEqual(["genre"]);
+      expect(album.quality.penalty).toBeCloseTo(0.02, 10);
+      expect(album.quality.score).toBeCloseTo((album.quality.meanTrackScore ?? 0) - 0.02, 10);
+      const genre = album.quality.divergences[0];
+      expect(genre?.vorbis).toBe("GENRE");
+      expect(genre?.action).toBe(quality.RETAG_ACTION);
+      expect(genre?.values.map((entry) => entry.tracks)).toEqual([[1], [2]]);
+
+      // And the refetch stops pretending there is nothing to do.
+      const answer = (await call("refresh_album", { albumId, dryRun: true })) as {
+        repaired: string[];
+        divergentFields: string[];
+        penalty: number;
+        dryRun: boolean;
+        note: string;
+      };
+      expect(answer.repaired).toEqual([]);
+      expect(answer.divergentFields).toEqual(["genre"]);
+      expect(answer.dryRun).toBe(true);
+      expect(answer.note).toContain("genre");
+      expect(answer.note).not.toMatch(/nothing to (repair|do)/i);
+    }, 120_000);
+
     it("refuses an album that has no MusicBrainz release at all", async () => {
       await db()
         .insert(schema.libraryAlbums)

@@ -106,7 +106,7 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       method: "get",
       path: "/albums/{id}",
       tags: [TAG],
-      summary: "One album: identifiers, tracks, what is missing, the tag map",
+      summary: "One album: identifiers, tracks, what is missing, what diverges, the tag map",
       middleware: [requireScope("library:read")] as const,
       request: { params: z.object({ id: idParam }) },
       responses: {
@@ -141,7 +141,12 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       tags: [TAG],
       summary: "Refetch this album's release from MusicBrainz and queue a re-tag",
       middleware: [requireScope("library:write")] as const,
-      request: { params: z.object({ id: idParam }) },
+      request: {
+        params: z.object({ id: idParam }),
+        // The queued re-tag writes by default; `?dryRun=true` asks for the diffs only. Same
+        // parameter as MCP's `refresh_album`, because it is the same service underneath.
+        query: z.object({ dryRun: z.enum(["true", "false"]).optional() }),
+      },
       responses: {
         200: {
           content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
@@ -152,7 +157,10 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
     }),
     async (c) => {
       const id = c.req.valid("param").id;
-      const result = await refreshAlbumFromSource(id, { db: db() });
+      const result = await refreshAlbumFromSource(id, {
+        db: db(),
+        dryRun: c.req.valid("query").dryRun === "true",
+      });
       return c.json(result as unknown as Record<string, unknown>, 200);
     },
   );

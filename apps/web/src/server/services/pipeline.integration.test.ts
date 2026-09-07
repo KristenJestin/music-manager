@@ -89,6 +89,9 @@ const settings = await import("./settings.ts");
 const imports = await import("./imports.ts");
 const jobs = await import("./jobs/index.ts");
 const { optionsFor } = await import("#/server/functions/inbox.ts");
+const quality = await import("./quality.ts");
+const retag = await import("./retag.ts");
+const { albumScopeConsistency } = await import("@mm/domain");
 
 resetServerEnv();
 
@@ -409,6 +412,59 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       expect(documents.every((doc) => doc.projectionHash !== null)).toBe(true);
       expect(documents.every((doc) => (doc.completeness ?? 0) > 0.8)).toBe(true);
     });
+
+    /*
+     * The fourth MCP test report, §1: the CHVRCHES album scored 0.9529 while every one of its
+     * tracks scored 0.9929, because `genre` and `copyright` are `albumScope: true` and the
+     * pipeline filled them from per-track sources. Discovery is one album with fourteen
+     * recordings, so it is the same shape; what is asserted here is the invariant, not the
+     * particular values: after `tag`, no album-scope field may differ between its tracks.
+     */
+    it("gives the album one value for every album-scope field", async () => {
+      const rows = await db().select().from(schema.metadataDocuments);
+      const documents = rows.map(
+        (row) => row.document as unknown as Parameters<typeof albumScopeConsistency>[0][number],
+      );
+      const report = albumScopeConsistency(documents);
+      expect(
+        report.divergences.map(
+          (divergence) =>
+            `${divergence.field}: ${divergence.values.map((entry) => entry.value).join(" | ")}`,
+        ),
+      ).toEqual([]);
+      expect(report.consistent).toBe(true);
+    });
+
+    it("scores the album exactly what its tracks score", async () => {
+      const albums = await db().select().from(schema.libraryAlbums);
+      const albumId = albums[0]?.id ?? "";
+      const row = await quality.scoreOneAlbum(albumId, { db: db() });
+      expect(row?.quality.divergences).toEqual([]);
+      expect(row?.quality.penalty).toBe(0);
+      expect(row?.quality.score).toBe(row?.quality.meanTrackScore);
+    });
+
+    it("re-tags to a no-op: the album-scope pass converges", async () => {
+      const albums = await db().select().from(schema.libraryAlbums);
+      const albumId = albums[0]?.id ?? "";
+      const run = await retag.createRun({
+        db: db(),
+        scope: "album",
+        targetId: albumId,
+        onlyBehind: false,
+        dryRun: true,
+      });
+      await retag.runToCompletion(run.id, { db: db() });
+      const view = await retag.runView(run.id, { limit: 100 }, db());
+      const noisy = (view?.diffs ?? []).filter(
+        (diff) => diff.added.length > 0 || diff.removed.length > 0 || diff.changed.length > 0,
+      );
+      expect(
+        noisy.map((diff) => `${diff.path}: ${JSON.stringify(diff.changed)}`),
+        "a re-tag straight after the import must find nothing to change",
+      ).toEqual([]);
+      expect(view?.run.failed).toBe(0);
+    }, 300_000);
 
     it("is idempotent: the same import again downloads nothing", async () => {
       const again = await imports.createFromUrl("fixture://discovery", {

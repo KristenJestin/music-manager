@@ -1023,12 +1023,24 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "the cache**, writes back what it says about the album's own identity — today that " +
         "is `releaseGroupMbid`, the required tag the Cover Art Archive also falls back to — " +
         "and queues an album-scoped re-tag so the files catch up.\n\n" +
-        "Downloads nothing and does not touch the mapping. The re-tag is *queued*: check " +
-        "`get_status.worker` if nothing seems to happen. An album imported without " +
+        "**It writes.** The queued re-tag is a real one by default: it rewrites the tag block " +
+        "of every file of the album from the stored documents. `retagRunId` is the run to " +
+        "follow and `get_status.worker` says whether anything will run it; `dryRun: true` " +
+        "queues a run that reports its diffs and writes nothing.\n\n" +
+        'Its answer names both repairs, so "the release says the same as before" is never ' +
+        "the whole story: `repaired[]` for the album's own columns, and `divergentFields[]` " +
+        "for the album-scope tags whose tracks disagree — the re-tag unifies those.\n\n" +
+        "Downloads nothing and does not touch the mapping. An album imported without " +
         "MusicBrainz has nothing to refetch and is refused rather than silently ignored.",
-      inputSchema: { albumId: z.string().min(1) },
-      run: async (args: { albumId: string }) =>
-        await refreshAlbumFromSource(args.albumId, { db: db() }),
+      inputSchema: {
+        albumId: z.string().min(1),
+        dryRun: z
+          .boolean()
+          .default(false)
+          .describe("Queue a re-tag that reports its diffs instead of writing the files."),
+      },
+      run: async (args: { albumId: string; dryRun: boolean }) =>
+        await refreshAlbumFromSource(args.albumId, { db: db(), dryRun: args.dryRun }),
     },
     {
       name: "get_album",
@@ -1036,11 +1048,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       title: "Get one album",
       description:
         "One album in full: its identifiers, its tracks, its completeness score and — most " +
-        "usefully — exactly which tags are missing and what would fix each one.\n\n" +
-        "Each `quality.missing[]` entry carries an `action` that is a real remedy, not a " +
-        "label: `Refetch from MusicBrainz` is `refresh_album`, `Retry LRCLIB` and " +
-        "`Run ReplayGain` are steps of the pipeline, and `Comes from the source video` means " +
-        "only a re-import can change it.",
+        "usefully — exactly what is wrong with it and what would fix each thing.\n\n" +
+        "**Two lists, two different problems.** `quality.missing[]` is a tag no track has. " +
+        "`quality.divergences[]` is a tag several tracks have with *different values* while " +
+        "the tag map calls it album-scope — which is what makes Navidrome and Plex split one " +
+        "album into two, and what `quality.penalty` subtracts from the score. An album that " +
+        "scores below its own tracks is always this: `score = meanTrackScore - penalty`, and " +
+        "each entry names the values in presence, the track numbers holding them, and the " +
+        "rule that decides the album's one value.\n\n" +
+        "Each entry of both lists carries an `action` that is a real remedy, not a label: " +
+        "`Refetch from MusicBrainz` is `refresh_album`, `Re-tag` is `retag` (offline, it " +
+        "downloads nothing), `Retry LRCLIB` and `Run ReplayGain` are steps of the pipeline, " +
+        "and `Comes from the source video` means only a re-import can change it.\n\n" +
+        "`quality.driftCount` and `quality.filesBehind` say whether the *files* are behind " +
+        "the documents; they are what to read before calling `retag`.",
       inputSchema: { albumId: z.string().min(1) },
       run: async (args: { albumId: string }) => {
         const detail = await albumDetail(args.albumId, db());
@@ -1059,9 +1080,22 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           identifiers: detail.identifiers,
           quality: {
             score: detail.quality.score,
+            // What the tracks score on their own, and what the album-scope divergences take
+            // off it. `score` alone made an album look worse than every one of its tracks
+            // with nothing on the response to explain the gap (fourth test report, §1).
+            meanTrackScore: detail.quality.meanTrackScore,
+            penalty: detail.quality.penalty,
+            divergentFields: detail.quality.divergentFields,
+            divergences: detail.quality.divergences,
+            byProfile: detail.quality.byProfile,
             trackCount: detail.quality.trackCount,
             presentCount: detail.quality.presentCount,
             schemaVersion: detail.quality.schemaVersion,
+            filesBehind: detail.quality.filesBehind,
+            driftCount: detail.quality.driftCount,
+            lyricsCount: detail.quality.lyricsCount,
+            replayGainCount: detail.quality.replayGainCount,
+            youtubeCover: detail.quality.youtubeCover,
             missing: detail.quality.missing,
           },
           tracks: detail.tracks.map((track) => ({

@@ -625,6 +625,51 @@ function MetadataTab({
         />
       </div>
 
+      {quality.divergences.length === 0 ? null : (
+        <div
+          className="mb-3 overflow-hidden rounded-xl border border-warn-edge bg-surface-1"
+          data-testid="album-divergences"
+        >
+          <div className="flex flex-wrap items-center gap-2 border-b border-line px-3.5 py-2 text-xs font-medium">
+            <span>Album-scope fields that differ between tracks</span>
+            <ToneBadge tone="warn">-{quality.penalty.toFixed(2)} on the album score</ToneBadge>
+            <span className="grow" />
+            <span className="text-2xs font-normal text-fg-3">
+              tracks {pct(quality.meanTrackScore)} · album {pct(quality.score)}
+            </span>
+          </div>
+          <ul className="divide-y divide-line">
+            {quality.divergences.map((entry) => (
+              <li key={`${entry.field}-${String(entry.medium)}`} className="px-3.5 py-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-xs">{entry.vorbis}</span>
+                  {entry.medium === null ? null : (
+                    <ToneBadge tone="muted">disc {entry.medium}</ToneBadge>
+                  )}
+                  <span className="grow truncate text-2xs text-fg-3">{entry.rule}</span>
+                  <span className="text-2xs text-fg-2">{entry.action}</span>
+                </div>
+                <ul className="mt-1 space-y-0.5">
+                  {entry.values.slice(0, 6).map((value) => (
+                    <li key={value.value} className="flex gap-2 text-2xs">
+                      <span className="shrink-0 font-mono text-fg-3">
+                        {value.tracks.length} track(s)
+                      </span>
+                      <span className="truncate text-fg-1">{value.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-line px-3.5 py-2 text-2xs text-fg-2">
+            A field of album scope must carry the same value on every track, or Navidrome, Plex and
+            Jellyfin group the files into two albums. The re-tag below writes the album&apos;s value
+            on every file; it reads the raw cache and downloads nothing.
+          </div>
+        </div>
+      )}
+
       <Callout tone={behind ? "warn" : "ok"} className="mb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>

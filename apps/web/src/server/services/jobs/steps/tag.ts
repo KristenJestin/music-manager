@@ -28,10 +28,13 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { MMError } from "@mm/contracts";
 import {
+  applyAlbumScopeTo,
+  changedChoices,
   formatProjection,
   projectDocument,
   projectPictures,
   TAG_SCHEMA_VERSION,
+  type AlbumScopeResolution,
   type ProjectedTag,
   type TrackDocument,
 } from "@mm/domain";
@@ -41,7 +44,13 @@ import { containerPath, hostPath } from "#/server/paths.ts";
 import { put as cachePut } from "#/server/services/cache.ts";
 import { download as downloadArtwork } from "#/server/integrations/coverartarchive.ts";
 import { sourcesConfig, type SourceContext } from "#/server/integrations/config.ts";
-import { build as buildDocument, rsgainKey, RSGAIN_SOURCE } from "#/server/services/documents.ts";
+import { describeChoices, resolveOver } from "#/server/services/album-scope.ts";
+import {
+  build as buildDocument,
+  rsgainKey,
+  RSGAIN_SOURCE,
+  storeDocument,
+} from "#/server/services/documents.ts";
 import type { MeasuredLoudness } from "#/server/services/sources/fixtures.ts";
 import type { Picture, Tag } from "#/server/toolbox/client.ts";
 import type { StepResult } from "../machine.ts";
@@ -155,6 +164,49 @@ async function storeProjectionHash(
     .where(eq(metadataDocuments.importTrackId, track.id));
 }
 
+/**
+ * Give the album one value per `albumScope` field, and store it.
+ *
+ * The documents are rewritten in the database too, not only on the way to the toolbox: the
+ * database is the source of truth (§1), so a score, an export or a re-tag reading them later
+ * must see the album's value and not the recording's. That is also what makes the album's
+ * completeness equal to its tracks' — the divergence penalty has nothing left to punish.
+ */
+async function unifyScope(
+  ctx: StepContext,
+  tracks: readonly ImportTrack[],
+  documents: Map<string, TrackDocument>,
+): Promise<AlbumScopeResolution> {
+  const ordered = tracks
+    .map((track) => documents.get(track.id))
+    .filter((document): document is TrackDocument => document !== undefined);
+  if (ordered.length === 0) return { choices: [], divergentFields: [] };
+
+  const resolution = await resolveOver(ordered, {
+    db: ctx.db,
+    settings: ctx.settings,
+    releaseMbid: ctx.job.releaseMbid,
+    ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
+  });
+
+  const changes = changedChoices(resolution);
+  if (changes.length === 0) return resolution;
+
+  for (const track of tracks) {
+    const held = documents.get(track.id);
+    if (held === undefined) continue;
+    const unified = applyAlbumScopeTo(held, resolution);
+    if (unified === held) continue;
+    documents.set(track.id, unified);
+    await storeDocument(track.id, unified, ctx.db);
+  }
+
+  await ctx.say("step.progress", `Album-scope fields unified: ${describeChoices(changes)}.`, {
+    data: { fields: changes.map((choice) => choice.field) },
+  });
+  return resolution;
+}
+
 export async function tagStep(ctx: StepContext): Promise<StepResult> {
   const mapped = await ctx.mappedTracks();
   const toWrite = mapped.filter(
@@ -168,23 +220,44 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
   const documents = new Map<string, TrackDocument>();
   let written = 0;
 
-  for (const track of toWrite) {
+  /*
+   * ---- 1 · every document first, then the album's own value for the album-scope fields ----
+   *
+   * The old loop built one document and wrote its file straight away, which is why the album
+   * ended up with thirteen different `GENRE`s: the recording is a per-track entity, and no
+   * track can know what the *album*'s genre is until the others have been read. Building the
+   * whole album before writing anything costs nothing — every source goes through the raw
+   * cache — and it is what `albumScope: true` has meant all along (fourth test report, §1).
+   */
+  const buildable = toWrite.filter((track) => {
+    const relative = track.downloadPath;
+    return relative !== null && existsSync(hostPath(ctx.paths, relative));
+  });
+
+  for (const track of buildable) {
     if (aborted(ctx)) {
       return { status: "blocked", blockedAs: "paused", message: "Stopped during tagging." };
     }
-    const relative = track.downloadPath;
-    if (relative === null || !existsSync(hostPath(ctx.paths, relative))) continue;
-
     // Which track is being worked on, before the work starts. Tagging an album is a minute of
     // silence otherwise — the owner's C7 — because the only line this loop wrote was the one
     // that said a track was *finished*.
     await ctx.say("track.started", `${track.sourceTitle}: reading sources and writing tags`, {
       trackId: track.id,
-      data: { stage: "tag", done: written, total: toWrite.length },
+      data: { stage: "tag", done: documents.size, total: buildable.length },
     });
+    documents.set(track.id, await documentFor(ctx, track));
+  }
 
-    const document = await documentFor(ctx, track);
-    documents.set(track.id, document);
+  const scope = await unifyScope(ctx, buildable, documents);
+
+  /* ---- 2 · project and write, from the unified documents ---- */
+  for (const track of buildable) {
+    if (aborted(ctx)) {
+      return { status: "blocked", blockedAs: "paused", message: "Stopped during tagging." };
+    }
+    const relative = track.downloadPath;
+    const document = documents.get(track.id);
+    if (relative === null || document === undefined) continue;
 
     const tags: Tag[] = projectDocument(document, "vorbis").map((tag) => ({
       key: tag.key,
@@ -280,8 +353,19 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     // A track that was measured is rebuilt so its document carries the loudness; one that was
     // only tagged already has the document `documents.service` persisted a moment ago. Both
     // paths go through the same builder, offline, so neither can invent a different answer.
-    const document = measured === undefined ? built : await documentFor(ctx, track);
+    //
+    // The rebuild goes back to the raw cache, so it also brings back the *recording*'s genre
+    // and this video's own ℗ line: the album-scope pass has to be replayed on top, and the
+    // result stored, or the loudness would silently undo the unification a few lines above.
+    let document = measured === undefined ? built : await documentFor(ctx, track);
     if (document === undefined) continue;
+    if (measured !== undefined) {
+      const unified = applyAlbumScopeTo(document, scope);
+      if (unified !== document) {
+        document = unified;
+        await storeDocument(track.id, unified, ctx.db);
+      }
+    }
     await storeProjectionHash(ctx, track, projectionHash(projectDocument(document, "vorbis")));
   }
 

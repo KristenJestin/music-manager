@@ -28,6 +28,8 @@
 import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import {
   albumCompleteness,
+  albumScopeConsistency,
+  albumScopeRule,
   LEVEL_WEIGHT,
   PROFILE_IDS,
   profileById,
@@ -59,6 +61,37 @@ import {
 /* ------------------------------------------------------------------ */
 /* shapes                                                              */
 /* ------------------------------------------------------------------ */
+
+/**
+ * One album-scope field whose tracks do not agree — and what that costs.
+ *
+ * The fourth test report's §1: the album scored 0.9529 while every track scored 0.9929, and
+ * nothing in `get_album` said why. `divergentFields` was already computed and thrown away;
+ * this is the same fact with the two things a reader needs — the values in presence, and the
+ * one action that repairs them.
+ */
+export interface DivergentField {
+  readonly field: string;
+  readonly vorbis: string;
+  /** One entry per distinct value, with the 1-based track numbers that carry it. */
+  readonly values: readonly { readonly value: string; readonly tracks: readonly number[] }[];
+  /** The disc a medium-scoped divergence sits on; `null` for an album-wide field. */
+  readonly medium: number | null;
+  /** What the album's value would be, in one line (`albumscope/rules.ts`). */
+  readonly rule: string;
+  /** The remedy. Always `RETAG_ACTION`: the resolution is offline and needs no source. */
+  readonly action: string;
+  /** What this field costs the album's score. */
+  readonly penalty: number;
+}
+
+/**
+ * The remedy for a divergence: re-project the files from the documents.
+ *
+ * A constant rather than a string typed four times, because MCP's `retag`, `POST /retag` and
+ * the album page's button are the same operation, and a test asserts the three agree.
+ */
+export const RETAG_ACTION = "Re-tag";
 
 /** One missing field, aggregated over the tracks of an album. */
 export interface MissingField {
@@ -98,7 +131,13 @@ export interface AlbumQuality {
   readonly albumId: string;
   readonly score: number | null;
   readonly byProfile: Readonly<Record<ProfileId, number | null>>;
+  /** The mean of the tracks' own scores, before the divergence penalty. */
+  readonly meanTrackScore: number | null;
   readonly divergentFields: readonly string[];
+  /** The same divergences, with the values in presence and the action that repairs them. */
+  readonly divergences: readonly DivergentField[];
+  /** What the divergences cost the album's score — `meanTrackScore - score`. */
+  readonly penalty: number;
   readonly missing: readonly MissingField[];
   readonly naCount: number;
   readonly trackCount: number;
@@ -263,6 +302,47 @@ function isYouTubeCover(document: TrackDocument): boolean {
 }
 
 /**
+ * The album-scope divergences, named field by field with the values in presence.
+ *
+ * `albumScopeConsistency` reports positions in the document array; the reader wants track
+ * numbers, so they are translated here against the same ordering `scoreAlbum` built. A track
+ * with no document has no position, which is why the two arrays are walked in step rather than
+ * indexed independently.
+ */
+function describeDivergences(
+  documents: readonly TrackDocument[],
+  tracks: readonly TrackQuality[],
+  penalty: number,
+): DivergentField[] {
+  if (documents.length < 2) return [];
+  const report = albumScopeConsistency(documents);
+  if (report.divergences.length === 0) return [];
+
+  // The nth document belongs to the nth track that *has* one.
+  const withDocument = tracks.filter((track) => track.hasDocument);
+  const numberOf = (position: number): number =>
+    withDocument[position]?.trackNumber ?? position + 1;
+
+  const each = report.divergences.length === 0 ? 0 : penalty / report.divergences.length;
+
+  return report.divergences.map((divergence) => {
+    const tag = tagByField(divergence.field);
+    return {
+      field: divergence.field,
+      vorbis: tag?.vorbis ?? divergence.field.toUpperCase(),
+      values: divergence.values.map((entry) => ({
+        value: entry.value,
+        tracks: entry.tracks.map(numberOf),
+      })),
+      medium: divergence.medium ?? null,
+      rule: albumScopeRule(divergence.field).why,
+      action: RETAG_ACTION,
+      penalty: each,
+    };
+  });
+}
+
+/**
  * Score one album from its tracks' documents.
  *
  * Pure: everything it needs has already been read. That is what lets `/library` score twenty
@@ -387,8 +467,11 @@ export function scoreAlbum(
   return {
     albumId: album.id,
     score: overall.score,
+    meanTrackScore: overall.meanTrackScore,
     byProfile: documents.length === 0 ? EMPTY_PROFILES : overall.byProfile,
     divergentFields: overall.divergentFields,
+    divergences: describeDivergences(documents, tracks, overall.penalty),
+    penalty: overall.penalty,
     missing,
     naCount: overall.na.length,
     trackCount: album.trackCount,

@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 1;
+export const TAG_SCHEMA_VERSION = 2;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,21 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 2,
+    at: "2026-09-07",
+    added: [],
+    changed: [
+      "the 36 album-scope keys now carry the album's value on every track, not the recording's",
+      "GENRE",
+      "MOOD",
+      "COPYRIGHT",
+      "LABEL",
+      "CATALOGNUMBER",
+    ],
+    removed: [],
+    note: "`albumScope: true` was a claim the pipeline did not keep: GENRE came from the recording and COPYRIGHT from each video's ℗ line, so any album that was not mono-genre split itself on Navidrome and lost 0.02 of score per field. `albumscope/rules.ts` now names one value per album-scope field and the `tag` step writes it on every track; the re-tag repairs the files already in the library, offline.",
+  },
   {
     version: 1,
     at: "2026-09-05",

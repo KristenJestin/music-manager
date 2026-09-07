@@ -47,6 +47,7 @@ export {
   emptyDocument,
   field,
   lock,
+  mediumKeyOf,
   merge,
   setUserValue,
   SOURCES,
@@ -74,6 +75,26 @@ export { needsRetag, TAG_SCHEMA_CHANGELOG, TAG_SCHEMA_VERSION } from "./metadata
 export type { TagSchemaChange } from "./metadata/schema.ts";
 
 export * from "./metadata/resolvers/index.ts";
+
+/* ---- album scope: one value per album for the 36 `albumScope` fields (docs §2, §6) ---- */
+export {
+  ALBUM_SCOPE_RULES,
+  albumScopeRule,
+  applyAlbumScope,
+  applyAlbumScopeTo,
+  changedChoices,
+  DEFAULT_MAX_VALUES,
+  resolveAlbumScope,
+  unifyAlbumScope,
+} from "./albumscope/index.ts";
+export type {
+  AlbumScopeChoice,
+  AlbumScopeGrouping,
+  AlbumScopeOptions,
+  AlbumScopeResolution,
+  AlbumScopeRule,
+  AlbumScopeStrategy,
+} from "./albumscope/index.ts";
 
 /* ---- completeness (docs §6) ---- */
 export { albumCompleteness, profileCompleteness, trackCompleteness } from "./completeness/index.ts";

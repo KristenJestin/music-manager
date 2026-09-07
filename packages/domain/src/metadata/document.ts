@@ -12,6 +12,7 @@
  *  - **missing**: neither — it counts against the score.
  */
 
+import { albumScopeRule } from "../albumscope/rules.ts";
 import { ALBUM_SCOPE_FIELDS, tagByField } from "../tagmap/tags.ts";
 
 /** Every source a value can come from (§4), plus the two non-network ones. */
@@ -209,6 +210,24 @@ export interface AlbumScopeDivergence {
   readonly field: string;
   /** One entry per distinct rendering of the value, with the indexes of the tracks holding it. */
   readonly values: readonly { readonly value: string; readonly tracks: readonly number[] }[];
+  /** The disc a `medium`-grouped divergence was found on; `null` for an album-wide field. */
+  readonly medium?: number | null;
+}
+
+/**
+ * Which disc a document belongs to — the grouping key of a `medium`-scoped field.
+ *
+ * `DISCNUMBER` is per track and always present on a MusicBrainz-matched release; a document
+ * that has none is treated as disc 1, which is what a single-medium release means anyway.
+ */
+export function mediumKeyOf(document: TrackDocument): number {
+  const held = document.fields["discnumber"]?.value;
+  if (typeof held === "number") return held;
+  if (typeof held === "string") {
+    const parsed = Number.parseInt(held, 10);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 1;
 }
 
 export interface AlbumScopeReport {
@@ -221,31 +240,47 @@ export interface AlbumScopeReport {
  * totals… must be identical on every track, or some servers split the album in two. Absence
  * counts as its own value, so “one track missing GENRE” is reported too.
  *
+ * The comparison set is the field's own, from `albumscope/rules.ts`: `TRACKTOTAL` and `MEDIA`
+ * are sourced from the *medium*, so they are compared disc by disc. Comparing them across a
+ * two-disc release reported a divergence that is not one, and a "fix" that unified them would
+ * have written disc one's track count onto disc two.
+ *
  * `documents` is the album's tracks in track order; the reported indexes are positions in
  * that array.
  */
+/** The bucket key of a field no track carries. A NUL cannot start a real value. */
+const ABSENT = "\u0000absent";
+
 export function albumScopeConsistency(documents: readonly TrackDocument[]): AlbumScopeReport {
   if (documents.length < 2) return { consistent: true, divergences: [] };
 
   const divergences: AlbumScopeDivergence[] = [];
 
   for (const name of ALBUM_SCOPE_FIELDS) {
-    const buckets = new Map<string, number[]>();
+    const grouping = albumScopeRule(name).grouping;
+    const groups = new Map<number | null, Map<string, number[]>>();
     documents.forEach((document, index) => {
+      const group = grouping === "album" ? null : mediumKeyOf(document);
+      let buckets = groups.get(group);
+      if (buckets === undefined) {
+        buckets = new Map<string, number[]>();
+        groups.set(group, buckets);
+      }
       const held = document.fields[name];
-      const key = held === undefined ? " absent" : canonicalValue(held.value);
+      const key = held === undefined ? ABSENT : canonicalValue(held.value);
       const bucket = buckets.get(key);
       if (bucket === undefined) buckets.set(key, [index]);
       else bucket.push(index);
     });
-    if (buckets.size > 1) {
-      divergences.push({
-        field: name,
-        values: [...buckets.entries()].map(([key, tracks]) => ({
-          value: key === " absent" ? "(absent)" : key,
-          tracks,
-        })),
-      });
+
+    const ordered = [...groups.entries()].sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
+    for (const [medium, buckets] of ordered) {
+      if (buckets.size < 2) continue;
+      const values = [...buckets.entries()].map(([key, tracks]) => ({
+        value: key === ABSENT ? "(absent)" : key,
+        tracks,
+      }));
+      divergences.push(medium === null ? { field: name, values } : { field: name, values, medium });
     }
   }
 

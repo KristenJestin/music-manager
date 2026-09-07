@@ -53,6 +53,7 @@ export {
 } from "./vocabulary.ts";
 export type { CountedTag } from "./vocabulary.ts";
 
+export { topGenres } from "./musicbrainz-types.ts";
 export type {
   MbArtist,
   MbArtistCreditEntry,

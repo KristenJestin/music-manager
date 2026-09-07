@@ -912,6 +912,29 @@ async function persist(
   return row?.id ?? id;
 }
 
+/**
+ * Overwrite one track's stored document.
+ *
+ * The album-scope pass is the only caller: it rewrites the 36 `albumScope` fields with the
+ * album's value *after* every track has been built, which is one track later than `build`
+ * can know. `completeness` is recomputed here rather than left stale, because filling a
+ * field the recording had none for raises the track's own score — that is the point.
+ */
+export async function storeDocument(
+  importTrackId: string,
+  document: TrackDocument,
+  db: Database = defaultDb(),
+): Promise<void> {
+  await db
+    .update(metadataDocuments)
+    .set({
+      document: document as unknown as Record<string, unknown>,
+      completeness: trackCompleteness(document).score,
+      updatedAt: new Date(),
+    })
+    .where(eq(metadataDocuments.importTrackId, importTrackId));
+}
+
 /** The stored document for a track, or `null`. What `mm doc show` reads. */
 export async function storedDocument(
   id: string,

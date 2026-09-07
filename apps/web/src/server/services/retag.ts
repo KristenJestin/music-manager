@@ -38,8 +38,10 @@ import { dirname } from "node:path";
 import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
+  applyAlbumScopeTo,
   formatProjection,
   projectDocument,
+  type AlbumScopeResolution,
   type ProjectedTag,
   type TagFormat,
   type TrackDocument,
@@ -61,6 +63,7 @@ import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath, type PathMap } from "#/server/paths.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { emit } from "#/server/services/events.ts";
+import { albumScopeResolver } from "#/server/services/album-scope.ts";
 import { rebuild as rebuildDocument } from "#/server/services/documents.ts";
 import { lyricsOf } from "#/server/services/jobs/steps/tag.ts";
 import { tracksBehindSchema } from "#/server/services/quality.ts";
@@ -365,6 +368,14 @@ export interface FileContext {
   readonly schemaVersion: number;
   readonly dryRun: boolean;
   readonly signal?: AbortSignal;
+  /**
+   * The album-scope resolution of the album a file belongs to (`album-scope.service`).
+   *
+   * Optional so a caller can re-tag one file without an album around it, but `runBatch`
+   * always supplies it: without it a re-tag would faithfully re-project the *recording*'s
+   * genre and undo the unification the `tag` step wrote.
+   */
+  readonly albumScope?: (albumId: string | null) => Promise<AlbumScopeResolution>;
 }
 
 export interface FileOutcome {
@@ -425,8 +436,19 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
       );
     }
 
-    /* ---- 2 · the projection ---- */
-    const projected = projectDocument(built.document, format);
+    /*
+     * ---- 2 · the album's value for the album-scope fields, then the projection ----
+     *
+     * The rebuild above is per track, so `GENRE` comes back from the *recording* and
+     * `COPYRIGHT` from *this* video's ℗ line. Both are `albumScope: true`, and writing them
+     * per track is what made an album diverge from itself. The resolution is the album's, and
+     * it is a pure function of the raw cache — so this file gets the same answer whichever
+     * batch it lands in.
+     */
+    const scope = await ctx.albumScope?.(track.albumId);
+    const document =
+      scope === undefined ? built.document : applyAlbumScopeTo(built.document, scope);
+    const projected = projectDocument(document, format);
 
     /* ---- 3 · what the file actually holds ---- */
     const probe = await ctx.toolbox.probe(containerPath(ctx.paths, track.path));
@@ -445,7 +467,7 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
 
     /* ---- 4 · write, refresh the sidecar, stamp the version ---- */
     const tags: Tag[] = projected.map((tag) => ({ key: tag.key, value: tag.value }));
-    const lrc = lyricsOf(built.document);
+    const lrc = lyricsOf(document);
     await ctx.toolbox.tag({
       path: containerPath(ctx.paths, track.path),
       format: "auto",
@@ -459,10 +481,10 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
       clear: true,
     });
 
-    refreshSidecars(ctx, track, built.document);
+    refreshSidecars(ctx, track, document);
 
     const hash = hashProjection(projected);
-    await stamp(ctx, track, built.document, hash);
+    await stamp(ctx, track, document, hash);
 
     return {
       path: track.path,
@@ -610,6 +632,12 @@ export async function runBatch(runId: string, options: BatchOptions = {}): Promi
     paths,
     schemaVersion: run.schemaVersion,
     dryRun: run.dryRun,
+    // One resolution per album, computed on first use and reused for every file of the batch.
+    albumScope: albumScopeResolver({
+      db,
+      settings,
+      ...(options.signal === undefined ? {} : { signal: options.signal }),
+    }),
     ...(options.signal === undefined ? {} : { signal: options.signal }),
   };
 

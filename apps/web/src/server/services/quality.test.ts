@@ -13,6 +13,7 @@ import { projectionHash } from "#/server/services/jobs/steps/tag.ts";
 import {
   actionFor,
   matchesFilter,
+  RETAG_ACTION,
   scoreAlbum,
   summarise,
   tagMapRows,
@@ -195,6 +196,51 @@ describe("scoreAlbum", () => {
       },
     };
     expect(scoreAlbum(album(), [loaded({ document: withCover })], 1).youtubeCover).toBe(true);
+  });
+});
+
+/*
+ * The fourth MCP test report, §1: the album scored 0.04 below every one of its tracks and the
+ * response said nothing about why. `divergentFields` was computed and dropped; these are the
+ * two numbers that make the gap an answerable question, plus the values in presence.
+ */
+describe("scoreAlbum names the album-scope divergences, not only their count", () => {
+  const withGenre = (genres: readonly string[], number_: number): LoadedTrack =>
+    loaded({
+      track: track({ id: `trk_${String(number_)}`, trackNumber: number_ }),
+      document: document({ genre: genres }),
+    });
+
+  it("publishes score = meanTrackScore - penalty", () => {
+    const quality = scoreAlbum(
+      album(),
+      [withGenre(["electropop"], 1), withGenre(["synth-pop"], 2)],
+      1,
+    );
+    expect(quality.divergentFields).toEqual(["genre"]);
+    expect(quality.penalty).toBeCloseTo(0.02, 10);
+    expect(quality.score).toBeCloseTo((quality.meanTrackScore ?? 0) - 0.02, 10);
+  });
+
+  it("names the values in presence, the tracks holding them, and one action", () => {
+    const quality = scoreAlbum(
+      album(),
+      [withGenre(["electropop"], 1), withGenre(["synth-pop"], 2), withGenre(["synth-pop"], 3)],
+      1,
+    );
+    const genre = quality.divergences.find((entry) => entry.field === "genre");
+    expect(genre?.vorbis).toBe("GENRE");
+    expect(genre?.action).toBe(RETAG_ACTION);
+    expect(genre?.medium).toBeNull();
+    expect(genre?.rule.length).toBeGreaterThan(10);
+    expect(genre?.values.map((value) => value.tracks)).toEqual([[1], [2, 3]]);
+  });
+
+  it("says nothing when the tracks agree", () => {
+    const quality = scoreAlbum(album(), [withGenre(["house"], 1), withGenre(["house"], 2)], 1);
+    expect(quality.divergences).toEqual([]);
+    expect(quality.penalty).toBe(0);
+    expect(quality.score).toBe(quality.meanTrackScore);
   });
 });
 
