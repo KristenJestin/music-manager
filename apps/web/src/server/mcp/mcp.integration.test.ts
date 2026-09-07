@@ -16,6 +16,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
+import type { NavidromeClient } from "#/server/integrations/navidrome/client.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../../../..");
@@ -78,6 +79,8 @@ const inboxService = await import("#/server/services/inbox.ts");
 const place = await import("#/server/services/jobs/steps/place.ts");
 const discover = await import("#/server/services/discover.ts");
 const quality = await import("#/server/services/quality.ts");
+const verifyService = await import("#/server/services/verify.ts");
+const schemaVersion = await import("#/server/services/schema-version.ts");
 const { toolTable } = await import("./server.ts");
 
 resetServerEnv();
@@ -1682,6 +1685,241 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
           writeLyricsSidecar: false,
         }),
       ).toContain("off in Settings");
+    });
+  });
+
+  /* ================================================================ */
+  /* The fifth test report                                             */
+  /* ================================================================ */
+
+  /* ---------------------------------------------------------------- */
+  /* 1 — verify's stale-scan note                                      */
+  /* ---------------------------------------------------------------- */
+
+  describe("1 verify points at a stale Navidrome scan instead of just reporting the diff", () => {
+    beforeAll(async () => {
+      await db().insert(schema.libraryAlbums).values({
+        id: "alb_stalescan",
+        albumArtist: "Ghosts",
+        title: "Stale Scan",
+        year: 2020,
+        folder: "Ghosts/Stale Scan (2020)",
+        trackCount: 1,
+        presentCount: 1,
+      });
+    });
+
+    /** A `NavidromeClient` shaped just enough for `staleScanNote`: it only calls `getScanStatus`. */
+    function fakeClient(lastScan: string | undefined): NavidromeClient {
+      return {
+        getScanStatus: async () => ({ scanning: false, lastScan }),
+      } as unknown as NavidromeClient;
+    }
+
+    it("stays silent when Navidrome has never reported a scan", async () => {
+      const note = await verifyService.staleScanNote(fakeClient(undefined), "alb_stalescan", db());
+      expect(note).toBeNull();
+    });
+
+    it("stays silent when no re-tag has ever written this album's files", async () => {
+      const note = await verifyService.staleScanNote(
+        fakeClient("2026-01-01T00:00:00.000Z"),
+        "alb_stalescan",
+        db(),
+      );
+      expect(note).toBeNull();
+    });
+
+    it("names `rescan: true` when a re-tag wrote after Navidrome's last known scan", async () => {
+      await db()
+        .insert(schema.retagRuns)
+        .values({
+          id: "rtg_stalescan",
+          scope: "album",
+          targetId: "alb_stalescan",
+          trigger: "manual",
+          dryRun: false,
+          status: "done",
+          schemaVersion: schemaVersion.effectiveSchemaVersion(await settings.loadSettings(db())),
+          total: 1,
+          done: 1,
+          changed: 1,
+        });
+      await db()
+        .insert(schema.retagDiffs)
+        .values({
+          id: "rtd_stalescan",
+          runId: "rtg_stalescan",
+          albumId: "alb_stalescan",
+          path: "Ghosts/Stale Scan (2020)/01 - Track.opus",
+          added: [{ key: "GENRE", field: "genre", after: "Ambient" }],
+          removed: [],
+          changed: [],
+          unchanged: 0,
+          wrote: true,
+          createdAt: new Date("2026-06-01T00:00:00.000Z"),
+        });
+
+      // The scan is *before* the write: this is exactly the fifth report's scenario.
+      const stale = await verifyService.staleScanNote(
+        fakeClient("2026-05-01T00:00:00.000Z"),
+        "alb_stalescan",
+        db(),
+      );
+      expect(stale).toContain("rescan: true");
+      expect(stale).toContain("re-tagged after Navidrome's last scan");
+
+      // The scan is *after* the write: Navidrome has already seen it, so no note.
+      const fresh = await verifyService.staleScanNote(
+        fakeClient("2026-07-01T00:00:00.000Z"),
+        "alb_stalescan",
+        db(),
+      );
+      expect(fresh).toBeNull();
+    });
+
+    it("never throws when Navidrome cannot be reached — best effort only", async () => {
+      const broken = {
+        getScanStatus: async () => {
+          throw new Error("ECONNREFUSED");
+        },
+      } as unknown as NavidromeClient;
+      await expect(verifyService.staleScanNote(broken, "alb_stalescan", db())).resolves.toBeNull();
+    });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* 2 — a retag run with nothing to do is born done                   */
+  /* ---------------------------------------------------------------- */
+
+  describe("2 a retag run with nothing in scope never sits pending", () => {
+    beforeAll(async () => {
+      const current = schemaVersion.effectiveSchemaVersion(await settings.loadSettings(db()));
+      await db().insert(schema.libraryAlbums).values({
+        id: "alb_uptodate",
+        albumArtist: "Nobody",
+        title: "Already Current",
+        year: 2020,
+        folder: "Nobody/Already Current (2020)",
+        trackCount: 1,
+        presentCount: 1,
+      });
+      await db().insert(schema.libraryTracks).values({
+        id: "ltr_uptodate",
+        albumId: "alb_uptodate",
+        title: "Track",
+        discNumber: 1,
+        trackNumber: 1,
+        path: "Nobody/Already Current (2020)/01 - Track.opus",
+        format: "opus",
+        tagSchemaVersion: current,
+      });
+    });
+
+    it("createRun closes the run on arrival instead of leaving it `pending`", async () => {
+      const run = await retag.createRun({
+        db: db(),
+        scope: "album",
+        targetId: "alb_uptodate",
+        dryRun: true,
+        onlyBehind: true,
+        trigger: "manual",
+      });
+      expect(run.total).toBe(0);
+      expect(run.status).toBe("done");
+      expect(run.startedAt).not.toBeNull();
+      expect(run.finishedAt).not.toBeNull();
+    });
+
+    it("the `retag` MCP tool leaves the same run `done`, not `pending`, in the database", async () => {
+      const result = (await call("retag", {
+        albumId: "alb_uptodate",
+        dryRun: true,
+        onlyBehind: true,
+      })) as { runId: string; total: number; note?: string };
+      expect(result.total).toBe(0);
+      expect(result.note).toContain("Nothing in scope");
+
+      const [row] = await db()
+        .select()
+        .from(schema.retagRuns)
+        .where(eq(schema.retagRuns.id, result.runId))
+        .limit(1);
+      expect(row?.status).toBe("done");
+    });
+
+    it("cleanupEmptyRetagRuns sweeps up a run that predates the fix", async () => {
+      const current = schemaVersion.effectiveSchemaVersion(await settings.loadSettings(db()));
+      await db().insert(schema.retagRuns).values({
+        id: "rtg_legacy_empty",
+        scope: "library",
+        targetId: null,
+        trigger: "manual",
+        dryRun: true,
+        status: "pending",
+        schemaVersion: current,
+        total: 0,
+      });
+      // A `pending` run that *does* have something in scope must not be touched by the sweep.
+      await db().insert(schema.retagRuns).values({
+        id: "rtg_legacy_real",
+        scope: "library",
+        targetId: null,
+        trigger: "manual",
+        dryRun: true,
+        status: "pending",
+        schemaVersion: current,
+        total: 5,
+      });
+
+      const closed = await retag.cleanupEmptyRetagRuns(db());
+      expect(closed).toBeGreaterThanOrEqual(1);
+
+      const [empty] = await db()
+        .select()
+        .from(schema.retagRuns)
+        .where(eq(schema.retagRuns.id, "rtg_legacy_empty"))
+        .limit(1);
+      expect(empty?.status).toBe("done");
+
+      const [real] = await db()
+        .select()
+        .from(schema.retagRuns)
+        .where(eq(schema.retagRuns.id, "rtg_legacy_real"))
+        .limit(1);
+      expect(real?.status).toBe("pending");
+    });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* 1 (continued) — a re-tag that writes asks Navidrome to rescan      */
+  /* ---------------------------------------------------------------- */
+
+  describe("1 a real, changed retag run asks for a rescan, like relocate does", () => {
+    it("attempts a rescan once a real, changed run finishes", async () => {
+      const outcome = await retag.rescanIfWritten({ dryRun: false, changed: 1 }, "done", db());
+      // Navidrome is not configured in this test environment, so the attempt itself fails
+      // fast — the point is that one was made, exactly as `relocate` already does.
+      expect(outcome).not.toBeNull();
+      expect(outcome?.started).toBe(false);
+      expect(outcome?.error?.length ?? 0).toBeGreaterThan(0);
+    });
+
+    it("does not attempt one for a dry run", async () => {
+      expect(await retag.rescanIfWritten({ dryRun: true, changed: 1 }, "done", db())).toBeNull();
+    });
+
+    it("does not attempt one when nothing changed", async () => {
+      expect(await retag.rescanIfWritten({ dryRun: false, changed: 0 }, "done", db())).toBeNull();
+    });
+
+    it("does not attempt one for a run that failed outright", async () => {
+      expect(await retag.rescanIfWritten({ dryRun: false, changed: 1 }, "failed", db())).toBeNull();
+    });
+
+    it("still attempts one for a run that was cancelled mid-way, since it already wrote files", async () => {
+      const outcome = await retag.rescanIfWritten({ dryRun: false, changed: 1 }, "cancelled", db());
+      expect(outcome).not.toBeNull();
     });
   });
 });

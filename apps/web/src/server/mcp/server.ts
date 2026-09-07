@@ -1227,9 +1227,15 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "database says was written. This is the proof that a tag survived the round trip.",
       inputSchema: {
         albumId: z.string().optional().describe("Omit to verify the whole library."),
-        rescan: z.boolean().default(false),
+        rescan: z
+          .boolean()
+          .optional()
+          .describe(
+            "Ask Navidrome to scan before reading back. Defaults to the " +
+              "`navidromeRescanOnVerify` setting.",
+          ),
       },
-      run: async (args: { albumId?: string; rescan: boolean }) =>
+      run: async (args: { albumId?: string; rescan?: boolean }) =>
         args.albumId === undefined
           ? await verifyLibrary({ db: db(), rescan: args.rescan })
           : await verifyAlbum(args.albumId, { db: db(), rescan: args.rescan }),

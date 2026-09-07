@@ -42,6 +42,7 @@ import {
   type WebhookJob,
 } from "./queues.ts";
 import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
+import { cleanupEmptyRetagRuns } from "#/server/services/retag.ts";
 import { registerMigrateHandlers } from "./handlers/migrate.ts";
 import { registerDiscoverHandlers } from "./handlers/discover.ts";
 
@@ -94,6 +95,14 @@ export async function startWorker(): Promise<Worker> {
   // "les pistes sortent en 3 fois" — with a different first domino.
   for (const queue of [QUEUES.importStep, QUEUES.download]) {
     await boss.deleteAllJobs(queue);
+  }
+
+  // A run with nothing in scope is closed on arrival since 2026-09-07 (`createRun`), but a row
+  // opened before that fix is still `pending` and nothing will ever queue it — `total = 0` means
+  // no caller calls `enqueueRetagRun`. One sweep here closes any that are left over.
+  const closedEmptyRuns = await cleanupEmptyRetagRuns(db());
+  if (closedEmptyRuns > 0) {
+    log("closed stale empty re-tag run(s)", { count: closedEmptyRuns });
   }
 
   /* ---- import.step: advance a job up to (but not into) the download queue ---- */

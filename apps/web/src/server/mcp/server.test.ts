@@ -162,3 +162,31 @@ describe("§10 / §11 — the new tools declare and document their scope", () =>
     expect(byName.get("get_status")?.scope).toBe("tools:read");
   });
 });
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * The fifth test report, §1: `rescan` defaulted to `false` and beat the
+ * `navidromeRescanOnVerify` setting, which the service itself already deferred to
+ * (`options.rescan ?? settings.navidromeRescanOnVerify`) — the schema was the one place that
+ * still hard-coded a default. Left `.optional()`, omitting `rescan` reaches the service as
+ * `undefined`, and the setting decides.
+ */
+describe("verify's fifth-report point — `rescan` defers to the setting, not to `false`", () => {
+  it("MCP: omitting `rescan` parses to `undefined`, not `false`", () => {
+    const parsed = z.object(schemaOf("verify")).parse({ albumId: "alb_1" }) as {
+      rescan?: boolean;
+    };
+    expect(parsed.rescan).toBeUndefined();
+  });
+
+  it("MCP: an explicit `rescan` still overrides", () => {
+    const parsed = z.object(schemaOf("verify")).parse({ rescan: true }) as { rescan?: boolean };
+    expect(parsed.rescan).toBe(true);
+  });
+
+  it("MCP: the description says `rescan` defaults to the `navidromeRescanOnVerify` setting", () => {
+    const description = schemaOf("verify")["rescan"]?.description ?? "";
+    expect(description).toContain("navidromeRescanOnVerify");
+  });
+});

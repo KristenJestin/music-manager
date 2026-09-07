@@ -362,7 +362,10 @@ export const retagSchema = z
 export const verifySchema = z
   .object({
     albumId: z.string().optional().openapi({ description: "Omit to verify the whole library." }),
-    rescan: z.boolean().default(false),
+    rescan: z.boolean().optional().openapi({
+      description:
+        "Ask Navidrome to scan before reading back. Defaults to the `navidromeRescanOnVerify` setting.",
+    }),
   })
   .openapi("Verify");
 

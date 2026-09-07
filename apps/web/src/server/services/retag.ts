@@ -67,6 +67,7 @@ import { emit } from "#/server/services/events.ts";
 import { albumScopeResolver } from "#/server/services/album-scope.ts";
 import { rebuild as rebuildDocument } from "#/server/services/documents.ts";
 import { lyricsOf } from "#/server/services/jobs/steps/tag.ts";
+import { requestRescan } from "#/server/services/navidrome.ts";
 import { tracksBehindSchema } from "#/server/services/quality.ts";
 import { effectiveSchemaVersion } from "#/server/services/schema-version.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -322,12 +323,20 @@ export interface CreateRunOptions extends PlanOptions {
  * The total is fixed here rather than recounted per batch. A file that stops being behind
  * while the run is in flight (because this run just fixed it) must not shrink the denominator
  * under a progress bar somebody is watching.
+ *
+ * **A run with nothing in scope is born `done`.** Nobody ever queues it — every caller that
+ * finds `total === 0` returns straight away without an `enqueueRetagRun` — so a row left
+ * `pending` here would stay `pending` forever, and a careful caller polling "an up-to-date
+ * library dry run" a hundred times would leave a hundred zombies behind. There is nothing to
+ * batch and nothing to cancel, so `done` is simply the truth on arrival.
  */
 export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const targets = await planRetag({ ...options, db, settings });
   const id = newId("retagRun");
+  const empty = targets.length === 0;
+  const now = new Date();
 
   const [row] = await db
     .insert(retagRuns)
@@ -337,9 +346,10 @@ export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
       targetId: options.targetId ?? null,
       trigger: options.trigger ?? "manual",
       dryRun: options.dryRun ?? false,
-      status: "pending",
+      status: empty ? "done" : "pending",
       schemaVersion: effectiveSchemaVersion(settings),
       total: targets.length,
+      ...(empty ? { startedAt: now, finishedAt: now } : {}),
     })
     .returning();
 
@@ -347,14 +357,38 @@ export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
 
   await emit(
     {
-      type: "retag.queued",
-      message: `${options.dryRun === true ? "Dry run" : "Re-tag"} queued: ${String(targets.length)} file(s), projection v${String(row.schemaVersion)}.`,
+      type: empty ? "retag.done" : "retag.queued",
+      message: empty
+        ? `${options.dryRun === true ? "Dry run" : "Re-tag"}: nothing in scope is behind the projection.`
+        : `${options.dryRun === true ? "Dry run" : "Re-tag"} queued: ${String(targets.length)} file(s), projection v${String(row.schemaVersion)}.`,
       data: { runId: row.id, scope: row.scope, total: row.total, dryRun: row.dryRun },
     },
     db,
   );
 
   return row;
+}
+
+/**
+ * Sweep away pre-existing `pending` runs with nothing in scope.
+ *
+ * `createRun` now closes an empty run on arrival (above), but a run opened before that fix
+ * shipped is still sitting there `pending` — and would sit there forever, since nothing ever
+ * queues a run with `total = 0`. Called once at worker start, which is early enough that
+ * nothing has looked at these rows as "in flight" yet.
+ */
+export async function cleanupEmptyRetagRuns(db: Database = defaultDb()): Promise<number> {
+  const rows = await db
+    .update(retagRuns)
+    .set({
+      status: "done",
+      startedAt: sql`coalesce(${retagRuns.startedAt}, now())`,
+      finishedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(retagRuns.status, "pending"), eq(retagRuns.total, 0)))
+    .returning({ id: retagRuns.id });
+  return rows.length;
 }
 
 /* ------------------------------------------------------------------ */
@@ -722,7 +756,7 @@ export async function runBatch(runId: string, options: BatchOptions = {}): Promi
   const cancelled = after?.status === "cancelled";
 
   if (remaining <= 0 || cancelled) {
-    await finish(run.id, cancelled ? "cancelled" : "done", db);
+    await finish(run.id, cancelled ? "cancelled" : "done", db, settings);
   }
 
   const final = (await getRun(run.id, db)) ?? run;
@@ -772,10 +806,33 @@ function describeDiff(diff: ProjectionDiff): string {
   return parts.join(", ");
 }
 
+/**
+ * A re-tag that actually wrote something leaves Navidrome's index stale until its next scan —
+ * exactly the gap `verify`'s own stale-scan note (`services/verify.ts`) exists to name. `relocate`
+ * already asks for a scan on every move it makes; a re-tag that touches a required field,
+ * especially a schema bump over the whole library, deserves the same courtesy. Only on a real
+ * write, and only when something actually changed — a dry run and a no-op run touch nothing on
+ * disk for Navidrome to see. Exported so the gating logic is provable without a full pipeline
+ * fixture; `requestRescan` itself is `services/navidrome.ts`'s to test.
+ */
+export async function rescanIfWritten(
+  row: Pick<RetagRun, "dryRun" | "changed">,
+  status: "done" | "failed" | "cancelled",
+  db: Database,
+  settings?: Settings,
+): Promise<{ started: boolean; error: string | null } | null> {
+  if (row.dryRun || row.changed <= 0 || (status !== "done" && status !== "cancelled")) {
+    return null;
+  }
+  const outcome = await requestRescan({ db, ...(settings === undefined ? {} : { settings }) });
+  return { started: outcome.started, error: outcome.error };
+}
+
 async function finish(
   runId: string,
   status: "done" | "failed" | "cancelled",
   db: Database,
+  settings?: Settings,
 ): Promise<void> {
   const [row] = await db
     .update(retagRuns)
@@ -783,6 +840,9 @@ async function finish(
     .where(eq(retagRuns.id, runId))
     .returning();
   if (row === undefined) return;
+
+  const rescan = await rescanIfWritten(row, status, db, settings);
+
   await emit(
     {
       type: status === "done" ? "retag.done" : `retag.${status}`,
@@ -795,6 +855,7 @@ async function finish(
         changed: row.changed,
         failed: row.failed,
         dryRun: row.dryRun,
+        ...(rescan === null ? {} : { rescan }),
       },
     },
     db,

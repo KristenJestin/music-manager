@@ -21,7 +21,7 @@
  * actually handed. That keeps this file honest — it can only ever claim we wrote something we
  * really did write.
  */
-import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { projectDocument, tagByField, type TrackDocument } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -29,6 +29,7 @@ import {
   libraryAlbums,
   libraryTracks,
   metadataDocuments,
+  retagDiffs,
   type LibraryAlbum,
   type LibraryTrack,
 } from "#/server/db/schema/index.ts";
@@ -408,6 +409,46 @@ export async function albumSubject(
   };
 }
 
+/** When a real re-tag last wrote to this album's files, if ever. */
+export async function lastRetagWriteAt(albumId: string, db: Database): Promise<Date | null> {
+  const [row] = await db
+    .select({ at: retagDiffs.createdAt })
+    .from(retagDiffs)
+    .where(and(eq(retagDiffs.albumId, albumId), eq(retagDiffs.wrote, true)))
+    .orderBy(desc(retagDiffs.createdAt))
+    .limit(1);
+  return row?.at ?? null;
+}
+
+/**
+ * Word the mismatch note when the likely cause is Navidrome's index being behind the files.
+ *
+ * A required field read back wrong looks the same on the wire whether the tag never survived
+ * the round trip or whether it did and Navidrome simply has not scanned since. The two call for
+ * different next steps, and the far more common one — a schema-wide re-tag outrunning the
+ * nightly scan — is the one this can actually tell apart: if a real re-tag wrote this album's
+ * files after Navidrome's own last scan, that is almost certainly the whole story. Best effort
+ * only; a note this call cannot compute must not fail the verification itself.
+ */
+export async function staleScanNote(
+  client: NavidromeClient,
+  albumId: string,
+  db: Database,
+): Promise<string | null> {
+  try {
+    const status = await client.getScanStatus();
+    if (status.lastScan === undefined) return null;
+    const lastScan = new Date(status.lastScan);
+    const lastWrite = await lastRetagWriteAt(albumId, db);
+    if (lastWrite !== null && lastWrite.getTime() > lastScan.getTime()) {
+      return "the files were re-tagged after Navidrome's last scan — try `rescan: true`.";
+    }
+  } catch {
+    // Best effort — see the doc comment.
+  }
+  return null;
+}
+
 /**
  * Read one album back and store the verdict.
  *
@@ -499,6 +540,7 @@ export async function verifyAlbum(
   const requiredMismatches = fields
     .filter((entry) => entry.required && entry.status === "mismatch")
     .map((entry) => entry.name);
+  const hasMismatch = fields.some((entry) => entry.status === "mismatch");
 
   const verification: AlbumVerification = {
     at,
@@ -512,7 +554,7 @@ export async function verifyAlbum(
     mismatches: fields.filter((entry) => entry.status === "mismatch").length,
     notIndexed: fields.filter((entry) => entry.status === "not_indexed").length,
     requiredMismatches,
-    note: null,
+    note: hasMismatch ? await staleScanNote(client, subject.album.id, db) : null,
   };
 
   await persist(db, albumId, verification);
