@@ -1,8 +1,50 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
+
+/**
+ * Let `/api/**` answer an `<img>`, an `<audio>` or a `<link>` in dev.
+ *
+ * Nitro's dev middleware decides whether a request is a static asset — and so whether the
+ * application ever sees it — from `Sec-Fetch-Dest` (`nitro/dist/_build/vite.dev.mjs`):
+ *
+ * ```js
+ * const isAsset = typeof fetchDest === "string" && fetchDest !== "empty"
+ *   ? !/^(?:document|iframe|frame)$/.test(fetchDest)
+ *   : isAssetByExt;
+ * if (isAsset) req._nitroHandled = true;   // …and Vite's static pipeline 404s it
+ * ```
+ *
+ * Every TanStack Start server route lives behind Nitro's catch-all `/**`, not as a route of
+ * its own, so that first branch never runs for us: **any** request whose destination is not
+ * `document` or `empty` is declared an asset, handed to Vite, not found on disk, and answered
+ * `404 text/html`. The same URL returns `200 image/jpeg` to `fetch()` and `404` to `<img>` —
+ * verified with curl on `/api/cover` and on `/health` alike, so it is not one endpoint's bug.
+ *
+ * That is why the owner's C10 survived a fix: `<Cover>` was pointed at `/api/cover?album=…`,
+ * every tile got a 404, and the gradient he complained about is precisely the fallback for
+ * "no image loaded". Production is unaffected — there is no Vite, and Nitro routes everything.
+ *
+ * Removing the header for `/api/**` puts those requests back on Nitro's extension heuristic,
+ * and our API paths carry no extension, so they are not assets. Nothing downstream reads
+ * `Sec-Fetch-Dest`: Better Auth checks `Origin`, and the API's own guards read cookies and
+ * `x-api-key`. Deleting it — rather than forging `document` — keeps us out of the branch that
+ * decides what to *render*.
+ */
+function apiRoutesAreNotAssets(): Plugin {
+  return {
+    name: "mm:api-routes-are-not-assets",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.url?.startsWith("/api/") === true) delete req.headers["sec-fetch-dest"];
+        next();
+      });
+    },
+  };
+}
 
 /**
  * The dev port. `PORT` wins; 3000 is the default the docs quote.
@@ -27,6 +69,9 @@ export default defineConfig({
      * global exists; `server/auth/auth.ts` says what happens when it does, and
      * `src/client-boundary.guard.test.ts` fails the build over a new `Bun.` call.
      */
+    // Before `nitro()`: middlewares run in the order their plugin registered them, and this
+    // one has to see the request before `nitroDevMiddlewarePre` classifies it.
+    apiRoutesAreNotAssets(),
     nitro({ preset: "bun" }),
     tailwindcss(),
     tanstackStart(),

@@ -11,6 +11,7 @@
  *    `STEP_FAILED — Missing …`. The spec deletes one of the files the import just placed, which
  *    is exactly what happened to the owner's `04 My Enemy.opus`, and then presses Retry.
  *  - **C9** — the toast is shadcn's Base UI toast, not the hand-rolled div.
+ *  - **C10** — `/api/cover` must answer an `<img>`, not only a `fetch()`.
  *  - **C11** — the Quality checkbox is a real component, not `<input type="checkbox">`.
  *
  * Offline like every other spec here: `fixture://discovery` is answered by the toolbox's
@@ -159,6 +160,40 @@ test.describe("owner review 2", () => {
 
     // It closes itself, which is the other half of "animé proprement".
     await expect(toaster).not.toContainText(/setting\(s\) saved/, { timeout: 30_000 });
+  });
+
+  test("C10: an <img> reaches /api/cover, it is not swallowed as a static asset", async ({
+    page,
+  }) => {
+    await signIn(page);
+
+    /*
+     * The reason C10 survived being fixed once.
+     *
+     * Nitro's dev middleware classifies a request as a static asset from `Sec-Fetch-Dest`
+     * alone, and every TanStack Start server route sits behind its catch-all — so a URL that
+     * answers `200 image/jpeg` to `fetch()` answered `404 text/html` to the `<img>` that a
+     * cover tile actually is, and every tile fell through to the gradient the owner
+     * photographed. `apps/web/vite.config.ts` drops the header for `/api/**`.
+     *
+     * Asserted on the *shape of the 404* rather than on a real cover, because an offline run
+     * has no artwork to place: `text/plain` is our handler saying "this album has no cover",
+     * `text/html` is Vite's asset pipeline saying the route was never reached. The second is
+     * the bug; the first is the endpoint working.
+     */
+    for (const dest of ["image", "empty"]) {
+      const answer = await page.request.get("/api/cover?album=alb_does_not_exist", {
+        headers: { "sec-fetch-dest": dest },
+      });
+      expect(answer.status(), `sec-fetch-dest: ${dest}`).toBe(404);
+      expect(answer.headers()["content-type"], `sec-fetch-dest: ${dest}`).toContain("text/plain");
+    }
+
+    // And the handler's own guard still runs, which no asset pipeline would ever produce.
+    const noAlbum = await page.request.get("/api/cover", {
+      headers: { "sec-fetch-dest": "image" },
+    });
+    expect(noAlbum.status()).toBe(400);
   });
 
   test("C11: the Quality page has no native checkbox left", async ({ page }) => {
