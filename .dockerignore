@@ -1,0 +1,63 @@
+# What `docker build` must not send to the daemon.
+#
+# Both images are built with the repository root as their context, so without this file the
+# daemon receives `node_modules/` (a gigabyte of it, hard-linked by Bun), `services/toolbox/.venv`
+# and `.local/` — the music library itself. That was measured during P02-verify-1 and carried as
+# technical debt until P10.
+#
+# The rule of thumb: everything here is either regenerated inside the image (`bun install`,
+# `uv sync`, `bun run build`) or has no business in one (state, secrets, reports, tests fixtures
+# that only the host runs).
+
+# --- installed and built artefacts, all regenerated in the image -------------
+node_modules/
+**/node_modules/
+.output/
+**/.output/
+.nitro/
+**/.nitro/
+dist/
+**/dist/
+.vite/
+**/.vite/
+*.tsbuildinfo
+
+# --- python ------------------------------------------------------------------
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- mutable state; `.local/` is the music library and Navidrome's database ---
+.local/
+**/.local/
+*.log
+
+# --- secrets. They arrive as environment variables, never in a layer ---------
+.env
+.env.*
+!.env.production.example
+!.env.example
+
+# --- version control and editor ----------------------------------------------
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+
+# --- host-only: browser tests, their artefacts, and generated route trees -----
+**/test-results/
+**/playwright-report/
+**/blob-report/
+apps/web/e2e/
+apps/web/src/routeTree.gen.ts
+
+# --- documentation and agent scaffolding -------------------------------------
+*.md
+!services/toolbox/README.md
+docker-compose*.yml

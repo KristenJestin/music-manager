@@ -21,6 +21,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # python / uv (the toolbox runs in Docker; a local venv is only for lint & tests)
 .venv/
