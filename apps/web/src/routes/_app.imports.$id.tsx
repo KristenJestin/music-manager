@@ -142,32 +142,16 @@ function JobPage() {
     {
       key: "youtube",
       header: "YouTube",
-      cell: (track) => {
-        const now = activity.get(track.id);
-        return (
-          <div className="min-w-0">
-            <div className="truncate">{track.sourceTitle}</div>
-            {now === undefined ? (
-              <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
-            ) : (
-              <TrackProgress activity={now} />
-            )}
-            {/* The API has carried `tracks[].error` since MCP-FIX-1; the page never showed it,
-                so a track sat at `failed` with no reason and no way out (owner review C6). */}
-            {track.error === null ? null : (
-              <div
-                data-testid="track-error"
-                className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs text-danger"
-              >
-                <b className="font-mono">{track.error.code}</b>
-                <span className="min-w-0 truncate" title={track.error.message}>
-                  {track.error.hint ?? track.error.message}
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      },
+      // The title and **the duration**, and nothing else. Everything that is a *state* — the
+      // live sub-step, the percentage, the error — belongs to Status now (owner review D4):
+      // it used to be here, where it took the duration's place and moved the whole table on
+      // every progress line.
+      cell: (track) => (
+        <div className="min-w-0">
+          <div className="truncate">{track.sourceTitle}</div>
+          <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
+        </div>
+      ),
     },
     {
       key: "recording",
@@ -226,28 +210,55 @@ function JobPage() {
     {
       key: "state",
       header: "Status",
+      /*
+       * **Fixed width, fixed height** (owner review D4).
+       *
+       * This is the one column whose content changes four times a second, so it is the one
+       * column that must not be allowed to resize anything. `w-64` on both the header and the
+       * cell pins it; `TrackProgress` reserves its three lines whether or not a track is in
+       * flight, so a row does not grow when a download starts; and everything inside truncates,
+       * so no yt-dlp figure can push the column wider than the number next to it.
+       */
+      className: "w-64",
+      headClassName: "w-64",
       cell: (track) => (
-        <div className="flex items-center gap-1.5">
-          <TrackStateBadge state={track.state} />
-          {/* One track, one retry. Re-running the whole album to fetch a single video that
-              lost a bot check is what the owner had to do until now (C6). */}
-          {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
-            <Button
-              size="sm"
-              variant="outline"
-              data-testid="track-retry"
-              disabled={busy !== null}
-              onClick={() => {
-                act(
-                  `track:${track.id}`,
-                  async () => await retryTrack({ data: { id: job.id, trackId: track.id } }),
-                  "Track queued for another download.",
-                );
-              }}
+        <div data-testid="track-status" className="flex w-64 min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <TrackStateBadge state={track.state} />
+            {/* One track, one retry. Re-running the whole album to fetch a single video that
+                lost a bot check is what the owner had to do until now (C6). */}
+            {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
+              <Button
+                size="sm"
+                variant="outline"
+                data-testid="track-retry"
+                disabled={busy !== null}
+                onClick={() => {
+                  act(
+                    `track:${track.id}`,
+                    async () => await retryTrack({ data: { id: job.id, trackId: track.id } }),
+                    "Track queued for another download.",
+                  );
+                }}
+              >
+                <RotateCcw className="size-3" aria-hidden="true" /> Retry track
+              </Button>
+            ) : null}
+          </div>
+          <TrackProgress activity={activity.get(track.id)} />
+          {/* The API has carried `tracks[].error` since MCP-FIX-1; the page never showed it,
+              so a track sat at `failed` with no reason and no way out (owner review C6). */}
+          {track.error === null ? null : (
+            <div
+              data-testid="track-error"
+              className="flex min-w-0 items-center gap-1.5 text-2xs text-danger"
             >
-              <RotateCcw className="size-3" aria-hidden="true" /> Retry track
-            </Button>
-          ) : null}
+              <b className="shrink-0 font-mono">{track.error.code}</b>
+              <span className="min-w-0 truncate" title={track.error.message}>
+                {track.error.hint ?? track.error.message}
+              </span>
+            </div>
+          )}
         </div>
       ),
     },

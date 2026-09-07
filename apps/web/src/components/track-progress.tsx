@@ -92,47 +92,69 @@ function speedLabel(speed: number | null): string | null {
 }
 
 export interface TrackProgressProps {
-  readonly activity: TrackActivity;
+  /** `undefined` for a track that is not in flight: the block keeps its space, empty. */
+  readonly activity: TrackActivity | undefined;
   readonly className?: string;
 }
 
 /**
- * One line of live detail under a track: the phase, the bar, the speed and the ETA.
+ * The live detail of one track — the phase, the percentage, the speed, the ETA and the bar.
  *
- * Rendered only for a track that is in flight — every other row keeps the compact state badge
- * it always had.
+ * **It lives in the Status column, and it reserves its space** (owner review D4). It used to
+ * be rendered under the video's title, where it displaced the duration and made the whole
+ * table jump on every one of the four progress lines a second: the row grew by a line when a
+ * track started, shrank again when it finished, and the column widths were re-measured each
+ * time because a `1.4 MB/s` is wider than a `32.0 KB/s`. Three rules fix that, and all three
+ * are in this component rather than in the page:
+ *
+ *  - the block is **always rendered**, with the same height whether or not anything is
+ *    happening, so a row never changes height;
+ *  - the stage and the figures are on **two lines**, each `min-w-0` and truncating, so no
+ *    string inside can widen the column that holds it;
+ *  - the bar's track is drawn even at zero, so the third line does not appear and disappear.
  */
 export function TrackProgress({ activity, className }: TrackProgressProps) {
-  const speed = speedLabel(activity.speed);
+  const speed = speedLabel(activity?.speed ?? null);
   // `mmss`, not `delta`: an ETA is a duration, and `delta` prints the sign of an offset.
-  const eta = activity.eta === null || activity.eta <= 0 ? null : mmss(activity.eta);
+  const eta =
+    activity?.eta === undefined || activity.eta === null || activity.eta <= 0
+      ? null
+      : mmss(activity.eta);
   const parts = [
-    activity.percent === null ? null : `${String(activity.percent)}%`,
+    activity?.percent === undefined || activity.percent === null
+      ? null
+      : `${String(activity.percent)}%`,
     speed,
     eta === null ? null : `${eta} left`,
   ].filter((part): part is string => part !== null);
 
   return (
-    <div data-testid="track-progress" className={cn("mt-1 min-w-0", className)}>
-      <div className="flex items-center gap-1.5 text-2xs text-fg-2">
+    <div
+      data-testid="track-progress"
+      data-active={activity === undefined ? "no" : "yes"}
+      className={cn("min-w-0 space-y-0.5", className)}
+    >
+      <div className="flex h-3.5 min-w-0 items-center text-2xs">
         <span
-          className={cn("truncate font-mono", activity.waiting ? "text-warn" : "text-fg-2")}
-          title={activity.message}
+          className={cn(
+            "min-w-0 truncate font-mono",
+            activity?.waiting === true ? "text-warn" : "text-fg-2",
+          )}
+          title={activity?.message ?? ""}
         >
-          {activity.stage ?? "working"}
+          {activity === undefined ? "" : (activity.stage ?? "working")}
         </span>
-        {parts.length === 0 ? null : (
-          <span className="shrink-0 font-mono text-fg-3">{parts.join(" · ")}</span>
-        )}
       </div>
-      {activity.percent === null ? null : (
-        <ProgressBar
-          className="mt-1"
-          value={activity.percent / 100}
-          tone={activity.waiting ? "warn" : "info"}
-          label={activity.message}
-        />
-      )}
+      <div className="flex h-3.5 min-w-0 items-center text-2xs">
+        <span className="min-w-0 truncate font-mono text-fg-3">{parts.join(" · ")}</span>
+      </div>
+      <ProgressBar
+        value={
+          activity?.percent === undefined || activity.percent === null ? 0 : activity.percent / 100
+        }
+        tone={activity?.waiting === true ? "warn" : "info"}
+        label={activity?.message ?? "idle"}
+      />
     </div>
   );
 }
