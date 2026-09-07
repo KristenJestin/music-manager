@@ -1,5 +1,17 @@
 import type { Page } from "@playwright/test";
+import { TAG_SCHEMA_VERSION } from "@mm/domain";
 import { expect, test, signIn, typeInto } from "./helpers.ts";
+
+/**
+ * The version the bump goes to: the next one, whatever the current one is.
+ *
+ * It used to be the literal `2`, which worked exactly as long as the projection stayed at
+ * v1. Raising `TAG_SCHEMA_VERSION` to 2 for the album-scope pass turned the override into a
+ * no-op, the library stayed up to date, and the test failed on "every placed file is now
+ * behind the projection" — a red run caused by the constant it was asserting against, not by
+ * the behaviour it describes.
+ */
+const NEXT_SCHEMA = TAG_SCHEMA_VERSION + 1;
 
 /**
  * The acceptance scenario of `docs/phases/P07-bibliotheque-qualite.md`:
@@ -132,7 +144,7 @@ test.describe("metadata quality and the tag schema", () => {
 
     /* ---- bump ------------------------------------------------------------- */
 
-    await setOverride(page, 2);
+    await setOverride(page, NEXT_SCHEMA);
 
     const behind = await filesBehind(page);
     expect(behind, "every placed file is now behind the projection").toBeGreaterThan(0);
@@ -162,7 +174,9 @@ test.describe("metadata quality and the tag schema", () => {
     await page.getByTestId("album-card").first().click();
     await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
     await page.getByTestId("album-tab-metadata").click();
-    await expect(page.getByText(/MUSICMANAGER_TAGSCHEMA=2/)).toBeVisible({ timeout: 60_000 });
+    await expect(
+      page.getByText(new RegExp(`MUSICMANAGER_TAGSCHEMA=${String(NEXT_SCHEMA)}`)),
+    ).toBeVisible({ timeout: 60_000 });
 
     /* ---- put the override back --------------------------------------------- */
 
