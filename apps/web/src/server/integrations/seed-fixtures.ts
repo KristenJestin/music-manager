@@ -73,6 +73,7 @@ export async function seedFixtures(db: Database = defaultDb()): Promise<SeedRepo
   for (const file of [
     "musicbrainz/recording-one-more-time.json",
     "musicbrainz/recording-skinny-love.json",
+    "musicbrainz/recording-skinny-love-bon-iver.json",
   ]) {
     const recording = read<MbRecording>(file);
     if (recording.id !== undefined) {
@@ -120,6 +121,44 @@ export async function seedFixtures(db: Database = defaultDb()): Promise<SeedRepo
       isInstrumental ? instrumental : absentPayload("LRCLIB has no exact match"),
     );
     await write("lrclib", queryKey("search", query), track.position === 1 ? lyricsSearch : []);
+  }
+
+  /* ---- the single path: one video, one recording, one borrowed album ---- */
+
+  /*
+   * `fixture://skinny-love` is not a second album, it is the *single* case of `docs/04`
+   * § Recording: the toolbox serves Bon Iver's auto-generated video, the matcher preselects
+   * that recording and the borrow ladder files it under "For Emma, Forever Ago". `tag` then
+   * asks the cache for that release exactly as it does for Discovery, so without these rows
+   * the E2E single import walked the whole wizard and died at `tag` with
+   * `OFFLINE_CACHE_MISS` — which `import-single.spec.ts` did not notice, because it looked
+   * for the word "Done" and a *step* badge says it (DRIVE-FIX-1).
+   *
+   * The Cover Art Archive index is seeded **absent** rather than recorded: an index would
+   * name image URLs that nothing offline can fetch, and "this release has no recorded cover"
+   * is the honest offline answer. Offline may be poorer than reality; it must never be richer.
+   */
+  const borrowed = read<MbRelease>("musicbrainz/release-for-emma.json");
+  const borrowedMbid = borrowed.id ?? "";
+  await write("musicbrainz", `release/${borrowedMbid}?inc=releaseFull`, borrowed);
+  await write(
+    "coverartarchive",
+    `release/${borrowedMbid}`,
+    absentPayload("no cover art recorded for the borrowed release"),
+  );
+  for (const track of borrowed.media?.[0]?.tracks ?? []) {
+    const millis = track.length ?? track.recording?.length;
+    const query: LyricsQuery = {
+      artist: creditOf(track, borrowed),
+      track: track.title ?? "",
+      ...(borrowed.title === undefined ? {} : { album: borrowed.title }),
+      ...(typeof millis === "number" && millis > 0
+        ? { durationSeconds: Math.round(millis / 1000) }
+        : {}),
+    };
+    if (query.track === "") continue;
+    await write("lrclib", queryKey("get", query), absentPayload("LRCLIB has no exact match"));
+    await write("lrclib", queryKey("search", query), []);
   }
 
   /* ---- Discover (P09): the rows its two services read offline ---- */

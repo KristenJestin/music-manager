@@ -46,6 +46,17 @@ const MB_INC = [
 const DISCOVERY_RELEASE = "d073287b-d1bd-4f11-a933-a4386f8cf701";
 /** Birdy — "Skinny Love", the single-recording (no album) case. */
 const SKINNY_LOVE_RECORDING = "5463ed3a-5fc1-49b6-8260-3b5bb36ee047";
+/**
+ * Bon Iver — "Skinny Love", and the album it is borrowed onto.
+ *
+ * These two are the *single path's* offline pipeline, not a resolver golden file: the
+ * toolbox's `fixture://skinny-love` serves Bon Iver's auto-generated video, the matcher
+ * preselects this recording and the borrow ladder files it under "For Emma, Forever Ago", so
+ * `tag` asks the cache for exactly these two documents. Without them the E2E single import
+ * reached `tag` and died with `OFFLINE_CACHE_MISS` (DRIVE-FIX-1).
+ */
+const SKINNY_LOVE_BON_IVER_RECORDING = "8a8ca6f4-2150-4b2b-935d-b66962de3b89";
+const FOR_EMMA_RELEASE = "0270cde6-6b5b-31fa-b04b-d8b68ff612d4";
 
 let lastMusicBrainzCall = 0;
 
@@ -163,6 +174,22 @@ async function main(): Promise<void> {
       `${MB}/release?recording=${SKINNY_LOVE_RECORDING}&inc=artist-credits+release-groups+labels+media&limit=25&fmt=json`,
       { throttle: true },
     ),
+  );
+
+  // 4b. The single path's own two documents: the recording the toolbox fixture's video is,
+  //     and the album its context is borrowed from. `tag` looks both up by their preset keys.
+  console.log("MusicBrainz recording Skinny Love (Bon Iver)…");
+  await write(
+    "musicbrainz/recording-skinny-love-bon-iver.json",
+    await getJson(
+      `${MB}/recording/${SKINNY_LOVE_BON_IVER_RECORDING}?inc=${recordingInc}&fmt=json`,
+      { throttle: true },
+    ),
+  );
+  console.log("MusicBrainz release For Emma, Forever Ago…");
+  await write(
+    "musicbrainz/release-for-emma.json",
+    await getJson(`${MB}/release/${FOR_EMMA_RELEASE}?inc=${MB_INC}&fmt=json`, { throttle: true }),
   );
 
   // 5. Cover Art Archive index for the release.

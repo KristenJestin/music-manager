@@ -1,0 +1,537 @@
+{
+  "artist-credit": [
+    {
+      "name": "Bon Iver",
+      "artist": {
+        "aliases": [],
+        "sort-name": "Bon Iver",
+        "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+        "tags": [
+          {
+            "name": "ambient pop",
+            "count": 2
+          },
+          {
+            "name": "art pop",
+            "count": 3
+          },
+          {
+            "count": 1,
+            "name": "contemporary folk"
+          },
+          {
+            "count": 4,
+            "name": "folk"
+          },
+          {
+            "name": "folktronica",
+            "count": 4
+          },
+          {
+            "count": 1,
+            "name": "indie"
+          },
+          {
+            "name": "indie folk",
+            "count": 8
+          },
+          {
+            "name": "singer-songwriter",
+            "count": 1
+          },
+          {
+            "name": "singer/songwriter",
+            "count": 1
+          },
+          {
+            "name": "sophisti-pop",
+            "count": 2
+          }
+        ],
+        "name": "Bon Iver",
+        "disambiguation": "US indie folk band",
+        "type": "Group",
+        "country": "US",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "genres": [
+          {
+            "id": "2cdcecfe-3e7c-4055-ab34-78eceabe4d9b",
+            "count": 2,
+            "disambiguation": "",
+            "name": "ambient pop"
+          },
+          {
+            "id": "930ef127-3653-4677-9b95-ecc90c7c1a14",
+            "count": 3,
+            "disambiguation": "",
+            "name": "art pop"
+          },
+          {
+            "name": "contemporary folk",
+            "disambiguation": "",
+            "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+            "count": 1
+          },
+          {
+            "disambiguation": "",
+            "count": 4,
+            "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+            "name": "folk"
+          },
+          {
+            "name": "folktronica",
+            "disambiguation": "",
+            "count": 4,
+            "id": "ec5a14c7-7793-46dc-b858-470183eb63f7"
+          },
+          {
+            "disambiguation": "",
+            "count": 8,
+            "id": "36917620-240a-4fed-abcb-7be611ac3834",
+            "name": "indie folk"
+          },
+          {
+            "name": "singer-songwriter",
+            "id": "455f264b-db00-4716-991d-fbd32dc24523",
+            "count": 1,
+            "disambiguation": ""
+          },
+          {
+            "id": "d13290c7-581a-4aa7-85ad-450b35261bf8",
+            "count": 2,
+            "disambiguation": "",
+            "name": "sophisti-pop"
+          }
+        ]
+      },
+      "joinphrase": ""
+    }
+  ],
+  "id": "8a8ca6f4-2150-4b2b-935d-b66962de3b89",
+  "length": 238520,
+  "tags": [
+    {
+      "name": "acoustic",
+      "count": 1
+    },
+    {
+      "name": "contemporary folk",
+      "count": 1
+    },
+    {
+      "name": "folk",
+      "count": 3
+    },
+    {
+      "name": "folk rock",
+      "count": 3
+    },
+    {
+      "name": "freak folk",
+      "count": 1
+    },
+    {
+      "count": 2,
+      "name": "indie"
+    },
+    {
+      "name": "indie folk",
+      "count": 3
+    },
+    {
+      "name": "lo-fi",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "pop"
+    },
+    {
+      "name": "rock",
+      "count": 3
+    },
+    {
+      "name": "singer-songwriter",
+      "count": 1
+    },
+    {
+      "name": "singer/songwriter",
+      "count": 1
+    }
+  ],
+  "aliases": [],
+  "isrcs": [
+    "US38Y0800003",
+    "US38Y0811503"
+  ],
+  "first-release-date": "2007-07-08",
+  "relations": [
+    {
+      "attributes": [],
+      "ended": false,
+      "target-type": "artist",
+      "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+      "attribute-ids": {},
+      "begin": null,
+      "direction": "backward",
+      "source-credit": "",
+      "attribute-values": {},
+      "artist": {
+        "sort-name": "Vernon, Justin",
+        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+        "name": "Justin Vernon",
+        "type": "Person",
+        "disambiguation": "",
+        "country": "US",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+      },
+      "target-credit": "",
+      "type": "instrument",
+      "end": null
+    },
+    {
+      "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+      "attribute-ids": {},
+      "begin": null,
+      "target-type": "artist",
+      "ended": false,
+      "attributes": [],
+      "end": null,
+      "type": "recording",
+      "artist": {
+        "type": "Person",
+        "disambiguation": "",
+        "country": "US",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "name": "Justin Vernon",
+        "sort-name": "Vernon, Justin",
+        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+      },
+      "target-credit": "",
+      "attribute-values": {},
+      "source-credit": "",
+      "direction": "backward"
+    },
+    {
+      "attributes": [],
+      "ended": false,
+      "target-type": "artist",
+      "begin": null,
+      "attribute-ids": {},
+      "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+      "direction": "backward",
+      "source-credit": "",
+      "attribute-values": {},
+      "target-credit": "",
+      "artist": {
+        "type": "Person",
+        "country": "US",
+        "disambiguation": "",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "name": "Justin Vernon",
+        "sort-name": "Vernon, Justin",
+        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+      },
+      "type": "vocal",
+      "end": null
+    },
+    {
+      "attributes": [],
+      "begin": null,
+      "attribute-ids": {},
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "url": {
+        "id": "3987363b-8096-4abc-850a-80b77fa8658a",
+        "resource": "https://open.spotify.com/track/1HkOPLwAJH3kE8UnqgxF4s"
+      },
+      "target-type": "url",
+      "ended": false,
+      "attribute-values": {},
+      "source-credit": "",
+      "direction": "forward",
+      "end": null,
+      "type": "free streaming",
+      "target-credit": ""
+    },
+    {
+      "target-credit": "",
+      "end": null,
+      "type": "free streaming",
+      "direction": "forward",
+      "attribute-values": {},
+      "source-credit": "",
+      "target-type": "url",
+      "url": {
+        "resource": "https://open.spotify.com/track/3B3eOgLJSqPEA0RfboIQVM",
+        "id": "e7ac20b4-9674-4c99-93a8-1bc3e0c2bff3"
+      },
+      "ended": false,
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "begin": null,
+      "attribute-ids": {},
+      "attributes": []
+    },
+    {
+      "target-credit": "",
+      "type": "free streaming",
+      "end": null,
+      "direction": "forward",
+      "source-credit": "",
+      "attribute-values": {},
+      "ended": false,
+      "target-type": "url",
+      "url": {
+        "resource": "https://www.deezer.com/track/73916142",
+        "id": "c599083d-6ff3-43a7-92fa-2040dff97c7f"
+      },
+      "attribute-ids": {},
+      "begin": null,
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "attributes": []
+    },
+    {
+      "ended": false,
+      "url": {
+        "id": "fc99c889-90fb-42bd-9033-41c7695ff031",
+        "resource": "https://music.apple.com/gb/song/947059829"
+      },
+      "target-type": "url",
+      "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+      "begin": null,
+      "attribute-ids": {},
+      "attributes": [],
+      "target-credit": "",
+      "type": "purchase for download",
+      "end": null,
+      "direction": "forward",
+      "source-credit": "",
+      "attribute-values": {}
+    },
+    {
+      "direction": "forward",
+      "source-credit": "",
+      "attribute-values": {},
+      "target-credit": "",
+      "type": "streaming",
+      "end": null,
+      "attributes": [],
+      "ended": false,
+      "target-type": "url",
+      "url": {
+        "id": "fc99c889-90fb-42bd-9033-41c7695ff031",
+        "resource": "https://music.apple.com/gb/song/947059829"
+      },
+      "begin": null,
+      "attribute-ids": {},
+      "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122"
+    },
+    {
+      "end": null,
+      "type": "streaming",
+      "target-credit": "",
+      "attribute-values": {},
+      "source-credit": "",
+      "direction": "forward",
+      "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+      "begin": null,
+      "attribute-ids": {},
+      "url": {
+        "id": "c5f34fda-a12c-4a39-9e6f-4bdc17ec61af",
+        "resource": "https://tidal.com/track/25055556"
+      },
+      "target-type": "url",
+      "ended": false,
+      "attributes": []
+    },
+    {
+      "type": "performance",
+      "end": null,
+      "work": {
+        "iswcs": [
+          "T-901.006.781-9"
+        ],
+        "attributes": [],
+        "id": "92b3a3c2-e2c2-4d6c-bd41-fe57dbac6980",
+        "title": "Skinny Love",
+        "languages": [
+          "eng"
+        ],
+        "language": "eng",
+        "disambiguation": "",
+        "type": "Song",
+        "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+        "relations": [
+          {
+            "begin": null,
+            "attribute-ids": {},
+            "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+            "target-type": "artist",
+            "ended": false,
+            "attributes": [],
+            "end": null,
+            "type": "composer",
+            "target-credit": "",
+            "artist": {
+              "type": "Person",
+              "country": "US",
+              "disambiguation": "",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "sort-name": "Vernon, Justin",
+              "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+              "name": "Justin Vernon"
+            },
+            "attribute-values": {},
+            "source-credit": "",
+            "direction": "backward"
+          },
+          {
+            "attributes": [],
+            "ended": false,
+            "target-type": "artist",
+            "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+            "begin": null,
+            "attribute-ids": {},
+            "direction": "backward",
+            "source-credit": "",
+            "attribute-values": {},
+            "artist": {
+              "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+              "sort-name": "Vernon, Justin",
+              "name": "Justin Vernon",
+              "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+              "type": "Person",
+              "disambiguation": "",
+              "country": "US"
+            },
+            "target-credit": "",
+            "type": "lyricist",
+            "end": null
+          },
+          {
+            "type-id": "e38e65aa-75e0-42ba-ace0-072aeb91a538",
+            "begin": null,
+            "attribute-ids": {},
+            "url": {
+              "id": "400c6804-7085-4388-9018-7ba3fed095f5",
+              "resource": "https://genius.com/Bon-iver-skinny-love-lyrics"
+            },
+            "target-type": "url",
+            "ended": false,
+            "attributes": [],
+            "end": null,
+            "type": "lyrics",
+            "target-credit": "",
+            "attribute-values": {},
+            "source-credit": "",
+            "direction": "backward"
+          },
+          {
+            "attributes": [],
+            "url": {
+              "resource": "https://secondhandsongs.com/work/121013",
+              "id": "464b1bfe-97d2-40de-8723-125cae08993c"
+            },
+            "target-type": "url",
+            "ended": false,
+            "type-id": "b80dff64-9560-445a-b824-c8b432d77a52",
+            "attribute-ids": {},
+            "begin": null,
+            "direction": "backward",
+            "attribute-values": {},
+            "source-credit": "",
+            "target-credit": "",
+            "end": null,
+            "type": "secondhandsongs"
+          },
+          {
+            "attributes": [],
+            "ended": false,
+            "url": {
+              "id": "41c1d650-f3de-4471-bdc6-f855705f4f96",
+              "resource": "https://www.wikidata.org/wiki/Q2109555"
+            },
+            "target-type": "url",
+            "type-id": "587fdd8f-080e-46a9-97af-6425ebbcb3a2",
+            "attribute-ids": {},
+            "begin": null,
+            "direction": "backward",
+            "source-credit": "",
+            "attribute-values": {},
+            "target-credit": "",
+            "type": "wikidata",
+            "end": null
+          }
+        ]
+      },
+      "target-credit": "",
+      "source-credit": "",
+      "attribute-values": {},
+      "direction": "forward",
+      "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+      "begin": null,
+      "attribute-ids": {},
+      "ended": false,
+      "target-type": "work",
+      "attributes": []
+    }
+  ],
+  "disambiguation": "original studio mix",
+  "video": false,
+  "genres": [
+    {
+      "name": "contemporary folk",
+      "count": 1,
+      "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+      "disambiguation": ""
+    },
+    {
+      "name": "folk",
+      "disambiguation": "",
+      "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+      "count": 3
+    },
+    {
+      "disambiguation": "",
+      "count": 3,
+      "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+      "name": "folk rock"
+    },
+    {
+      "id": "8103927c-5f4b-4bbc-9d8c-7a1241d2bab8",
+      "count": 1,
+      "disambiguation": "",
+      "name": "freak folk"
+    },
+    {
+      "name": "indie folk",
+      "count": 3,
+      "id": "36917620-240a-4fed-abcb-7be611ac3834",
+      "disambiguation": ""
+    },
+    {
+      "name": "lo-fi",
+      "id": "65e2f3ad-e0bd-4627-bd83-cba7c8b6d011",
+      "count": 1,
+      "disambiguation": ""
+    },
+    {
+      "disambiguation": "",
+      "id": "911c7bbb-172d-4df8-9478-dbff4296e791",
+      "count": 1,
+      "name": "pop"
+    },
+    {
+      "name": "rock",
+      "count": 3,
+      "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+      "disambiguation": ""
+    },
+    {
+      "name": "singer-songwriter",
+      "disambiguation": "",
+      "id": "455f264b-db00-4716-991d-fbd32dc24523",
+      "count": 1
+    }
+  ],
+  "title": "Skinny Love"
+}

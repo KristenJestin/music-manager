@@ -116,13 +116,19 @@ export async function resolveSource(page: Page, url: string): Promise<string> {
  * Polls the badge rather than the SSE stream on purpose: the stream is what the *page* uses,
  * and a test that waited on the same mechanism it is meant to be checking would pass even if
  * the page never rendered the result.
+ *
+ * It reads **the job's own badge** (`import-status`), not the first "Done" on the page. The
+ * loose version passed while the job had failed: the Steps card gives every finished step a
+ * badge that also says "Done", so `import-single.spec.ts` was green over an import that died
+ * at `tag` with `OFFLINE_CACHE_MISS` (DRIVE-FIX-1). A test that cannot fail is worse than no
+ * test, because it is counted.
  */
 export async function waitForStatus(
   page: Page,
   status: "Done" | "Failed" | "Needs review" | "Paused",
   timeout = 150_000,
 ): Promise<void> {
-  await expect(page.getByText(status, { exact: true }).first()).toBeVisible({ timeout });
+  await expect(page.getByTestId("import-status").first()).toHaveText(status, { timeout });
 }
 
 /**

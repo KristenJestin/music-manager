@@ -29,6 +29,7 @@ test.describe("a job that fails", () => {
 
     const card = page.getByTestId("review-card");
     await expect(card).toContainText("resolve");
+    const itemId = await card.getAttribute("data-item-id");
     // The decoded code, not "UNKNOWN" over a developer's sentence (the C2 bug of the drive).
     await expect(card).toContainText(/[A-Z_]{4,}/);
 
@@ -40,7 +41,15 @@ test.describe("a job that fails", () => {
 
     await card.locator('[data-option-id="cancel"]').click();
     await page.getByTestId("review-confirm").click();
-    await expect(page.getByTestId("review-empty")).toBeVisible({ timeout: 60_000 });
+
+    /*
+     * *This* item is gone — not "the Inbox is empty". Now that every failed job raises an
+     * item, the Inbox legitimately holds whatever the rest of the suite left behind, and a
+     * spec that asserts emptiness is really asserting that it runs first. It does not.
+     */
+    await reloadUntil(page, "/review", async () => {
+      await expect(page.locator(`a[href="/review/${itemId ?? ""}"]`)).toHaveCount(0);
+    });
 
     await reloadUntil(page, `/imports/${importId}`, async () => {
       await expect(page.getByText("Cancelled", { exact: true }).first()).toBeVisible();

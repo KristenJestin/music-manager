@@ -1,0 +1,4440 @@
+{
+  "artist-credit": [
+    {
+      "name": "Bon Iver",
+      "joinphrase": "",
+      "artist": {
+        "name": "Bon Iver",
+        "tags": [
+          {
+            "name": "ambient pop",
+            "count": 2
+          },
+          {
+            "count": 3,
+            "name": "art pop"
+          },
+          {
+            "count": 1,
+            "name": "contemporary folk"
+          },
+          {
+            "count": 4,
+            "name": "folk"
+          },
+          {
+            "count": 4,
+            "name": "folktronica"
+          },
+          {
+            "count": 1,
+            "name": "indie"
+          },
+          {
+            "name": "indie folk",
+            "count": 8
+          },
+          {
+            "count": 1,
+            "name": "singer-songwriter"
+          },
+          {
+            "name": "singer/songwriter",
+            "count": 1
+          },
+          {
+            "count": 2,
+            "name": "sophisti-pop"
+          }
+        ],
+        "type": "Group",
+        "aliases": [],
+        "disambiguation": "US indie folk band",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "country": "US",
+        "sort-name": "Bon Iver",
+        "genres": [
+          {
+            "id": "2cdcecfe-3e7c-4055-ab34-78eceabe4d9b",
+            "disambiguation": "",
+            "name": "ambient pop",
+            "count": 2
+          },
+          {
+            "id": "930ef127-3653-4677-9b95-ecc90c7c1a14",
+            "disambiguation": "",
+            "name": "art pop",
+            "count": 3
+          },
+          {
+            "count": 1,
+            "name": "contemporary folk",
+            "disambiguation": "",
+            "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+          },
+          {
+            "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+            "disambiguation": "",
+            "name": "folk",
+            "count": 4
+          },
+          {
+            "count": 4,
+            "name": "folktronica",
+            "disambiguation": "",
+            "id": "ec5a14c7-7793-46dc-b858-470183eb63f7"
+          },
+          {
+            "name": "indie folk",
+            "count": 8,
+            "id": "36917620-240a-4fed-abcb-7be611ac3834",
+            "disambiguation": ""
+          },
+          {
+            "disambiguation": "",
+            "id": "455f264b-db00-4716-991d-fbd32dc24523",
+            "count": 1,
+            "name": "singer-songwriter"
+          },
+          {
+            "disambiguation": "",
+            "id": "d13290c7-581a-4aa7-85ad-450b35261bf8",
+            "name": "sophisti-pop",
+            "count": 2
+          }
+        ],
+        "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc"
+      }
+    }
+  ],
+  "genres": [],
+  "release-events": [
+    {
+      "date": "2008-03-10",
+      "area": {
+        "type-id": null,
+        "sort-name": "United Kingdom",
+        "iso-3166-1-codes": [
+          "GB"
+        ],
+        "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+        "name": "United Kingdom",
+        "type": null,
+        "disambiguation": ""
+      }
+    }
+  ],
+  "cover-art-archive": {
+    "count": 1,
+    "front": true,
+    "artwork": true,
+    "back": false,
+    "darkened": false
+  },
+  "country": "GB",
+  "aliases": [],
+  "quality": "normal",
+  "label-info": [
+    {
+      "label": {
+        "aliases": [
+          {
+            "name": "4AD Limited",
+            "type": null,
+            "primary": null,
+            "end": null,
+            "ended": false,
+            "locale": null,
+            "begin": null,
+            "type-id": null,
+            "sort-name": "4AD Limited"
+          },
+          {
+            "sort-name": "4AD Ltd.",
+            "type-id": "829662f2-a781-3ec8-8b46-fbcea6196f81",
+            "begin": null,
+            "locale": null,
+            "ended": false,
+            "end": null,
+            "type": "Search hint",
+            "primary": null,
+            "name": "4AD Ltd."
+          },
+          {
+            "primary": null,
+            "type": null,
+            "name": "4AD US",
+            "ended": false,
+            "locale": null,
+            "end": null,
+            "sort-name": "4AD US",
+            "begin": null,
+            "type-id": null
+          },
+          {
+            "name": "4•A•D Ltd",
+            "type": "Search hint",
+            "primary": null,
+            "type-id": "829662f2-a781-3ec8-8b46-fbcea6196f81",
+            "begin": null,
+            "sort-name": "4•A•D Ltd",
+            "end": null,
+            "locale": null,
+            "ended": false
+          }
+        ],
+        "label-code": 5807,
+        "disambiguation": "",
+        "name": "4AD",
+        "type": "Original Production",
+        "tags": [
+          {
+            "name": "alternative rock",
+            "count": 2
+          },
+          {
+            "name": "british",
+            "count": 3
+          },
+          {
+            "count": 2,
+            "name": "dream pop"
+          },
+          {
+            "name": "ethereal wave",
+            "count": 1
+          },
+          {
+            "count": 1,
+            "name": "gothic rock"
+          },
+          {
+            "count": 2,
+            "name": "independent"
+          },
+          {
+            "name": "neoclassical dark wave",
+            "count": 1
+          },
+          {
+            "count": 1,
+            "name": "post-punk"
+          },
+          {
+            "count": 1,
+            "name": "shoegaze"
+          },
+          {
+            "name": "uk",
+            "count": 1
+          }
+        ],
+        "genres": [
+          {
+            "id": "ceeaa283-5d7b-4202-8d1d-e25d116b2a18",
+            "disambiguation": "",
+            "name": "alternative rock",
+            "count": 2
+          },
+          {
+            "disambiguation": "",
+            "id": "6242615b-5620-465b-b6fb-2e593e90cbad",
+            "name": "dream pop",
+            "count": 2
+          },
+          {
+            "id": "348a3ac2-4cad-4c93-8b3d-ec595ba60f80",
+            "disambiguation": "",
+            "count": 1,
+            "name": "ethereal wave"
+          },
+          {
+            "id": "d9858aef-25bf-478b-b135-b900aa1f0fd1",
+            "disambiguation": "",
+            "count": 1,
+            "name": "gothic rock"
+          },
+          {
+            "name": "neoclassical dark wave",
+            "count": 1,
+            "disambiguation": "",
+            "id": "3fddb093-2e8d-4cbd-85c5-2b5e7b0e5c43"
+          },
+          {
+            "disambiguation": "",
+            "id": "f6d8cadd-6a5e-4ec9-9c2b-996b5332a639",
+            "name": "post-punk",
+            "count": 1
+          },
+          {
+            "disambiguation": "",
+            "id": "a4012b2e-5c27-4f81-8781-9ae5998d882c",
+            "count": 1,
+            "name": "shoegaze"
+          }
+        ],
+        "id": "a539bb1e-f2e1-4b45-9db8-8053841e7503",
+        "type-id": "7aaa37fe-2def-3476-b359-80245850062d",
+        "sort-name": "4AD"
+      },
+      "catalog-number": null
+    }
+  ],
+  "date": "2008-03-10",
+  "status": "Official",
+  "id": "0270cde6-6b5b-31fa-b04b-d8b68ff612d4",
+  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+  "barcode": null,
+  "disambiguation": "",
+  "release-group": {
+    "artist-credit": [
+      {
+        "name": "Bon Iver",
+        "artist": {
+          "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+          "country": "US",
+          "sort-name": "Bon Iver",
+          "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+          "name": "Bon Iver",
+          "type": "Group",
+          "aliases": [],
+          "disambiguation": "US indie folk band"
+        },
+        "joinphrase": ""
+      }
+    ],
+    "genres": [
+      {
+        "count": 1,
+        "name": "baroque pop",
+        "id": "150eb95a-7739-4fde-a5fe-b62ca576a928",
+        "disambiguation": ""
+      },
+      {
+        "name": "contemporary folk",
+        "count": 1,
+        "disambiguation": "",
+        "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+      },
+      {
+        "id": "5f665615-7fb3-49d8-b541-62a7b239edbe",
+        "disambiguation": "",
+        "name": "country",
+        "count": 1
+      },
+      {
+        "count": 4,
+        "name": "folk",
+        "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+        "disambiguation": ""
+      },
+      {
+        "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+        "disambiguation": "",
+        "count": 4,
+        "name": "folk rock"
+      },
+      {
+        "name": "indie folk",
+        "count": 6,
+        "id": "36917620-240a-4fed-abcb-7be611ac3834",
+        "disambiguation": ""
+      },
+      {
+        "name": "indie rock",
+        "count": 1,
+        "id": "ccd19ebf-052c-4afe-8ad9-fbb0a73f94a7",
+        "disambiguation": ""
+      },
+      {
+        "name": "rock",
+        "count": 1,
+        "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+        "disambiguation": ""
+      },
+      {
+        "name": "singer-songwriter",
+        "count": 1,
+        "disambiguation": "",
+        "id": "455f264b-db00-4716-991d-fbd32dc24523"
+      }
+    ],
+    "primary-type": "Album",
+    "title": "For Emma, Forever Ago",
+    "aliases": [],
+    "first-release-date": "2007-07-08",
+    "secondary-types": [],
+    "id": "187935b5-a0a4-3e6f-9684-48b67a5190a1",
+    "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+    "secondary-type-ids": [],
+    "tags": [
+      {
+        "name": "acoustic",
+        "count": 1
+      },
+      {
+        "name": "alternative",
+        "count": 1
+      },
+      {
+        "count": 1,
+        "name": "baroque pop"
+      },
+      {
+        "count": 1,
+        "name": "contemporary folk"
+      },
+      {
+        "name": "country",
+        "count": 1
+      },
+      {
+        "name": "folk",
+        "count": 4
+      },
+      {
+        "count": 4,
+        "name": "folk rock"
+      },
+      {
+        "count": 4,
+        "name": "indie"
+      },
+      {
+        "count": 6,
+        "name": "indie folk"
+      },
+      {
+        "name": "indie rock",
+        "count": 1
+      },
+      {
+        "name": "lo-fi indie",
+        "count": 1
+      },
+      {
+        "count": 1,
+        "name": "rock"
+      },
+      {
+        "name": "singer-songwriter",
+        "count": 1
+      },
+      {
+        "count": 1,
+        "name": "singer/songwriter"
+      },
+      {
+        "count": 1,
+        "name": "world"
+      }
+    ],
+    "disambiguation": ""
+  },
+  "asin": "B0011HF6GE",
+  "title": "For Emma, Forever Ago",
+  "text-representation": {
+    "script": "Latn",
+    "language": "eng"
+  },
+  "media": [
+    {
+      "tracks": [
+        {
+          "length": 219000,
+          "artist-credit": [
+            {
+              "name": "Bon Iver",
+              "joinphrase": "",
+              "artist": {
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "type": "Group",
+                "name": "Bon Iver"
+              }
+            }
+          ],
+          "position": 1,
+          "id": "3af8b630-289b-3abf-a7f4-97dcd86c82b0",
+          "number": "1",
+          "recording": {
+            "id": "1080ccc2-23c0-47e1-8853-cb3c3cc7624e",
+            "first-release-date": "2007-07-08",
+            "relations": [
+              {
+                "source-credit": "",
+                "attributes": [
+                  "drums (drum set)",
+                  "guest"
+                ],
+                "target-type": "artist",
+                "type": "instrument",
+                "attribute-values": {},
+                "target-credit": "",
+                "attribute-credits": {},
+                "direction": "backward",
+                "attribute-ids": {
+                  "drums (drum set)": "12092505-6ee1-46af-a15a-b5b468b6b155",
+                  "guest": "b3045913-62ac-433e-9211-ac683cdf6b5c"
+                },
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "2df5409a-ec68-4789-844c-6da4bb1a2816",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "SG",
+                  "sort-name": "Smith, Christy",
+                  "disambiguation": "",
+                  "name": "Christy Smith",
+                  "type": "Person"
+                }
+              },
+              {
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {},
+                "artist": {
+                  "disambiguation": "",
+                  "name": "Justin Vernon",
+                  "type": "Person",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US"
+                },
+                "end": null,
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "direction": "backward",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "disambiguation": "",
+                  "name": "Justin Vernon",
+                  "type": "Person"
+                },
+                "type": "recording",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "backward"
+              },
+              {
+                "source-credit": "",
+                "attributes": [
+                  "background vocals",
+                  "guest"
+                ],
+                "target-type": "artist",
+                "direction": "backward",
+                "attribute-credits": {},
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "vocal",
+                "artist": {
+                  "name": "Christy Smith",
+                  "type": "Person",
+                  "disambiguation": "",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Smith, Christy",
+                  "country": "SG",
+                  "id": "2df5409a-ec68-4789-844c-6da4bb1a2816"
+                },
+                "end": null,
+                "ended": false,
+                "begin": null,
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "attribute-ids": {
+                  "guest": "b3045913-62ac-433e-9211-ac683cdf6b5c",
+                  "background vocals": "75052401-7340-4e5b-a71d-ea024a128849"
+                }
+              },
+              {
+                "target-type": "artist",
+                "attributes": [],
+                "source-credit": "",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "disambiguation": "",
+                  "name": "Justin Vernon",
+                  "type": "Person"
+                },
+                "attribute-ids": {},
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null,
+                "direction": "backward",
+                "type": "vocal",
+                "target-credit": "",
+                "attribute-values": {}
+              },
+              {
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "end": null,
+                "url": {
+                  "id": "2d7f492d-98a9-4cf2-94ec-e1f59d3c28ef",
+                  "resource": "https://open.spotify.com/track/0bhBtXHQX3u6dSAPF59qGx"
+                },
+                "ended": false,
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "ended": false,
+                "url": {
+                  "id": "02fdec9b-342d-499c-aeb8-5934ea3bbfee",
+                  "resource": "https://open.spotify.com/track/6a1wMgJ42Okk5LjulbrtcZ"
+                },
+                "end": null,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "a8377589-8099-4d6a-a0ff-4fa58bc72001",
+                  "resource": "https://www.deezer.com/track/73916140"
+                },
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward"
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "direction": "forward",
+                "type": "purchase for download",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059827",
+                  "id": "4f22d57a-1956-48bf-b860-1586ea30b75c"
+                },
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1"
+              },
+              {
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "streaming",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "attribute-ids": {},
+                "end": null,
+                "url": {
+                  "id": "4f22d57a-1956-48bf-b860-1586ea30b75c",
+                  "resource": "https://music.apple.com/gb/song/947059827"
+                },
+                "ended": false,
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "end": null,
+                "url": {
+                  "id": "90d084ae-0cf7-4737-ad4a-0fa167a3e68b",
+                  "resource": "https://tidal.com/track/25055554"
+                },
+                "ended": false,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "streaming",
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "direction": "forward",
+                "type": "performance",
+                "target-credit": "",
+                "attribute-values": {},
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "work": {
+                  "id": "a4546036-8c2e-3f66-9225-4ead1585123b",
+                  "attributes": [],
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "direction": "backward",
+                      "type": "composer",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "name": "Justin Vernon",
+                        "type": "Person",
+                        "disambiguation": ""
+                      },
+                      "attribute-ids": {},
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "begin": null
+                    },
+                    {
+                      "ended": false,
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "disambiguation": "",
+                        "type": "Person",
+                        "name": "Justin Vernon"
+                      },
+                      "end": null,
+                      "attribute-ids": {},
+                      "begin": null,
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "direction": "backward",
+                      "type": "lyricist",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "source-credit": ""
+                    }
+                  ],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "disambiguation": "",
+                  "title": "Flume",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [],
+                  "type": "Song",
+                  "language": "eng"
+                },
+                "source-credit": "",
+                "target-type": "work",
+                "attributes": []
+              }
+            ],
+            "length": 219000,
+            "disambiguation": "",
+            "isrcs": [
+              "US38Y0811501"
+            ],
+            "tags": [
+              {
+                "count": 1,
+                "name": "acoustic"
+              },
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "name": "folk rock",
+                "count": 2
+              },
+              {
+                "count": 1,
+                "name": "freak folk"
+              },
+              {
+                "name": "indie",
+                "count": 5
+              },
+              {
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "lo-fi"
+              },
+              {
+                "count": 2,
+                "name": "rock"
+              },
+              {
+                "count": 1,
+                "name": "singer-songwriter"
+              }
+            ],
+            "video": false,
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "type": "Group",
+                  "name": "Bon Iver",
+                  "disambiguation": "US indie folk band"
+                },
+                "name": "Bon Iver"
+              }
+            ],
+            "genres": [
+              {
+                "count": 1,
+                "name": "acoustic rock",
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": ""
+              },
+              {
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "disambiguation": "",
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+                "count": 2,
+                "name": "folk rock"
+              },
+              {
+                "name": "freak folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "8103927c-5f4b-4bbc-9d8c-7a1241d2bab8"
+              },
+              {
+                "disambiguation": "",
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "id": "65e2f3ad-e0bd-4627-bd83-cba7c8b6d011",
+                "disambiguation": "",
+                "count": 1,
+                "name": "lo-fi"
+              },
+              {
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "count": 2,
+                "name": "rock"
+              },
+              {
+                "count": 1,
+                "name": "singer-songwriter",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523",
+                "disambiguation": ""
+              }
+            ],
+            "aliases": [],
+            "title": "Flume"
+          },
+          "title": "Flume"
+        },
+        {
+          "length": 201066,
+          "id": "7f164895-d0ef-3680-921a-e35a1c64aa82",
+          "position": 2,
+          "artist-credit": [
+            {
+              "name": "Bon Iver",
+              "joinphrase": "",
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "country": "US",
+                "sort-name": "Bon Iver",
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "name": "Bon Iver",
+                "type": "Group",
+                "aliases": [],
+                "disambiguation": "US indie folk band"
+              }
+            }
+          ],
+          "number": "2",
+          "title": "Lump Sum",
+          "recording": {
+            "title": "Lump Sum",
+            "aliases": [],
+            "genres": [
+              {
+                "disambiguation": "",
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1,
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+                "disambiguation": ""
+              },
+              {
+                "name": "folk",
+                "count": 2,
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "disambiguation": ""
+              },
+              {
+                "count": 3,
+                "name": "folk rock",
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836"
+              },
+              {
+                "name": "indie folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "36917620-240a-4fed-abcb-7be611ac3834"
+              },
+              {
+                "disambiguation": "",
+                "id": "ccd19ebf-052c-4afe-8ad9-fbb0a73f94a7",
+                "count": 1,
+                "name": "indie rock"
+              },
+              {
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "name": "rock",
+                "count": 2
+              },
+              {
+                "count": 1,
+                "name": "singer-songwriter",
+                "disambiguation": "",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523"
+              }
+            ],
+            "artist-credit": [
+              {
+                "artist": {
+                  "disambiguation": "US indie folk band",
+                  "type": "Group",
+                  "name": "Bon Iver",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+                },
+                "joinphrase": "",
+                "name": "Bon Iver"
+              }
+            ],
+            "isrcs": [
+              "US38Y0811502"
+            ],
+            "disambiguation": "",
+            "video": false,
+            "tags": [
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "count": 3,
+                "name": "folk rock"
+              },
+              {
+                "name": "indie",
+                "count": 1
+              },
+              {
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "indie rock"
+              },
+              {
+                "count": 2,
+                "name": "rock"
+              },
+              {
+                "count": 1,
+                "name": "singer-songwriter"
+              }
+            ],
+            "first-release-date": "2007-07-08",
+            "id": "58d2aaf4-bd47-42da-a9fe-9476452634f7",
+            "relations": [
+              {
+                "end": null,
+                "artist": {
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": "",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {},
+                "direction": "backward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "recording",
+                "direction": "backward",
+                "begin": null,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "attribute-ids": {},
+                "artist": {
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": ""
+                },
+                "end": null,
+                "ended": false,
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "artist"
+              },
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "begin": null,
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "attribute-ids": {},
+                "end": null,
+                "artist": {
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+                },
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "vocal",
+                "direction": "backward"
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "ended": false,
+                "url": {
+                  "resource": "https://open.spotify.com/track/1RT3dWhDmDG6laAXSUJ4c1",
+                  "id": "d04b2f8c-9e02-4a9a-897f-232f8b04f58c"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "direction": "forward",
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": ""
+              },
+              {
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "url": {
+                  "resource": "https://open.spotify.com/track/6MpKc6ceAd2fAMEpkLxkiF",
+                  "id": "a3056429-1a33-452b-991c-d5fef386a91c"
+                },
+                "end": null,
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "direction": "forward",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "direction": "forward",
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "url": {
+                  "resource": "https://www.deezer.com/track/73916141",
+                  "id": "2adb47d0-6944-499a-913a-523cd573dc61"
+                },
+                "end": null,
+                "ended": false,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": [],
+                "type": "purchase for download",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "begin": null,
+                "ended": false,
+                "url": {
+                  "id": "d91978bd-82e4-431e-a28e-67aeb47b8271",
+                  "resource": "https://music.apple.com/gb/song/947059828"
+                },
+                "end": null
+              },
+              {
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": [],
+                "type": "streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059828",
+                  "id": "d91978bd-82e4-431e-a28e-67aeb47b8271"
+                }
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "streaming",
+                "end": null,
+                "url": {
+                  "resource": "https://tidal.com/track/25055555",
+                  "id": "1100dbeb-e8bd-4b86-bcdb-eab46e6140fe"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "attribute-ids": {}
+              },
+              {
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "performance",
+                "end": null,
+                "ended": false,
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "attribute-ids": {},
+                "work": {
+                  "type": "Song",
+                  "language": "eng",
+                  "disambiguation": "",
+                  "title": "Lump Sum",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [],
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "type": "composer",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "direction": "backward",
+                      "attribute-ids": {},
+                      "begin": null,
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "disambiguation": "",
+                        "type": "Person",
+                        "name": "Justin Vernon",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+                      }
+                    },
+                    {
+                      "attributes": [],
+                      "target-type": "artist",
+                      "source-credit": "",
+                      "begin": null,
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "attribute-ids": {},
+                      "end": null,
+                      "artist": {
+                        "name": "Justin Vernon",
+                        "type": "Person",
+                        "disambiguation": "",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                      },
+                      "ended": false,
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "lyricist",
+                      "direction": "backward"
+                    }
+                  ],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "attributes": [],
+                  "id": "0f6f2623-a005-4b19-8672-8ab7e1c258c6"
+                },
+                "source-credit": "",
+                "target-type": "work",
+                "attributes": []
+              }
+            ],
+            "length": 201066
+          }
+        },
+        {
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "type": "Group",
+                "name": "Bon Iver",
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              },
+              "name": "Bon Iver"
+            }
+          ],
+          "position": 3,
+          "id": "2f40465d-8aef-3ec0-ae1e-8e16f918c00f",
+          "length": 238520,
+          "recording": {
+            "length": 238520,
+            "relations": [
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": ""
+                },
+                "type": "instrument",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "backward"
+              },
+              {
+                "target-type": "artist",
+                "attributes": [],
+                "source-credit": "",
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "ended": false,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "backward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "recording"
+              },
+              {
+                "attribute-ids": {},
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "disambiguation": "",
+                  "name": "Justin Vernon",
+                  "type": "Person",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US"
+                },
+                "type": "vocal",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "backward",
+                "target-type": "artist",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "target-type": "recording",
+                "attributes": [],
+                "recording": {
+                  "title": "Skinny Love (radio edit)",
+                  "isrcs": [],
+                  "disambiguation": "",
+                  "video": false,
+                  "artist-credit": [
+                    {
+                      "artist": {
+                        "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                        "type-id": null,
+                        "country": "US",
+                        "sort-name": "Bon Iver",
+                        "disambiguation": "US indie folk band",
+                        "name": "Bon Iver",
+                        "type": null
+                      },
+                      "joinphrase": "",
+                      "name": "Bon Iver"
+                    }
+                  ],
+                  "id": "624bebbb-6eb1-4953-9d0e-58ef4f9021b1",
+                  "length": 199000
+                },
+                "source-credit": "",
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "type-id": "ce01b3ac-dd47-4702-9302-085344f96e84",
+                "begin": null,
+                "direction": "backward",
+                "type": "edit",
+                "target-credit": "",
+                "attribute-values": {}
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://open.spotify.com/track/1HkOPLwAJH3kE8UnqgxF4s",
+                  "id": "3987363b-8096-4abc-850a-80b77fa8658a"
+                },
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward"
+              },
+              {
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://open.spotify.com/track/3B3eOgLJSqPEA0RfboIQVM",
+                  "id": "e7ac20b4-9674-4c99-93a8-1bc3e0c2bff3"
+                },
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "direction": "forward",
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "end": null,
+                "url": {
+                  "id": "c599083d-6ff3-43a7-92fa-2040dff97c7f",
+                  "resource": "https://www.deezer.com/track/73916142"
+                },
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "direction": "forward"
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "purchase for download",
+                "end": null,
+                "url": {
+                  "id": "fc99c889-90fb-42bd-9033-41c7695ff031",
+                  "resource": "https://music.apple.com/gb/song/947059829"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "attribute-ids": {}
+              },
+              {
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": "",
+                "url": {
+                  "id": "fc99c889-90fb-42bd-9033-41c7695ff031",
+                  "resource": "https://music.apple.com/gb/song/947059829"
+                },
+                "end": null,
+                "ended": false,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "streaming"
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "streaming",
+                "url": {
+                  "resource": "https://tidal.com/track/25055556",
+                  "id": "c5f34fda-a12c-4a39-9e6f-4bdc17ec61af"
+                },
+                "end": null,
+                "ended": false,
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "attribute-ids": {}
+              },
+              {
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "performance",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "attribute-ids": {},
+                "end": null,
+                "ended": false,
+                "source-credit": "",
+                "work": {
+                  "title": "Skinny Love",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [
+                    "T-901.006.781-9"
+                  ],
+                  "disambiguation": "",
+                  "type": "Song",
+                  "language": "eng",
+                  "id": "92b3a3c2-e2c2-4d6c-bd41-fe57dbac6980",
+                  "attributes": [],
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "direction": "backward",
+                      "type": "composer",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "disambiguation": "",
+                        "type": "Person",
+                        "name": "Justin Vernon"
+                      },
+                      "attribute-ids": {},
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "begin": null
+                    },
+                    {
+                      "source-credit": "",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "direction": "backward",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "type": "lyricist",
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person"
+                      },
+                      "end": null,
+                      "ended": false,
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "begin": null,
+                      "attribute-ids": {}
+                    },
+                    {
+                      "ended": false,
+                      "end": null,
+                      "url": {
+                        "resource": "https://genius.com/Bon-iver-skinny-love-lyrics",
+                        "id": "400c6804-7085-4388-9018-7ba3fed095f5"
+                      },
+                      "attribute-ids": {},
+                      "type-id": "e38e65aa-75e0-42ba-ace0-072aeb91a538",
+                      "begin": null,
+                      "direction": "backward",
+                      "type": "lyrics",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "target-type": "url",
+                      "attributes": [],
+                      "source-credit": ""
+                    },
+                    {
+                      "source-credit": "",
+                      "attributes": [],
+                      "target-type": "url",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "secondhandsongs",
+                      "direction": "backward",
+                      "begin": null,
+                      "type-id": "b80dff64-9560-445a-b824-c8b432d77a52",
+                      "attribute-ids": {},
+                      "end": null,
+                      "url": {
+                        "resource": "https://secondhandsongs.com/work/121013",
+                        "id": "464b1bfe-97d2-40de-8723-125cae08993c"
+                      },
+                      "ended": false
+                    },
+                    {
+                      "source-credit": "",
+                      "target-type": "url",
+                      "attributes": [],
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "type": "wikidata",
+                      "direction": "backward",
+                      "type-id": "587fdd8f-080e-46a9-97af-6425ebbcb3a2",
+                      "begin": null,
+                      "attribute-ids": {},
+                      "url": {
+                        "resource": "https://www.wikidata.org/wiki/Q2109555",
+                        "id": "41c1d650-f3de-4471-bdc6-f855705f4f96"
+                      },
+                      "end": null,
+                      "ended": false
+                    }
+                  ],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6"
+                },
+                "attributes": [],
+                "target-type": "work"
+              }
+            ],
+            "id": "8a8ca6f4-2150-4b2b-935d-b66962de3b89",
+            "first-release-date": "2007-07-08",
+            "tags": [
+              {
+                "count": 1,
+                "name": "acoustic"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk"
+              },
+              {
+                "count": 3,
+                "name": "folk"
+              },
+              {
+                "name": "folk rock",
+                "count": 3
+              },
+              {
+                "name": "freak folk",
+                "count": 1
+              },
+              {
+                "name": "indie",
+                "count": 2
+              },
+              {
+                "count": 3,
+                "name": "indie folk"
+              },
+              {
+                "name": "lo-fi",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "pop"
+              },
+              {
+                "name": "rock",
+                "count": 3
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "singer/songwriter"
+              }
+            ],
+            "video": false,
+            "disambiguation": "original studio mix",
+            "isrcs": [
+              "US38Y0800003",
+              "US38Y0811503"
+            ],
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "sort-name": "Bon Iver",
+                  "country": "US",
+                  "disambiguation": "US indie folk band",
+                  "name": "Bon Iver",
+                  "type": "Group"
+                },
+                "joinphrase": ""
+              }
+            ],
+            "genres": [
+              {
+                "name": "contemporary folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+              },
+              {
+                "disambiguation": "",
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "count": 3,
+                "name": "folk"
+              },
+              {
+                "count": 3,
+                "name": "folk rock",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+                "disambiguation": ""
+              },
+              {
+                "id": "8103927c-5f4b-4bbc-9d8c-7a1241d2bab8",
+                "disambiguation": "",
+                "name": "freak folk",
+                "count": 1
+              },
+              {
+                "disambiguation": "",
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "name": "indie folk",
+                "count": 3
+              },
+              {
+                "disambiguation": "",
+                "id": "65e2f3ad-e0bd-4627-bd83-cba7c8b6d011",
+                "count": 1,
+                "name": "lo-fi"
+              },
+              {
+                "disambiguation": "",
+                "id": "911c7bbb-172d-4df8-9478-dbff4296e791",
+                "count": 1,
+                "name": "pop"
+              },
+              {
+                "name": "rock",
+                "count": 3,
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "disambiguation": ""
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1,
+                "id": "455f264b-db00-4716-991d-fbd32dc24523",
+                "disambiguation": ""
+              }
+            ],
+            "title": "Skinny Love",
+            "aliases": []
+          },
+          "title": "Skinny Love",
+          "number": "3"
+        },
+        {
+          "number": "4",
+          "title": "The Wolves (Act I and II)",
+          "recording": {
+            "genres": [
+              {
+                "disambiguation": "",
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "disambiguation": "",
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "count": 1,
+                "name": "folk rock",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+                "disambiguation": ""
+              },
+              {
+                "name": "indie folk",
+                "count": 1,
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "disambiguation": ""
+              },
+              {
+                "name": "rock",
+                "count": 2,
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798"
+              },
+              {
+                "disambiguation": "",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523",
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "artist": {
+                  "disambiguation": "US indie folk band",
+                  "type": "Group",
+                  "name": "Bon Iver",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+                },
+                "joinphrase": ""
+              }
+            ],
+            "aliases": [
+              {
+                "type-id": null,
+                "begin": null,
+                "sort-name": "The Wolves (Act I And II)",
+                "end": null,
+                "locale": null,
+                "ended": false,
+                "name": "The Wolves (Act I And II)",
+                "type": null,
+                "primary": null
+              }
+            ],
+            "title": "The Wolves, Act I and II",
+            "length": 322040,
+            "relations": [
+              {
+                "end": null,
+                "artist": {
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": ""
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {},
+                "direction": "backward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "type": "recording",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "backward",
+                "attribute-ids": {},
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": []
+              },
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": [],
+                "type": "vocal",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "backward",
+                "attribute-ids": {},
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": "",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                }
+              },
+              {
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "end": null,
+                "url": {
+                  "resource": "https://open.spotify.com/track/3TO6wG55HdfwC8zfOaXAlJ",
+                  "id": "df9cea59-a492-486f-b7e0-eb77aeb6478f"
+                },
+                "ended": false,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "c267a5a9-53b4-4f88-bca5-6e5169a81b8a",
+                  "resource": "https://open.spotify.com/track/4gNYyq3cl2qVCRtVDsTDKU"
+                },
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "5a8fdf13-808d-4143-b234-40257b3c20e4",
+                  "resource": "https://www.deezer.com/track/73916143"
+                }
+              },
+              {
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "purchase for download",
+                "direction": "forward",
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "begin": null,
+                "attribute-ids": {},
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059832",
+                  "id": "2f6df317-f681-474f-a804-a5b0c0fc10e8"
+                },
+                "ended": false,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "end": null,
+                "url": {
+                  "id": "2f6df317-f681-474f-a804-a5b0c0fc10e8",
+                  "resource": "https://music.apple.com/gb/song/947059832"
+                },
+                "ended": false,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "streaming",
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "streaming",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "attribute-ids": {},
+                "url": {
+                  "id": "7cc20ac2-0ec9-4dd5-806b-4b975c5fc318",
+                  "resource": "https://tidal.com/track/25055557"
+                },
+                "end": null,
+                "ended": false
+              },
+              {
+                "attribute-ids": {},
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "type": "performance",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "target-type": "work",
+                "attributes": [],
+                "source-credit": "",
+                "work": {
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "relations": [
+                    {
+                      "target-type": "artist",
+                      "attributes": [],
+                      "source-credit": "",
+                      "attribute-ids": {},
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "begin": null,
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "type": "Person",
+                        "name": "Justin Vernon",
+                        "disambiguation": "",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                      },
+                      "type": "composer",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "direction": "backward"
+                    },
+                    {
+                      "attributes": [],
+                      "target-type": "artist",
+                      "source-credit": "",
+                      "end": null,
+                      "artist": {
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US"
+                      },
+                      "ended": false,
+                      "begin": null,
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "attribute-ids": {},
+                      "direction": "backward",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "lyricist"
+                    }
+                  ],
+                  "attributes": [],
+                  "id": "2c65e749-d745-4897-8a87-6a5b18638789",
+                  "language": "eng",
+                  "type": "Song",
+                  "disambiguation": "",
+                  "title": "The Wolves (Act I and II)",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": []
+                }
+              }
+            ],
+            "id": "ca11bdb5-c3df-4bbe-b6c2-f1acf81d5c2c",
+            "first-release-date": "2007-07-08",
+            "tags": [
+              {
+                "name": "acoustic",
+                "count": 1
+              },
+              {
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "count": 1,
+                "name": "folk rock"
+              },
+              {
+                "count": 1,
+                "name": "indie"
+              },
+              {
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "name": "rock",
+                "count": 2
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "video": false,
+            "disambiguation": "",
+            "isrcs": [
+              "US38Y0800004",
+              "US38Y0811504"
+            ]
+          },
+          "length": 322040,
+          "id": "84cdf7b0-4f83-3be4-8145-0927f6650c6f",
+          "artist-credit": [
+            {
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "name": "Bon Iver",
+                "type": "Group",
+                "aliases": [],
+                "disambiguation": "US indie folk band"
+              },
+              "joinphrase": "",
+              "name": "Bon Iver"
+            }
+          ],
+          "position": 4
+        },
+        {
+          "number": "5",
+          "recording": {
+            "aliases": [],
+            "title": "Blindsided",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "US indie folk band",
+                  "type": "Group",
+                  "name": "Bon Iver"
+                },
+                "name": "Bon Iver"
+              }
+            ],
+            "genres": [
+              {
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": "",
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3",
+                "disambiguation": ""
+              },
+              {
+                "disambiguation": "",
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+                "name": "folk rock",
+                "count": 3
+              },
+              {
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "disambiguation": "",
+                "count": 1,
+                "name": "indie folk"
+              },
+              {
+                "name": "rock",
+                "count": 2,
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798"
+              },
+              {
+                "count": 1,
+                "name": "singer-songwriter",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523",
+                "disambiguation": ""
+              }
+            ],
+            "disambiguation": "",
+            "isrcs": [
+              "US38Y0800005",
+              "US38Y0811505"
+            ],
+            "tags": [
+              {
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "count": 2,
+                "name": "alternative"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk"
+              },
+              {
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "name": "folk rock",
+                "count": 3
+              },
+              {
+                "count": 2,
+                "name": "indie"
+              },
+              {
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "count": 2,
+                "name": "rock"
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "video": false,
+            "id": "649a3ffb-9247-4fc3-828b-7b552424e05e",
+            "first-release-date": "2007-07-08",
+            "length": 329266,
+            "relations": [
+              {
+                "end": null,
+                "artist": {
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {},
+                "direction": "backward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "type": "recording",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "backward",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "end": null,
+                "ended": false,
+                "begin": null,
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "attribute-ids": {},
+                "direction": "backward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "vocal"
+              },
+              {
+                "direction": "forward",
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "url": {
+                  "id": "c2a2bb6f-21ac-4c4a-9687-a26cb63f4bf4",
+                  "resource": "https://open.spotify.com/track/4mOqHhznOkkYrhfgssktbZ"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "url": {
+                  "resource": "https://open.spotify.com/track/7vE7w0zMSYRR29fIZBTiyp",
+                  "id": "a9e8a15a-e171-46f2-ad7a-e33c96c539e6"
+                },
+                "end": null,
+                "ended": false
+              },
+              {
+                "ended": false,
+                "url": {
+                  "id": "6ebbab96-f0b0-4f2c-a56e-9871c39c4a78",
+                  "resource": "https://www.deezer.com/track/73916144"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "direction": "forward",
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059833",
+                  "id": "ae262444-805f-4dd0-940f-150102acdd17"
+                },
+                "end": null,
+                "ended": false,
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "attribute-ids": {},
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "purchase for download"
+              },
+              {
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059833",
+                  "id": "ae262444-805f-4dd0-940f-150102acdd17"
+                },
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "direction": "forward",
+                "type": "streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "ended": false,
+                "url": {
+                  "id": "c5a50285-15ae-4d99-b776-41967406ad25",
+                  "resource": "https://tidal.com/track/25055558"
+                },
+                "end": null,
+                "type": "streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward"
+              },
+              {
+                "target-type": "work",
+                "attributes": [],
+                "source-credit": "",
+                "work": {
+                  "language": "eng",
+                  "type": "Song",
+                  "disambiguation": "",
+                  "title": "Blindsided",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "relations": [
+                    {
+                      "begin": null,
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "attribute-ids": {},
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person"
+                      },
+                      "end": null,
+                      "ended": false,
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "composer",
+                      "direction": "backward",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "source-credit": ""
+                    },
+                    {
+                      "target-type": "artist",
+                      "attributes": [],
+                      "source-credit": "",
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "begin": null,
+                      "attribute-ids": {},
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "disambiguation": "",
+                        "type": "Person",
+                        "name": "Justin Vernon"
+                      },
+                      "end": null,
+                      "ended": false,
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "type": "lyricist",
+                      "direction": "backward"
+                    }
+                  ],
+                  "id": "c4fa4a1f-b0b6-4f81-bda0-d198beb35b06",
+                  "attributes": []
+                },
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "attribute-ids": {},
+                "end": null,
+                "ended": false,
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "performance",
+                "direction": "forward"
+              }
+            ]
+          },
+          "title": "Blindsided",
+          "length": 329266,
+          "artist-credit": [
+            {
+              "name": "Bon Iver",
+              "joinphrase": "",
+              "artist": {
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "type": "Group",
+                "name": "Bon Iver"
+              }
+            }
+          ],
+          "position": 5,
+          "id": "ceb8072c-84b4-3449-b4db-d9424f222ba5"
+        },
+        {
+          "title": "Creature Fear",
+          "recording": {
+            "title": "Creature Fear",
+            "aliases": [],
+            "artist-credit": [
+              {
+                "artist": {
+                  "type": "Group",
+                  "name": "Bon Iver",
+                  "disambiguation": "US indie folk band",
+                  "sort-name": "Bon Iver",
+                  "country": "US",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc"
+                },
+                "joinphrase": "",
+                "name": "Bon Iver"
+              }
+            ],
+            "genres": [
+              {
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": "",
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+              },
+              {
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "disambiguation": "",
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836",
+                "count": 1,
+                "name": "folk rock"
+              },
+              {
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "disambiguation": "",
+                "count": 1,
+                "name": "indie folk"
+              },
+              {
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "count": 2,
+                "name": "rock"
+              },
+              {
+                "disambiguation": "",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523",
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "tags": [
+              {
+                "name": "acoustic",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk"
+              },
+              {
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "count": 1,
+                "name": "folk rock"
+              },
+              {
+                "name": "indie",
+                "count": 2
+              },
+              {
+                "name": "indie folk",
+                "count": 1
+              },
+              {
+                "name": "rock",
+                "count": 2
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "video": false,
+            "disambiguation": "",
+            "isrcs": [
+              "US38Y0811506"
+            ],
+            "length": 186120,
+            "relations": [
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {},
+                "end": null,
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "name": "Justin Vernon",
+                  "type": "Person",
+                  "disambiguation": ""
+                },
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "direction": "backward"
+              },
+              {
+                "ended": false,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "direction": "backward",
+                "type": "recording",
+                "attribute-values": {},
+                "target-credit": "",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": [],
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "vocal",
+                "direction": "backward",
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null,
+                "attribute-ids": {},
+                "end": null,
+                "artist": {
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": ""
+                },
+                "ended": false
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "99473213-d689-4ef6-84ed-5e8e9c59b1ff",
+                  "resource": "https://open.spotify.com/track/6afJTmreY8lMnG9F4Uo1tM"
+                },
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward"
+              },
+              {
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "18b334b6-5542-4432-a835-93d8decf5b9c",
+                  "resource": "https://open.spotify.com/track/7jJH5jAOUvR0FxkbYBmAQA"
+                },
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "d3d6b892-3dae-4c28-9406-71c8eb5f07b7",
+                  "resource": "https://www.deezer.com/track/73916145"
+                },
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": "",
+                "ended": false,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059835",
+                  "id": "8726444c-b380-420d-b5c7-255773eb6b97"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "begin": null,
+                "direction": "forward",
+                "type": "purchase for download",
+                "target-credit": "",
+                "attribute-values": {}
+              },
+              {
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": "",
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059835",
+                  "id": "8726444c-b380-420d-b5c7-255773eb6b97"
+                },
+                "ended": false,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "streaming"
+              },
+              {
+                "url": {
+                  "id": "906a3e01-af5c-4e42-8e7a-848f1e7e3afe",
+                  "resource": "https://tidal.com/track/25055559"
+                },
+                "end": null,
+                "ended": false,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "streaming",
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "begin": null,
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "attribute-ids": {},
+                "end": null,
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "performance",
+                "direction": "forward",
+                "attributes": [],
+                "target-type": "work",
+                "source-credit": "",
+                "work": {
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [],
+                  "title": "Creature Fear",
+                  "disambiguation": "",
+                  "type": "Song",
+                  "language": "eng",
+                  "id": "d7291609-21ad-40f3-b732-421baf422742",
+                  "attributes": [],
+                  "relations": [
+                    {
+                      "artist": {
+                        "type": "Person",
+                        "name": "Justin Vernon",
+                        "disambiguation": "",
+                        "sort-name": "Vernon, Justin",
+                        "country": "US",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                      },
+                      "end": null,
+                      "ended": false,
+                      "begin": null,
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "attribute-ids": {},
+                      "direction": "backward",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "composer",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "source-credit": ""
+                    },
+                    {
+                      "attribute-ids": {},
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "begin": null,
+                      "ended": false,
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "disambiguation": "",
+                        "type": "Person",
+                        "name": "Justin Vernon"
+                      },
+                      "end": null,
+                      "type": "lyricist",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "direction": "backward",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "source-credit": ""
+                    }
+                  ],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6"
+                }
+              }
+            ],
+            "id": "f415141c-5db2-47b9-b84a-a14e28590abf",
+            "first-release-date": "2007-07-08"
+          },
+          "number": "6",
+          "id": "a03cbbe2-cc36-367b-9277-c519b82b9f49",
+          "position": 6,
+          "artist-credit": [
+            {
+              "name": "Bon Iver",
+              "joinphrase": "",
+              "artist": {
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "type": "Group",
+                "name": "Bon Iver",
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "country": "US",
+                "sort-name": "Bon Iver",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "length": 186120
+        },
+        {
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "type": "Group",
+                "name": "Bon Iver"
+              },
+              "name": "Bon Iver"
+            }
+          ],
+          "position": 7,
+          "id": "91f8a47a-2b61-3f8c-9564-63f9de345734",
+          "length": 116906,
+          "recording": {
+            "id": "8c9cd3c9-a1e8-4ae4-a422-7ccf74028558",
+            "first-release-date": "2007-07-08",
+            "relations": [
+              {
+                "type": "instrument",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "backward",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "ended": false,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "disambiguation": "",
+                  "name": "Justin Vernon",
+                  "type": "Person"
+                },
+                "end": null,
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "artist"
+              },
+              {
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": "",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                },
+                "attribute-ids": {},
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "begin": null,
+                "direction": "backward",
+                "type": "recording",
+                "target-credit": "",
+                "attribute-values": {},
+                "target-type": "artist",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "artist",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "vocal",
+                "direction": "backward",
+                "begin": null,
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "attribute-ids": {},
+                "artist": {
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": "",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                },
+                "end": null,
+                "ended": false
+              },
+              {
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": [],
+                "direction": "forward",
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "f8476385-5d3b-4dab-ad27-cf9a820dd983",
+                  "resource": "https://open.spotify.com/track/0XltgXfjLVvxY0intOijLq"
+                },
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "direction": "forward",
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "url": {
+                  "id": "3304f675-ecc8-404c-801a-0bb9ce738818",
+                  "resource": "https://open.spotify.com/track/2Wpwfxa2s7oQ1ll7IUKnds"
+                },
+                "end": null,
+                "ended": false
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "resource": "https://www.deezer.com/track/73916146",
+                  "id": "267dbf20-d6ef-47b7-94ef-3a0012ebbcce"
+                },
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward"
+              },
+              {
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "purchase for download",
+                "end": null,
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059836",
+                  "id": "b0b1f313-6d56-4624-99f8-169fcaff9882"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "attribute-ids": {},
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "direction": "forward",
+                "type": "streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "b0b1f313-6d56-4624-99f8-169fcaff9882",
+                  "resource": "https://music.apple.com/gb/song/947059836"
+                },
+                "attribute-ids": {},
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "direction": "forward",
+                "type": "streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "753e5dfc-d418-4e97-84ab-0ce85e936c2b",
+                  "resource": "https://tidal.com/track/25055560"
+                },
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "performance",
+                "end": null,
+                "ended": false,
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "attribute-ids": {},
+                "work": {
+                  "id": "ad397a3e-6c64-479e-992e-409247b9b631",
+                  "attributes": [],
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "direction": "backward",
+                      "type": "composer",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "type": "Person",
+                        "name": "Justin Vernon",
+                        "disambiguation": "",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                      },
+                      "attribute-ids": {},
+                      "begin": null,
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f"
+                    },
+                    {
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "type": "lyricist",
+                      "direction": "backward",
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "begin": null,
+                      "attribute-ids": {},
+                      "artist": {
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin"
+                      },
+                      "end": null,
+                      "ended": false,
+                      "source-credit": "",
+                      "target-type": "artist",
+                      "attributes": []
+                    }
+                  ],
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "disambiguation": "",
+                  "title": "Team",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [],
+                  "type": "Song",
+                  "language": "eng"
+                },
+                "source-credit": "",
+                "target-type": "work",
+                "attributes": []
+              }
+            ],
+            "length": 116906,
+            "disambiguation": "",
+            "isrcs": [
+              "US38Y0800007",
+              "US38Y0811507"
+            ],
+            "tags": [
+              {
+                "name": "acoustic",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1
+              },
+              {
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "count": 1,
+                "name": "folk rock"
+              },
+              {
+                "name": "indie",
+                "count": 2
+              },
+              {
+                "count": 2,
+                "name": "indie folk"
+              },
+              {
+                "count": 2,
+                "name": "rock"
+              }
+            ],
+            "video": false,
+            "genres": [
+              {
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": "",
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+              },
+              {
+                "count": 2,
+                "name": "folk",
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "disambiguation": ""
+              },
+              {
+                "count": 1,
+                "name": "folk rock",
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836"
+              },
+              {
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "disambiguation": "",
+                "name": "indie folk",
+                "count": 2
+              },
+              {
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "disambiguation": "",
+                "name": "rock",
+                "count": 2
+              }
+            ],
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "disambiguation": "US indie folk band",
+                  "type": "Group",
+                  "name": "Bon Iver",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+                },
+                "name": "Bon Iver"
+              }
+            ],
+            "title": "Team",
+            "aliases": []
+          },
+          "title": "Team",
+          "number": "7"
+        },
+        {
+          "title": "For Emma",
+          "recording": {
+            "genres": [
+              {
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": "",
+                "name": "acoustic rock",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk",
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+              },
+              {
+                "disambiguation": "",
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "count": 2,
+                "name": "folk"
+              },
+              {
+                "name": "folk rock",
+                "count": 4,
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836"
+              },
+              {
+                "id": "36917620-240a-4fed-abcb-7be611ac3834",
+                "disambiguation": "",
+                "count": 1,
+                "name": "indie folk"
+              },
+              {
+                "count": 2,
+                "name": "rock",
+                "disambiguation": "",
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798"
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1,
+                "disambiguation": "",
+                "id": "455f264b-db00-4716-991d-fbd32dc24523"
+              }
+            ],
+            "artist-credit": [
+              {
+                "artist": {
+                  "name": "Bon Iver",
+                  "type": "Group",
+                  "disambiguation": "US indie folk band",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "country": "US",
+                  "sort-name": "Bon Iver",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc"
+                },
+                "joinphrase": "",
+                "name": "Bon Iver"
+              }
+            ],
+            "title": "For Emma",
+            "aliases": [],
+            "relations": [
+              {
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "attribute-ids": {
+                  "trumpet": "1c8f9780-2f16-4891-b66d-bb7aa0820dbd",
+                  "guest": "b3045913-62ac-433e-9211-ac683cdf6b5c"
+                },
+                "end": null,
+                "artist": {
+                  "id": "aa83dd42-20de-4676-a361-eb33fed5d77c",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Dehaven, John",
+                  "country": null,
+                  "disambiguation": "",
+                  "name": "John Dehaven",
+                  "type": "Person"
+                },
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "instrument",
+                "direction": "backward",
+                "attribute-credits": {},
+                "attributes": [
+                  "guest",
+                  "trumpet"
+                ],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": [
+                  "guest",
+                  "trombone"
+                ],
+                "type": "instrument",
+                "target-credit": "",
+                "attribute-values": {},
+                "attribute-credits": {},
+                "direction": "backward",
+                "attribute-ids": {
+                  "trombone": "f6100277-c7b8-4c8d-aa26-d8cd014b6761",
+                  "guest": "b3045913-62ac-433e-9211-ac683cdf6b5c"
+                },
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "begin": null,
+                "ended": false,
+                "artist": {
+                  "id": "b2e96465-d7a2-4bce-b59f-6d8b79f58612",
+                  "country": null,
+                  "sort-name": "Pingrey, Randy",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Randy Pingrey"
+                },
+                "end": null
+              },
+              {
+                "ended": false,
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Vernon, Justin",
+                  "country": "US",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "name": "Justin Vernon",
+                  "type": "Person",
+                  "disambiguation": ""
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "direction": "backward",
+                "type": "instrument",
+                "attribute-values": {},
+                "target-credit": "",
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": [],
+                "type": "recording",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "backward",
+                "attribute-ids": {},
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                }
+              },
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "attributes": [],
+                "direction": "backward",
+                "type": "vocal",
+                "target-credit": "",
+                "attribute-values": {},
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "type": "Person",
+                  "name": "Justin Vernon",
+                  "disambiguation": "",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441"
+                },
+                "attribute-ids": {},
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null
+              },
+              {
+                "attributes": [],
+                "target-type": "recording",
+                "recording": {
+                  "title": "The Key of C",
+                  "isrcs": [],
+                  "disambiguation": "",
+                  "video": false,
+                  "artist-credit": [
+                    {
+                      "joinphrase": "",
+                      "artist": {
+                        "type-id": null,
+                        "country": "PH",
+                        "sort-name": "nakinyko",
+                        "id": "f370822a-8d1e-42ae-bbe9-6d7bae32b31b",
+                        "name": "nakinyko",
+                        "type": null,
+                        "disambiguation": ""
+                      },
+                      "name": "nakinyko"
+                    }
+                  ],
+                  "id": "20c7a36a-2d6c-4f86-a32b-fb5a24c7a7bf",
+                  "length": 298000
+                },
+                "source-credit": "",
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "579d0b4c-bf77-479d-aa59-a8af1f518958",
+                "direction": "backward",
+                "type": "mashes up",
+                "attribute-values": {},
+                "target-credit": ""
+              },
+              {
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "979a9cf1-0f2b-4119-a451-5e3480f60833",
+                  "resource": "https://open.spotify.com/track/2nilAlGEZmwyaLTMMyDdLo"
+                },
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "direction": "forward",
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "target-type": "url",
+                "attributes": [],
+                "source-credit": ""
+              },
+              {
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": [],
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "direction": "forward",
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "url": {
+                  "id": "88132af9-2384-4462-8647-000eecb624cd",
+                  "resource": "https://open.spotify.com/track/5PuJeI166oOmNLsstMujmw"
+                },
+                "end": null,
+                "ended": false
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "end": null,
+                "url": {
+                  "id": "141f367d-abf4-4e81-849c-fe9333ec6e96",
+                  "resource": "https://www.deezer.com/track/73916147"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming"
+              },
+              {
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "attribute-ids": {},
+                "url": {
+                  "resource": "https://music.apple.com/gb/song/947059838",
+                  "id": "89608ba5-052d-4ac2-9f29-53f259d02e6c"
+                },
+                "end": null,
+                "ended": false,
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "purchase for download",
+                "direction": "forward",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "type": "streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "ended": false,
+                "url": {
+                  "id": "89608ba5-052d-4ac2-9f29-53f259d02e6c",
+                  "resource": "https://music.apple.com/gb/song/947059838"
+                },
+                "end": null,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "type": "streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "begin": null,
+                "ended": false,
+                "url": {
+                  "id": "1bbcfc51-09d9-411f-aa89-0cf0fec4a672",
+                  "resource": "https://tidal.com/track/25055561"
+                },
+                "end": null,
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "target-type": "work",
+                "attributes": [],
+                "work": {
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "direction": "backward",
+                      "type": "composer",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "ended": false,
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person"
+                      },
+                      "end": null,
+                      "attribute-ids": {},
+                      "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                      "begin": null
+                    },
+                    {
+                      "attribute-ids": {},
+                      "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+                      "begin": null,
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "disambiguation": "",
+                        "name": "Justin Vernon",
+                        "type": "Person"
+                      },
+                      "type": "lyricist",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "direction": "backward",
+                      "target-type": "artist",
+                      "attributes": [],
+                      "source-credit": ""
+                    }
+                  ],
+                  "attributes": [],
+                  "id": "3adfe94c-2b45-4193-a581-004a5b73615b",
+                  "language": "eng",
+                  "type": "Song",
+                  "iswcs": [],
+                  "languages": [
+                    "eng"
+                  ],
+                  "title": "For Emma",
+                  "disambiguation": ""
+                },
+                "source-credit": "",
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "direction": "forward",
+                "type": "performance",
+                "target-credit": "",
+                "attribute-values": {}
+              }
+            ],
+            "length": 220720,
+            "first-release-date": "2007-07-08",
+            "id": "9292cc80-2875-4efa-b7f8-ec2e25525d15",
+            "video": false,
+            "tags": [
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk"
+              },
+              {
+                "name": "folk",
+                "count": 2
+              },
+              {
+                "count": 4,
+                "name": "folk rock"
+              },
+              {
+                "count": 3,
+                "name": "indie"
+              },
+              {
+                "count": 1,
+                "name": "indie folk"
+              },
+              {
+                "name": "rock",
+                "count": 2
+              },
+              {
+                "name": "singer-songwriter",
+                "count": 1
+              }
+            ],
+            "isrcs": [
+              "US38Y0800008",
+              "US38Y0811508"
+            ],
+            "disambiguation": "original stereo mix"
+          },
+          "number": "8",
+          "id": "3ebf748f-06d0-3ecd-be4c-5016db7e296b",
+          "position": 8,
+          "artist-credit": [
+            {
+              "name": "Bon Iver",
+              "artist": {
+                "type": "Group",
+                "name": "Bon Iver",
+                "disambiguation": "US indie folk band",
+                "aliases": [],
+                "country": "US",
+                "sort-name": "Bon Iver",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc"
+              },
+              "joinphrase": ""
+            }
+          ],
+          "length": 220720
+        },
+        {
+          "position": 9,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "sort-name": "Bon Iver",
+                "country": "US",
+                "aliases": [],
+                "disambiguation": "US indie folk band",
+                "name": "Bon Iver",
+                "type": "Group"
+              },
+              "name": "Bon Iver"
+            }
+          ],
+          "id": "5be2a348-6926-3d31-b33d-7506fc6394b4",
+          "length": 401413,
+          "recording": {
+            "relations": [
+              {
+                "attributes": [],
+                "target-type": "artist",
+                "source-credit": "",
+                "ended": false,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+                "direction": "backward",
+                "type": "instrument",
+                "attribute-values": {},
+                "target-credit": ""
+              },
+              {
+                "direction": "backward",
+                "type": "recording",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "end": null,
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "name": "Justin Vernon",
+                  "type": "Person",
+                  "disambiguation": ""
+                },
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "artist"
+              },
+              {
+                "target-type": "artist",
+                "attributes": [],
+                "source-credit": "",
+                "attribute-ids": {},
+                "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+                "begin": null,
+                "ended": false,
+                "artist": {
+                  "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                  "country": "US",
+                  "sort-name": "Vernon, Justin",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "name": "Justin Vernon"
+                },
+                "end": null,
+                "type": "vocal",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "backward"
+              },
+              {
+                "recording": {
+                  "video": false,
+                  "disambiguation": "",
+                  "isrcs": [],
+                  "title": "Re: Stacks (Owsey & Resotone rework)",
+                  "length": 390000,
+                  "artist-credit": [
+                    {
+                      "joinphrase": "",
+                      "artist": {
+                        "disambiguation": "US indie folk band",
+                        "name": "Bon Iver",
+                        "type": null,
+                        "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                        "type-id": null,
+                        "sort-name": "Bon Iver",
+                        "country": "US"
+                      },
+                      "name": "Bon Iver"
+                    }
+                  ],
+                  "id": "2570ceaa-7ee7-408b-bfaa-1674283aed8b"
+                },
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "recording",
+                "direction": "backward",
+                "type": "remix",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "bfbdb55a-b857-473a-8f2e-a9c09e45c3f5"
+              },
+              {
+                "direction": "backward",
+                "type": "samples material",
+                "attribute-values": {},
+                "target-credit": "",
+                "ended": false,
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "9efd9ce9-e702-448b-8e76-641515e8fe62",
+                "recording": {
+                  "length": 155000,
+                  "artist-credit": [
+                    {
+                      "name": "Oddisee",
+                      "artist": {
+                        "disambiguation": "DC hip hop producer/rapper",
+                        "name": "Oddisee",
+                        "type": null,
+                        "id": "aaae09b3-70d9-4a65-bb3f-57e85dfe9b83",
+                        "type-id": null,
+                        "sort-name": "Oddisee",
+                        "country": "US"
+                      },
+                      "joinphrase": ""
+                    }
+                  ],
+                  "id": "e1d80ace-b55b-496f-8450-f5d2f2fd8b05",
+                  "video": false,
+                  "isrcs": [],
+                  "title": "Paralyzed",
+                  "disambiguation": ""
+                },
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "recording"
+              },
+              {
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "free streaming",
+                "end": null,
+                "url": {
+                  "id": "9c3cd380-57d8-42a2-a8d6-6ea858112bba",
+                  "resource": "https://open.spotify.com/track/1D39ZETXfcAFYaGruPHEzB"
+                },
+                "ended": false,
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "type": "free streaming",
+                "target-credit": "",
+                "attribute-values": {},
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "3370b294-975f-48f5-81a1-316fc6d133ec",
+                  "resource": "https://open.spotify.com/track/20AC70RUlVz6A6dCcQ5tRS"
+                },
+                "source-credit": "",
+                "target-type": "url",
+                "attributes": []
+              },
+              {
+                "ended": false,
+                "url": {
+                  "id": "e0105ffc-344f-48b4-b084-ca3f852cf8bd",
+                  "resource": "https://www.deezer.com/track/73916148"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "direction": "forward",
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": ""
+              },
+              {
+                "attributes": [],
+                "target-type": "url",
+                "source-credit": "",
+                "ended": false,
+                "url": {
+                  "id": "2829b8dc-9693-454a-8658-6b3e035bf2b0",
+                  "resource": "https://music.apple.com/gb/song/947059839"
+                },
+                "end": null,
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "92777657-504c-4acb-bd33-51a201bd57e1",
+                "direction": "forward",
+                "type": "purchase for download",
+                "attribute-values": {},
+                "target-credit": ""
+              },
+              {
+                "direction": "forward",
+                "attribute-values": {},
+                "target-credit": "",
+                "type": "streaming",
+                "url": {
+                  "id": "2829b8dc-9693-454a-8658-6b3e035bf2b0",
+                  "resource": "https://music.apple.com/gb/song/947059839"
+                },
+                "end": null,
+                "ended": false,
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "attribute-ids": {},
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url"
+              },
+              {
+                "source-credit": "",
+                "attributes": [],
+                "target-type": "url",
+                "type": "streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "direction": "forward",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "b5f3058a-666c-406f-aafb-f9249fc7b122",
+                "ended": false,
+                "end": null,
+                "url": {
+                  "id": "640f1c83-c4a0-460f-b458-c5776b3bb82f",
+                  "resource": "https://tidal.com/track/25055562"
+                }
+              },
+              {
+                "direction": "forward",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "performance",
+                "end": null,
+                "ended": false,
+                "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+                "begin": null,
+                "attribute-ids": {},
+                "work": {
+                  "language": "eng",
+                  "type": "Song",
+                  "languages": [
+                    "eng"
+                  ],
+                  "iswcs": [
+                    "T-901.001.209-6"
+                  ],
+                  "title": "re: stacks",
+                  "disambiguation": "",
+                  "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+                  "relations": [
+                    {
+                      "source-credit": "",
+                      "attributes": [],
+                      "target-type": "artist",
+                      "direction": "backward",
+                      "type": "writer",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "ended": false,
+                      "end": null,
+                      "artist": {
+                        "country": "US",
+                        "sort-name": "Vernon, Justin",
+                        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+                        "type": "Person",
+                        "name": "Justin Vernon",
+                        "disambiguation": ""
+                      },
+                      "attribute-ids": {},
+                      "begin": null,
+                      "type-id": "a255bca1-b157-4518-9108-7b147dc3fc68"
+                    },
+                    {
+                      "source-credit": "",
+                      "target-type": "url",
+                      "attributes": [],
+                      "direction": "backward",
+                      "type": "lyrics",
+                      "target-credit": "",
+                      "attribute-values": {},
+                      "ended": false,
+                      "url": {
+                        "resource": "https://genius.com/Bon-iver-re-stacks-lyrics",
+                        "id": "8d1e8c80-3031-4bf0-94c8-dd4683cb8d7f"
+                      },
+                      "end": null,
+                      "attribute-ids": {},
+                      "type-id": "e38e65aa-75e0-42ba-ace0-072aeb91a538",
+                      "begin": null
+                    },
+                    {
+                      "begin": null,
+                      "type-id": "e38e65aa-75e0-42ba-ace0-072aeb91a538",
+                      "attribute-ids": {},
+                      "end": null,
+                      "url": {
+                        "resource": "https://genius.com/Gretta-ray-and-dustin-tebbutt-re-stacks-lyrics",
+                        "id": "5cb1623a-d90a-443a-8dbf-1e4b5841c7fd"
+                      },
+                      "ended": false,
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "lyrics",
+                      "direction": "backward",
+                      "attributes": [],
+                      "target-type": "url",
+                      "source-credit": ""
+                    },
+                    {
+                      "source-credit": "",
+                      "attributes": [],
+                      "target-type": "url",
+                      "direction": "backward",
+                      "attribute-values": {},
+                      "target-credit": "",
+                      "type": "secondhandsongs",
+                      "end": null,
+                      "url": {
+                        "id": "a967ea79-504b-42e3-9235-ad55f5739eca",
+                        "resource": "https://secondhandsongs.com/work/133809"
+                      },
+                      "ended": false,
+                      "begin": null,
+                      "type-id": "b80dff64-9560-445a-b824-c8b432d77a52",
+                      "attribute-ids": {}
+                    }
+                  ],
+                  "attributes": [],
+                  "id": "1f9bc131-3c77-4d1a-bbd4-4b2b85b02ace"
+                },
+                "source-credit": "",
+                "target-type": "work",
+                "attributes": []
+              }
+            ],
+            "length": 401413,
+            "first-release-date": "2007-07-08",
+            "id": "2e5e2304-515f-4f19-bc00-b30fdb6b7f79",
+            "video": false,
+            "tags": [
+              {
+                "count": 1,
+                "name": "acoustic rock"
+              },
+              {
+                "count": 1,
+                "name": "contemporary folk"
+              },
+              {
+                "count": 4,
+                "name": "folk"
+              },
+              {
+                "count": 2,
+                "name": "folk rock"
+              },
+              {
+                "name": "indie",
+                "count": 1
+              },
+              {
+                "count": 1,
+                "name": "indie folk"
+              },
+              {
+                "count": 1,
+                "name": "rock"
+              }
+            ],
+            "isrcs": [
+              "US38Y0800009",
+              "US38Y0811509"
+            ],
+            "disambiguation": "",
+            "genres": [
+              {
+                "name": "acoustic rock",
+                "count": 1,
+                "id": "00055e8b-b951-46e2-af1e-58b5624e7952",
+                "disambiguation": ""
+              },
+              {
+                "name": "contemporary folk",
+                "count": 1,
+                "disambiguation": "",
+                "id": "c11e4253-a888-4a2a-adde-c274b748d0b3"
+              },
+              {
+                "id": "a91eed3a-fdd0-494e-ade0-95ea4117f6eb",
+                "disambiguation": "",
+                "name": "folk",
+                "count": 4
+              },
+              {
+                "name": "folk rock",
+                "count": 2,
+                "disambiguation": "",
+                "id": "445dc48f-5233-4b4f-987f-867ff9ade836"
+              },
+              {
+                "count": 1,
+                "name": "indie folk",
+                "disambiguation": "",
+                "id": "36917620-240a-4fed-abcb-7be611ac3834"
+              },
+              {
+                "id": "0e3fc579-2d24-4f20-9dae-736e1ec78798",
+                "disambiguation": "",
+                "count": 1,
+                "name": "rock"
+              }
+            ],
+            "artist-credit": [
+              {
+                "name": "Bon Iver",
+                "joinphrase": "",
+                "artist": {
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "sort-name": "Bon Iver",
+                  "country": "US",
+                  "id": "437a0e49-c6ae-42f6-a6c1-84f25ed366bc",
+                  "name": "Bon Iver",
+                  "type": "Group",
+                  "disambiguation": "US indie folk band"
+                }
+              }
+            ],
+            "title": "re: stacks",
+            "aliases": [
+              {
+                "type": null,
+                "primary": null,
+                "name": "Re: Stacks",
+                "ended": false,
+                "locale": null,
+                "end": null,
+                "sort-name": "Re: Stacks",
+                "begin": null,
+                "type-id": null
+              },
+              {
+                "type": null,
+                "primary": null,
+                "name": "Re:Stacks",
+                "sort-name": "Re:Stacks",
+                "type-id": null,
+                "begin": null,
+                "locale": null,
+                "ended": false,
+                "end": null
+              },
+              {
+                "type": null,
+                "primary": null,
+                "name": "re:stacks",
+                "ended": false,
+                "locale": null,
+                "end": null,
+                "sort-name": "re:stacks",
+                "begin": null,
+                "type-id": null
+              }
+            ]
+          },
+          "title": "re: stacks",
+          "number": "9"
+        }
+      ],
+      "title": "",
+      "track-offset": 0,
+      "format": "Digital Media",
+      "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+      "id": "411a9a52-2bed-3453-b1ec-701d80ff91a1",
+      "track-count": 9,
+      "position": 1
+    }
+  ],
+  "relations": [
+    {
+      "target-type": "artist",
+      "attributes": [],
+      "source-credit": "",
+      "ended": false,
+      "end": null,
+      "artist": {
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "sort-name": "Vernon, Justin",
+        "country": "US",
+        "id": "0f1d5b01-8784-4870-9bd6-fa43178b9441",
+        "name": "Justin Vernon",
+        "type": "Person",
+        "disambiguation": ""
+      },
+      "attribute-ids": {},
+      "type-id": "023a6c6d-80af-4f88-ae69-f5f6213f9bf4",
+      "begin": null,
+      "direction": "backward",
+      "type": "recording",
+      "target-credit": "",
+      "attribute-values": {}
+    },
+    {
+      "begin": null,
+      "type-id": "4f2e710d-166c-480c-a293-2e2c8d658d87",
+      "attribute-ids": {},
+      "end": null,
+      "url": {
+        "resource": "https://www.amazon.com/gp/product/B0011HF6GE",
+        "id": "5dad7569-d871-4d0b-80c7-3ed6f98fba0e"
+      },
+      "ended": false,
+      "attribute-values": {},
+      "target-credit": "",
+      "type": "amazon asin",
+      "direction": "forward",
+      "attributes": [],
+      "target-type": "url",
+      "source-credit": ""
+    },
+    {
+      "direction": "forward",
+      "type": "discogs",
+      "attribute-values": {},
+      "target-credit": "",
+      "ended": false,
+      "end": null,
+      "url": {
+        "id": "68993240-e9a1-4e13-84a9-ee7ddebeb82e",
+        "resource": "https://www.discogs.com/release/9663127"
+      },
+      "attribute-ids": {},
+      "begin": null,
+      "type-id": "4a78823c-1c53-4176-a5f3-58026c76f2bc",
+      "source-credit": "",
+      "attributes": [],
+      "target-type": "url"
+    },
+    {
+      "source-credit": "",
+      "target-type": "url",
+      "attributes": [],
+      "direction": "forward",
+      "type": "purchase for download",
+      "target-credit": "",
+      "attribute-values": {},
+      "ended": true,
+      "url": {
+        "resource": "https://www.7digital.com/artists/bon-iver/for-emma-forever-ago-(1)/",
+        "id": "78a914b3-9c9d-4c16-bc94-af359c5fc3f8"
+      },
+      "end": null,
+      "attribute-ids": {},
+      "type-id": "98e08c20-8402-4163-8970-53504bb6a1e4",
+      "begin": null
+    }
+  ],
+  "packaging": "None",
+  "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+  "tags": []
+}

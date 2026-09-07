@@ -103,7 +103,7 @@ export function ImportStatusBadge({
 }) {
   const meta = IMPORT_STATUS_META[status];
   return (
-    <ToneBadge tone={meta.tone} className={className}>
+    <ToneBadge tone={meta.tone} className={className} data-testid="import-status">
       {meta.label}
     </ToneBadge>
   );
