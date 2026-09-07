@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import type { TrackState } from "#/server/db/schema/index.ts";
 import {
+  aggregateStatus,
   backoffMs,
+  hasPassed,
+  nextTrackStep,
   isBefore,
   isResumable,
   isTerminal,
@@ -208,5 +212,81 @@ describe("backoffMs", () => {
 
   it("is zero before the first attempt", () => {
     expect(backoffMs(0, 5000, 300_000)).toBe(0);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the per-track half (decision 147)                                    */
+/* ------------------------------------------------------------------ */
+
+describe("nextTrackStep", () => {
+  it("walks a track through the three local steps, in order", () => {
+    expect(nextTrackStep("downloaded")).toBe("fingerprint");
+    expect(nextTrackStep("fingerprinted")).toBe("tag");
+    expect(nextTrackStep("tagged")).toBe("place");
+  });
+
+  it("asks for nothing before the file exists — `download` owns that", () => {
+    expect(nextTrackStep("pending")).toBeNull();
+  });
+
+  it("asks for nothing once the track is filed or has left the line", () => {
+    expect(nextTrackStep("placed")).toBeNull();
+    expect(nextTrackStep("done")).toBeNull();
+    expect(nextTrackStep("skipped")).toBeNull();
+    expect(nextTrackStep("failed")).toBeNull();
+  });
+
+  it("never skips a step, which is what guarantees the order within a track", () => {
+    // The only way to reach `tag` is through the state `fingerprint` writes: a duplicate or
+    // out-of-order message cannot manufacture one, because the answer is the row.
+    const seen: string[] = [];
+    let state: TrackState = "downloaded";
+    for (let guard = 0; guard < 10; guard += 1) {
+      const step = nextTrackStep(state);
+      if (step === null) break;
+      seen.push(step);
+      state = step === "fingerprint" ? "fingerprinted" : step === "tag" ? "tagged" : "placed";
+    }
+    expect(seen).toEqual(["fingerprint", "tag", "place"]);
+  });
+});
+
+describe("hasPassed", () => {
+  it("is monotonic along the line", () => {
+    expect(hasPassed("downloaded", "fingerprint")).toBe(false);
+    expect(hasPassed("fingerprinted", "fingerprint")).toBe(true);
+    expect(hasPassed("placed", "tag")).toBe(true);
+  });
+
+  it("counts a track that left the line: it will never pass, and nothing waits for it", () => {
+    expect(hasPassed("skipped", "place")).toBe(true);
+    expect(hasPassed("failed", "place")).toBe(true);
+  });
+});
+
+describe("aggregateStatus — the derived job_steps row", () => {
+  const states = (...list: TrackState[]) => list.map((state) => ({ state }));
+
+  it("is `pending` while every track is still waiting for its file", () => {
+    expect(aggregateStatus(states("pending", "pending"), "fingerprint").status).toBe("pending");
+  });
+
+  it("is `running` as soon as one track has a file and one has not passed", () => {
+    const tally = aggregateStatus(states("fingerprinted", "downloaded", "pending"), "fingerprint");
+    expect(tally.status).toBe("running");
+    expect(tally.done).toBe(1);
+    expect(tally.total).toBe(3);
+  });
+
+  it("is `done` only when every track that counts has passed", () => {
+    expect(aggregateStatus(states("placed", "placed"), "place").status).toBe("done");
+    expect(aggregateStatus(states("placed", "tagged"), "place").status).toBe("running");
+  });
+
+  it("ignores the tracks that were already present: they are not this album's work", () => {
+    const tally = aggregateStatus(states("skipped", "placed"), "place");
+    expect(tally).toEqual({ status: "done", done: 1, total: 1 });
+    expect(aggregateStatus(states("skipped", "skipped"), "place").status).toBe("skipped");
   });
 });
