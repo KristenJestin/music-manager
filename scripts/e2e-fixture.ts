@@ -391,14 +391,25 @@ async function main(): Promise<void> {
   );
   check(finished.status === "done", "the interrupted import finished after a restart");
 
-  const reused = await sql<{ n: string }[]>`
-    select count(*)::text as n from job_events
+  /*
+   * Every track that already had a file was **spared**, whichever way it was spared.
+   *
+   * Two reasons now, not one, because the steps are pipelined (decision 147): a track whose
+   * download finished before the kill may still be in the work directory — `already
+   * downloaded` — or it may already have been fingerprinted, tagged and filed while the next
+   * one was coming down, in which case the restarted `download` finds it in the library and
+   * says `already present`. Counting only the first reason measured the old serial pipeline,
+   * where nothing could possibly be filed yet, and read as a regression on the new one while
+   * "no track was downloaded twice" — the claim that actually matters — stayed green.
+   */
+  const spared = await sql<{ n: string }[]>`
+    select count(distinct track_id)::text as n from job_events
      where import_id = ${first} and type = 'track.skipped'
-       and data->>'reason' = 'already downloaded'`;
+       and data->>'reason' in ('already downloaded', 'already present')`;
   check(
-    Number(reused[0]?.n ?? "0") >= before - 1,
+    Number(spared[0]?.n ?? "0") >= before - 1,
     "already-downloaded tracks were not fetched again",
-    `${reused[0]?.n ?? "0"} reused, ${String(before)} were on disk`,
+    `${spared[0]?.n ?? "0"} spared, ${String(before)} were on disk`,
   );
 
   const doubled = await sql<{ track_id: string; n: string }[]>`
