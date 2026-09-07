@@ -76,6 +76,19 @@ describe("liveTracks", () => {
     expect(live.get("t1")).toMatchObject({ waiting: true, stage: "waiting" });
   });
 
+  it("names the rate-limit pause between two downloads", () => {
+    // The jitter is longer than the fixture download it precedes, so this line is what a track
+    // row shows most of the time. Without a `stage` the fold fell back to the word "working" —
+    // the pause is deliberate, and it should read as a phase rather than as no information.
+    const live = liveTracks([
+      event("track.progress", "t1", "Waiting 7s before the next download.", {
+        stage: "pausing",
+        jitterMs: 7000,
+      }),
+    ]);
+    expect(live.get("t1")).toMatchObject({ stage: "pausing", percent: null, waiting: false });
+  });
+
   it("ignores everything that is not about a track", () => {
     const live = liveTracks([
       event("step.started", null, "download started"),

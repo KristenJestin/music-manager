@@ -262,7 +262,12 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
           `Waiting ${String(Math.round(pause / 1000))}s before the next download.`,
           {
             trackId: track.id,
-            data: { jitterMs: pause },
+            // Named like every other phase. Without a `stage` the Console's fold has nothing
+            // to show and falls back to the word "working" — and since the jitter is longer
+            // than the download it precedes, "working" was what the owner's track rows said
+            // most of the time. The pause is deliberate (it is what keeps us under YouTube's
+            // rate limit), so it should read as a phase, not as an absence of information.
+            data: { stage: "pausing", jitterMs: pause },
           },
         );
         await sleep(pause, ctx.signal);
