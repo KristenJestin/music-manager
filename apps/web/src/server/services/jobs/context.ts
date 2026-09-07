@@ -59,6 +59,16 @@ export interface ContextOptions {
   readonly toolbox?: ToolboxClient;
   readonly settings?: Settings;
   readonly signal?: AbortSignal;
+  /**
+   * Refuse the step if the job has since been cancelled, has finished, or is paused.
+   *
+   * **For a caller that took the work off a queue, and only for one.** A queue message is a
+   * statement about the past — the job it names may have been cancelled a minute ago, and
+   * pg-boss has no idea — whereas `mm retry --step verify` on a `done` album is a person
+   * asking for exactly that, on purpose. So the check belongs to the caller who cannot know,
+   * not to `runStep` itself: the worker sets it, the CLI and the tests do not.
+   */
+  readonly skipIfStopped?: boolean;
 }
 
 /** Read one import, or explain that it does not exist. */

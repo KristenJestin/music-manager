@@ -153,6 +153,16 @@ async function endStep(
 /**
  * Run exactly one step, with its bookkeeping. Exported because `mm retry --step` and the
  * integration tests both want a single step without the loop around it.
+ *
+ * `skipIfStopped` is how the worker says "…but only if the job still wants it". `runImport` has
+ * always refused a terminal import, but `download` does not go through `runImport` — the worker
+ * takes it off its own queue and calls this function directly, so the queue path had no such
+ * check at all. A `download` message that outlived the job it names (the owner cancels an
+ * import while it is queued, a worker restarts, a duplicate arrives) therefore downloaded an
+ * album nobody had asked for any more, held the single global slot while doing it, and —
+ * because the tail of this function writes `imports.status` unconditionally — brought the
+ * cancelled job back as `running`. It is opt-in rather than automatic because `mm retry --step`
+ * deliberately re-runs a step on a job that has finished, and that must keep working.
  */
 export async function runStep(
   importId: string,
@@ -160,6 +170,18 @@ export async function runStep(
   options: ContextOptions = {},
 ): Promise<StepResult> {
   const db = options.db ?? defaultDb();
+
+  if (options.skipIfStopped === true) {
+    const current = await requireImport(importId, db);
+    if (isTerminal(current.status) || current.status === "paused") {
+      const message = `${step} skipped: the job is ${current.status}`;
+      await emit({ importId, step, type: "step.skipped", message }, db);
+      // `refused` is what stops the worker asking for the job to be advanced afterwards, which
+      // would undo a Pause one queue hop later.
+      return { status: "skipped", message, data: { refused: current.status } };
+    }
+  }
+
   const ctx = await makeContext(importId, step, options);
   const attempt = await beginStep(db, importId, step);
 

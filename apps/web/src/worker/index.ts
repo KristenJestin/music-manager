@@ -75,6 +75,27 @@ export async function startWorker(): Promise<Worker> {
   await boss.start();
   await ensureQueues(boss);
 
+  /* ---- clear what the last worker left behind, *before* consuming anything ---- */
+  //
+  // A worker killed mid-download leaves its `download` job in the active state. The queue's
+  // policy is `singleton`, so that ghost would block every later download until it expired —
+  // six hours. Clearing the two queues is safe because `docs/06-stack.md` states the rule this
+  // whole design rests on: **one orchestrator**. Nothing is lost either: the jobs carry only an
+  // import id, and the imports themselves are re-queued at the end of this function.
+  // `deleteAllJobs` and not `deleteQueuedJobs`: the latter only removes jobs *before* the
+  // active state, which is precisely the one the ghost is in.
+  //
+  // **This must happen before the first `boss.work`.** It used to sit after all of them, and
+  // registering a consumer starts a poller immediately — so the worker raced its own cleanup
+  // and won often enough to matter: it picked up the very ghost it was about to delete, ran a
+  // `download` step for it, and then deleted the queue row out from under its own running
+  // handler. On this checkout that meant a *cancelled* import taking the single download slot
+  // for a minute while two legitimate jobs sat in `created`, which is the owner's C4 —
+  // "les pistes sortent en 3 fois" — with a different first domino.
+  for (const queue of [QUEUES.importStep, QUEUES.download]) {
+    await boss.deleteAllJobs(queue);
+  }
+
   /* ---- import.step: advance a job up to (but not into) the download queue ---- */
   await boss.work<ImportStepJob>(
     QUEUES.importStep,
@@ -104,10 +125,17 @@ export async function startWorker(): Promise<Worker> {
         const result = await runStep(importId, "download", {
           db: db(),
           signal: shutdown.signal,
+          // The message may name a job the owner cancelled or paused after it was queued;
+          // pg-boss cannot know that, and the single download slot is too scarce to spend on
+          // an album nobody is waiting for.
+          skipIfStopped: true,
         });
         // Whatever happened, the step machine has already recorded it. Ask for the job to be
-        // advanced again: if it failed or blocked, `runImport` will see that and stop.
-        if (result.status === "done" || result.status === "skipped") {
+        // advanced again: if it failed or blocked, `runImport` will see that and stop. The one
+        // exception is a step `runStep` refused to run at all — the job is cancelled or paused,
+        // and advancing it here would undo that one queue hop later.
+        const refused = (result.data as { refused?: string } | undefined)?.refused !== undefined;
+        if (!refused && (result.status === "done" || result.status === "skipped")) {
           await enqueueImportStep(boss, { importId, reason: "download finished" });
         }
       }
@@ -195,17 +223,8 @@ export async function startWorker(): Promise<Worker> {
 
   /* ---- resume whatever the last worker left behind ---- */
   //
-  // A worker killed mid-download leaves its `download` job in the active state. The queue's
-  // policy is `singleton`, so that ghost would block every later download until it expired —
-  // six hours. Clearing the two queues first is safe because `docs/06-stack.md` states the
-  // rule this whole design rests on: **one orchestrator**. Nothing is lost either: the jobs
-  // carry only an import id, and the imports themselves are re-queued immediately below.
-  // `deleteAllJobs` and not `deleteQueuedJobs`: the latter only removes jobs *before* the
-  // active state, which is precisely the one the ghost is in.
-  for (const queue of [QUEUES.importStep, QUEUES.download]) {
-    await boss.deleteAllJobs(queue);
-  }
-
+  // The queues were emptied above, before the first consumer was registered. What is left to
+  // do is put the *imports* back on them, which is the whole of "resume".
   const orphans = await resumableImports(db());
   for (const orphan of orphans) {
     log("resuming import", { importId: orphan.id, status: orphan.status, step: orphan.step });

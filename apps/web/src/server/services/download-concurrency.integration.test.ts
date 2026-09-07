@@ -171,6 +171,37 @@ describe.skipIf(unavailable !== null)("the single download slot", () => {
     // Leave nothing queued behind: the next test starts a real worker, and it resumes every
     // job it finds — including this one, which would muddy its assertions.
     await jobs.cancelImport(id);
+
+    /*
+     * And the other half of the same rule: a `download` message that outlives the job it names
+     * must not be honoured. The message enqueued four lines above is still on the queue — the
+     * Console cancelling an import does not reach into pg-boss — so the next worker to start
+     * will find it. `runStep` is what the download queue calls, and it is the only entry point
+     * into the pipeline that never checked whether the job was still wanted: it downloaded the
+     * cancelled album, held the single global slot for the length of it, and then wrote
+     * `imports.status` back to `running`, resurrecting a job the owner had cancelled.
+     */
+    let refusedDownloads = 0;
+    client.download = (options: never) => {
+      refusedDownloads += 1;
+      return real.call(client, options);
+    };
+    try {
+      // `skipIfStopped` is exactly what the worker's download handler passes.
+      const outcome = await jobs.runStep(id, "download", { skipIfStopped: true });
+      expect(outcome.status).toBe("skipped");
+      expect((outcome.data as { refused?: string } | undefined)?.refused).toBe("cancelled");
+    } finally {
+      client.download = real;
+    }
+    expect(refusedDownloads, "a cancelled job must not take the download slot").toBe(0);
+
+    const after = await db()
+      .select()
+      .from(schema.imports)
+      .where(eq(schema.imports.id, id))
+      .then((rows) => rows[0]);
+    expect(after?.status, "a refused step must not revive the job").toBe("cancelled");
   }, 180_000);
 
   /* ---------------------------------------------------------------- */
