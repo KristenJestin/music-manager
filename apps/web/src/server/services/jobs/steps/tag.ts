@@ -152,6 +152,48 @@ export function lyricsOf(document: TrackDocument): string | null {
   return value.synced ?? value.plain ?? null;
 }
 
+/** The document already stored for a track, and the hash of what was last written to its file. */
+async function storedDocument(
+  ctx: StepContext,
+  trackId: string,
+): Promise<{ document: TrackDocument; projectionHash: string | null } | null> {
+  const [row] = await ctx.db
+    .select()
+    .from(metadataDocuments)
+    .where(eq(metadataDocuments.importTrackId, trackId))
+    .limit(1);
+  if (row === undefined) return null;
+  return {
+    document: row.document as unknown as TrackDocument,
+    projectionHash: row.projectionHash,
+  };
+}
+
+/** Project one document and hand it to mutagen. Returns what the toolbox says it wrote. */
+async function writeTags(
+  ctx: StepContext,
+  relative: string,
+  document: TrackDocument,
+): Promise<{ written: number; pictures: number }> {
+  const tags: Tag[] = projectDocument(document, "vorbis").map((tag) => ({
+    key: tag.key,
+    value: tag.value,
+  }));
+  const pictures = await pictureList(ctx, document);
+  const result = await ctx.toolbox.tag({
+    path: containerPath(ctx.paths, relative),
+    format: "auto",
+    tags,
+    pictures,
+    lyrics_lrc: lyricsOf(document),
+    sidecar_lrc: false,
+    // Rewriting the whole block is what makes this step idempotent: a second run leaves
+    // exactly the same tags, not the union of two projections.
+    clear: true,
+  });
+  return { written: result.written, pictures: result.pictures };
+}
+
 /** Only the projection hash is written here; the document itself is `documents.service`'s. */
 async function storeProjectionHash(
   ctx: StepContext,
@@ -207,8 +249,63 @@ async function unifyScope(
   return resolution;
 }
 
+/**
+ * `tag` for **one** track: build its document, project it, write it. Nothing album-wide.
+ *
+ * This is the half that can run while the next track is still downloading (decision 147). The
+ * album-wide half — one value per album-scope field, ReplayGain measured over the whole record
+ * — cannot: neither is knowable until every track has a document, and answering them per track
+ * is precisely the bug decision 141 was written about. So this run deliberately stops at the
+ * recording's own values, and `tagAlbum` below closes the step once the album is complete,
+ * rewriting only the files whose projection the unification actually changed.
+ */
+async function tagOneTrack(ctx: StepContext): Promise<StepResult> {
+  const [track] = await ctx.mappedTracks();
+  if (track === undefined) return { status: "skipped", message: "No track in scope." };
+  if (track.state === "skipped") {
+    return { status: "skipped", message: `${track.sourceTitle}: already present` };
+  }
+  const relative = track.downloadPath;
+  if (relative === null || !existsSync(hostPath(ctx.paths, relative))) {
+    return { status: "skipped", message: `${track.sourceTitle}: no file to tag` };
+  }
+
+  await ctx.say("track.started", `${track.sourceTitle}: reading sources and writing tags`, {
+    trackId: track.id,
+    data: { stage: "tag", done: 0, total: 1 },
+  });
+
+  const document = await documentFor(ctx, track);
+  const result = await writeTags(ctx, relative, document);
+  await updateTrack(ctx, track.id, { state: "tagged" });
+  await storeProjectionHash(ctx, track, projectionHash(projectDocument(document, "vorbis")));
+  await ctx.say("track.done", `${track.sourceTitle}: ${String(result.written)} tags written`, {
+    trackId: track.id,
+    data: { tags: result.written, pictures: result.pictures },
+  });
+
+  return {
+    status: "done",
+    message: `${track.sourceTitle}: ${String(result.written)} tags written`,
+    data: { tagged: 1, tagSchemaVersion: TAG_SCHEMA_VERSION },
+  };
+}
+
 export async function tagStep(ctx: StepContext): Promise<StepResult> {
-  const mapped = await ctx.mappedTracks();
+  return ctx.trackScope === null ? await tagAlbum(ctx) : await tagOneTrack(ctx);
+}
+
+/**
+ * `tag` for the album: every remaining file written, then the two album-wide answers.
+ *
+ * On the serial path (the CLI, `mm retry --step tag`, the fixture runner) this is the whole
+ * step and it behaves exactly as it always did. On the pipelined path it is the *tail*: the
+ * files have already been written one by one, so `settled` below picks them back up — not to
+ * rewrite them, but to let them vote on the album-scope fields and be corrected only if the
+ * album's answer differs from the recording's.
+ */
+async function tagAlbum(ctx: StepContext): Promise<StepResult> {
+  const mapped = await ctx.albumTracks();
   const toWrite = mapped.filter(
     (track) => TAGGABLE.has(track.state) && track.downloadPath !== null,
   );
@@ -219,6 +316,7 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
 
   const documents = new Map<string, TrackDocument>();
   let written = 0;
+  let rewritten = 0;
 
   /*
    * ---- 1 · every document first, then the album's own value for the album-scope fields ----
@@ -234,6 +332,31 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     return relative !== null && existsSync(hostPath(ctx.paths, relative));
   });
 
+  /*
+   * Tracks the per-track pass already wrote and `place` already filed.
+   *
+   * They are *not* re-tagged here — their document is read back from the database rather than
+   * rebuilt — but they take part in the unification below, and a file whose projection the
+   * album's answer changes is rewritten. Without this the pipelined path would leave thirteen
+   * recordings' genres on an album, which is decision 141 undone.
+   */
+  const settled = mapped.filter((track) => {
+    const file = currentFile(track);
+    return (
+      !TAGGABLE.has(track.state) &&
+      IN_LIBRARY.has(track.state) &&
+      file !== null &&
+      existsSync(hostPath(ctx.paths, file))
+    );
+  });
+  const storedHash = new Map<string, string | null>();
+  for (const track of settled) {
+    const held = await storedDocument(ctx, track.id);
+    if (held === null) continue;
+    documents.set(track.id, held.document);
+    storedHash.set(track.id, held.projectionHash);
+  }
+
   for (const track of buildable) {
     if (aborted(ctx)) {
       return { status: "blocked", blockedAs: "paused", message: "Stopped during tagging." };
@@ -248,7 +371,7 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     documents.set(track.id, await documentFor(ctx, track));
   }
 
-  const scope = await unifyScope(ctx, buildable, documents);
+  const scope = await unifyScope(ctx, [...buildable, ...settled], documents);
 
   /* ---- 2 · project and write, from the unified documents ---- */
   for (const track of buildable) {
@@ -259,24 +382,7 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     const document = documents.get(track.id);
     if (relative === null || document === undefined) continue;
 
-    const tags: Tag[] = projectDocument(document, "vorbis").map((tag) => ({
-      key: tag.key,
-      value: tag.value,
-    }));
-    const pictures = await pictureList(ctx, document);
-    const lrc = lyricsOf(document);
-
-    const result = await ctx.toolbox.tag({
-      path: containerPath(ctx.paths, relative),
-      format: "auto",
-      tags,
-      pictures,
-      lyrics_lrc: lrc,
-      sidecar_lrc: false,
-      // Rewriting the whole block is what makes this step idempotent: a second run leaves
-      // exactly the same tags, not the union of two projections.
-      clear: true,
-    });
+    const result = await writeTags(ctx, relative, document);
 
     await updateTrack(ctx, track.id, { state: "tagged" });
     await ctx.say("track.done", `${track.sourceTitle}: ${String(result.written)} tags written`, {
@@ -284,6 +390,27 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
       data: { tags: result.written, pictures: result.pictures },
     });
     written += 1;
+  }
+
+  /* ---- 2b · the files the per-track pass wrote, corrected only where the album disagrees ---- */
+  for (const track of settled) {
+    if (aborted(ctx)) {
+      return { status: "blocked", blockedAs: "paused", message: "Stopped during tagging." };
+    }
+    const file = currentFile(track);
+    const document = documents.get(track.id);
+    if (file === null || document === undefined) continue;
+    const hash = projectionHash(projectDocument(document, "vorbis"));
+    if (hash === storedHash.get(track.id)) continue;
+
+    const result = await writeTags(ctx, file, document);
+    await storeProjectionHash(ctx, track, hash);
+    await ctx.say(
+      "track.progress",
+      `${track.sourceTitle}: ${String(result.written)} tags rewritten for the album's values`,
+      { trackId: track.id, data: { stage: "tag", tags: result.written, rewritten: true } },
+    );
+    rewritten += 1;
   }
 
   /* ---- album ReplayGain, once every track is on disk ---- */
@@ -369,9 +496,22 @@ export async function tagStep(ctx: StepContext): Promise<StepResult> {
     await storeProjectionHash(ctx, track, projectionHash(projectDocument(document, "vorbis")));
   }
 
+  const head = [
+    `${String(written + settled.length)} track(s) tagged`,
+    settled.length === 0 ? null : `${String(settled.length)} of them while downloading`,
+    rewritten === 0 ? null : `${String(rewritten)} rewritten for the album's values`,
+  ]
+    .filter((part): part is string => part !== null)
+    .join(", ");
   return {
     status: "done",
-    message: `${String(written)} track(s) tagged${replaygain === null ? "" : `; replaygain ${replaygain}`}`,
-    data: { tagged: written, replaygain, tagSchemaVersion: TAG_SCHEMA_VERSION },
+    message: `${head}${replaygain === null ? "" : `; replaygain ${replaygain}`}`,
+    data: {
+      tagged: written + settled.length,
+      pipelined: settled.length,
+      rewritten,
+      replaygain,
+      tagSchemaVersion: TAG_SCHEMA_VERSION,
+    },
   };
 }
