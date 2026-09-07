@@ -122,6 +122,18 @@ test.describe("the Inbox", () => {
     await page.getByTestId("wizard-next").click();
     await page.waitForURL(/step=4/, { timeout: 120_000 });
     await expect(page.getByTestId("wizard-start")).toBeEnabled({ timeout: 150_000 });
+
+    /*
+     * **Force re-download**, and it is not optional here.
+     *
+     * `download` skips a recording that is already in the library (`docs/04` § Règles), and by
+     * the time this test runs the suite has imported the same Discovery fixture several times
+     * over. Every track would be `skipped`, `fingerprint` would find nothing with a file, and
+     * the step would return "No downloaded track to fingerprint" — no disagreement, no item,
+     * and a failure that reads as if the feature were broken. It ran green on its own and red
+     * in the suite for exactly this reason.
+     */
+    await page.getByTestId("option-force").click();
     await page.getByTestId("wizard-start").click();
     await page.waitForURL(new RegExp(`/imports/${importId}`), { timeout: 120_000 });
 
