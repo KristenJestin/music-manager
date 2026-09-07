@@ -1,0 +1,190 @@
+# Production stack (`docs/phases/P10-production.md`, `docs/deploy.md`).
+#
+#   cp .env.production.example .env
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Four services, one network. Only `web` publishes a port; postgres and the toolbox are
+# reachable on the compose network and nowhere else, which is the whole of "toolbox
+# inaccessible from outside" — not a firewall rule that can be forgotten, an absent
+# `ports:` key. Verify it with `docker compose -f docker-compose.prod.yml ps`: the toolbox
+# line has no port mapping at all.
+#
+# ---------------------------------------------------------------------------
+# `-p`, and why it matters here too
+# ---------------------------------------------------------------------------
+# `name:` below is the default project. Every volume declared at the bottom is namespaced by
+# the project (`<project>_pgdata`), so a second stack brought up with `-p something-else` gets
+# its own database and its own library and cannot touch this one. Agents testing this file must
+# pass `-p`; `CLAUDE.md` says why (P07-verify-1 §9).
+#
+# ---------------------------------------------------------------------------
+# Where the data is
+# ---------------------------------------------------------------------------
+# Three volumes, named by default so a fresh installation needs no host directories:
+#
+#   pgdata   PostgreSQL. The database is the source of truth; files are a projection of it.
+#   library  the music. Shared read-write with the toolbox, read-only with Navidrome.
+#   cache    the toolbox's scratch space (TMPDIR): artwork crops, fingerprint scans.
+#
+# To put any of them on a host path instead, set the matching `MM_*_PATH` in `.env` to an
+# absolute path: compose reads a value starting with `/` as a bind mount and a bare word as the
+# named volume declared below. `docs/deploy.md` § « Où sont les données » covers both.
+
+name: music-manager
+
+x-logging: &logging
+  # Without this, a container that logs a stack trace in a loop fills the disk. 3 × 10 MB per
+  # service is a day or two of normal operation and bounded for ever.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${MM_POSTGRES_USER:-mm}
+      POSTGRES_PASSWORD: ${MM_POSTGRES_PASSWORD:?set MM_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${MM_POSTGRES_DB:-mm}
+    volumes:
+      - ${MM_PGDATA_PATH:-pgdata}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MM_POSTGRES_USER:-mm} -d ${MM_POSTGRES_DB:-mm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    # No `ports:`. `scripts/backup.sh` reaches pg_dump with `docker compose exec`, which needs
+    # no published port; publishing 5432 on a server is how a database ends up on Shodan.
+
+  toolbox:
+    build:
+      context: .
+      dockerfile: docker/toolbox.Dockerfile
+      args:
+        MM_GIT_SHA: ${MM_GIT_SHA:-unknown}
+        MM_BUILT_AT: ${MM_BUILT_AT:-unknown}
+    image: ${MM_TOOLBOX_IMAGE:-music-manager-toolbox:local}
+    platform: ${MM_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      MM_TOOLBOX_TOKEN: ${MM_TOOLBOX_TOKEN:-}
+      MM_TOOLBOX_FIXTURES: ${MM_TOOLBOX_FIXTURES:-0}
+      MM_YTDLP_AUTOUPDATE: ${MM_YTDLP_AUTOUPDATE:-1}
+      MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
+      MM_LOG_LEVEL: ${MM_LOG_LEVEL:-info}
+      TMPDIR: /cache
+    volumes:
+      - ${MM_LIBRARY_PATH:-library}:/library
+      - ${MM_CACHE_PATH:-cache}:/cache
+    # Deliberately no `ports:`. The browser never talks to Python (`docs/06-stack.md`), and the
+    # toolbox has no authentication of its own unless MM_TOOLBOX_TOKEN is set.
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        # `MM_GIT_SHA="$(git rev-parse HEAD)" docker compose … build` stamps the commit into
+        # both images. Without it they say `unknown`, which is honest and still builds.
+        MM_GIT_SHA: ${MM_GIT_SHA:-unknown}
+        MM_BUILT_AT: ${MM_BUILT_AT:-unknown}
+    image: ${MM_WEB_IMAGE:-music-manager-web:local}
+    platform: ${MM_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    logging: *logging
+    command: ["web"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      toolbox:
+        condition: service_healthy
+    environment: &app-env
+      DATABASE_URL: postgres://${MM_POSTGRES_USER:-mm}:${MM_POSTGRES_PASSWORD:?}@postgres:5432/${MM_POSTGRES_DB:-mm}
+      MM_TOOLBOX_URL: http://toolbox:8100
+      MM_TOOLBOX_TOKEN: ${MM_TOOLBOX_TOKEN:-}
+      MM_LIBRARY_ROOT: /library
+      MM_TOOLBOX_LIBRARY_ROOT: /library
+      MM_WEB_URL: ${MM_WEB_URL:?set MM_WEB_URL in .env — Better Auth checks the browser's origin against it}
+      MM_AUTH_SECRET: ${MM_AUTH_SECRET:?set MM_AUTH_SECRET in .env — `openssl rand -base64 32`}
+      MM_BEHIND_PROXY: ${MM_BEHIND_PROXY:-1}
+      MM_ADMIN_EMAIL: ${MM_ADMIN_EMAIL:-}
+      MM_ADMIN_PASSWORD: ${MM_ADMIN_PASSWORD:-}
+      MM_FIXTURES: ${MM_FIXTURES:-0}
+      MM_LOG_LEVEL: ${MM_LOG_LEVEL:-info}
+      MM_RATE_LIMIT_LOGIN: ${MM_RATE_LIMIT_LOGIN:-}
+      MM_RATE_LIMIT_API: ${MM_RATE_LIMIT_API:-}
+      MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
+      MM_MIGRATE_ON_START: ${MM_MIGRATE_ON_START:-1}
+      NODE_ENV: production
+    volumes:
+      - ${MM_LIBRARY_PATH:-library}:/library
+    ports:
+      # Bind to the loopback interface by default: the reverse proxy is on the same host, and
+      # a self-hosted box should not answer plain HTTP from the internet. Set
+      # MM_WEB_BIND=0.0.0.0 when the proxy runs elsewhere.
+      - "${MM_WEB_BIND:-127.0.0.1}:${MM_WEB_PORT:-3200}:3000"
+
+  worker:
+    # Same image, same commit, different command: the orchestrator parses the same rows with
+    # the same schema as the server, so a version skew between them is not a thing that can
+    # happen (`docs/phases/P10-production.md` § Images).
+    image: ${MM_WEB_IMAGE:-music-manager-web:local}
+    platform: ${MM_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    logging: *logging
+    command: ["worker"]
+    healthcheck:
+      # The image's HEALTHCHECK curls `/health`, and the worker has no HTTP server — it would
+      # be permanently "unhealthy" for doing its job correctly. Its liveness is a *heartbeat in
+      # the database* (`services/status.ts`, every 30s), which is what the Console's Tools page
+      # and `get_status` read; that is a better signal than anything Docker could poll here,
+      # because it says "still consuming the queue", not "still has a socket open".
+      disable: true
+    depends_on:
+      web:
+        # `web` healthy means the migrations ran. The worker's queues live in tables Drizzle
+        # owns, so starting it first would be a race against its own schema.
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      # The worker never applies migrations. One writer of DDL, and it is `web`.
+      MM_MIGRATE_ON_START: "0"
+    volumes:
+      - ${MM_LIBRARY_PATH:-library}:/library
+
+  # ---------------------------------------------------------------------------
+  # Navidrome — example only, deliberately commented out
+  # ---------------------------------------------------------------------------
+  # `docs/phases/P10-production.md`: *Navidrome n'est pas dans ce compose*. Most people who
+  # self-host this already run a music server, and one that this file started would fight the
+  # one they have over the same port and the same library. Uncomment it if you want the whole
+  # thing in one stack, and read `docs/deploy.md` § « Navidrome » first.
+  #
+  # The two things that matter: the library is mounted **read-only** (Music Manager owns those
+  # files, and the database is the source of truth for what is in them), and the scanner is
+  # pointed at the same volume rather than at a copy.
+  #
+  # navidrome:
+  #   image: deluan/navidrome:0.63.2      # pin it; a scanner upgrade changes what is indexed
+  #   restart: unless-stopped
+  #   logging: *logging
+  #   environment:
+  #     ND_SCANSCHEDULE: "@every 1h"
+  #     ND_LOGLEVEL: info
+  #     ND_MUSICFOLDER: /music
+  #   volumes:
+  #     - navidrome:/data
+  #     - ${MM_LIBRARY_PATH:-library}:/music:ro
+  #   ports:
+  #     - "${MM_NAVIDROME_BIND:-127.0.0.1}:${MM_NAVIDROME_PORT:-4533}:4533"
+
+volumes:
+  pgdata:
+  library:
+  cache:
+  # navidrome:
