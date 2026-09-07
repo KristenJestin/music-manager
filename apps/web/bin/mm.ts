@@ -207,6 +207,10 @@ async function cmdImport(args: Args): Promise<number> {
       : { releaseMbid: flagString(args, "release") }),
     ...(mapping === undefined ? {} : { mapping }),
     autoConfirm: flagBoolean(args, "yes"),
+    // The CLI names itself like every other caller rather than being the value `confirm`
+    // falls back to when nobody said anything — which is how three other callers ended up
+    // wearing this label in the audit trail.
+    ...(flagBoolean(args, "yes") ? { confirmedBy: "cli --yes" } : {}),
     force: flagBoolean(args, "force"),
     ...(flagBoolean(args, "no-fingerprint") ? { fingerprint: false } : {}),
   });

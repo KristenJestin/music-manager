@@ -27,6 +27,7 @@ import {
   type StepName,
 } from "#/server/db/schema/index.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
+import { assertSigned } from "#/server/services/imports.ts";
 
 /* ------------------------------------------------------------------ */
 /* the job list                                                        */
@@ -266,6 +267,11 @@ export async function setImportOptions(
   extra: { priority?: number; releaseMbid?: string | null } = {},
   db: Database = defaultDb(),
 ): Promise<Import> {
+  // The wizard, `POST /imports/{id}/confirm-mapping` and MCP's `confirm_mapping` all open the
+  // confirmation gate through here, so this is the second place that has to refuse an
+  // unsigned one. See `assertSigned` in `services/imports.ts`.
+  assertSigned(patch);
+
   const [current] = await db.select().from(imports).where(eq(imports.id, importId)).limit(1);
   if (current === undefined) {
     throw new MMError("NOT_FOUND", `No import with id ${importId}.`, { status: 404 });

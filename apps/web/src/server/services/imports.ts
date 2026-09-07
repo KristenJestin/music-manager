@@ -45,6 +45,34 @@ export interface CreateResult {
 
 const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
+/**
+ * Opening the confirmation gate obliges you to sign it.
+ *
+ * `autoConfirm` says only *that* the gate is open; `confirm` writes a `decisions` row and has
+ * to name a decider. It used to infer `"cli --yes"` from `autoConfirm` alone, so the second
+ * test report found MCP's own confirmations attributed to the CLI — and the third found the
+ * *other* MCP path, `create_import` with `autoConfirm`, still doing it after the first had
+ * been fixed. One forgotten call site is all it takes, so the rule is checked rather than
+ * documented: every caller that opens the gate names itself, here and in `setImportOptions`,
+ * the only two functions that can open it.
+ */
+export function assertSigned(options: {
+  autoConfirm?: unknown;
+  confirmedBy?: unknown;
+}): void {
+  if (options.autoConfirm !== true) return;
+  const by = options.confirmedBy;
+  if (typeof by === "string" && by.trim() !== "") return;
+  throw new MMError(
+    "INVALID_INPUT",
+    "`autoConfirm` opens the confirmation gate, so it needs `confirmedBy`.",
+    {
+      hint: 'The caller names itself: "mcp", "api", "console", "cli --yes", "fixtures".',
+      action: "Pass confirmedBy",
+    },
+  );
+}
+
 export async function createFromUrl(
   url: string,
   options: CreateOptions = {},
@@ -57,6 +85,8 @@ export async function createFromUrl(
       action: "Check the URL",
     });
   }
+
+  assertSigned(options);
 
   const duplicates = await db
     .select()

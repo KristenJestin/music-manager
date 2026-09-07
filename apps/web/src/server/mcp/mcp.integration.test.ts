@@ -66,6 +66,7 @@ const { and, desc, eq } = await import("drizzle-orm");
 const schema = await import("#/server/db/schema/index.ts");
 const imports = await import("#/server/services/imports.ts");
 const jobs = await import("#/server/services/jobs/index.ts");
+const consoleQueries = await import("#/server/services/console.queries.ts");
 const settings = await import("#/server/services/settings.ts");
 const status = await import("#/server/services/status.ts");
 const relocateService = await import("#/server/services/relocate.ts");
@@ -918,6 +919,75 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     await expect(call("resolve_inbox", { itemId: "inb_x", importId: "imp_x" })).rejects.toThrow(
       /three ways/,
     );
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-2 — every caller that opens the confirmation gate signs it     */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-2 provenance of an auto-confirm", () => {
+    /** Create, confirm and read back who the `decisions` row says decided. */
+    async function decidedBy(importId: string): Promise<string> {
+      await jobs.runStep(importId, "resolve", { db: db() });
+      await jobs.runStep(importId, "match", { db: db() });
+      await jobs.runStep(importId, "confirm", { db: db() });
+      const [decision] = await db()
+        .select()
+        .from(schema.decisions)
+        .where(and(eq(schema.decisions.importId, importId), eq(schema.decisions.kind, "release")))
+        .orderBy(desc(schema.decisions.createdAt))
+        .limit(1);
+      return decision?.decidedBy ?? "(no decision row)";
+    }
+
+    it("MCP `create_import` with autoConfirm is `mcp`, not `cli --yes`", async () => {
+      const answer = (await call("create_import", {
+        url: "fixture://discovery",
+        autoConfirm: true,
+      })) as { importId: string };
+      expect(await decidedBy(answer.importId)).toBe("mcp");
+    }, 120_000);
+
+    it("the REST create path is `api`", async () => {
+      // The same options object `POST /api/v1/imports` builds, through the same service.
+      const created = await imports.createFromUrl("fixture://discovery", {
+        db: db(),
+        autoConfirm: true,
+        confirmedBy: "api",
+      });
+      expect(await decidedBy(created.job.id)).toBe("api");
+    }, 120_000);
+
+    it("the Console wizard is `console`", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      // What `functions/wizard.ts` writes when step 3 is submitted.
+      await consoleQueries.setImportOptions(
+        created.job.id,
+        { autoConfirm: true, confirmedBy: "console" },
+        {},
+        db(),
+      );
+      expect(await decidedBy(created.job.id)).toBe("console");
+    }, 120_000);
+
+    it("the CLI's `--yes` is `cli --yes`", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", {
+        db: db(),
+        autoConfirm: true,
+        confirmedBy: "cli --yes",
+      });
+      expect(await decidedBy(created.job.id)).toBe("cli --yes");
+    }, 120_000);
+
+    it("refuses to open the gate at all without a signature", async () => {
+      await expect(
+        imports.createFromUrl("fixture://discovery", { db: db(), autoConfirm: true }),
+      ).rejects.toThrow(/confirmedBy/);
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      await expect(
+        consoleQueries.setImportOptions(created.job.id, { autoConfirm: true }, {}, db()),
+      ).rejects.toThrow(/confirmedBy/);
+    }, 120_000);
   });
 
   /* ---------------------------------------------------------------- */

@@ -39,12 +39,20 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
     };
   }
 
-  // Provenance is claimed by the caller that opened the gate, not guessed from the fact that
-  // it is open: `confirm_mapping` over MCP is `mcp`, `/api/v1` is `api`, the wizard is
-  // `console`, and only the CLI — which sets `autoConfirm` and nothing else — is `cli --yes`.
+  /*
+   * Provenance is claimed by the caller that opened the gate, never guessed from the fact
+   * that it is open: MCP is `mcp`, `/api/v1` is `api`, the wizard is `console`, the CLI is
+   * `cli --yes`. `createFromUrl` and `setImportOptions` — the only two functions that can set
+   * `autoConfirm` — now refuse an unsigned one, so every row written from today carries the
+   * caller's own name.
+   *
+   * The fallback survives for **rows written before that guard**, whose options genuinely
+   * hold no `confirmedBy`. It says `cli --yes (unsigned)` rather than `cli --yes`, because
+   * the one thing the old default did wrong was to look like a claim when it was a guess.
+   */
   const decidedBy =
     ctx.job.options.autoConfirm === true
-      ? (ctx.job.options.confirmedBy ?? "cli --yes")
+      ? (ctx.job.options.confirmedBy ?? "cli --yes (unsigned)")
       : "fixtures";
   await ctx.db.insert(decisions).values({
     id: newId("decision"),

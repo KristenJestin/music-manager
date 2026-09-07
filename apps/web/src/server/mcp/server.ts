@@ -441,6 +441,11 @@ export function toolTable(): ToolSpec[] {
           db: db(),
           ...(args.releaseMbid === undefined ? {} : { releaseMbid: args.releaseMbid }),
           autoConfirm: args.autoConfirm,
+          // The provenance fix reached `confirm_mapping` and stopped there, so an import
+          // created *here* with `autoConfirm` was still logged as `cli --yes` in `decisions`.
+          // `createFromUrl` now refuses an unsigned `autoConfirm`, which is what stops the
+          // next caller inheriting the same silence.
+          ...(args.autoConfirm ? { confirmedBy: "mcp" } : {}),
           force: args.force,
         });
         await enqueue(created.job.id, "mcp");

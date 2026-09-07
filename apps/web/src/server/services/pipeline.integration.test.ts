@@ -346,7 +346,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     let importId = "";
 
     it("resolves fifteen videos as soon as the import is created", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { autoConfirm: true });
+      const created = await imports.createFromUrl("fixture://discovery", { autoConfirm: true, confirmedBy: "cli --yes" });
       importId = created.job.id;
       expect(created.job.kind).toBe("album");
 
@@ -408,7 +408,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     });
 
     it("is idempotent: the same import again downloads nothing", async () => {
-      const again = await imports.createFromUrl("fixture://discovery", { autoConfirm: true });
+      const again = await imports.createFromUrl("fixture://discovery", { autoConfirm: true, confirmedBy: "cli --yes" });
       const outcome = await jobs.runImport(again.job.id);
       expect(outcome.status).toBe("done");
 
@@ -443,6 +443,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       try {
         const again = await imports.createFromUrl("fixture://discovery", {
           autoConfirm: true,
+          confirmedBy: "cli --yes",
           force: true,
         });
         const outcome = await jobs.runImport(again.job.id);
