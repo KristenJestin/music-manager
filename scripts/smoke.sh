@@ -89,6 +89,17 @@ else
   fail "the toolbox did not answer /health from inside the network"
 fi
 
+# TMPDIR=/cache is where the toolbox writes a pasted cookies.txt, artwork crops and
+# rsgain/ffmpeg scratch files, and it is where `uv` writes its own temp files during a
+# yt-dlp auto-update. All of that runs as the unprivileged `toolbox` user (uid 10001), so an
+# empty `cache` volume that Docker created as root:root breaks every one of them with a
+# PermissionError that the auto-update step swallows silently — this caught exactly that.
+if compose exec -T toolbox sh -c 'f=/cache/.smoke-write-test-$$; : > "$f" && rm -f "$f"' >/dev/null 2>&1; then
+  ok "the toolbox can write to /cache as its own user"
+else
+  fail "the toolbox cannot write to /cache — TMPDIR is not writable by uid 10001"
+fi
+
 # ---------------------------------------------------------------------------
 step "3. security headers and the rate limit are in front of everything"
 # ---------------------------------------------------------------------------

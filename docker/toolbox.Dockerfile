@@ -59,11 +59,18 @@ ARG YTDLP_UPDATE=1
 RUN if [ "$YTDLP_UPDATE" = "1" ]; then uv pip install --no-cache --upgrade yt-dlp; fi \
     && python -c "import yt_dlp.version as v; print('yt-dlp', v.__version__)"
 
-# The service is stateless; /library is the only thing it writes to. The virtualenv belongs
-# to the service user so that MM_YTDLP_AUTOUPDATE=1 can refresh yt-dlp at start-up.
+# The service writes to /library (the placed files) and to /cache (TMPDIR: cookie jars,
+# artwork crops, rsgain/ffmpeg scratch space, and `uv`'s own temp files during
+# MM_YTDLP_AUTOUPDATE=1). Both must exist and be owned by the service user *before* compose
+# mounts a volume over them — an empty named volume inherits the ownership of the directory it
+# is mounted over, but only if that directory already exists in the image. Without this,
+# `/cache` is created by the Docker daemon as root:root at container start, and every write to
+# it (the yt-dlp auto-update, a pasted cookies.txt, a fingerprint scan) fails with
+# `PermissionError` instead of running as toolbox — silently, in the auto-update's case, since
+# that step is deliberately best-effort and swallows its own failure.
 RUN useradd --create-home --uid 10001 toolbox \
-    && mkdir -p /library \
-    && chown -R toolbox:toolbox /library /app /opt/venv
+    && mkdir -p /library /cache \
+    && chown -R toolbox:toolbox /library /cache /app /opt/venv
 
 # Same provenance labels as `web.Dockerfile`, and for the same reason: `GET /health` states the
 # contract hash this image implements, and when it disagrees with the app's, the only useful
@@ -77,7 +84,7 @@ LABEL org.opencontainers.image.title="music-manager-toolbox" \
 
 USER toolbox
 ENV UV_CACHE_DIR=/tmp/uv-cache
-VOLUME ["/library"]
+VOLUME ["/library", "/cache"]
 EXPOSE 8100
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
