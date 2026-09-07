@@ -22,17 +22,30 @@ describe("verifySchema — REST's half of the fifth report's §1", () => {
     expect(parsed.rescan).toBe(true);
   });
 
-  it("the generated OpenAPI document says `rescan` defaults to the `navidromeRescanOnVerify` setting", async () => {
-    // `.openapi({description})` metadata lives in `@asteasolutions/zod-to-openapi`'s registry,
-    // not on the schema instance, so the generated document is what a caller — human or
-    // agent — actually reads. `openApiDocument()` is the exact function `/api/openapi.json`
-    // calls.
-    const { openApiDocument } = await import("./app.ts");
-    const doc = openApiDocument() as {
-      components: { schemas: { Verify: { properties: { rescan: { description?: string } } } } };
-    };
-    expect(doc.components.schemas.Verify.properties.rescan.description).toContain(
-      "navidromeRescanOnVerify",
-    );
-  });
+  /*
+   * Thirty seconds, not the default five.
+   *
+   * Importing `./app.ts` pulls the whole REST surface — every route module, hence every
+   * service — through the transform, which is four seconds on an idle machine and more than
+   * five on one running three agents' suites at once. It failed `check` that way while
+   * nothing about it was wrong; a timeout tuned to an idle machine is a test that reports the
+   * load average.
+   */
+  it(
+    "the generated OpenAPI document says `rescan` defaults to the `navidromeRescanOnVerify` setting",
+    { timeout: 30_000 },
+    async () => {
+      // `.openapi({description})` metadata lives in `@asteasolutions/zod-to-openapi`'s registry,
+      // not on the schema instance, so the generated document is what a caller — human or
+      // agent — actually reads. `openApiDocument()` is the exact function `/api/openapi.json`
+      // calls.
+      const { openApiDocument } = await import("./app.ts");
+      const doc = openApiDocument() as {
+        components: { schemas: { Verify: { properties: { rescan: { description?: string } } } } };
+      };
+      expect(doc.components.schemas.Verify.properties.rescan.description).toContain(
+        "navidromeRescanOnVerify",
+      );
+    },
+  );
 });
