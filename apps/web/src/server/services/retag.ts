@@ -35,7 +35,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
   formatProjection,
@@ -832,15 +832,34 @@ export interface RunView {
 /** One run and the per-file diffs it produced — what the dry-run panel renders. */
 export async function runView(
   id: string,
-  options: { limit?: number } = {},
+  options: { limit?: number; only?: "errors" | "changed" } = {},
   db: Database = defaultDb(),
 ): Promise<RunView | null> {
   const run = await getRun(id, db);
   if (run === null) return null;
+
+  /*
+   * `only` exists because errors and diffs are two **disjoint** subsets of the same rows.
+   * A single slice of `limit` rows split afterwards can be all of one kind, so a lopsided run
+   * answered `diff: []` next to a large `moreDiffs` — the counts were right (they are counted
+   * in SQL below) and the sample was empty, which reads as a bug in the counting. Asking for
+   * each kind separately makes each slice full of what it is for.
+   */
+  const changed = sql`(
+    jsonb_array_length(${retagDiffs.added}) > 0
+    or jsonb_array_length(${retagDiffs.removed}) > 0
+    or jsonb_array_length(${retagDiffs.changed}) > 0)`;
+  const where =
+    options.only === "errors"
+      ? and(eq(retagDiffs.runId, id), isNotNull(retagDiffs.error))
+      : options.only === "changed"
+        ? and(eq(retagDiffs.runId, id), isNull(retagDiffs.error), changed)
+        : eq(retagDiffs.runId, id);
+
   const diffs = await db
     .select()
     .from(retagDiffs)
-    .where(eq(retagDiffs.runId, id))
+    .where(where)
     .orderBy(retagDiffs.path)
     .limit(options.limit ?? 500);
 

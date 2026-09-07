@@ -8,7 +8,7 @@
  * the one the wizard performs on `imports.options`, and it is here rather than in
  * `imports.service` because it belongs to the wizard, not to the pipeline.
  */
-import { and, count, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, isNotNull, lt, ne, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -249,6 +249,92 @@ export async function stepResult(
     .where(and(eq(jobSteps.importId, importId), eq(jobSteps.step, step)))
     .limit(1);
   return row?.result ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* where an import stands in the line                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The first step this import has not finished, and how many jobs are ahead of it.
+ *
+ * `imports.step` is *the step the job is on*, which for a job that has not been picked up yet
+ * is the step it will run next — so a queued import reads `running` / `step: "download"` and
+ * looks, to anything that reads the pair, exactly like an import that is downloading. The
+ * `steps[]` table said `download: pending` all along; it was the headline that misled (third
+ * MCP test report, minor observations).
+ *
+ * `queuePosition` counts the *other* active imports ahead of this one in the order the worker
+ * takes them — priority first, then age — so `1` means "next". It is `null` for an import that
+ * is not waiting for the worker at all: waiting for **you** is a different state, and a
+ * position would suggest patience is enough.
+ *
+ * There is deliberately no reading of pg-boss's own tables here. The queue is one consumer and
+ * this ordering is the one the dispatcher applies; peering into a library's private schema to
+ * say the same thing would tie a public field to an implementation detail.
+ */
+export interface QueueStanding {
+  /** The first step of the machine this import has not finished. */
+  readonly step: StepName;
+  /** 1 = next in line. `null` when the import is not waiting for the worker. */
+  readonly queuePosition: number | null;
+  readonly note: string;
+}
+
+const WAITING_FOR_WORKER: readonly ImportStatus[] = ["pending", "running"];
+
+export async function queueStanding(
+  detail: JobDetail,
+  db: Database = defaultDb(),
+): Promise<QueueStanding> {
+  const done = new Set(["done", "skipped"]);
+  const pending = detail.steps.find(({ row }) => row === null || !done.has(row.status));
+  const step = pending?.step ?? detail.job.step;
+
+  if (!WAITING_FOR_WORKER.includes(detail.job.status)) {
+    return {
+      step,
+      queuePosition: null,
+      note:
+        detail.job.status === "awaiting_confirm" || detail.job.status === "awaiting_review"
+          ? "Waiting for a decision, not for the worker."
+          : `This import is \`${detail.job.status}\`; it is not in the queue.`,
+    };
+  }
+
+  // Already running this step: the row exists and is `running`, so nothing is ahead of it.
+  if (pending?.row?.status === "running") {
+    return { step, queuePosition: 0, note: `\`${step}\` is running now.` };
+  }
+
+  const [ahead] = await db
+    .select({ total: count() })
+    .from(imports)
+    .where(
+      and(
+        inArray(imports.status, [...WAITING_FOR_WORKER]),
+        ne(imports.id, detail.job.id),
+        // Drizzle's own operators rather than a `sql` template: a raw template hands the
+        // `Date` to postgres.js unbound and it throws on the parameter, not on the query.
+        or(
+          gt(imports.priority, detail.job.priority),
+          and(
+            eq(imports.priority, detail.job.priority),
+            lt(imports.createdAt, detail.job.createdAt),
+          ),
+        ),
+      ),
+    );
+
+  const position = Number(ahead?.total ?? 0) + 1;
+  return {
+    step,
+    queuePosition: position,
+    note:
+      position === 1
+        ? `Queued: \`${step}\` is next, as soon as the worker is free.`
+        : `Queued behind ${String(position - 1)} other import(s); \`${step}\` has not started.`,
+  };
 }
 
 /* ------------------------------------------------------------------ */

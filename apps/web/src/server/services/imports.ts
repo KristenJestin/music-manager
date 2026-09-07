@@ -56,10 +56,7 @@ const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
  * documented: every caller that opens the gate names itself, here and in `setImportOptions`,
  * the only two functions that can open it.
  */
-export function assertSigned(options: {
-  autoConfirm?: unknown;
-  confirmedBy?: unknown;
-}): void {
+export function assertSigned(options: { autoConfirm?: unknown; confirmedBy?: unknown }): void {
   if (options.autoConfirm !== true) return;
   const by = options.confirmedBy;
   if (typeof by === "string" && by.trim() !== "") return;
@@ -69,6 +66,45 @@ export function assertSigned(options: {
     {
       hint: 'The caller names itself: "mcp", "api", "console", "cli --yes", "fixtures".',
       action: "Pass confirmedBy",
+    },
+  );
+}
+
+/**
+ * A `fixture://` URL outside fixtures mode is refused here, in one second, rather than
+ * discovered by the worker forty minutes later.
+ *
+ * The trap is that these URLs *half* work: the toolbox answers `/extract` from its recorded
+ * data whatever mode it is in, so `resolve` and `match` succeed convincingly — and then
+ * `download` hands `fixture://…` to yt-dlp, which answers
+ * `Unsupported url scheme: "fixture"`, three times per track, holding the single download slot
+ * and blocking every import queued behind it. The third test report reproduced exactly that:
+ * fourteen tracks, forty-two failures, several minutes of a worker.
+ *
+ * The check is one `/health` call, and only on a `fixture://` URL — an ordinary import pays
+ * nothing for it. An unreachable toolbox is **not** a refusal: `get_status` is where "the
+ * toolbox is down" is diagnosed, and a create that failed for two possible reasons at once
+ * would be worse than the failure it prevents.
+ */
+async function refuseFixtureOutsideFixtures(url: string, db: Database): Promise<void> {
+  if (!url.toLowerCase().startsWith("fixture://")) return;
+  const { downloaderHealth } = await import("./tools.ts");
+  const health = await downloaderHealth({ db }).catch(() => null);
+  if (health === null || !health.reachable || health.fixtures) return;
+
+  throw new MMError(
+    "INVALID_INPUT",
+    `“${url}” is a recorded fixture and this toolbox is not in fixtures mode, so the download would fail.`,
+    {
+      hint:
+        "`extract` would answer from the recordings and the import would look fine until " +
+        "`download` handed `fixture://…` to yt-dlp, which cannot fetch it — three attempts per " +
+        "track, holding the single download slot. Paste a real YouTube URL, or bring the stack " +
+        "up with `MM_TOOLBOX_FIXTURES=1 bun run stack:up`. `get_status.toolbox.fixtures` says " +
+        "which mode you are in.",
+      action: "Use a real URL",
+      details: { url, toolboxFixtures: false },
+      status: 400,
     },
   );
 }
@@ -87,6 +123,7 @@ export async function createFromUrl(
   }
 
   assertSigned(options);
+  await refuseFixtureOutsideFixtures(trimmed, db);
 
   const duplicates = await db
     .select()

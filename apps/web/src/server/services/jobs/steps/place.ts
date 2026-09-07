@@ -93,11 +93,45 @@ async function documentOf(ctx: StepContext, trackId: string): Promise<TrackDocum
   return row === undefined ? null : (row.document as unknown as TrackDocument);
 }
 
+/**
+ * The step's closing line, and — when a sidecar is missing — why.
+ *
+ * `13 file(s) placed, 12 sidecar(s) written` is an arithmetic the reader was given no terms
+ * for: a track LRCLIB has no synced lyrics for is entirely ordinary, and the message that did
+ * not say so made every album with one instrumental look like a partial failure (third MCP
+ * test report, minor observations). Pure, so the sentence can be tested without a library.
+ */
+export function placeMessage(input: {
+  placed: number;
+  sidecars: number;
+  withoutLyrics: readonly string[];
+  writeLyricsSidecar: boolean;
+}): string {
+  const head = `${String(input.placed)} file(s) placed, ${String(input.sidecars)} sidecar(s) written`;
+  if (!input.writeLyricsSidecar) return `${head} (\`.lrc\` sidecars are off in Settings)`;
+  if (input.withoutLyrics.length === 0) return head;
+  const named = input.withoutLyrics.slice(0, 3).join(", ");
+  const more = input.withoutLyrics.length > 3 ? ", …" : "";
+  return (
+    `${head} — no \`.lrc\` for ${String(input.withoutLyrics.length)} track(s) (${named}${more}): ` +
+    "LRCLIB has no synced lyrics for them, which is normal and not a failure"
+  );
+}
+
 /** Create or update the album row this track belongs to, and return its id. */
 async function upsertAlbum(
   ctx: StepContext,
   input: TrackPathInput,
   options: TemplateOptions,
+  /**
+   * The document being placed, read for its `musicbrainz_releasegroupid`.
+   *
+   * The import row is the first source of that id, but it is not the only one: the document
+   * gets it from the release lookup at `tag` time whatever `match` did or did not record. An
+   * album whose import row missed it — a supplied mapping under the old code — is therefore
+   * repaired the next time one of its tracks is placed, rather than staying wrong for ever.
+   */
+  document: TrackDocument | null,
 ): Promise<string> {
   const folder = renderAlbumFolder(ctx.settings.pathTemplate, input, options);
   const [existing] = await ctx.db
@@ -106,13 +140,18 @@ async function upsertAlbum(
     .where(eq(libraryAlbums.folder, folder))
     .limit(1);
 
+  const fromDocument = document?.fields["musicbrainz_releasegroupid"]?.value;
+  const releaseGroupMbid =
+    ctx.job.releaseGroupMbid ?? (typeof fromDocument === "string" ? fromDocument : null);
+
   const year = input.year === undefined ? null : Number(input.year);
   if (existing !== undefined) {
     await ctx.db
       .update(libraryAlbums)
       .set({
         releaseMbid: ctx.job.releaseMbid,
-        releaseGroupMbid: ctx.job.releaseGroupMbid,
+        // Never back to `null` from a known value: an album that has a release group keeps it.
+        ...(releaseGroupMbid === null ? {} : { releaseGroupMbid }),
         updatedAt: new Date(),
       })
       .where(eq(libraryAlbums.id, existing.id));
@@ -123,7 +162,7 @@ async function upsertAlbum(
   await ctx.db.insert(libraryAlbums).values({
     id,
     releaseMbid: ctx.job.releaseMbid,
-    releaseGroupMbid: ctx.job.releaseGroupMbid,
+    releaseGroupMbid,
     albumArtist: input.albumArtist,
     title: input.album,
     year: year === null || Number.isNaN(year) ? null : year,
@@ -331,6 +370,8 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
 
   let placed = 0;
   let sidecars = 0;
+  /** Tracks that got no `.lrc`, so the message can say why one is missing. */
+  const withoutLyrics: string[] = [];
   let albumId: string | null = null;
   let folder: string | null = null;
   let cover: string | null = null;
@@ -353,7 +394,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     const relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
     folder ??= renderAlbumFolder(ctx.settings.pathTemplate, input, options);
     cover ??= coverUrl(document);
-    albumId ??= await upsertAlbum(ctx, input, options);
+    albumId ??= await upsertAlbum(ctx, input, options, document);
 
     let size = track.downloadedBytes ?? 0;
     if (source !== null && existsSync(hostPath(ctx.paths, source))) {
@@ -383,6 +424,10 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     // The `.lrc` sidecar rides with the file, not with the work directory.
     if (ctx.settings.writeLyricsSidecar) {
       const lyrics = lyricsText(document);
+      // A track LRCLIB has no synced lyrics for is ordinary, not a failure — but
+      // "13 file(s) placed, 12 sidecar(s) written" with nothing said about the thirteenth
+      // reads like one. Remember which tracks, and say so at the end.
+      if (lyrics === null) withoutLyrics.push(track.trackTitle ?? track.sourceTitle);
       if (lyrics !== null) {
         // Next to the audio file, whatever the template put it — not next to where the
         // default layout would have put it.
@@ -416,7 +461,12 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
 
   return {
     status: "done",
-    message: `${String(placed)} file(s) placed, ${String(sidecars)} sidecar(s) written`,
-    data: { placed, sidecars, folder },
+    message: placeMessage({
+      placed,
+      sidecars,
+      withoutLyrics,
+      writeLyricsSidecar: ctx.settings.writeLyricsSidecar,
+    }),
+    data: { placed, sidecars, folder, withoutLyrics },
   };
 }

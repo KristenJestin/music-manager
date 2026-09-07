@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-one tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-one, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-one of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -35,11 +35,11 @@ import { join } from "node:path";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { grants, type ApiPrincipal, type ApiScope } from "@mm/contracts";
-import { TAGS } from "@mm/domain";
+import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
-import { jobDetail, setImportOptions } from "#/server/services/console.queries.ts";
+import { jobDetail, queueStanding, setImportOptions } from "#/server/services/console.queries.ts";
 import { listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
 import { listInbox, resolveInboxBatch } from "#/server/services/inbox.ts";
@@ -53,6 +53,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
+import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
 import { systemStatus } from "#/server/services/status.ts";
 import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
@@ -151,6 +152,107 @@ export function listDocs(): DocEntry[] {
 const CONFIRMABLE: readonly ImportStatus[] = ["awaiting_confirm", "awaiting_review", "pending"];
 
 /**
+ * Split a candidate's `fitLines` into the bound lines and the leftovers.
+ *
+ * `fitLines` used to be one list of both, distinguished only by `status: "unmatched"` and a
+ * row of `null`s. The natural gesture on it — `fitLines.map(…)` into
+ * `confirm_mapping.bindings` — therefore failed on a raw zod dump
+ * (`expected number, received null at bindings[14].trackPosition`), and the reader had to
+ * discover a filter nothing had mentioned. Two lists cost nothing and make the gesture correct
+ * by construction: `fitLines` is the bindings, `extras` is what `confirm_mapping` would treat
+ * as extras anyway by their absence.
+ *
+ * The domain type keeps one list on purpose: the Console renders both together, in source
+ * order, and that is the right shape for a table. This is the API's shape, not the model's.
+ */
+function splitFit(candidate: object): Record<string, unknown> {
+  const source = candidate as Record<string, unknown> & { fitLines?: readonly FitLine[] };
+  const lines = source.fitLines;
+  if (lines === undefined) return { ...source };
+  const bound = lines.filter((line) => line.status !== "unmatched" && line.trackPosition !== null);
+  const extras = lines
+    .filter((line) => line.status === "unmatched" || line.trackPosition === null)
+    .map((line) => ({
+      videoIndex: line.videoIndex,
+      videoTitle: line.videoTitle,
+      status: line.status,
+      // No `trackPosition`/`recordingMbid`: they were null, and a null nobody has to read is
+      // better than a null everybody has to filter.
+      reason: "This candidate binds this video to no track; leave it out of `bindings`.",
+    }));
+  return { ...source, fitLines: bound, extras };
+}
+
+/**
+ * A ceiling on the answer, in bytes of JSON.
+ *
+ * Twenty kilobytes is the number the test reports keep coming back to: below it the tool is
+ * comfortable to read, above it a single call is a noticeable fraction of a context window.
+ * `fitLines` gaining the MusicBrainz identifiers pushed the default `summary` from 15.5 KB to
+ * 21 KB — a good trade for the fields, a bad one for the size.
+ */
+const CANDIDATES_BYTE_LIMIT = 20_000;
+
+/** How long a `why` line or a track title may be once the answer is over the ceiling. */
+const CANDIDATE_TEXT_LIMIT = 60;
+
+function sizeOf(value: unknown): number {
+  return JSON.stringify(value)?.length ?? 0;
+}
+
+function shorten(value: unknown, limit: number): unknown {
+  return typeof value === "string" && value.length > limit ? `${value.slice(0, limit)}…` : value;
+}
+
+/**
+ * Bring the answer under `CANDIDATES_BYTE_LIMIT`, cheapest sacrifice first.
+ *
+ * Prose before structure, and structure before candidates: `why` and `trackTitle` are the two
+ * fields a reader can lose most of and still decide, whereas dropping a candidate changes what
+ * the decision *is*. Whatever was given up is named in `truncated`, so nothing disappears
+ * silently — the failure mode of the previous size fix was a caller who could not tell an
+ * abbreviated answer from a complete one.
+ */
+function capCandidates(payload: {
+  candidates: Record<string, unknown>[];
+  [key: string]: unknown;
+}): Record<string, unknown> {
+  if (sizeOf(payload) <= CANDIDATES_BYTE_LIMIT) return payload;
+
+  const truncated: string[] = [];
+
+  // 1 · the prose. `why` is a list of sentences and `trackTitle` repeats what `videoTitle`
+  //     already says on a bound line.
+  let candidates = payload.candidates.map((entry) => ({
+    ...entry,
+    ...(Array.isArray(entry["why"])
+      ? { why: (entry["why"] as unknown[]).map((line) => shorten(line, CANDIDATE_TEXT_LIMIT)) }
+      : {}),
+    ...(Array.isArray(entry["fitLines"])
+      ? {
+          fitLines: (entry["fitLines"] as Record<string, unknown>[]).map((line) => ({
+            ...line,
+            trackTitle: shorten(line["trackTitle"], CANDIDATE_TEXT_LIMIT),
+          })),
+        }
+      : {}),
+  }));
+  truncated.push(`\`why\` and \`trackTitle\` abbreviated to ${String(CANDIDATE_TEXT_LIMIT)} chars`);
+
+  // 2 · the reasoning of everything but the preselected candidate and its runner-up. They are
+  //     the pair the decision is made between; the rest only need to be identifiable.
+  if (sizeOf({ ...payload, candidates }) > CANDIDATES_BYTE_LIMIT && candidates.length > 2) {
+    candidates = [
+      ...candidates.slice(0, 2),
+      ...candidates.slice(2).map((entry) => summariseCandidate(entry)),
+    ];
+    truncated.push("only the preselected candidate and the runner-up keep their reasoning");
+  }
+
+  return { ...payload, candidates, truncated };
+}
+
+/**
  * A candidate with its reasoning removed.
  *
  * `fitLines` is one entry per video, repeated identically on every candidate: thirteen videos
@@ -214,10 +316,11 @@ interface ToolSpec {
 }
 
 /**
- * The tools of the spec, as data — P08's fourteen, P09's `list_discover`, and the four the
- * external MCP test report asked for: `get_status`, `discover_sync`, `scan` and `relocate`.
+ * The tools of the spec, as data — P08's fourteen, P09's `list_discover`, the four the first
+ * external MCP test report asked for (`get_status`, `discover_sync`, `scan`, `relocate`),
+ * `get_scan_report` from the second, and `refresh_album` from the third.
  *
- * A table rather than twenty `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-one `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -370,11 +473,18 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       run: async (args: { importId: string }) => {
         const detail = await jobDetail(args.importId, db());
         if (detail === null) throw new Error(`No import with id ${args.importId}.`);
+        // `imports.step` is the step the job is *on*, which for a job nobody has picked up is
+        // the step it will run next — so a queued import read `running`/`download` and looked
+        // like a download in progress. The head step is the first unfinished one, and
+        // `queuePosition` says whether it is waiting for a worker or working.
+        const standing = await queueStanding(detail, db());
         return {
           id: detail.job.id,
           url: detail.job.url,
           status: detail.job.status,
-          step: detail.job.step,
+          step: standing.step,
+          queuePosition: standing.queuePosition,
+          queueNote: standing.note,
           title: detail.job.title,
           releaseMbid: detail.job.releaseMbid,
           error: detail.job.error,
@@ -494,12 +604,18 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "decision is actually made between; the other ten repeat the same thirteen `fitLines` " +
         'verbatim and cost about ten times more to read than they inform. `detail: "full"` ' +
         "returns everything, for when a candidate further down needs inspecting.\n\n" +
-        "**Each `fitLines` entry is a ready-made binding.** It carries `videoIndex` (which is " +
-        "`confirm_mapping`'s `position`), `trackPosition`, `mediumPosition`, `recordingMbid`, " +
-        "`trackMbid` and `trackTitle`, so confirming the preselection is a copy of the lines " +
-        "whose `status` is not `unbound` — no identifier has to be invented, and none has to " +
-        "be sent as `null`. Sending `recordingMbid: null` is what makes the `fingerprint` " +
-        "step disagree with your own mapping on every track.",
+        "**`fitLines` is exactly `confirm_mapping.bindings`.** Every entry is bound, and " +
+        "carries `videoIndex` (which is `confirm_mapping`'s `position`), `trackPosition`, " +
+        "`mediumPosition`, `recordingMbid`, `trackMbid` and `trackTitle` — so " +
+        "`fitLines.map(…)` is safe by construction: there is no filtering to remember and no " +
+        "identifier to invent. Videos this candidate binds to nothing are in **`extras`**, " +
+        "the same list `confirm_mapping` would produce by omission; send them and the call is " +
+        "refused, leave them out and they become the import's extras. Sending " +
+        "`recordingMbid: null` is what makes the `fingerprint` step disagree with your own " +
+        "mapping on every track.\n\n" +
+        "The answer is capped at about 20 KB. When it would be larger, `why` and `trackTitle` " +
+        'are abbreviated and `truncated` says what was shortened — `detail: "full"` with a ' +
+        "smaller `limit` is the way to see a specific candidate whole.",
       inputSchema: {
         importId: z.string().min(1),
         detail: z.enum(["summary", "full"]).default("summary"),
@@ -526,7 +642,14 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         const runnerUp = candidates.find((entry) => entry.id !== preselected?.id);
         if (runnerUp !== undefined) detailed.add(runnerUp.id);
 
-        return {
+        const shaped =
+          args.detail === "full"
+            ? candidates.map((entry) => splitFit(entry))
+            : candidates.map((entry) =>
+                detailed.has(entry.id) ? splitFit(entry) : summariseCandidate(entry),
+              );
+
+        return capCandidates({
           kind: result.kind,
           detail: args.detail,
           preselectedId: result.ranking.preselected?.id ?? null,
@@ -534,13 +657,8 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           ambiguous: result.ranking.ambiguous,
           margin: result.ranking.margin,
           hints: { album: hints.album ?? null, artist: hints.artist ?? null },
-          candidates:
-            args.detail === "full"
-              ? candidates
-              : candidates.map((entry) =>
-                  detailed.has(entry.id) ? entry : summariseCandidate(entry),
-                ),
-        };
+          candidates: shaped,
+        });
       },
     },
     {
@@ -566,6 +684,14 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           .uuid()
           .nullable()
           .describe("A MusicBrainz release id (a UUID), or `null` to import without MusicBrainz."),
+        releaseGroupMbid: z
+          .uuid()
+          .nullish()
+          .describe(
+            "The candidate's `releaseGroupId`. Optional: omit it and the step asks " +
+              "MusicBrainz, since `MUSICBRAINZ_RELEASEGROUPID` is a required tag and the key " +
+              "the Cover Art Archive falls back to. Passing it saves that lookup.",
+          ),
         album: z.string().default(""),
         albumArtist: z.string().default(""),
         year: z.number().int().nullable().default(null),
@@ -589,6 +715,7 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       run: async (args: {
         importId: string;
         releaseMbid: string | null;
+        releaseGroupMbid?: string | null;
         album: string;
         albumArtist: string;
         year: number | null;
@@ -645,6 +772,11 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
 
         const mapping: SuppliedMapping = {
           releaseMbid: args.releaseMbid,
+          // Absent stays absent: `match` asks MusicBrainz rather than recording a `null` that
+          // would erase a release group a previous run had found.
+          ...(args.releaseGroupMbid === undefined || args.releaseGroupMbid === null
+            ? {}
+            : { releaseGroupMbid: args.releaseGroupMbid }),
           ...(args.album === "" ? {} : { album: args.album }),
           ...(args.albumArtist === "" ? {} : { albumArtist: args.albumArtist }),
           year: args.year,
@@ -855,12 +987,33 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       },
     },
     {
+      name: "refresh_album",
+      scope: "library:write",
+      title: "Refetch an album from MusicBrainz",
+      description:
+        "The action `get_album`'s `quality.missing[].action` names when it says " +
+        '"Refetch from MusicBrainz". Re-reads the album\'s release from MusicBrainz **past ' +
+        "the cache**, writes back what it says about the album's own identity — today that " +
+        "is `releaseGroupMbid`, the required tag the Cover Art Archive also falls back to — " +
+        "and queues an album-scoped re-tag so the files catch up.\n\n" +
+        "Downloads nothing and does not touch the mapping. The re-tag is *queued*: check " +
+        "`get_status.worker` if nothing seems to happen. An album imported without " +
+        "MusicBrainz has nothing to refetch and is refused rather than silently ignored.",
+      inputSchema: { albumId: z.string().min(1) },
+      run: async (args: { albumId: string }) =>
+        await refreshAlbumFromSource(args.albumId, { db: db() }),
+    },
+    {
       name: "get_album",
       scope: "library:read",
       title: "Get one album",
       description:
         "One album in full: its identifiers, its tracks, its completeness score and — most " +
-        "usefully — exactly which tags are missing and what would fix each one.",
+        "usefully — exactly which tags are missing and what would fix each one.\n\n" +
+        "Each `quality.missing[]` entry carries an `action` that is a real remedy, not a " +
+        "label: `Refetch from MusicBrainz` is `refresh_album`, `Retry LRCLIB` and " +
+        "`Run ReplayGain` are steps of the pipeline, and `Comes from the source video` means " +
+        "only a re-import can change it.",
       inputSchema: { albumId: z.string().min(1) },
       run: async (args: { albumId: string }) => {
         const detail = await albumDetail(args.albumId, db());
@@ -872,6 +1025,9 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             albumArtist: detail.album.albumArtist,
             folder: detail.album.folder,
             releaseMbid: detail.album.releaseMbid,
+            // The album's own release group. `null` here with a `releaseMbid` set is a
+            // repairable gap: `quality.missing` names it, and `refresh_album` repairs it.
+            releaseGroupMbid: detail.album.releaseGroupMbid,
           },
           identifiers: detail.identifiers,
           quality: {
@@ -946,27 +1102,28 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
            * has to actually carry the diff and the failures.
            */
           /*
-           * `limit` is asked for twice as many rows as it will show, because a run's errors
-           * and its diffs are two disjoint subsets of the same rows: a slice of `limit` rows
-           * that happened to be all failures would show `limit` errors and no diff at all.
-           * The *counts* below never come from this slice — `view.totals` is counted in SQL
-           * over the whole run, which is the fix for `moreErrors`/`moreDiffs` always being 0.
+           * **Two slices, not one split in two.**
+           *
+           * A run's errors and its diffs are disjoint subsets of the same rows, so a single
+           * slice of `limit * 2` rows sorted by path could be entirely failures — and the
+           * answer would carry `limit` errors, `diff: []` and a large `moreDiffs`, which
+           * reads as the counts being wrong when they are the only part that was right.
+           * `runView(…, { only })` filters in SQL, so each slice is full of what it is for.
+           * The *counts* still come from neither: `totals` is counted over the whole run.
            */
-          const view = await runView(finished.id, { limit: args.limit * 2 }, db());
-          const rows = view?.diffs ?? [];
-          const totals = view?.totals ?? { rows: 0, failed: 0, changed: 0 };
-          const broken = rows.filter((row) => row.error !== null);
-          const errors = broken.slice(0, args.limit).map((row) => ({
+          const [errorView, diffView] = await Promise.all([
+            runView(finished.id, { limit: args.limit, only: "errors" }, db()),
+            args.dryRun
+              ? runView(finished.id, { limit: args.limit, only: "changed" }, db())
+              : Promise.resolve(null),
+          ]);
+          const totals = errorView?.totals ?? { rows: 0, failed: 0, changed: 0 };
+          const errors = (errorView?.diffs ?? []).map((row) => ({
             path: row.path,
             code: row.error?.code ?? "UNKNOWN",
             message: row.error?.message ?? "No reason recorded.",
           }));
-          const changedRows = rows.filter(
-            (row) =>
-              row.error === null &&
-              (row.added.length > 0 || row.removed.length > 0 || row.changed.length > 0),
-          );
-          const shownDiffs = changedRows.slice(0, args.limit);
+          const shownDiffs = diffView?.diffs ?? [];
           return {
             runId: finished.id,
             total: finished.total,

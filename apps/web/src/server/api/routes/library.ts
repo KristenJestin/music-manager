@@ -17,6 +17,7 @@ import { db } from "#/server/db/client.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
 import { createRun, runToCompletion } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
+import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { enqueueRetagRun } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
@@ -123,6 +124,36 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
         throw new MMError("NOT_FOUND", `No album with id ${id}.`, { status: 404 });
       }
       return c.json(detail as unknown as Record<string, unknown>, 200);
+    },
+  );
+
+  /**
+   * The remedy `GET /albums/{id}` names in `quality.missing[].action`.
+   *
+   * Same service as MCP's `refresh_album`, so the two surfaces cannot disagree about what
+   * "Refetch from MusicBrainz" means. `library:write` because it writes the album row and
+   * queues a re-tag of its files.
+   */
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/albums/{id}/refresh",
+      tags: [TAG],
+      summary: "Refetch this album's release from MusicBrainz and queue a re-tag",
+      middleware: [requireScope("library:write")] as const,
+      request: { params: z.object({ id: idParam }) },
+      responses: {
+        200: {
+          content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
+          description: "What was repaired, and the re-tag that was queued",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const id = c.req.valid("param").id;
+      const result = await refreshAlbumFromSource(id, { db: db() });
+      return c.json(result as unknown as Record<string, unknown>, 200);
     },
   );
 

@@ -15,7 +15,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
-import { beforeAll, afterAll, describe, expect, it } from "vitest";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../../../..");
@@ -77,6 +77,7 @@ const scan = await import("#/server/services/scan.ts");
 const inboxService = await import("#/server/services/inbox.ts");
 const place = await import("#/server/services/jobs/steps/place.ts");
 const discover = await import("#/server/services/discover.ts");
+const quality = await import("#/server/services/quality.ts");
 const { toolTable } = await import("./server.ts");
 
 resetServerEnv();
@@ -1244,6 +1245,342 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
       expect(answer.effective["maxGenres"]).toBe(4);
       expect(await stored("safeThreshold")).toBe(0.9);
       await call("update_settings", { patch: { maxGenres: 3, safeThreshold: 0.95 } });
+    });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-4 — a supplied mapping keeps the album's release group         */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-4 the release group survives a supplied mapping", () => {
+    const RELEASE = "d073287b-d1bd-4f11-a933-a4386f8cf701";
+    const GROUP = "48117b90-a16e-34ca-a514-19c702df1158";
+
+    it("asks MusicBrainz for it when the caller did not supply one", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      await db()
+        .update(schema.imports)
+        .set({ status: "awaiting_review" })
+        .where(eq(schema.imports.id, created.job.id));
+
+      // Exactly the call the report made: a release, bindings, and no release group.
+      await call("confirm_mapping", {
+        importId: created.job.id,
+        releaseMbid: RELEASE,
+        bindings: [{ position: 0, trackPosition: 1, recordingMbid: null }],
+      });
+
+      const [job] = await db()
+        .select()
+        .from(schema.imports)
+        .where(eq(schema.imports.id, created.job.id))
+        .limit(1);
+      // Before: `supplied.releaseGroupMbid ?? null` wrote a null here, and `place` copied it.
+      expect(job?.releaseGroupMbid).toBe(GROUP);
+    }, 120_000);
+
+    it("takes the caller's own value when there is one, without a lookup", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      await db()
+        .update(schema.imports)
+        .set({ status: "awaiting_review" })
+        .where(eq(schema.imports.id, created.job.id));
+
+      await call("confirm_mapping", {
+        importId: created.job.id,
+        releaseMbid: RELEASE,
+        releaseGroupMbid: GROUP,
+        bindings: [{ position: 0, trackPosition: 1, recordingMbid: null }],
+      });
+
+      const [job] = await db()
+        .select()
+        .from(schema.imports)
+        .where(eq(schema.imports.id, created.job.id))
+        .limit(1);
+      expect(job?.releaseGroupMbid).toBe(GROUP);
+    }, 120_000);
+
+    it("names it in `quality.missing`, at `required`, with the action that repairs it", async () => {
+      const albumId = "alb_rg_missing";
+      await db()
+        .insert(schema.libraryAlbums)
+        .values({
+          id: albumId,
+          releaseMbid: RELEASE,
+          // The state the report found: a release, and no release group.
+          releaseGroupMbid: null,
+          albumArtist: "Daft Punk",
+          title: "Discovery",
+          // A folder of its own: `library_albums.folder` is unique, and an album another
+          // test's `place` already created would swallow this insert.
+          folder: "Daft Punk/Discovery (rg-test)",
+          trackCount: 1,
+          presentCount: 1,
+        })
+        .onConflictDoNothing();
+
+      const row = await quality.scoreOneAlbum(albumId, { db: db() });
+      const entry = row?.quality.missing.find(
+        (field) => field.field === "musicbrainz_releasegroupid",
+      );
+      expect(entry).toBeDefined();
+      expect(entry?.level).toBe("required");
+      expect(entry?.vorbis).toBe("MUSICBRAINZ_RELEASEGROUPID");
+      // The action is the name of a tool, not a slogan — see the next test.
+      expect(entry?.action).toBe(quality.REFRESH_ALBUM_ACTION);
+    }, 60_000);
+
+    it("`refresh_album` is that action, and really repairs the column", async () => {
+      const albumId = "alb_rg_missing";
+      const answer = (await call("refresh_album", { albumId })) as {
+        repaired: string[];
+        releaseGroupMbid: { before: string | null; after: string | null };
+      };
+      expect(answer.repaired).toContain("releaseGroupMbid");
+      expect(answer.releaseGroupMbid).toEqual({ before: null, after: GROUP });
+
+      const [album] = await db()
+        .select()
+        .from(schema.libraryAlbums)
+        .where(eq(schema.libraryAlbums.id, albumId))
+        .limit(1);
+      expect(album?.releaseGroupMbid).toBe(GROUP);
+
+      // And the gap is gone from the quality report, which is what a reader checks next.
+      const row = await quality.scoreOneAlbum(albumId, { db: db() });
+      expect(
+        row?.quality.missing.some((field) => field.field === "musicbrainz_releasegroupid"),
+      ).toBe(false);
+    }, 120_000);
+
+    it("refuses an album that has no MusicBrainz release at all", async () => {
+      await db()
+        .insert(schema.libraryAlbums)
+        .values({
+          id: "alb_untagged",
+          releaseMbid: null,
+          albumArtist: "Nobody",
+          title: "Untagged",
+          folder: "Nobody/Untagged (rg-test)",
+        })
+        .onConflictDoNothing();
+      await expect(call("refresh_album", { albumId: "alb_untagged" })).rejects.toThrow(
+        /no MusicBrainz release/,
+      );
+    }, 60_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-5 — fitLines is the bindings, extras are separate              */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-5 get_candidates separates bound lines from extras", () => {
+    it("`fitLines.map(…)` parses as `bindings` with no filtering", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const answer = (await call("get_candidates", { importId: created.job.id })) as {
+        candidates: {
+          fitLines?: {
+            videoIndex: number;
+            trackPosition: number | null;
+            mediumPosition: number | null;
+            trackTitle: string | null;
+            recordingMbid: string | null;
+          }[];
+          extras?: { videoIndex: number; status: string; reason: string }[];
+        }[];
+      };
+
+      const detailed = answer.candidates.find((entry) => entry.fitLines !== undefined);
+      expect(detailed).toBeDefined();
+      const lines = detailed?.fitLines ?? [];
+      expect(lines.length).toBeGreaterThan(0);
+
+      // The whole point: the naive conversion, through the tool's own schema.
+      const { z } = await import("zod");
+      const bindings = z.object(tools.get("confirm_mapping")?.inputSchema ?? {}).parse({
+        importId: created.job.id,
+        releaseMbid: null,
+        bindings: lines.map((line) => ({
+          position: line.videoIndex,
+          trackPosition: line.trackPosition,
+          mediumPosition: line.mediumPosition,
+          recordingMbid: line.recordingMbid,
+          trackTitle: line.trackTitle ?? "",
+        })),
+      }) as { bindings: unknown[] };
+      expect(bindings.bindings).toHaveLength(lines.length);
+
+      // The 15-video fixture covers 14 tracks, so there is one leftover — and it is in
+      // `extras`, with a sentence saying what to do with it rather than a row of nulls.
+      const extras = detailed?.extras ?? [];
+      expect(Array.isArray(extras)).toBe(true);
+      for (const extra of extras) {
+        expect(extra.reason).toMatch(/leave it out of/i);
+        expect(lines.some((line) => line.videoIndex === extra.videoIndex)).toBe(false);
+      }
+    }, 120_000);
+
+    it("keeps the default summary under 20 KB and says when it abbreviated", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const answer = (await call("get_candidates", { importId: created.job.id })) as {
+        truncated?: string[];
+      };
+      const bytes = JSON.stringify(answer).length;
+      expect(bytes).toBeLessThanOrEqual(20_000);
+      // Nothing is shortened silently: an abbreviated answer says so.
+      if (answer.truncated !== undefined) expect(answer.truncated.length).toBeGreaterThan(0);
+    }, 120_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-6 — a fixture URL outside fixtures mode is refused at once     */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-6 fixture:// is guarded, not only documented", () => {
+    it("is accepted while the toolbox is in fixtures mode", async () => {
+      const answer = (await call("create_import", { url: "fixture://discovery" })) as {
+        importId: string;
+      };
+      expect(answer.importId).toMatch(/^imp_/);
+    }, 120_000);
+
+    it("is refused before anything is written when it is not", async () => {
+      // The toolbox this suite runs against *is* in fixtures mode, so the refusal is provoked
+      // by making `/health` say what a production toolbox would say. The service asks the
+      // toolbox, which is the only honest source: `MM_FIXTURES` is the app's own mode and the
+      // trap is precisely that the two can disagree.
+      const tools_ = await import("#/server/services/tools.ts");
+      const spy = vi.spyOn(tools_, "downloaderHealth").mockResolvedValue({
+        reachable: true,
+        fixtures: false,
+        downloading: false,
+        versions: { "yt-dlp": "2025.08.11", ffmpeg: "7", fpcalc: "1.5", rsgain: "3" },
+        contract: null,
+        channel: "stable",
+        pin: "",
+        autoUpdate: true,
+        updateCron: "0 4 * * *",
+        onUpdateFailure: "warn",
+        error: null,
+      });
+      try {
+        const before = await db().select().from(schema.imports);
+        await expect(call("create_import", { url: "fixture://discovery" })).rejects.toThrow(
+          /recorded fixture/,
+        );
+        const after = await db().select().from(schema.imports);
+        // Refused *before* the row, so no ghost import and no worker time spent.
+        expect(after).toHaveLength(before.length);
+      } finally {
+        spy.mockRestore();
+      }
+    }, 60_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* R3-7 — the minor observations                                     */
+  /* ---------------------------------------------------------------- */
+
+  describe("R3-7 minor observations", () => {
+    it("a queued import shows the first unfinished step and its position", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      // The state the report described: the job says `running` / `download` because that is
+      // the step it is *on*, while the step row says `pending`.
+      await db()
+        .update(schema.imports)
+        .set({ status: "running", step: "download" })
+        .where(eq(schema.imports.id, created.job.id));
+
+      const answer = (await call("get_import", { importId: created.job.id })) as {
+        step: string;
+        queuePosition: number | null;
+        queueNote: string;
+        steps: { step: string; status: string }[];
+      };
+      // The head step is the first one that has not finished, which is not `download`.
+      expect(answer.step).not.toBe("download");
+      expect(answer.steps.find((entry) => entry.step === answer.step)?.status).not.toBe("done");
+      expect(answer.queuePosition).not.toBeNull();
+      expect(answer.queueNote).toMatch(/queued|running/i);
+    }, 120_000);
+
+    it("an import waiting for a person has no queue position", async () => {
+      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      await db()
+        .update(schema.imports)
+        .set({ status: "awaiting_confirm" })
+        .where(eq(schema.imports.id, created.job.id));
+      const answer = (await call("get_import", { importId: created.job.id })) as {
+        queuePosition: number | null;
+        queueNote: string;
+      };
+      expect(answer.queuePosition).toBeNull();
+      expect(answer.queueNote).toMatch(/decision/i);
+    }, 120_000);
+
+    it("`runView` slices errors and diffs separately", async () => {
+      // A run whose rows are lopsided: three failures sorted before the one real diff, so a
+      // single slice of the first rows would have shown no diff at all.
+      const run = await retag.createRun({
+        db: db(),
+        scope: "library",
+        targetId: null,
+        dryRun: true,
+        onlyBehind: false,
+        trigger: "manual",
+      });
+      for (const [index, path] of ["a.opus", "b.opus", "c.opus", "z.opus"].entries()) {
+        await db()
+          .insert(schema.retagDiffs)
+          .values({
+            id: `rtd_slice_${String(index)}`,
+            runId: run.id,
+            libraryTrackId: null,
+            path,
+            added: path === "z.opus" ? [{ key: "GENRE", field: "genre", after: "House" }] : [],
+            removed: [],
+            changed: [],
+            unchanged: 0,
+            ...(path === "z.opus"
+              ? {}
+              : { error: { code: "NOT_FOUND", message: `${path} is not on disk.` } }),
+          });
+      }
+
+      const errorsOnly = await retag.runView(run.id, { limit: 2, only: "errors" }, db());
+      expect(errorsOnly?.diffs).toHaveLength(2);
+      expect(errorsOnly?.diffs.every((row) => row.error !== null)).toBe(true);
+
+      const changedOnly = await retag.runView(run.id, { limit: 2, only: "changed" }, db());
+      // The one real diff, which the old single slice would have missed entirely.
+      expect(changedOnly?.diffs).toHaveLength(1);
+      expect(changedOnly?.diffs[0]?.path).toBe("z.opus");
+
+      // And the counts still come from the whole run, not from either slice.
+      expect(errorsOnly?.totals).toEqual({ rows: 4, failed: 3, changed: 1 });
+    }, 60_000);
+
+    it("`place` says why a sidecar is missing", async () => {
+      const message = place.placeMessage({
+        placed: 13,
+        sidecars: 12,
+        withoutLyrics: ["Clearest Blue"],
+        writeLyricsSidecar: true,
+      });
+      expect(message).toContain("13 file(s) placed, 12 sidecar(s) written");
+      expect(message).toContain("LRCLIB");
+      expect(message).toContain("Clearest Blue");
+
+      // Sidecars turned off is a setting, not a gap, and says something different.
+      expect(
+        place.placeMessage({
+          placed: 13,
+          sidecars: 0,
+          withoutLyrics: [],
+          writeLyricsSidecar: false,
+        }),
+      ).toContain("off in Settings");
     });
   });
 });

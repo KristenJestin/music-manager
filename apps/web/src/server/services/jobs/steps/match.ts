@@ -181,7 +181,15 @@ async function persistMapping(
   return { mapped, extras };
 }
 
-/** Write the chosen release onto the import itself. */
+/**
+ * Write the chosen release onto the import itself.
+ *
+ * `releaseGroupId: undefined` means **"I do not know"** and leaves the column alone;
+ * only an explicit `null` clears it. That distinction is the third test report's §4: a
+ * supplied mapping carries no release group, the old code turned its absence into a `null`,
+ * and `place` copied that `null` onto `library_albums`. The album then lost the Cover Art
+ * Archive release-group fallback, and its quality report had nothing to point at.
+ */
 async function persistRelease(
   ctx: StepContext,
   release: {
@@ -196,7 +204,7 @@ async function persistRelease(
     .update(imports)
     .set({
       releaseMbid: release.id,
-      releaseGroupMbid: release.releaseGroupId ?? null,
+      ...(release.releaseGroupId === undefined ? {} : { releaseGroupMbid: release.releaseGroupId }),
       ...(release.title === undefined || release.title === "" ? {} : { title: release.title }),
       ...(release.artist === undefined || release.artist === "" ? {} : { artist: release.artist }),
       ...(release.year === undefined || release.year === null ? {} : { year: release.year }),
@@ -655,6 +663,30 @@ function clock(seconds: number | null): string {
  * survivable without waiting for a fix, and P05 does not get to remove it just because it now
  * has an opinion of its own.
  */
+/**
+ * The release group of a release, from the caller if it said, from MusicBrainz otherwise.
+ *
+ * `undefined` means "still unknown", which `persistRelease` reads as "leave the column alone"
+ * — an offline run, or a MusicBrainz that did not answer, must not erase a release group an
+ * earlier `match` had found.
+ */
+async function releaseGroupOf(
+  ctx: StepContext,
+  releaseMbid: string,
+  supplied: string | null | undefined,
+): Promise<string | undefined> {
+  if (supplied !== undefined && supplied !== null && supplied !== "") return supplied;
+  try {
+    const gateway = await gatewayFor(ctx);
+    if (gateway === null) return undefined;
+    const release = await gateway.lookupRelease(releaseMbid);
+    return release?.["release-group"]?.id ?? undefined;
+  } catch {
+    // A release group is worth one lookup, never a failed import.
+    return undefined;
+  }
+}
+
 async function applySupplied(
   ctx: StepContext,
   rows: readonly ImportTrack[],
@@ -707,9 +739,20 @@ async function applySupplied(
       })
       .where(eq(imports.id, ctx.job.id));
   } else {
+    /*
+     * The release group, asked of MusicBrainz when the caller did not supply one.
+     *
+     * `MUSICBRAINZ_RELEASEGROUPID` is a **required** tag and the key the Cover Art Archive
+     * falls back to when a release has no cover of its own. A caller confirming a mapping —
+     * MCP, `/api/v1`, the wizard, `mm import --mapping` — has no reason to know it, and
+     * inferring `null` from its silence is what left the CHVRCHES album of the third report
+     * without one. The release lookup carries `release-groups` in its `inc` list already, so
+     * this costs a cache hit in the ordinary case and one request in the worst.
+     */
+    const group = await releaseGroupOf(ctx, supplied.releaseMbid, supplied.releaseGroupMbid);
     await persistRelease(ctx, {
       id: supplied.releaseMbid,
-      releaseGroupId: supplied.releaseGroupMbid ?? null,
+      ...(group === undefined ? {} : { releaseGroupId: group }),
       ...(supplied.album === undefined ? {} : { title: supplied.album }),
       ...(supplied.albumArtist === undefined ? {} : { artist: supplied.albumArtist }),
       year: supplied.year ?? null,

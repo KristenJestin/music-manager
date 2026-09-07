@@ -259,9 +259,8 @@ export const importBackup = createServerFn({ method: "POST", strict: STRICT })
          * and refusing the whole restore over one stale row would make the feature useless.
          * So it is key by key, and what did not fit comes back in `skipped`.
          */
-        const { isSecretSetting, isSettingKey, setSetting } = await import(
-          "#/server/services/settings.ts"
-        );
+        const { isSecretSetting, isSettingKey, setSetting } =
+          await import("#/server/services/settings.ts");
         let applied = 0;
         const skipped: string[] = [];
         for (const [key, value] of Object.entries(data.payload.settings)) {

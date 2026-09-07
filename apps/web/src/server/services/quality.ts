@@ -202,6 +202,15 @@ const MUSICBRAINZ_MARKERS = [
   "classical works",
 ];
 
+/**
+ * The label of the one action that repairs an album's own MusicBrainz identity.
+ *
+ * A constant rather than a string typed twice, because `refreshAlbumFromSource` is what it
+ * promises and a test asserts the two agree. An action nobody implements is worse than no
+ * action: it sends a reader looking for a button that is not there.
+ */
+export const REFRESH_ALBUM_ACTION = "Refetch from MusicBrainz";
+
 /** A field's value comes from somewhere; that somewhere is what the "Fetch" button does. */
 export function actionFor(field: string): string {
   const tag = tagByField(field);
@@ -331,6 +340,24 @@ export function scoreAlbum(
   for (const track of tracks) {
     for (const field of track.missing) counter.set(field, (counter.get(field) ?? 0) + 1);
   }
+  /*
+   * The release group is missing from the *album row* even when every document has it.
+   *
+   * `missing` is derived from the documents, and the documents get
+   * `musicbrainz_releasegroupid` from the release lookup — so an album whose
+   * `release_group_mbid` column is null had nothing in `missing` to explain it. That is the
+   * third test report's §4: the CHVRCHES album scored below its own tracks, the reader was
+   * told only that `originalfilename` was absent, and the one field that could be fixed was
+   * the one field not named. The column matters on its own: it is what the Cover Art Archive
+   * falls back to when a release has no cover, and what Discover compares a discography
+   * against. `REFRESH_ALBUM_ACTION` is a tool, not a slogan — see `refreshAlbumFromSource`.
+   */
+  const albumGroupMissing =
+    album.releaseMbid !== null && album.releaseMbid !== "" && album.releaseGroupMbid === null;
+  if (albumGroupMissing && !counter.has("musicbrainz_releasegroupid")) {
+    counter.set("musicbrainz_releasegroupid", tracks.length);
+  }
+
   const missing: MissingField[] = [...counter.entries()]
     .map(([field, count]) => {
       const tag = tagByField(field);
@@ -340,7 +367,10 @@ export function scoreAlbum(
         level: tag?.level ?? "optional",
         tracks: count,
         source: tag?.source ?? "",
-        action: actionFor(field),
+        action:
+          field === "musicbrainz_releasegroupid" && albumGroupMissing
+            ? REFRESH_ALBUM_ACTION
+            : actionFor(field),
       };
     })
     .sort(

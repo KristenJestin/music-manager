@@ -44,7 +44,7 @@ describe("the tool table", () => {
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(20);
+    expect(tools.length).toBe(21);
   });
 });
 
