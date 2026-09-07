@@ -19,10 +19,12 @@
 export * as releaseCandidates from "./release-candidates.ts";
 export * as recordingCandidates from "./recording-candidates.ts";
 export * as mapping from "./mapping.ts";
+export * as releaseGroups from "./release-groups.ts";
 export * as lucene from "./lucene.ts";
 
 export {
   DEFAULT_CONFIG,
+  DEFAULT_GROUP_LIMIT,
   DEFAULT_LOOKUP_LIMIT,
   DEFAULT_PREFERENCES,
   DEFAULT_THRESHOLDS,
@@ -48,6 +50,7 @@ export {
 } from "./signals.ts";
 
 export type { ReleaseRanking } from "./release-candidates.ts";
+export type { GroupIndex, GroupSearchScore } from "./release-groups.ts";
 export type { RecordingRanking } from "./recording-candidates.ts";
 
 export type {
@@ -75,6 +78,8 @@ export type {
   RecordingWeights,
   ReleaseCandidate,
   ReleaseCandidateInput,
+  ReleaseGroupCandidate,
+  ReleaseGroupRanking,
   ReleaseScoreInput,
   ReleaseSignals,
   ReleaseWeights,

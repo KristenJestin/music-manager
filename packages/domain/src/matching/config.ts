@@ -29,23 +29,32 @@ import type {
 /**
  * Release weights. They sum to 1, so the blend stays in [0, 1].
  *
- * The **tracklist fit dominates** at 0.30 because `docs/04` says so in as many words: it "est
- * le signal décisif entre éditions d'un même album". Title and artist come next — they are
- * what puts a candidate in the list at all, so they discriminate less *within* the list than
- * they look. Format, country and status are tie-breakers between pressings of one album, and
- * a label is only ever a corroboration, because "Provided to YouTube by" names the current
- * distributor rather than the original imprint.
+ * The **tracklist fit dominates** at 0.26 because `docs/04` says so in as many words: it "est
+ * le signal décisif entre éditions d'un même album". Right behind it sits `coverage`, added by
+ * decision 152: the fit answers "how much of *this release* do your videos cover", and on its
+ * own it is blind in exactly one direction — a one-track single covered by one of your eleven
+ * videos fits 1/1, which is a perfect score for importing one eleventh of what you asked for.
+ * `coverage` is the other half of the same question, "how many of *your videos* would this
+ * release give a track to", and the two together are what the owner's third review calls an
+ * honest fit.
+ *
+ * Title and artist come next — they are what puts a candidate in the list at all, so they
+ * discriminate less *within* the list than they look. Format, country and status are
+ * tie-breakers between pressings of one album, and a label is only ever a corroboration,
+ * because "Provided to YouTube by" names the current distributor rather than the original
+ * imprint.
  */
 const RELEASE_WEIGHTS = {
-  title: 0.18,
-  artist: 0.18,
-  durations: 0.3,
-  trackCount: 0.12,
-  year: 0.08,
-  label: 0.02,
-  format: 0.05,
-  status: 0.02,
-  country: 0.05,
+  title: 0.16,
+  artist: 0.16,
+  durations: 0.26,
+  coverage: 0.2,
+  trackCount: 0.09,
+  year: 0.06,
+  label: 0.01,
+  format: 0.03,
+  status: 0.01,
+  country: 0.02,
 } as const satisfies MatchingWeights["release"];
 
 /**
@@ -110,6 +119,28 @@ export const DEFAULT_THRESHOLDS: MatchingThresholds = {
   durationDecaySeconds: 8,
   /** The same 0.87 the `fingerprint` step already uses for its title fallback. */
   titleMatch: 0.87,
+  /**
+   * How hard a release is hit for the videos it would leave behind (decision 152).
+   *
+   * The deduction is `coveragePenalty × shortfall²`, where `shortfall` is the share of the
+   * source videos the 1:1 assignment binds to nothing. **Quadratic**, and that shape is the
+   * whole design: a playlist that carries a radio edit next to the album leaves one video of
+   * fifteen over, shortfall 0.067, deduction 0.002 — which is right, because that playlist is
+   * ordinary. A one-track single facing eleven videos leaves ten of them over, shortfall
+   * 0.909, deduction 0.45 — which is also right, because that candidate is not the record.
+   * A linear penalty cannot be both; it either slanders the first case or forgives the second,
+   * and the version shipped before this one forgave it at 94 %.
+   */
+  coveragePenalty: 0.55,
+  /**
+   * What one surplus video costs, relative to one missing track, in `trackCount`.
+   *
+   * Still asymmetric — a playlist with an extra radio edit is normal and a release with tracks
+   * nobody has a video for means an incomplete import — but no longer *derisory*: at the 0.35
+   * it used to be, ten surplus videos against a single cost 0.32 of one signal out of nine,
+   * which is the "pénalité dérisoire" of the third owner review (D3).
+   */
+  trackSurplusCost: 0.7,
 };
 
 export const DEFAULT_PREFERENCES: MatchingPreferences = {
@@ -128,6 +159,18 @@ export const DEFAULT_CONFIG: MatchingConfig = {
 
 /** How many candidates get a tracklist lookup, so the fit can be computed for them. */
 export const DEFAULT_LOOKUP_LIMIT = 6;
+
+/**
+ * How many release *groups* get a release search of their own (decision 151).
+ *
+ * One group was the old behaviour and the bug the owner reported: "Bad Ideas" is a 2019 album
+ * *and* a 2020 single, the search picked the single's group, and the eleven-track album was
+ * never a candidate at all — one card, "2 searches and 1 lookup". Three is the number that
+ * covers the shapes this actually takes (album / single / EP of the same name, or an album and
+ * its deluxe re-issue filed apart) without turning a match into a minute: the budget is
+ * `1 + groups` searches, so three groups is four searches, four seconds.
+ */
+export const DEFAULT_GROUP_LIMIT = 3;
 
 /** Fill in whatever the caller left out. Every entry point takes a partial config. */
 export function withDefaults(partial?: DeepPartialConfig): MatchingConfig {

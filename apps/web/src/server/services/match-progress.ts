@@ -80,21 +80,49 @@ export function subscribeProgress(importId: string, listener: Listener): () => v
  * lookups is exactly the budget `matching.service.ts` promises and `matching.budget.test.ts`
  * asserts, so the denominator here cannot drift from what actually happens.
  */
+export interface MatchReporter {
+  (phase: MatchPhase, label: string, done: { searches: number; lookups: number }): void;
+  /**
+   * Narrow the plan once the match knows its own shape.
+   *
+   * The ceiling is `1 + matchGroupLimit` searches (decision 151), but a match that finds one
+   * usable release group only makes two of them. Announcing the ceiling and then stopping at
+   * "2/4" reads like something failed; revising it the moment the group search comes back —
+   * which is before the second second of the wait — keeps the denominator a promise rather
+   * than a guess. It only ever *narrows*: nothing here may raise the ceiling it was given.
+   */
+  revise(planned: { searches?: number; lookups?: number }): void;
+  /** The current plan, live — the `finally` that publishes `done` reads it rather than guessing. */
+  readonly plan: { searches: number; lookups: number };
+}
+
 export function matchReporter(
   importId: string,
   planned: { searches: number; lookups: number },
-): (phase: MatchPhase, label: string, done: { searches: number; lookups: number }) => void {
-  return (phase, label, done) => {
+): MatchReporter {
+  const plan = { ...planned };
+  const emit = (
+    phase: MatchPhase,
+    label: string,
+    done: { searches: number; lookups: number },
+  ): void => {
     publishProgress({
       importId,
       phase,
       label,
       searches: done.searches,
-      searchesPlanned: planned.searches,
+      searchesPlanned: plan.searches,
       lookups: done.lookups,
-      lookupsPlanned: planned.lookups,
+      lookupsPlanned: plan.lookups,
     });
   };
+  return Object.assign(emit, {
+    plan,
+    revise(next: { searches?: number; lookups?: number }): void {
+      if (next.searches !== undefined) plan.searches = Math.min(plan.searches, next.searches);
+      if (next.lookups !== undefined) plan.lookups = Math.min(plan.lookups, next.lookups);
+    },
+  });
 }
 
 /** `GET /api/match-progress?import=<id>`, as Server-Sent Events. */

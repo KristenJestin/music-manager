@@ -84,10 +84,32 @@ test.describe("owner review, lot A", () => {
 
     await expect(page.getByTestId("fit-explainer")).toContainText("separates two pressings");
     await preselected.getByTestId("fit-toggle").click();
-    await expect(preselected.getByTestId("candidate-fit")).toBeVisible();
+    await expect(preselected.getByTestId("candidate-fit")).toHaveAttribute("data-state", "open");
     await expect(preselected.getByTestId("candidate-fit")).toContainText("One More Time");
+
+    /*
+     * D2 of the third owner review: opening "tracklist fit" adds a dozen rows to the body, and
+     * the radio and the cover must not ride down the card with them. They are the two controls
+     * that say *which card this is*; measuring their top against the card's is the assertion,
+     * because "aligned top left" is a geometric claim and nothing else can hold it.
+     */
+    const card = await preselected.boundingBox();
+    const radio = await preselected.locator("span[aria-hidden='true']").first().boundingBox();
+    const cover = await preselected.getByTestId("cover-image").boundingBox();
+    expect(card).not.toBeNull();
+    expect(radio).not.toBeNull();
+    expect(cover).not.toBeNull();
+    // Within the card's own vertical padding, not halfway down a body 400 pixels tall.
+    expect(radio!.y - card!.y).toBeLessThan(32);
+    expect(cover!.y - card!.y).toBeLessThan(32);
+    expect(card!.height).toBeGreaterThan(200);
+
     await page.screenshot({ path: join(SHOTS, "A6-A7-A8-candidates.png"), fullPage: true });
+    // D1: the label is the action, and pressing it again folds the section back.
+    await expect(preselected.getByTestId("fit-toggle")).toHaveText(/hide fit/);
     await preselected.getByTestId("fit-toggle").click();
+    await expect(preselected.getByTestId("candidate-fit")).toHaveAttribute("data-state", "closed");
+    await expect(preselected.getByTestId("fit-toggle")).toHaveText(/tracklist fit/);
 
     /* ---- step 3 --------------------------------------------------------- */
 

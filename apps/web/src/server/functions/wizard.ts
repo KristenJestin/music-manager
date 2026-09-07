@@ -22,10 +22,12 @@ import { z } from "zod";
 import { MMError } from "@mm/contracts";
 import {
   albumHints,
+  releaseGroups,
   type MappingLine,
   type MatchTrack,
   type RecordingCandidate,
   type ReleaseCandidate,
+  type ReleaseGroupCandidate,
   type UncoveredTrack,
   type ExtraVideo,
 } from "@mm/domain";
@@ -220,12 +222,22 @@ export const fetchSource = createServerFn({ method: "GET", strict: STRICT })
 export interface CandidatesView {
   readonly kind: "album" | "single";
   readonly releases: readonly ReleaseCandidate[];
+  /**
+   * The same releases, folded into their release groups (decision 151).
+   *
+   * Step 2 renders **this** on the album path; `releases` stays because the flat order is
+   * what the API, the MCP tool and the single path already speak, and because a screen that
+   * has both can show a group score next to a release score without recomputing either.
+   */
+  readonly groups: readonly ReleaseGroupCandidate[];
   readonly recordings: readonly RecordingCandidate[];
   readonly preselectedId: string | null;
   readonly safe: boolean;
   readonly ambiguous: boolean;
   readonly margin: number | null;
   readonly budget: { readonly searches: number; readonly lookups: number };
+  /** The ceiling that budget was drawn from, so the screen can say "4 of 4" and mean it. */
+  readonly planned: { readonly searches: number; readonly lookups: number };
   readonly queries: readonly string[];
   /** What the source thinks it is — shown above the list so the query is never a mystery. */
   readonly hints: { readonly album: string | null; readonly artist: string | null };
@@ -233,6 +245,15 @@ export interface CandidatesView {
 
 /** How many candidates the wizard shows. More is noise; the search box is for the rest. */
 const SHOWN = 12;
+
+/**
+ * How many release groups the wizard shows.
+ *
+ * Fewer than `SHOWN`, on purpose: a group is a whole record, and a screen offering eight of
+ * them is a screen nobody reads to the bottom. Three release searches can only produce three
+ * groups plus whatever a hand search adds, so this is a ceiling that rarely binds.
+ */
+const SHOWN_GROUPS = 6;
 
 export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
@@ -253,12 +274,14 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         return {
           kind: "single",
           releases: [],
+          groups: [],
           recordings: result.ranking.candidates.slice(0, SHOWN),
           preselectedId: preselected?.id ?? null,
           safe: preselected?.safe ?? false,
           ambiguous: result.ranking.ambiguous,
           margin: result.ranking.margin,
           budget: result.budget,
+          planned: result.planned,
           queries: result.queries,
           hints: { album: hints.album ?? null, artist: hints.artist ?? null },
         };
@@ -267,12 +290,14 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
       return {
         kind: "album",
         releases: result.ranking.candidates.slice(0, SHOWN),
+        groups: result.groups.groups.slice(0, SHOWN_GROUPS),
         recordings: [],
         preselectedId: preselected?.id ?? null,
         safe: preselected?.safe ?? false,
         ambiguous: result.ranking.ambiguous,
         margin: result.ranking.margin,
         budget: result.budget,
+        planned: result.planned,
         queries: result.queries,
         hints: { album: hints.album ?? null, artist: hints.artist ?? null },
       };
@@ -285,6 +310,7 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
 export interface SearchResultView {
   readonly kind: "album" | "single";
   readonly releases: readonly ReleaseCandidate[];
+  readonly groups: readonly ReleaseGroupCandidate[];
   readonly recordings: readonly RecordingCandidate[];
   readonly query: string;
 }
@@ -321,18 +347,36 @@ export const searchCandidates = createServerFn({ method: "POST", strict: STRICT 
             db: db(),
             recordingMbid: mbid,
           });
-          return { kind: "single", releases: [], recordings: [candidate], query: mbid };
+          return { kind: "single", releases: [], groups: [], recordings: [candidate], query: mbid };
         }
         const found = await searchRecordings({ job, settings, db: db(), query: data.query });
-        return { kind: "single", releases: [], recordings: found.candidates, query: found.query };
+        return {
+          kind: "single",
+          releases: [],
+          groups: [],
+          recordings: found.candidates,
+          query: found.query,
+        };
       }
 
       if (mbid !== null) {
         const { candidate } = await pinnedRelease({ job, settings, db: db(), releaseMbid: mbid });
-        return { kind: "album", releases: [candidate], recordings: [], query: mbid };
+        return {
+          kind: "album",
+          releases: [candidate],
+          groups: releaseGroups.group([candidate]).groups,
+          recordings: [],
+          query: mbid,
+        };
       }
       const found = await searchReleases({ job, settings, db: db(), query: data.query });
-      return { kind: "album", releases: found.candidates, recordings: [], query: found.query };
+      return {
+        kind: "album",
+        releases: found.candidates,
+        groups: found.groups,
+        recordings: [],
+        query: found.query,
+      };
     } catch (error) {
       return toFailure(error);
     }

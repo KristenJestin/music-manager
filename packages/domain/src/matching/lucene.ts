@@ -51,6 +51,19 @@ export function releaseGroupQuery(album: string, artist: string | null | undefin
 }
 
 /**
+ * The same search, one clause wider: the title alone.
+ *
+ * Used only when the narrow one comes back empty (decision 151). "Bad Ideas" credited to
+ * "Tessa Violet" on YouTube is "Meg & Dia" on some of MusicBrainz's release groups, and an
+ * artist clause that disagrees with the credit turns a search with an answer into a search
+ * with none — which the version before this one could not tell apart from "MusicBrainz does
+ * not have this record", because it had no second question to ask.
+ */
+export function releaseGroupQueryWide(album: string): string {
+  return and([clause("releasegroup", album)]);
+}
+
+/**
  * The second search: the releases of that group, or a direct release search when the group
  * search found nothing.
  *

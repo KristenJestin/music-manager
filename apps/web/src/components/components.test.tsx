@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { MappingLine, ReleaseCandidate } from "@mm/domain";
+import type { MappingLine, ReleaseCandidate, ReleaseGroupCandidate } from "@mm/domain";
 import { Callout } from "./callout.tsx";
 import { Cover, coverArtFront } from "./cover.tsx";
 import { DataTable } from "./data-table.tsx";
@@ -10,6 +10,7 @@ import { LogViewer } from "./log-viewer.tsx";
 import { MappingRow } from "./mapping-row.tsx";
 import { PipelineDots } from "./pipeline-dots.tsx";
 import { ReleaseCandidateCard } from "./candidate-card.tsx";
+import { ReleaseGroupCard } from "./candidate-group.tsx";
 import { ReviewCard } from "./review-card.tsx";
 import { ScoreBar } from "./score-bar.tsx";
 import { SignalsRow } from "./signals-row.tsx";
@@ -48,12 +49,15 @@ const candidate: ReleaseCandidate = {
   fit: 13,
   fitOf: 14,
   uncovered: 0,
+  leftOver: 1,
+  videos: 15,
   durDelta: 0.619,
   signals: {
     title: 1,
     artist: 1,
     trackCount: 0.9,
     durations: 0.93,
+    coverage: 0.933,
     year: 1,
     label: 0.4,
     format: 1,
@@ -99,17 +103,44 @@ describe("ReleaseCandidateCard", () => {
     expect(screen.getByText(/preselected/)).toBeTruthy();
   });
 
-  it("hides the reasons until asked, and opens them on “why?”", () => {
+  it("keeps the reasons folded until asked, and unfolds them on “why?”", () => {
+    /*
+     * Folded, not unmounted (owner review 3, D1). The section stays in the DOM so there is a
+     * closing frame to animate; `data-state` is what "closed" means for a reader and a test.
+     */
     render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
-    expect(screen.queryByTestId("candidate-why")).toBeNull();
+    expect(screen.getByTestId("candidate-why").dataset["state"]).toBe("closed");
+    expect(screen.getByTestId("candidate-why").getAttribute("aria-hidden")).toBe("true");
     fireEvent.click(screen.getByTestId("why-toggle"));
     const why = screen.getByTestId("candidate-why");
+    expect(why.dataset["state"]).toBe("open");
     expect(within(why).getByText("Album title and artist match exactly")).toBeTruthy();
   });
 
   it("shows the reasons without asking on the card that is selected", () => {
     render(<ReleaseCandidateCard candidate={candidate} selected onSelect={vi.fn()} />);
-    expect(screen.getByTestId("candidate-why")).toBeTruthy();
+    expect(screen.getByTestId("candidate-why").dataset["state"]).toBe("open");
+  });
+
+  it("says what pressing it does, and closes what is open (D1)", () => {
+    /*
+     * The button on the *selected* card used to be genuinely inert: `open || selected` meant
+     * the flag it set was already outvoted, so "why?" did nothing at all on the one card whose
+     * reasons were on screen. Now the label is the action and the action always happens.
+     */
+    render(<ReleaseCandidateCard candidate={candidate} selected onSelect={vi.fn()} />);
+    const button = screen.getByTestId("why-toggle");
+    expect(button.textContent).toContain("hide why");
+    expect(button.dataset["state"]).toBe("open");
+    fireEvent.click(button);
+    expect(button.textContent).toContain("why?");
+    expect(button.dataset["state"]).toBe("closed");
+    expect(screen.getByTestId("candidate-why").dataset["state"]).toBe("closed");
+  });
+
+  it("shows both directions of the fit, never only the flattering one (D3)", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    expect(screen.getByTestId("candidate-coverage").textContent).toContain("14/15");
   });
 
   it("reports the id it was asked about, so the URL can hold the choice", () => {
@@ -132,9 +163,11 @@ describe("ReleaseCandidateCard", () => {
 
   it("shows video ↔ track behind “tracklist fit”, which is what ordered the list", () => {
     render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
-    expect(screen.queryByTestId("candidate-fit")).toBeNull();
+    expect(screen.getByTestId("candidate-fit").dataset["state"]).toBe("closed");
     fireEvent.click(screen.getByTestId("fit-toggle"));
     const fit = screen.getByTestId("candidate-fit");
+    expect(fit.dataset["state"]).toBe("open");
+    expect(screen.getByTestId("fit-toggle").textContent).toContain("hide fit");
     expect(within(fit).getByText("Alive 1997 excerpt")).toBeTruthy();
     expect(within(fit).getByText("not on this release")).toBeTruthy();
   });
@@ -151,15 +184,91 @@ describe("ReleaseCandidateCard", () => {
     expect(screen.getByText(/tracklist was not fetched/)).toBeTruthy();
   });
 
-  it("names every penalty that lowered the score", () => {
+  it("names every penalty that lowered the score, exactly once", () => {
+    /*
+     * `why` already ends with the penalties, as percentages. The card used to render them a
+     * second time from `candidate.penalties`, so the Bad Ideas deluxe pressing listed its
+     * "deluxe" deduction twice — once as (−0.2) and once as (−20%).
+     */
     render(
       <ReleaseCandidateCard
-        candidate={{ ...candidate, penalties: [{ reason: "Bootleg release", amount: 0.25 }] }}
+        candidate={{
+          ...candidate,
+          penalties: [{ reason: "Bootleg release", amount: 0.25 }],
+          why: [...candidate.why, "Bootleg release (−25 %)"],
+        }}
         selected
         onSelect={vi.fn()}
       />,
     );
-    expect(screen.getByText(/Bootleg release \(−25%\)/)).toBeTruthy();
+    expect(screen.getAllByText(/Bootleg release/)).toHaveLength(1);
+  });
+});
+
+describe("ReleaseGroupCard", () => {
+  const inGroup = (over: Partial<ReleaseCandidate>): ReleaseCandidate => ({
+    ...candidate,
+    ...over,
+  });
+
+  const group: ReleaseGroupCandidate = {
+    id: "g-album",
+    title: "Bad Ideas",
+    artist: "Tessa Violet",
+    primaryType: "Album",
+    secondaryTypes: [],
+    firstReleaseDate: "2019-10-25",
+    year: 2019,
+    score: 1,
+    searchScore: 0.97,
+    releases: [inGroup({ id: "r-album", title: "Bad Ideas", preselected: true })],
+    detailedCount: 1,
+    preselected: true,
+    why: ["Title matches exactly"],
+  };
+
+  const single: ReleaseGroupCandidate = {
+    ...group,
+    id: "g-single",
+    primaryType: "Single",
+    score: 0.29,
+    searchScore: 0.5,
+    releases: [
+      inGroup({ id: "r-single", tracks: 1, fit: 1, fitOf: 1, leftOver: 10, preselected: false }),
+    ],
+    preselected: false,
+    why: ["Filed as a Single, which is a poor shape for 11 videos"],
+  };
+
+  it("opens the best group and leaves the others shut", () => {
+    render(
+      <>
+        <ReleaseGroupCard group={group} selected={null} onSelect={vi.fn()} defaultOpen />
+        <ReleaseGroupCard group={single} selected={null} onSelect={vi.fn()} defaultOpen={false} />
+      </>,
+    );
+    const [best, other] = screen.getAllByTestId("candidate-group");
+    expect(best?.dataset["state"]).toBe("open");
+    expect(other?.dataset["state"]).toBe("closed");
+    // A shut group still says what is inside it, or it is not worth opening.
+    expect(screen.getByTestId("group-summary").textContent).toMatch(/videos would find a track/);
+  });
+
+  it("shows a group score next to the release scores", () => {
+    render(<ReleaseGroupCard group={single} selected={null} onSelect={vi.fn()} defaultOpen />);
+    expect(screen.getByTestId("group-score").textContent).toBe("29%");
+  });
+
+  it("opens on its own header, and selecting stays a release-level decision", () => {
+    const onSelect = vi.fn();
+    render(
+      <ReleaseGroupCard group={single} selected={null} onSelect={onSelect} defaultOpen={false} />,
+    );
+    fireEvent.click(screen.getByTestId("group-toggle"));
+    expect(screen.getByTestId("candidate-group").dataset["state"]).toBe("open");
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("candidate"));
+    expect(onSelect).toHaveBeenCalledWith("r-single");
   });
 });
 

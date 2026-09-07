@@ -3365,17 +3365,15 @@
         "country": "US",
         "status": "Official",
         "barcode": "0602547362193",
+        "score": 100,
         "packaging": "None",
-        "quality": "normal",
         "artist-credit": [
           {
             "name": "Tame Impala",
-            "joinphrase": "",
             "artist": {
               "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
               "name": "Tame Impala",
-              "sort-name": "Tame Impala",
-              "disambiguation": ""
+              "sort-name": "Tame Impala"
             }
           }
         ],
@@ -3391,582 +3389,16 @@
         "release-group": {
           "id": "08aa7a6c-3e43-4459-87b2-e47faf3a088a",
           "title": "Currents",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2015-07-15",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Tame Impala",
-              "joinphrase": "",
-              "artist": {
-                "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                "name": "Tame Impala",
-                "sort-name": "Tame Impala",
-                "disambiguation": ""
-              }
-            }
-          ]
+          "primary-type": "Album"
         },
         "media": [
           {
-            "position": 1,
             "format": "Digital Media",
-            "title": "",
-            "track-count": 13,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "ff021c75-f684-46a1-a21b-3e3d775f7ebe",
-                "position": 1,
-                "number": "1",
-                "title": "Let It Happen",
-                "length": 466893,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "b85f7f6d-813a-4ebc-8a1d-5998ab02be9a",
-                  "title": "Let It Happen",
-                  "disambiguation": "",
-                  "length": 466893,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500292"
-                  ],
-                  "first-release-date": "2015-03-11",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "6504376c-9688-4762-8203-f9412e095b69",
-                "position": 2,
-                "number": "2",
-                "title": "Nangs",
-                "length": 107973,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c9f0e0e0-3789-4a78-a91e-03bc0c3ea998",
-                  "title": "Nangs",
-                  "disambiguation": "",
-                  "length": 107000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500293"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "6fe9958d-8743-4714-8d27-ce8322d05f58",
-                "position": 3,
-                "number": "3",
-                "title": "The Moment",
-                "length": 255440,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "700b5bca-f8a0-4a3b-b260-1751016dc30b",
-                  "title": "The Moment",
-                  "disambiguation": "",
-                  "length": 255000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500304"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c213ac1d-529b-469f-82fa-0ab0f4475ada",
-                "position": 4,
-                "number": "4",
-                "title": "Yes I’m Changing",
-                "length": 270653,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "173324ec-808e-467a-bab8-0fa3a78bf90d",
-                  "title": "Yes I’m Changing",
-                  "disambiguation": "",
-                  "length": 270000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500295"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "464aa1c1-6678-4a85-99c8-1a72ab3964f0",
-                "position": 5,
-                "number": "5",
-                "title": "Eventually",
-                "length": 319306,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9db8c054-4379-4f1a-8b5e-5d6b1c2b0f3a",
-                  "title": "Eventually",
-                  "disambiguation": "",
-                  "length": 319000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500296"
-                  ],
-                  "first-release-date": "2015-05-08",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "28d853d6-e0a8-4084-972e-961d4fd5550e",
-                "position": 6,
-                "number": "6",
-                "title": "Gossip",
-                "length": 55400,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "e030d5d2-f8d2-4495-bfcc-c3af7eef6286",
-                  "title": "Gossip",
-                  "disambiguation": "",
-                  "length": 55000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500299"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "08c95329-4760-4bb5-acf8-1661013762cb",
-                "position": 7,
-                "number": "7",
-                "title": "The Less I Know the Better",
-                "length": 218880,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "78be434c-0908-458f-9693-f16cdebb68ef",
-                  "title": "The Less I Know the Better",
-                  "disambiguation": "",
-                  "length": 217000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500303"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "9b9f5088-1b86-47df-b42d-dc91e235ec6a",
-                "position": 8,
-                "number": "8",
-                "title": "Past Life",
-                "length": 227746,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "5eb905ff-22a9-42ee-8985-699f8c1e18b3",
-                  "title": "Past Life",
-                  "disambiguation": "",
-                  "length": 227000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500294"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "47ecf5fa-aa68-477d-bf6d-061c91e96415",
-                "position": 9,
-                "number": "9",
-                "title": "Disciples",
-                "length": 108480,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9cbbdb07-8942-48c9-b80e-568149744453",
-                  "title": "Disciples",
-                  "disambiguation": "",
-                  "length": 108000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500297"
-                  ],
-                  "first-release-date": "2015-05-01",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "556c0fa1-c3cd-41a3-b087-7399b3c15eca",
-                "position": 10,
-                "number": "10",
-                "title": "’Cause I’m a Man",
-                "length": 241973,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "aee5f1d1-5c05-4d5b-a7a8-79ee4bc2c506",
-                  "title": "Cause I’m a Man",
-                  "disambiguation": "",
-                  "length": 241000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500298"
-                  ],
-                  "first-release-date": "2015-04-07",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "a3c78420-fb52-4c48-85a1-bcf68a001b37",
-                "position": 11,
-                "number": "11",
-                "title": "Reality in Motion",
-                "length": 252653,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9f3e2a21-0897-4a56-ba03-3c36628337ef",
-                  "title": "Reality in Motion",
-                  "disambiguation": "",
-                  "length": 252000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500300"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "d712477a-e306-4311-81ae-de9a3b19a219",
-                "position": 12,
-                "number": "12",
-                "title": "Love/Paranoia",
-                "length": 186426,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "88d35fac-b78b-41b5-a4b1-4e75ac0f30e6",
-                  "title": "Love/Paranoia",
-                  "disambiguation": "",
-                  "length": 186000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500301"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "9d02e2b0-91f5-440e-824a-36009f53ae4a",
-                "position": 13,
-                "number": "13",
-                "title": "New Person, Same Old Mistakes",
-                "length": 362173,
-                "artist-credit": [
-                  {
-                    "name": "Tame Impala",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                      "name": "Tame Impala",
-                      "sort-name": "Tame Impala",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "f078699c-9b68-4040-9ba4-b1e4f7d86598",
-                  "title": "New Person, Same Old Mistakes",
-                  "disambiguation": "",
-                  "length": 362000,
-                  "video": false,
-                  "isrcs": [
-                    "AUUM71500302"
-                  ],
-                  "first-release-date": "2015-07-15",
-                  "artist-credit": [
-                    {
-                      "name": "Tame Impala",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
-                        "name": "Tame Impala",
-                        "sort-name": "Tame Impala",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+            "track-count": 13
           }
         ]
       },
-      "detailed": true
+      "detailed": false
     },
     {
       "release": {
@@ -6628,18 +6060,381 @@
         ]
       },
       "detailed": true
+    },
+    {
+      "release": {
+        "id": "7b09018d-808f-4a0a-ad71-4b8a580440c9",
+        "title": "Currents B-Sides & Remixes",
+        "disambiguation": "",
+        "date": "2017-11-17",
+        "country": "US",
+        "status": "Official",
+        "barcode": "00602567155454",
+        "packaging": "None",
+        "quality": "normal",
+        "artist-credit": [
+          {
+            "name": "Tame Impala",
+            "joinphrase": "",
+            "artist": {
+              "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+              "name": "Tame Impala",
+              "sort-name": "Tame Impala",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "d6dd941a-16ba-4b7d-9aa4-b9e1baeffbc9",
+              "name": "Modular Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
+          "title": "Currents B‐Sides & Remixes",
+          "primary-type": "EP",
+          "secondary-types": [
+            "Remix"
+          ],
+          "first-release-date": "2017-11-16",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Tame Impala",
+              "joinphrase": "",
+              "artist": {
+                "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                "name": "Tame Impala",
+                "sort-name": "Tame Impala",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 5,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "f4320ae7-c254-446e-a7c7-54d4628aa6b3",
+                "position": 1,
+                "number": "1",
+                "title": "List of People (to Try and Forget About)",
+                "length": 280000,
+                "artist-credit": [
+                  {
+                    "name": "Tame Impala",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                      "name": "Tame Impala",
+                      "sort-name": "Tame Impala",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "82bb6913-d04d-4ff1-9260-cba8ba966ede",
+                  "title": "List of People (to Try and Forget About)",
+                  "disambiguation": "",
+                  "length": 280000,
+                  "video": false,
+                  "isrcs": [
+                    "AUUM71700373"
+                  ],
+                  "first-release-date": "2017-11-16",
+                  "artist-credit": [
+                    {
+                      "name": "Tame Impala",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                        "name": "Tame Impala",
+                        "sort-name": "Tame Impala",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cdc542e1-2a48-45d3-bba5-2861b621b782",
+                "position": 2,
+                "number": "2",
+                "title": "Powerlines",
+                "length": 258000,
+                "artist-credit": [
+                  {
+                    "name": "Tame Impala",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                      "name": "Tame Impala",
+                      "sort-name": "Tame Impala",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "89d4b3de-9ae7-48e7-82e0-2ecb63733565",
+                  "title": "Powerlines",
+                  "disambiguation": "",
+                  "length": 258000,
+                  "video": false,
+                  "isrcs": [
+                    "AUUM71700375"
+                  ],
+                  "first-release-date": "2017-11-16",
+                  "artist-credit": [
+                    {
+                      "name": "Tame Impala",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                        "name": "Tame Impala",
+                        "sort-name": "Tame Impala",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "8db8b0c5-4cf5-4a6b-8e5e-f547f146d8c4",
+                "position": 3,
+                "number": "3",
+                "title": "Taxi’s Here",
+                "length": 287000,
+                "artist-credit": [
+                  {
+                    "name": "Tame Impala",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                      "name": "Tame Impala",
+                      "sort-name": "Tame Impala",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "e308cc90-ae92-4a0b-8b76-0521a04dd3f1",
+                  "title": "Taxi’s Here",
+                  "disambiguation": "",
+                  "length": 287000,
+                  "video": false,
+                  "isrcs": [
+                    "AUUM71700374"
+                  ],
+                  "first-release-date": "2017-11-16",
+                  "artist-credit": [
+                    {
+                      "name": "Tame Impala",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                        "name": "Tame Impala",
+                        "sort-name": "Tame Impala",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "748dd9c4-f6eb-459d-a532-bb1f68f7b9ad",
+                "position": 4,
+                "number": "4",
+                "title": "Reality in Motion (GUM remix)",
+                "length": 304000,
+                "artist-credit": [
+                  {
+                    "name": "Tame Impala",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                      "name": "Tame Impala",
+                      "sort-name": "Tame Impala",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "a442a817-a799-451c-9418-1378f0c73828",
+                  "title": "Reality in Motion (GUM remix)",
+                  "disambiguation": "",
+                  "length": 304000,
+                  "video": false,
+                  "isrcs": [
+                    "AUUM71700372"
+                  ],
+                  "first-release-date": "2017-11-16",
+                  "artist-credit": [
+                    {
+                      "name": "Tame Impala",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                        "name": "Tame Impala",
+                        "sort-name": "Tame Impala",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "71e1ce74-e8a0-4c92-8340-36d37bd0f009",
+                "position": 5,
+                "number": "5",
+                "title": "Let It Happen (Soulwax remix)",
+                "length": 557000,
+                "artist-credit": [
+                  {
+                    "name": "Tame Impala",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                      "name": "Tame Impala",
+                      "sort-name": "Tame Impala",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4c247602-e15a-47aa-a79a-594d71c6145c",
+                  "title": "Let It Happen (Soulwax remix)",
+                  "disambiguation": "",
+                  "length": 557000,
+                  "video": false,
+                  "isrcs": [
+                    "AUUM71501365"
+                  ],
+                  "first-release-date": "2015-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Tame Impala",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                        "name": "Tame Impala",
+                        "sort-name": "Tame Impala",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "detailed": true
+    },
+    {
+      "release": {
+        "id": "7f9e3cb8-9fcb-4259-aa90-5a6661aaf41c",
+        "title": "Currents B‐Sides & Remixes",
+        "date": "2017-11-16",
+        "country": "AF",
+        "status": "Official",
+        "barcode": "602567151517",
+        "score": 100,
+        "packaging": "None",
+        "artist-credit": [
+          {
+            "name": "Tame Impala",
+            "artist": {
+              "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+              "name": "Tame Impala",
+              "sort-name": "Tame Impala"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "[none]",
+            "label": {
+              "id": "58a95510-5b87-41dd-9cd1-235fc75611f3",
+              "name": "Universal Music Australia"
+            }
+          },
+          {
+            "catalog-number": "00602567151517",
+            "label": {
+              "id": "1a69fd71-e415-4439-b830-49ab0752d9f7",
+              "name": "Modular Recordings"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
+          "title": "Currents B‐Sides & Remixes",
+          "primary-type": "EP",
+          "secondary-types": [
+            "Remix"
+          ]
+        },
+        "media": [
+          {
+            "format": "Digital Media",
+            "track-count": 5
+          }
+        ]
+      },
+      "detailed": false
+    }
+  ],
+  "groups": [
+    {
+      "id": "08aa7a6c-3e43-4459-87b2-e47faf3a088a",
+      "title": "Currents",
+      "artist": "Tame Impala",
+      "primaryType": "Album",
+      "secondaryTypes": [],
+      "firstReleaseDate": "2015-07-15",
+      "score": 0.9,
+      "why": [
+        "Title matches exactly",
+        "Artist matches exactly",
+        "Filed as a Album"
+      ]
+    },
+    {
+      "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
+      "title": "Currents B‐Sides & Remixes",
+      "artist": "Tame Impala",
+      "primaryType": "EP",
+      "secondaryTypes": [
+        "Remix"
+      ],
+      "firstReleaseDate": "2017-11-16",
+      "score": 0.644,
+      "why": [
+        "Artist matches exactly",
+        "Filed as a EP",
+        "Secondary type Remix"
+      ]
     }
   ],
   "lookedUp": [
     "3690efbe-46d4-4e53-b860-0b22df115641",
+    "7b09018d-808f-4a0a-ad71-4b8a580440c9",
     "f54d9c67-82f7-43e8-a7bf-34794478aeec",
-    "6438e9ba-41ad-478c-81f1-323dcb212903",
-    "47349b48-0937-4519-88cc-20b6e47b1059",
     "8e7746ca-7832-41b2-a731-de5b0010f37d",
-    "85b16994-76cd-43d0-b04c-ac8f9e808db8",
+    "47349b48-0937-4519-88cc-20b6e47b1059",
+    "6438e9ba-41ad-478c-81f1-323dcb212903",
     "b9410b9a-cb64-41ac-b863-fa95f8eb51ea",
     "f3536868-f5fe-4034-b837-a6447cde9e26",
-    "e10ad285-7ffe-4528-920f-2f000c7ec473",
-    "f942ccca-07a9-45cd-8981-a0ad8f0dc788"
+    "f942ccca-07a9-45cd-8981-a0ad8f0dc788",
+    "85b16994-76cd-43d0-b04c-ac8f9e808db8"
   ]
 }

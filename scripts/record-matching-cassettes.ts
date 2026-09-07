@@ -1,5 +1,5 @@
 /**
- * Record the four matching scenarios from the real MusicBrainz.
+ * Record the five matching scenarios from the real MusicBrainz.
  *
  * `bun run scripts/record-matching-cassettes.ts [name…] [--dry]`
  *
@@ -18,16 +18,19 @@
  * asks for and the one thing that must not end up in a committed file.
  *
  * The requests it makes are exactly the ones the service makes, in the same order, decided by
- * the same pure engine — the top-N lookups are chosen by pre-scoring the search results here
- * too. A cassette is therefore a recording of the real algorithm's appetite, not a guess at it.
+ * the same pure engine — one release-group search, one release search per group kept, and the
+ * top-N lookups chosen by pre-scoring the results here too (decision 151). A cassette is
+ * therefore a recording of the real algorithm's appetite, not a guess at it.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   albumHints,
+  DEFAULT_GROUP_LIMIT,
   DEFAULT_LOOKUP_LIMIT,
   lucene,
   releaseCandidates,
+  releaseGroups,
   type MatchVideo,
 } from "../packages/domain/src/matching/index.ts";
 import type {
@@ -260,7 +263,52 @@ const FORMIDABLE: SingleScenario = {
   },
 };
 
-const SCENARIOS: readonly Scenario[] = [DISCOVERY, SKINNY_LOVE, CURRENTS, FORMIDABLE];
+/**
+ * The third owner review's counter-example, recorded from the real thing.
+ *
+ * Eleven videos of Tessa Violet's *Bad Ideas*, exactly as `yt-dlp` reports the YouTube Music
+ * album playlist `OLAK5uy_lMECD_…`. MusicBrainz files that name four ways — the 2019 album,
+ * a 2022 deluxe vinyl in the same group, a 2019 EP called "Bad Ideas (Act One)", and a 2020
+ * one-track single — which is what made the single-group search of the previous algorithm
+ * offer one candidate at 94 %. It is here so that never becomes true again silently.
+ */
+const BAD_IDEAS: AlbumScenario = {
+  name: "bad-ideas",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_lMECD_tHQnZ8tr8_mQZr2I8usqrw9eCrs",
+    album: "Bad Ideas",
+    artist: "Tessa Violet",
+    year: 2019,
+    label: "T∆G Music",
+    note: "11 videos, and four release groups share the name: album, deluxe, EP, and a one-track single. The single must not win (owner review 3, D3).",
+  },
+  videos: albumVideos(
+    [
+      ["Prelude", 64],
+      ["Crush", 216],
+      ["Bad Ideas", 179],
+      ["I Like (the idea of) You", 170],
+      ["Games", 221],
+      ["Feelin", 184],
+      ["Words Ain't Enough", 124],
+      ["Bored", 183],
+      ["Wishful Drinking", 195],
+      ["Honest", 252],
+      ["Interlude III", 170],
+    ],
+    {
+      album: "Bad Ideas",
+      artist: "Tessa Violet",
+      year: 2019,
+      uploader: "Tessa Violet",
+      label: "T∆G Music",
+      releasedOn: "2019-10-25",
+    },
+  ),
+};
+
+const SCENARIOS: readonly Scenario[] = [DISCOVERY, SKINNY_LOVE, CURRENTS, FORMIDABLE, BAD_IDEAS];
 
 /* ------------------------------------------------------------------ */
 /* the wire                                                            */
@@ -362,62 +410,111 @@ const SEARCH_LIMIT = 25;
  */
 const RECORDED_LOOKUPS = DEFAULT_LOOKUP_LIMIT + 4;
 
-async function recordAlbum(scenario: AlbumScenario): Promise<{
-  entries: CassetteEntry[];
-  fixture: unknown;
-}> {
+/**
+ * Record an album scenario, following the **two-level** search of decision 151.
+ *
+ * One `release-group` search, one `release` search per group kept, and a tracklist lookup for
+ * the ones the engine itself would spend them on — with the same "one reserved per group"
+ * allocation `matching.service.ts` uses, so a cassette stays a recording of the real
+ * algorithm's appetite rather than a guess at it.
+ *
+ * `known` is what a previous run already recorded. Documents already on the cassette are
+ * **reused**, never re-fetched: adding a per-group search to the algorithm must add the
+ * documents that search needs and change nothing else, or every assertion written against the
+ * old recording is silently re-litigated by an afternoon of a different MusicBrainz.
+ * `--refresh` is how you ask for the other thing.
+ */
+async function recordAlbum(
+  scenario: AlbumScenario,
+  known: ReadonlyMap<string, unknown> = new Map(),
+): Promise<{ entries: CassetteEntry[]; fixture: unknown }> {
   const entries: CassetteEntry[] = [];
+  const written = new Set<string>();
   // Derived exactly as `match` and `mm match` derive them. Deriving them differently here is
   // what made the first recording unreplayable: a label read in one place and left null in the
   // other reordered two near-identical pressings and sent the lookups to different candidates.
   const hints = albumHints(scenario.videos);
 
-  // 1 — the release group.
-  const groupQuery = lucene.releaseGroupQuery(scenario.source.album, scenario.source.artist);
-  const groups = await get<SearchResult>("release-group", {
-    query: groupQuery,
-    limit: String(SEARCH_LIMIT),
-    offset: "0",
-  });
-  entries.push({
-    key: `search/release-group?query=${groupQuery}&limit=${String(SEARCH_LIMIT)}&offset=0`,
-    payload: groups,
-  });
+  async function document<T>(key: string, path: string, query: Record<string, string>): Promise<T> {
+    const cached = known.get(key);
+    const payload = cached ?? (await get<T>(path, query));
+    if (!written.has(key)) {
+      written.add(key);
+      entries.push({ key, payload });
+    }
+    return payload as T;
+  }
 
-  const best = (groups["release-groups"] ?? [])[0];
-  if (best?.id === undefined) throw new Error(`no release group for ${scenario.name}`);
+  async function searchDocument(
+    entity: "release" | "release-group",
+    query: string,
+  ): Promise<SearchResult> {
+    return await document<SearchResult>(
+      `search/${entity}?query=${query}&limit=${String(SEARCH_LIMIT)}&offset=0`,
+      entity,
+      { query, limit: String(SEARCH_LIMIT), offset: "0" },
+    );
+  }
 
-  // 2 — the releases of that group.
-  const releaseQuery = lucene.releaseQuery({
-    album: scenario.source.album,
-    releaseGroupId: best.id,
-  });
-  const releases = await get<SearchResult>("release", {
-    query: releaseQuery,
-    limit: String(SEARCH_LIMIT),
-    offset: "0",
-  });
-  entries.push({
-    key: `search/release?query=${releaseQuery}&limit=${String(SEARCH_LIMIT)}&offset=0`,
-    payload: releases,
-  });
+  // 1 — the release groups, narrow then (only if empty) wide, as the service asks them.
+  const narrow = lucene.releaseGroupQuery(scenario.source.album, scenario.source.artist);
+  let found = await searchDocument("release-group", narrow);
+  let rawGroups = found["release-groups"] ?? [];
+  if (rawGroups.length === 0) {
+    found = await searchDocument(
+      "release-group",
+      lucene.releaseGroupQueryWide(scenario.source.album),
+    );
+    rawGroups = found["release-groups"] ?? [];
+  }
+
+  const scoredGroups = releaseGroups.searchScore(rawGroups, hints, scenario.videos.length);
+  // One more group than a match keeps, for the same reason as the four extra lookups: a
+  // re-scored group must be able to move without breaking every cassette test at once.
+  const kept = scoredGroups.slice(0, DEFAULT_GROUP_LIMIT + 1);
+  if (kept.length === 0) throw new Error(`no release group for ${scenario.name}`);
+
+  // 2 — the releases of each kept group.
+  const searchResults: MbRelease[] = [];
+  const seen = new Set<string>();
+  for (const group of kept) {
+    const query = lucene.releaseQuery({
+      album: scenario.source.album,
+      releaseGroupId: group.id,
+    });
+    const answer = await searchDocument("release", query);
+    for (const release of answer.releases ?? []) {
+      if (release.id === undefined || seen.has(release.id)) continue;
+      seen.add(release.id);
+      searchResults.push(release);
+    }
+  }
 
   // 3 — the N the engine would look up, decided by the engine itself.
-  const shallow = (releases.releases ?? []).map((release) => ({ release, detailed: false }));
+  const shallow = searchResults.map((release) => ({ release, detailed: false }));
   const prescored = releaseCandidates.score({
     videos: scenario.videos,
     hints,
     candidates: shallow,
   });
-  const wanted = prescored.candidates
-    .slice(0, RECORDED_LOOKUPS)
-    .map((candidate) => candidate.id)
-    .filter((id) => id !== "");
+  const wanted: string[] = [];
+  const takenGroups = new Set<string>();
+  for (const candidate of prescored.candidates) {
+    if (candidate.id === "" || takenGroups.has(candidate.releaseGroupId ?? "")) continue;
+    takenGroups.add(candidate.releaseGroupId ?? "");
+    wanted.push(candidate.id);
+  }
+  for (const candidate of prescored.candidates) {
+    if (wanted.length >= RECORDED_LOOKUPS) break;
+    if (candidate.id === "" || wanted.includes(candidate.id)) continue;
+    wanted.push(candidate.id);
+  }
 
   const detailed: MbRelease[] = [];
-  for (const mbid of wanted) {
-    const full = await get<MbRelease>(`release/${mbid}`, { inc: INC.releaseFull });
-    entries.push({ key: `release/${mbid}?inc=releaseFull`, payload: full });
+  for (const mbid of wanted.slice(0, RECORDED_LOOKUPS)) {
+    const full = await document<MbRelease>(`release/${mbid}?inc=releaseFull`, `release/${mbid}`, {
+      inc: INC.releaseFull,
+    });
     detailed.push(full);
   }
 
@@ -426,10 +523,11 @@ async function recordAlbum(scenario: AlbumScenario): Promise<{
     kind: "album",
     videos: scenario.videos,
     hints,
-    candidates: (releases.releases ?? []).map((release) => {
+    candidates: searchResults.map((release) => {
       const full = detailed.find((candidate) => candidate.id === release.id);
       return full === undefined ? { release, detailed: false } : { release: full, detailed: true };
     }),
+    groups: scoredGroups,
     lookedUp: [...detailedIds],
   };
 
@@ -571,7 +669,9 @@ async function main(): Promise<void> {
     const previous = existingCassette(scenario.name);
     const known = process.argv.includes("--refresh") ? new Map<string, unknown>() : previous;
     const { entries, fixture } =
-      scenario.kind === "album" ? await recordAlbum(scenario) : await recordSingle(scenario, known);
+      scenario.kind === "album"
+        ? await recordAlbum(scenario, known)
+        : await recordSingle(scenario, known);
 
     const cassette = {
       name: scenario.name,

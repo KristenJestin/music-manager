@@ -83,13 +83,21 @@ export interface MatchTrack {
 /* weights and thresholds                                              */
 /* ------------------------------------------------------------------ */
 
-/** The nine release signals of `docs/04`, in the order the Console lists them. */
+/** The ten release signals of `docs/04`, in the order the Console lists them. */
 export interface ReleaseSignals {
   readonly title: number;
   readonly artist: number;
   readonly trackCount: number;
   /** The tracklist fit: the share of the release's tracks a video lands on. */
   readonly durations: number;
+  /**
+   * The other direction of the same fit: the share of **your videos** this release would give
+   * a track to (decision 152).
+   *
+   * `durations` alone cannot tell a fourteen-track album covered by fourteen videos from a
+   * one-track single covered by one of them: both are 1.0. This one says 1.0 and 0.09.
+   */
+  readonly coverage: number;
   readonly year: number;
   readonly label: number;
   readonly format: number;
@@ -147,6 +155,10 @@ export interface MatchingThresholds {
   readonly durationDecaySeconds: number;
   /** Normalised title similarity above which two titles are the same work. */
   readonly titleMatch: number;
+  /** Deduction at a total miss; scaled by the square of the share of videos left over. */
+  readonly coveragePenalty: number;
+  /** What one surplus video costs relative to one missing track, inside `trackCount`. */
+  readonly trackSurplusCost: number;
 }
 
 /** Everything the pure engine needs to be reproducible. Every field has a documented default. */
@@ -227,6 +239,15 @@ export interface ReleaseCandidate {
    * track two seconds and a fraction out still gets bound; it is simply not a clean hit.
    */
   readonly uncovered: number;
+  /**
+   * Videos the 1:1 assignment could bind to no track of this release, and out of how many.
+   *
+   * The counterpart of `uncovered`, and the number the third owner review is about: the single
+   * that scored 94 % left ten of eleven videos here. A card that prints "fit 1/1" and nothing
+   * else is telling half the truth.
+   */
+  readonly leftOver: number;
+  readonly videos: number;
   /** Mean |video − track| over the covered tracks, in seconds. */
   readonly durDelta: number | null;
   /** The fit, line by line. Empty when the tracklist was never looked up. */
@@ -241,6 +262,48 @@ export interface ReleaseCandidate {
    * Only the first N candidates are looked up (`docs/04`: the fit needs one lookup each).
    */
   readonly detailed: boolean;
+}
+
+/**
+ * One MusicBrainz **release group** — the album as a work — with the releases of it we scored.
+ *
+ * Decision 151. The list step 2 draws is a list of groups, not a flat list of pressings: "Bad
+ * Ideas the 2019 album" and "Bad Ideas the 2020 single" are two different records that happen
+ * to share a name, and the question a person is actually answering is *which record*, not
+ * *which barcode*. Once that is settled, the best pressing inside the chosen group is a detail
+ * the engine is allowed to have an opinion about, and it does: `releases[0]`.
+ */
+export interface ReleaseGroupCandidate {
+  /** `null` for the bucket of releases MusicBrainz gave us no group for. */
+  readonly id: string | null;
+  readonly title: string;
+  readonly artist: string;
+  readonly primaryType: string | null;
+  readonly secondaryTypes: readonly string[];
+  readonly firstReleaseDate: string | null;
+  readonly year: number | null;
+  /**
+   * The group's score: the score of its best release.
+   *
+   * A group is worth the best thing you can import from it — anything else would let a group
+   * full of mediocre pressings outrank the one holding the right record, or the reverse.
+   */
+  readonly score: number;
+  /** What the group looked like *before* any release of it was looked up. Ordered the search. */
+  readonly searchScore: number;
+  /** Its releases, best first. `releases[0]` is what selecting the group selects. */
+  readonly releases: readonly ReleaseCandidate[];
+  /** How many of its releases got a tracklist lookup. */
+  readonly detailedCount: number;
+  readonly preselected: boolean;
+  readonly why: readonly string[];
+}
+
+export interface ReleaseGroupRanking {
+  readonly groups: readonly ReleaseGroupCandidate[];
+  readonly preselected: ReleaseGroupCandidate | null;
+  /** Score gap between the best group and the next, or `null` when there is only one. */
+  readonly margin: number | null;
 }
 
 /** The release a lone recording is imported *as* — album > single > EP > compilation/live. */

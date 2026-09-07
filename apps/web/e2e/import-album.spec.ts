@@ -33,17 +33,33 @@ test.describe("importing an album", () => {
     // The URL carries the choice, so a reload keeps it.
     await page.waitForURL(/release=/, { timeout: 120_000 });
 
+    /*
+     * The list is release **groups** now (decision 151), and the best one is open with its
+     * best pressing preselected inside it.
+     */
+    const groups = page.getByTestId("candidate-group");
+    await expect(groups.first()).toHaveAttribute("data-state", "open");
+    await expect(groups.first()).toHaveAttribute("data-preselected", "true");
+    await expect(groups.first().getByTestId("group-score")).toBeVisible();
+
     const preselected = page.getByTestId("candidate").filter({ hasText: "preselected" }).first();
     await expect(preselected).toBeVisible();
     const score = await preselected.getByTestId("candidate-score").innerText();
     const percent = Number.parseInt(score.replace("%", ""), 10);
     expect(percent, `the preselected candidate scored ${score}`).toBeGreaterThanOrEqual(90);
+    // Both directions of the fit, never only the flattering one (D3, decision 152).
+    await expect(preselected.getByTestId("candidate-coverage")).toContainText("14/15");
 
-    // "why?" is decision 002 made visible: the reasons behind the number.
+    // "why?" is decision 002 made visible: the reasons behind the number, and — since D1 —
+    // a control that says what it is about to do and folds rather than blinking.
     const other = page.getByTestId("candidate").filter({ hasNotText: "preselected" }).first();
-    await expect(other.getByTestId("candidate-why")).toBeHidden();
+    await expect(other.getByTestId("candidate-why")).toHaveAttribute("data-state", "closed");
+    await expect(other.getByTestId("why-toggle")).toHaveText(/why\?/);
     await other.getByTestId("why-toggle").click();
-    await expect(other.getByTestId("candidate-why")).toBeVisible();
+    await expect(other.getByTestId("candidate-why")).toHaveAttribute("data-state", "open");
+    await expect(other.getByTestId("why-toggle")).toHaveText(/hide why/);
+    await other.getByTestId("why-toggle").click();
+    await expect(other.getByTestId("candidate-why")).toHaveAttribute("data-state", "closed");
 
     /* ---- step 3: the mapping --------------------------------------------- */
 

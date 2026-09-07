@@ -2,12 +2,17 @@
  * `releaseCandidates.score` — rank the MusicBrainz releases that could be the album behind a
  * playlist (`docs/04-pipeline-et-matching.md` § Release (album)).
  *
- * Nine signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
+ * Ten signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
  * penalties. The one that decides between two pressings of the same record is the **tracklist
  * fit**: how many of the release's tracks a video actually lands on, and by how much on
  * average. Title and artist put a candidate in the list; the fit is what tells a fourteen-track
  * European edition from the fifteen-track Japanese one with a bonus track, and nothing else in
  * the list can.
+ *
+ * The one that decides whether the record is the right record *at all* is **coverage**: how
+ * many of your videos it would give a track to. The fit cannot answer that — a one-track single
+ * fits its own tracklist 1/1 while dropping ten of your eleven videos, which is how one came to
+ * be preselected at 94 % (decision 152).
  *
  * The fit costs one lookup per candidate, so only the first N candidates get one (the service
  * decides N, default 6). A candidate without a tracklist is marked `detailed: false` and its
@@ -62,13 +67,20 @@ export interface ReleaseRanking {
 }
 
 /**
- * The share of the *release's* tracks that some video covers within the tolerance.
+ * The two directions of the fit, from one assignment.
  *
- * Note the denominator: it is the tracklist, not the video list. That is the whole point.
- * Fifteen videos over a fourteen-track edition cover 14/14 — the extra video is a separate
- * problem, reported as `extra_videos`, and must not lower the release's score. The same
- * fifteen videos over the fifteen-track Japanese edition cover 14/15, because the bonus track
- * has no video, and *that* is a genuine mark against the candidate.
+ * `signal` is the share of the *release's* tracks that some video covers within the tolerance.
+ * Its denominator is the tracklist, and deliberately so: fifteen videos over a fourteen-track
+ * edition cover 14/14 — the extra video is a separate problem — while the same fifteen videos
+ * over the fifteen-track Japanese edition cover 14/15, because the bonus track has no video,
+ * and *that* is a genuine mark against the candidate. Changing this denominator to
+ * `max(videos, tracks)`, the other option the third owner review offers, would flatten those
+ * two to the same number and lose the one comparison the fit exists to make.
+ *
+ * `coverage` is the direction that was missing (D3, decision 152): the share of the **source
+ * videos** the assignment binds to anything at all. A one-track single scores `signal` 1.0 and
+ * `coverage` 1/11. Between them there is no longer a way for a candidate to look perfect while
+ * importing one eleventh of the playlist.
  */
 function tracklistFit(
   input: ReleaseScoreInput,
@@ -78,7 +90,9 @@ function tracklistFit(
   fit: number;
   fitOf: number;
   uncovered: number;
+  leftOver: number;
   signal: number | null;
+  coverage: number | null;
   meanAbsDelta: number | null;
   lines: readonly FitLine[];
 } {
@@ -87,14 +101,26 @@ function tracklistFit(
   const tracks = detailed ? flattenTracks(candidate.release) : [];
   if (tracks.length === 0) {
     const total = trackTotal(candidate.release);
-    return { fit: 0, fitOf: total, uncovered: total, signal: null, meanAbsDelta: null, lines: [] };
+    return {
+      fit: 0,
+      fitOf: total,
+      uncovered: total,
+      leftOver: 0,
+      signal: null,
+      coverage: null,
+      meanAbsDelta: null,
+      lines: [],
+    };
   }
   const result = assign(input.videos, tracks, config);
+  const videoCount = input.videos.length;
   return {
     fit: result.fit,
     fitOf: result.fitOf,
     uncovered: result.uncoveredTracks.length,
+    leftOver: result.extraVideos.length,
     signal: result.fitOf === 0 ? null : unit(result.fit / result.fitOf),
+    coverage: videoCount === 0 ? null : unit(result.bound / videoCount),
     meanAbsDelta: result.meanAbsDelta,
     // The same assignment, narrowed to what a card can show without a second lookup.
     lines: result.lines.map((line) => ({
@@ -117,20 +143,47 @@ function tracklistFit(
  * Tolerant on the "more videos than tracks" side and strict on the other: a playlist that
  * carries a radio edit alongside the album is ordinary, whereas a release with tracks the
  * playlist does not have at all means the import will be incomplete. So a surplus video costs
- * a third of what a missing one does.
+ * `trackSurplusCost` of what a missing one does — 0.7 since decision 152, where the 0.35 it was
+ * before is the “pénalité dérisoire” the third owner review names.
  */
-function trackCountScore(videos: number, tracks: number): number {
+function trackCountScore(videos: number, tracks: number, surplusCost: number): number {
   if (tracks === 0) return 0;
   const span = Math.max(videos, tracks);
   const surplus = Math.max(0, videos - tracks);
   const missing = Math.max(0, tracks - videos);
-  return unit(1 - (surplus / span) * 0.35 - missing / span);
+  return unit(1 - (surplus / span) * surplusCost - missing / span);
 }
 
-/** Blend the nine signals, dropping the ones that do not exist for this candidate. */
+/**
+ * The deduction for the videos a candidate would leave behind.
+ *
+ * Quadratic in the shortfall, which is what lets one signal serve two cases that look alike on
+ * paper and are nothing alike in practice — see `coveragePenalty` in `config.ts`. Returns no
+ * penalty at all rather than a zero-amount one, so the card never prints a line about a
+ * problem the candidate does not have.
+ *
+ * A candidate whose tracklist was never fetched gets none of this: its coverage is *unknown*,
+ * not bad, and the ranking already keeps unexamined candidates below examined ones.
+ */
+function coveragePenalties(coverage: number | null, config: MatchingConfig): Penalty[] {
+  if (coverage === null) return [];
+  const shortfall = unit(1 - coverage);
+  if (shortfall <= 0) return [];
+  const amount = round3(config.thresholds.coveragePenalty * shortfall * shortfall);
+  if (amount < 0.005) return [];
+  return [
+    {
+      reason: `Only ${String(Math.round(coverage * 100))} % of your videos would be imported from this release`,
+      amount,
+    },
+  ];
+}
+
+/** Blend the ten signals, dropping the ones that do not exist for this candidate. */
 function blendRelease(
   signals: ReleaseSignals,
   fitSignal: number | null,
+  coverageSignal: number | null,
   config: MatchingConfig,
 ): number {
   const w = config.weights.release;
@@ -138,6 +191,7 @@ function blendRelease(
     [w.title, signals.title],
     [w.artist, signals.artist],
     [w.durations, fitSignal],
+    [w.coverage, coverageSignal],
     [w.trackCount, signals.trackCount],
     [w.year, signals.year],
     [w.label, signals.label],
@@ -189,6 +243,21 @@ function explain(
         `${String(candidate.uncovered)} release track${candidate.uncovered === 1 ? "" : "s"} would stay uncovered`,
       );
     }
+    /*
+     * The line the third owner review asked for, in the terms it asked for them.
+     *
+     * "10 videos more than the tracklist has tracks" was true, buried among nine other bullets
+     * and worth four points of score. What a person needs to read first is the *outcome*: how
+     * many of the videos in front of them this candidate would actually import.
+     */
+    why.push(
+      `${String(candidate.videos - candidate.leftOver)} of your ${String(candidate.videos)} video${candidate.videos === 1 ? "" : "s"} would find a track here`,
+    );
+    if (candidate.leftOver > 0) {
+      why.push(
+        `${String(candidate.leftOver)} video${candidate.leftOver === 1 ? "" : "s"} would be left over — this release does not have ${candidate.leftOver === 1 ? "that song" : "those songs"}`,
+      );
+    }
   }
 
   const surplus = videoCount - candidate.tracks;
@@ -226,8 +295,18 @@ function explain(
     why.push(`Label ${candidate.label} differs from the “Provided to YouTube by” line — minor`);
   }
 
-  for (const penalty of penalties)
-    why.push(`${penalty.reason} (−${String(round3(penalty.amount))})`);
+  /*
+   * The penalties, as percentages, because `why` is the *whole* argument.
+   *
+   * They are printed here and nowhere else. The card used to render `why` and then
+   * `penalties` underneath it, so every deduction appeared twice — once as "(−0.2)" and once
+   * as "(−20%)" — which is not two reasons, it is one reason and a bug (seen on the Bad Ideas
+   * deluxe pressing while checking D3). A percentage, because that is the scale every other
+   * number on the card is on.
+   */
+  for (const penalty of penalties) {
+    why.push(`${penalty.reason} (−${String(Math.round(penalty.amount * 100))} %)`);
+  }
   return why;
 }
 
@@ -258,7 +337,9 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       fit,
       fitOf,
       uncovered,
+      leftOver,
       signal: fitSignal,
+      coverage: coverageSignal,
       meanAbsDelta,
       lines: fitLines,
     } = tracklistFit(input, candidate, config);
@@ -266,8 +347,9 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
     const signals: ReleaseSignals = {
       title: round3(sourceAlbum === "" ? 0.5 : titleScore(sourceAlbum, release.title ?? "")),
       artist: round3(artistScore(sourceArtists, artist)),
-      trackCount: round3(trackCountScore(videoCount, tracks)),
+      trackCount: round3(trackCountScore(videoCount, tracks, config.thresholds.trackSurplusCost)),
       durations: round3(fitSignal ?? 0),
+      coverage: round3(coverageSignal ?? 0),
       year: round3(
         yearScore(sourceYear, yearOf(release.date) ?? yearOf(group?.["first-release-date"])),
       ),
@@ -278,6 +360,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
     };
 
     const penalties: Penalty[] = [
+      ...coveragePenalties(coverageSignal, config),
       ...disambiguationPenalties(release.disambiguation, config.preferences),
       ...secondaryTypePenalties(group?.["secondary-types"], group?.["primary-type"]),
       ...titleKeywordPenalties(
@@ -287,7 +370,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       ),
     ];
 
-    const blended = blendRelease(signals, fitSignal, config);
+    const blended = blendRelease(signals, fitSignal, coverageSignal, config);
     const finalScore = unit(blended - totalPenalty(penalties));
 
     const candidateOut: ReleaseCandidate = {
@@ -310,6 +393,8 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       fit,
       fitOf,
       uncovered,
+      leftOver,
+      videos: videoCount,
       durDelta: meanAbsDelta,
       fitLines,
       signals,
@@ -382,13 +467,19 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
  */
 function differsMaterially(a: ReleaseCandidate, b: ReleaseCandidate): boolean {
   if (a.detailed !== b.detailed) return false; // verified beats unverified; not a question
-  if (a.tracks === b.tracks && a.fit === b.fit && a.uncovered === b.uncovered) {
+  if (
+    a.tracks === b.tracks &&
+    a.fit === b.fit &&
+    a.uncovered === b.uncovered &&
+    a.leftOver === b.leftOver
+  ) {
     return false; // the same import either way — a barcode, not a decision
   }
   // The outcomes differ, but if the preselected one covers at least as much and leaves no more
   // behind, it simply *wins*. A question is only worth asking when the runner-up would gain
-  // something: more tracks covered, or fewer left uncovered.
+  // something: more tracks covered, fewer left uncovered, or fewer of your videos dropped.
   const coversMore = b.fit > a.fit;
   const leavesLessBehind = b.uncovered < a.uncovered;
-  return coversMore || leavesLessBehind;
+  const dropsFewerVideos = b.leftOver < a.leftOver;
+  return coversMore || leavesLessBehind || dropsFewerVideos;
 }

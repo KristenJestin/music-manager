@@ -14,7 +14,9 @@ import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { MMError, notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
 import {
+  DEFAULT_GROUP_LIMIT,
   DEFAULT_PATH_TEMPLATE,
+  DEFAULT_THRESHOLDS,
   DEFAULT_WEIGHTS,
   DISC_MODES,
   PATH_TOKENS,
@@ -166,7 +168,17 @@ export const SETTING_DEFINITIONS = {
   matchSearchLimit: define(
     z.number().int().min(1).max(100),
     25,
-    "How many results one MusicBrainz search asks for. A match makes at most two of them.",
+    "How many results one MusicBrainz search asks for. A match makes `1 + matchGroupLimit`.",
+  ),
+  matchGroupLimit: define(
+    z.number().int().min(1).max(10),
+    DEFAULT_GROUP_LIMIT,
+    "How many release groups get a release search of their own — the first level of the match.",
+  ),
+  matchCoveragePenalty: define(
+    z.number().min(0).max(1),
+    DEFAULT_THRESHOLDS.coveragePenalty,
+    "Deduction at a total miss, scaled by the square of the share of videos a release leaves over.",
   ),
   matchReleaseWeights: define(
     z.object({
@@ -174,6 +186,8 @@ export const SETTING_DEFINITIONS = {
       artist: z.number().min(0),
       trackCount: z.number().min(0),
       durations: z.number().min(0),
+      // Added by decision 152, hence a default: a settings row written before it exists.
+      coverage: z.number().min(0).default(DEFAULT_WEIGHTS.release.coverage),
       year: z.number().min(0),
       label: z.number().min(0),
       format: z.number().min(0),
@@ -181,7 +195,7 @@ export const SETTING_DEFINITIONS = {
       country: z.number().min(0),
     }),
     DEFAULT_WEIGHTS.release,
-    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one.",
+    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it.",
   ),
   matchRecordingWeights: define(
     z.object({

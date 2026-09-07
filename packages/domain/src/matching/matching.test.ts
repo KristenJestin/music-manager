@@ -13,6 +13,7 @@ import { flattenTracks } from "./signals.ts";
 import { assign } from "./mapping.ts";
 import * as releaseCandidates from "./release-candidates.ts";
 import * as recordingCandidates from "./recording-candidates.ts";
+import * as releaseGroups from "./release-groups.ts";
 import * as lucene from "./lucene.ts";
 import { DEFAULT_CONFIG, DEFAULT_WEIGHTS, withDefaults } from "./config.ts";
 import type { MbRelease } from "../metadata/resolvers/musicbrainz-types.ts";
@@ -61,6 +62,25 @@ describe("the default configuration", () => {
     const release = DEFAULT_WEIGHTS.release;
     const others = Object.entries(release).filter(([key]) => key !== "durations");
     for (const [, weight] of others) expect(release.durations).toBeGreaterThan(weight);
+  });
+
+  it("puts coverage second, ahead of title and artist (decision 152)", () => {
+    // The fit still decides between two pressings of one record; coverage is what stops a
+    // one-track single from looking perfect while importing one video of eleven, and it has
+    // to outweigh the two signals that put a wrong candidate in the list to begin with.
+    const release = DEFAULT_WEIGHTS.release;
+    expect(release.coverage).toBeLessThan(release.durations);
+    expect(release.coverage).toBeGreaterThan(release.title);
+    expect(release.coverage).toBeGreaterThan(release.artist);
+  });
+
+  it("scales the coverage penalty by the square of what a release would drop", () => {
+    // A quadratic is the only shape that forgives one extra video in fifteen and refuses ten
+    // in eleven; see `coveragePenalty` in config.ts.
+    const max = DEFAULT_CONFIG.thresholds.coveragePenalty;
+    const at = (shortfall: number): number => max * shortfall * shortfall;
+    expect(at(1 / 15)).toBeLessThan(0.005);
+    expect(at(10 / 11)).toBeGreaterThan(0.4);
   });
 
   it("carries the documented thresholds", () => {
@@ -213,6 +233,67 @@ describe("Discovery — the fifteen-track Japanese edition", () => {
     expect(result.extraVideos).toHaveLength(1);
     expect(result.uncoveredTracks).toHaveLength(1);
     expect(result.uncoveredTracks[0]?.position).toBe(15);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Bad Ideas — an honest fit                                           */
+/* ------------------------------------------------------------------ */
+
+describe("Bad Ideas — eleven videos, and a one-track single of the same name", () => {
+  const fixture = album("bad-ideas");
+  const ranking = releaseCandidates.score(fixture);
+  const ALBUM_2019 = "06cadffd-7930-4b56-a392-ab427188b56c";
+
+  it("preselects the eleven-track 2019 album", () => {
+    expect(ranking.preselected?.id).toBe(ALBUM_2019);
+    expect(ranking.preselected?.tracks).toBe(11);
+    expect(ranking.preselected?.fit).toBe(11);
+    expect(ranking.preselected?.leftOver).toBe(0);
+    expect(ranking.preselected?.signals.coverage).toBe(1);
+  });
+
+  it("crushes the one-track single, which fits 1/1 and covers 1 of 11", () => {
+    /*
+     * The whole of D3 in one assertion. Before decision 152 this candidate scored 94 % —
+     * `durations` was 1.0 (it fits its own tracklist perfectly), the surplus-video penalty was
+     * worth four points, and nothing at all measured the ten videos it would drop.
+     */
+    const single = ranking.candidates.find(
+      (candidate) => candidate.detailed && candidate.tracks === 1,
+    );
+    expect(single).toBeDefined();
+    expect(single?.fit).toBe(1);
+    expect(single?.fitOf).toBe(1);
+    expect(single?.signals.durations).toBe(1);
+    expect(single?.signals.coverage).toBeCloseTo(1 / 11, 2);
+    expect(single?.leftOver).toBe(10);
+    expect(single?.score).toBeLessThanOrEqual(0.3);
+    expect(single?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Only 9 % of your videos would be imported/,
+    );
+  });
+
+  it("groups the candidates and makes each group worth its best release", () => {
+    const grouped = releaseGroups.group(ranking.candidates);
+    expect(grouped.groups.length).toBeGreaterThan(1);
+    expect(grouped.preselected?.releases[0]?.id).toBe(ALBUM_2019);
+    expect(grouped.preselected?.score).toBe(ranking.preselected?.score);
+    for (const group of grouped.groups) {
+      expect(group.score).toBe(group.releases[0]?.score);
+    }
+  });
+
+  it("prefers an album group to a single group before any tracklist is read", () => {
+    // The pre-search lean of decision 151: with eleven videos on the table, "Album" is the
+    // better hypothesis, and that is what decides which groups get a release search at all.
+    expect(releaseGroups.primaryTypeScore("Album", 11)).toBeGreaterThan(
+      releaseGroups.primaryTypeScore("Single", 11),
+    );
+    // With one video it reverses, and just as gently.
+    expect(releaseGroups.primaryTypeScore("Single", 1)).toBeGreaterThan(
+      releaseGroups.primaryTypeScore("Album", 1),
+    );
   });
 });
 

@@ -60,19 +60,29 @@ function PreselectedFlag() {
 /**
  * "why?" and "tracklist fit" — the two disclosures, as real buttons.
  *
- * They used to be bare text with a hover tint and no cursor, so hovering "why?" looked like it
- * did nothing at all (A7). A bordered control with a pressed state says both that it can be
- * clicked and whether it currently is.
+ * Third owner review, D1. The previous version was already a bordered button with a pressed
+ * tint, and it still read as inert, for two reasons that are both about *state* rather than
+ * about affordance: the label said "why?" whether the reasons were open or shut — and on the
+ * preselected card they are open from the start, so the button appeared to be offering
+ * something already on screen — and hovering changed a border colour by one step, which is
+ * nothing at the size of a 10-pixel control.
+ *
+ * So: the label is the **action**, and it flips ("why?" / "hide why", "tracklist fit" /
+ * "hide fit"); the hover fills the control rather than tinting its edge; and pressing it moves
+ * it down a pixel, which is the cheapest possible "yes, that was a button".
  */
 function DisclosureButton({
   open,
   label,
+  openLabel,
   testId,
   icon,
   onToggle,
 }: {
   readonly open: boolean;
   readonly label: string;
+  /** What the button says while the section is open — an action, not a heading. */
+  readonly openLabel: string;
   readonly testId: string;
   readonly icon?: ReactNode;
   readonly onToggle: () => void;
@@ -81,6 +91,7 @@ function DisclosureButton({
     <button
       type="button"
       data-testid={testId}
+      data-state={open ? "open" : "closed"}
       aria-expanded={open}
       onClick={(event) => {
         event.stopPropagation();
@@ -88,15 +99,48 @@ function DisclosureButton({
       }}
       className={cn(
         "inline-flex cursor-pointer items-center gap-1 rounded-md border border-line-strong bg-surface-2 px-1.5 py-0.5 text-2xs text-fg-1",
-        "hover:border-primary hover:bg-surface-3 hover:text-foreground",
-        "focus-visible:border-primary focus-visible:outline-none",
-        open && "border-primary bg-primary-soft text-primary",
+        "transition-colors duration-100",
+        "hover:border-primary hover:bg-primary-soft hover:text-primary",
+        "focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none",
+        "active:translate-y-px",
+        open && "border-primary bg-primary text-background hover:bg-primary hover:text-background",
       )}
     >
       {icon}
-      {label}
-      <ChevronDown className={cn("size-3", open && "rotate-180")} aria-hidden="true" />
+      {open ? openLabel : label}
+      <ChevronDown
+        className={cn("size-3 transition-transform duration-150", open && "rotate-180")}
+        aria-hidden="true"
+      />
     </button>
+  );
+}
+
+/**
+ * The folding half of a disclosure.
+ *
+ * Always mounted, so there is a closing frame to animate — see the `disclosure` utility in
+ * `styles.css`. `aria-hidden` and a `data-state` are what make "closed" true for a screen
+ * reader and for a test, since the element itself never leaves the DOM.
+ */
+function Disclosure({
+  open,
+  testId,
+  children,
+}: {
+  readonly open: boolean;
+  readonly testId: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      data-state={open ? "open" : "closed"}
+      aria-hidden={!open}
+      className={cn("disclosure", open && "disclosure-open")}
+    >
+      <div className="disclosure-body">{children}</div>
+    </div>
   );
 }
 
@@ -111,7 +155,7 @@ function TracklistFit({ lines }: { readonly lines: readonly FitLine[] }) {
     );
   }
   return (
-    <div data-testid="candidate-fit" className="mt-2 overflow-hidden rounded-md border border-line">
+    <div className="mt-2 overflow-hidden rounded-md border border-line">
       <table className="w-full text-2xs">
         <thead>
           <tr className="bg-surface-2 text-fg-2">
@@ -171,9 +215,17 @@ export interface ReleaseCandidateCardProps extends CommonProps {
 }
 
 export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseCandidateCardProps) {
-  const [open, setOpen] = useState(false);
+  /*
+   * `null` means "whatever selection implies", `true`/`false` mean "the reader has decided".
+   *
+   * It used to be a plain boolean OR-ed with `selected`, which made the button on the selected
+   * card genuinely inert: the reasons open by default there, pressing "why?" set a flag that
+   * was already outvoted, and nothing on screen changed. That is half of D1 — the control did
+   * not do nothing *visually*, it did nothing *at all*.
+   */
+  const [open, setOpen] = useState<boolean | null>(null);
   const [fitOpen, setFitOpen] = useState(false);
-  const showWhy = open || selected;
+  const showWhy = open ?? selected;
 
   return (
     <div
@@ -194,17 +246,19 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
         }
       }}
       className={cn(
-        "candidate-grid relative isolate cursor-pointer items-center gap-3 rounded-lg border border-line bg-surface-1 px-3.5 py-3",
+        "candidate-grid relative isolate cursor-pointer gap-3 rounded-lg border border-line bg-surface-1 px-3.5 py-3",
         "hover:border-line-strong hover:bg-surface-2",
         selected && "border-primary bg-primary-soft hover:border-primary hover:bg-primary-soft",
       )}
     >
       {candidate.preselected ? <PreselectedFlag /> : null}
 
+      {/* `mt-1` rather than a centred row: D2 wants this level with the *title*, not with the
+          middle of a card whose height depends on which sections are open. */}
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-4 place-items-center rounded-full border border-line-strong",
+          "mt-1 grid size-4 place-items-center rounded-full border border-line-strong",
           selected && "border-primary",
         )}
       >
@@ -253,16 +307,17 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
           <span className="font-mono text-fg-3">{short(candidate.id)}…</span>
         </div>
 
-        {showWhy ? (
-          <div data-testid="candidate-why" className="mt-2">
+        <Disclosure open={showWhy} testId="candidate-why">
+          <div className="mt-2">
             <SignalsRow signals={candidate.signals as unknown as Record<string, number>} />
             <ul className="mt-1.5 list-disc pl-4 text-xs text-fg-1">
+              {/*
+                `why` already ends with the penalties, as percentages. Rendering
+                `candidate.penalties` underneath it printed every deduction twice.
+              */}
               {candidate.why.map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-              {candidate.penalties.map((penalty) => (
-                <li key={penalty.reason} className="text-warn">
-                  {penalty.reason} (−{pct(penalty.amount)})
+                <li key={reason} className={cn(reason.includes("(−") && "text-warn")}>
+                  {reason}
                 </li>
               ))}
             </ul>
@@ -278,9 +333,11 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
               <ExternalLink className="size-3" aria-hidden="true" /> Open on MusicBrainz
             </a>
           </div>
-        ) : null}
+        </Disclosure>
 
-        {fitOpen ? <TracklistFit lines={candidate.fitLines} /> : null}
+        <Disclosure open={fitOpen} testId="candidate-fit">
+          <TracklistFit lines={candidate.fitLines} />
+        </Disclosure>
       </div>
 
       <div className="flex flex-col items-end gap-1">
@@ -290,6 +347,12 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
         >
           {pct(candidate.score)}
         </span>
+        {/*
+          Both halves of the fit, never one (D3). "fit 1/1" was true of a one-track single
+          facing eleven videos, and it was the headline number on the card the engine had
+          preselected. The second line is the one a person actually needs: how much of *their*
+          playlist this candidate would import.
+        */}
         <span className="text-2xs text-fg-2">
           fit{" "}
           <b className="font-mono">
@@ -297,10 +360,23 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
           </b>
           {candidate.durDelta === null ? null : <> · Δ {candidate.durDelta.toFixed(1)}s</>}
         </span>
+        {candidate.detailed && candidate.videos > 0 ? (
+          <span
+            data-testid="candidate-coverage"
+            className={cn("text-2xs", candidate.leftOver > 0 ? "text-warn" : "text-fg-2")}
+          >
+            covers{" "}
+            <b className="font-mono">
+              {candidate.videos - candidate.leftOver}/{candidate.videos}
+            </b>{" "}
+            videos
+          </span>
+        ) : null}
         <div className="flex flex-wrap justify-end gap-1">
           <DisclosureButton
             testId="fit-toggle"
             label="tracklist fit"
+            openLabel="hide fit"
             open={fitOpen}
             icon={<ListChecks className="size-3" aria-hidden="true" />}
             onToggle={() => {
@@ -310,9 +386,10 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
           <DisclosureButton
             testId="why-toggle"
             label="why?"
+            openLabel="hide why"
             open={showWhy}
             onToggle={() => {
-              setOpen((current) => !current);
+              setOpen((current) => !(current ?? selected));
             }}
           />
         </div>
@@ -342,8 +419,10 @@ export function RecordingCandidateCard({
   borrow = null,
   onBorrow,
 }: RecordingCandidateCardProps) {
-  const [open, setOpen] = useState(false);
-  const showWhy = open || selected;
+  // Tri-state, same reason as the release card: a boolean OR-ed with `selected` made the
+  // button on the selected card do nothing at all (D1).
+  const [open, setOpen] = useState<boolean | null>(null);
+  const showWhy = open ?? selected;
   const difference =
     videoSeconds === null || candidate.length === null ? null : videoSeconds - candidate.length;
 
@@ -366,7 +445,7 @@ export function RecordingCandidateCard({
         }
       }}
       className={cn(
-        "candidate-grid relative isolate cursor-pointer items-center gap-3 rounded-lg border border-line bg-surface-1 px-3.5 py-3",
+        "candidate-grid relative isolate cursor-pointer gap-3 rounded-lg border border-line bg-surface-1 px-3.5 py-3",
         "hover:border-line-strong hover:bg-surface-2",
         selected && "border-primary bg-primary-soft",
       )}
@@ -375,7 +454,7 @@ export function RecordingCandidateCard({
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-4 place-items-center rounded-full border border-line-strong",
+          "mt-1 grid size-4 place-items-center rounded-full border border-line-strong",
           selected && "border-primary",
         )}
       >
@@ -416,8 +495,8 @@ export function RecordingCandidateCard({
             </span>
           )}
         </div>
-        {showWhy ? (
-          <div data-testid="candidate-why" className="mt-2">
+        <Disclosure open={showWhy} testId="candidate-why">
+          <div className="mt-2">
             <SignalsRow signals={candidate.signals as unknown as Record<string, number>} />
             <ul className="mt-1.5 list-disc pl-4 text-xs text-fg-1">
               {candidate.why.map((reason) => (
@@ -425,7 +504,7 @@ export function RecordingCandidateCard({
               ))}
             </ul>
           </div>
-        ) : null}
+        </Disclosure>
 
         {/*
           The borrow release, on the selected card only — the prototype's `wizStep2Single`.
@@ -466,9 +545,10 @@ export function RecordingCandidateCard({
         <DisclosureButton
           testId="why-toggle"
           label="why?"
+          openLabel="hide why"
           open={showWhy}
           onToggle={() => {
-            setOpen((current) => !current);
+            setOpen((current) => !(current ?? selected));
           }}
         />
       </div>

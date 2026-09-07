@@ -11,7 +11,13 @@ import {
   Sparkles,
   Search,
 } from "lucide-react";
-import type { BorrowRelease, MappingLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
+import type {
+  BorrowRelease,
+  MappingLine,
+  RecordingCandidate,
+  ReleaseCandidate,
+  ReleaseGroupCandidate,
+} from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
 import { borrowLabel } from "#/components/borrow-select.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -21,7 +27,8 @@ import { MappingRow } from "#/components/mapping-row.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 import { Stepper } from "#/components/stepper.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
-import { RecordingCandidateCard, ReleaseCandidateCard } from "#/components/candidate-card.tsx";
+import { RecordingCandidateCard } from "#/components/candidate-card.tsx";
+import { ReleaseGroupCard } from "#/components/candidate-group.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useMatchProgress } from "#/hooks/use-match-progress.ts";
@@ -183,10 +190,12 @@ export interface WizardOptions {
 /**
  * What the wizard looks like while its loader is running.
  *
- * Step 2 is the one that takes real time — two MusicBrainz searches and up to six tracklist
- * lookups, at the one request per second the service is rate-limited to, so eight to ten
- * seconds is the floor. The screen therefore reports the work rather than spinning: which
- * request is being made now, and how many of the planned ones are done.
+ * Step 2 is the one that takes real time — a release-group search, one release search per
+ * group kept, and up to six tracklist lookups, at the one request per second the service is
+ * rate-limited to, so about ten seconds is the floor (decision 151). The screen therefore
+ * reports the work rather than spinning: which request is being made now, and how many of the
+ * planned ones are done. The plan narrows as soon as the group search says how many groups
+ * there really were, so the denominator is a promise rather than a guess.
  */
 function WizardPending() {
   const params = Route.useSearch();
@@ -194,7 +203,7 @@ function WizardPending() {
   const progress = useMatchProgress(matching ? (params.importId ?? null) : null);
 
   const done = (progress?.searches ?? 0) + (progress?.lookups ?? 0);
-  const planned = Math.max(1, (progress?.searchesPlanned ?? 2) + (progress?.lookupsPlanned ?? 6));
+  const planned = Math.max(1, (progress?.searchesPlanned ?? 4) + (progress?.lookupsPlanned ?? 6));
 
   return (
     <div data-testid="wizard-pending" className="flex flex-col gap-3.5">
@@ -217,7 +226,7 @@ function WizardPending() {
           <p className="text-xs text-fg-2" data-testid="pending-label">
             {progress?.label ??
               (matching
-                ? "Two searches and up to six tracklist lookups, one request per second."
+                ? "One release-group search, one release search per group, then up to six tracklist lookups — one request per second."
                 : "Asking YouTube what is behind this link.")}
           </p>
 
@@ -231,7 +240,7 @@ function WizardPending() {
               />
               <p className="font-mono text-2xs text-fg-2" data-testid="pending-counters">
                 <span data-testid="pending-searches">
-                  {progress?.searches ?? 0}/{progress?.searchesPlanned ?? 2}
+                  {progress?.searches ?? 0}/{progress?.searchesPlanned ?? 4}
                 </span>{" "}
                 searches, {""}
                 <span data-testid="pending-lookups">
@@ -1239,8 +1248,46 @@ function StepMatch({
   // DRIVE-1 §B2: the single branch rendered `candidates.recordings` and dropped the manual
   // results on the floor, so the search box and the MBID field were visible and inert on the
   // one screen where the matcher had just proposed a cover.
-  const releases = merge(candidates?.releases ?? [], manual?.releases ?? []);
   const recordings = merge(candidates?.recordings ?? [], manual?.recordings ?? []);
+
+  /*
+   * The album path renders release **groups** (decision 151).
+   *
+   * A hand search comes back grouped too, so the two sources merge on group identity rather
+   * than on release identity: searching "Bad Ideas" when the 2019 album is already proposed
+   * must add its *pressings* to the group that is already on screen, not a second card with
+   * the same name underneath the first one.
+   */
+  const groups = mergeGroups(candidates?.groups ?? [], manual?.groups ?? []);
+
+  /**
+   * Merge a hand search into the proposed groups, on group identity.
+   *
+   * Same rule as `merge`: nothing found by hand may wear the "preselected" flag, because the
+   * preselection belongs to the ranking the engine produced. A release the ranking already
+   * holds is kept as the ranking scored it — the search scores it in isolation, without the
+   * budget the match spent, so its number would be the *less* informed of the two.
+   */
+  function mergeGroups(
+    ranked: readonly ReleaseGroupCandidate[],
+    found: readonly ReleaseGroupCandidate[],
+  ): ReleaseGroupCandidate[] {
+    const byId = new Map(ranked.map((entry) => [entry.id ?? "", entry]));
+    for (const entry of found) {
+      const key = entry.id ?? "";
+      const known = byId.get(key);
+      if (known === undefined) {
+        byId.set(key, { ...entry, preselected: false });
+        continue;
+      }
+      const extra = entry.releases.filter(
+        (release) => !known.releases.some((seen) => seen.id === release.id),
+      );
+      if (extra.length === 0) continue;
+      byId.set(key, { ...known, releases: [...known.releases, ...extra] });
+    }
+    return [...byId.values()];
+  }
 
   const runSearch = (): void => {
     if (query.trim() === "") return;
@@ -1261,19 +1308,33 @@ function StepMatch({
                 ? "Nothing scored high enough to propose."
                 : `Preselected: ${preselected.title}, scored ${pct(preselected.score)}.`}
             </b>{" "}
-            {candidates.budget.searches} search
-            {candidates.budget.searches === 1 ? "" : "es"} and {candidates.budget.lookups} lookup
-            {candidates.budget.lookups === 1 ? "" : "s"} against MusicBrainz. You pick; the
-            algorithm only orders. Open <em>why?</em> on any card for the signals behind its score.{" "}
+            <span data-testid="budget">
+              {candidates.budget.searches} of {candidates.planned.searches} search
+              {candidates.planned.searches === 1 ? "" : "es"} and {candidates.budget.lookups} of{" "}
+              {candidates.planned.lookups} tracklist lookup
+              {candidates.planned.lookups === 1 ? "" : "s"} against MusicBrainz
+            </span>
+            {single ? null : (
+              <>
+                {" "}
+                — one for the release <b>groups</b>, then one per group kept, then the tracklists
+              </>
+            )}
+            . You pick; the algorithm only orders. Open <em>why?</em> on any card for the signals
+            behind its score.{" "}
             {/*
               A8 of the owner review, in one sentence: the tracklist fit is *already* what
               ordered this list, so "the release is chosen from the tracks, but the mapping
-              comes after" is answered on the card rather than a step later.
+              comes after" is answered on the card rather than a step later. D3 of the third
+              review adds the other half — the fit is a fraction of the *release*, and on its
+              own a one-track single fits 1/1 while importing one video out of eleven.
             */}
             <span data-testid="fit-explainer">
               The <b>fit</b> next to each score is that candidate's tracklist already matched
               against your videos, one by one, which is what separates two pressings of the same
-              record. Open <em>tracklist fit</em> to read it; step 3 is where you change it.
+              record; <b>covers</b> underneath it is the other direction — how many of your videos
+              that release would actually import. Open <em>tracklist fit</em> to read it line by
+              line; step 3 is where you change it.
             </span>
             {candidates.ambiguous ? (
               <>
@@ -1326,12 +1387,13 @@ function StepMatch({
                     videoSeconds={source?.videos[0]?.durationSeconds ?? null}
                   />
                 ))
-              : releases.map((candidate) => (
-                  <ReleaseCandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    selected={selected === candidate.id}
+              : groups.map((entry, index) => (
+                  <ReleaseGroupCard
+                    key={entry.id ?? `ungrouped-${String(index)}`}
+                    group={entry}
+                    selected={selected}
                     onSelect={onSelect}
+                    defaultOpen={index === 0}
                   />
                 ))}
           </div>

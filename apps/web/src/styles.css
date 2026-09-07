@@ -258,10 +258,54 @@
   grid-template-columns: 1.75rem minmax(0, 1fr) 2.75rem minmax(0, 1fr) 7.5rem 2rem;
 }
 
-/** One candidate card: radio, cover, body, score. */
+/**
+ * One candidate card: radio, cover, body, score.
+ *
+ * The rows are aligned to the **start**, never centred (owner review 3, D2). Opening
+ * "tracklist fit" makes the body twelve rows taller, and a centred track slid the radio and
+ * the cover down the card with it — so the two controls that say *which card this is* moved
+ * every time you asked a question about it. They belong at the top left, whatever the body
+ * does underneath.
+ */
 @utility candidate-grid {
   display: grid;
   grid-template-columns: 1.5rem 3.5rem minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+/**
+ * A disclosure that folds rather than blinking (owner review 3, D1).
+ *
+ * The `0fr → 1fr` grid row is the one technique that animates *to and from* a height nobody
+ * measured: the child is `overflow: hidden`, so the row track carries the animation and the
+ * content keeps its natural height. Conditional rendering cannot do this — it has no closing
+ * frame at all, which is exactly the "hovering why? does nothing visible" the owner reported.
+ */
+@utility disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 180ms ease-out,
+    opacity 140ms ease-out;
+}
+
+@utility disclosure-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/** The child of a `disclosure`. Both properties are load-bearing: a grid item's min-height is
+ * `auto`, which would keep the row open at its content height and defeat the whole thing. */
+@utility disclosure-body {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure {
+    transition: none;
+  }
 }
 
 @layer base {

@@ -21,6 +21,7 @@ import {
   mapping as mappingEngine,
   recordingCandidates,
   releaseCandidates,
+  releaseGroups,
   type AlbumHints,
   type MappingResult,
   type MatchTrack,
@@ -31,6 +32,7 @@ import {
   type RecordingCandidateInput,
   type ReleaseCandidate,
   type ReleaseCandidateInput,
+  type ReleaseGroupCandidate,
 } from "@mm/domain";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -51,6 +53,7 @@ import {
   lookupLimitOf,
   matchAlbum,
   matchSingle,
+  plannedBudgetOf,
   type AlbumMatch,
   type SingleMatch,
 } from "#/server/services/matching.service.ts";
@@ -129,15 +132,17 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
   /*
    * The wait is the feature here (A5 of the owner review).
    *
-   * Two searches and up to `matchLookupLimit` lookups at one request per second is eight to
-   * ten seconds that cannot be made shorter, so the screen is told what is being spent rather
-   * than left blank. The planned counts are the same budget `matchAlbum` promises, taken from
-   * the settings rather than discovered as we go.
+   * A group search, up to `matchGroupLimit` release searches and up to `matchLookupLimit`
+   * lookups, at one request per second, is ten seconds that cannot be made shorter — so the
+   * screen is told what is being spent rather than left blank. The planned counts are the
+   * budget `matchAlbum` promises (`plannedBudgetOf`), taken from the settings rather than
+   * discovered as we go, and narrowed once the group search says how many groups there really
+   * were (decision 151).
    */
-  const report = matchReporter(input.job.id, {
-    searches: 2,
-    lookups: lookupLimitOf(input.settings),
-  });
+  const planned = single
+    ? { searches: 2, lookups: lookupLimitOf(input.settings) }
+    : plannedBudgetOf(input.settings);
+  const report = matchReporter(input.job.id, planned);
   report("starting", "Asking MusicBrainz about this release…", { searches: 0, lookups: 0 });
   const gateway = reportingGateway(plain, report);
 
@@ -151,6 +156,11 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
       gateway,
       { videos, hints: hintsFor(input.job, videos) },
       input.settings,
+      {
+        onPlan: (revised) => {
+          report.revise(revised);
+        },
+      },
     );
   } finally {
     // Always: a subscriber must not be left watching a match that failed half-way.
@@ -159,9 +169,9 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
       phase: "done",
       label: "Scoring the candidates…",
       searches: gateway.calls.searches,
-      searchesPlanned: 2,
+      searchesPlanned: report.plan.searches,
       lookups: gateway.calls.lookups,
-      lookupsPlanned: lookupLimitOf(input.settings),
+      lookupsPlanned: report.plan.lookups,
     });
   }
 }
@@ -191,9 +201,11 @@ export interface SearchInput extends RankingInput {
  * through the same engine means the number next to a hand-found release means the same thing
  * as the number next to a proposed one.
  */
-export async function searchReleases(
-  input: SearchInput,
-): Promise<{ candidates: readonly ReleaseCandidate[]; query: string }> {
+export async function searchReleases(input: SearchInput): Promise<{
+  candidates: readonly ReleaseCandidate[];
+  groups: readonly ReleaseGroupCandidate[];
+  query: string;
+}> {
   const db = input.db ?? defaultDb();
   const { videos } = await videosOf(input.job.id, db);
   const gateway = await gatewayForUrl(input.job.url, db, input.signal);
@@ -223,8 +235,12 @@ export async function searchReleases(
       detailed.push({ release, detailed: false });
     }
   }
+  const scored = releaseCandidates.score({ videos, hints, candidates: detailed }, config);
   return {
-    candidates: releaseCandidates.score({ videos, hints, candidates: detailed }, config).candidates,
+    candidates: scored.candidates,
+    // Grouped too, because step 2 draws groups: a hand-found release has to be able to land in
+    // the same shape as a proposed one, or the search box would produce cards of a second kind.
+    groups: releaseGroups.group(scored.candidates).groups,
     query,
   };
 }
