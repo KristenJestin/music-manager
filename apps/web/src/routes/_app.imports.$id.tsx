@@ -202,7 +202,13 @@ function JobPage() {
       key: "file",
       header: "File",
       cell: (track) => (
-        <span className="block max-w-64 truncate font-mono text-2xs text-fg-2">
+        // Narrower than it was: Status is a fixed 224 px now, and the seven columns have to
+        // fit beside each other before the table starts scrolling sideways. The whole path is
+        // one hover away.
+        <span
+          className="block max-w-40 truncate font-mono text-2xs text-fg-2"
+          title={track.libraryPath ?? undefined}
+        >
           {track.libraryPath ?? "not placed"}
         </span>
       ),
@@ -214,15 +220,15 @@ function JobPage() {
        * **Fixed width, fixed height** (owner review D4).
        *
        * This is the one column whose content changes four times a second, so it is the one
-       * column that must not be allowed to resize anything. `w-64` on both the header and the
+       * column that must not be allowed to resize anything. `w-56` on both the header and the
        * cell pins it; `TrackProgress` reserves its three lines whether or not a track is in
        * flight, so a row does not grow when a download starts; and everything inside truncates,
        * so no yt-dlp figure can push the column wider than the number next to it.
        */
-      className: "w-64",
-      headClassName: "w-64",
+      className: "w-56",
+      headClassName: "w-56",
       cell: (track) => (
-        <div data-testid="track-status" className="flex w-64 min-w-0 flex-col gap-1">
+        <div data-testid="track-status" className="flex w-56 min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1.5">
             <TrackStateBadge state={track.state} />
             {/* One track, one retry. Re-running the whole album to fetch a single video that
@@ -491,8 +497,17 @@ function JobPage() {
                         </ToneBadge>
                         {/* A running step has no message yet — its row is only written when it
                             ends. The live sub-step is the one thing worth showing there, and
-                            it is exactly what C2/C7 asked for. */}
-                        {entry.row.status === "running" && currentStage !== null ? (
+                            it is exactly what C2/C7 asked for.
+
+                            **Only for the head step**, since the steps overlap (decision 147):
+                            `fingerprint`, `tag` and `place` are all `running` while `download`
+                            still holds the slot, and the newest live sentence belongs to one of
+                            them. Printing it beside all four said "Face to Face: downloading
+                            22%" next to `tag`. The other three carry their own derived
+                            sentence — `11/14 track(s)` — which is the true one. */}
+                        {entry.row.status === "running" &&
+                        entry.step === job.step &&
+                        currentStage !== null ? (
                           <span data-testid="step-stage" className="text-fg-2">
                             {currentStage}
                           </span>

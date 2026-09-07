@@ -31,13 +31,14 @@
  *     track and nothing else; a failure marks that track and nothing else. The import as a
  *     whole is only concluded by `settleImport`, once every other track has finished.
  */
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   importTracks,
   imports,
   inboxItems,
+  jobEvents,
   jobSteps,
   type ImportTrack,
   type StepName,
@@ -420,10 +421,21 @@ export async function failSettled(
   const tracks = await mappedTracksOf(db, importId);
   const broken = tracks.find((track) => track.state === "failed");
   const error = broken?.error ?? null;
-  const step = ((): StepName => {
-    const head = LOCAL_STEPS.find((local) => !tracks.every((t) => hasPassed(t.state, local)));
-    return head ?? "place";
-  })();
+  /*
+   * Which step to blame, read from the journal rather than from the track states.
+   *
+   * A failed track counts as "past" every step — that is what stops the album waiting for it —
+   * so the states cannot say where it stopped. The line `runTrackStep` wrote when it failed
+   * can, and it is the same sentence the Console shows, so the import row and the journal
+   * cannot disagree about where an import gave up.
+   */
+  const [failure] = await db
+    .select({ step: jobEvents.step })
+    .from(jobEvents)
+    .where(and(eq(jobEvents.importId, importId), eq(jobEvents.type, "track.failed")))
+    .orderBy(desc(jobEvents.id))
+    .limit(1);
+  const step: StepName = failure?.step ?? "place";
   const message = `${String(count)} track(s) failed: ${error?.message ?? "no reason recorded"}`;
   const result: StepResult = {
     status: "failed",
