@@ -10,12 +10,15 @@ belt-and-braces shared bearer token for development.
 
 from __future__ import annotations
 
+import logging
 import secrets
+import time
 from typing import Final
 
 import structlog
 from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
+from starlette.middleware.base import RequestResponseEndpoint
 
 from toolbox import __version__, artwork, maintenance, tagging, ytmusic
 from toolbox import extract as extract_module
@@ -105,6 +108,30 @@ app = FastAPI(
     summary="Stateless media operations: yt-dlp, mutagen, fpcalc/AcoustID, rsgain.",
     dependencies=[Depends(require_token)],
 )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next: RequestResponseEndpoint) -> Response:
+    """One JSON line per request, on stdout, in place of uvicorn's plain-text access log.
+
+    `docs/phases/P10-production.md` § Exploitation asks for JSON on all three services' stdout;
+    uvicorn's own access log ("INFO:     127.0.0.1:1234 - "GET /health HTTP/1.1" 200 OK") is
+    not. Silencing `uvicorn.access` here, on every request rather than once at import, survives
+    `uvicorn.Config.configure_logging()` re-enabling it — which a real `uvicorn.Server` does on
+    every `.run()`, in this same process when a test uses one (`tests/conftest.py`'s
+    `live_server`), and which a bare import-time `.disabled = True` cannot survive.
+    """
+    logging.getLogger("uvicorn.access").disabled = True
+    started = time.perf_counter()
+    response = await call_next(request)
+    log.info(
+        "request",
+        method=request.method,
+        path=request.url.path,
+        status=response.status_code,
+        ms=round((time.perf_counter() - started) * 1000),
+    )
+    return response
 
 
 @app.exception_handler(ToolboxError)
