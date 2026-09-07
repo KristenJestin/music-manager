@@ -273,8 +273,10 @@ const MIN_INTERVAL_MS = 1_100; // a little over one second, so a clock skew cann
 const INC = {
   releaseFull:
     "artists+artist-credits+labels+recordings+release-groups+media+isrcs+genres+tags+aliases+artist-rels+recording-rels+work-rels+recording-level-rels+work-level-rels+url-rels",
-  recordingFull:
-    "artists+artist-credits+isrcs+genres+tags+aliases+artist-rels+work-rels+url-rels+work-level-rels",
+  // The matcher looks a recording up to learn which releases it is on, so it asks for the
+  // app.s `recordingBorrow` preset — the same list, under the same cache key.
+  recordingBorrow:
+    "artists+artist-credits+isrcs+genres+tags+aliases+artist-rels+work-rels+url-rels+work-level-rels+releases+release-groups+media",
 } as const;
 
 let lastCall = 0;
@@ -491,9 +493,9 @@ async function recordSingle(
       let releases = (recording as { releases?: readonly MbRelease[] }).releases ?? [];
       if (index < RECORDED_LOOKUPS) {
         const full = await document<MbRecording & { releases?: readonly MbRelease[] }>(
-          `recording/${recording.id}?inc=recordingFull`,
+          `recording/${recording.id}?inc=recordingBorrow`,
           `recording/${recording.id}`,
-          { inc: `${INC.recordingFull}+releases+release-groups+media` },
+          { inc: INC.recordingBorrow },
         );
         if (full.releases !== undefined) releases = full.releases;
       }

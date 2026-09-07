@@ -1,7 +1,7 @@
 {
   "name": "formidable",
   "kind": "single",
-  "recordedAt": "2026-09-06T00:51:55.808Z",
+  "recordedAt": "2026-09-06T23:38:16.491Z",
   "source": {
     "url": "https://www.youtube.com/watch?v=formidable",
     "note": "Album version 3:34 against the single edit 3:33 — one second apart, which is inside the tolerance."
@@ -2776,7 +2776,7 @@
       }
     },
     {
-      "key": "recording/16afa384-174e-435e-bfa3-5591accda31c?inc=recordingFull",
+      "key": "recording/16afa384-174e-435e-bfa3-5591accda31c?inc=recordingBorrow",
       "payload": {
         "id": "16afa384-174e-435e-bfa3-5591accda31c",
         "title": "Formidable",
@@ -4627,7 +4627,7 @@
       }
     },
     {
-      "key": "recording/38b10ee6-d2ef-4009-b027-34421116f875?inc=recordingFull",
+      "key": "recording/38b10ee6-d2ef-4009-b027-34421116f875?inc=recordingBorrow",
       "payload": {
         "id": "38b10ee6-d2ef-4009-b027-34421116f875",
         "title": "Formidable",
@@ -4726,7 +4726,7 @@
       }
     },
     {
-      "key": "recording/fcd2c94e-2dff-43e7-b084-c3e44e7c0206?inc=recordingFull",
+      "key": "recording/fcd2c94e-2dff-43e7-b084-c3e44e7c0206?inc=recordingBorrow",
       "payload": {
         "id": "fcd2c94e-2dff-43e7-b084-c3e44e7c0206",
         "title": "Formidable",
@@ -4825,7 +4825,7 @@
       }
     },
     {
-      "key": "recording/4358c495-e9f4-47a4-b91f-bf377a841997?inc=recordingFull",
+      "key": "recording/4358c495-e9f4-47a4-b91f-bf377a841997?inc=recordingBorrow",
       "payload": {
         "id": "4358c495-e9f4-47a4-b91f-bf377a841997",
         "title": "Formidable",
@@ -4921,7 +4921,7 @@
       }
     },
     {
-      "key": "recording/1ea09c6b-5dcf-4374-9011-1e65bfc025bc?inc=recordingFull",
+      "key": "recording/1ea09c6b-5dcf-4374-9011-1e65bfc025bc?inc=recordingBorrow",
       "payload": {
         "id": "1ea09c6b-5dcf-4374-9011-1e65bfc025bc",
         "title": "Formidable",
@@ -5020,7 +5020,7 @@
       }
     },
     {
-      "key": "recording/6a638de4-c9ee-4e24-967a-91ae253b527d?inc=recordingFull",
+      "key": "recording/6a638de4-c9ee-4e24-967a-91ae253b527d?inc=recordingBorrow",
       "payload": {
         "id": "6a638de4-c9ee-4e24-967a-91ae253b527d",
         "title": "Formidable",
@@ -5119,7 +5119,7 @@
       }
     },
     {
-      "key": "recording/120dd461-93f3-41b4-ade2-bd3a268deac1?inc=recordingFull",
+      "key": "recording/120dd461-93f3-41b4-ade2-bd3a268deac1?inc=recordingBorrow",
       "payload": {
         "id": "120dd461-93f3-41b4-ade2-bd3a268deac1",
         "title": "Formidable",
@@ -5218,7 +5218,7 @@
       }
     },
     {
-      "key": "recording/7ece9d46-cead-4f95-84db-a0b56ef62164?inc=recordingFull",
+      "key": "recording/7ece9d46-cead-4f95-84db-a0b56ef62164?inc=recordingBorrow",
       "payload": {
         "id": "7ece9d46-cead-4f95-84db-a0b56ef62164",
         "title": "Formidable",
@@ -5317,7 +5317,7 @@
       }
     },
     {
-      "key": "recording/dffba131-01f5-43f6-a091-e1c8fdb98c86?inc=recordingFull",
+      "key": "recording/dffba131-01f5-43f6-a091-e1c8fdb98c86?inc=recordingBorrow",
       "payload": {
         "id": "dffba131-01f5-43f6-a091-e1c8fdb98c86",
         "title": "Formidable!",
@@ -5416,7 +5416,7 @@
       }
     },
     {
-      "key": "recording/453d180f-ee2d-4018-8f69-bb8498dbde78?inc=recordingFull",
+      "key": "recording/453d180f-ee2d-4018-8f69-bb8498dbde78?inc=recordingBorrow",
       "payload": {
         "id": "453d180f-ee2d-4018-8f69-bb8498dbde78",
         "title": "FORMIDABLE",

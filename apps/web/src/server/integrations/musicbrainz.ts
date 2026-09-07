@@ -60,6 +60,39 @@ export const INC_PRESETS = {
     "url-rels",
     "work-level-rels",
   ],
+  /**
+   * `recordingFull` **plus the releases the recording appears on**, for the borrow ladder.
+   *
+   * `docs/04` § Recording files a lone recording under a release chosen album > single > EP >
+   * compilation, and the primary type lives on the *release group*. A recording search returns
+   * release **stubs** with no group at all, so the ladder cannot be applied to them; the lookup
+   * was supposed to fill that in and did not — `matchSingle` read `full.releases === undefined`
+   * on every live call and quietly kept the stubs, so live the ranking has been ordering
+   * releases it knew nothing about. `scripts/record-matching-cassettes.ts`, meanwhile, always
+   * recorded the document *with* them: offline was richer than reality, which is the one
+   * direction a fixture must never be richer in. Found by driving a real single to step 3,
+   * where the chosen release came back "on no usable release" (DRIVE-FIX-1).
+   *
+   * A **separate preset**, not three more fields on `recordingFull`, because the preset name
+   * is the cache key and `recordingFull` is what `tag` asks for on every track of every
+   * album: widening it would drag every release of every recording through the cache and into
+   * `test/cassettes/musicbrainz.json`, which grew from 0.8 MB to 5 MB when tried.
+   */
+  recordingBorrow: [
+    "artists",
+    "artist-credits",
+    "isrcs",
+    "genres",
+    "tags",
+    "aliases",
+    "artist-rels",
+    "work-rels",
+    "url-rels",
+    "work-level-rels",
+    "releases",
+    "release-groups",
+    "media",
+  ],
   artistFull: ["aliases", "genres", "tags", "url-rels", "artist-rels"],
   releaseGroupFull: ["artists", "artist-credits", "genres", "tags", "aliases", "url-rels"],
   workFull: ["artist-rels", "aliases", "tags", "genres", "url-rels"],

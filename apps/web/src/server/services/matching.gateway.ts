@@ -50,7 +50,14 @@ export function liveGateway(ctx: SourceContext): MbGateway {
     },
     async lookupRecording(mbid) {
       calls.lookups += 1;
-      return (await lookupRecording(ctx, mbid)).data;
+      /*
+       * `recordingBorrow`, not `recordingFull`: the matcher looks a recording up in order to
+       * learn **which releases it is on**, and the default preset carries none. See the preset
+       * in `integrations/musicbrainz.ts` — this was the whole reason a single's borrow ladder
+       * was ranking release stubs with no release group live, while the cassettes had the
+       * groups all along (DRIVE-FIX-1).
+       */
+      return (await lookupRecording(ctx, mbid, "recordingBorrow")).data;
     },
   };
 }
@@ -133,7 +140,7 @@ export function cassetteGateway(cassette: Cassette): MbGateway {
     },
     lookupRecording(mbid) {
       calls.lookups += 1;
-      return take<MbRecording>(`recording/${mbid}?inc=recordingFull`);
+      return take<MbRecording>(`recording/${mbid}?inc=recordingBorrow`);
     },
   };
 }
