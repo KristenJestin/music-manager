@@ -3,6 +3,7 @@ import {
   test,
   mappingRow,
   pressGlobal,
+  reloadUntil,
   resolveSource,
   signIn,
   waitForStatus,
@@ -33,6 +34,13 @@ test.describe("the Inbox", () => {
 
     await page.goto(`/import/new?importId=${importId}&step=3`);
     await expect(page.getByTestId("mapping-summary")).toBeVisible({ timeout: 150_000 });
+    await expect(page.getByTestId("bound-count")).toHaveText("14");
+
+    /* ---- the group actions of the prototype, which the app shipped without -- */
+
+    await page.getByTestId("mapping-bulk").getByRole("button", { name: "Clear all" }).click();
+    await expect(page.getByTestId("bound-count")).toHaveText("0");
+    await page.getByTestId("mapping-bulk").getByRole("button", { name: "Auto-assign" }).click();
     await expect(page.getByTestId("bound-count")).toHaveText("14");
 
     /* ---- unbind two videos: the mapping editor, doing its one job ---------- */
@@ -92,5 +100,55 @@ test.describe("the Inbox", () => {
       .getByRole("link")
       .filter({ hasText: "have no video" });
     expect(await remaining.count()).toBe(0);
+  });
+
+  /**
+   * `fingerprint_mismatch`, side by side.
+   *
+   * The prototype answers this one with two panels — the mapping you confirmed against what
+   * AcoustID heard — and the Console answered it with a sentence and three radios
+   * (DRIVE-1 §4). It is also the item the previous drive could not exercise at all, because a
+   * real album whose thirteen fingerprints all agree cannot be made to disagree honestly; the
+   * toolbox has a fixture switch for exactly that, and it is the honest way to see the screen.
+   */
+  test("a fingerprint disagreement is shown as a comparison, not as a sentence", async ({
+    page,
+  }) => {
+    await signIn(page);
+    const importId = await resolveSource(page, "fixture://discovery?fp=mismatch");
+
+    await page.goto(`/import/new?importId=${importId}&step=3`);
+    await expect(page.getByTestId("mapping-summary")).toBeVisible({ timeout: 150_000 });
+    await page.getByTestId("wizard-next").click();
+    await page.waitForURL(/step=4/, { timeout: 120_000 });
+    await expect(page.getByTestId("wizard-start")).toBeEnabled({ timeout: 150_000 });
+    await page.getByTestId("wizard-start").click();
+    await page.waitForURL(new RegExp(`/imports/${importId}`), { timeout: 120_000 });
+
+    // `/review` is a loader page: it reads its rows once. The item appears a good while after
+    // Start, so this re-navigates rather than staring at a photograph (see `helpers.ts`).
+    const item = page
+      .getByTestId("review-list")
+      .getByRole("link")
+      .filter({ hasText: "Fingerprint disagrees" })
+      .first();
+    await reloadUntil(page, "/review", async () => {
+      await expect(item).toBeVisible({ timeout: 5_000 });
+    });
+    await item.click();
+
+    const card = page.getByTestId("review-card");
+    await expect(card).toHaveAttribute("data-item-type", "fingerprint_mismatch");
+
+    const sides = page.getByTestId("fingerprint-sides");
+    await expect(sides).toBeVisible();
+    await expect(sides).toContainText("Mapping — what you confirmed");
+    await expect(sides).toContainText("AcoustID — what the file sounds like");
+
+    // And the three answers the item has always had, with the safe one preselected.
+    await expect(page.getByTestId("review-option")).toHaveCount(3);
+    await expect(
+      page.getByTestId("review-option").filter({ has: page.getByText("preselected") }),
+    ).toContainText("Keep the mapping I confirmed");
   });
 });
