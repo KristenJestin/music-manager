@@ -74,7 +74,16 @@ export default defineConfig({
     apiRoutesAreNotAssets(),
     nitro({ preset: "bun" }),
     tailwindcss(),
-    tanstackStart(),
+    /*
+     * `src/server-entry.ts` wraps the framework's request handler with the three cross-cutting
+     * concerns of P10 — rate limit, security headers, JSON access log — and it is used in
+     * `vite dev` and in the Nitro build alike, so the two behave the same.
+     *
+     * The name is given explicitly because the default is `./server`, and `src/server/` is a
+     * directory of server-only modules: leaving it implicit makes the entry depend on how a
+     * resolver breaks that tie.
+     */
+    tanstackStart({ server: { entry: "server-entry.ts" } }),
     viteReact(),
   ],
 });
