@@ -65,6 +65,16 @@ RUN useradd --create-home --uid 10001 toolbox \
     && mkdir -p /library \
     && chown -R toolbox:toolbox /library /app /opt/venv
 
+# Same provenance labels as `web.Dockerfile`, and for the same reason: `GET /health` states the
+# contract hash this image implements, and when it disagrees with the app's, the only useful
+# next question is which commit each of the two was built from.
+ARG MM_GIT_SHA=unknown
+ARG MM_BUILT_AT=unknown
+LABEL org.opencontainers.image.title="music-manager-toolbox" \
+      org.opencontainers.image.description="Music Manager — yt-dlp, mutagen, fpcalc, rsgain" \
+      org.opencontainers.image.revision="${MM_GIT_SHA}" \
+      org.opencontainers.image.created="${MM_BUILT_AT}"
+
 USER toolbox
 ENV UV_CACHE_DIR=/tmp/uv-cache
 VOLUME ["/library"]
