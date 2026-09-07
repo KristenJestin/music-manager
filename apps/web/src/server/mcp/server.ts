@@ -196,8 +196,15 @@ const CANDIDATES_BYTE_LIMIT = 20_000;
 /** How long a `why` line or a track title may be once the answer is over the ceiling. */
 const CANDIDATE_TEXT_LIMIT = 60;
 
+/**
+ * The size of the answer **as the caller receives it**.
+ *
+ * `json()` pretty-prints with two spaces, so measuring the compact form understates the real
+ * payload by about a fifth — enough for a "20 KB ceiling" to ship a 24 KB answer. Measure the
+ * thing that is sent, not a cheaper representation of it.
+ */
 function sizeOf(value: unknown): number {
-  return JSON.stringify(value)?.length ?? 0;
+  return JSON.stringify(value, null, 2)?.length ?? 0;
 }
 
 function shorten(value: unknown, limit: number): unknown {
@@ -247,6 +254,26 @@ function capCandidates(payload: {
       ...candidates.slice(2).map((entry) => summariseCandidate(entry)),
     ];
     truncated.push("only the preselected candidate and the runner-up keep their reasoning");
+  }
+
+  /*
+   * 3 · the runner-up's `fitLines` as well, leaving one candidate detailed.
+   *
+   * This is the last thing given up, because the runner-up is half of the comparison the
+   * `margin` field describes. It keeps its score, its `why` and its identity — enough to ask
+   * for it by name with `detail: "full"` and a `limit` of one, which is the escape hatch the
+   * description points at.
+   */
+  if (sizeOf({ ...payload, candidates }) > CANDIDATES_BYTE_LIMIT && candidates.length > 1) {
+    candidates = [
+      ...candidates.slice(0, 1),
+      summariseCandidate(candidates[1] as object),
+      ...candidates.slice(2),
+    ];
+    truncated.push(
+      "only the preselected candidate keeps its `fitLines` — ask for the runner-up with " +
+        '`detail: "full"` and `limit: 1`',
+    );
   }
 
   return { ...payload, candidates, truncated };

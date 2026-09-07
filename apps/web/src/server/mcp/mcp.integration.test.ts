@@ -1426,7 +1426,8 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
       const answer = (await call("get_candidates", { importId: created.job.id })) as {
         truncated?: string[];
       };
-      const bytes = JSON.stringify(answer).length;
+      // Measured the way the caller receives it: `json()` pretty-prints with two spaces.
+      const bytes = JSON.stringify(answer, null, 2).length;
       expect(bytes).toBeLessThanOrEqual(20_000);
       // Nothing is shortened silently: an abbreviated answer says so.
       if (answer.truncated !== undefined) expect(answer.truncated.length).toBeGreaterThan(0);
