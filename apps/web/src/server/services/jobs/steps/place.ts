@@ -371,11 +371,27 @@ async function cleanWorkDir(ctx: StepContext): Promise<void> {
   // (decision 147), and asking the *scoped* view whether every track has left would delete the
   // work directory — and the next track's file with it — as soon as the first one was placed.
   const settled = await ctx.albumTracks();
-  const leftovers = readdirSync(work, { withFileTypes: true }).filter(
-    (entry) => entry.isFile() && !entry.name.startsWith("."),
-  );
-  if (settled.every((track) => LEFT_THE_WORK_DIR.has(track.state)) && leftovers.length === 0) {
-    rmSync(work, { recursive: true, force: true });
+  /*
+   * Every read and every removal here is `try`-wrapped, and that is not defensiveness for its
+   * own sake: two per-track `place` jobs finish within milliseconds of each other, both see
+   * the same last track filed, and both decide the directory is theirs to remove. The loser
+   * used to fail its whole import on `ENOENT: scandir` — an import declared broken because
+   * something else had already done exactly what it wanted done.
+   */
+  let leftovers = 0;
+  try {
+    leftovers = readdirSync(work, { withFileTypes: true }).filter(
+      (entry) => entry.isFile() && !entry.name.startsWith("."),
+    ).length;
+  } catch {
+    return;
+  }
+  if (settled.every((track) => LEFT_THE_WORK_DIR.has(track.state)) && leftovers === 0) {
+    try {
+      rmSync(work, { recursive: true, force: true });
+    } catch {
+      // Another job got there first, which is the state we were asking for.
+    }
   }
 }
 
