@@ -67,6 +67,8 @@ const schema = await import("#/server/db/schema/index.ts");
 const imports = await import("#/server/services/imports.ts");
 const jobs = await import("#/server/services/jobs/index.ts");
 const consoleQueries = await import("#/server/services/console.queries.ts");
+const apiKeys = await import("#/server/services/api-keys.ts");
+const mcpHttp = await import("./http.ts");
 const settings = await import("#/server/services/settings.ts");
 const status = await import("#/server/services/status.ts");
 const relocateService = await import("#/server/services/relocate.ts");
@@ -922,6 +924,194 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
   });
 
   /* ---------------------------------------------------------------- */
+  /* R3-3 — a refusal on /mcp is a JSON-RPC response                   */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Driven by the **real MCP client**, not by a hand-built request.
+   *
+   * The point of the finding is that a strict client cannot attach the old REST body to its
+   * call, so the only convincing proof is a client attaching it. The SDK transport takes a
+   * `fetch`, which lets it talk to `handleMcpRequest` in this process — no port, no dev server,
+   * and no reason for the assertion to be about anything but the envelope.
+   */
+  describe("R3-3 the auth guard answers in the protocol's own envelope", () => {
+    const ENDPOINT = "http://mcp.test/mcp";
+
+    /** A `fetch` that runs the route handler instead of going near a socket. */
+    const inProcess = async (url: string | URL, init?: RequestInit): Promise<Response> =>
+      await mcpHttp.handleMcpRequest(new Request(url, init));
+
+    async function connect(
+      token: string,
+    ): Promise<{ close: () => Promise<void>; call: () => Promise<unknown> }> {
+      const { Client } = await import("@modelcontextprotocol/sdk/client/index.js");
+      const { StreamableHTTPClientTransport } =
+        await import("@modelcontextprotocol/sdk/client/streamableHttp.js");
+      const client = new Client({ name: "mcp-fix-3-test", version: "0" });
+      const transport = new StreamableHTTPClientTransport(new URL(ENDPOINT), {
+        fetch: inProcess,
+        requestInit: { headers: { authorization: `Bearer ${token}` } },
+      });
+      return {
+        close: async () => {
+          await client.close();
+        },
+        call: async () => {
+          await client.connect(transport);
+          return await client.listTools();
+        },
+      };
+    }
+
+    it("a 401 is a JSON-RPC error the client can raise as one", async () => {
+      const raw = await inProcess(ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: "Bearer mm_not-a-key" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 41, method: "tools/list", params: {} }),
+      });
+      expect(raw.status).toBe(401);
+      const body = (await raw.json()) as {
+        jsonrpc: string;
+        id: number | null;
+        error: { code: number; message: string; data: { code: string; hint?: string } };
+      };
+      expect(body.jsonrpc).toBe("2.0");
+      // The client's own id comes back, which is the whole point: it can be attached to a call.
+      expect(body.id).toBe(41);
+      expect(body.error.code).toBe(mcpHttp.JSONRPC_CODES[401]);
+      expect(body.error.data.code).toBe("UNAUTHORIZED");
+      // And the real SDK client reads it as an error rather than as a protocol violation.
+      const session = await connect("mm_not-a-key");
+      await expect(session.call()).rejects.toThrow(/401|Unknown API key|Unauthorized/i);
+      await session.close().catch(() => undefined);
+    }, 60_000);
+
+    it("a 429 is one too, with the countdown a client can act on", async () => {
+      // A user for the key to belong to. Better Auth's `apikey.referenceId` has no foreign key,
+      // but the row is what `list()` filters on, so it may as well be a real one.
+      const userId = "usr_ratelimit_test";
+      await db()
+        .insert(schema.user)
+        .values({ id: userId, name: "rate", email: "rate@example.test", emailVerified: true })
+        .onConflictDoNothing();
+
+      const minted = await apiKeys.create({
+        name: "rate-limit probe",
+        scopes: ["*"],
+        expiresInDays: null,
+        userId,
+      });
+
+      // One request per minute, so the *second* call is refused. Set on the row rather than at
+      // creation because the plugin refuses `rateLimitMax` from a call that carries headers.
+      await db()
+        .update(schema.apikey)
+        .set({ rateLimitEnabled: true, rateLimitMax: 1, rateLimitTimeWindow: 60_000 })
+        .where(eq(schema.apikey.id, minted.view.id));
+
+      const send = async (id: number): Promise<Response> =>
+        await inProcess(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json, text/event-stream",
+            authorization: `Bearer ${minted.secret}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id,
+            method: "initialize",
+            params: {
+              protocolVersion: "2025-06-18",
+              capabilities: {},
+              clientInfo: { name: "probe", version: "0" },
+            },
+          }),
+        });
+
+      expect((await send(1)).status).toBe(200);
+      const limited = await send(2);
+      expect(limited.status).toBe(429);
+
+      const body = (await limited.json()) as {
+        jsonrpc: string;
+        id: number | null;
+        error: { code: number; message: string; data: { code: string; hint?: string } };
+      };
+      expect(body.jsonrpc).toBe("2.0");
+      expect(body.id).toBe(2);
+      expect(body.error.code).toBe(mcpHttp.JSONRPC_CODES[429]);
+      expect(body.error.data.code).toBe("RATE_LIMITED");
+      expect(body.error.data.hint).toMatch(/Try again in \d+s/);
+      // And in the header, for a client that would rather not parse prose.
+      expect(limited.headers.get("retry-after")).toMatch(/^\d+$/);
+    }, 60_000);
+
+    it("keeps `id: null` for a body that has none, rather than inventing one", async () => {
+      const raw = await inProcess(ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: "Bearer mm_nope" },
+        body: "not json at all",
+      });
+      const body = (await raw.json()) as { jsonrpc: string; id: number | null };
+      expect(body.jsonrpc).toBe("2.0");
+      expect(body.id).toBeNull();
+    });
+
+    it("`get_status` reports the caller's own budget before it is spent", async () => {
+      const userId = "usr_budget_test";
+      await db()
+        .insert(schema.user)
+        .values({ id: userId, name: "budget", email: "budget@example.test", emailVerified: true })
+        .onConflictDoNothing();
+      const minted = await apiKeys.create({
+        name: "budget probe",
+        scopes: ["*"],
+        expiresInDays: null,
+        userId,
+      });
+
+      const answer = await status.systemStatus({
+        db: db(),
+        principal: {
+          kind: "apiKey",
+          userId,
+          label: minted.view.name,
+          scopes: ["*"],
+          keyId: minted.view.id,
+        },
+      });
+      expect(answer.rateLimit).not.toBeNull();
+      expect(answer.rateLimit?.max).toBe(600);
+      expect(answer.rateLimit?.windowMs).toBe(60_000);
+      // Never used, so the whole budget is there rather than a stale counter.
+      expect(answer.rateLimit?.remaining).toBe(600);
+      expect(answer.rateLimit?.note).toMatch(/429/);
+
+      // A session has no key and no limit, and says so with `null` rather than with a guess.
+      const asSession = await status.systemStatus({
+        db: db(),
+        principal: { kind: "session", userId, label: "budget@example.test", scopes: ["*"] },
+      });
+      expect(asSession.rateLimit).toBeNull();
+    }, 60_000);
+
+    it("maps 403 too, for the day a scope check moves in front of the transport", () => {
+      // `/mcp` cannot produce a 403 today — scopes are enforced by *not registering* a tool,
+      // so a key simply does not see what it may not call. The mapping exists so that a guard
+      // added later cannot reintroduce a non-JSON-RPC refusal by accident.
+      expect(mcpHttp.JSONRPC_CODES[403]).toBe(-32003);
+      const encoded = mcpHttp.jsonRpcError(
+        mcpHttp.JSONRPC_CODES[403] ?? 0,
+        { code: "FORBIDDEN", message: "This key does not carry the `imports:write` scope." },
+        7,
+      );
+      expect(encoded).toMatchObject({ jsonrpc: "2.0", id: 7, error: { code: -32003 } });
+    });
+  });
+
+  /* ---------------------------------------------------------------- */
   /* R3-2 — every caller that opens the confirmation gate signs it     */
   /* ---------------------------------------------------------------- */
 
@@ -1044,7 +1234,11 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     it("writes the whole patch when every value fits", async () => {
       const answer = (await call("update_settings", {
         patch: { maxGenres: 4, safeThreshold: 0.9 },
-      })) as { saved: string[]; previous: Record<string, unknown>; effective: Record<string, unknown> };
+      })) as {
+        saved: string[];
+        previous: Record<string, unknown>;
+        effective: Record<string, unknown>;
+      };
       expect(answer.saved.sort()).toEqual(["maxGenres", "safeThreshold"]);
       expect(answer.previous["maxGenres"]).toBe(3);
       expect(answer.effective["maxGenres"]).toBe(4);

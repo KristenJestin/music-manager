@@ -145,6 +145,14 @@ export const apiPrincipalSchema = z.object({
   /** The key's name, or the user's e-mail for a session. */
   label: z.string(),
   scopes: z.array(z.string()),
+  /**
+   * The `apikey` row's id, for an `apiKey` principal only.
+   *
+   * It is here so a caller can be told what is left of *its own* request budget — the rate
+   * limit is per key, and `get_status.rateLimit` cannot report a budget it cannot find the row
+   * for. Never the secret, and never anything a session has.
+   */
+  keyId: z.string().optional(),
 });
 export type ApiPrincipal = z.infer<typeof apiPrincipalSchema>;
 

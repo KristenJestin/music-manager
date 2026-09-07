@@ -12,13 +12,14 @@
  * status endpoint that fails when the thing it reports on fails is not a status endpoint.
  */
 import { desc, eq } from "drizzle-orm";
-import { MMError, type MMErrorBody } from "@mm/contracts";
+import { MMError, type ApiPrincipal, type MMErrorBody } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { appMeta, imports } from "#/server/db/schema/index.ts";
 import { navidromeStatus } from "#/server/services/navidrome.ts";
 import { downloaderHealth, toolboxTarget, type ToolboxContract } from "#/server/services/tools.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
+import { rateLimitFor, type RateLimitView } from "#/server/services/api-keys.ts";
 import { serverEnv } from "#/server/env.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 
@@ -166,6 +167,15 @@ export interface SystemStatus {
     readonly error: string | null;
   };
   readonly worker: WorkerStatus;
+  /**
+   * What is left of the *caller's own* request budget, when the caller is an API key.
+   *
+   * `null` for a session, which is not rate limited, and when the status was asked for
+   * without a principal. It is here because the limit was previously discoverable only by
+   * exceeding it: the third test report followed the MCP server's own instruction to poll
+   * `get_import`, was cut off at request 601, and read the 429 as a broken tool.
+   */
+  readonly rateLimit: RateLimitView | null;
   readonly lastFailure: LastFailure | null;
   /** Everything that is wrong, in the order a human would fix it. Empty when `ok`. */
   readonly problems: readonly string[];
@@ -173,6 +183,8 @@ export interface SystemStatus {
 
 export interface StatusOptions {
   readonly db?: Database;
+  /** Who is asking. Only used to report that caller's own rate-limit budget. */
+  readonly principal?: ApiPrincipal;
   readonly settings?: Settings;
   readonly toolbox?: ToolboxClient;
   readonly now?: Date;
@@ -217,6 +229,11 @@ export async function systemStatus(options: StatusOptions = {}): Promise<SystemS
     lastFailure(db).catch(() => null),
   ]);
 
+  // The budget is per key, so a session — which has no key and no limit — gets `null`.
+  const keyId = options.principal?.keyId;
+  const rateLimit =
+    keyId === undefined ? null : await rateLimitFor(keyId, { db, now }).catch(() => null);
+
   const health = downloader !== null && "reachable" in downloader ? downloader : null;
   const nav = navidrome !== null && "configured" in navidrome ? navidrome : null;
 
@@ -253,6 +270,12 @@ export async function systemStatus(options: StatusOptions = {}): Promise<SystemS
     problems.push(toolbox.contract.note);
   }
   if (!worker.alive) problems.push(worker.note);
+  // Not an error — the key still works — but the one warning worth having *before* the 429.
+  if (rateLimit !== null && rateLimit.enabled && rateLimit.remaining <= rateLimit.max / 10) {
+    problems.push(
+      `This key has ${String(rateLimit.remaining)} of ${String(rateLimit.max)} request(s) left in the current window; slow down or it will start answering 429 RATE_LIMITED.`,
+    );
+  }
   if (nav !== null && nav.enabled && nav.configured && !nav.ok) {
     problems.push(`Navidrome answered ${nav.error ?? "an error"}.`);
   }
@@ -275,6 +298,7 @@ export async function systemStatus(options: StatusOptions = {}): Promise<SystemS
         nav?.error ?? (navidrome !== null && "error" in navidrome ? navidrome.error : null) ?? null,
     },
     worker,
+    rateLimit,
     lastFailure: failure,
     problems,
   };

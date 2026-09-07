@@ -27,6 +27,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db as defaultDb, schema, type Database } from "#/server/db/client.ts";
 import { serverEnv } from "#/server/env.ts";
+import { KEY_RATE_LIMIT } from "#/server/auth/key-rate-limit.ts";
 
 /** The cookie prefix. Named so two Music Managers on one host do not fight over a cookie. */
 export const COOKIE_PREFIX = "mm";
@@ -174,7 +175,11 @@ function apiKeyPlugin() {
     enableMetadata: true,
     enableSessionForAPIKeys: false,
     startingCharactersConfig: { shouldStore: true, charactersLength: 9 },
-    rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 600 },
+    rateLimit: {
+      enabled: true,
+      timeWindow: KEY_RATE_LIMIT.timeWindowMs,
+      maxRequests: KEY_RATE_LIMIT.maxRequests,
+    },
     keyExpiration: {
       defaultExpiresIn: null,
       disableCustomExpiresTime: false,

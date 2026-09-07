@@ -94,6 +94,8 @@ export async function resolvePrincipal(request: Request): Promise<Resolution> {
         userId: outcome.key.userId,
         label: outcome.key.name,
         scopes: outcome.key.scopes,
+        // So `get_status` can report this key's own remaining budget. See `rateLimitFor`.
+        keyId: outcome.key.id,
       },
     };
   }

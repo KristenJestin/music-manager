@@ -124,7 +124,10 @@ describe.skipIf(unavailable !== null)("the single download slot", () => {
   /* ---------------------------------------------------------------- */
 
   it("a Retry queues the job; it never downloads in the caller's process", async () => {
-    const created = await imports.createFromUrl(SOURCE, { autoConfirm: true, confirmedBy: "cli --yes" });
+    const created = await imports.createFromUrl(SOURCE, {
+      autoConfirm: true,
+      confirmedBy: "cli --yes",
+    });
     const id = created.job.id;
     // Bring it to the edge of `download` the way the worker does, and stop there.
     const outcome = await jobs.runImport(id, { stopBefore: "download" });
@@ -209,7 +212,11 @@ describe.skipIf(unavailable !== null)("the single download slot", () => {
   it("serialises two jobs and a Retry fired at the same time, and fails none of them", async () => {
     const ids: string[] = [];
     for (const force of [false, true]) {
-      const created = await imports.createFromUrl(SOURCE, { autoConfirm: true, confirmedBy: "cli --yes", force });
+      const created = await imports.createFromUrl(SOURCE, {
+        autoConfirm: true,
+        confirmedBy: "cli --yes",
+        force,
+      });
       const outcome = await jobs.runImport(created.job.id, { stopBefore: "download" });
       expect(outcome.handOff, `the import should be waiting for the download queue`).toBe(
         "download",

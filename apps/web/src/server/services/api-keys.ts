@@ -29,6 +29,7 @@ import { MMError, permissionsOf, scopesOf, type ApiKeyView } from "@mm/contracts
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { apikey } from "#/server/db/schema/auth.ts";
 import { getAuth } from "#/server/auth/auth.ts";
+import { KEY_RATE_LIMIT } from "#/server/auth/key-rate-limit.ts";
 
 /** What `verifyKey` hands back when a key is good. */
 export interface VerifiedKey {
@@ -190,6 +191,73 @@ export async function list(userId: string, db: Database = defaultDb()): Promise<
       metadata: parseJson<Record<string, unknown>>(row.metadata),
     }),
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* the request budget, as a caller can read it                         */
+/* ------------------------------------------------------------------ */
+
+/** What is left of a key's budget, in the terms the 429 uses. */
+export interface RateLimitView {
+  readonly enabled: boolean;
+  /** Requests allowed per window. */
+  readonly max: number;
+  readonly windowMs: number;
+  /** Requests still available in the window in flight. */
+  readonly remaining: number;
+  /** When the current window started, or `null` when the key has never been used. */
+  readonly windowStartedAt: string | null;
+  readonly note: string;
+}
+
+/**
+ * What is left of `keyId`'s budget right now.
+ *
+ * Read from the row rather than asked of the plugin, because the plugin has no endpoint for
+ * "how many do I have left" — it only tells you by refusing. That refusal is a 429 with a
+ * countdown, which is a fine thing to receive and a terrible thing to *discover*: the report
+ * followed the server's own instruction to poll, hit the ceiling at request 601, and read the
+ * result as `get_import` being broken during downloads.
+ *
+ * The arithmetic mirrors the plugin's: `requestCount` is reset the first time a key is used
+ * more than `timeWindow` after `lastRequest`, so a key idle for longer than the window has its
+ * whole budget back whatever the stored counter says.
+ */
+export async function rateLimitFor(
+  keyId: string,
+  options: { db?: Database; now?: Date } = {},
+): Promise<RateLimitView | null> {
+  const database = options.db ?? defaultDb();
+  const now = options.now ?? new Date();
+  const [row] = await database
+    .select({
+      enabled: apikey.rateLimitEnabled,
+      max: apikey.rateLimitMax,
+      windowMs: apikey.rateLimitTimeWindow,
+      requestCount: apikey.requestCount,
+      lastRequest: apikey.lastRequest,
+    })
+    .from(apikey)
+    .where(eq(apikey.id, keyId))
+    .limit(1);
+  if (row === undefined) return null;
+
+  const max = row.max ?? KEY_RATE_LIMIT.maxRequests;
+  const windowMs = row.windowMs ?? KEY_RATE_LIMIT.timeWindowMs;
+  const last = row.lastRequest;
+  const windowOpen = last !== null && now.getTime() - last.getTime() < windowMs;
+  const used = windowOpen ? row.requestCount : 0;
+
+  return {
+    enabled: row.enabled,
+    max,
+    windowMs,
+    remaining: row.enabled ? Math.max(0, max - used) : max,
+    windowStartedAt: windowOpen ? last.toISOString() : null,
+    note: row.enabled
+      ? `${String(max)} request(s) per ${String(Math.round(windowMs / 1000))}s on this key; exceeding it answers 429 RATE_LIMITED with a countdown.`
+      : "This key has no rate limit.",
+  };
 }
 
 /** The plugin stores both JSON columns as text. A hand-edited row must not crash the page. */

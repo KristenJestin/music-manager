@@ -57,12 +57,9 @@ import { systemStatus } from "#/server/services/status.ts";
 import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
-import {
-  loadSettings,
-  maskedSettings,
-  setSettings,
-} from "#/server/services/settings.ts";
+import { loadSettings, maskedSettings, setSettings } from "#/server/services/settings.ts";
 import { enqueue, enqueueLibraryScan, enqueueRetagRun } from "#/server/services/queue.ts";
+import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-rate-limit.ts";
 import {
   IMPORT_STATUSES,
   INBOX_TYPES,
@@ -223,8 +220,12 @@ interface ToolSpec {
  * A table rather than twenty `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
+ *
+ * `principal` is optional and used by exactly one tool: `get_status` reports the *caller's own*
+ * rate-limit budget, which it can only do if it knows which key is asking. Omit it and that
+ * field is `null`, which is what the tests and a session caller get.
  */
-export function toolTable(): ToolSpec[] {
+export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
   return [
     {
       name: "list_discover",
@@ -354,7 +355,17 @@ export function toolTable(): ToolSpec[] {
         "Each entry of `tracks` carries the mapping the matcher settled on — `trackPosition`, " +
         "`mediumPosition`, `recordingMbid`, `trackMbid`, `trackTitle` — which is exactly the " +
         "shape `confirm_mapping.bindings[]` expects. Re-confirming an import without losing " +
-        "its identifiers is therefore a copy, not a guess.",
+        "its identifiers is therefore a copy, not a guess.\n\n" +
+        "**When polling, leave about " +
+        `${String(Math.round(SUGGESTED_POLL_INTERVAL_MS / 1000))} second(s) between calls.** An API key is limited to ` +
+        `${String(KEY_RATE_LIMIT.maxRequests)} requests per ` +
+        `${String(Math.round(KEY_RATE_LIMIT.timeWindowMs / 1000))}s, and a tight loop here spends the whole budget on a ` +
+        "download that takes minutes — after which every tool answers 429 `RATE_LIMITED`, " +
+        "which looks exactly like this one having broken. `get_status.rateLimit` says how " +
+        "much is left.\n\n" +
+        "`step` is the **first step that has not finished**, so an import waiting behind a " +
+        'busy worker reads `step: "download"`, `status: "running"` *and* `queuePosition: 2` ' +
+        "rather than looking like it is downloading. `steps[]` is the full truth either way.",
       inputSchema: { importId: z.string().min(1) },
       run: async (args: { importId: string }) => {
         const detail = await jobDetail(args.importId, db());
@@ -1076,9 +1087,15 @@ export function toolTable(): ToolSpec[] {
         "implements and this compares it with the one the client was generated from, because " +
         "an image one commit behind answers `422 extra_forbidden` on a field its models have " +
         "never heard of — while `reachable: true`, `error: null` and four healthy binary " +
-        "versions all say nothing is wrong. `matches: false` means `bun run stack:up --build`.",
+        "versions all say nothing is wrong. `matches: false` means `bun run stack:up --build`.\n\n" +
+        "`rateLimit` is **your own** budget: `max` requests per `windowMs`, and `remaining` " +
+        "in the window in flight. Exceeding it answers 429 `RATE_LIMITED` with a countdown, " +
+        "which reads like a broken tool if you did not know the ceiling was there. A poll " +
+        `every ${String(Math.round(SUGGESTED_POLL_INTERVAL_MS / 1000))}s uses about five per cent of it. ` +
+        "It is `null` when the caller is a browser session rather than a key.",
       inputSchema: {},
-      run: async () => await systemStatus({ db: db() }),
+      run: async () =>
+        await systemStatus({ db: db(), ...(principal === undefined ? {} : { principal }) }),
     },
     {
       name: "discover_sync",
@@ -1220,7 +1237,12 @@ export function buildMcpServer(principal: ApiPrincipal): McpServer {
         "Music Manager imports music from YouTube, matches it against MusicBrainz and writes " +
         "the fullest possible set of standard tags.\n\n" +
         "The usual flow: `create_import` with a URL, then `get_import` until it is " +
-        "`awaiting_review` or `done`. If it is waiting, `get_candidates` shows what it thinks " +
+        `\`awaiting_review\` or \`done\` — **leaving about ${String(Math.round(SUGGESTED_POLL_INTERVAL_MS / 1000))}s between polls**, because a key ` +
+        `is limited to ${String(KEY_RATE_LIMIT.maxRequests)} requests per ` +
+        `${String(Math.round(KEY_RATE_LIMIT.timeWindowMs / 1000))}s and a download takes minutes. Past that ceiling every tool ` +
+        "answers 429 `RATE_LIMITED` with a countdown, which reads like a broken server and is " +
+        "not one; `get_status.rateLimit` says what is left of the budget. If it is waiting, " +
+        "`get_candidates` shows what it thinks " +
         "the release is and `confirm_mapping` decides; `list_inbox` and `resolve_inbox` answer " +
         "anything else it is blocked on. Before importing, `search_library` says whether you " +
         "already have it.\n\n" +
@@ -1234,7 +1256,7 @@ export function buildMcpServer(principal: ApiPrincipal): McpServer {
     },
   );
 
-  for (const tool of toolTable()) {
+  for (const tool of toolTable(principal)) {
     if (!grants(principal.scopes, tool.scope)) continue;
     server.registerTool(
       tool.name,
