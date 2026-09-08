@@ -17,18 +17,20 @@ import { DataTable, type Column } from "#/components/data-table.tsx";
 import { NotFoundScreen } from "#/components/error-screen.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
-import { ScoreBar } from "#/components/score-bar.tsx";
-import { PipelineStepper } from "#/components/pipeline-dots.tsx";
+import { isPipelineStep, pipelineCount, PipelineStepper } from "#/components/pipeline-dots.tsx";
 import {
   ImportStatusBadge,
+  scoreTone,
   STEP_STATUS_META,
   ToneBadge,
   TrackStateBadge,
+  type Tone,
 } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { liveTracks, TrackProgress } from "#/components/track-progress.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
-import { dateTime, mmss, short } from "#/lib/format.ts";
+import { cn } from "cn";
+import { dateTime, mmss, pct, short } from "#/lib/format.ts";
 import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import {
@@ -69,6 +71,17 @@ export const Route = createFileRoute("/_app/imports/$id")({
 });
 
 const ACTIVE: readonly ImportStatus[] = ["pending", "running"];
+
+/** The three tones `scoreTone` returns, as text colour — the discreet confidence figure next
+ *  to the recording title (owner review F1) reads the same three colours `ScoreBar` used to. */
+const CONFIDENCE_TEXT: Record<Tone, string> = {
+  ok: "text-ok",
+  warn: "text-warn",
+  danger: "text-danger",
+  info: "text-info",
+  muted: "text-fg-3",
+  primary: "text-primary",
+};
 
 function JobPage() {
   const detail = Route.useLoaderData();
@@ -157,8 +170,11 @@ function JobPage() {
       // live sub-step, the percentage, the error — belongs to Status now (owner review D4):
       // it used to be here, where it took the duration's place and moved the whole table on
       // every progress line.
+      // Capped (owner review F1): the table moved to its own full-width row (below), but
+      // "full width" is still not "unlimited" — a column with no cap sizes to its longest
+      // title, and one long video title is enough to push the total past the viewport again.
       cell: (track) => (
-        <div className="min-w-0">
+        <div className="max-w-36 min-w-0" title={track.sourceTitle}>
           <div className="truncate">{track.sourceTitle}</div>
           <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
         </div>
@@ -171,12 +187,30 @@ function JobPage() {
           <ArrowRight className="size-3" aria-hidden="true" /> MusicBrainz recording
         </span>
       ),
+      // Owner review, fourth round (F1): the confidence column and its bar were the widest
+      // contributor to the table's horizontal scroll at 1280 px. The number survives — the
+      // owner explicitly kept that door open ("garder au plus un « 86 % » discret à côté de
+      // l'enregistrement") — as a discreet, tone-coloured figure beside the recording title
+      // rather than a whole column with a `ScoreBar` in it.
       cell: (track) =>
         track.trackTitle === null ? (
           <span className="text-fg-3">not bound</span>
         ) : (
-          <div className="min-w-0">
-            <div className="truncate">{track.trackTitle}</div>
+          <div className="max-w-44 min-w-0" title={track.trackTitle}>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="min-w-0 truncate">{track.trackTitle}</span>
+              {track.confidence === null ? null : (
+                <span
+                  className={cn(
+                    "shrink-0 font-mono text-2xs",
+                    CONFIDENCE_TEXT[scoreTone(track.confidence)],
+                  )}
+                  title="MusicBrainz match confidence"
+                >
+                  {pct(track.confidence)}
+                </span>
+              )}
+            </div>
             <div className="font-mono text-2xs text-fg-2">
               track {track.trackPosition ?? "?"} · {short(track.recordingMbid)}…
             </div>
@@ -184,40 +218,19 @@ function JobPage() {
         ),
     },
     {
-      key: "confidence",
-      header: "Conf.",
-      cell: (track) =>
-        track.confidence === null ? (
-          <span className="text-fg-3">not scored</span>
-        ) : (
-          <ScoreBar value={track.confidence} />
-        ),
-    },
-    {
-      key: "fingerprint",
-      header: "FP",
-      cell: (track) =>
-        track.fingerprintOk === true ? (
-          <ToneBadge tone="ok">
-            <Fingerprint className="size-3" aria-hidden="true" /> ok
-          </ToneBadge>
-        ) : track.fingerprintOk === false ? (
-          <ToneBadge tone="danger">
-            <Fingerprint className="size-3" aria-hidden="true" /> differs
-          </ToneBadge>
-        ) : (
-          <span className="text-fg-3">not checked</span>
-        ),
-    },
-    {
       key: "file",
       header: "File",
       cell: (track) => (
-        // Narrower than it was: Status is a fixed 224 px now, and the seven columns have to
-        // fit beside each other before the table starts scrolling sideways. The whole path is
-        // one hover away.
+        // Truncated **from the start**, not the end (owner review F1/F2): a library path's
+        // useful part is its tail — the album folder and the file name — and the old
+        // end-truncation hid exactly that behind "01 - Du monde…". `dir="rtl"` on an LTR
+        // string is the standard trick: the browser still lays the characters out left to
+        // right, but it elides from the *visual* start, so the ellipsis lands on the left and
+        // "…Du monde tout autour (2011)/01 - Du monde tout autour.opus" stays readable.
+        // Two columns freed by removing Conf./FP go here: `max-w-64` against the old `max-w-40`.
         <span
-          className="block max-w-40 truncate font-mono text-2xs text-fg-2"
+          dir="rtl"
+          className="block max-w-64 truncate text-left font-mono text-2xs text-fg-2"
           title={track.libraryPath ?? undefined}
         >
           {track.libraryPath ?? "not placed"}
@@ -240,8 +253,26 @@ function JobPage() {
       headClassName: "w-56",
       cell: (track) => (
         <div data-testid="track-status" className="flex w-56 min-w-0 flex-col gap-1">
+          {/* No wrap: the row's height is fixed (D4), and `fingerprintOk === false` — the one
+              case that widens this line the most — never coincides with the retry button,
+              since a mismatch pauses the import through an Inbox item rather than failing the
+              track (`server/services/jobs/steps/fingerprint.ts`). */}
           <div className="flex min-w-0 items-center gap-1.5">
             <TrackStateBadge state={track.state} />
+            {/* Owner review, fourth round (F1): the fingerprint column is gone — an empreinte
+                is a state, and it belongs here with the rest of them. `true` is quiet (an
+                icon, the same one the removed column used); `false` is the loud one, because
+                a mismatch is the one fingerprint outcome that needs a human. `null` — not
+                checked yet, or checking is off — says nothing, same as before. */}
+            {track.fingerprintOk === true ? (
+              <span title="fingerprint verified" data-testid="track-fingerprint-ok">
+                <Fingerprint className="size-3.5 shrink-0 text-ok" aria-hidden="true" />
+              </span>
+            ) : track.fingerprintOk === false ? (
+              <ToneBadge tone="danger" data-testid="track-fingerprint-mismatch">
+                <Fingerprint className="size-3" aria-hidden="true" /> mismatch
+              </ToneBadge>
+            ) : null}
             {/* One track, one retry. Re-running the whole album to fetch a single video that
                 lost a bot check is what the owner had to do until now (C6). */}
             {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
@@ -316,7 +347,13 @@ function JobPage() {
               </a>
             )}
           </div>
-          <PipelineStepper className="mt-2.5" step={job.step} status={job.status} />
+          <PipelineStepper
+            className="mt-2.5"
+            steps={steps}
+            headStep={job.step}
+            status={job.status}
+            tracks={tracks}
+          />
         </div>
         <div className="flex shrink-0 gap-2">
           {/* Shown for every job a worker could still do something with, and **disabled while
@@ -407,131 +444,150 @@ function JobPage() {
         </Callout>
       ))}
 
-      <div className="split-grid">
-        <section className="overflow-hidden rounded-xl border border-line bg-surface-1">
+      {/* Owner review, fourth round (F1): the Tracks table used to share this row with the
+          Release/Options/Steps column at a 2:1 split (`split-grid`), which left it only
+          ~654 px wide at a 1280 px viewport — too narrow for five columns plus a readable
+          FILE path, however tightly each one is capped. Tracks now gets the row's full
+          width, and the three cards move into their own responsive row below it — same
+          components, reordered, so the table has the ~970–1000 px a legible path needs. */}
+      <section className="overflow-hidden rounded-xl border border-line bg-surface-1">
+        <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
+          <h2 className="text-sm font-semibold">Tracks</h2>
+          <span className="text-xs text-fg-2">
+            {tracksDone}/{tracks.length} placed
+          </span>
+        </header>
+        <DataTable
+          data-testid="job-tracks"
+          columns={columns}
+          rows={tracks}
+          rowKey={(track) => track.id}
+          empty="No videos resolved yet."
+        />
+      </section>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="rounded-xl border border-line bg-surface-1">
           <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-            <h2 className="text-sm font-semibold">Tracks</h2>
-            <span className="text-xs text-fg-2">
-              {tracksDone}/{tracks.length} placed
-            </span>
+            <h2 className="text-sm font-semibold">Release</h2>
+            {job.releaseMbid === null ? null : (
+              <a
+                href={`https://musicbrainz.org/release/${job.releaseMbid}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-2xs text-primary hover:underline"
+              >
+                <ExternalLink className="size-3" aria-hidden="true" /> MB
+              </a>
+            )}
           </header>
-          <DataTable
-            data-testid="job-tracks"
-            columns={columns}
-            rows={tracks}
-            rowKey={(track) => track.id}
-            empty="No videos resolved yet."
-          />
-        </section>
-
-        <div className="flex flex-col gap-4">
-          <section className="rounded-xl border border-line bg-surface-1">
-            <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-              <h2 className="text-sm font-semibold">Release</h2>
-              {job.releaseMbid === null ? null : (
-                <a
-                  href={`https://musicbrainz.org/release/${job.releaseMbid}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-2xs text-primary hover:underline"
-                >
-                  <ExternalLink className="size-3" aria-hidden="true" /> MB
-                </a>
-              )}
-            </header>
-            <div className="px-3.5 py-3">
-              {job.releaseMbid === null ? (
-                <p className="text-fg-2">Not resolved yet.</p>
-              ) : (
-                <KeyValueList
-                  items={[
-                    { label: "Title", value: job.title ?? "not resolved" },
-                    { label: "Artist", value: job.artist ?? "not resolved" },
-                    { label: "Year", value: job.year ?? "not resolved" },
-                    {
-                      label: "MBID",
-                      value: <span className="font-mono text-2xs">{job.releaseMbid}</span>,
-                    },
-                    {
-                      label: "Mapping",
-                      value: `${String(release.mapped ?? tracks.filter((t) => t.role === "mapped").length)} bound · ${String(release.extras ?? tracks.filter((t) => t.role === "extra").length)} extra`,
-                    },
-                  ]}
-                />
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-xl border border-line bg-surface-1">
-            <header className="border-b border-line px-3.5 py-2.5">
-              <h2 className="text-sm font-semibold">Options</h2>
-            </header>
-            <div className="px-3.5 py-3">
+          <div className="px-3.5 py-3">
+            {job.releaseMbid === null ? (
+              <p className="text-fg-2">Not resolved yet.</p>
+            ) : (
               <KeyValueList
                 items={[
+                  { label: "Title", value: job.title ?? "not resolved" },
+                  { label: "Artist", value: job.artist ?? "not resolved" },
+                  { label: "Year", value: job.year ?? "not resolved" },
                   {
-                    label: "Fingerprint",
-                    value: job.options.fingerprint === false ? "off" : "verify, pause on mismatch",
+                    label: "MBID",
+                    value: <span className="font-mono text-2xs">{job.releaseMbid}</span>,
                   },
                   {
-                    label: "Lyrics",
-                    value: job.options.lyrics === false ? "off" : "LRCLIB synced",
+                    label: "Mapping",
+                    value: `${String(release.mapped ?? tracks.filter((t) => t.role === "mapped").length)} bound · ${String(release.extras ?? tracks.filter((t) => t.role === "extra").length)} extra`,
                   },
-                  {
-                    label: "ReplayGain",
-                    value: job.options.replaygain === false ? "off" : "track + album",
-                  },
-                  { label: "Force", value: job.options.force === true ? "on" : "off" },
-                  { label: "Priority", value: job.priority },
-                  { label: "Created", value: dateTime(job.createdAt) },
-                  { label: "Finished", value: dateTime(job.finishedAt) },
                 ]}
               />
-            </div>
-          </section>
+            )}
+          </div>
+        </section>
 
-          <section className="rounded-xl border border-line bg-surface-1">
-            <header className="border-b border-line px-3.5 py-2.5">
-              <h2 className="text-sm font-semibold">Steps</h2>
-            </header>
-            <div className="px-3.5 py-3">
-              <KeyValueList
-                items={steps.map((entry) => ({
+        <section className="rounded-xl border border-line bg-surface-1">
+          <header className="border-b border-line px-3.5 py-2.5">
+            <h2 className="text-sm font-semibold">Options</h2>
+          </header>
+          <div className="px-3.5 py-3">
+            <KeyValueList
+              items={[
+                {
+                  label: "Fingerprint",
+                  value: job.options.fingerprint === false ? "off" : "verify, pause on mismatch",
+                },
+                {
+                  label: "Lyrics",
+                  value: job.options.lyrics === false ? "off" : "LRCLIB synced",
+                },
+                {
+                  label: "ReplayGain",
+                  value: job.options.replaygain === false ? "off" : "track + album",
+                },
+                { label: "Force", value: job.options.force === true ? "on" : "off" },
+                { label: "Priority", value: job.priority },
+                { label: "Created", value: dateTime(job.createdAt) },
+                { label: "Finished", value: dateTime(job.finishedAt) },
+              ]}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-line bg-surface-1">
+          <header className="border-b border-line px-3.5 py-2.5">
+            <h2 className="text-sm font-semibold">Steps</h2>
+          </header>
+          <div className="px-3.5 py-3">
+            <KeyValueList
+              items={steps.map((entry) => {
+                // Owner review, fourth round (F3): "même logique dans le bloc Steps
+                // (compteurs + messages)" — `download`, `fingerprint`, `tag` and `place` get
+                // an honest `done/total` count here too, even before they have a row at all
+                // (a step nothing has reached yet is genuinely `0/total`, not a blank).
+                const count = isPipelineStep(entry.step) ? pipelineCount(tracks, entry.step) : null;
+                if (entry.row === null && count === null) {
+                  return { label: entry.step, value: <span className="text-fg-3">not run</span> };
+                }
+                const meta =
+                  entry.row === null
+                    ? STEP_STATUS_META.pending
+                    : STEP_STATUS_META[entry.row.status];
+                return {
                   label: entry.step,
-                  value:
-                    entry.row === null ? (
-                      <span className="text-fg-3">not run</span>
-                    ) : (
-                      <span className="flex flex-wrap items-center gap-1.5">
-                        <ToneBadge tone={STEP_STATUS_META[entry.row.status].tone}>
-                          {STEP_STATUS_META[entry.row.status].label}
-                        </ToneBadge>
-                        {/* A running step has no message yet — its row is only written when it
+                  value: (
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <ToneBadge tone={meta.tone}>{meta.label}</ToneBadge>
+                      {count === null ? null : (
+                        <span className="font-mono text-2xs text-fg-2" data-testid="step-count">
+                          {count.done}/{count.total} track(s)
+                        </span>
+                      )}
+                      {/* A running step has no message yet — its row is only written when it
                             ends. The live sub-step is the one thing worth showing there, and
                             it is exactly what C2/C7 asked for.
 
                             **Only for the head step**, since the steps overlap (decision 147):
-                            `fingerprint`, `tag` and `place` are all `running` while `download`
-                            still holds the slot, and the newest live sentence belongs to one of
-                            them. Printing it beside all four said "Face to Face: downloading
-                            22%" next to `tag`. The other three carry their own derived
-                            sentence — `11/14 track(s)` — which is the true one. */}
-                        {entry.row.status === "running" &&
-                        entry.step === job.step &&
-                        currentStage !== null ? (
-                          <span data-testid="step-stage" className="text-fg-2">
-                            {currentStage}
-                          </span>
-                        ) : entry.row.message === null ? null : (
-                          <span className="text-fg-2">{entry.row.message}</span>
-                        )}
-                      </span>
-                    ),
-                }))}
-              />
-            </div>
-          </section>
-        </div>
+                            `fingerprint`, `tag` and `place` can all be `running` at once while
+                            `download` still holds the slot, and the newest live sentence
+                            belongs to whichever of them the journal is actually talking about.
+                            Printing it beside all four said "Face to Face: downloading 22%"
+                            next to `tag`. The other three carry their own count instead, right
+                            above — the true sentence for a step nothing on the journal names. */}
+                      {entry.row?.status === "running" &&
+                      entry.step === job.step &&
+                      currentStage !== null ? (
+                        <span data-testid="step-stage" className="text-fg-2">
+                          {currentStage}
+                        </span>
+                      ) : entry.row?.message == null ? null : (
+                        <span className="text-fg-2">{entry.row.message}</span>
+                      )}
+                    </span>
+                  ),
+                };
+              })}
+            />
+          </div>
+        </section>
       </div>
 
       <section className="mt-4 overflow-hidden rounded-xl border border-line bg-surface-1">
