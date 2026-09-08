@@ -13,6 +13,7 @@ from httpx2 import Client
 from yt_dlp.utils import DownloadError
 
 from toolbox import download as download_module
+from toolbox.config import fixture_delay_seconds_for
 from toolbox.errors import ErrorCode
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DEFAULT_FORMAT
@@ -70,6 +71,24 @@ def test_the_fixture_download_records_which_scenario_produced_the_file(
     plain_path = events(fixture_client, plain)[-1]["path"]
     agreed = fixture_client.post("/fingerprint", json={"path": plain_path}).json()
     assert agreed["candidates"][0]["title"] == "One More Time"
+
+
+def test_slow_paces_one_fixture_download_without_touching_the_default():
+    """`?slow=<ms>` is a scenario switch on *duration*, capped, and per URL.
+
+    The offline end-to-end run paces its slices at ten milliseconds, at which speed a whole
+    track is thirty milliseconds — a perfectly good download and an impossible thing to see
+    from a browser. `e2e/owner-review-5.spec.ts` has to catch the Console *while* a track is
+    downloading (owner review 5, G2), so it asks for a window rather than slowing every other
+    spec down.
+    """
+    assert fixture_delay_seconds_for("fixture://discovery?slow=400#0") == pytest.approx(0.4)
+    # Capped: a switch may make a download observable, never a minute long — the single
+    # download slot is held for the whole of it.
+    assert fixture_delay_seconds_for("fixture://discovery?slow=99999") == pytest.approx(2.0)
+    # Nonsense and absence both fall back to the installation default.
+    assert fixture_delay_seconds_for("fixture://discovery?slow=abc") == pytest.approx(0.02)
+    assert fixture_delay_seconds_for("fixture://discovery#0") == pytest.approx(0.02)
 
 
 def test_an_unknown_fixture_ends_the_stream_with_an_error_event(

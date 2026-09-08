@@ -26,7 +26,7 @@ from typing import Any, Final
 import structlog
 
 from toolbox import fixtures
-from toolbox.config import fixture_delay_seconds, fixtures_enabled
+from toolbox.config import fixture_delay_seconds_for, fixtures_enabled
 from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
@@ -214,7 +214,7 @@ async def _fixture_events(request: DownloadRequest) -> AsyncIterator[bytes]:
     target = dest_dir / f"{request.id}.opus"
     total = source.stat().st_size
 
-    delay = fixture_delay_seconds()
+    delay = fixture_delay_seconds_for(request.url)
     copied = 0
     partial = target.with_suffix(".opus.part")
     with source.open("rb") as reader, partial.open("wb") as writer:

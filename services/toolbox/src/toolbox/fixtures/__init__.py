@@ -16,6 +16,10 @@ Recognised URLs:
 ``fixture://discovery?fp=mismatch``   same playlist, but `/fingerprint` answers with a
                                       *different* recording, which is what drives the
                                       `fingerprint_mismatch` Inbox item
+``fixture://discovery?slow=400``      same playlist, but `/download` paces its slices at 400
+                                      ms instead of the installation default, so a browser
+                                      test can observe a track *while* it is downloading
+                                      (capped at 2 s a slice)
 ``fixture://<name>#<n>``              entry ``n`` of that fixture, for `/download`
 ===================================== ====================================================
 """

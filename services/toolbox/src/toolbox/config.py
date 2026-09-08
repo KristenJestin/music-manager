@@ -11,12 +11,16 @@ import os
 from pathlib import Path
 from typing import Final
 
+from toolbox.urls import parse_fixture
+
 __all__ = [
     "DEFAULT_LIBRARY_ROOT",
+    "FIXTURE_SLOW_MAX_MS",
     "acoustid_key",
     "autoupdate_enabled",
     "env_flag",
     "fixture_delay_seconds",
+    "fixture_delay_seconds_for",
     "fixtures_enabled",
     "library_root",
     "toolbox_token",
@@ -73,3 +77,30 @@ def acoustid_key() -> str:
 def library_root() -> Path:
     """Root of the music library bind mount."""
     return Path(os.environ.get("MM_LIBRARY_ROOT", DEFAULT_LIBRARY_ROOT))
+
+
+#: Upper bound on ``?slow=<ms>``. A scenario switch may make a download observable; it may not
+#: make one take a minute, because the single download slot is held for its whole length.
+FIXTURE_SLOW_MAX_MS: Final[float] = 2_000.0
+
+
+def fixture_delay_seconds_for(url: str) -> float:
+    """The per-slice delay for one URL — the installation default, or its ``?slow=<ms>``.
+
+    A scenario switch, exactly like ``?fp=mismatch``: a recorded URL that carries the condition
+    it is meant to exercise. Here the condition is **duration**. The offline end-to-end run
+    paces its downloads at ten milliseconds so a suite is minutes rather than hours, and at
+    that speed a whole track is three slices and thirty milliseconds — a perfectly good
+    download and an impossible thing to observe from a browser. A test that has to catch the
+    Console *while* a track is downloading (owner review 5, G2) asks for
+    ``fixture://discovery?slow=400`` and gets a window it can see, without slowing down every
+    other spec beside it.
+    """
+    ref = parse_fixture(url)
+    raw = (ref.params.get("slow") if ref is not None else None) or ""
+    if raw.strip() == "":
+        return fixture_delay_seconds()
+    try:
+        return min(max(float(raw), 0.0), FIXTURE_SLOW_MAX_MS) / 1000.0
+    except ValueError:
+        return fixture_delay_seconds()

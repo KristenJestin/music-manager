@@ -36,7 +36,17 @@ test.describe("owner review 5", () => {
     page,
   }) => {
     await signIn(page);
-    const importId = await resolveSource(page, "fixture://discovery");
+    /*
+     * `?slow=400`, and it is the only reason this test can exist.
+     *
+     * The suite paces fixture downloads at ten milliseconds a slice so a run is minutes rather
+     * than hours; at that speed a whole track is three slices and thirty milliseconds. That is
+     * a perfectly good download and an impossible thing to observe from a browser — the DOM
+     * state this test is about would exist for less than one poll. The switch is a scenario
+     * switch like `?fp=mismatch` and `?mb=503`: a recorded URL carrying the condition it is
+     * meant to exercise, here *duration*, and only for the import that asks.
+     */
+    const importId = await resolveSource(page, "fixture://discovery?slow=400");
 
     await page.getByTestId("wizard-next").click();
     await page.waitForURL(/step=2/, { timeout: 120_000 });
@@ -59,42 +69,44 @@ test.describe("owner review 5", () => {
      *
      * The page is live (server-sent events), and `liveTracks` keeps a track's last non-terminal
      * line until its `track.done` arrives — so a downloading track holds `data-downloading=yes`
-     * for as long as its bytes are moving, not for the instant one event is on the wire.
+     * for as long as its bytes are moving. `waitFor` polls **inside the page**, which is the
+     * difference between catching that window and asking about it once a second from outside.
      */
-    const seen = { bars: 0, statusHeights: new Set<number>() };
-    await expect
-      .poll(
-        async () => {
-          const downloading = await page
-            .locator('[data-testid="track-progress"][data-downloading="yes"]')
-            .count();
-          if (downloading > 0) {
-            seen.bars = await bars.count();
-            for (const height of await heightsOfStatusCells(page)) {
-              seen.statusHeights.add(height);
-            }
-          }
-          return downloading;
-        },
-        {
-          message: "a track should show a download bar while its bytes are moving",
-          timeout: 120_000,
-          intervals: [100, 100, 100, 250, 500],
-        },
-      )
-      .toBeGreaterThan(0);
-
-    // A bar was drawn, and only for the tracks that were downloading — never one per row.
-    expect(seen.bars).toBeGreaterThan(0);
-    expect(seen.bars).toBeLessThan(15);
-
-    // The bar's value is yt-dlp's, not a placeholder: `aria-valuenow` is a real percentage.
-    // Read from the first bar that is on screen at this instant, whichever track owns it.
-    const value = await bars
+    await page
+      .locator('[data-testid="track-progress"][data-downloading="yes"]')
       .first()
-      .getAttribute("aria-valuenow")
-      .catch(() => null);
-    if (value !== null) expect(Number(value)).toBeGreaterThanOrEqual(0);
+      .waitFor({ state: "attached", timeout: 120_000 });
+
+    /*
+     * One read of the whole column, in one evaluation, so the numbers below describe **one
+     * instant** rather than three of them: the download slot is single and moves on, and a
+     * three-round-trip assertion would be comparing a bar that has already finished with a
+     * row that has already started.
+     */
+    const midRun = await page.getByTestId("track-status").evaluateAll((cells) =>
+      cells.map((cell) => {
+        const bar = cell.querySelector('[role="progressbar"]');
+        return {
+          height: Math.round(cell.getBoundingClientRect().height),
+          bar: bar !== null,
+          value: bar === null ? null : Number(bar.getAttribute("aria-valuenow")),
+          spacer: cell.querySelector('[data-testid="track-progress-spacer"]') !== null,
+        };
+      }),
+    );
+
+    const withBar = midRun.filter((cell) => cell.bar);
+    // A bar was drawn, and only for what is downloading — never one per row, which is G2.
+    expect(withBar.length, JSON.stringify(midRun)).toBeGreaterThan(0);
+    expect(withBar.length).toBeLessThan(midRun.length);
+    // Every row without a bar still holds the line, at the bar's own height.
+    for (const cell of midRun) expect(cell.bar === cell.spacer).toBe(false);
+    // The value is yt-dlp's own percentage, not a placeholder.
+    for (const cell of withBar) {
+      expect(cell.value).toBeGreaterThanOrEqual(0);
+      expect(cell.value).toBeLessThanOrEqual(100);
+    }
+    const midRunHeights = new Set(midRun.map((cell) => cell.height));
 
     /* ---- 2 · once the album is through: no bar anywhere ---- */
     await waitForStatus(page, "Done", 180_000);
@@ -117,10 +129,12 @@ test.describe("owner review 5", () => {
       `Status cells disagree on their height: ${finished.join()}`,
     ).toBe(1);
     // And the height a finished row has is the height a downloading row had: the spacer is the
-    // bar's own `h-1.5`, so swapping one for the other cannot move a single row.
-    for (const midRun of seen.statusHeights) {
-      expect(finished[0], `mid-run ${midRun} vs finished ${String(finished[0])}`).toBe(midRun);
-    }
+    // bar's own `h-1.5`, so swapping one for the other cannot move a single row. A failed row
+    // is taller on purpose (it carries the error line), so only the agreeing heights count.
+    expect(
+      midRunHeights.has(finished[0] ?? -1),
+      `mid-run heights ${[...midRunHeights].join()} vs finished ${String(finished[0])}`,
+    ).toBe(true);
   });
 });
 
