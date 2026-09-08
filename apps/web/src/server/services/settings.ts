@@ -199,6 +199,8 @@ export const SETTING_DEFINITIONS = {
       format: z.number().min(0),
       status: z.number().min(0),
       country: z.number().min(0),
+      // Added by decision 167, hence a default, for the same reason `coverage` has one.
+      coverArt: z.number().min(0).default(DEFAULT_WEIGHTS.release.coverArt),
     }),
     DEFAULT_WEIGHTS.release,
     "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it.",

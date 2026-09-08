@@ -98,9 +98,11 @@ export function ReleaseGroupCard({
           )}
           aria-hidden="true"
         />
+        {/* Same rule as the card: a pressing MusicBrainz says has no front is not requested,
+            so a group header never spends a 404 to draw the gradient it already knows about. */}
         <Cover
           size="sm"
-          src={coverArtFront(best?.id)}
+          src={best?.coverArt?.front === false ? null : coverArtFront(best?.id)}
           seed={group.id ?? group.title}
           label={group.title}
         />

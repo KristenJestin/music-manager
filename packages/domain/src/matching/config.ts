@@ -39,22 +39,29 @@ import type {
  * honest fit.
  *
  * Title and artist come next — they are what puts a candidate in the list at all, so they
- * discriminate less *within* the list than they look. Format, country and status are
- * tie-breakers between pressings of one album, and a label is only ever a corroboration,
- * because "Provided to YouTube by" names the current distributor rather than the original
- * imprint.
+ * discriminate less *within* the list than they look. Format, country, status and — since
+ * decision 167 — **cover art** are tie-breakers between pressings of one album, and a label is
+ * only ever a corroboration, because "Provided to YouTube by" names the current distributor
+ * rather than the original imprint.
+ *
+ * `coverArt`'s 0.03 was paid for by title, artist and year (0.16/0.16/0.06 → 0.15/0.15/0.05),
+ * and the choice is not arbitrary: the two-level search of decision 151 has already agreed on
+ * the title and the artist by the time two pressings of one release group are being compared,
+ * so those two signals are the ones with the least left to say at exactly the moment this one
+ * speaks. The total is still 1.
  */
 const RELEASE_WEIGHTS = {
-  title: 0.16,
-  artist: 0.16,
+  title: 0.15,
+  artist: 0.15,
   durations: 0.26,
   coverage: 0.2,
   trackCount: 0.09,
-  year: 0.06,
+  year: 0.05,
   label: 0.01,
   format: 0.03,
   status: 0.01,
   country: 0.02,
+  coverArt: 0.03,
 } as const satisfies MatchingWeights["release"];
 
 /**

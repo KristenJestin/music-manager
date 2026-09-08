@@ -2,7 +2,7 @@
  * `releaseCandidates.score` — rank the MusicBrainz releases that could be the album behind a
  * playlist (`docs/04-pipeline-et-matching.md` § Release (album)).
  *
- * Ten signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
+ * Eleven signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
  * penalties. The one that decides between two pressings of the same record is the **tracklist
  * fit**: how many of the release's tracks a video actually lands on, and by how much on
  * average. Title and artist put a candidate in the list; the fit is what tells a fourteen-track
@@ -18,6 +18,13 @@
  * decides N, default 6). A candidate without a tracklist is marked `detailed: false` and its
  * fit signal is dropped from the denominator rather than counted as zero — an un-looked-up
  * release must rank *below* the examined ones without being slandered.
+ *
+ * That same lookup answers a second question for free, and decision 167 is about spending it:
+ * a release lookup carries `cover-art-archive`, so **whether this pressing has a front cover**
+ * is known for exactly the candidates whose fit is known, at no extra request. It is a light
+ * signal (0.03) because it settles a tie rather than picks a record — the fifth owner review's
+ * *Pure Heroine*, where a 2013 US pressing with no image at all sat one point in front of a
+ * 2014 worldwide one with a cover.
  */
 
 import { assign } from "./mapping.ts";
@@ -25,6 +32,8 @@ import { withDefaults, type DeepPartialConfig } from "./config.ts";
 import {
   artistScore,
   countryScore,
+  coverArtOf,
+  coverArtScore,
   creditName,
   disambiguationPenalties,
   flattenTracks,
@@ -179,11 +188,12 @@ function coveragePenalties(coverage: number | null, config: MatchingConfig): Pen
   ];
 }
 
-/** Blend the ten signals, dropping the ones that do not exist for this candidate. */
+/** Blend the eleven signals, dropping the ones that do not exist for this candidate. */
 function blendRelease(
   signals: ReleaseSignals,
   fitSignal: number | null,
   coverageSignal: number | null,
+  coverArtSignal: number | null,
   config: MatchingConfig,
 ): number {
   const w = config.weights.release;
@@ -198,6 +208,7 @@ function blendRelease(
     [w.format, signals.format],
     [w.status, signals.status],
     [w.country, signals.country],
+    [w.coverArt, coverArtSignal],
   ];
   let weighted = 0;
   let total = 0;
@@ -289,6 +300,28 @@ function explain(
     why.push(`Status ${candidate.status} rather than Official`);
   }
 
+  /*
+   * The cover, in words (fifth owner review, G1).
+   *
+   * The owner's case was two pressings of *Pure Heroine* a point apart, the one in front
+   * carrying no image at all — and nothing on the card said so. The sentence is printed
+   * whenever the answer is *known*: a release that was looked up either has a front or does
+   * not, and "no cover art" is a fact about the release, not a gap in what we asked.
+   */
+  if (candidate.coverArt !== null) {
+    if (candidate.coverArt.front) {
+      why.push(
+        `Cover art available on the Cover Art Archive (${String(candidate.coverArt.count)} image${candidate.coverArt.count === 1 ? "" : "s"})`,
+      );
+    } else if (candidate.coverArt.available) {
+      why.push("The Cover Art Archive has images for this release, but no approved front cover");
+    } else {
+      why.push(
+        "No cover art on MusicBrainz for this release — the cover would come from elsewhere",
+      );
+    }
+  }
+
   if (candidate.signals.label >= 0.99 && candidate.label !== null) {
     why.push(`Label ${candidate.label} matches the “Provided to YouTube by” line`);
   } else if (candidate.signals.label <= 0.6 && candidate.label !== null) {
@@ -344,6 +377,9 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       lines: fitLines,
     } = tracklistFit(input, candidate, config);
 
+    const coverArt = coverArtOf(release);
+    const coverArtSignal = coverArtScore(coverArt);
+
     const signals: ReleaseSignals = {
       title: round3(sourceAlbum === "" ? 0.5 : titleScore(sourceAlbum, release.title ?? "")),
       artist: round3(artistScore(sourceArtists, artist)),
@@ -357,6 +393,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       format: round3(formatScore(format, config.preferences)),
       status: round3(statusScore(release.status ?? null)),
       country: round3(countryScore(country, config.preferences)),
+      coverArt: round3(coverArtSignal ?? 0),
     };
 
     const penalties: Penalty[] = [
@@ -370,7 +407,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       ),
     ];
 
-    const blended = blendRelease(signals, fitSignal, coverageSignal, config);
+    const blended = blendRelease(signals, fitSignal, coverageSignal, coverArtSignal, config);
     const finalScore = unit(blended - totalPenalty(penalties));
 
     const candidateOut: ReleaseCandidate = {
@@ -388,6 +425,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       secondary: [...(group?.["secondary-types"] ?? [])],
       disambiguation: release.disambiguation ?? "",
       barcode: release.barcode ?? null,
+      coverArt,
       tracks,
       score: round3(finalScore),
       fit,
@@ -422,12 +460,30 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
    * ones stay in the list, with `detailed: false` and a `why` saying so, because the Console
    * has to be able to offer them.
    */
+  /*
+   * …and, at an exactly equal score and fit, the one that comes with a picture wins.
+   *
+   * The 0.03 weight already decides the ordinary case; this is the pathological one the fifth
+   * owner review's screenshot is a hair away from — two pressings of one album that agree on
+   * every signal the engine has. Falling back to `id.localeCompare` there would be choosing an
+   * import with no cover over an identical one with a cover, by alphabetical accident.
+   */
+  const withFront = (candidate: ReleaseCandidate): number =>
+    candidate.coverArt === null
+      ? 0
+      : candidate.coverArt.front
+        ? 2
+        : candidate.coverArt.available
+          ? 1
+          : 0;
+
   const ranked = [...scored].sort(
     (a, b) =>
       Number(b.detailed) - Number(a.detailed) ||
       b.score - a.score ||
       b.fit - a.fit ||
       a.fitOf - b.fitOf ||
+      withFront(b) - withFront(a) ||
       a.id.localeCompare(b.id),
   );
 

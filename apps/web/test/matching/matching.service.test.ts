@@ -50,12 +50,13 @@ function albumInput(recorded: Cassette): {
 /* ------------------------------------------------------------------ */
 
 describe("the recorded scenarios", () => {
-  it("holds the four the phase specification names, plus the owner review counter-example", () => {
+  it("holds the four the phase specification names, plus the owner review counter-examples", () => {
     expect(cassetteNames()).toEqual([
       "bad-ideas",
       "currents",
       "discovery",
       "formidable",
+      "pure-heroine",
       "skinny-love",
     ]);
   });
@@ -257,6 +258,78 @@ describe("Bad Ideas — an album and a one-track single of the same name", () =>
     expect(singleGroup).toBeDefined();
     expect(singleGroup?.score).toBeLessThanOrEqual(0.3);
     expect(singleGroup?.preselected).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Pure Heroine — the fifth owner review's counter-example              */
+/* ------------------------------------------------------------------ */
+
+describe("Pure Heroine — two pressings, one of them with no picture", () => {
+  /** The 2014 worldwide Universal pressing: the same ten tracks, and a front cover. */
+  const XW_2014 = "002022bb-276c-455a-8cb9-2848b77c37b8";
+  /** The 2013 US Lava pressing: the same ten tracks, and "No images available". */
+  const US_2013 = "f546b766-4b04-4781-b058-3d5e7dabc37d";
+
+  it("preselects the pressing that has a cover, not the one a point ahead without one", async () => {
+    /*
+     * The screenshot the fifth review came with: `f546b766…` at 99 %, no image at all, sitting
+     * directly on top of `002022bb…` at 98 % with one. Both fit 10/10 — there is nothing to
+     * choose between them on the tracklist, which is exactly when the tie-breakers speak, and
+     * until decision 167 none of them knew what a cover was.
+     */
+    const recorded = cassette("pure-heroine");
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    expect(result.ranking.preselected?.id).toBe(XW_2014);
+    expect(result.ranking.preselected?.coverArt?.front).toBe(true);
+    expect(result.ranking.preselected?.fit).toBe(10);
+
+    const without = result.ranking.candidates.find((c) => c.id === US_2013);
+    expect(without?.coverArt).toEqual({ available: false, front: false, count: 0 });
+    expect(without?.fit).toBe(10);
+    expect(without?.score).toBeLessThan(result.ranking.preselected?.score ?? 0);
+  });
+
+  it("gives the old weights back the old, wrong answer — so the fix is the signal", async () => {
+    // The control. With `coverArt` at zero and the 0.03 handed back to title/artist/year, the
+    // ranking is the one the owner photographed; nothing else in this branch moved it.
+    const recorded = cassette("pure-heroine");
+    const before = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), {
+      ...settings,
+      matchReleaseWeights: {
+        ...settings.matchReleaseWeights,
+        coverArt: 0,
+        title: 0.16,
+        artist: 0.16,
+        year: 0.06,
+      },
+    });
+    expect(before.ranking.preselected?.id).toBe(US_2013);
+  });
+
+  it("says it in words, on both cards", async () => {
+    const recorded = cassette("pure-heroine");
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    const withCover = result.ranking.candidates.find((c) => c.id === XW_2014);
+    const without = result.ranking.candidates.find((c) => c.id === US_2013);
+    expect(withCover?.why.join(" | ")).toMatch(/Cover art available on the Cover Art Archive/);
+    expect(without?.why.join(" | ")).toMatch(/No cover art on MusicBrainz/);
+  });
+
+  it("leaves a candidate nobody looked up saying nothing about covers at all", async () => {
+    // `null` is "we never asked", and it must not read as "there is none": a shallow candidate
+    // has no `cover-art-archive` block, because MusicBrainz sends it on lookups only.
+    const recorded = cassette("pure-heroine");
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    const shallow = result.ranking.candidates.filter((c) => !c.detailed);
+    expect(shallow.length).toBeGreaterThan(0);
+    for (const candidate of shallow) {
+      expect(candidate.coverArt).toBeNull();
+      expect(candidate.why.join(" | ")).not.toMatch(/cover art/i);
+    }
   });
 });
 

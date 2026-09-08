@@ -308,7 +308,60 @@ const BAD_IDEAS: AlbumScenario = {
   ),
 };
 
-const SCENARIOS: readonly Scenario[] = [DISCOVERY, SKINNY_LOVE, CURRENTS, FORMIDABLE, BAD_IDEAS];
+/**
+ * The fifth owner review's counter-example: two pressings, one of them with no picture.
+ *
+ * Ten videos of the YouTube Music album playlist `OLAK5uy_k3ckSBQqo8bkgLY4h8dkRc4ky0NFdY3To`.
+ * MusicBrainz has *Pure Heroine* as one release group with a great many pressings, two of
+ * which matter here and are in the recording: the 2013 US Lava release
+ * `f546b766-4b04-4781-b058-3d5e7dabc37d`, whose `cover-art-archive` says
+ * `{artwork: false, front: false, count: 0}`, and the 2014 worldwide Universal release
+ * `002022bb-276c-455a-8cb9-2848b77c37b8`, which has a front. Before decision 167 the first
+ * one was preselected at 99 % against the second's 98 % — the same ten tracks, and no cover.
+ */
+const PURE_HEROINE: AlbumScenario = {
+  name: "pure-heroine",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_k3ckSBQqo8bkgLY4h8dkRc4ky0NFdY3To",
+    album: "Pure Heroine",
+    artist: "Lorde",
+    year: 2013,
+    label: "Universal Music Group",
+    note: "10 videos, one release group, many pressings: the US 2013 one has no cover art and the XW 2014 one does (owner review 5, G1).",
+  },
+  videos: albumVideos(
+    [
+      ["Tennis Court", 199],
+      ["400 Lux", 234],
+      ["Royals", 190],
+      ["Ribs", 259],
+      ["Buzzcut Season", 247],
+      ["Team", 193],
+      ["Glory And Gore", 211],
+      ["Still Sane", 188],
+      ["White Teeth Teens", 217],
+      ["A World Alone", 294],
+    ],
+    {
+      album: "Pure Heroine",
+      artist: "Lorde",
+      year: 2013,
+      uploader: "Lorde - Topic",
+      label: "Universal Music Group",
+      releasedOn: "2013-01-01",
+    },
+  ),
+};
+
+const SCENARIOS: readonly Scenario[] = [
+  DISCOVERY,
+  SKINNY_LOVE,
+  CURRENTS,
+  FORMIDABLE,
+  BAD_IDEAS,
+  PURE_HEROINE,
+];
 
 /* ------------------------------------------------------------------ */
 /* the wire                                                            */

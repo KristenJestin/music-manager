@@ -46,6 +46,7 @@ const candidate: ReleaseCandidate = {
   secondary: [],
   disambiguation: "",
   barcode: null,
+  coverArt: { available: true, front: true, count: 3 },
   tracks: 14,
   score: 0.97,
   fit: 13,
@@ -65,6 +66,7 @@ const candidate: ReleaseCandidate = {
     format: 1,
     status: 1,
     country: 1,
+    coverArt: 1,
   },
   fitLines: [
     {
@@ -150,6 +152,51 @@ describe("ReleaseCandidateCard", () => {
     render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={onSelect} />);
     fireEvent.click(screen.getByTestId("candidate"));
     expect(onSelect).toHaveBeenCalledWith(candidate.id);
+  });
+
+  it("draws the archive's front when the release has one", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    expect(screen.getByTestId("cover-image").getAttribute("src")).toContain(
+      `coverartarchive.org/release/${candidate.id}/front-250`,
+    );
+    expect(screen.queryByTestId("candidate-no-cover")).toBeNull();
+  });
+
+  it("labels the placeholder rather than requesting a 404 (owner review 5, G1)", () => {
+    /*
+     * A pressing the release lookup says has no front is not asked for at all: the gradient
+     * alone said both "no cover" and "still loading", which is the "placeholder explicite"
+     * the owner asked for and did not have.
+     */
+    render(
+      <ReleaseCandidateCard
+        candidate={{
+          ...candidate,
+          coverArt: { available: false, front: false, count: 0 },
+          signals: { ...candidate.signals, coverArt: 0 },
+        }}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("cover-image")).toBeNull();
+    expect(screen.getByTestId("candidate-no-cover").textContent).toContain("no cover");
+  });
+
+  it("says nothing about covers for a candidate nobody looked up", () => {
+    render(
+      <ReleaseCandidateCard
+        candidate={{ ...candidate, detailed: false, coverArt: null }}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("candidate-no-cover")).toBeNull();
+  });
+
+  it("carries the cover-art signal into the signals row", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected onSelect={vi.fn()} />);
+    expect(screen.getByTitle("Cover art: 100%")).toBeTruthy();
   });
 
   it("says when a candidate's fit was never checked, rather than showing 0/0", () => {
@@ -733,7 +780,7 @@ describe("TrackProgress — the Status column keeps its shape (owner review D4)"
   it("**reserves its space when nothing is happening**, so a row never changes height", () => {
     // The whole of D4's "le tableau saute": the block used to appear and disappear with the
     // download. It is rendered either way now — same three lines, same bar — and only its
-    // text changes.
+    // content changes.
     const { container: idle } = render(<TrackProgress activity={undefined} />);
     const empty = idle.querySelector("[data-testid=track-progress]");
     expect(empty?.getAttribute("data-active")).toBe("no");

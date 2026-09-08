@@ -14,6 +14,7 @@ const SIGNAL_LABELS: Record<string, string> = {
   title: "Title",
   artist: "Artist",
   trackCount: "Tracks",
+  coverArt: "Cover art",
   durations: "Durations",
   duration: "Duration",
   year: "Year",

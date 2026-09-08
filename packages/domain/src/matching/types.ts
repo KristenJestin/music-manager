@@ -17,6 +17,9 @@
  */
 
 import type { MbRelease } from "../metadata/resolvers/musicbrainz-types.ts";
+import type { CoverArtInfo } from "./signals.ts";
+
+export type { CoverArtInfo };
 
 /* ------------------------------------------------------------------ */
 /* inputs                                                              */
@@ -98,6 +101,16 @@ export interface ReleaseSignals {
    * one-track single covered by one of them: both are 1.0. This one says 1.0 and 0.09.
    */
   readonly coverage: number;
+  /**
+   * Whether the Cover Art Archive has a front for this exact pressing (decision 167).
+   *
+   * A tie-breaker and nothing more — the owner's fifth review: at an equal fit, the release
+   * that comes with a picture is the better import, because the one without it makes the
+   * `tag` step fall back down `docs/03` §4's ladder to somebody else's pressing or to a
+   * YouTube thumbnail. `0` here means "MusicBrainz says none"; a candidate whose release was
+   * never looked up has no answer at all and is dropped from the blend instead.
+   */
+  readonly coverArt: number;
   readonly year: number;
   readonly label: number;
   readonly format: number;
@@ -227,6 +240,14 @@ export interface ReleaseCandidate {
   readonly secondary: readonly string[];
   readonly disambiguation: string;
   readonly barcode: string | null;
+  /**
+   * What the Cover Art Archive holds for this pressing, or `null` when it was never looked up.
+   *
+   * The card draws the real thumbnail when `front` is true and says so explicitly when it is
+   * false — the fifth owner review asked for "vignette réelle ou placeholder explicite", and
+   * a gradient that means both "no cover" and "not asked yet" is not explicit.
+   */
+  readonly coverArt: CoverArtInfo | null;
   /** Tracks on the release, across every medium. */
   readonly tracks: number;
   readonly score: number;

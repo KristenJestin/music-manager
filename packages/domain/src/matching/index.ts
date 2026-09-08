@@ -38,6 +38,8 @@ export type { HintFallback } from "./hints.ts";
 
 export {
   artistScore,
+  coverArtOf,
+  coverArtScore,
   creditName,
   flattenTracks,
   mainFormat,
@@ -57,6 +59,7 @@ export type {
   AcoustIdHint,
   AlbumHints,
   BorrowRelease,
+  CoverArtInfo,
   ExtraVideo,
   FitLine,
   MappingLine,

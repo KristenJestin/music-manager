@@ -16,7 +16,7 @@
  * the one that already decided the ranking.
  */
 import { useState, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, ListChecks, Sparkles } from "lucide-react";
+import { ChevronDown, ExternalLink, ImageOff, ListChecks, Sparkles } from "lucide-react";
 import type { FitLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
 import { cn } from "cn";
 import { BorrowSelect } from "#/components/borrow-select.tsx";
@@ -265,13 +265,34 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
         {selected ? <span className="size-2 rounded-full bg-primary" /> : null}
       </span>
 
-      {/* The Cover Art Archive's front for this exact release, gradient when it has none. */}
-      <Cover
-        size="md"
-        src={coverArtFront(candidate.id)}
-        seed={candidate.id}
-        label={candidate.title}
-      />
+      {/*
+       * The Cover Art Archive's front for this exact release — and, since decision 167, the
+       * *absence* of one said out loud.
+       *
+       * The tile used to ask for `front-250` on every candidate and fall back to its gradient
+       * on the 404, which drew "this release has no picture" and "the picture has not arrived
+       * yet" as the same square. The release lookup already answered the question, so a
+       * pressing MusicBrainz says has no front is not requested at all — no 404 per card — and
+       * the placeholder underneath is labelled instead of left to be guessed at (owner review
+       * 5, G1: "vignette réelle ou placeholder explicite").
+       */}
+      <div className="flex flex-col items-center gap-1">
+        <Cover
+          size="md"
+          src={candidate.coverArt?.front === false ? null : coverArtFront(candidate.id)}
+          seed={candidate.id}
+          label={candidate.title}
+        />
+        {candidate.coverArt === null ? null : candidate.coverArt.front ? null : (
+          <span
+            data-testid="candidate-no-cover"
+            title="MusicBrainz has no front cover for this pressing. The tag step would take one from the release group, from another pressing of it, or from the YouTube thumbnail."
+            className="flex w-14 items-center justify-center gap-0.5 text-3xs text-warn"
+          >
+            <ImageOff className="size-2.5 shrink-0" aria-hidden="true" /> no cover
+          </span>
+        )}
+      </div>
 
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">

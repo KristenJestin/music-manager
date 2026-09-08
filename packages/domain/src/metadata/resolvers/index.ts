@@ -20,8 +20,8 @@ export type { AcoustIdOptions, AcoustIdResponse, AcoustIdResult } from "./acoust
 export { fromApp } from "./app.ts";
 export type { AppProvenance } from "./app.ts";
 
-export { fromCoverArtArchiveIndex } from "./coverartarchive.ts";
-export type { CaaImage, CaaIndex } from "./coverartarchive.ts";
+export { describeCoverArtOrigin, fromCoverArtArchiveIndex } from "./coverartarchive.ts";
+export type { CaaImage, CaaIndex, CoverArtOrigin } from "./coverartarchive.ts";
 
 export { fromDeezerTrack } from "./deezer.ts";
 export type { DeezerTrack } from "./deezer.ts";
@@ -57,6 +57,7 @@ export { topGenres } from "./musicbrainz-types.ts";
 export type {
   MbArtist,
   MbArtistCreditEntry,
+  MbCoverArtArchive,
   MbMedium,
   MbRecording,
   MbRelation,

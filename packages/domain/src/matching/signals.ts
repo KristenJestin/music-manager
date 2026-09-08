@@ -167,6 +167,52 @@ export function countryScore(country: string | null, preferences: MatchingPrefer
   return MAJOR_MARKETS.has(code) ? 0.45 : 0.3;
 }
 
+/* ------------------------------------------------------------------ */
+/* cover art                                                           */
+/* ------------------------------------------------------------------ */
+
+/** What the Cover Art Archive holds for one release, as a card can print it. */
+export interface CoverArtInfo {
+  /** At least one image of any type. */
+  readonly available: boolean;
+  /** A front cover — the one we would embed. */
+  readonly front: boolean;
+  readonly count: number;
+}
+
+/**
+ * The `cover-art-archive` block of a release lookup, or `null` when it was never looked up.
+ *
+ * `null` is the honest answer for a search result: MusicBrainz sends the block on lookups and
+ * on no search, so a shallow candidate does not *lack* a cover, we simply never asked. The
+ * ranking treats it exactly as it treats an unread tracklist — dropped from the denominator,
+ * never counted as a zero.
+ */
+export function coverArtOf(release: MbRelease): CoverArtInfo | null {
+  const block = release["cover-art-archive"];
+  if (block === undefined) return null;
+  const count = typeof block.count === "number" ? block.count : 0;
+  return {
+    available: block.artwork === true || count > 0,
+    front: block.front === true,
+    count,
+  };
+}
+
+/**
+ * The cover-art signal (decision 167).
+ *
+ * A front is what the `tag` step embeds, so a front is worth full marks. Images without an
+ * approved front are worth *something* — the archive has the record, and the release-group
+ * fallback of `docs/03` §4 can often turn them into a picture — but not the same thing.
+ * Nothing at all scores zero, and an un-looked-up release scores `null`.
+ */
+export function coverArtScore(info: CoverArtInfo | null): number | null {
+  if (info === null) return null;
+  if (info.front) return 1;
+  return info.available ? 0.5 : 0;
+}
+
 /** Official releases only, really: v1 refused anything else outright (`return -1000`). */
 export function statusScore(status: string | null): number {
   const value = (status ?? "").trim().toLowerCase();

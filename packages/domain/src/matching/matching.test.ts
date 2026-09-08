@@ -298,6 +298,59 @@ describe("Bad Ideas — eleven videos, and a one-track single of the same name",
 });
 
 /* ------------------------------------------------------------------ */
+/* Pure Heroine — the cover as a tie-breaker                           */
+/* ------------------------------------------------------------------ */
+
+describe("Pure Heroine — ten videos, and two pressings that fit identically", () => {
+  const fixture = album("pure-heroine");
+  const ranking = releaseCandidates.score(fixture);
+  /** 2014, worldwide, Universal — one front cover on the archive. */
+  const XW_2014 = "002022bb-276c-455a-8cb9-2848b77c37b8";
+  /** 2013, US, Lava — "No images available". */
+  const US_2013 = "f546b766-4b04-4781-b058-3d5e7dabc37d";
+
+  it("preselects the pressing that has a cover", () => {
+    expect(ranking.preselected?.id).toBe(XW_2014);
+    expect(ranking.preselected?.coverArt?.front).toBe(true);
+  });
+
+  it("ranks the coverless pressing below it, on the same 10/10 fit", () => {
+    const withCover = ranking.candidates.find((c) => c.id === XW_2014);
+    const without = ranking.candidates.find((c) => c.id === US_2013);
+    expect(withCover?.fit).toBe(without?.fit);
+    expect(withCover?.fitOf).toBe(without?.fitOf);
+    expect(without?.signals.coverArt).toBe(0);
+    expect(withCover?.signals.coverArt).toBe(1);
+    expect(without?.score).toBeLessThan(withCover?.score ?? 0);
+  });
+
+  it("costs 0.03 of the blend and no more — it settles a tie, it does not pick a record", () => {
+    /*
+     * The guard against over-correcting. Rerun the same fixture with the weight at zero and
+     * the two scores must come back within the weight of each other: a signal that could move
+     * a candidate further than its own weight would be reordering albums, not pressings.
+     */
+    const neutral = releaseCandidates.score(fixture, {
+      weights: { release: { coverArt: 0 } },
+    });
+    const before = neutral.candidates.find((c) => c.id === US_2013)?.score ?? 0;
+    const after = ranking.candidates.find((c) => c.id === US_2013)?.score ?? 0;
+    expect(Math.abs(before - after)).toBeLessThanOrEqual(DEFAULT_WEIGHTS.release.coverArt + 0.001);
+  });
+
+  it("keeps “not looked up” apart from “has none”", () => {
+    const shallow = ranking.candidates.filter((c) => !c.detailed);
+    expect(shallow.length).toBeGreaterThan(0);
+    for (const candidate of shallow) expect(candidate.coverArt).toBeNull();
+    expect(ranking.candidates.find((c) => c.id === US_2013)?.coverArt).toEqual({
+      available: false,
+      front: false,
+      count: 0,
+    });
+  });
+});
+
+/* ------------------------------------------------------------------ */
 /* Currents                                                            */
 /* ------------------------------------------------------------------ */
 

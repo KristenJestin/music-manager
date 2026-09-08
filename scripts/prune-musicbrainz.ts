@@ -31,6 +31,13 @@ const RELEASE_KEYS = [
   "score",
   "packaging",
   "quality",
+  /*
+   * The `coverArt` signal of decision 167. A lookup carries it, a search never does, so it
+   * survives on exactly the candidates whose tracklist was read — which is the property the
+   * signal is defined on. Cassettes recorded before this line simply have no block and score
+   * `null`, i.e. "not asked", which is what they in fact are.
+   */
+  "cover-art-archive",
 ] as const;
 
 const RECORDING_KEYS = ["id", "title", "disambiguation", "length", "video", "score"] as const;

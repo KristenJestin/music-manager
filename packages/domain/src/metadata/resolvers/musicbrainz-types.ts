@@ -103,11 +103,31 @@ export interface MbReleaseGroup {
   readonly tags?: readonly MbTag[];
 }
 
+/**
+ * The `cover-art-archive` block a **release lookup** carries (decision 167).
+ *
+ * MusicBrainz answers it on every release lookup and on no release *search*, which is the
+ * whole economics of the `coverArt` signal: the matcher already spends a lookup per candidate
+ * to read its tracklist, so knowing whether that pressing has a front costs nothing extra.
+ * A candidate that was never looked up has no block at all, and its signal is `null` —
+ * unknown, not absent — exactly as its tracklist fit is.
+ */
+export interface MbCoverArtArchive {
+  /** At least one image of any type. */
+  readonly artwork?: boolean;
+  /** A front cover specifically — the only one we would embed. */
+  readonly front?: boolean;
+  readonly back?: boolean;
+  readonly count?: number;
+  readonly darkened?: boolean;
+}
+
 export interface MbRelease {
   readonly id?: string;
   readonly title?: string;
   readonly disambiguation?: string;
   readonly date?: string;
+  readonly "cover-art-archive"?: MbCoverArtArchive;
   readonly country?: string;
   readonly status?: string;
   readonly barcode?: string;
