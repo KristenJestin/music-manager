@@ -7,17 +7,23 @@ La migration reprend la bibliothèque et la base de la v1 **sans rien re-téléc
 fichier existant devient une piste v2 avec un document de métadonnées complet, re-tagué en
 place ; ce que la v1 n'avait jamais téléchargé devient un import v2 prêt pour le wizard.
 
+« Sans rien re-télécharger » ne veut pas dire hors ligne : `documents.build` a besoin de joindre
+MusicBrainz pour compléter chaque document à partir des MBID que la v1 avait trouvés (et Cover
+Art Archive / AcoustID selon les sources actives dans Settings). `--dry-run` ne le prouve jamais,
+puisqu'il ne construit aucun document — voir §6.
+
 ---
 
 ## 1. Ce qu'il faut avant de commencer
 
-| Prérequis                      | Pourquoi                                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **Une sauvegarde**             | La migration réécrit les tags de **tous** les fichiers. Sans acquittement, la commande refuse de démarrer.         |
-| Base v1 joignable              | Une chaîne `postgres://…` valide. Elle est ouverte **en lecture seule** et n'est jamais modifiée.                  |
-| Dossier v1 en lecture-écriture | Les fichiers sont re-tagués sur place et les sidecars écrits à côté.                                               |
-| Toolbox en marche              | `/probe`, `/tag`, `/replaygain`. `GET localhost:8100/health` doit répondre.                                        |
-| Worker en marche               | La file `migrate` est consommée par lui. Sans worker, le bouton de Tools met un job en file que personne ne prend. |
+| Prérequis                      | Pourquoi                                                                                                                                                                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Une sauvegarde**             | La migration réécrit les tags de **tous** les fichiers. Sans acquittement, la commande refuse de démarrer.                                                                                                                       |
+| Base v1 joignable              | Une chaîne `postgres://…` valide. Elle est ouverte **en lecture seule** et n'est jamais modifiée.                                                                                                                                |
+| Dossier v1 en lecture-écriture | Les fichiers sont re-tagués sur place et les sidecars écrits à côté.                                                                                                                                                             |
+| Toolbox en marche              | `/probe`, `/tag`, `/replaygain`. `GET localhost:8100/health` doit répondre.                                                                                                                                                      |
+| Worker en marche               | La file `migrate` est consommée par lui. Sans worker, le bouton de Tools met un job en file que personne ne prend.                                                                                                               |
+| Accès réseau sortant           | `documents.build` interroge MusicBrainz pour chaque MBID v1 (Cover Art Archive / AcoustID selon les sources actives). Sans réseau, chaque piste échoue avec une erreur explicite plutôt que de se construire à moitié — voir §6. |
 
 ### Le point qui surprend : les deux bibliothèques n'en font qu'une
 
@@ -156,15 +162,16 @@ bibliothèque.
 
 ## 6. Ce qui peut mal se passer
 
-| Symptôme                                                | Cause et remède                                                                                                 |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `does not look like a v1 database`                      | La chaîne pointe sur la base v2, ou sur une base vide. La v1 a une table `"Songs"` en PascalCase quoté.         |
-| `must be the v2 library root, or a directory inside it` | `MM_LIBRARY_ROOT` ne désigne pas la bibliothèque v1. Voir §1.                                                   |
-| `Confirm you have a backup`                             | `--i-have-a-backup`, ou la case dans Tools. C'est la seule barrière avant une réécriture de tous les fichiers.  |
-| Beaucoup de `orphan_file`                               | Des fichiers que la v1 n'a jamais écrits (copies manuelles). Ils ne sont pas adoptés ; un item Inbox les liste. |
-| Beaucoup de `missing_file`                              | Des lignes `Present` dont le fichier a disparu. Elles deviennent des imports ; rien n'est perdu.                |
-| Documents à ~90 % au lieu de 100 %                      | Voir « ce qui reste » ci-dessous.                                                                               |
-| Le bouton de Tools ne fait rien                         | Le worker ne tourne pas. `bun run worker`.                                                                      |
+| Symptôme                                                                                        | Cause et remède                                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `does not look like a v1 database`                                                              | La chaîne pointe sur la base v2, ou sur une base vide. La v1 a une table `"Songs"` en PascalCase quoté.                                                                                                      |
+| `must be the v2 library root, or a directory inside it`                                         | `MM_LIBRARY_ROOT` ne désigne pas la bibliothèque v1. Voir §1.                                                                                                                                                |
+| `Confirm you have a backup`                                                                     | `--i-have-a-backup`, ou la case dans Tools. C'est la seule barrière avant une réécriture de tous les fichiers.                                                                                               |
+| Beaucoup de `orphan_file`                                                                       | Des fichiers que la v1 n'a jamais écrits (copies manuelles). Ils ne sont pas adoptés ; un item Inbox les liste.                                                                                              |
+| Beaucoup de `missing_file`                                                                      | Des lignes `Present` dont le fichier a disparu. Elles deviennent des imports ; rien n'est perdu.                                                                                                             |
+| Documents à ~90 % au lieu de 100 %                                                              | Voir « ce qui reste » ci-dessous.                                                                                                                                                                            |
+| Le bouton de Tools ne fait rien                                                                 | Le worker ne tourne pas. `bun run worker`.                                                                                                                                                                   |
+| `Offline: musicbrainz "release/<mbid>?inc=releaseFull" has never been fetched` sur chaque piste | Pas d'accès réseau sortant à musicbrainz.org (proxy, pare-feu). Chaque MBID v1 doit être relu une fois pour construire le document ; `--dry-run` ne le révèle jamais, puisqu'il ne construit aucun document. |
 
 ### Ce qui reste, et pourquoi
 
