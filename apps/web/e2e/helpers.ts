@@ -2,7 +2,7 @@
  * What every spec needs: a `test` that lands on hydrated pages, signing in, typing into a
  * Base UI field, and waiting for a job to stop moving.
  */
-import { expect, test as base, type Locator, type Page } from "@playwright/test";
+import { expect, test as base, type Cookie, type Locator, type Page } from "@playwright/test";
 
 /**
  * The Console's `test`, whose `page` is never handed back mid-hydration.
@@ -65,23 +65,70 @@ export const ADMIN = {
 };
 
 /**
+ * The cookies of the one sign-in this worker performs, reused by every test after it.
+ *
+ * Signing in seventy times is what broke the suite, and it took three full runs to see why.
+ * Better Auth rate-limits `/sign-in/email` in a window of its own; `api.spec.ts` spends a burst
+ * of `/api/auth/*` calls and `auth.spec.ts` deliberately signs in with a wrong password, so a
+ * few specs later the limiter starts answering **429 with no message body** — which the login
+ * page renders as its fallback *"Sign-in failed."*, indistinguishable from a wrong password or
+ * a dropped connection. The old retry loop then made it permanent: one attempt per second or
+ * two, each refilling the window the previous one was waiting to drain, so the whole budget
+ * expired without a single request being let through. The two specs that follow `api.spec.ts`
+ * failed on **every** run, and later ones failed at random as the window drifted. Measured on
+ * `main`, with none of the 2026-09-08 work applied: nine 200s, one 401 from the wrong-password
+ * test, and four 429s.
+ *
+ * Reusing the cookie removes the cause rather than waiting it out — one sign-in per worker, and
+ * `workers: 1`, so the limiter is never approached. The tests that are *about* signing in do
+ * not call this: `auth.spec.ts` drives the form itself, which is the thing it is checking.
+ */
+let session: Cookie[] | null = null;
+
+/**
  * Sign in, and land on the dashboard.
  *
  * A full page load rather than a client navigation: the cookie is set by Better Auth's own
  * response, and every loader above has already cached "there is no session".
- *
- * **Attempted more than once, on purpose.** Postgres is shared between every checkout on this
- * machine (`CLAUDE.md`: one server, one database each), and a server under several agents at
- * once occasionally drops a connection. When it lands on the session lookup the Console shows
- * *"Something went wrong! Failed to get session"* and the run dies on whichever test happened
- * to be signing in — seen once as `DrizzleQueryError … cause: Error: read ECONNRESET`, with
- * `pg-boss` reporting "Connection terminated unexpectedly" in the same second. Nothing about
- * that is a claim this suite makes, and the next attempt gets a fresh connection.
- *
- * `/login` redirects a signed-in browser to the dashboard, so a retry that finds no form is a
- * retry that has already succeeded.
  */
 export async function signIn(page: Page): Promise<void> {
+  if (await restore(page)) return;
+  await submitLogin(page);
+  session = await page.context().cookies();
+}
+
+/** Install the saved cookies, and check they still name a live session. */
+async function restore(page: Page): Promise<boolean> {
+  if (session === null) return false;
+  await page.context().addCookies(session);
+  await page.goto("/");
+  const landed = await page
+    .getByRole("heading", { name: "Dashboard" })
+    .isVisible()
+    .catch(() => false);
+  // A spec signed out, or the session expired: fall through to the form and save a new one.
+  if (!landed) {
+    session = null;
+    return false;
+  }
+  return true;
+}
+
+/**
+ * The form, once per worker.
+ *
+ * Still retried, because the *other* reason this used to fail is real and unrelated: postgres
+ * is shared between every checkout on this machine (`CLAUDE.md`: one server, one database
+ * each), and a server under several agents at once occasionally drops a connection. When that
+ * lands on the session lookup the Console shows *"Something went wrong! Failed to get
+ * session"* — seen as `DrizzleQueryError … read ECONNRESET`, with `pg-boss` reporting
+ * "Connection terminated unexpectedly" in the same second. The intervals are wide, so a retry
+ * cannot itself become the rate-limit problem described above.
+ *
+ * `/login` redirects a signed-in browser to the dashboard, so an attempt that finds no form is
+ * an attempt that has already succeeded.
+ */
+async function submitLogin(page: Page): Promise<void> {
   await expect(async () => {
     await page.goto("/login");
     const email = page.getByTestId("login-email");
@@ -94,7 +141,7 @@ export async function signIn(page: Page): Promise<void> {
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
       timeout: 15_000,
     });
-  }).toPass({ timeout: 120_000, intervals: [1_000, 2_000, 5_000] });
+  }).toPass({ timeout: 120_000, intervals: [5_000, 15_000, 30_000] });
   // The dashboard arrives through a full load, which the patched `goto` above did not make —
   // so the one navigation that escapes the fixture waits for hydration here instead.
   await shellReady(page);
