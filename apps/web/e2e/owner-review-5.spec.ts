@@ -58,6 +58,17 @@ test.describe("owner review 5", () => {
 
     await page.getByTestId("wizard-next").click();
     await page.waitForURL(/step=4/, { timeout: 120_000 });
+    /*
+     * Force the re-download, or there is nothing to watch.
+     *
+     * Two specs before this one import `fixture://discovery` and leave its fifteen files in the
+     * library, and `download` is right to skip a track it already has (`docs/03` §8, "jamais
+     * re-télécharger"). Run alone this test passes without the toggle and run in the suite it
+     * times out on a download that correctly never happens — which is the least useful kind of
+     * failure. The toggle is the feature that exists for exactly this.
+     */
+    await page.getByTestId("option-force").click();
+    await expect(page.getByTestId("option-force")).toHaveAttribute("aria-checked", "true");
     await page.getByTestId("wizard-start").click();
     await page.waitForURL(new RegExp(`/imports/${importId}`), { timeout: 120_000 });
 
