@@ -112,6 +112,23 @@ export interface TrackProgressProps {
 }
 
 /**
+ * Is there a real download percentage to draw?
+ *
+ * Three conditions, and all three are the point. `stage === "download"` because that is the
+ * only phase yt-dlp reports bytes for — `ExtractAudio` and `MoveFiles` come down the same pipe
+ * with no figure, and freezing the bar at 98 % under them is what made it read as a stall.
+ * `percent !== null` because `track.started` opens the phase before the first progress line
+ * arrives, and a bar at zero is a claim. And not `waiting`, because a track queueing for the
+ * single download slot has not started: the row says so in words, in warn, on the line above.
+ */
+export function downloadPercent(activity: TrackActivity | undefined): number | null {
+  if (activity === undefined || activity.waiting) return null;
+  if (activity.stage !== "download") return null;
+  const percent = activity.percent;
+  return percent === null || !Number.isFinite(percent) ? null : Math.min(100, Math.max(0, percent));
+}
+
+/**
  * The live detail of one track — the phase, the percentage, the speed, the ETA and the bar.
  *
  * **It lives in the Status column, and it reserves its space** (owner review D4). It used to
@@ -136,23 +153,6 @@ export interface TrackProgressProps {
  * downloading *and* has a real percentage from yt-dlp. A queued track, a track waiting for the
  * download slot, a track being tagged and a placed track all show nothing there.
  */
-
-/**
- * Is there a real download percentage to draw?
- *
- * Three conditions, and all three are the point. `stage === "download"` because that is the
- * only phase yt-dlp reports bytes for — `ExtractAudio` and `MoveFiles` come down the same pipe
- * with no figure, and freezing the bar at 98 % under them is what made it read as a stall.
- * `percent !== null` because `track.started` opens the phase before the first progress line
- * arrives, and a bar at zero is a claim. And not `waiting`, because a track queueing for the
- * single download slot has not started: the row says so in words, in warn, on the line above.
- */
-export function downloadPercent(activity: TrackActivity | undefined): number | null {
-  if (activity === undefined || activity.waiting) return null;
-  if (activity.stage !== "download") return null;
-  const percent = activity.percent;
-  return percent === null || !Number.isFinite(percent) ? null : Math.min(100, Math.max(0, percent));
-}
 
 export function TrackProgress({ activity, className }: TrackProgressProps) {
   const speed = speedLabel(activity?.speed ?? null);
