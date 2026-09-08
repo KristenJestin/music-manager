@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { gatewayForUrl, parseMbid } from "./matching.queries.ts";
+import { resetOutages } from "./matching.gateway.ts";
+
+afterEach(() => {
+  resetOutages();
+});
 
 /**
  * The read-only half of the matcher, at the two points where it can be tested without rows.
@@ -48,6 +53,47 @@ describe("gatewayForUrl", () => {
     const gateway = await gatewayForUrl("fixture://discovery?fp=mismatch");
     const release = await gateway.lookupRelease("d073287b-d1bd-4f11-a933-a4386f8cf701");
     expect(release?.title).toBe("Discovery");
+  });
+
+  /**
+   * `?mb=503` is the offline reproduction of the 2026-09-08 incident (decision 165).
+   *
+   * It has to fail with the *real* error — the one `integrations/http.ts` builds for a 503 —
+   * or the wizard's "is this a source outage?" test would be passing on a lookalike, and the
+   * browser spec that drives this would prove nothing about a genuine MusicBrainz refusal.
+   */
+  it("refuses once for ?mb=503, with the error a real 503 produces", async () => {
+    const url = "fixture://discovery?mb=503&case=unit-once";
+    const gateway = await gatewayForUrl(url);
+    await expect(
+      gateway.lookupRelease("d073287b-d1bd-4f11-a933-a4386f8cf701"),
+    ).rejects.toMatchObject({ code: "SOURCE_UNAVAILABLE", status: 503, retryable: true });
+
+    // Exhausted: a second gateway over the same URL is the plain cassette again, which is what
+    // makes Retry a meaningful thing for the spec to press.
+    const after = await gatewayForUrl(url);
+    expect((await after.lookupRelease("d073287b-d1bd-4f11-a933-a4386f8cf701"))?.title).toBe(
+      "Discovery",
+    );
+  });
+
+  it("refuses `mbtimes` times, which is what defeats the wizard's cache fallback", async () => {
+    const url = "fixture://discovery?mb=503&mbtimes=2&case=unit-twice";
+    const mbid = "d073287b-d1bd-4f11-a933-a4386f8cf701";
+    await expect((await gatewayForUrl(url)).lookupRelease(mbid)).rejects.toMatchObject({
+      status: 503,
+    });
+    await expect((await gatewayForUrl(url)).lookupRelease(mbid)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect((await (await gatewayForUrl(url)).lookupRelease(mbid))?.title).toBe("Discovery");
+  });
+
+  it("ignores an mb= that is not a plausible HTTP status", async () => {
+    const gateway = await gatewayForUrl("fixture://discovery?mb=banana");
+    expect((await gateway.lookupRelease("d073287b-d1bd-4f11-a933-a4386f8cf701"))?.title).toBe(
+      "Discovery",
+    );
   });
 
   it("refuses a document the cassette never recorded, rather than answering null", async () => {

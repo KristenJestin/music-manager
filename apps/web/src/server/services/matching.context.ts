@@ -16,12 +16,21 @@ import { loadSettings } from "#/server/services/settings.ts";
 export async function sourceContextFor(
   db: Database = defaultDb(),
   signal?: AbortSignal,
+  /**
+   * `true` forbids any outgoing request: `cached()` then serves the raw cache, stale and all,
+   * and raises `OFFLINE_CACHE_MISS` for a key it has never seen.
+   *
+   * The wizard uses it as a **second chance** rather than a mode. When MusicBrainz refuses,
+   * the candidates it computed on a previous visit are still in `source_cache`, and showing
+   * those with "this is what we had" beats showing nothing at all (decision 165).
+   */
+  offline = false,
 ): Promise<SourceContext> {
   const settings = await loadSettings(db);
   return {
     db,
     config: sourcesConfig(settings),
-    offline: false,
+    offline,
     refresh: false,
     ...(signal === undefined ? {} : { signal }),
   };

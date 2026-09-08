@@ -54,6 +54,7 @@ import {
   videosOf,
 } from "#/server/services/matching.queries.ts";
 import { loadSettings } from "#/server/services/settings.ts";
+import { isSourceOutage } from "#/lib/errors.ts";
 
 /* ------------------------------------------------------------------ */
 /* step 1 — the source                                                 */
@@ -241,6 +242,62 @@ export interface CandidatesView {
   readonly queries: readonly string[];
   /** What the source thinks it is — shown above the list so the query is never a mystery. */
   readonly hints: { readonly album: string | null; readonly artist: string | null };
+  /**
+   * Set when MusicBrainz refused and this list came out of the raw cache instead.
+   *
+   * `null` on the normal path. When it is present the candidates are real but possibly stale,
+   * and step 2 says so rather than pretending the source answered (decision 165).
+   */
+  readonly degraded: DegradedSource | null;
+  /**
+   * Set when MusicBrainz refused **and** the cache could not stand in for it.
+   *
+   * Reported as a value rather than raised as an exception, and that is the whole point: an
+   * exception's shape depends on how it travelled. A loader that rejects during SSR has its
+   * error inlined as `{name, message}` and loses everything else, so a step reading `status`
+   * off it would say "MusicBrainz is unavailable" on a client navigation and "MusicBrainz is
+   * unavailable (HTTP 503)" on a reload — the same failure, two sentences. JSON says the same
+   * thing on every path (decision 165). The lists are empty when this is set.
+   */
+  readonly unavailable: DegradedSource | null;
+}
+
+/** Why a view is not what a healthy source would have produced. */
+export interface DegradedSource {
+  readonly code: string;
+  readonly message: string;
+  readonly status: number | null;
+  readonly hint: string | null;
+}
+
+/** The view for "the source refused and the cache had nothing": no list, and why. */
+function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesView {
+  return {
+    kind: job.kind === "single" ? "single" : "album",
+    releases: [],
+    groups: [],
+    recordings: [],
+    preselectedId: null,
+    safe: false,
+    ambiguous: false,
+    margin: null,
+    budget: { searches: 0, lookups: 0 },
+    planned: { searches: 0, lookups: 0 },
+    queries: [],
+    hints: { album: job.title, artist: job.artist },
+    degraded: null,
+    unavailable,
+  };
+}
+
+function degradedOf(error: unknown): DegradedSource {
+  const failure = MMError.from(error);
+  return {
+    code: failure.code,
+    message: failure.message,
+    status: failure.status ?? null,
+    hint: failure.hint ?? null,
+  };
 }
 
 /** How many candidates the wizard shows. More is noise; the search box is for the rest. */
@@ -265,7 +322,38 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
       }
       const settings = await loadSettings(db());
-      const result = await rankFor({ job, settings, db: db() });
+
+      /*
+       * MusicBrainz refusing is not the end of step 2 (decision 165).
+       *
+       * The first attempt is the live one. If the source is down or rate-limiting us, the
+       * ranking is computed a second time **offline**, against the raw cache: for an import
+       * whose candidates were already fetched once — a reload, a Back, a second look — every
+       * document it needs is a row, and the screen keeps its list instead of going blank. The
+       * failure travels with it in `degraded`, because a list that might be a week old and
+       * says nothing about it is worse than no list.
+       *
+       * When the cache has nothing either, the original *source* error is what is raised, not
+       * `OFFLINE_CACHE_MISS`: "MusicBrainz answered HTTP 503" is the true cause, and the
+       * second attempt is an implementation detail of trying to survive it.
+       */
+      let degraded: DegradedSource | null = null;
+      let result: Awaited<ReturnType<typeof rankFor>>;
+      try {
+        result = await rankFor({ job, settings, db: db() });
+      } catch (error) {
+        if (!isSourceOutage(error)) throw error;
+        try {
+          result = await rankFor({ job, settings, db: db(), offline: true });
+          degraded = degradedOf(error);
+        } catch {
+          // Neither the source nor the cache. The *source* error is what is reported —
+          // "musicbrainz answered HTTP 503" is the cause; `OFFLINE_CACHE_MISS` is only how
+          // the rescue attempt ended.
+          return emptyCandidates(job, degradedOf(error));
+        }
+      }
+
       const { videos } = await videosOf(job.id, db());
       const hints = hintsFor(job, videos);
 
@@ -284,6 +372,8 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
           planned: result.planned,
           queries: result.queries,
           hints: { album: hints.album ?? null, artist: hints.artist ?? null },
+          degraded,
+          unavailable: null,
         };
       }
       const preselected = result.ranking.preselected;
@@ -300,6 +390,8 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         planned: result.planned,
         queries: result.queries,
         hints: { album: hints.album ?? null, artist: hints.artist ?? null },
+        degraded,
+        unavailable: null,
       };
     } catch (error) {
       return toFailure(error);

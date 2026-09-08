@@ -17,12 +17,14 @@
  */
 import type { MbRecording, MbRelease } from "@mm/domain";
 import {
+  MUSICBRAINZ_BASE,
   lookupRecording,
   lookupRelease,
   search,
   type MbSearchResult,
 } from "#/server/integrations/musicbrainz.ts";
 import type { SourceContext } from "#/server/integrations/config.ts";
+import { sourceHttpError } from "#/server/integrations/http.ts";
 import type { Cassette } from "#/server/services/matching.cassettes.ts";
 
 export type SearchEntity = "release" | "recording" | "release-group";
@@ -141,6 +143,81 @@ export function cassetteGateway(cassette: Cassette): MbGateway {
     lookupRecording(mbid) {
       calls.lookups += 1;
       return take<MbRecording>(`recording/${mbid}?inc=recordingBorrow`);
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* the outage, on purpose                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How many refusals each simulated outage still owes, keyed by the fixture URL that armed it.
+ *
+ * The outage is **exhaustible by construction**: it refuses a fixed number of times and then
+ * gets out of the way, because the thing worth proving is not that a 503 can be produced — it
+ * is that Retry puts the page back. A permanent outage would prove the first half and hide the
+ * second.
+ *
+ * The count is what separates the wizard's two degraded states, and both are worth driving:
+ *
+ *  - **one** refusal: the live ranking fails, the *offline* one that `fetchCandidates` falls
+ *    back to reads the cache and succeeds, and step 2 shows its candidates under "these came
+ *    from the cache";
+ *  - **two**: both attempts fail, and step 2 shows "MusicBrainz is unavailable — retry" with
+ *    the wizard, the URL and the chosen release all still in place.
+ */
+const outagesOwed = new Map<string, number>();
+
+/** Forget the armed outages. The E2E starts from a clean database; a unit test does not. */
+export function resetOutages(): void {
+  outagesOwed.clear();
+}
+
+/**
+ * A gateway that answers one request with a real source failure, then steps aside.
+ *
+ * This is the offline reproduction of the incident of 2026-09-08: MusicBrainz answered 503
+ * mid-import and the whole Console was replaced by the message. `fixture://discovery?mb=503`
+ * is the same shape as the toolbox's own `fixture://discovery?fp=mismatch` — a recorded
+ * scenario carrying the fault it is meant to exercise — so `e2e/mb-outage.spec.ts` can drive
+ * it with no network, no stub server and no mock inside the app.
+ *
+ * The error is built by `integrations/http.ts` itself, so the code, the hint, the action and
+ * the status are byte-for-byte the ones a real 503 produces; there is nothing here for the
+ * error screen to accidentally special-case.
+ */
+export function outageGateway(
+  inner: MbGateway,
+  key: string,
+  status: number,
+  times: number,
+): MbGateway {
+  if (!outagesOwed.has(key)) outagesOwed.set(key, times);
+
+  const armed = (): boolean => (outagesOwed.get(key) ?? 0) > 0;
+  const fail = <T>(): Promise<T> => {
+    outagesOwed.set(key, (outagesOwed.get(key) ?? 1) - 1);
+    return Promise.reject(
+      sourceHttpError("musicbrainz", `${MUSICBRAINZ_BASE}/release`, status, true),
+    );
+  };
+
+  return {
+    get calls() {
+      return inner.calls;
+    },
+    async search(entity, query, limit) {
+      if (armed()) return await fail<MbSearchResult | null>();
+      return await inner.search(entity, query, limit);
+    },
+    async lookupRelease(mbid) {
+      if (armed()) return await fail<MbRelease | null>();
+      return await inner.lookupRelease(mbid);
+    },
+    async lookupRecording(mbid) {
+      if (armed()) return await fail<MbRecording | null>();
+      return await inner.lookupRecording(mbid);
     },
   };
 }

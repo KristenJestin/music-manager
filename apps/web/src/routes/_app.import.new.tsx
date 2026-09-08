@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   ArrowRight,
@@ -34,6 +34,8 @@ import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useMatchProgress } from "#/hooks/use-match-progress.ts";
 import { cn } from "cn";
 import { mmss, pct } from "#/lib/format.ts";
+import { isSourceOutage, readFailure } from "#/lib/errors.ts";
+import type { DegradedSource } from "#/server/functions/wizard.ts";
 import {
   fetchCandidates,
   fetchMapping,
@@ -90,6 +92,51 @@ interface WizardData {
   readonly mapping: MappingViewPayload | null;
   /** The single path's step 3 and 4: one recording, looked up by MBID from the URL. */
   readonly recording: RecordingViewPayload | null;
+  /**
+   * MusicBrainz was unreachable, and this step is showing that rather than being replaced.
+   *
+   * The incident of 2026-09-08 is the whole reason this field exists: a 503 in the middle of
+   * step 2 rejected the loader, and a rejected loader is a page the router hands to the error
+   * boundary — the entire Console gone, the URL's meaning with it. A source outage is now
+   * *data* for the step that asked, not an exception for the tree above it (decision 165).
+   * Anything that is **not** a source outage still throws: a bug must not be swallowed into a
+   * banner, and `_app.tsx`'s boundary is where it belongs.
+   */
+  readonly sourceFailure: DegradedSource | null;
+}
+
+const NO_DATA: WizardData = {
+  source: null,
+  candidates: null,
+  mapping: null,
+  recording: null,
+  sourceFailure: null,
+};
+
+/**
+ * Run a step's fetch, and turn a source outage into a value.
+ *
+ * The two shapes it can return are the two the wizard has to tell apart, and neither is an
+ * exception: `{ data }` when it worked, `{ failure }` when the *source* refused.
+ */
+async function tolerating<T>(
+  load: () => Promise<T>,
+): Promise<{ data: T; failure: null } | { data: null; failure: DegradedSource }> {
+  try {
+    return { data: await load(), failure: null };
+  } catch (error) {
+    if (!isSourceOutage(error)) throw error;
+    const failure = readFailure(error);
+    return {
+      data: null,
+      failure: {
+        code: failure.code,
+        message: failure.message,
+        status: failure.status,
+        hint: failure.hint,
+      },
+    };
+  }
 }
 
 export const Route = createFileRoute("/_app/import/new")({
@@ -103,9 +150,7 @@ export const Route = createFileRoute("/_app/import/new")({
      * bar names an import rather than a URL, so refreshing re-reads instead of re-resolving.
      */
     if (deps.importId === undefined) {
-      if (deps.url === undefined || deps.url.trim() === "") {
-        return { source: null, candidates: null, mapping: null, recording: null };
-      }
+      if (deps.url === undefined || deps.url.trim() === "") return NO_DATA;
       const created = await resolveSource({ data: { url: deps.url } });
       throw redirect({
         to: "/import/new",
@@ -115,9 +160,24 @@ export const Route = createFileRoute("/_app/import/new")({
     }
 
     const source = await fetchSource({ data: { importId: deps.importId } });
-    if (deps.step < 2) return { source, candidates: null, mapping: null, recording: null };
+    if (deps.step < 2) return { ...NO_DATA, source };
 
-    const candidates = await fetchCandidates({ data: { importId: deps.importId } });
+    const asked = await tolerating(async () =>
+      fetchCandidates({ data: { importId: deps.importId ?? "" } }),
+    );
+    if (asked.failure !== null) return { ...NO_DATA, source, sourceFailure: asked.failure };
+    /*
+     * Two ways step 2 can learn that MusicBrainz refused, and the first is the one that counts.
+     *
+     * `unavailable` is the server saying so **in JSON**, which reads the same whether this
+     * loader ran during SSR or from a click; `asked.failure` above is the fallback for a
+     * rejection, whose fields depend on how it travelled. Both end in the same place.
+     */
+    if (asked.data.unavailable !== null) {
+      return { ...NO_DATA, source, sourceFailure: asked.data.unavailable };
+    }
+    const candidates = asked.data;
+
     // Step 2 opens on the algorithm's proposal. Putting it in the URL rather than in state
     // means "the release I picked" survives a reload and is shareable.
     if (deps.release === undefined && candidates.preselectedId !== null) {
@@ -128,7 +188,7 @@ export const Route = createFileRoute("/_app/import/new")({
       });
     }
     if (deps.step < 3 || deps.release === undefined || deps.release === NO_MUSICBRAINZ) {
-      return { source, candidates, mapping: null, recording: null };
+      return { ...NO_DATA, source, candidates };
     }
 
     /*
@@ -137,16 +197,29 @@ export const Route = createFileRoute("/_app/import/new")({
      * candidate found through the search box survives a reload (DRIVE-1 §A1).
      */
     if (candidates.kind === "single") {
-      const recording = await fetchRecording({
-        data: { importId: deps.importId, recordingMbid: deps.release },
-      });
-      return { source, candidates, mapping: null, recording };
+      const looked = await tolerating(async () =>
+        fetchRecording({
+          data: { importId: deps.importId ?? "", recordingMbid: deps.release ?? "" },
+        }),
+      );
+      /*
+       * Falling back to step 2's screen, not to a blank one: the candidate list is already in
+       * hand, so the honest thing is to show it with "MusicBrainz is unavailable" over it and
+       * let Retry ask again — the choice the user made is still in the URL either way.
+       */
+      if (looked.failure !== null) {
+        return { ...NO_DATA, source, candidates, sourceFailure: looked.failure };
+      }
+      return { ...NO_DATA, source, candidates, recording: looked.data };
     }
 
-    const mapping = await fetchMapping({
-      data: { importId: deps.importId, releaseMbid: deps.release },
-    });
-    return { source, candidates, mapping, recording: null };
+    const mapped = await tolerating(async () =>
+      fetchMapping({ data: { importId: deps.importId ?? "", releaseMbid: deps.release ?? "" } }),
+    );
+    if (mapped.failure !== null) {
+      return { ...NO_DATA, source, candidates, sourceFailure: mapped.failure };
+    }
+    return { ...NO_DATA, source, candidates, mapping: mapped.data };
   },
   staticData: { crumbs: [{ label: "Import" }] },
   component: Wizard,
@@ -281,10 +354,20 @@ function WizardActions({ children }: { readonly children: ReactNode }) {
 }
 
 function Wizard() {
-  const { source, candidates, mapping, recording } = Route.useLoaderData();
+  const { source, candidates, mapping, recording, sourceFailure } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const toast = useToast();
+
+  /*
+   * A source outage holds the wizard on step 2's screen whatever the URL says.
+   *
+   * Not a redirect: the step, the import and the chosen release stay in the address bar, so
+   * Retry — which re-runs this very loader — lands back exactly where the user was. Changing
+   * the URL to say "step 2" would make Retry mean something slightly different from what
+   * failed, and would lose the release on the way (decision 165).
+   */
+  const unavailable = sourceFailure !== null;
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -358,11 +441,12 @@ function Wizard() {
         />
       ) : null}
 
-      {params.step === 2 ? (
+      {params.step === 2 || (unavailable && params.step >= 2) ? (
         <StepMatch
           key={params.importId ?? "none"}
           source={source}
           candidates={candidates}
+          failure={sourceFailure}
           busy={blocked}
           selected={params.release ?? null}
           borrow={params.borrow ?? null}
@@ -407,7 +491,7 @@ function Wizard() {
         />
       ) : null}
 
-      {params.step >= 3 ? (
+      {params.step >= 3 && !unavailable ? (
         <StepTail
           key={params.release ?? "none"}
           step={params.step}
@@ -1194,9 +1278,67 @@ function StepSource({
 /* step 2                                                              */
 /* ================================================================== */
 
+/**
+ * "MusicBrainz is unavailable (HTTP 503) — retry", inside step 2 rather than instead of it.
+ *
+ * This is the local half of the fix for 2026-09-08 (decision 165). The shared `errorComponent`
+ * on `_app.tsx` is the net that catches everything; this is the step saying *"I asked, they
+ * said no, here is the button"* without the page moving. `router.invalidate()` re-runs the
+ * loader in place, so the import, the step and the chosen release in the URL are all still
+ * there when the answer comes back — and if candidates are on screen underneath, they stay on
+ * screen while it is pressed.
+ */
+function SourceUnavailable({
+  failure,
+  cached,
+}: {
+  readonly failure: DegradedSource;
+  readonly cached: boolean;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+
+  const label =
+    failure.status === null
+      ? "MusicBrainz is unavailable"
+      : `MusicBrainz is unavailable (HTTP ${String(failure.status)})`;
+
+  return (
+    <Callout tone="danger" className="mb-3.5" role="alert" data-testid="mb-unavailable">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <b data-testid="mb-unavailable-label">{label}</b> — {failure.message}
+          <div className="mt-0.5 text-2xs">
+            {failure.hint ??
+              "The service is having trouble; this is usually temporary and nothing has been lost."}{" "}
+            {cached
+              ? "The candidates below came out of the cache, so they may be out of date."
+              : "Your source, your place in the wizard and your chosen release are still in the address bar."}
+          </div>
+        </div>
+        <Button
+          size="sm"
+          data-testid="mb-retry"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            void router.invalidate().finally(() => {
+              setBusy(false);
+            });
+          }}
+        >
+          <RefreshCw className={cn("size-4", busy && "animate-spin")} aria-hidden="true" />
+          Retry
+        </Button>
+      </div>
+    </Callout>
+  );
+}
+
 function StepMatch({
   source,
   candidates,
+  failure,
   busy,
   selected,
   borrow,
@@ -1209,6 +1351,8 @@ function StepMatch({
 }: {
   readonly source: SourceView | null;
   readonly candidates: CandidatesView | null;
+  /** Set when MusicBrainz refused: the step stays, with a banner and a Retry. */
+  readonly failure: DegradedSource | null;
   readonly busy: boolean;
   readonly selected: string | null;
   readonly borrow: string | null;
@@ -1296,9 +1440,46 @@ function StepMatch({
 
   return (
     <>
+      {failure === null ? null : (
+        <SourceUnavailable failure={failure} cached={candidates !== null} />
+      )}
+      {/*
+        The degraded case is the *other* one: MusicBrainz refused, but the raw cache had every
+        document this ranking needed, so there is a real list on screen that simply might be
+        old. Saying so is the whole difference between a stale list and a wrong one.
+      */}
+      {candidates?.degraded == null ? null : (
+        <Callout tone="warn" className="mb-3.5" data-testid="mb-degraded">
+          <b>
+            MusicBrainz is unavailable
+            {candidates.degraded.status === null
+              ? ""
+              : ` (HTTP ${String(candidates.degraded.status)})`}
+            .
+          </b>{" "}
+          These candidates were rebuilt from what is already cached, so nothing new was asked for.
+          Reload the step once the service answers again to re-score them.
+        </Callout>
+      )}
       {candidates === null ? (
-        <div className="rounded-xl border border-dashed border-line-strong px-6 py-16 text-center text-fg-2">
-          No candidates yet.
+        <div
+          className="flex flex-col items-center gap-3.5 rounded-xl border border-dashed border-line-strong px-6 py-16 text-center text-fg-2"
+          data-testid="no-candidates"
+        >
+          {failure === null
+            ? "No candidates yet."
+            : "No candidates yet — and nothing cached for this import to fall back on. Retry above, or import from the YouTube tags alone."}
+          {failure === null ? null : (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              data-testid="import-without-mb"
+              onClick={onSkipMusicBrainz}
+            >
+              Import without MusicBrainz
+            </Button>
+          )}
         </div>
       ) : (
         <>

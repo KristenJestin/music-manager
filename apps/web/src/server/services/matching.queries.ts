@@ -42,6 +42,7 @@ import { toMatchVideo } from "#/server/services/jobs/steps/match.ts";
 import {
   cassetteGateway,
   liveGateway,
+  outageGateway,
   reportingGateway,
   type MbGateway,
 } from "#/server/services/matching.gateway.ts";
@@ -80,11 +81,41 @@ export async function gatewayForUrl(
   url: string,
   db?: Database,
   signal?: AbortSignal,
+  /** No request may leave the process: answer from `source_cache` or fail. */
+  offline = false,
 ): Promise<MbGateway> {
   const name = cassetteNameOf(url);
   const cassette = name === null ? null : loadCassette(name);
-  if (cassette !== null) return cassetteGateway(cassette);
-  return liveGateway(await sourceContextFor(db ?? defaultDb(), signal));
+  if (cassette !== null) {
+    const outage = outageOf(url);
+    const gateway = cassetteGateway(cassette);
+    return outage === null ? gateway : outageGateway(gateway, url, outage.status, outage.times);
+  }
+  return liveGateway(await sourceContextFor(db ?? defaultDb(), signal, offline));
+}
+
+/**
+ * `fixture://<name>?mb=503[&mbtimes=2]` — the recorded scenario, with MusicBrainz refusing.
+ *
+ * The same convention as the toolbox's `fixture://discovery?fp=mismatch`: the fault travels in
+ * the fixture URL, so the situation it reproduces is offline, deterministic and drivable from
+ * a browser test. Only `fixture://` URLs are read for it — this is called *after* the cassette
+ * has been found — so nothing a user can paste reaches it.
+ *
+ * `mbtimes` defaults to 1, which is the interesting default: one refusal is what the wizard's
+ * cache fallback is meant to survive. Two is what it cannot, and is how the "MusicBrainz is
+ * unavailable — retry" screen is reached.
+ */
+function outageOf(url: string): { status: number; times: number } | null {
+  const query = url.split("?")[1];
+  if (query === undefined) return null;
+  const params = new URLSearchParams(query.split("#")[0] ?? "");
+  const value = params.get("mb");
+  if (value === null) return null;
+  const status = Number(value);
+  if (!Number.isInteger(status) || status < 400 || status > 599) return null;
+  const times = Number(params.get("mbtimes") ?? "1");
+  return { status, times: Number.isInteger(times) && times > 0 ? times : 1 };
 }
 
 /** The videos of an import, in source order, as the matcher wants them. */
@@ -114,6 +145,14 @@ export interface RankingInput {
   readonly settings: Settings;
   readonly db?: Database;
   readonly signal?: AbortSignal;
+  /**
+   * Rank from the raw cache alone, making no request.
+   *
+   * The wizard's fallback when MusicBrainz refuses (decision 165): a second ranking, offline,
+   * which succeeds exactly when this import has been looked at before. It is never the first
+   * attempt — a stale answer is worth having, not worth preferring.
+   */
+  readonly offline?: boolean;
 }
 
 /** The candidates for an import, computed and thrown away. Nothing is written. */
@@ -126,7 +165,7 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
       action: "Back to step 1",
     });
   }
-  const plain = await gatewayForUrl(input.job.url, db, input.signal);
+  const plain = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const single = input.job.kind === "single" || rows.length === 1;
 
   /*
@@ -208,7 +247,7 @@ export async function searchReleases(input: SearchInput): Promise<{
 }> {
   const db = input.db ?? defaultDb();
   const { videos } = await videosOf(input.job.id, db);
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const query = lucene.releaseQuery({ album: input.query.trim() });
   const found = await gateway.search("release", query, input.settings.matchSearchLimit);
   const releases = found?.releases ?? [];
@@ -262,7 +301,7 @@ export async function pinnedRelease(input: PinnedInput): Promise<{
 }> {
   const db = input.db ?? defaultDb();
   const { videos } = await videosOf(input.job.id, db);
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const release = await gateway.lookupRelease(input.releaseMbid);
   if (release === null) {
     throw new MMError("NOT_FOUND", `No MusicBrainz release with id ${input.releaseMbid}.`, {
@@ -345,7 +384,7 @@ export async function pinnedRecording(
 ): Promise<{ candidate: RecordingCandidate }> {
   const db = input.db ?? defaultDb();
   const video = await loneVideo(input.job, db);
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const recording = await gateway.lookupRecording(input.recordingMbid);
   if (recording === null) {
     throw new MMError("NOT_FOUND", `No MusicBrainz recording with id ${input.recordingMbid}.`, {
@@ -377,7 +416,7 @@ export async function searchRecordings(
 ): Promise<{ candidates: readonly RecordingCandidate[]; query: string }> {
   const db = input.db ?? defaultDb();
   const video = await loneVideo(input.job, db);
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const query = lucene.recordingQuery({ title: input.query.trim() });
   const found = await gateway.search("recording", query, input.settings.matchSearchLimit);
   const recordings = found?.recordings ?? [];
@@ -434,7 +473,7 @@ export interface MappingView {
 export async function mappingFor(input: MappingInput): Promise<MappingView> {
   const db = input.db ?? defaultDb();
   const { videos } = await videosOf(input.job.id, db);
-  const gateway = await gatewayForUrl(input.job.url, db, input.signal);
+  const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
   const release = await gateway.lookupRelease(input.releaseMbid);
   if (release === null) {
     throw new MMError("NOT_FOUND", `No MusicBrainz release with id ${input.releaseMbid}.`, {
