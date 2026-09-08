@@ -360,7 +360,9 @@ thing: the single download slot.
 - Fixtures mode (`MM_TOOLBOX_FIXTURES=1`) answers every endpoint from `src/toolbox/fixtures/data/`:
   `fixture://discovery` (15 videos for 14 tracks), `fixture://skinny-love`, `fixture://currents`,
   and `fixture://discovery?fp=mismatch` for a fingerprint disagreement. `#n` selects one entry.
-  `/download` copies a bundled five-second Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it.
+  `/download` copies a bundled five-second Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it,
+  and `?slow=<ms>` (capped at 2 s a slice) paces one import only — that is how a browser test
+  catches a track _while_ it is downloading without slowing every other spec down.
 - Environment: `MM_TOOLBOX_TOKEN` (bearer, empty = off), `MM_TOOLBOX_FIXTURES`,
   `MM_YTDLP_AUTOUPDATE`, `MM_ACOUSTID_KEY`, `MM_LIBRARY_ROOT`, `MM_TOOLBOX_FIXTURE_DELAY_MS`.
 - Tests: `uv run pytest` is offline and needs no binaries; the ones that do skip themselves.
