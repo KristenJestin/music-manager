@@ -45,12 +45,38 @@ function mimeTypeOf(url: string): string {
   return url.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
 }
 
+/**
+ * Which rung of the §4 ladder this index was fetched from (decision 168).
+ *
+ * The archive answers the same shape for a release, for a release group, and for a *sibling*
+ * release of that group — so the index alone cannot say which question was asked, and the
+ * field's `source` says `coverartarchive` for all three. The caller knows, and passes it here
+ * to be written into the picture's `provenance`.
+ */
+export interface CoverArtOrigin {
+  readonly rung: "release" | "release-group" | "sibling-release";
+  /** The MBID actually asked about. */
+  readonly mbid?: string;
+}
+
+/** The one clause a card, `get_album` or a report prints to say where the cover came from. */
+export function describeCoverArtOrigin(origin: CoverArtOrigin | undefined): string {
+  if (origin === undefined) return "Cover Art Archive";
+  const id = origin.mbid === undefined || origin.mbid === "" ? "" : ` (${origin.mbid})`;
+  if (origin.rung === "release-group") return `Cover Art Archive · release group${id}`;
+  if (origin.rung === "sibling-release") {
+    return `Cover Art Archive · another release of the group${id}`;
+  }
+  return `Cover Art Archive · this release${id}`;
+}
+
 export function fromCoverArtArchiveIndex(
   index: CaaIndex,
-  options: { fetchedAt: string },
+  options: { fetchedAt: string; origin?: CoverArtOrigin },
 ): DocumentPatch {
   const patch = new PatchBuilder("coverartarchive", options.fetchedAt);
   const images = (index.images ?? []).filter((image) => image.approved !== false);
+  const provenance = describeCoverArtOrigin(options.origin);
 
   const front = images.find(
     (image) => image.front === true || (image.types ?? []).includes("Front"),
@@ -59,10 +85,14 @@ export function fromCoverArtArchiveIndex(
 
   patch.setOrNa(
     "front_cover",
-    pictureOf(front, "front"),
+    pictureOf(front, "front", provenance),
     "the Cover Art Archive has no front cover",
   );
-  patch.setOrNa("back_cover", pictureOf(back, "back"), "the Cover Art Archive has no back cover");
+  patch.setOrNa(
+    "back_cover",
+    pictureOf(back, "back", provenance),
+    "the Cover Art Archive has no back cover",
+  );
 
   return patch.build();
 }
@@ -70,6 +100,7 @@ export function fromCoverArtArchiveIndex(
 function pictureOf(
   image: CaaImage | undefined,
   kind: "front" | "back",
+  provenance: string,
 ): readonly EmbeddedPicture[] | null {
   if (image === undefined) return null;
   const url = bestUrl(image);
@@ -77,7 +108,7 @@ function pictureOf(
   const comment = image.comment;
   return [
     comment === undefined || comment === ""
-      ? { kind, mimeType: mimeTypeOf(url), url }
-      : { kind, mimeType: mimeTypeOf(url), url, comment },
+      ? { kind, mimeType: mimeTypeOf(url), url, provenance }
+      : { kind, mimeType: mimeTypeOf(url), url, comment, provenance },
   ];
 }

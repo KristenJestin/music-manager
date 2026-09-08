@@ -29,6 +29,7 @@ import {
   TAG_SCHEMA_VERSION,
   trackCompleteness,
   type CaaIndex,
+  type CoverArtOrigin,
   type DocumentPatch,
   type Field,
   type LastfmTagInput,
@@ -288,6 +289,8 @@ export function thumbnailCoverPatch(url: string, fetchedAt: string): DocumentPat
             mimeType: "image/jpeg",
             url,
             comment: "YouTube thumbnail, cropped square",
+            // The last rung of the ladder names itself, like the other three (decision 168).
+            provenance: "YouTube thumbnail, cropped square",
           },
         ],
         source: "youtube" as const,
@@ -297,6 +300,80 @@ export function thumbnailCoverPatch(url: string, fetchedAt: string): DocumentPat
       },
     },
   };
+}
+
+/**
+ * How many sibling pressings of a release group are asked for a front before giving up.
+ *
+ * Small on purpose. Rung 3 exists for the group that has covers on its pressings and none
+ * elected at group level; if the first few pressings of such a group have nothing, the group
+ * has nothing, and the YouTube thumbnail is the honest answer. A "try them all" would turn a
+ * ninety-pressing release group into ninety archive requests for one missing picture.
+ */
+const SIBLING_COVER_TRIES = 4;
+
+/**
+ * Rung 3 of §4's ladder: a front cover from **another release of the same group**.
+ *
+ * The sibling list comes from the very `release?query=rgid:… AND status:Official` search the
+ * `match` step already made, so in the normal case this reads the raw cache and spends no
+ * MusicBrainz request at all. Failures are noted and swallowed — a cover is worth a try, never
+ * worth a failed import.
+ */
+async function siblingCover(
+  ctx: SourceContext,
+  releaseGroupMbid: string,
+  chosenReleaseMbid: string,
+  collected: Collected,
+): Promise<{ index: CaaIndex; mbid: string; fetchedAt: string } | null> {
+  const query = `rgid:${releaseGroupMbid} AND status:Official`;
+  let siblings: readonly MbRelease[] = [];
+  try {
+    const found = await musicbrainz.search(ctx, "release", query, { limit: 25 });
+    siblings = found.data?.releases ?? [];
+    note(collected, {
+      source: "musicbrainz",
+      key: `search/release?query=${query}`,
+      outcome: siblings.length === 0 ? "absent" : found.fresh ? "fetched" : "hit",
+      fetchedAt: found.fetchedAt,
+    });
+  } catch (error) {
+    note(collected, {
+      source: "musicbrainz",
+      key: `search/release?query=${query}`,
+      outcome: "failed",
+      note: MMError.from(error).message,
+    });
+    return null;
+  }
+
+  const candidates = siblings
+    .map((release) => release.id)
+    .filter((id): id is string => id !== undefined && id !== "" && id !== chosenReleaseMbid)
+    .slice(0, SIBLING_COVER_TRIES);
+
+  for (const mbid of candidates) {
+    try {
+      const answer = await caa.index(ctx, mbid);
+      note(collected, {
+        source: "coverartarchive",
+        key: `release/${mbid}`,
+        outcome: answer.data === null ? "absent" : answer.fresh ? "fetched" : "hit",
+        fetchedAt: answer.fetchedAt,
+      });
+      if (answer.data !== null && caa.frontUrl(answer.data) !== null) {
+        return { index: answer.data, mbid, fetchedAt: answer.fetchedAt };
+      }
+    } catch (error) {
+      note(collected, {
+        source: "coverartarchive",
+        key: `release/${mbid}`,
+        outcome: "failed",
+        note: MMError.from(error).message,
+      });
+    }
+  }
+  return null;
 }
 
 /** The locked fields of the document already stored for this track, if there is one. */
@@ -614,14 +691,33 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
     }
   }
 
-  /* ---- 4 · the cover, and the YouTube fallback ---- */
+  /* ---- 4 · the cover: the four rungs of §4's ladder, and the provenance of the one used ----
+   *
+   * `docs/03-metadonnees.md` §4 says "404 fréquents ; repli miniature YouTube recadrée en
+   * carré", and the fifth owner review (G1) asks for the two rungs in between to be real and
+   * for the answer to say which one it landed on:
+   *
+   *   1. the chosen release's own index;
+   *   2. the release group's — the archive serves the group's elected cover there;
+   *   3. **another release of the same group**, which is the case rungs 1 and 2 both miss: a
+   *      group whose pressings have covers but which has no elected group cover 404s at the
+   *      group endpoint while a sibling has a perfectly good front;
+   *   4. the YouTube thumbnail, cropped square by the toolbox (below, as an `extra` patch).
+   *
+   * Rung 3 costs no MusicBrainz request in practice: the sibling list is the same
+   * `release?query=rgid:…` search the `match` step already spent and the raw cache already
+   * holds. `SIBLING_COVER_TRIES` caps the archive lookups so a group with ninety pressings
+   * cannot turn one missing cover into ninety requests.
+   */
   let coverIndex: CaaIndex | null = null;
   let coverFetchedAt = input.now;
+  let coverOrigin: CoverArtOrigin | undefined;
   if (enabled.coverartarchive && releaseMbid !== null && releaseMbid !== "") {
     try {
       const answer = await caa.index(ctx, releaseMbid);
       coverIndex = answer.data;
       coverFetchedAt = answer.fetchedAt;
+      coverOrigin = { rung: "release", mbid: releaseMbid };
       note(collected, {
         source: "coverartarchive",
         key: `release/${releaseMbid}`,
@@ -633,6 +729,7 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
         if (caa.frontUrl(group.data) !== null) {
           coverIndex = group.data;
           coverFetchedAt = group.fetchedAt;
+          coverOrigin = { rung: "release-group", mbid: job.releaseGroupMbid };
         }
         note(collected, {
           source: "coverartarchive",
@@ -640,6 +737,14 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
           outcome: group.data === null ? "absent" : group.fresh ? "fetched" : "hit",
           fetchedAt: group.fetchedAt,
         });
+      }
+      if (caa.frontUrl(coverIndex) === null && job.releaseGroupMbid !== null) {
+        const sibling = await siblingCover(ctx, job.releaseGroupMbid, releaseMbid, collected);
+        if (sibling !== null) {
+          coverIndex = sibling.index;
+          coverFetchedAt = sibling.fetchedAt;
+          coverOrigin = { rung: "sibling-release", mbid: sibling.mbid };
+        }
       }
     } catch (error) {
       note(collected, {
@@ -727,7 +832,15 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
       : { recording: { data: recording, fetchedAt: recordingFetchedAt } }),
     ...(work === undefined ? {} : { work: { data: work, fetchedAt: workFetchedAt } }),
     ...(artists.length === 0 ? {} : { artists }),
-    ...(coverIndex === null ? {} : { coverArt: { data: coverIndex, fetchedAt: coverFetchedAt } }),
+    ...(coverIndex === null
+      ? {}
+      : {
+          coverArt: {
+            data: coverIndex,
+            fetchedAt: coverFetchedAt,
+            ...(coverOrigin === undefined ? {} : { origin: coverOrigin }),
+          },
+        }),
     ...(lyrics === undefined
       ? {}
       : { lyrics: { data: lyrics.data as never, fetchedAt: lyrics.fetchedAt } }),

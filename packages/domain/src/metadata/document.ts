@@ -56,6 +56,20 @@ export interface EmbeddedPicture {
   readonly mimeType: string;
   readonly url: string;
   readonly comment?: string;
+  /**
+   * Where this picture came from, in one readable clause (decision 168).
+   *
+   * `docs/03-metadonnees.md` §4 makes the cover a *ladder* — this release, then its release
+   * group, then another release of the group, then the YouTube thumbnail — and the fifth owner
+   * review asks the obvious question of a ladder: which rung was it? The `source` of the field
+   * cannot answer it, because three of the four rungs are the same source. So the rung is
+   * written into the value: `Cover Art Archive · this release`, `… · release group <mbid>`,
+   * `… · another release of the group (<mbid>)`, `YouTube thumbnail, cropped square`.
+   *
+   * Descriptive only. Nothing is chosen from it; it is what `get_album` and the album page
+   * print when asked where the picture on disk came from.
+   */
+  readonly provenance?: string;
 }
 
 /** LRCLIB gives synchronised lyrics when it has them, plain text otherwise (§2.6). */

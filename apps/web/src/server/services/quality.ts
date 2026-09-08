@@ -163,6 +163,17 @@ export interface AlbumQuality {
   readonly untagged: boolean;
   /** The front cover came from a YouTube thumbnail rather than the Cover Art Archive. */
   readonly youtubeCover: boolean;
+  /**
+   * Which rung of `docs/03-metadonnees.md` §4's cover ladder the picture on disk came from
+   * (decision 168), verbatim from the document — `Cover Art Archive · this release (…)`,
+   * `… · release group (…)`, `… · another release of the group (…)`, or
+   * `YouTube thumbnail, cropped square`. `null` for an album with no cover at all.
+   *
+   * `youtubeCover` answers "is it a thumbnail"; this answers the question the fifth owner
+   * review actually asked, which is *where did this picture come from* — because three of the
+   * four rungs are the same source and were until now indistinguishable.
+   */
+  readonly coverProvenance: string | null;
   readonly tracks: readonly TrackQuality[];
 }
 
@@ -299,6 +310,21 @@ function isYouTubeCover(document: TrackDocument): boolean {
   const held = document.fields["front_cover"];
   if (held === undefined) return false;
   return held.source === "youtube";
+}
+
+/**
+ * The `provenance` clause the front cover carries, or `null`.
+ *
+ * Read off the value rather than derived from `source`, because §4's ladder has three rungs
+ * that all say `coverartarchive` — decision 168 is exactly the observation that the source id
+ * cannot answer "where did this cover come from". A document written before that decision has
+ * no clause and answers `null`; a re-tag fills it in.
+ */
+function coverProvenanceOf(document: TrackDocument): string | null {
+  const held = document.fields["front_cover"]?.value;
+  if (!Array.isArray(held)) return null;
+  const first = held[0] as { provenance?: unknown } | undefined;
+  return typeof first?.provenance === "string" && first.provenance !== "" ? first.provenance : null;
 }
 
 /**
@@ -501,6 +527,7 @@ export function scoreAlbum(
     replayGainCount: tracks.filter((track) => track.hasReplayGain).length,
     untagged: album.releaseMbid === null || album.releaseMbid === "",
     youtubeCover: documents.some(isYouTubeCover),
+    coverProvenance: documents.map(coverProvenanceOf).find((clause) => clause !== null) ?? null,
     tracks,
   };
 }

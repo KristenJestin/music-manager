@@ -29,6 +29,7 @@ import {
   type AcoustIdResponse,
   type AppProvenance,
   type CaaIndex,
+  type CoverArtOrigin,
   type DeezerTrack,
   type LastfmTagInput,
   type ListenBrainzTagInput,
@@ -58,7 +59,12 @@ export interface TrackResolutionInput {
   readonly work?: Cached<MbWork>;
   /** The credited artists, looked up on their own — the only source of `WEBSITE` (§2.2). */
   readonly artists?: readonly Cached<MbArtistLike>[];
-  readonly coverArt?: Cached<CaaIndex>;
+  /**
+   * The Cover Art Archive index, plus **which rung of the §4 ladder answered it** — this
+   * release, its release group, or a sibling release (decision 168). The rung ends up in the
+   * picture's `provenance`, because `source` says `coverartarchive` for all three.
+   */
+  readonly coverArt?: Cached<CaaIndex> & { readonly origin?: CoverArtOrigin };
   /** The LRCLIB entry already chosen out of a search (see `chooseLrclibEntry`). */
   readonly lyrics?: Cached<LrclibEntry | null>;
   readonly deezer?: Cached<DeezerTrack>;
@@ -106,7 +112,10 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
   }
   if (input.coverArt !== undefined) {
     patches.push(
-      fromCoverArtArchiveIndex(input.coverArt.data, { fetchedAt: input.coverArt.fetchedAt }),
+      fromCoverArtArchiveIndex(input.coverArt.data, {
+        fetchedAt: input.coverArt.fetchedAt,
+        ...(input.coverArt.origin === undefined ? {} : { origin: input.coverArt.origin }),
+      }),
     );
   }
   if (input.lyrics !== undefined) {

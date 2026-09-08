@@ -24,6 +24,7 @@ import { readFixture } from "../../testing/fixtures.ts";
 import {
   acoustIdRecordingIds,
   chooseLrclibEntry,
+  describeCoverArtOrigin,
   fromAcoustId,
   fromApp,
   fromCoverArtArchiveIndex,
@@ -160,7 +161,10 @@ describe("fromMusicBrainzWork", () => {
 });
 
 describe("fromCoverArtArchiveIndex", () => {
-  const patch = fromCoverArtArchiveIndex(coverArt, { fetchedAt: at });
+  const patch = fromCoverArtArchiveIndex(coverArt, {
+    fetchedAt: at,
+    origin: { rung: "release", mbid: "d073287b-d1bd-4f11-a933-a4386f8cf701" },
+  });
 
   it("takes the 1200 px front and back covers (§3)", () => {
     expect(patch.fields?.["front_cover"]?.value).toEqual([
@@ -168,6 +172,7 @@ describe("fromCoverArtArchiveIndex", () => {
         kind: "front",
         mimeType: "image/jpeg",
         url: "http://coverartarchive.org/release/d073287b-d1bd-4f11-a933-a4386f8cf701/13479423359-1200.jpg",
+        provenance: "Cover Art Archive · this release (d073287b-d1bd-4f11-a933-a4386f8cf701)",
       },
     ]);
     expect(patch.fields?.["back_cover"]).toBeDefined();
@@ -177,6 +182,22 @@ describe("fromCoverArtArchiveIndex", () => {
     const patch2 = fromCoverArtArchiveIndex({ images: [] }, { fetchedAt: at });
     expect(patch2.na?.["front_cover"]?.reason).toContain("no front cover");
     expect(patch2.na?.["back_cover"]).toBeDefined();
+  });
+
+  it("names the rung of §4's ladder it came from (decision 168)", () => {
+    /*
+     * The archive answers the same shape for a release, its group and a sibling pressing, so
+     * `source: coverartarchive` cannot tell you which question was asked. The picture says it
+     * itself, and that is what the album page and `get_album` print.
+     */
+    expect(describeCoverArtOrigin({ rung: "release" })).toBe("Cover Art Archive · this release");
+    expect(describeCoverArtOrigin({ rung: "release-group", mbid: "rg" })).toBe(
+      "Cover Art Archive · release group (rg)",
+    );
+    expect(describeCoverArtOrigin({ rung: "sibling-release", mbid: "sib" })).toBe(
+      "Cover Art Archive · another release of the group (sib)",
+    );
+    expect(describeCoverArtOrigin(undefined)).toBe("Cover Art Archive");
   });
 });
 

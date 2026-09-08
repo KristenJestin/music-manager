@@ -197,6 +197,42 @@ describe("scoreAlbum", () => {
     };
     expect(scoreAlbum(album(), [loaded({ document: withCover })], 1).youtubeCover).toBe(true);
   });
+
+  it("reports which rung of §4's ladder the cover came from (owner review 5, G1)", () => {
+    /*
+     * `youtubeCover` only separates the last rung from the other three, and the other three are
+     * the question: a cover borrowed from a *sibling pressing* is a Cover Art Archive cover of
+     * a release that is not the one we imported, and nothing said so until decision 168.
+     */
+    const doc = document();
+    const borrowed: TrackDocument = {
+      ...doc,
+      fields: {
+        ...doc.fields,
+        front_cover: field(
+          [
+            {
+              kind: "front" as const,
+              url: "https://coverartarchive.org/release/002022bb/front-1200.jpg",
+              mimeType: "image/jpeg",
+              provenance: "Cover Art Archive · another release of the group (002022bb)",
+            },
+          ],
+          "coverartarchive",
+          AT,
+        ),
+      },
+    };
+    const quality = scoreAlbum(album(), [loaded({ document: borrowed })], 1);
+    expect(quality.youtubeCover).toBe(false);
+    expect(quality.coverProvenance).toBe(
+      "Cover Art Archive · another release of the group (002022bb)",
+    );
+  });
+
+  it("says nothing rather than guessing for a document written before the clause existed", () => {
+    expect(scoreAlbum(album(), [loaded({ document: document() })], 1).coverProvenance).toBeNull();
+  });
 });
 
 /*

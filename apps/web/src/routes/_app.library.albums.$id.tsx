@@ -162,12 +162,30 @@ function Album() {
       {/* ---- header ---- */}
       <div className="mb-4 flex flex-wrap items-start gap-5">
         {/* The cover.jpg written beside the files, then the Cover Art Archive front. */}
-        <Cover
-          size="xl"
-          seed={album.album.id}
-          label={album.album.title}
-          src={albumCoverSources(album.album, 500)}
-        />
+        <div className="flex shrink-0 flex-col items-center gap-1">
+          <Cover
+            size="xl"
+            seed={album.album.id}
+            label={album.album.title}
+            src={albumCoverSources(album.album, 500)}
+          />
+          {/*
+           * Where this picture came from (decision 168).
+           *
+           * §4's cover ladder has four rungs and three of them are the Cover Art Archive, so
+           * "source: coverartarchive" never distinguished the release's own cover from the one
+           * borrowed off a sibling pressing. The document now carries the rung; this prints it.
+           */}
+          {quality.coverProvenance === null ? null : (
+            <span
+              data-testid="album-cover-provenance"
+              title={quality.coverProvenance}
+              className="w-40 truncate text-center text-3xs text-fg-3"
+            >
+              {quality.coverProvenance}
+            </span>
+          )}
+        </div>
         <div className="min-w-0 grow">
           <div className="text-2xs tracking-wider text-fg-2 uppercase">
             {album.identifiers.releaseType ?? "album"}

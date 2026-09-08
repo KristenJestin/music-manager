@@ -1096,6 +1096,10 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             lyricsCount: detail.quality.lyricsCount,
             replayGainCount: detail.quality.replayGainCount,
             youtubeCover: detail.quality.youtubeCover,
+            // Which rung of §4's cover ladder the picture on disk came from (decision 168):
+            // this release, its release group, another pressing of the group, or the YouTube
+            // thumbnail. `youtubeCover` only distinguishes the last one from the other three.
+            coverProvenance: detail.quality.coverProvenance,
             missing: detail.quality.missing,
           },
           tracks: detail.tracks.map((track) => ({
