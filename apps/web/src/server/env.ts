@@ -26,6 +26,12 @@ const envSchema = z.object({
   MM_LIBRARY_ROOT: z.string().default("./.local/library"),
 
   /**
+   * Where `mm migrate v1` writes the exported M3U playlists. Empty means
+   * `<library>/_archive/v1-playlists`, the only directory production is sure to own.
+   */
+  MM_PLAYLIST_EXPORT_DIR: z.string().default(""),
+
+  /**
    * The same directory, **as the toolbox container sees it** — the other end of the bind
    * mount of `docker-compose.dev.yml`. Every path handed to or returned by the toolbox is
    * translated between the two (see `src/server/paths.ts`); nothing else would work when the

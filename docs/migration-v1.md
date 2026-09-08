@@ -120,7 +120,7 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    que la mesure de loudness y entre aussi.
 4. **Pistes non présentes.** Un import v2 par playlist parente, statut `paused` (« en file, à
    l'arrêt ») ou `awaiting_review`, les MBID forcés en présélection. **Rien n'est téléchargé.**
-5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/../_archive/v1-playlists/`.
+5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/_archive/v1-playlists/` (ou `MM_PLAYLIST_EXPORT_DIR`) ; le dossier est créé et son accès en écriture vérifié **avant** le premier re-tag.
    Aucune donnée de playlist n'entre en v2.
 6. **Vérification** (`--verify`) et items Inbox pour les écarts.
 7. **Rapport** : compteurs, écarts, erreurs, en JSON sur `migration_v1_runs.report`.

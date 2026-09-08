@@ -623,7 +623,7 @@ async function main(): Promise<void> {
   check((downloaded?.count ?? -1) === 0, "no track was downloaded during the migration");
 
   /* ---- playlists ---------------------------------------------------- */
-  const archive = resolve(LIBRARY, "..", "_archive", "v1-playlists");
+  const archive = resolve(LIBRARY, "_archive", "v1-playlists");
   check(
     report.playlists.length === 2,
     "both v1 playlists were exported as M3U",
@@ -975,7 +975,7 @@ async function cleanup(): Promise<void> {
   }
   // Both the library and the playlist archive this run created, and nothing else.
   rmSync(LIBRARY, { recursive: true, force: true });
-  rmSync(resolve(LIBRARY, "..", "_archive", "v1-playlists"), { recursive: true, force: true });
+  rmSync(resolve(LIBRARY, "_archive", "v1-playlists"), { recursive: true, force: true });
 }
 
 try {

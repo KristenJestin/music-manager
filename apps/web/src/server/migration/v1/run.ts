@@ -31,6 +31,7 @@ import {
   type MigrationRow,
   type MigrationRun,
 } from "#/server/db/schema/index.ts";
+import { accessSync, constants as fsConstants, mkdirSync } from "node:fs";
 import { serverEnv } from "#/server/env.ts";
 import { newId } from "#/server/ids.ts";
 import { hostPath } from "#/server/paths.ts";
@@ -120,7 +121,7 @@ export interface MigrationOptions {
    * never to `true`: in production every release outside the cache must reach MusicBrainz.
    */
   readonly offline?: boolean;
-  /** Where the M3U exports go. Defaults to `<library>/../_archive/v1-playlists`. */
+  /** Where the M3U exports go. Defaults to `MM_PLAYLIST_EXPORT_DIR`, else `<library>/_archive/v1-playlists`. */
   readonly playlistDir?: string;
   readonly now?: Date;
   say?(message: string, data?: Record<string, unknown>): Promise<void>;
@@ -155,7 +156,12 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
 
   const libraryPrefix = libraryPrefixOf(paths, options.libraryPath);
 
+  // Decided and checked up front: a directory that cannot be written must refuse the run
+  // now, not after hours of re-tagging (owner report, 2026-09-08).
+  const playlistDir = resolvePlaylistDir(options, hostPath(paths, libraryPrefix));
+
   if (!dryRun) {
+    assertWritableDir(playlistDir, "playlist export directory");
     if (options.acknowledgeBackup === true) await acknowledgeBackup(db, now);
     const acknowledged = await backupAcknowledged(db);
     if (acknowledged === null) {
@@ -380,7 +386,6 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
 
     /* ---- playlists (§ Étapes 5) ---------------------------------------- */
 
-    const playlistDir = options.playlistDir ?? defaultPlaylistDir(hostPath(paths, libraryPrefix));
     const exported = exportPlaylists(
       {
         playlists: plan.dataset.playlists,
@@ -869,4 +874,27 @@ export async function listRuns(
 
 export function reportOf(run: MigrationRun): MigrationReport | null {
   return run.report === null ? null : (run.report as unknown as MigrationReport);
+}
+
+/** `playlistDir` option, else `MM_PLAYLIST_EXPORT_DIR`, else `<library>/_archive/v1-playlists`. */
+function resolvePlaylistDir(options: MigrationOptions, libraryRoot: string): string {
+  if (options.playlistDir !== undefined && options.playlistDir !== "") return options.playlistDir;
+  const fromEnv = serverEnv().MM_PLAYLIST_EXPORT_DIR;
+  return fromEnv === "" ? defaultPlaylistDir(libraryRoot) : fromEnv;
+}
+
+/** Create the directory if needed and prove it is writable, or refuse with the path named. */
+function assertWritableDir(dir: string, what: string): void {
+  try {
+    mkdirSync(dir, { recursive: true });
+    accessSync(dir, fsConstants.W_OK);
+  } catch (error) {
+    throw new MMError("INVALID_INPUT", `The ${what} is not writable: ${dir}`, {
+      hint:
+        "Set MM_PLAYLIST_EXPORT_DIR to a directory this process can write, or leave it empty " +
+        "to use <library>/_archive/v1-playlists.",
+      action: "Fix the directory",
+      details: { dir, cause: error instanceof Error ? error.message : String(error) },
+    });
+  }
 }

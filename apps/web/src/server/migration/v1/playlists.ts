@@ -19,9 +19,16 @@ import { dirname, join, relative, resolve } from "node:path";
 import { toPosix } from "#/server/paths.ts";
 import type { V1Playlist, V1PlaylistSong, V1Song } from "./schema.ts";
 
-/** `<library>/../_archive/v1-playlists` — the default of § Étapes 5. */
+/**
+ * `<library>/_archive/v1-playlists` — the default of § Étapes 5.
+ *
+ * Inside the library on purpose: it is the only directory a production container is
+ * guaranteed to write to. The previous default, `<library>/../_archive`, resolved to `/_archive`
+ * when the library is mounted at `/library`, which uid 10001 cannot create (owner report,
+ * 2026-09-08). Navidrome can read the M3U files from there through `ND_PLAYLISTSPATH`.
+ */
 export function defaultPlaylistDir(libraryRoot: string): string {
-  return resolve(libraryRoot, "..", "_archive", "v1-playlists");
+  return resolve(libraryRoot, "_archive", "v1-playlists");
 }
 
 export interface PlaylistExportInput {
