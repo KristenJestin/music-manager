@@ -8,7 +8,8 @@ import { DataTable } from "./data-table.tsx";
 import { KeyValueList } from "./key-value.tsx";
 import { LogViewer } from "./log-viewer.tsx";
 import { MappingRow } from "./mapping-row.tsx";
-import { PipelineDots } from "./pipeline-dots.tsx";
+import { PipelineDots, type StepRow } from "./pipeline-dots.tsx";
+import { STEPS } from "#/server/db/schema/enums.vocab.ts";
 import { ReleaseCandidateCard } from "./candidate-card.tsx";
 import { ReleaseGroupCard } from "./candidate-group.tsx";
 import { ReviewCard } from "./review-card.tsx";
@@ -462,20 +463,35 @@ describe("ReviewCard", () => {
   });
 });
 
+/** Every step `done` up to (excluding) `head`, `head` itself carrying `headStatus`, everything
+ *  after untouched (`row: null`) — the shape a job's `job_steps` really has. */
+function rowsUpTo(head: string, headStatus: StepRow["row"]): StepRow[] {
+  const headIndex = STEPS.indexOf(head as (typeof STEPS)[number]);
+  return STEPS.map((step, index) => ({
+    step,
+    row: index < headIndex ? { status: "done" } : index === headIndex ? headStatus : null,
+  }));
+}
+
 describe("PipelineDots", () => {
   it("marks everything done when the import is", () => {
-    const { container } = render(<PipelineDots step="verify" status="done" />);
+    const rows = rowsUpTo("verify", { status: "running" });
+    const { container } = render(<PipelineDots steps={rows} headStep="verify" status="done" />);
     expect(container.querySelectorAll("i.bg-ok")).toHaveLength(8);
   });
 
   it("marks the failing step red and the ones before it green", () => {
-    const { container } = render(<PipelineDots step="tag" status="failed" />);
+    const rows = rowsUpTo("tag", { status: "failed" });
+    const { container } = render(<PipelineDots steps={rows} headStep="tag" status="failed" />);
     expect(container.querySelectorAll("i.bg-danger")).toHaveLength(1);
     expect(container.querySelectorAll("i.bg-ok")).toHaveLength(5);
   });
 
   it("marks the step a human is being waited for in amber", () => {
-    const { container } = render(<PipelineDots step="confirm" status="awaiting_review" />);
+    const rows = rowsUpTo("confirm", { status: "blocked" });
+    const { container } = render(
+      <PipelineDots steps={rows} headStep="confirm" status="awaiting_review" />,
+    );
     expect(container.querySelectorAll("i.bg-warn")).toHaveLength(1);
   });
 });

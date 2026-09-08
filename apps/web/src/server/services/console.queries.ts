@@ -18,6 +18,7 @@ import {
   jobSteps,
   libraryAlbums,
   libraryTracks,
+  STEPS,
   type Import,
   type ImportOptions,
   type ImportStatus,
@@ -25,6 +26,7 @@ import {
   type InboxItem,
   type JobStep,
   type StepName,
+  type StepStatus,
 } from "#/server/db/schema/index.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
 import { assertSigned } from "#/server/services/imports.ts";
@@ -38,6 +40,12 @@ export interface JobSummary {
   readonly job: Import;
   readonly tracksTotal: number;
   readonly tracksDone: number;
+  /**
+   * One entry per step of the machine, in execution order; `row` is `null` if never run.
+   * What `PipelineDots` needs to show more than one step running at once (owner review F3) —
+   * the same shape `JobDetail.steps` already gives the detail page.
+   */
+  readonly steps: readonly { step: StepName; row: { status: StepStatus } | null }[];
   /** Open Inbox items blocking this job. The list shows a "Review" button when non-zero. */
   readonly openItems: number;
   /**
@@ -119,19 +127,39 @@ export async function listJobs(
     .where(inArray(importTracks.importId, ids))
     .orderBy(importTracks.importId, importTracks.position);
 
+  // Every step row of every job in the page, so `PipelineDots` can colour more than one step
+  // "running" at once instead of inferring a straight line from `job.step` (owner review F3).
+  const stepRows = await db
+    .select({ importId: jobSteps.importId, step: jobSteps.step, status: jobSteps.status })
+    .from(jobSteps)
+    .where(inArray(jobSteps.importId, ids));
+
   const byId = new Map(tallies.map((row) => [row.importId, row]));
   const openById = new Map(open.map((row) => [row.importId, Number(row.total)]));
   const thumbnailById = new Map(
     firstVideos.map((row) => [row.importId, youtubeThumbnail(row.raw as never)]),
   );
+  const stepsById = new Map<string, Map<StepName, StepStatus>>();
+  for (const row of stepRows) {
+    const byStep = stepsById.get(row.importId) ?? new Map<StepName, StepStatus>();
+    byStep.set(row.step, row.status);
+    stepsById.set(row.importId, byStep);
+  }
 
-  return jobs.map((job) => ({
-    job,
-    tracksTotal: Number(byId.get(job.id)?.total ?? 0),
-    tracksDone: Number(byId.get(job.id)?.done ?? 0),
-    openItems: openById.get(job.id) ?? 0,
-    thumbnail: thumbnailById.get(job.id) ?? null,
-  }));
+  return jobs.map((job) => {
+    const byStep = stepsById.get(job.id);
+    return {
+      job,
+      tracksTotal: Number(byId.get(job.id)?.total ?? 0),
+      tracksDone: Number(byId.get(job.id)?.done ?? 0),
+      steps: STEPS.map((step) => {
+        const rowStatus = byStep?.get(step);
+        return { step, row: rowStatus === undefined ? null : { status: rowStatus } };
+      }),
+      openItems: openById.get(job.id) ?? 0,
+      thumbnail: thumbnailById.get(job.id) ?? null,
+    };
+  });
 }
 
 /** How many jobs sit in each status. The filter chips of `/imports` show these. */

@@ -146,7 +146,11 @@ function Dashboard() {
                       </div>
                     </div>
                     <div className="w-36 shrink-0">
-                      <PipelineDots step={entry.job.step} status={entry.job.status} />
+                      <PipelineDots
+                        steps={entry.steps}
+                        headStep={entry.job.step}
+                        status={entry.job.status}
+                      />
                       <ProgressBar
                         className="mt-1.5"
                         value={entry.tracksTotal === 0 ? 0 : entry.tracksDone / entry.tracksTotal}

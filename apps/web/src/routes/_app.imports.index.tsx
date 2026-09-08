@@ -109,7 +109,9 @@ function Jobs() {
     {
       key: "pipeline",
       header: "Pipeline",
-      cell: (entry) => <PipelineDots step={entry.job.step} status={entry.job.status} />,
+      cell: (entry) => (
+        <PipelineDots steps={entry.steps} headStep={entry.job.step} status={entry.job.status} />
+      ),
     },
     {
       key: "progress",
