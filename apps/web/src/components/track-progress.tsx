@@ -111,8 +111,35 @@ export interface TrackProgressProps {
  *    happening, so a row never changes height;
  *  - the stage and the figures are on **two lines**, each `min-w-0` and truncating, so no
  *    string inside can widen the column that holds it;
- *  - the bar's track is drawn even at zero, so the third line does not appear and disappear.
+ *  - the third line always occupies the bar's height — but only *contains* a bar while bytes
+ *    are moving.
+ *
+ * That last clause is the fifth owner review's G2, and it is the correction of how D4 was
+ * first read. "Reserve the space" was implemented as "draw the bar at zero", so every row of
+ * a finished import carried a grey track under `Placed` and `Queued` that would never move
+ * again — a progress bar for something that is not in progress. The space is still reserved,
+ * by an empty spacer of the same height; the bar itself now exists only for a track that is
+ * downloading *and* has a real percentage from yt-dlp. A queued track, a track waiting for the
+ * download slot, a track being tagged and a placed track all show nothing there.
  */
+
+/**
+ * Is there a real download percentage to draw?
+ *
+ * Three conditions, and all three are the point. `stage === "download"` because that is the
+ * only phase yt-dlp reports bytes for — `ExtractAudio` and `MoveFiles` come down the same pipe
+ * with no figure, and freezing the bar at 98 % under them is what made it read as a stall.
+ * `percent !== null` because `track.started` opens the phase before the first progress line
+ * arrives, and a bar at zero is a claim. And not `waiting`, because a track queueing for the
+ * single download slot has not started: the row says so in words, in warn, on the line above.
+ */
+export function downloadPercent(activity: TrackActivity | undefined): number | null {
+  if (activity === undefined || activity.waiting) return null;
+  if (activity.stage !== "download") return null;
+  const percent = activity.percent;
+  return percent === null || !Number.isFinite(percent) ? null : Math.min(100, Math.max(0, percent));
+}
+
 export function TrackProgress({ activity, className }: TrackProgressProps) {
   const speed = speedLabel(activity?.speed ?? null);
   // `mmss`, not `delta`: an ETA is a duration, and `delta` prints the sign of an offset.
@@ -120,6 +147,7 @@ export function TrackProgress({ activity, className }: TrackProgressProps) {
     activity?.eta === undefined || activity.eta === null || activity.eta <= 0
       ? null
       : mmss(activity.eta);
+  const percent = downloadPercent(activity);
   const parts = [
     activity?.percent === undefined || activity.percent === null
       ? null
@@ -132,6 +160,7 @@ export function TrackProgress({ activity, className }: TrackProgressProps) {
     <div
       data-testid="track-progress"
       data-active={activity === undefined ? "no" : "yes"}
+      data-downloading={percent === null ? "no" : "yes"}
       className={cn("min-w-0 space-y-0.5", className)}
     >
       <div className="flex h-3.5 min-w-0 items-center text-2xs">
@@ -148,13 +177,13 @@ export function TrackProgress({ activity, className }: TrackProgressProps) {
       <div className="flex h-3.5 min-w-0 items-center text-2xs">
         <span className="min-w-0 truncate font-mono text-fg-3">{parts.join(" · ")}</span>
       </div>
-      <ProgressBar
-        value={
-          activity?.percent === undefined || activity.percent === null ? 0 : activity.percent / 100
-        }
-        tone={activity?.waiting === true ? "warn" : "info"}
-        label={activity?.message ?? "idle"}
-      />
+      {/* The reserved third line. `h-1.5` is `ProgressBar`'s own height, so swapping one for
+          the other cannot move a row by a pixel — which is the whole of decision 150. */}
+      {percent === null ? (
+        <div data-testid="track-progress-spacer" aria-hidden="true" className="h-1.5" />
+      ) : (
+        <ProgressBar value={percent / 100} tone="info" label={activity?.message ?? "downloading"} />
+      )}
     </div>
   );
 }

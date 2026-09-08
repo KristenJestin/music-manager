@@ -16,7 +16,7 @@ import { ReviewCard } from "./review-card.tsx";
 import { ScoreBar } from "./score-bar.tsx";
 import { SignalsRow } from "./signals-row.tsx";
 import { Stepper } from "./stepper.tsx";
-import { TrackProgress } from "./track-progress.tsx";
+import { TrackProgress, type TrackActivity } from "./track-progress.tsx";
 import { ImportStatusBadge, scoreTone } from "./status-badge.tsx";
 import type { InboxCard } from "#/server/functions/inbox.ts";
 import type { MappingCandidateTrack, SourceVideo } from "#/server/functions/wizard.ts";
@@ -779,7 +779,7 @@ describe("TrackProgress — the Status column keeps its shape (owner review D4)"
 
   it("**reserves its space when nothing is happening**, so a row never changes height", () => {
     // The whole of D4's "le tableau saute": the block used to appear and disappear with the
-    // download. It is rendered either way now — same three lines, same bar — and only its
+    // download. It is rendered either way now — same three lines, same heights — and only its
     // content changes.
     const { container: idle } = render(<TrackProgress activity={undefined} />);
     const empty = idle.querySelector("[data-testid=track-progress]");
@@ -791,6 +791,42 @@ describe("TrackProgress — the Status column keeps its shape (owner review D4)"
     const filled = live.querySelector("[data-testid=track-progress]");
     expect(filled?.getAttribute("data-active")).toBe("yes");
     expect(filled?.children.length).toBe(3);
+  });
+
+  it("draws a bar only while bytes are moving, and a spacer of the same height otherwise", () => {
+    /*
+     * Owner review 5, G2. "Reserve the space" had been implemented as "draw the bar at zero",
+     * so a finished import showed a grey track that would never move under every `Placed` and
+     * every `Queued`. The line still exists — same `h-1.5`, so decision 150 holds — but a
+     * progress bar is now only rendered for something in progress.
+     */
+    const cases: readonly (readonly [string, TrackActivity | undefined, boolean])[] = [
+      ["nothing in flight", undefined, false],
+      ["downloading with a percentage", busy, true],
+      ["downloading, no figure yet", { ...busy, percent: null }, false],
+      ["waiting for the download slot", { ...busy, waiting: true, stage: "waiting" }, false],
+      ["post-processing", { ...busy, stage: "ExtractAudio", percent: null }, false],
+      ["tagging", { ...busy, stage: "tag", percent: null }, false],
+    ];
+
+    for (const [what, activity, expected] of cases) {
+      const { container } = render(<TrackProgress activity={activity} />);
+      const block = container.querySelector("[data-testid=track-progress]");
+      expect(block?.getAttribute("data-downloading"), what).toBe(expected ? "yes" : "no");
+      expect(container.querySelectorAll("[data-slot=progress]").length, what).toBe(
+        expected ? 1 : 0,
+      );
+      const spacer = container.querySelector("[data-testid=track-progress-spacer]");
+      if (expected) expect(spacer, what).toBeNull();
+      else expect(spacer?.className, what).toContain("h-1.5");
+      cleanup();
+    }
+  });
+
+  it("gives the bar the real percentage, not a guess", () => {
+    render(<TrackProgress activity={{ ...busy, percent: 63 }} />);
+    const bar = screen.getByRole("progressbar");
+    expect(bar.getAttribute("aria-valuenow")).toBe("63");
   });
 
   it("truncates every string it holds, so no figure can widen the column", () => {
