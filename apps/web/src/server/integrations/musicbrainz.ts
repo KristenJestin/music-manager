@@ -3,10 +3,14 @@
  *
  * Three rules, all of them theirs:
  *
- *  1. **one request per second, per client, globally.** The limiter lives in `./http.ts` and
- *     is keyed by source, so fourteen tracks resolving in parallel still leave one call per
- *     second. This is the only source with a hard published limit, and exceeding it gets the
- *     User-Agent blocked, not throttled.
+ *  1. **one request per second, per client, globally.** "Per client" means per User-Agent, and
+ *     this application sends one User-Agent from three processes — the web app, the worker and
+ *     `mm` / MCP. A limiter in each of them is therefore three requests a second, which is what
+ *     made MusicBrainz answer 503 during an import on 2026-09-08. The reservation lives in
+ *     Postgres instead (`./rate-gate.ts`, decision 164), so fourteen tracks resolving in
+ *     parallel — in any mix of processes — still leave one call per second. Exceeding the
+ *     limit gets the User-Agent blocked, not throttled, which is why this is the one source
+ *     whose limiter is worth a round trip.
  *  2. **a User-Agent naming the application and a contact.** Built in `./config.ts`.
  *  3. **`inc=` decides what comes back.** The three presets below are the `inc` lists of §4,
  *     spelled once: asking for less means a second lookup later, asking for more costs
@@ -18,12 +22,23 @@
 import type { MbArtist, MbRecording, MbRelease, MbReleaseGroup, MbWork } from "@mm/domain";
 import { cached, optionsFor, type CachedValue } from "./cached.ts";
 import type { SourceContext } from "./config.ts";
-import { getJson } from "./http.ts";
+import { getJson, type RateGateLike } from "./http.ts";
+import { gateFor } from "./rate-gate.ts";
 
 export const MUSICBRAINZ_BASE = "https://musicbrainz.org/ws/2";
 
 /** §4's rate limit, in milliseconds between two departures. */
 export const MB_MIN_INTERVAL_MS = 1_000;
+
+/**
+ * The installation-wide gate for this source.
+ *
+ * Rebuilt per call rather than cached: it holds no state of its own — the reservation is a row
+ * in `source_rate_limit` and the fallback is `http.ts`'s limiter, both keyed by name.
+ */
+function gate(ctx: SourceContext): RateGateLike {
+  return gateFor(ctx.db, "musicbrainz", MB_MIN_INTERVAL_MS);
+}
 
 /**
  * The `inc` lists of §4. `releaseFull` is the one the documentation spells out; the other two
@@ -126,6 +141,7 @@ async function lookup<T>(
         url: url(`${entity}/${mbid}`, { inc: incOf(preset) }),
         headers: { "user-agent": ctx.config.userAgent },
         minIntervalMs: MB_MIN_INTERVAL_MS,
+        gate: gate(ctx),
         nullOn404: true,
         ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         ...(ctx.wait === undefined ? {} : { wait: ctx.wait }),
@@ -203,6 +219,7 @@ export async function browseReleaseGroupsByArtist(
         }),
         headers: { "user-agent": ctx.config.userAgent },
         minIntervalMs: MB_MIN_INTERVAL_MS,
+        gate: gate(ctx),
         nullOn404: true,
         ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         ...(ctx.wait === undefined ? {} : { wait: ctx.wait }),
@@ -248,6 +265,7 @@ export async function search(
         }),
         headers: { "user-agent": ctx.config.userAgent },
         minIntervalMs: MB_MIN_INTERVAL_MS,
+        gate: gate(ctx),
         ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         ...(ctx.wait === undefined ? {} : { wait: ctx.wait }),
       });

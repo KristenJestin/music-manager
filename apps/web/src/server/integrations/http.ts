@@ -6,7 +6,10 @@
  *
  *  - **a global limiter per source.** MusicBrainz allows one request per second *per client*,
  *    not per call site (§4). The limiter is therefore module-level and shared: ten concurrent
- *    lookups take ten seconds, whoever asked for them.
+ *    lookups take ten seconds, whoever asked for them. Module-level is not far enough for
+ *    MusicBrainz — "the client" is the installation, and this application is three processes —
+ *    so a caller may hand `getJson` a `gate` that reserves the slot in Postgres instead
+ *    (`./rate-gate.ts`, decision 164). The limiter below stays the default and the fallback.
  *  - **retries with backoff** on 429 and 5xx, and on a transport failure. A 503 from
  *    MusicBrainz means "you were too fast", which is a wait, not a failure.
  *  - **structured errors**: an `MMError` with a source-specific code, so the Console's decoder
@@ -83,6 +86,19 @@ export class RateLimiter {
     if (wait > 0) await sleep(wait, signal);
   }
 
+  /**
+   * The source asked for a pause: hold every departure for at least `ms`.
+   *
+   * A 429 or a 503 with `Retry-After` is not information about *this* call, it is information
+   * about the source, so it belongs on the limiter rather than in one retry loop. Without it
+   * the second caller in the queue departs one interval after the first — straight back into
+   * the wall the first one hit.
+   */
+  penalise(ms: number): void {
+    if (ms <= 0) return;
+    this.nextFreeAt = Math.max(this.nextFreeAt, Date.now() + ms);
+  }
+
   /** Test helper: forget the reservations. */
   reset(): void {
     this.nextFreeAt = 0;
@@ -116,6 +132,19 @@ export function resetLimiters(): void {
   limiters.clear();
 }
 
+/** A `RateLimiter` seen through the `RateGateLike` shape `getJson` speaks. */
+export function wrapLimiter(limiter: RateLimiter): RateGateLike {
+  return {
+    acquire: async (signal) => {
+      await limiter.acquire(signal);
+    },
+    penalise: (ms) => {
+      limiter.penalise(ms);
+      return Promise.resolve();
+    },
+  };
+}
+
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   if (ms <= 0) return Promise.resolve();
   return new Promise((done) => {
@@ -133,6 +162,19 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 /* the request                                                         */
 /* ------------------------------------------------------------------ */
 
+/**
+ * A limiter `getJson` can be handed, instead of the module-level one it would pick itself.
+ *
+ * Declared here rather than imported from `./rate-gate.ts` so that this module keeps its one
+ * property worth having: it imports nothing of the application. The database-backed gate
+ * depends on `http.ts`, not the other way round.
+ */
+export interface RateGateLike {
+  acquire(signal?: AbortSignal): Promise<void>;
+  /** The source told us to slow down, and it told everyone. */
+  penalise(ms: number, signal?: AbortSignal): Promise<void>;
+}
+
 export interface GetJsonOptions {
   /** The source name, for the limiter, the error message and the logs. */
   readonly source: string;
@@ -143,6 +185,13 @@ export interface GetJsonOptions {
   readonly attempts?: number;
   readonly backoffBaseMs?: number;
   readonly minIntervalMs?: number;
+  /**
+   * The limiter to reserve a slot from. Defaults to this process's own, keyed by `source`.
+   *
+   * MusicBrainz passes the cross-process one (`./rate-gate.ts`): its limit is per *client*,
+   * and the web app, the worker and `mm` are one client between them.
+   */
+  readonly gate?: RateGateLike;
   readonly signal?: AbortSignal;
   /** `true` turns a 404 into `null` instead of an error — the Cover Art Archive case (§4). */
   readonly nullOn404?: boolean;
@@ -176,10 +225,17 @@ export async function getJson<T>(options: GetJsonOptions): Promise<JsonResponse<
   const attempts = options.attempts ?? DEFAULT_ATTEMPTS;
   const backoffBase = options.backoffBaseMs ?? DEFAULT_BACKOFF_MS;
   const wait = options.wait ?? ((ms: number) => sleep(ms, options.signal));
-  const limiter =
-    options.minIntervalMs === undefined || options.minIntervalMs <= 0
+  /*
+   * The caller's gate wins when it gave one; otherwise this process's own limiter, as before.
+   *
+   * `setLimiter(source, 0)` stays the test seam for the second case — `limiterFor` keeps the
+   * limiter it already made, so the cassette suite still replays eight answers in no time.
+   */
+  const limiter: RateGateLike | null =
+    options.gate ??
+    (options.minIntervalMs === undefined || options.minIntervalMs <= 0
       ? null
-      : limiterFor(options.source, options.minIntervalMs);
+      : wrapLimiter(limiterFor(options.source, options.minIntervalMs)));
 
   let lastError: MMError | null = null;
 
@@ -244,11 +300,18 @@ export async function getJson<T>(options: GetJsonOptions): Promise<JsonResponse<
     // owner review B8). Truncated, because it is a diagnostic and not a payload.
     const body = await response.text().catch(() => "");
     const retryable = response.status === 429 || response.status >= 500;
-    lastError = httpError(options.source, options.url, response.status, retryable, body);
+    lastError = sourceHttpError(options.source, options.url, response.status, retryable, body);
     if (!retryable) throw lastError;
-    if (attempt < attempts) {
-      await wait(backoffOf(backoffBase, attempt, response.headers.get("retry-after")));
-    }
+    /*
+     * A 429 or a 503 is a fact about the *source*, so it is told to the limiter before it is
+     * told to this loop. With the shared gate that means every process backs off — the point
+     * of the exercise, since a `Retry-After` the worker collected is one the Console must
+     * honour too. Told even on the last attempt: this call is giving up, the installation is
+     * not, and the next caller is the one that would otherwise walk straight back into it.
+     */
+    const delay = backoffOf(backoffBase, attempt, response.headers.get("retry-after"));
+    if (limiter !== null) await limiter.penalise(delay, options.signal);
+    if (attempt < attempts) await wait(delay);
   }
 
   throw (
@@ -269,11 +332,16 @@ export function backoffOf(baseMs: number, attempt: number, retryAfter: string | 
 /** How much of a refusal's body travels with the error. Enough to read, not enough to log. */
 const MAX_ERROR_BODY = 400;
 
-function httpError(
+/**
+ * The `MMError` a refusal becomes. Exported so that anything simulating a source — the
+ * matching cassettes' outage gateway, for one — fails with exactly the error the real client
+ * would have raised, rather than an approximation of it.
+ */
+export function sourceHttpError(
   source: string,
   url: string,
   status: number,
-  retryable: boolean,
+  retryable = status === 429 || status >= 500,
   body = "",
 ): MMError {
   const code =

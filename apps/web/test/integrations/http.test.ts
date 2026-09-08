@@ -251,3 +251,99 @@ describe("the request counter and redaction", () => {
     expect(JSON.stringify(failed.details)).toContain("<redacted>");
   });
 });
+
+describe("the gate a caller supplies", () => {
+  /**
+   * `getJson` used to keep the whole rate limit to itself: a module-level map, keyed by source.
+   * MusicBrainz's limit is per *client*, and this application is three processes under one
+   * User-Agent, so that map was one third of a limiter (decision 164). The gate is the seam
+   * that lets the cross-process one (`server/integrations/rate-gate.ts`) take over, and these
+   * two claims are what the seam has to guarantee whichever implementation is behind it.
+   */
+  function recordingGate(): {
+    gate: { acquire(): Promise<void>; penalise(ms: number): Promise<void> };
+    acquired: number[];
+    penalties: number[];
+  } {
+    const acquired: number[] = [];
+    const penalties: number[] = [];
+    return {
+      acquired,
+      penalties,
+      gate: {
+        acquire: () => {
+          acquired.push(Date.now());
+          return Promise.resolve();
+        },
+        penalise: (ms) => {
+          penalties.push(ms);
+          return Promise.resolve();
+        },
+      },
+    };
+  }
+
+  it("uses the caller's gate instead of the module-level limiter", async () => {
+    setFetch(() => Promise.resolve(json({ ok: true })));
+    const { gate, acquired } = recordingGate();
+    await getJson({
+      source: "musicbrainz",
+      url: "https://musicbrainz.org/ws/2/release/x",
+      // A one-second interval that is never paid, because the gate is the one asked.
+      minIntervalMs: MB_MIN_INTERVAL_MS,
+      gate,
+    });
+    expect(acquired).toHaveLength(1);
+  });
+
+  /**
+   * The point of telling the gate: a `Retry-After` is a fact about the source, so it has to
+   * reach *every* caller of it, not just this retry loop. With the shared gate that means the
+   * worker's 503 becomes the Console's wait.
+   */
+  it("hands Retry-After to the gate, on every attempt including the last", async () => {
+    setFetch(() =>
+      Promise.resolve(new Response("slow down", { status: 503, headers: { "retry-after": "4" } })),
+    );
+    const { gate, penalties } = recordingGate();
+    await expect(
+      getJson({
+        source: "musicbrainz",
+        url: "https://musicbrainz.org/ws/2/release/x",
+        attempts: 2,
+        gate,
+        wait: () => Promise.resolve(),
+      }),
+    ).rejects.toMatchObject({ code: "SOURCE_UNAVAILABLE" });
+    // Both attempts, so the caller that gives up still leaves the source protected behind it.
+    expect(penalties).toEqual([4_000, 4_000]);
+  });
+
+  it("says nothing to the gate about a 400, which is not the source being busy", async () => {
+    setFetch(() => Promise.resolve(new Response("bad", { status: 400 })));
+    const { gate, penalties } = recordingGate();
+    await expect(
+      getJson({ source: "musicbrainz", url: "https://musicbrainz.org/ws/2/x", gate }),
+    ).rejects.toMatchObject({ code: "SOURCE_HTTP" });
+    expect(penalties).toEqual([]);
+  });
+});
+
+describe("RateLimiter.penalise", () => {
+  it("holds the next departure for the whole pause, not one interval", async () => {
+    const limiter = new RateLimiter(10);
+    limiter.penalise(120);
+    const started = Date.now();
+    await limiter.acquire();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(100);
+  });
+
+  it("never brings a departure forward", async () => {
+    const limiter = new RateLimiter(200);
+    await limiter.acquire(); // reserves now, next free at +200 ms
+    limiter.penalise(1);
+    const started = Date.now();
+    await limiter.acquire();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(180);
+  });
+});
