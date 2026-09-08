@@ -15,7 +15,7 @@ import {
  * These are the exact strings the two sides exchange, so the expectations are literal.
  */
 const windows = pathMap({
-  host: "D:\\Projects\\music-manager\\v2\\.local\\library",
+  host: "D:\\srv\\music-manager\\library",
   container: "/library",
 });
 
@@ -32,7 +32,7 @@ describe("hostPath / containerPath", () => {
   it("renders a library-relative path for each side", () => {
     const relative = "Daft Punk/Discovery (2001)/01 One More Time.opus";
     expect(toPosix(hostPath(windows, relative))).toBe(
-      "D:/Projects/music-manager/v2/.local/library/Daft Punk/Discovery (2001)/01 One More Time.opus",
+      "D:/srv/music-manager/library/Daft Punk/Discovery (2001)/01 One More Time.opus",
     );
     expect(containerPath(windows, relative)).toBe(
       "/library/Daft Punk/Discovery (2001)/01 One More Time.opus",
@@ -47,15 +47,11 @@ describe("hostPath / containerPath", () => {
 describe("toRelative", () => {
   it("strips either root", () => {
     expect(toRelative(windows, "/library/Daft Punk/x.opus")).toBe("Daft Punk/x.opus");
-    expect(toRelative(windows, "D:\\Projects\\music-manager\\v2\\.local\\library\\a\\b.opus")).toBe(
-      "a/b.opus",
-    );
+    expect(toRelative(windows, "D:\\srv\\music-manager\\library\\a\\b.opus")).toBe("a/b.opus");
   });
 
   it("ignores drive-letter case, which Windows does too", () => {
-    expect(toRelative(windows, "d:/projects/MUSIC-MANAGER/v2/.local/library/a.opus")).toBe(
-      "a.opus",
-    );
+    expect(toRelative(windows, "d:/srv/MUSIC-MANAGER/library/a.opus")).toBe("a.opus");
   });
 
   it("returns null for a path outside the library", () => {
@@ -67,9 +63,7 @@ describe("round trip across the bridge", () => {
   it("rewrites a path the toolbox returned into a host path and back", () => {
     const returned = "/library/.mm-work/imp_1/itr_1.opus";
     const onHost = fromToolbox(windows, returned);
-    expect(toPosix(onHost)).toBe(
-      "D:/Projects/music-manager/v2/.local/library/.mm-work/imp_1/itr_1.opus",
-    );
+    expect(toPosix(onHost)).toBe("D:/srv/music-manager/library/.mm-work/imp_1/itr_1.opus");
     expect(toToolbox(windows, onHost)).toBe(returned);
   });
 

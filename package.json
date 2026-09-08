@@ -2,6 +2,12 @@
   "name": "music-manager",
   "version": "0.0.0",
   "private": true,
+  "description": "Self-hosted music importer and tagger: YouTube to MusicBrainz, the full standard tag superset, filed into a library Navidrome reads.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KristenJestin/music-manager.git"
+  },
+  "license": "UNLICENSED",
   "type": "module",
   "workspaces": [
     "apps/*",
