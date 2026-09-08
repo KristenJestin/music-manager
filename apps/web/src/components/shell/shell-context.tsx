@@ -50,7 +50,12 @@ export function ShellProvider({
   initial,
   children,
 }: {
-  readonly initial: ShellPayload;
+  /**
+   * `null` when the shell's own loader is what failed — the error boundary of `_app.tsx`
+   * still has to draw the chrome, and a sidebar with no counters is navigable while a blank
+   * document is not. The interval below fills them in as soon as the server answers again.
+   */
+  readonly initial: ShellPayload | null;
   readonly children: ReactNode;
 }) {
   const [data, setData] = useState<ShellPayload | null>(initial);

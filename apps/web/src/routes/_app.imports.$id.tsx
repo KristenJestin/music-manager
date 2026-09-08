@@ -14,6 +14,7 @@ import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
+import { NotFoundScreen } from "#/components/error-screen.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
@@ -55,6 +56,16 @@ export const Route = createFileRoute("/_app/imports/$id")({
   },
   staticData: { crumbs: [{ label: "Jobs", to: "/imports" }] },
   component: JobPage,
+  /*
+   * The `notFound()` above has thrown into nothing since P06 (decision 165).
+   *
+   * It has to be declared **here**, on the route that throws it, and not on the layout: a
+   * `notFoundComponent` renders in place of its own route's component, so `_app`'s would take
+   * the shell down with it and `__root`'s takes the whole page. On the leaf it lands in the
+   * shell's outlet, which is where "there is no import with that id" belongs — with the
+   * sidebar still there to walk away through.
+   */
+  notFoundComponent: NotFoundScreen,
 });
 
 const ACTIVE: readonly ImportStatus[] = ["pending", "running"];

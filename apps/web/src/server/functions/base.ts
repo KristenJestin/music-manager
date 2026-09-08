@@ -64,10 +64,23 @@ export type { AppSession };
  * A server function serialises a thrown `Error` as its message alone, which would lose the
  * code, the hint and the action — exactly the three things the Console's error decoder needs
  * in order to offer a button rather than a stack trace.
+ *
+ * The body therefore travels on `mm`, and the code *also* goes on `name`, which is the
+ * standard slot for "what kind of error this is" and costs nothing: an in-process caller, a
+ * log line and a stack trace all read `NOT_FOUND: No import with id …` instead of `Error: …`.
+ *
+ * **Neither survives the SSR boundary**, and that is worth knowing before relying on it. A
+ * loader that rejects during the server render has its error inlined into the HTML for
+ * hydration as the *message alone*: `mm` is gone, `name` is gone, and `lib/errors.ts` can only
+ * report `UNKNOWN` with the right sentence. Measured, not assumed — `e2e/mb-outage.spec.ts`
+ * drives both paths. That is precisely why the wizard reports a source outage as **data** on
+ * the loader's return value (`CandidatesView.unavailable`) rather than by inspecting a
+ * rejection: JSON reads the same whichever way the page was reached.
  */
 export function toFailure(error: unknown): never {
   const failure = MMError.from(error);
   const wire = new Error(failure.message);
+  wire.name = failure.code;
   Object.assign(wire, { mm: failure.toBody(), status: failure.status ?? 500 });
   throw wire;
 }
