@@ -187,7 +187,7 @@ describe.skipIf(unavailable !== null)("runMigration's offline default (decision 
   afterAll(async () => {
     await dropDatabase(V1_DB);
     rmSync(LIBRARY_HOST, { recursive: true, force: true });
-  });
+  }, 60_000);
 
   afterEach(() => {
     resetFetch();
