@@ -70,6 +70,20 @@ export function liveTracks(events: readonly JobEventPayload[]): ReadonlyMap<stri
     }
     if (!LIVE.has(event.type)) continue;
     const data = event.data;
+    /*
+     * The album's tag pass reports on tracks that are already **placed**.
+     *
+     * `tagAlbum` rewrites a settled file when the album-scope answer differs from the
+     * recording's, and it says so with a `track.progress` line carrying `rewritten: true` —
+     * which arrives *after* that track's `track.done` and `place`, and so put the track back
+     * into the live map. The row then showed the word "tag" under a `Placed` badge for ever:
+     * a report about a finished track read as a track in flight. It is a terminal line in
+     * everything but its name (owner review 5, G2).
+     */
+    if (data?.["rewritten"] === true) {
+      live.delete(trackId);
+      continue;
+    }
     const previous = live.get(trackId);
     const percent = numberOf(data, "percent");
     live.set(trackId, {

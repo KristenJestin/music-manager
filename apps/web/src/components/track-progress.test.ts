@@ -89,6 +89,25 @@ describe("liveTracks", () => {
     expect(live.get("t1")).toMatchObject({ stage: "pausing", percent: null, waiting: false });
   });
 
+  it("does not resurrect a placed track when the album's tag pass reports on it", () => {
+    /*
+     * Owner review 5, G2, the half that is not the bar. `tagAlbum` rewrites a file the
+     * per-track pass already wrote and `place` already filed, and says so with a
+     * `track.progress` carrying `rewritten: true` — which arrives *after* that track's
+     * `track.done`. The row then showed the word "tag" under a `Placed` badge for ever.
+     */
+    const live = liveTracks([
+      event("track.progress", "t1", "A: downloading 90%", { stage: "download", percent: 90 }),
+      event("track.done", "t1", "A: 42 tags written"),
+      event("track.progress", "t1", "A: 42 tags rewritten for the album's values", {
+        stage: "tag",
+        tags: 42,
+        rewritten: true,
+      }),
+    ]);
+    expect(live.has("t1")).toBe(false);
+  });
+
   it("ignores everything that is not about a track", () => {
     const live = liveTracks([
       event("step.started", null, "download started"),
