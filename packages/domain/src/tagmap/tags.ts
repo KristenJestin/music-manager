@@ -990,8 +990,9 @@ const LYRICS_ARTWORK = group("lyrics-artwork", [
     id3: "APIC:3",
     mp4: "covr",
     level: "R",
-    source: "Cover Art Archive > cropped YouTube thumbnail",
-    note: "Opus and FLAC: a FLAC picture block in base64. Projected apart from the text tags.",
+    source:
+      "Cover Art Archive (release > release group > another release of the group) > cropped YouTube thumbnail",
+    note: "Opus and FLAC: a FLAC picture block in base64. Projected apart from the text tags. The rung reached is written into the picture's `provenance` (decision 168).",
   },
   {
     field: "back_cover",
