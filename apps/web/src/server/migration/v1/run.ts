@@ -31,6 +31,7 @@ import {
   type MigrationRow,
   type MigrationRun,
 } from "#/server/db/schema/index.ts";
+import { serverEnv } from "#/server/env.ts";
 import { newId } from "#/server/ids.ts";
 import { hostPath } from "#/server/paths.ts";
 import { emit } from "#/server/services/events.ts";
@@ -114,7 +115,10 @@ export interface MigrationOptions {
   readonly signal?: AbortSignal;
   /** Read each migrated album back through Navidrome (§ Étapes 6). */
   readonly verify?: boolean;
-  /** `documents.build` with the network unplugged. Defaults to fixtures mode. */
+  /**
+   * `documents.build` with the network unplugged. Defaults to fixtures mode (`MM_FIXTURES=1`),
+   * never to `true`: in production every release outside the cache must reach MusicBrainz.
+   */
   readonly offline?: boolean;
   /** Where the M3U exports go. Defaults to `<library>/../_archive/v1-playlists`. */
   readonly playlistDir?: string;
@@ -248,7 +252,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       paths,
       runId: run.id,
       renameToTemplate: options.renameToTemplate ?? false,
-      offline: options.offline ?? true,
+      offline: options.offline ?? serverEnv().MM_FIXTURES,
       ...(options.signal === undefined ? {} : { signal: options.signal }),
       now,
       say,
