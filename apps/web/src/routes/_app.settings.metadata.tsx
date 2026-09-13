@@ -346,6 +346,22 @@ function MetadataSettings() {
             }}
           />
         </FormRow>
+        <FormRow
+          label="Artist names"
+          help="MusicBrainz holds two names per credit: the one printed on this release, and the artist's own. The join phrases are kept either way; “canonical” is what v1 wrote."
+        >
+          <ChipGroup
+            testId="setting-artistNameSource"
+            value={String(value("artistNameSource", "credited"))}
+            options={[
+              { value: "credited", label: "as credited" },
+              { value: "canonical", label: "canonical" },
+            ]}
+            onChange={(next) => {
+              set("artistNameSource", next);
+            }}
+          />
+        </FormRow>
         <FormRow label="Genres" help="MusicBrainz first, then the community tags.">
           <ChipMulti
             testId="setting-genrePreference"

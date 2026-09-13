@@ -57,6 +57,7 @@ export const METADATA_KEYS = [
   "acoustidKey",
   "writeAcoustidFingerprint",
   /* enrichment */
+  "artistNameSource",
   "coverOrder",
   "coverMaxBytes",
   "genrePreference",

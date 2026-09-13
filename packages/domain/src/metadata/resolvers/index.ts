@@ -53,8 +53,14 @@ export {
 } from "./vocabulary.ts";
 export type { CountedTag } from "./vocabulary.ts";
 
-export { topGenres } from "./musicbrainz-types.ts";
+export {
+  ARTIST_NAME_SOURCES,
+  artistNames,
+  joinArtistCredit,
+  topGenres,
+} from "./musicbrainz-types.ts";
 export type {
+  ArtistNameSource,
   MbArtist,
   MbArtistCreditEntry,
   MbCoverArtArchive,

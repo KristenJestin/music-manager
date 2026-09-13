@@ -143,22 +143,49 @@ export interface MbRelease {
   readonly tags?: readonly MbTag[];
 }
 
+/**
+ * Which of the two names MusicBrainz holds for a credited artist goes into the tag.
+ *
+ * An artist credit has two: `credit.name`, the name **as credited on this release** (the
+ * "credited as" field — `Beyoncé` printed as `Sasha Fierce`, `Ye` printed as `Kanye West`),
+ * and `credit.artist.name`, the artist's canonical name in the database.
+ *
+ * - `credited` — `credit.name`, falling back to the canonical one. What the sleeve says, and
+ *   what Picard writes by default.
+ * - `canonical` — `credit.artist.name`, falling back to the credited one. One spelling per
+ *   artist across the whole library, which is what makes an artist page collect everything.
+ *   It is also what v1 wrote, so a v1 library re-tagged by v2 keeps its artist names.
+ *
+ * The join phrases are MusicBrainz's either way: only the names are substituted.
+ */
+export const ARTIST_NAME_SOURCES = ["credited", "canonical"] as const;
+export type ArtistNameSource = (typeof ARTIST_NAME_SOURCES)[number];
+
+function nameOf(entry: MbArtistCreditEntry, source: ArtistNameSource): string {
+  const credited = entry.name ?? "";
+  const canonical = entry.artist?.name ?? "";
+  if (source === "canonical") return canonical === "" ? credited : canonical;
+  return credited === "" ? canonical : credited;
+}
+
 /** `ARTIST` is the credit rebuilt with MusicBrainz's own join phrases (§2.1). */
 export function joinArtistCredit(
   credit: readonly MbArtistCreditEntry[] | undefined,
+  source: ArtistNameSource = "credited",
 ): string | null {
   if (credit === undefined || credit.length === 0) return null;
   const joined = credit
-    .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
+    .map((entry) => `${nameOf(entry, source)}${entry.joinphrase ?? ""}`)
     .join("");
   return joined === "" ? null : joined;
 }
 
-/** `ARTISTS`: one entry per credited artist, as credited, in credit order. */
-export function artistNames(credit: readonly MbArtistCreditEntry[] | undefined): string[] {
-  return (credit ?? [])
-    .map((entry) => entry.name ?? entry.artist?.name ?? "")
-    .filter((name) => name !== "");
+/** `ARTISTS`: one entry per credited artist, in credit order. */
+export function artistNames(
+  credit: readonly MbArtistCreditEntry[] | undefined,
+  source: ArtistNameSource = "credited",
+): string[] {
+  return (credit ?? []).map((entry) => nameOf(entry, source)).filter((name) => name !== "");
 }
 
 /** `ARTISTSORT`: the artists' sort-names, same order. */
