@@ -82,7 +82,7 @@ export type TrackState = (typeof TRACK_STATES)[number];
 export const TRACK_ROLES = ["mapped", "extra", "unmatched"] as const;
 export type TrackRole = (typeof TRACK_ROLES)[number];
 
-/** The twelve Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox. */
+/** The Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox, plus P12's own. */
 export const INBOX_TYPES = [
   "ambiguous_release",
   "ambiguous_recording",
@@ -96,6 +96,8 @@ export const INBOX_TYPES = [
   "orphan_files",
   "duplicate_recording",
   "verify_mismatch",
+  /** A watched source found a video, and the confidence was not high enough to accept it. */
+  "source_new_video",
 ] as const;
 export type InboxType = (typeof INBOX_TYPES)[number];
 
@@ -109,3 +111,28 @@ export type EventLevel = (typeof EVENT_LEVELS)[number];
 /** What a recorded decision was about (`docs/04` § Modèle, `decisions`). */
 export const DECISION_KINDS = ["release", "mapping", "inbox", "option"] as const;
 export type DecisionKind = (typeof DECISION_KINDS)[number];
+
+/**
+ * What a watched source points at.
+ *
+ * Two shapes, one behaviour: both are a listing that grows, and the scan only ever asks how
+ * it has grown since last time. The distinction is kept because it is what the operator typed
+ * and what the Console shows — a channel and a playlist fail for different reasons.
+ */
+export const WATCHED_SOURCE_KINDS = ["playlist", "channel"] as const;
+export type WatchedSourceKind = (typeof WATCHED_SOURCE_KINDS)[number];
+
+/** How the last scan of a source ended. `never` is a source nobody has scanned yet. */
+export const WATCHED_SCAN_STATUSES = ["never", "ok", "partial", "failed"] as const;
+export type WatchedScanStatus = (typeof WATCHED_SCAN_STATUSES)[number];
+
+/**
+ * What became of one video a scan saw.
+ *
+ *  - `new`      — seen, not yet turned into an import (a scan that stopped halfway);
+ *  - `imported` — an import exists for it, whatever that import went on to do;
+ *  - `skipped`  — a filter of the source refused it (too short, too long, unavailable);
+ *  - `ignored`  — you told it to leave this one alone.
+ */
+export const WATCHED_ITEM_STATUSES = ["new", "imported", "skipped", "ignored"] as const;
+export type WatchedItemStatus = (typeof WATCHED_ITEM_STATUSES)[number];

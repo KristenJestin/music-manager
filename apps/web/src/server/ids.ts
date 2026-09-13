@@ -39,6 +39,10 @@ export const ID_PREFIXES = {
   discoverItem: "dsc",
   /** One Discover sync run (P09). */
   discoverSync: "dsy",
+  /** One watched playlist or channel. */
+  watchedSource: "wsr",
+  /** One video a watched source has seen. */
+  watchedSourceItem: "wsi",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

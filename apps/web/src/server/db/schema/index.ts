@@ -12,6 +12,7 @@
  *  - `metadata`  raw cache, documents, artists;
  *  - `inbox`     pending questions and the decisions taken;
  *  - `discover`  the recommendation set, its "not interested" memory and its runs (P09);
+ *  - `sources`   the watched playlists and channels, and the videos they have seen;
  *  - `settings`  the typed KV store;
  *  - `auth`      Better Auth's four tables (P06).
  */
@@ -26,6 +27,7 @@ export * from "./retag.ts";
 export * from "./scan.ts";
 export * from "./migration.ts";
 export * from "./discover.ts";
+export * from "./sources.ts";
 export * from "./settings.ts";
 export * from "./auth.ts";
 export * from "./webhooks.ts";
