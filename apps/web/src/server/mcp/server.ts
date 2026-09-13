@@ -34,11 +34,16 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { grants, type ApiPrincipal, type ApiScope } from "@mm/contracts";
+import { grants, MMError, type ApiPrincipal, type ApiScope } from "@mm/contracts";
 import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import {
+  createWatchedSource,
+  getWatchedSource,
+  listWatchedSources,
+} from "#/server/services/watched-sources.ts";
 import { jobDetail, queueStanding, setImportOptions } from "#/server/services/console.queries.ts";
 import { listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
@@ -59,7 +64,12 @@ import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
 import { loadSettings, maskedSettings, setSettings } from "#/server/services/settings.ts";
-import { enqueue, enqueueLibraryScan, enqueueRetagRun } from "#/server/services/queue.ts";
+import {
+  enqueue,
+  enqueueLibraryScan,
+  enqueueRetagRun,
+  enqueueWatchedSourceScan,
+} from "#/server/services/queue.ts";
 import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-rate-limit.ts";
 import {
   IMPORT_STATUSES,
@@ -1339,6 +1349,126 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "`POST /api/v1/discover/sync`, which takes the same scope.",
       inputSchema: {},
       run: async () => await syncDiscover({ db: db(), trigger: "mcp" }),
+    },
+    {
+      name: "list_watched_sources",
+      scope: "imports:read",
+      title: "The playlists and channels being watched",
+      description:
+        "Each source with its counts, its last scan and — the field worth reading first — " +
+        "`autoAccept`. A source with `autoAccept: true` confirms its imports **without a " +
+        "human**, whenever the match is safe and unambiguous; every other source parks each " +
+        "new video in `awaiting_confirm` behind a `source_new_video` Inbox item.\n\n" +
+        "Pass `sourceId` for one source and the videos it has seen, each with why it was " +
+        "skipped or which import it opened.",
+      inputSchema: {
+        sourceId: z.string().min(1).optional().describe("One source, with its item history."),
+      },
+      run: async (args: { sourceId?: string }) => {
+        if (args.sourceId === undefined) {
+          const rows = await listWatchedSources(db());
+          return {
+            sources: rows.map((row) => ({
+              id: row.source.id,
+              url: row.source.url,
+              kind: row.source.kind,
+              label: row.source.label,
+              enabled: row.source.enabled,
+              autoAccept: row.source.autoAccept,
+              lastScanStatus: row.source.lastScanStatus,
+              lastScanAt: row.source.lastScanAt,
+              total: row.total,
+              imported: row.imported,
+              skipped: row.skipped,
+            })),
+          };
+        }
+        const detail = await getWatchedSource(args.sourceId, db());
+        if (detail === null) {
+          throw new MMError("NOT_FOUND", `No watched source with id ${args.sourceId}.`);
+        }
+        return {
+          source: detail.source,
+          total: detail.total,
+          imported: detail.imported,
+          skipped: detail.skipped,
+          items: detail.items.map((item) => ({
+            videoId: item.videoId,
+            title: item.title,
+            status: item.status,
+            reason: item.reason,
+            importId: item.importId,
+            importStatus: item.job?.status ?? null,
+          })),
+        };
+      },
+    },
+    {
+      name: "add_watched_source",
+      scope: "imports:write",
+      title: "Watch a playlist or channel",
+      description:
+        "Register a source. Nothing is imported by this call — `scan_watched_source` (or the " +
+        "six-hourly cron) is what turns new videos into imports.\n\n" +
+        "**`autoAccept` bypasses the review step.** It is off by default and should stay off " +
+        "unless the source is a distributor's own uploads (`- Topic`): it lets an import be " +
+        "confirmed with nobody looking at it, which `docs/04-pipeline-et-matching.md` calls " +
+        "the one exception to 'the algorithm never chooses for you'. Even then it is spent " +
+        "only on a match that is safe and unambiguous.",
+      inputSchema: {
+        url: z.string().min(1).describe("A YouTube playlist or channel URL."),
+        label: z.string().max(200).optional().describe("Defaults to the listing's own title."),
+        autoAccept: z
+          .boolean()
+          .optional()
+          .describe("Confirm unambiguous matches with no human. Off unless you mean it."),
+        minDuration: z.number().int().min(0).optional().describe("Seconds. Skip shorter videos."),
+        maxDuration: z.number().int().min(0).optional().describe("Seconds. Skip longer videos."),
+      },
+      run: async (args: {
+        url: string;
+        label?: string;
+        autoAccept?: boolean;
+        minDuration?: number;
+        maxDuration?: number;
+      }) => {
+        const created = await createWatchedSource(args, { db: db() });
+        return {
+          id: created.id,
+          url: created.url,
+          kind: created.kind,
+          autoAccept: created.autoAccept,
+          note: "Nothing has been scanned yet. Call `scan_watched_source` to import what is already there.",
+        };
+      },
+    },
+    {
+      name: "scan_watched_source",
+      scope: "imports:write",
+      title: "Scan a watched source now",
+      description:
+        "Queued to the worker rather than run here: a scan lists the source and opens one " +
+        "import per new video, and imports belong on the queue that owns the single download " +
+        "slot. `get_status.worker.alive` says whether anything will pick it up.\n\n" +
+        "Omit `sourceId` to scan every **enabled** source. Read the result with " +
+        "`list_watched_sources` afterwards.",
+      inputSchema: {
+        sourceId: z.string().min(1).optional().describe("Omit for every enabled source."),
+      },
+      run: async (args: { sourceId?: string }) => {
+        const jobId = await enqueueWatchedSourceScan({
+          ...(args.sourceId === undefined ? {} : { sourceId: args.sourceId }),
+          trigger: "mcp",
+        });
+        return {
+          queued: jobId !== null,
+          jobId,
+          note:
+            jobId === null
+              ? "Already queued — one message per source at a time."
+              : "Queued on `watched-sources.scan`.",
+        };
+      },
     },
     {
       name: "scan",
