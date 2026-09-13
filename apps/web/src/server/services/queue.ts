@@ -43,7 +43,7 @@ export async function enqueueLibraryScan(
 }
 
 /**
- * Ask the worker to scan a watched source, or every enabled one (P12).
+ * Ask the worker to scan a watched source, or every enabled one.
  *
  * The dynamic import is the same trick the re-tag helper below uses: `handlers/watched-sources`
  * owns the queue name *and* the scan handler, and importing it statically from a server

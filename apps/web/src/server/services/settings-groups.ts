@@ -90,7 +90,7 @@ export const DISCOVER_KEYS = [
   "discoverPlaylistName",
 ] as const satisfies readonly SettingKey[];
 
-/** Settings › Watched sources. When the scan runs, and what it may confirm alone (P12). */
+/** Settings › Watched sources. When the scan runs, and what it may confirm alone. */
 export const WATCHED_SOURCES_KEYS = [
   "watchedSourcesEnabled",
   "watchedSourcesCron",

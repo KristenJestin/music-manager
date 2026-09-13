@@ -82,7 +82,7 @@ export type TrackState = (typeof TRACK_STATES)[number];
 export const TRACK_ROLES = ["mapped", "extra", "unmatched"] as const;
 export type TrackRole = (typeof TRACK_ROLES)[number];
 
-/** The Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox, plus P12's own. */
+/** The Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox, plus the watched sources' own. */
 export const INBOX_TYPES = [
   "ambiguous_release",
   "ambiguous_recording",

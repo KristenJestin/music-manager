@@ -36,7 +36,7 @@ export const QUEUES = {
   scan: "scan",
   /** Hand one event to one webhook endpoint, with retries (P08). */
   webhook: "webhook.deliver",
-  /** Scan one watched source, or every enabled one (P12). */
+  /** Scan one watched source, or every enabled one. */
   watchedScan: "watched-sources.scan",
 } as const;
 
@@ -51,7 +51,7 @@ export const CRON_QUEUES = {
   /** Recommendation sync (P09). */
   "cron.discover": "0 6 * * *",
   /**
-   * Scan every enabled watched source (P12).
+   * Scan every enabled watched source.
    *
    * Deliberately **not** `cron.refresh-sources`, which is the MusicBrainz cache refresh of
    * P04 and has nothing to do with this. Two crons whose names differ by one word would be

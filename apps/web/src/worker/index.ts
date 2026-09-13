@@ -290,7 +290,7 @@ export async function startWorker(): Promise<Worker> {
   /* ---- discover: the nightly recommendation refresh (P09) ---- */
   await registerDiscoverHandlers(boss, { db: db(), signal: shutdown.signal, log });
 
-  /* ---- watched sources: the six-hourly scan of the playlists and channels (P12) ---- */
+  /* ---- watched sources: the six-hourly scan of the playlists and channels ---- */
   await registerWatchedSourceHandlers(boss, { db: db(), signal: shutdown.signal, log, boss });
 
   /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
