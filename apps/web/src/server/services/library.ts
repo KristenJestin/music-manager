@@ -1078,6 +1078,26 @@ export async function fetchMissing(
     }
   }
 
+  // `build` above already ran `rememberArtist` (`services/documents.ts`) for every track, so
+  // `artists_cache.imageUrl` may now hold an answer it did not before — write `artist.jpg` from
+  // it, same as `place` would have. Never fatal: a fetch fails quietly, same as `failed` above.
+  if (touched > 0) {
+    try {
+      const { writeArtistImageSidecar } = await import("#/server/services/artist-image.ts");
+      const artistFolder = album.folder.split("/")[0] ?? "";
+      await writeArtistImageSidecar({
+        db,
+        paths: resolvePaths(settings),
+        artistName: album.albumArtist,
+        artistFolder,
+        size: settings.artworkSize,
+        enabled: settings.writeArtistImage,
+      });
+    } catch {
+      // As above: the album's fields are what this call promises, the picture is a bonus.
+    }
+  }
+
   const after = scoreAlbum(album, await documentsOfTracks(tracks, db), currentSchema);
   const missingAfter = new Set(after.missing.map((entry) => entry.field));
 
