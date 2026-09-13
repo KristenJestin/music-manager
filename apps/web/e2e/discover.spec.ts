@@ -9,9 +9,14 @@ import { expect, test, signIn } from "./helpers.ts";
  * from the `source_cache` rows `bun run cache:seed-fixtures` writes. No socket is opened by any
  * of it, which is what makes these assertions the same on every machine.
  *
- * The three tests are the three acceptance criteria of `docs/phases/P09-discover.md`, in order:
- * the page renders its three blocks; **Import** lands in the wizard at step 2 with a release
- * already chosen; **Not interested** survives a sync.
+ * The three acceptance criteria of `docs/phases/P09-discover.md` are here in order — the page
+ * renders its three blocks; **Import** lands in the wizard at step 2 with a release already
+ * chosen; **Not interested** survives a sync — plus the split of the Recommended block.
+ *
+ * That fourth test asserts the *invariant* rather than a population: the two tabs partition the
+ * recommendations, and "In your library" never offers an Import. It holds whether or not the
+ * fixture library happens to own one of the suggestions, which is what keeps it from depending
+ * on whichever spec ran before it.
  */
 
 /** Sync, and wait for the run to have finished rather than for a spinner to have started. */
@@ -62,6 +67,64 @@ test.describe("discover", () => {
     const similar = page.getByTestId("discover-similar");
     await expect(similar.getByTestId("similar-artist").first()).toBeVisible();
     expect(await similar.getByTestId("similar-artist").count()).toBeGreaterThan(0);
+  });
+
+  test("Recommended is split into two tabs that are never shown together", async ({ page }) => {
+    await sync(page);
+    await page.reload();
+
+    const block = page.getByTestId("discover-recommendations");
+    const toImport = page.getByTestId("discover-recommended-tab-to-import");
+    const inLibrary = page.getByTestId("discover-recommended-tab-in-library");
+    await expect(toImport).toBeVisible();
+    await expect(inLibrary).toBeVisible();
+
+    /*
+     * The counts are the whole point of splitting: every recommendation is in exactly one of
+     * the two tabs, so they add up to the number the heading claims. Read from the chips
+     * rather than computed here, because a tab that lies about its size is the failure this
+     * assertion is for.
+     */
+    const countOf = async (tab: typeof toImport): Promise<number> =>
+      Number.parseInt((await tab.innerText()).replace(/\D+/g, ""), 10);
+    const heading = await block.innerText();
+    const total = Number.parseInt(/(\d+) suggestions/.exec(heading)?.[1] ?? "-1", 10);
+    expect((await countOf(toImport)) + (await countOf(inLibrary))).toBe(total);
+
+    /* "To import" is the default, and it is the half that offers to import. */
+    await expect(toImport).toHaveAttribute("data-active", "true");
+    await expect(inLibrary).toHaveAttribute("data-active", "false");
+    const importable = await block.getByTestId("discover-item").count();
+    expect(importable).toBe(await countOf(toImport));
+    if (importable > 0) {
+      await expect(block.getByTestId("discover-import").first()).toBeVisible();
+      await expect(block.getByTestId("discover-open-album")).toHaveCount(0);
+    }
+    const first = await block
+      .getByTestId("discover-item")
+      .evaluateAll((rows) => rows.map((row) => row.getAttribute("data-subject")));
+
+    /* The other half: owned already, so nothing here may offer an Import. */
+    await inLibrary.click();
+    await expect(inLibrary).toHaveAttribute("data-active", "true");
+    await expect(page).toHaveURL(/recommended=in-library/);
+    await expect(block.getByTestId("discover-import")).toHaveCount(0);
+    const second = await block
+      .getByTestId("discover-item")
+      .evaluateAll((rows) => rows.map((row) => row.getAttribute("data-subject")));
+    expect(second.length).toBe(await countOf(inLibrary));
+    // Mutually exclusive: no subject appears under both tabs.
+    expect(second.filter((subject) => first.includes(subject))).toEqual([]);
+
+    /* The choice is in the URL, so a reload lands where you were and not on the default. */
+    await page.reload();
+    await expect(page.getByTestId("discover-recommended-tab-in-library")).toHaveAttribute(
+      "data-active",
+      "true",
+    );
+    await expect(
+      page.getByTestId("discover-recommendations").getByTestId("discover-import"),
+    ).toHaveCount(0);
   });
 
   test("Import opens the wizard at step 2 with a release preselected", async ({ page }) => {
