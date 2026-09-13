@@ -358,6 +358,42 @@ export function optionsFor(item: InboxItem): InboxOption[] {
         },
       ];
     }
+    case "source_new_video": {
+      /*
+       * A watched source found something and did not feel entitled to accept it. The card is
+       * therefore a *pointer*, not a decision: the release still has to be chosen, and the
+       * wizard is the only place that can do that. "Review the import" is the preselection
+       * because it is the only answer that moves the import forward.
+       */
+      const why = typeof payload["why"] === "string" ? payload["why"] : null;
+      const tracks = typeof payload["tracks"] === "number" ? payload["tracks"] : 0;
+      return [
+        {
+          id: "review",
+          label: "Review the import",
+          detail:
+            why === null
+              ? `${String(tracks)} track(s) are waiting for a release to be confirmed.`
+              : `Held back because ${why}. Open the import and confirm the release.`,
+          preselected: true,
+          value: { action: "review" },
+        },
+        {
+          id: "cancel",
+          label: "Cancel this import",
+          detail: "Nothing is written to the library, and the source will not offer it again.",
+          preselected: false,
+          value: { action: "cancel" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
     case "cookies_expiring": {
       return [
         {

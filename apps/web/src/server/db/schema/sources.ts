@@ -27,11 +27,7 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import {
-  watchedItemStatusEnum,
-  watchedScanStatusEnum,
-  watchedSourceKindEnum,
-} from "./enums.ts";
+import { watchedItemStatusEnum, watchedScanStatusEnum, watchedSourceKindEnum } from "./enums.ts";
 import { imports, type StoredError } from "./imports.ts";
 
 export const watchedSources = pgTable(
