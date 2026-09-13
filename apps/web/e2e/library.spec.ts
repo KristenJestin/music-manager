@@ -172,4 +172,91 @@ test.describe("the library", () => {
     await expect(page.getByTestId("artists-table")).toBeVisible();
     await expect(page.getByTestId("artists-table").locator("tbody tr").first()).toBeVisible();
   });
+
+  /**
+   * The manual override, end to end — the clean equivalent of v1's forced metadata.
+   *
+   * `ALBUM` on purpose, even though it is the most disruptive field to pick: it is of **album
+   * scope**, so the value has to land on every track of the album, and it is one of the names
+   * the path template renders, so the answer has to *offer* a relocate rather than quietly
+   * renaming thirteen files behind a person's back. A safer field would have tested neither.
+   *
+   * The test puts the album back by **unlocking** it, which is the other half of the feature
+   * and the only honest way to leave the library as it was found: the console field is removed
+   * and the document re-resolved offline, so MusicBrainz owns `ALBUM` again and the files stay
+   * where they already are. Specs that run after this one (`quality`, `relocate`) would
+   * otherwise inherit an album whose folder no longer matches its title.
+   */
+  test("an album field can be typed by hand, and unlocking gives it back", async ({ page }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+    await page.getByTestId("album-card").first().click();
+    await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
+    const albumUrl = page.url();
+
+    await page.getByTestId("album-tab-metadata").click();
+    await page.waitForURL(/tab=metadata/, { timeout: 60_000 });
+
+    const row = page.getByTestId("album-field-album");
+    await expect(row).toBeVisible();
+    const original = (await row.getByTestId("field-edit-album").innerText()).trim();
+
+    /* ---- type a value ------------------------------------------------------ */
+
+    await row.getByTestId("field-edit-album").click();
+    const input = row.getByTestId("field-input-album");
+    await expect(input).toBeVisible();
+    await input.fill(`${original} (Deluxe)`);
+    await row.getByTestId("field-save-album").click();
+
+    // The toast is the evidence a re-tag run was opened: the service only says so when
+    // `createRun` came back with files in scope.
+    await expect(page.getByTestId("toaster")).toContainText(/re-tag queued/i, { timeout: 60_000 });
+
+    /*
+     * A name the path template uses changed, so a relocate is *offered* and not done. Closing
+     * it is a perfectly good answer — the tags are right, only the filenames are stale — and
+     * it is the answer this test gives, because moving a file costs it its Navidrome play
+     * count.
+     */
+    const offerDialog = page.getByTestId("relocate-offer");
+    await expect(offerDialog).toBeVisible({ timeout: 60_000 });
+    await page.keyboard.press("Escape");
+    await expect(offerDialog).toBeHidden();
+
+    await expect(row.getByTestId("field-edit-album")).toContainText("(Deluxe)");
+    await expect(row.getByTestId("field-source-badge")).toHaveText("console");
+
+    /* ---- the value is on the track's document, locked, from the console ----- */
+
+    // `/library/tracks` is a loader page like `/library`: open it again until it holds a row,
+    // rather than watching one render of it and hoping (see `ensureLibrary`).
+    const rows = page.getByTestId("tracks-table").locator("tbody tr");
+    await reloadUntil(page, "/library/tracks", async () => {
+      await expect(rows.first()).toBeVisible({ timeout: 5_000 });
+    });
+    /*
+     * The `#` cell, not the row: the Album column carries a link to the album and it sits near
+     * the middle of the row, which is exactly where a `row.click()` lands. That click navigates
+     * to the album and the wait for a track URL never ends.
+     */
+    await rows.first().locator("td").first().click();
+    await page.waitForURL(/\/library\/tracks\/ltr_/, { timeout: 60_000 });
+    const documentRow = page.getByTestId("document-row-album");
+    await expect(documentRow).toContainText("(Deluxe)");
+    await expect(documentRow).toContainText("console");
+    await expect(documentRow).toContainText("locked");
+
+    /* ---- unlock: the resolvers own it again, and the library is as it was --- */
+
+    await page.goto(`${albumUrl.split("?")[0] ?? albumUrl}?tab=metadata`);
+    await expect(row).toBeVisible({ timeout: 60_000 });
+    await row.getByTestId("field-unlock-album").click();
+    await expect(page.getByTestId("toaster")).toContainText(/ALBUM/, { timeout: 60_000 });
+
+    await reloadUntil(page, `${albumUrl.split("?")[0] ?? albumUrl}?tab=metadata`, async () => {
+      await expect(row.getByTestId("field-edit-album")).toHaveText(original, { timeout: 5_000 });
+    });
+    await expect(row.getByTestId("field-source-badge")).toHaveCount(0);
+  });
 });

@@ -49,6 +49,8 @@ export {
   lock,
   mediumKeyOf,
   merge,
+  removeField,
+  setConsoleValue,
   setUserValue,
   SOURCES,
   unknownFields,

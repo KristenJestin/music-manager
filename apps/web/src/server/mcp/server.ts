@@ -34,7 +34,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { grants, type ApiPrincipal, type ApiScope } from "@mm/contracts";
+import { grants, MMError, type ApiPrincipal, type ApiScope } from "@mm/contracts";
 import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
@@ -53,6 +53,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
+import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
 import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
 import { systemStatus } from "#/server/services/status.ts";
 import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
@@ -1447,6 +1448,74 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           };
         }
         return summariseScan(latest, args.limit);
+      },
+    },
+    {
+      name: "set_field",
+      scope: "library:write",
+      title: "Set, lock or release a metadata field by hand",
+      description:
+        "Write a value into the metadata document **by hand** and lock it, so no resolver can " +
+        "take it back. The database is the source of truth and the files are a projection of " +
+        "it, so this is how a wrong tag is corrected: never by editing a file.\n\n" +
+        "Three shapes, three different meanings:\n\n" +
+        "- `value` given → the field is set and locked, with `source: console`;\n" +
+        "- no `value`, `locked: true` → pin what the sources already say, keeping their " +
+        "`source`. The value does not change; what changes is that the next rebuild cannot " +
+        "change it either;\n" +
+        "- no `value`, `locked: false` → **release** it: the field is removed and re-resolved " +
+        "offline, so MusicBrainz owns it again. Merely clearing a flag would not do, because a " +
+        "hand-typed value heads the source precedence and would go on winning.\n\n" +
+        "**Which id.** `trackId` for a per-track field (`title`, `tracknumber`, `isrc`…), " +
+        "`albumId` for an album-scope one (`album`, `genre`, `date`, `label`…). They are not " +
+        "interchangeable and the wrong one is refused by name: an album-scope value written on " +
+        "one track is precisely what makes Navidrome, Plex and Jellyfin split one album into " +
+        "two, so an album edit is written on **every track of the album in one transaction**.\n\n" +
+        "**It writes.** A re-tag is queued so the files catch up — `retagRunId` is the run to " +
+        "follow, and `get_status.worker` says whether anything will run it. **No file is " +
+        "moved**: if the change touched a name the path template uses, `relocatePlan` says what " +
+        "a relocate would do and the `relocate` tool is what does it, because Navidrome " +
+        "identifies a file by its path and a move costs that track its play count.\n\n" +
+        "A multi-valued field (`genre`, `label`, `isrc`) takes an array. `mm://tagmap` lists " +
+        "every field by name; a name it does not have is refused rather than invented, and so " +
+        "are the fields with no text form (`front_cover`, `lyrics`, `performer`).",
+      inputSchema: {
+        trackId: z.string().optional().describe("A library track id, for a per-track field."),
+        albumId: z.string().optional().describe("An album id, for an album-scope field."),
+        field: z.string().min(1).describe("A tag map field name — `album`, not `ALBUM`."),
+        value: z
+          .union([z.string(), z.array(z.string())])
+          .nullable()
+          .optional()
+          .describe("Omit to lock or release what is already there."),
+        locked: z
+          .boolean()
+          .optional()
+          .describe("Defaults to true when a value is given. `false` with no value releases it."),
+      },
+      run: async (args: {
+        trackId?: string;
+        albumId?: string;
+        field: string;
+        value?: string | string[] | null;
+        locked?: boolean;
+      }) => {
+        const edits = [
+          {
+            field: args.field,
+            value: args.value ?? null,
+            ...(args.locked === undefined ? {} : { locked: args.locked }),
+          },
+        ];
+        if (args.trackId !== undefined) {
+          return await overrideTrackFields(args.trackId, edits, { db: db(), setBy: "an MCP tool" });
+        }
+        if (args.albumId !== undefined) {
+          return await overrideAlbumFields(args.albumId, edits, { db: db(), setBy: "an MCP tool" });
+        }
+        throw new MMError("INVALID_INPUT", "Give a `trackId` or an `albumId`.", {
+          hint: "`trackId` for a per-track field, `albumId` for an album-scope one.",
+        });
       },
     },
     {

@@ -47,6 +47,8 @@ import {
   storedDocument,
   type SourceVisit,
 } from "#/server/services/documents.ts";
+import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
+import { isId } from "#/server/ids.ts";
 import { credentialReport, sourcesConfig } from "#/server/integrations/config.ts";
 import type { StepName } from "#/server/db/schema/index.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
@@ -671,8 +673,14 @@ async function cmdDoc(args: Args): Promise<number> {
   if (sub === undefined || id === undefined) {
     throw new MMError(
       "INVALID_INPUT",
-      "usage: mm doc build <id> | mm doc show <id> [--missing] [--json] | mm doc rebuild <id> [--offline]",
+      "usage: mm doc build <id> | mm doc show <id> [--missing] [--json] | mm doc rebuild <id> " +
+        "[--offline] | mm doc set <id> <field> <value…> | mm doc lock <id> <field> | " +
+        "mm doc unlock <id> <field>",
     );
+  }
+
+  if (sub === "set" || sub === "lock" || sub === "unlock") {
+    return await cmdDocOverride(args, sub, id);
   }
 
   if (sub === "build" || sub === "rebuild") {
@@ -776,8 +784,93 @@ async function cmdDoc(args: Args): Promise<number> {
   }
 
   throw new MMError("INVALID_INPUT", `Unknown doc subcommand "${sub}".`, {
-    hint: "build, show or rebuild.",
+    hint: "build, show, rebuild, set, lock or unlock.",
   });
+}
+
+/**
+ * `mm doc set|lock|unlock` — the manual override, from a terminal.
+ *
+ * The same service the Console and the MCP tool call, so the three cannot disagree about what
+ * an override means. The id says which scope: an `alb_…` is the album's, and an album-scope
+ * field is written on every one of its tracks in one transaction (§2.7); anything else is a
+ * library track, which refuses album-scope fields and names the album command instead.
+ *
+ * A multi-valued field takes several values on the command line: `mm doc set <id> genre house
+ * electronic` is two `GENRE` tags, not one with a space in it.
+ */
+async function cmdDocOverride(
+  args: Args,
+  sub: "set" | "lock" | "unlock",
+  id: string,
+): Promise<number> {
+  const fieldName = args.positional[3];
+  if (fieldName === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      `usage: mm doc ${sub} <id> <field>${sub === "set" ? " <value…>" : ""}`,
+      {
+        hint: "The field is the tag map's name (`album`), not the Vorbis key (`ALBUM`).",
+      },
+    );
+  }
+
+  const values = args.positional.slice(4);
+  if (sub === "set" && values.length === 0) {
+    throw new MMError("INVALID_INPUT", "`mm doc set` needs a value.", {
+      hint: "`mm doc lock <id> <field>` pins what the sources already say.",
+      action: "Lock it instead",
+    });
+  }
+
+  const edits = [
+    sub === "set"
+      ? { field: fieldName, value: values.length === 1 ? (values[0] ?? "") : values }
+      : { field: fieldName, value: null, locked: sub === "lock" },
+  ];
+
+  const album = isId("libraryAlbum", id);
+  const result = album
+    ? await overrideAlbumFields(id, edits, { setBy: "mm" })
+    : await overrideTrackFields(id, edits, { setBy: "mm" });
+
+  if (flagBoolean(args, "json")) {
+    console.log(JSON.stringify(result, null, 2));
+    return 0;
+  }
+
+  if (result.changed.length === 0) {
+    line(`nothing changed — ${fieldName} already held that value.`);
+    return 0;
+  }
+
+  line(`${album ? "album" : "track"} ${id}`);
+  for (const change of result.changed) {
+    line(`  ${change.action.padEnd(9)} ${change.vorbis.padEnd(22)} ${short(change.before ?? "—")}`);
+    line(
+      `  ${"".padEnd(9)} ${"".padEnd(22)} → ${short(change.after ?? "—")} · ${String(change.tracks)} track(s)`,
+    );
+  }
+  line(
+    result.retagRunId === null
+      ? "  re-tag     nothing in scope; the files are already what the database says"
+      : `  re-tag     queued (run ${result.retagRunId})`,
+  );
+  for (const entry of result.skipped) line(`  skipped    ${entry.path} — ${entry.why}`);
+
+  const moves = result.relocatePlan?.moves ?? [];
+  if (moves.length > 0) {
+    line("");
+    line(
+      `  ${String(moves.length)} file(s) now sit off the path template. NOTHING WAS MOVED: Navidrome`,
+    );
+    line(
+      "  identifies a file by its path, so a move loses that track's play count and favourites.",
+    );
+    for (const move of moves.slice(0, 5)) line(`    ${move.from}\n      → ${move.to}`);
+    line("  `mm relocate --album <id>` moves them once you have read the list.");
+  }
+  return 0;
 }
 
 /**
@@ -1178,6 +1271,9 @@ const USAGE = `mm — Music Manager
   mm doc build <import_track_id|library_track_id> [--offline] [--refresh]
   mm doc show <id> [--missing] [--json]
   mm doc rebuild <id> [--offline]        offline by default; exits 1 if anything left the machine
+  mm doc set <ltr_…|alb_…> <field> <value…>   type a value by hand and lock it (source: console)
+  mm doc lock <id> <field>               pin what the sources say; no rebuild can change it
+  mm doc unlock <id> <field>             remove it and re-resolve offline: the sources own it again
   mm sources                             which credentials are set, and every source's TTL
   mm sources refresh                     run cron.refresh-sources now, on the worker
 

@@ -38,7 +38,23 @@ export const SOURCES = [
    * than discarding them.
    */
   "v1",
+  /**
+   * A value typed by hand *before* v2 existed — what v1's `SongForceMetadata` forced.
+   *
+   * Kept as its own source rather than folded into `console` because the two answer different
+   * questions: `user` means "somebody decided this in v1 and the migration of P11 carried the
+   * decision over", `console` means "somebody decided this here". Both are a person, so both
+   * sit above every network source in `SOURCE_PRECEDENCE`.
+   */
   "user",
+  /**
+   * A value typed by hand in this Console — or through the API, the MCP tool or the CLI.
+   *
+   * The clean equivalent of v1's forced metadata: the field is written *and* locked, so no
+   * resolver can take it back and `merge` keeps it through every rebuild. Unlocking is the way
+   * out, and it removes the field rather than clearing a flag (`removeField`).
+   */
+  "console",
 ] as const;
 
 export type SourceId = (typeof SOURCES)[number];
@@ -97,6 +113,15 @@ export interface Field<T extends FieldValue = FieldValue> {
   readonly fetchedAt: string;
   /** A locked value survives every re-resolution and wins every merge. */
   readonly locked: boolean;
+  /**
+   * A free clause saying where *this particular* value came from, when `source` cannot.
+   *
+   * Descriptive only — exactly like `EmbeddedPicture.provenance`, and for the same reason:
+   * nothing is ever chosen from it. What writes it today is the manual override, which records
+   * who set the value and when, so the document itself answers "why does this album say that"
+   * without a journal lookup.
+   */
+  readonly note?: string;
 }
 
 /** Why a field does not apply to this track. Shown as “n/a” rather than “missing”. */
@@ -127,7 +152,7 @@ export function field<T extends FieldValue>(
   value: T,
   source: SourceId,
   fetchedAt: string,
-  options: { confidence?: number; locked?: boolean } = {},
+  options: { confidence?: number; locked?: boolean; note?: string } = {},
 ): Field<T> {
   return {
     value,
@@ -135,6 +160,7 @@ export function field<T extends FieldValue>(
     confidence: options.confidence ?? 1,
     fetchedAt,
     locked: options.locked ?? false,
+    ...(options.note === undefined ? {} : { note: options.note }),
   };
 }
 
@@ -205,19 +231,64 @@ function setLocked(document: TrackDocument, name: string, locked: boolean): Trac
   };
 }
 
-/** Overwrite a field by hand. The value is locked, so no resolver can take it back. */
+/** Overwrite a field with a value v1 forced. The value is locked; no resolver takes it back. */
 export function setUserValue<T extends FieldValue>(
   document: TrackDocument,
   name: string,
   value: T,
   fetchedAt: string,
 ): TrackDocument {
+  return setManualValue(document, name, value, "user", fetchedAt);
+}
+
+/**
+ * Overwrite a field from the Console. The value is locked, so no resolver can take it back.
+ *
+ * This is all of "manual override" on the writing side: set, lock, and stop calling the field
+ * n/a — an explicit value beats "the source says it does not exist", which is precisely the
+ * case somebody fills a field by hand for. `removeField` is the way back.
+ */
+export function setConsoleValue<T extends FieldValue>(
+  document: TrackDocument,
+  name: string,
+  value: T,
+  fetchedAt: string,
+  options: { note?: string } = {},
+): TrackDocument {
+  return setManualValue(document, name, value, "console", fetchedAt, options);
+}
+
+function setManualValue<T extends FieldValue>(
+  document: TrackDocument,
+  name: string,
+  value: T,
+  source: SourceId,
+  fetchedAt: string,
+  options: { note?: string } = {},
+): TrackDocument {
   const { [name]: _removed, ...na } = document.na;
   return {
     ...document,
-    fields: { ...document.fields, [name]: field(value, "user", fetchedAt, { locked: true }) },
+    fields: {
+      ...document.fields,
+      [name]: field(value, source, fetchedAt, { locked: true, ...options }),
+    },
     na,
   };
+}
+
+/**
+ * Drop a field from the document entirely.
+ *
+ * The counterpart of `setConsoleValue`, and the reason unlocking is not just "clear the flag":
+ * the value was typed by a person and no resolver produced it, so leaving it behind unlocked
+ * would keep a stale answer alive at the *head* of `SOURCE_PRECEDENCE` until something
+ * happened to outrank it — which, being first, nothing would. Removing it and rebuilding
+ * offline is what actually hands the field back to the resolvers.
+ */
+export function removeField(document: TrackDocument, name: string): TrackDocument {
+  const { [name]: _removed, ...fields } = document.fields;
+  return { ...document, fields };
 }
 
 export interface AlbumScopeDivergence {

@@ -45,6 +45,7 @@ describe("the tool table", () => {
       "get_scan_report",
       // `cron.refresh-sources` had no trigger at all before: no tool, no route, no command.
       "refresh_sources",
+      "set_field",
     ]) {
       expect(byName.has(name), name).toBe(true);
     }
@@ -52,7 +53,7 @@ describe("the tool table", () => {
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(22);
+    expect(tools.length).toBe(23);
   });
 });
 

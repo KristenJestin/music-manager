@@ -19,7 +19,14 @@ import { existsSync, rmSync, readdirSync, rmdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
-import { field, projectDocument, type ProfileId, type TrackDocument } from "@mm/domain";
+import {
+  canonicalValue,
+  field,
+  projectDocument,
+  tagByField,
+  type ProfileId,
+  type TrackDocument,
+} from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   artistsCache,
@@ -45,6 +52,7 @@ import {
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { retryStep } from "#/server/services/jobs/index.ts";
+import { ALBUM_EDITABLE_FIELDS } from "#/server/services/overrides.ts";
 import { diffProjection, formatOf, type ProjectionDiff } from "#/server/services/retag.ts";
 import {
   documentsOfTracks,
@@ -233,11 +241,32 @@ export interface AlbumDetail {
   readonly quality: AlbumQuality;
   readonly identifiers: AlbumIdentifiers;
   readonly tagMap: readonly TagMapRow[];
+  /** The album-scope fields the Metadata tab lets you type into, with their provenance. */
+  readonly albumFields: readonly AlbumFieldRow[];
   readonly imports: readonly { id: string; url: string; status: string; createdAt: string }[];
   readonly decision: MatchingDecision | null;
   readonly currentSchema: number;
   readonly schemaOverridden: boolean;
   readonly sizeBytes: number;
+}
+
+/**
+ * One editable album-scope field, as the Metadata tab shows it.
+ *
+ * `value` is read from the album's *first* document and `divergent` says whether the others
+ * agree. They should: §2.7 makes the `tag` step write one value per album-scope field across
+ * the album, and a manual override writes all the tracks at once. When they do not, the field
+ * is exactly what `quality.divergences` is complaining about, and locking it is the remedy.
+ */
+export interface AlbumFieldRow {
+  readonly field: string;
+  readonly vorbis: string;
+  readonly value: string | null;
+  readonly multi: boolean;
+  readonly source: string | null;
+  readonly locked: boolean;
+  readonly note: string | null;
+  readonly divergent: boolean;
 }
 
 /** Read one string field of a document. The documents hold typed values; the UI wants text. */
@@ -373,6 +402,7 @@ export async function albumDetail(
       genres: strings(first, "genre"),
     },
     tagMap: tagMapRows(documents),
+    albumFields: albumFieldRows(documents),
     imports: jobs.map((job) => ({
       id: job.id,
       url: job.url,
@@ -391,6 +421,36 @@ export async function albumDetail(
     schemaOverridden: isSchemaOverridden(settings),
     sizeBytes: tracks.reduce((total, track) => total + (track.size ?? 0), 0),
   };
+}
+
+/** The editable album-scope fields of an album, read off its documents. */
+function albumFieldRows(documents: readonly TrackDocument[]): AlbumFieldRow[] {
+  const first = documents[0];
+  return ALBUM_EDITABLE_FIELDS.map((name) => {
+    const tag = tagByField(name);
+    const held = first?.fields[name];
+    const shown = held === undefined ? null : canonicalValue(held.value);
+    return {
+      field: name,
+      vorbis: tag?.vorbis ?? name.toUpperCase(),
+      value: held === undefined ? null : renderValue(held.value),
+      multi: tag?.multi ?? false,
+      source: held?.source ?? null,
+      locked: held?.locked ?? false,
+      note: held?.note ?? null,
+      divergent: documents.some((document) => {
+        const other = document.fields[name];
+        return (other === undefined ? null : canonicalValue(other.value)) !== shown;
+      }),
+    };
+  });
+}
+
+/** A document value as one line of text. Multi-valued fields keep the ` · ` the Console uses. */
+function renderValue(value: unknown): string {
+  if (Array.isArray(value)) return value.map((entry) => String(entry)).join(" · ");
+  if (typeof value === "object" && value !== null) return "(structured)";
+  return String(value);
 }
 
 /** One track's document, for the Metadata tab and the track page. */

@@ -177,6 +177,28 @@ describe("resolveAlbumScope — the other album-scope fields", () => {
     ]);
   });
 
+  /*
+   * The Console's manual override, seen from the album: `overrideAlbumFields` writes the
+   * `console` lock on every track, but a single-track write must already carry the album —
+   * otherwise a re-tag of one file would put the resolver's answer back on the other twelve.
+   */
+  it("propagates a `console` lock typed on one track to the whole album", () => {
+    const album = [
+      doc({ album: mb("Discovery") }),
+      doc({ album: field("Discovery (Remastered)", "console", AT, { locked: true }) }),
+      doc({ album: mb("Discovery") }),
+    ];
+    const { documents } = unifyAlbumScope(album);
+    expect(documents.map((document) => document.fields["album"]?.value)).toEqual([
+      "Discovery (Remastered)",
+      "Discovery (Remastered)",
+      "Discovery (Remastered)",
+    ]);
+    const choice = changed(album).find((entry) => entry.field === "album");
+    expect(choice?.source).toBe("console");
+    expect(choice?.rule).toMatch(/locked on track 2/);
+  });
+
   it("leaves a field no track carries alone", () => {
     const album = [doc({}), doc({})];
     expect(changed(album)).toEqual([]);
