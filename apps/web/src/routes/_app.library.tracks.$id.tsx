@@ -21,12 +21,27 @@ import { KeyValueList } from "#/components/key-value.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
+import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/field-editor.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { bytes, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import { fetchTrack, redownload, removeTrack } from "#/server/functions/library.ts";
+import { setTrackField, unlockField } from "#/server/functions/overrides.ts";
+import { runRelocate } from "#/server/functions/relocate.ts";
 import { startRetag } from "#/server/functions/retag.ts";
+import type { RelocatePlan } from "#/server/services/relocate.ts";
 import type { TrackDocument } from "@mm/domain";
-import { PROFILE_IDS, tagByField } from "@mm/domain";
+import { ALBUM_SCOPE_FIELDS, PROFILE_IDS, tagByField } from "@mm/domain";
+
+/**
+ * Fields with no single-value text form (`docs/03-metadonnees.md` §2.3, §2.6).
+ *
+ * The server refuses them too — `services/overrides.ts` is the authority — and this list is
+ * what stops the page from offering a pencil that can only ever produce an error.
+ */
+const NOT_EDITABLE = new Set(["front_cover", "back_cover", "lyrics", "performer"]);
+
+/** What every override server function answers with. */
+type OverrideAnswer = Awaited<ReturnType<typeof setTrackField>>;
 
 export const Route = createFileRoute("/_app/library/tracks/$id")({
   loader: async ({ params }) => await fetchTrack({ data: { id: params.id } }),
@@ -56,6 +71,8 @@ function TrackPage() {
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  /** The relocate a path-affecting edit just offered, waiting for a yes or a no. */
+  const [offer, setOffer] = useState<RelocatePlan | null>(null);
 
   if (detail === null) {
     return (
@@ -74,6 +91,34 @@ function TrackPage() {
       (message) => {
         setBusy(null);
         toast(message, "ok");
+        void router.invalidate();
+      },
+      (error: unknown) => {
+        setBusy(null);
+        toast(error instanceof Error ? error.message : "That did not work.", "danger");
+      },
+    );
+  };
+
+  /**
+   * One override, whichever button asked for it.
+   *
+   * The answer carries the re-tag it queued and, when a name the path template uses changed, a
+   * relocate *plan*. The plan is never acted on here — see `RelocateOffer`.
+   */
+  const override = (label: string, run: () => Promise<OverrideAnswer>): void => {
+    setBusy(label);
+    void run().then(
+      (result) => {
+        setBusy(null);
+        const names = result.changed.map((entry) => entry.vorbis).join(", ");
+        toast(
+          result.changed.length === 0
+            ? "Nothing changed — the field already held that value."
+            : `${names} written to the database${result.retagRunId === null ? "" : "; re-tag queued"}.`,
+          "ok",
+        );
+        if ((result.relocatePlan?.moves.length ?? 0) > 0) setOffer(result.relocatePlan);
         void router.invalidate();
       },
       (error: unknown) => {
@@ -175,16 +220,58 @@ function TrackPage() {
               </thead>
               <tbody data-testid="track-document">
                 {fields.map((entry) => (
-                  <tr key={entry.field} className="border-b border-line last:border-b-0">
+                  <tr
+                    key={entry.field}
+                    data-testid={`document-row-${entry.field}`}
+                    className={cn(
+                      "border-b border-line last:border-b-0",
+                      entry.locked ? "bg-primary-soft/30" : null,
+                    )}
+                  >
                     <td className="px-2.5 py-1 font-mono text-2xs">{entry.vorbis}</td>
                     <td className="max-w-96 px-2.5 py-1">
-                      <span className="block truncate" title={entry.value}>
-                        {entry.value}
-                      </span>
+                      <FieldEditor
+                        field={entry.field}
+                        vorbis={entry.vorbis}
+                        value={entry.value}
+                        multi={entry.multi}
+                        locked={entry.locked}
+                        editable={entry.editable}
+                        busy={busy !== null}
+                        onSave={(value) => {
+                          override(entry.field, async () =>
+                            setTrackField({ data: { id, edits: [{ field: entry.field, value }] } }),
+                          );
+                        }}
+                        onLock={() => {
+                          override(entry.field, async () =>
+                            setTrackField({
+                              data: {
+                                id,
+                                edits: [{ field: entry.field, value: null, locked: true }],
+                              },
+                            }),
+                          );
+                        }}
+                        onRelease={() => {
+                          override(entry.field, async () =>
+                            unlockField({ data: { scope: "track", id, field: entry.field } }),
+                          );
+                        }}
+                      />
                     </td>
-                    <td className="px-2.5 py-1 text-2xs text-fg-2">
-                      {entry.source}
-                      {entry.locked ? " · locked" : ""}
+                    <td className="px-2.5 py-1">
+                      <FieldSource source={entry.source} locked={entry.locked} note={entry.note} />
+                      {entry.albumScope && album !== null ? (
+                        <Link
+                          to="/library/albums/$id"
+                          params={{ id: album.id }}
+                          search={{ tab: "metadata" }}
+                          className="ml-1 text-3xs text-fg-3 hover:text-primary"
+                        >
+                          album field
+                        </Link>
+                      ) : null}
                     </td>
                     <td className="px-2.5 py-1 font-mono text-2xs text-fg-3">
                       {entry.fetchedAt.slice(0, 10)}
@@ -351,6 +438,31 @@ function TrackPage() {
         </div>
       </div>
 
+      <RelocateOffer
+        plan={offer}
+        busy={busy === "relocate"}
+        onOpenChange={(open) => {
+          if (!open) setOffer(null);
+        }}
+        onConfirm={() => {
+          setBusy("relocate");
+          void runRelocate({
+            data: { albumId: album?.id ?? null, dryRun: false },
+          }).then(
+            (report) => {
+              setBusy(null);
+              setOffer(null);
+              toast(`Moved ${String(report.moved)} file(s).`, "ok");
+              void router.invalidate();
+            },
+            (error: unknown) => {
+              setBusy(null);
+              toast(error instanceof Error ? error.message : "The move failed.", "danger");
+            },
+          );
+        }}
+      />
+
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
@@ -390,18 +502,38 @@ interface DocumentEntry {
   readonly source: string;
   readonly fetchedAt: string;
   readonly locked: boolean;
+  readonly note: string | undefined;
+  readonly multi: boolean;
+  /**
+   * Whether this page may edit the field.
+   *
+   * Two reasons it may not: the value is not text (a picture, lyrics, a performer credit), or
+   * the field is of **album scope** and belongs to the album — one track carrying its own
+   * `GENRE` is exactly what splits an album in two on Navidrome, so the album page owns it and
+   * writes it on every file at once.
+   */
+  readonly editable: boolean;
+  readonly albumScope: boolean;
 }
 
 /** The document's fields in tag-map order, rendered for a table. */
 function entriesOf(document: TrackDocument): DocumentEntry[] {
   return Object.entries(document.fields)
-    .map(([field, held]) => ({
-      field,
-      vorbis: tagByField(field)?.vorbis ?? field.toUpperCase(),
-      value: render(held.value),
-      source: held.source,
-      fetchedAt: held.fetchedAt,
-      locked: held.locked,
-    }))
+    .map(([field, held]) => {
+      const tag = tagByField(field);
+      const albumScope = ALBUM_SCOPE_FIELDS.includes(field);
+      return {
+        field,
+        vorbis: tag?.vorbis ?? field.toUpperCase(),
+        value: render(held.value),
+        source: held.source,
+        fetchedAt: held.fetchedAt,
+        locked: held.locked,
+        note: held.note,
+        multi: tag?.multi ?? false,
+        editable: !albumScope && !NOT_EDITABLE.has(field),
+        albumScope,
+      };
+    })
     .sort((a, b) => a.vorbis.localeCompare(b.vorbis));
 }

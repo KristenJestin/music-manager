@@ -286,6 +286,35 @@ export const PATH_FIELDS: readonly string[] = Object.freeze([
   "originaldate",
 ]);
 
+/**
+ * The album-scope fields the album page offers in a form.
+ *
+ * Not all 36: four are ReplayGain numbers rsgain measures, two are sort names nobody types by
+ * hand, and the MBIDs identify the release rather than describe it — changing one by hand is
+ * "this is a different release", which is `refresh_album`'s job, not a text box's. What is left
+ * is the set somebody actually corrects: the names, the dates, the edition and the
+ * classification. Everything else stays settable through the API and the CLI, which validate
+ * the same way; the form is a shortlist, not a permission.
+ */
+export const ALBUM_EDITABLE_FIELDS: readonly string[] = Object.freeze([
+  "album",
+  "albumartist",
+  "date",
+  "originaldate",
+  "releasetype",
+  "releasestatus",
+  "releasecountry",
+  "label",
+  "catalognumber",
+  "barcode",
+  "media",
+  "genre",
+  "mood",
+  "grouping",
+  "copyright",
+  "compilation",
+]);
+
 export function touchesPath(fields: readonly string[]): boolean {
   return fields.some((field) => PATH_FIELDS.includes(field));
 }

@@ -21,6 +21,7 @@ import {
   Download,
   ExternalLink,
   Image as ImageIcon,
+  Lock,
   Sparkles,
   Tag,
   Trash2,
@@ -36,6 +37,7 @@ import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { CoverPicker } from "#/components/library/cover-picker.tsx";
+import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/field-editor.tsx";
 import { SchemaBadge, SchemaHeading, TagDiff } from "#/components/library/schema.tsx";
 import { TagMapTable, type FormatColumns } from "#/components/library/tag-map-table.tsx";
 import { VerifyTab } from "#/components/library/verify-tab.tsx";
@@ -51,8 +53,11 @@ import {
   removeAlbum,
 } from "#/server/functions/library.ts";
 import { fetchAlbumVerification } from "#/server/functions/verify.ts";
+import { setAlbumField, unlockField } from "#/server/functions/overrides.ts";
+import { runRelocate } from "#/server/functions/relocate.ts";
 import { startRetag } from "#/server/functions/retag.ts";
 import type { AlbumTrackRow } from "#/server/services/library.ts";
+import type { RelocatePlan } from "#/server/services/relocate.ts";
 
 const TABS = ["tracks", "metadata", "tags", "verify", "mb", "history"] as const;
 type Tab = (typeof TABS)[number];
@@ -102,6 +107,8 @@ function Album() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
   const [covers, setCovers] = useState<Awaited<ReturnType<typeof fetchCoverOptions>>>([]);
+  /** The relocate a path-affecting edit just offered, waiting for a yes or a no. */
+  const [offer, setOffer] = useState<RelocatePlan | null>(null);
 
   if (album === null) {
     return (
@@ -140,6 +147,38 @@ function Album() {
       });
       return `${dryRun ? "Dry run" : "Re-tag"} queued for ${String(run.total)} file(s), from the raw cache (projection v${String(run.schemaVersion)}).`;
     });
+  };
+
+  /**
+   * One album-scope override.
+   *
+   * The value is written on **every** track of the album, in one transaction — that is what
+   * makes "one value per album-scope field" (§2.7) a property of the database rather than a
+   * hope about the next re-tag. A name the path template uses comes back with a relocate plan,
+   * which `RelocateOffer` puts behind a confirm.
+   */
+  const override = (label: string, run: () => Promise<AlbumOverrideAnswer>): void => {
+    setBusy(label);
+    void run().then(
+      (result) => {
+        setBusy(null);
+        const names = result.changed.map((entry) => entry.vorbis).join(", ");
+        toast(
+          result.changed.length === 0
+            ? "Nothing changed — the album already held that value."
+            : `${names} written on ${String(result.changed[0]?.tracks ?? 0)} track(s)${
+                result.retagRunId === null ? "" : "; re-tag queued"
+              }.`,
+          "ok",
+        );
+        if ((result.relocatePlan?.moves.length ?? 0) > 0) setOffer(result.relocatePlan);
+        void router.invalidate();
+      },
+      (error: unknown) => {
+        setBusy(null);
+        toast(error instanceof Error ? error.message : "That did not work.", "danger");
+      },
+    );
   };
 
   const openCoverPicker = (): void => {
@@ -355,6 +394,17 @@ function Album() {
           }}
           onRetag={queueRetag}
           busy={busy !== null}
+          onSetField={(field, value) => {
+            override(field, async () => setAlbumField({ data: { id, edits: [{ field, value }] } }));
+          }}
+          onLockField={(field) => {
+            override(field, async () =>
+              setAlbumField({ data: { id, edits: [{ field, value: null, locked: true }] } }),
+            );
+          }}
+          onReleaseField={(field) => {
+            override(field, async () => unlockField({ data: { scope: "album", id, field } }));
+          }}
         />
       ) : null}
       {params.tab === "tags" ? <CompareTab comparison={comparison} onRetag={queueRetag} /> : null}
@@ -370,6 +420,29 @@ function Album() {
       ) : null}
       {params.tab === "mb" ? <MusicBrainzTab album={album} /> : null}
       {params.tab === "history" ? <HistoryTab history={history ?? []} /> : null}
+
+      <RelocateOffer
+        plan={offer}
+        busy={busy === "relocate"}
+        onOpenChange={(open) => {
+          if (!open) setOffer(null);
+        }}
+        onConfirm={() => {
+          setBusy("relocate");
+          void runRelocate({ data: { albumId: id, dryRun: false } }).then(
+            (report) => {
+              setBusy(null);
+              setOffer(null);
+              toast(`Moved ${String(report.moved)} file(s).`, "ok");
+              void router.invalidate();
+            },
+            (error: unknown) => {
+              setBusy(null);
+              toast(error instanceof Error ? error.message : "The move failed.", "danger");
+            },
+          );
+        }}
+      />
 
       <ConfirmDialog
         open={confirmDelete}
@@ -442,6 +515,9 @@ function Album() {
 /* ------------------------------------------------------------------ */
 
 type AlbumData = NonNullable<Awaited<ReturnType<typeof fetchAlbum>>>;
+
+/** What the override server functions answer with. */
+type AlbumOverrideAnswer = Awaited<ReturnType<typeof setAlbumField>>;
 
 function TracksTab({ album }: { readonly album: AlbumData }) {
   const navigate = useNavigate();
@@ -560,6 +636,9 @@ function MetadataTab({
   onKeys,
   onRetag,
   busy,
+  onSetField,
+  onLockField,
+  onReleaseField,
 }: {
   readonly album: AlbumData;
   readonly profile: string;
@@ -568,6 +647,9 @@ function MetadataTab({
   readonly onKeys: (keys: boolean) => void;
   readonly onRetag: (dryRun: boolean) => void;
   readonly busy: boolean;
+  readonly onSetField: (field: string, value: string) => void;
+  readonly onLockField: (field: string) => void;
+  readonly onReleaseField: (field: string) => void;
 }) {
   const quality = album.quality;
   const profiled = profile !== "global";
@@ -666,6 +748,22 @@ function MetadataTab({
                   )}
                   <span className="grow truncate text-2xs text-fg-3">{entry.rule}</span>
                   <span className="text-2xs text-fg-2">{entry.action}</span>
+                  {/*
+                   * The other half of the remedy. A re-tag unifies the field on whatever rule
+                   * the tag map gives it; locking says *which* value the album carries, and a
+                   * locked value beats every rule for ever (§2.7, step 1).
+                   */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    data-testid={`divergence-lock-${entry.field}`}
+                    onClick={() => {
+                      onLockField(entry.field);
+                    }}
+                  >
+                    <Lock className="size-3.5" aria-hidden="true" /> Lock for the album
+                  </Button>
                 </div>
                 <ul className="mt-1 space-y-0.5">
                   {entry.values.slice(0, 6).map((value) => (
@@ -687,6 +785,75 @@ function MetadataTab({
           </div>
         </div>
       )}
+
+      {/*
+       * Typing an album field by hand — the clean equivalent of v1's forced metadata.
+       *
+       * It is on the album and not on each track because these sixteen fields are *facts about
+       * the album*: §2.7 says the value must be identical on every file or Navidrome, Plex and
+       * Jellyfin split the record in two. Every edit here is written on every track in one
+       * transaction, so the constraint holds in the database rather than in a convention.
+       */}
+      <div
+        className="mb-3 overflow-hidden rounded-xl border border-line bg-surface-1"
+        data-testid="album-fields"
+      >
+        <div className="flex flex-wrap items-center gap-2 border-b border-line px-3.5 py-2">
+          <h3 className="text-xs font-medium">Album fields</h3>
+          <span className="grow text-2xs text-fg-3">
+            written on every track of the album · a locked value survives every rebuild
+          </span>
+        </div>
+        <table className="w-full text-xs">
+          <tbody>
+            {album.albumFields.map((entry) => (
+              <tr
+                key={entry.field}
+                data-testid={`album-field-${entry.field}`}
+                className={cn(
+                  "border-b border-line last:border-b-0",
+                  entry.locked ? "bg-primary-soft/30" : null,
+                )}
+              >
+                <td className="w-44 px-2.5 py-1 font-mono text-2xs text-fg-2">{entry.vorbis}</td>
+                <td className="px-2.5 py-1">
+                  <FieldEditor
+                    field={entry.field}
+                    vorbis={entry.vorbis}
+                    value={entry.value}
+                    multi={entry.multi}
+                    locked={entry.locked}
+                    busy={busy}
+                    onSave={(value) => {
+                      onSetField(entry.field, value);
+                    }}
+                    onLock={() => {
+                      onLockField(entry.field);
+                    }}
+                    onRelease={() => {
+                      onReleaseField(entry.field);
+                    }}
+                  />
+                </td>
+                <td className="w-40 px-2.5 py-1">
+                  {entry.source === null ? (
+                    <span className="text-2xs text-fg-3">not set</span>
+                  ) : (
+                    <FieldSource
+                      source={entry.source}
+                      locked={entry.locked}
+                      note={entry.note ?? undefined}
+                    />
+                  )}
+                </td>
+                <td className="w-24 px-2.5 py-1 text-right">
+                  {entry.divergent ? <ToneBadge tone="warn">differs</ToneBadge> : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <Callout tone={behind ? "warn" : "ok"} className="mb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
