@@ -123,3 +123,84 @@ def test_a_yt_dlp_failure_becomes_a_catalogued_error(monkeypatch: pytest.MonkeyP
     with pytest.raises(ToolboxError) as raised:
         extract_module.extract(ExtractRequest(url="https://youtu.be/eZKgoOjJmrp"))
     assert raised.value.code is ErrorCode.YTDLP_UNAVAILABLE
+
+
+# ----------------------------------------------------------------------------------
+# flat extraction and the watched-source fixture
+# ----------------------------------------------------------------------------------
+
+
+def test_flat_is_off_by_default_and_asks_yt_dlp_for_nothing_extra():
+    from toolbox.extract import flat_options
+
+    assert flat_options(False) == {}
+    assert flat_options(True) == {"extract_flat": "in_playlist", "ignoreerrors": True}
+
+
+def test_the_watched_fixture_grows_by_exactly_one_entry_between_snapshots(
+    fixture_client: TestClient,
+):
+    """The whole point of the recording: yesterday, then today with one video more."""
+    first = fixture_client.post(
+        "/extract", json={"url": "fixture://watched?snapshot=1", "flat": True}
+    ).json()
+    second = fixture_client.post(
+        "/extract", json={"url": "fixture://watched?snapshot=2", "flat": True}
+    ).json()
+
+    assert len(first["entries"]) == 3
+    assert len(second["entries"]) == 4
+    before = {entry["id"] for entry in first["entries"]}
+    after = {entry["id"] for entry in second["entries"]}
+    assert after - before == {"wsvCCCCCCCC"}
+    assert before - after == set()
+
+
+def test_a_flat_entry_carries_the_listing_fields_and_nothing_more(fixture_client: TestClient):
+    entries = fixture_client.post(
+        "/extract", json={"url": "fixture://watched?snapshot=2", "flat": True}
+    ).json()["entries"]
+    first = entries[0]
+    assert first["id"] == "wsvAAAAAAAA"
+    assert first["duration"] == 202.0
+    assert first["webpage_url"] == "fixture://skinny-love"
+    assert first["playlist_index"] == 1
+    assert first["availability"] == "public"
+    # A flat call does not fetch the video, so it cannot know any of these.
+    assert first["description"] is None
+    assert first["album"] is None
+    assert first["thumbnails"] == []
+
+
+def test_an_unreachable_entry_is_marked_rather_than_failing_the_scan(fixture_client: TestClient):
+    entries = fixture_client.post(
+        "/extract", json={"url": "fixture://watched?snapshot=1", "flat": True}
+    ).json()["entries"]
+    private = [entry for entry in entries if entry["unavailable"]]
+    assert len(private) == 1
+    assert private[0]["availability"] == "private"
+    assert private[0]["duration"] is None
+    # The reachable ones came back regardless — that is the property that matters.
+    assert len([entry for entry in entries if not entry["unavailable"]]) == 2
+
+
+def test_an_unknown_snapshot_is_a_fixture_error(fixture_client: TestClient):
+    response = fixture_client.post(
+        "/extract", json={"url": "fixture://watched?snapshot=9", "flat": True}
+    )
+    assert response.json()["code"] == ErrorCode.FIXTURE_UNKNOWN.value
+
+
+def test_a_private_placeholder_is_recognised_without_an_availability_field():
+    from toolbox.ytdlp import is_unavailable
+
+    assert is_unavailable({"id": "abc", "title": "[Private video]"})
+    assert is_unavailable({"id": "abc", "title": "Song", "availability": "subscriber_only"})
+    assert is_unavailable({"id": "", "title": "Song"})
+    assert not is_unavailable({"id": "abc", "title": "Song", "availability": "public"})
+
+
+def test_a_flat_playlist_numbers_the_entries_it_could_read(monkeypatch: pytest.MonkeyPatch):
+    """`ignoreerrors` hands back `None` for an entry it gave up on; it must not shift the rest."""
+    result = result_from_info({"title": "Watched", "entries": [INFO_VIDEO, None, INFO_VIDEO]})
+    assert [entry.index for entry in result.entries] == [0, 1]

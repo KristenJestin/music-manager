@@ -65,6 +65,25 @@ export interface ImportOptions {
   readonly confirmedBy?: string;
   /** MBID of the release the CLI or the fixtures picked. */
   readonly releaseMbid?: string;
+
+  /**
+   * The watched source that opened this import, when one did.
+   *
+   * Its presence is what makes `confirm` read the source's policy instead of its own rules:
+   * an import nobody asked for by hand must not be waved through by fixtures mode or by a
+   * `--yes` inherited from anywhere.
+   */
+  readonly watchedSourceId?: string;
+  /**
+   * The source said: accept this without asking **if the match is unambiguous**.
+   *
+   * Not `autoConfirm`. `autoConfirm` is unconditional — it is what `--yes` means — and this
+   * is a *permission* that `confirm` still has to earn against the match result. The two are
+   * deliberately different words because they are deliberately different promises.
+   */
+  readonly sourceAutoAccept?: boolean;
+  /** The source's own score floor, when it set one. Otherwise `safeThreshold` applies. */
+  readonly sourceAutoAcceptThreshold?: number;
 }
 
 export const imports = pgTable(

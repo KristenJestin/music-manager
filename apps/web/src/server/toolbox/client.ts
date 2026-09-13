@@ -172,10 +172,23 @@ export class ToolboxClient {
     });
   }
 
-  async extract(url: string, jar: CookieJar = {}): Promise<ExtractResult> {
+  /**
+   * Resolve a URL to entries.
+   *
+   * `flat` asks for the **listing only** — one request for a whole playlist, answering id,
+   * title, duration, url, availability and playlist index, and none of the per-video payload.
+   * That is what a watched source scans with: it is asking "what is new?", and paying a full
+   * extraction per video to answer it would turn a six-hourly poll of a long channel into
+   * hundreds of requests. `resolve` never passes it — it lives on the description.
+   */
+  async extract(
+    url: string,
+    jar: CookieJar = {},
+    options: { flat?: boolean } = {},
+  ): Promise<ExtractResult> {
     return await this.call("POST /extract", async () => {
       const result = await this.http.POST("/extract", {
-        body: { url, ...cookieBody(jar) },
+        body: { url, ...cookieBody(jar), flat: options.flat === true },
         signal: this.signal(),
       });
       return this.unwrap(result, "POST /extract");

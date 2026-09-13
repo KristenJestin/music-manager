@@ -481,6 +481,11 @@ export interface components {
             album?: string | null;
             /** Artist */
             artist?: string | null;
+            /**
+             * Availability
+             * @description yt-dlp's own word for what this entry is: `public`, `unlisted`, `subscriber_only`, `needs_auth`, `premium_only`… Absent when it did not say.
+             */
+            availability?: string | null;
             /** Description */
             description?: string | null;
             /** Duration */
@@ -489,6 +494,11 @@ export interface components {
             id: string;
             /** Index */
             index: number;
+            /**
+             * Playlist Index
+             * @description Position yt-dlp read off the playlist itself, one-based. `index` is our own zero-based numbering of what came back, and the two diverge the moment an entry is skipped.
+             */
+            playlist_index?: number | null;
             /** Release Year */
             release_year?: number | null;
             /** Thumbnails */
@@ -497,6 +507,12 @@ export interface components {
             title: string;
             /** Track */
             track?: string | null;
+            /**
+             * Unavailable
+             * @description The entry is in the listing but cannot be fetched — private, deleted, or region-locked. It is **reported, not dropped**: a watched source whose whole scan failed because one video went private would stop working silently.
+             * @default false
+             */
+            unavailable: boolean;
             /** Uploader */
             uploader?: string | null;
             /** Webpage Url */
@@ -521,6 +537,12 @@ export interface components {
             extra_args?: {
                 [key: string]: unknown;
             };
+            /**
+             * Flat
+             * @description Ask yt-dlp for the listing only (`extract_flat`). One request for a whole playlist instead of one per video, answering id, title, duration, url, availability and playlist index — and nothing else: no description, no YouTube Music tags. That is the right trade for *watching* a source, where the question is 'what is new?' rather than 'what is in it?', and the wrong one for `resolve`, which lives on the description.
+             * @default false
+             */
+            flat: boolean;
             /**
              * Player Client
              * @description yt-dlp `extractor_args.youtube.player_client`, e.g. 'android' or 'web'.

@@ -283,6 +283,47 @@ minutes pour ce qu'une requête fait en dix secondes.
 
 ---
 
+## 5 bis. Les sources surveillées
+
+Une source surveillée est une playlist ou une chaîne YouTube que l'installation relit
+périodiquement. Le cron `cron.watched-sources` (défaut `0 */6 * * *`, réglable dans
+Settings → Watched sources, clé `watchedSourcesCron`) liste chaque source **à plat** — une
+requête par source, pas une par vidéo — compare les identifiants vidéo à ce qu'elle a déjà vu,
+et ouvre un import par vidéo nouvelle. Ces imports passent en priorité négative : un album
+collé à la main reste devant.
+
+À ne pas confondre avec `cron.refresh-sources`, qui est le rafraîchissement du cache
+MusicBrainz et n'a aucun rapport. Les deux se coupent séparément.
+
+```bash
+# l'état de chaque source, depuis l'hôte
+docker compose -f docker-compose.prod.yml exec web bun run mm -- watch list
+
+# un scan tout de suite, dans le worker
+docker compose -f docker-compose.prod.yml exec web bun run mm -- watch scan --queue
+
+# une source précise, et ce qu'elle a vu
+docker compose -f docker-compose.prod.yml exec web bun run mm -- watch show <id>
+```
+
+**`autoAccept` est la seule exception à « l'algorithme ne choisit jamais à ta place »**
+(`docs/04-pipeline-et-matching.md`). Il est désactivé par défaut, se règle **par source**, et
+même activé il ne sert que si le candidat est `safe`, non ambigu, et au-dessus du seuil
+(`watchedSourcesAutoAcceptThreshold`, défaut = `safeThreshold`). Tout le reste s'arrête en
+`awaiting_confirm` avec un item Inbox `source_new_video`. Chaque confirmation automatique est
+tracée dans `decisions` avec `decided_by = 'watched-source'` :
+
+```sql
+select count(*) from decisions where decided_by = 'watched-source';
+```
+
+Une vidéo privée, supprimée ou géobloquée n'interrompt pas le scan : elle est marquée
+`skipped` avec sa raison sur la ligne `watched_source_items`. Une source dont l'URL ne répond
+plus passe `last_scan_status = 'failed'` avec l'erreur, et les autres sources sont quand même
+scannées.
+
+---
+
 ## 6. Sauvegarde et restauration
 
 ```bash

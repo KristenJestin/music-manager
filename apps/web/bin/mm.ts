@@ -87,6 +87,7 @@ import {
 import { relocate } from "#/server/services/relocate.ts";
 import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
 import { cmdDiscover } from "./commands/discover.ts";
+import { cmdWatch } from "./commands/watch.ts";
 import { cmdMigrate } from "./commands/migrate.ts";
 
 /* ------------------------------------------------------------------ */
@@ -1292,6 +1293,13 @@ const USAGE = `mm — Music Manager
   mm discover list [--json] [--limit n]   the three blocks: gaps, recommendations, similar artists
   mm discover forget                      un-hide everything you marked "not interested"
 
+  mm watch add <url> [--label x] [--auto-accept] [--min-duration s] [--max-duration s]
+                                          watch a playlist or channel; new videos become imports
+  mm watch list [--json]                  every watched source, with its counts
+  mm watch show <id> [--json]             one source: its policy and every video it has seen
+  mm watch scan [id] [--queue] [--json]   scan now, in this process — or hand it to the worker
+  mm watch remove <id>                    stop watching; the imports it opened are kept
+
   mm library albums [--filter <f>] [--profile <p>] [--json]   what is on disk, scored
   mm library tracks [--search s] [--filter f] [--limit n]     every file, one line each
   mm library show <album id> [--json]     one album: identifiers, score, what is missing
@@ -1345,6 +1353,8 @@ async function main(): Promise<number> {
       return await cmdTools(args);
     case "discover":
       return await cmdDiscover(args);
+    case "watch":
+      return await cmdWatch(args);
     case "library":
       return await cmdLibrary(args);
     case "migrate":

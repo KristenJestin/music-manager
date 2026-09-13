@@ -36,6 +36,8 @@ export const QUEUES = {
   scan: "scan",
   /** Hand one event to one webhook endpoint, with retries (P08). */
   webhook: "webhook.deliver",
+  /** Scan one watched source, or every enabled one. */
+  watchedScan: "watched-sources.scan",
 } as const;
 
 /** Scheduled work. Registered now, implemented in the phase named in the comment. */
@@ -48,6 +50,14 @@ export const CRON_QUEUES = {
   "cron.refresh-sources": "0 5 * * 1",
   /** Recommendation sync (P09). */
   "cron.discover": "0 6 * * *",
+  /**
+   * Scan every enabled watched source.
+   *
+   * Deliberately **not** `cron.refresh-sources`, which is the MusicBrainz cache refresh of
+   * P04 and has nothing to do with this. Two crons whose names differ by one word would be
+   * one incident away from somebody disabling the wrong one.
+   */
+  "cron.watched-sources": "0 */6 * * *",
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES] | keyof typeof CRON_QUEUES;
@@ -111,6 +121,9 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
   await boss.createQueue(QUEUES.retag, { policy: "standard" });
   await boss.createQueue(QUEUES.scan, { policy: "singleton" });
   await boss.createQueue(QUEUES.webhook, { policy: "standard" });
+  // `standard`, with the source id as `singletonKey` on the send side: two *different*
+  // sources may be scanned at once, the same source may not be queued twice.
+  await boss.createQueue(QUEUES.watchedScan, { policy: "standard" });
   for (const name of Object.keys(CRON_QUEUES)) {
     await boss.createQueue(name, { policy: "singleton" });
   }

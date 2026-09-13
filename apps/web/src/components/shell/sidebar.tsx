@@ -13,6 +13,7 @@ import {
   Inbox,
   Music4,
   Plus,
+  Rss,
   Settings,
   Shield,
   Sparkles,
@@ -45,6 +46,7 @@ const GROUPS: readonly NavGroup[] = [
     entries: [
       { to: "/", label: "Dashboard", icon: Home, exact: true },
       { to: "/import/new", label: "Import", icon: Plus, shortcut: "N" },
+      { to: "/sources", label: "Sources", icon: Rss },
       { to: "/imports", label: "Jobs", icon: Activity, counter: "progress" },
       { to: "/review", label: "Review", icon: Inbox, shortcut: "R", counter: "review" },
     ],

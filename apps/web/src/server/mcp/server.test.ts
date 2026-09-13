@@ -51,9 +51,15 @@ describe("the tool table", () => {
     }
   });
 
+  it("carries the watched-source tools", () => {
+    for (const name of ["list_watched_sources", "add_watched_source", "scan_watched_source"]) {
+      expect(byName.has(name), name).toBe(true);
+    }
+  });
+
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(23);
+    expect(tools.length).toBe(26);
   });
 });
 

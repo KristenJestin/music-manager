@@ -33,6 +33,12 @@ export interface CreateOptions extends ImportOptions {
   readonly db?: Database;
   /** Resolve in-process before returning. On by default; the tests turn it off. */
   readonly resolveNow?: boolean;
+  /**
+   * Queue priority. Higher runs first; the default is 0, which is where a person's import
+   * lands. A watched source passes a negative value, because a scan that found forty new
+   * videos must not push a paste-box import to the back of the queue.
+   */
+  readonly priority?: number;
 }
 
 export interface CreateResult {
@@ -131,7 +137,7 @@ export async function createFromUrl(
     .where(eq(imports.url, trimmed))
     .orderBy(desc(imports.createdAt));
 
-  const { mapping, db: _db, resolveNow, ...rest } = options;
+  const { mapping, db: _db, resolveNow, priority, ...rest } = options;
   void _db;
   const stored: Record<string, unknown> = { ...rest };
   if (mapping !== undefined) stored["mapping"] = mapping;
@@ -150,6 +156,7 @@ export async function createFromUrl(
       status: "pending",
       step: "resolve",
       options: stored as ImportOptions,
+      ...(priority === undefined ? {} : { priority }),
       ...(rest.releaseMbid === undefined ? {} : { releaseMbid: rest.releaseMbid }),
       ...(mapping?.releaseMbid === undefined ? {} : { releaseMbid: mapping.releaseMbid }),
     })

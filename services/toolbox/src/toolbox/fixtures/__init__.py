@@ -20,8 +20,18 @@ Recognised URLs:
                                       ms instead of the installation default, so a browser
                                       test can observe a track *while* it is downloading
                                       (capped at 2 s a slice)
+``fixture://watched?snapshot=1``      a watched playlist as it was yesterday: three entries,
+                                      one of them a ``[Private video]`` that cannot be
+                                      fetched and must not fail the scan
+``fixture://watched?snapshot=2``      the same playlist today, one video longer — which is
+                                      how the watched-source diff is exercised offline
 ``fixture://<name>#<n>``              entry ``n`` of that fixture, for `/download`
 ===================================== ====================================================
+
+``/extract`` with ``flat: true`` answers the listing only, here as in production: the
+recordings are full extractions and :func:`_flatten` strips what a flat call genuinely does
+not return, so a caller that reads a description out of one fails offline rather than in
+front of YouTube.
 """
 
 from __future__ import annotations
@@ -59,7 +69,7 @@ __all__ = [
 DATA_DIR: Final[Path] = Path(__file__).parent / "data"
 
 #: Every recorded fixture. Anything else is a :attr:`ErrorCode.FIXTURE_UNKNOWN`.
-KNOWN: Final[frozenset[str]] = frozenset({"discovery", "skinny-love", "currents"})
+KNOWN: Final[frozenset[str]] = frozenset({"discovery", "skinny-love", "currents", "watched"})
 
 #: Name of the per-directory note `/download` leaves so `/fingerprint` knows which scenario
 #: a file came from. A dotfile, so Navidrome and the library scanner ignore it.
@@ -100,11 +110,63 @@ def require_ref(url: str) -> FixtureRef:
     return ref
 
 
-def extract(url: str) -> ExtractResult:
+def _snapshot(result: ExtractResult, payload: dict[str, Any], ref: FixtureRef) -> ExtractResult:
+    """Cut the listing down to the snapshot ``?snapshot=n`` asks for.
+
+    A watched source is only interesting *over time*, and a recorded fixture has no time. So
+    one recording holds the longest listing and the ``snapshots`` block says how many entries
+    each earlier moment had: ``?snapshot=1`` is yesterday, ``?snapshot=2`` is today with one
+    more video. An unknown or absent snapshot is the whole listing.
+    """
+    wanted = ref.params.get("snapshot")
+    if wanted is None:
+        return result
+    sizes = cast(dict[str, Any], payload.get("snapshots") or {})
+    size = sizes.get(str(wanted))
+    if not isinstance(size, int):
+        raise ToolboxError(
+            ErrorCode.FIXTURE_UNKNOWN,
+            f"Fixture '{ref.name}' has no snapshot '{wanted}'.",
+            details={"requested": ref.canonical, "snapshots": sorted(sizes)},
+        )
+    return result.model_copy(update={"entries": result.entries[:size]})
+
+
+def _flatten(result: ExtractResult) -> ExtractResult:
+    """What `/extract?flat=true` answers: the listing, without the per-video payload.
+
+    The recordings are full extractions, so flattening them here is what keeps the fixture
+    honest — a caller that reads a description out of a flat answer would work offline and
+    fail against the real thing, which is the one bug a fixture must not be able to hide.
+    """
+    return result.model_copy(
+        update={
+            "entries": [
+                entry.model_copy(
+                    update={
+                        "description": None,
+                        "thumbnails": [],
+                        "track": None,
+                        "artist": None,
+                        "album": None,
+                        "release_year": None,
+                        "uploader": None,
+                        "playlist_index": entry.playlist_index or entry.index + 1,
+                    }
+                )
+                for entry in result.entries
+            ]
+        }
+    )
+
+
+def extract(url: str, *, flat: bool = False) -> ExtractResult:
     """The recorded `/extract` answer for a fixture URL."""
     ref = require_ref(url)
     payload = load(ref.name)
-    result = ExtractResult.model_validate(payload["extract"])
+    result = _snapshot(ExtractResult.model_validate(payload["extract"]), payload, ref)
+    if flat and ref.index is None:
+        return _flatten(result)
     if ref.index is not None:
         entries = [entry for entry in result.entries if entry.index == ref.index]
         if not entries:

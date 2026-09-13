@@ -618,6 +618,28 @@ export const SETTING_DEFINITIONS = {
     "Name of that playlist. It is replaced wholesale on each sync, never appended to.",
   ),
 
+  /* ---- watched sources: a playlist or channel scanned on a schedule ---- */
+  watchedSourcesEnabled: define(
+    z.boolean(),
+    true,
+    "Scan watched sources at all. Off keeps the page and the sources, and skips the cron.",
+  ),
+  watchedSourcesCron: define(
+    z.string().min(1),
+    "0 */6 * * *",
+    "When `cron.watched-sources` scans every enabled source, as a five-field cron expression.",
+  ),
+  watchedSourcesAutoAcceptDefault: define(
+    z.boolean(),
+    false,
+    "Whether a newly added source starts with auto-accept on. Off: docs/04 says the algorithm never chooses for you.",
+  ),
+  watchedSourcesAutoAcceptThreshold: define(
+    z.number().min(0).max(1),
+    0.95,
+    "The score an auto-accepting source demands before confirming without you. Defaults to `safeThreshold`.",
+  ),
+
   /*
    * ---- notifications (P07b stored them, P08 delivers them) ----
    *

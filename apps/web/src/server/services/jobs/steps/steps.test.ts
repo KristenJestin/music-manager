@@ -3,6 +3,7 @@ import type { TrackDocument } from "@mm/domain";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import type { ExtractResult } from "#/server/toolbox/client.ts";
 import { classify } from "./resolve.ts";
+import { autoAcceptDecision } from "./confirm.ts";
 import { compareFingerprint } from "./fingerprint.ts";
 import { pathInputFor } from "./place.ts";
 import { projectionHash, r128Gain } from "./tag.ts";
@@ -282,5 +283,58 @@ describe("projectionHash", () => {
 
   it("is short enough to store and long enough not to collide", () => {
     expect(projectionHash(tags)).toMatch(/^[0-9a-f]{32}$/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+describe("autoAcceptDecision", () => {
+  /**
+   * The one exception to "l'algo ne choisit jamais à ta place" (`docs/04` § Ce que l'algo ne
+   * fait jamais), so it is worth being explicit about every way it stays shut.
+   */
+  const safe = { safe: true, ambiguous: false, score: 0.97 };
+
+  it("accepts a safe, unambiguous match above the threshold", () => {
+    const decision = autoAcceptDecision({ allowed: true, verdict: safe, threshold: 0.95 });
+    expect(decision.accept).toBe(true);
+  });
+
+  it("waits when two candidates are too close to call", () => {
+    const decision = autoAcceptDecision({
+      allowed: true,
+      verdict: { ...safe, ambiguous: true },
+      threshold: 0.95,
+    });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("too close");
+  });
+
+  it("waits when the best candidate is not safe", () => {
+    const decision = autoAcceptDecision({
+      allowed: true,
+      verdict: { safe: false, ambiguous: false, score: 0.93 },
+      threshold: 0.95,
+    });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("safe threshold");
+  });
+
+  it("waits when the score is under the source's own, higher bar", () => {
+    const decision = autoAcceptDecision({ allowed: true, verdict: safe, threshold: 0.99 });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("0.99");
+  });
+
+  it("waits when the match step left nothing to judge", () => {
+    const decision = autoAcceptDecision({ allowed: true, verdict: null, threshold: 0.95 });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("no confidence");
+  });
+
+  it("waits when the source never opted in, whatever the score says", () => {
+    const decision = autoAcceptDecision({ allowed: false, verdict: safe, threshold: 0 });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("off for this source");
   });
 });

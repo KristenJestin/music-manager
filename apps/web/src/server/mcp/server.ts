@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-one tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-six tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-one, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-six, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-one of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-six of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -39,6 +39,11 @@ import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import {
+  createWatchedSource,
+  getWatchedSource,
+  listWatchedSources,
+} from "#/server/services/watched-sources.ts";
 import { jobDetail, queueStanding, setImportOptions } from "#/server/services/console.queries.ts";
 import { listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
@@ -65,6 +70,7 @@ import {
   enqueueLibraryScan,
   enqueueRetagRun,
   enqueueSourceRefresh,
+  enqueueWatchedSourceScan,
 } from "#/server/services/queue.ts";
 import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-rate-limit.ts";
 import {
@@ -353,7 +359,7 @@ interface ToolSpec {
  * external MCP test report asked for (`get_status`, `discover_sync`, `scan`, `relocate`),
  * `get_scan_report` from the second, and `refresh_album` from the third.
  *
- * A table rather than twenty-one `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-six `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -1373,6 +1379,126 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "`POST /api/v1/discover/sync`, which takes the same scope.",
       inputSchema: {},
       run: async () => await syncDiscover({ db: db(), trigger: "mcp" }),
+    },
+    {
+      name: "list_watched_sources",
+      scope: "imports:read",
+      title: "The playlists and channels being watched",
+      description:
+        "Each source with its counts, its last scan and — the field worth reading first — " +
+        "`autoAccept`. A source with `autoAccept: true` confirms its imports **without a " +
+        "human**, whenever the match is safe and unambiguous; every other source parks each " +
+        "new video in `awaiting_confirm` behind a `source_new_video` Inbox item.\n\n" +
+        "Pass `sourceId` for one source and the videos it has seen, each with why it was " +
+        "skipped or which import it opened.",
+      inputSchema: {
+        sourceId: z.string().min(1).optional().describe("One source, with its item history."),
+      },
+      run: async (args: { sourceId?: string }) => {
+        if (args.sourceId === undefined) {
+          const rows = await listWatchedSources(db());
+          return {
+            sources: rows.map((row) => ({
+              id: row.source.id,
+              url: row.source.url,
+              kind: row.source.kind,
+              label: row.source.label,
+              enabled: row.source.enabled,
+              autoAccept: row.source.autoAccept,
+              lastScanStatus: row.source.lastScanStatus,
+              lastScanAt: row.source.lastScanAt,
+              total: row.total,
+              imported: row.imported,
+              skipped: row.skipped,
+            })),
+          };
+        }
+        const detail = await getWatchedSource(args.sourceId, db());
+        if (detail === null) {
+          throw new MMError("NOT_FOUND", `No watched source with id ${args.sourceId}.`);
+        }
+        return {
+          source: detail.source,
+          total: detail.total,
+          imported: detail.imported,
+          skipped: detail.skipped,
+          items: detail.items.map((item) => ({
+            videoId: item.videoId,
+            title: item.title,
+            status: item.status,
+            reason: item.reason,
+            importId: item.importId,
+            importStatus: item.job?.status ?? null,
+          })),
+        };
+      },
+    },
+    {
+      name: "add_watched_source",
+      scope: "imports:write",
+      title: "Watch a playlist or channel",
+      description:
+        "Register a source. Nothing is imported by this call — `scan_watched_source` (or the " +
+        "six-hourly cron) is what turns new videos into imports.\n\n" +
+        "**`autoAccept` bypasses the review step.** It is off by default and should stay off " +
+        "unless the source is a distributor's own uploads (`- Topic`): it lets an import be " +
+        "confirmed with nobody looking at it, which `docs/04-pipeline-et-matching.md` calls " +
+        "the one exception to 'the algorithm never chooses for you'. Even then it is spent " +
+        "only on a match that is safe and unambiguous.",
+      inputSchema: {
+        url: z.string().min(1).describe("A YouTube playlist or channel URL."),
+        label: z.string().max(200).optional().describe("Defaults to the listing's own title."),
+        autoAccept: z
+          .boolean()
+          .optional()
+          .describe("Confirm unambiguous matches with no human. Off unless you mean it."),
+        minDuration: z.number().int().min(0).optional().describe("Seconds. Skip shorter videos."),
+        maxDuration: z.number().int().min(0).optional().describe("Seconds. Skip longer videos."),
+      },
+      run: async (args: {
+        url: string;
+        label?: string;
+        autoAccept?: boolean;
+        minDuration?: number;
+        maxDuration?: number;
+      }) => {
+        const created = await createWatchedSource(args, { db: db() });
+        return {
+          id: created.id,
+          url: created.url,
+          kind: created.kind,
+          autoAccept: created.autoAccept,
+          note: "Nothing has been scanned yet. Call `scan_watched_source` to import what is already there.",
+        };
+      },
+    },
+    {
+      name: "scan_watched_source",
+      scope: "imports:write",
+      title: "Scan a watched source now",
+      description:
+        "Queued to the worker rather than run here: a scan lists the source and opens one " +
+        "import per new video, and imports belong on the queue that owns the single download " +
+        "slot. `get_status.worker.alive` says whether anything will pick it up.\n\n" +
+        "Omit `sourceId` to scan every **enabled** source. Read the result with " +
+        "`list_watched_sources` afterwards.",
+      inputSchema: {
+        sourceId: z.string().min(1).optional().describe("Omit for every enabled source."),
+      },
+      run: async (args: { sourceId?: string }) => {
+        const jobId = await enqueueWatchedSourceScan({
+          ...(args.sourceId === undefined ? {} : { sourceId: args.sourceId }),
+          trigger: "mcp",
+        });
+        return {
+          queued: jobId !== null,
+          jobId,
+          note:
+            jobId === null
+              ? "Already queued — one message per source at a time."
+              : "Queued on `watched-sources.scan`.",
+        };
+      },
     },
     {
       name: "scan",

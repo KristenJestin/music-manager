@@ -22,6 +22,9 @@ import {
   STEPS,
   TRACK_ROLES,
   TRACK_STATES,
+  WATCHED_ITEM_STATUSES,
+  WATCHED_SCAN_STATUSES,
+  WATCHED_SOURCE_KINDS,
 } from "#/server/db/schema/enums.vocab.ts";
 
 export * from "#/server/db/schema/enums.vocab.ts";
@@ -36,3 +39,6 @@ export const inboxTypeEnum = pgEnum("inbox_type", INBOX_TYPES);
 export const inboxStatusEnum = pgEnum("inbox_status", INBOX_STATUSES);
 export const eventLevelEnum = pgEnum("event_level", EVENT_LEVELS);
 export const decisionKindEnum = pgEnum("decision_kind", DECISION_KINDS);
+export const watchedSourceKindEnum = pgEnum("watched_source_kind", WATCHED_SOURCE_KINDS);
+export const watchedScanStatusEnum = pgEnum("watched_scan_status", WATCHED_SCAN_STATUSES);
+export const watchedItemStatusEnum = pgEnum("watched_item_status", WATCHED_ITEM_STATUSES);
