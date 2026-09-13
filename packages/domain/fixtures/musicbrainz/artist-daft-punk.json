@@ -1,0 +1,17 @@
+{
+  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+  "name": "Daft Punk",
+  "sort-name": "Daft Punk",
+  "country": "FR",
+  "relations": [
+    {
+      "type": "wikidata",
+      "type-id": "17012ebc-7ef7-4133-99cb-b829e7de3736",
+      "target-type": "url",
+      "direction": "forward",
+      "url": {
+        "resource": "https://www.wikidata.org/wiki/Q193338"
+      }
+    }
+  ]
+}
