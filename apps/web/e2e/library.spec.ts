@@ -258,6 +258,9 @@ test.describe("the library", () => {
       await expect(row.getByTestId("field-edit-album")).toHaveText(original, { timeout: 5_000 });
     });
     await expect(row.getByTestId("field-source-badge")).toHaveCount(0);
+  });
+
+  /**
    * `artist.jpg`, placed beside "Daft Punk"'s folder once `import-album.spec.ts`'s import
    * reaches `place` (`jobs/steps/place.ts`). `seed-fixtures.ts` seeds the MusicBrainz artist
    * and the Wikidata entity Daft Punk's url-rels point at, offline, so `artists_cache.imageUrl`
