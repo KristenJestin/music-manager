@@ -6,9 +6,14 @@
  * chooses for you, and a "safe" score of 0.95 marks the first candidate without skipping this
  * gate.
  *
- * Two things unblock it, and only two: `--yes` on the CLI, and fixtures mode — the offline
- * end-to-end run and the demo have nobody to ask. Both are recorded as a `decisions` row with
- * `decidedBy` saying which, so an unattended import is never mistaken for a confirmed one.
+ * Two things unblock it for an import somebody asked for, and only two: `--yes` on the CLI,
+ * and fixtures mode — the offline end-to-end run and the demo have nobody to ask. Both are
+ * recorded as a `decisions` row with `decidedBy` saying which, so an unattended import is
+ * never mistaken for a confirmed one.
+ *
+ * An import a **watched source** opened takes a third path entirely, and neither of those two
+ * applies to it: see `confirmForWatchedSource` below. That is the one exception `docs/04`
+ * grants, and it is per source, off by default, and spent only on an unambiguous match.
  */
 import { and, eq } from "drizzle-orm";
 import { decisions, imports, jobSteps, type ImportTrack } from "#/server/db/schema/index.ts";
