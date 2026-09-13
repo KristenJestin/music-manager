@@ -37,14 +37,21 @@ describe("the tool table", () => {
   });
 
   it("carries the tools the two reports asked for (§9, §10, §11 and E)", () => {
-    for (const name of ["get_status", "discover_sync", "scan", "relocate", "get_scan_report"]) {
+    for (const name of [
+      "get_status",
+      "discover_sync",
+      "scan",
+      "relocate",
+      "get_scan_report",
+      "set_field",
+    ]) {
       expect(byName.has(name), name).toBe(true);
     }
   });
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(21);
+    expect(tools.length).toBe(22);
   });
 });
 
