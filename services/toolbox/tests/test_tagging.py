@@ -283,3 +283,107 @@ def test_tag_endpoint_returns_the_readback(client: TestClient, opus_file: Path):
     assert payload["format"] == "vorbis"
     assert payload["readback"]["TITLE"] == ["One More Time"]
     assert payload["size"] == opus_file.stat().st_size
+
+
+# --------------------------------------------------------------------------------------
+# `clear` must not take the cover with it
+# --------------------------------------------------------------------------------------
+
+#: Distinguishable from `TINY_JPEG`: the picture block carries whatever bytes it is given.
+OTHER_PICTURE = base64.b64encode(b"a second cover, byte for byte different").decode("ascii")
+
+
+def _opus_picture_data(path: Path) -> list[bytes]:
+    encoded = cast("list[str]", cast(Any, OggOpus(path)).get("METADATA_BLOCK_PICTURE") or [])
+    return [cast(bytes, cast(Any, Picture(base64.b64decode(item))).data) for item in encoded]
+
+
+def _seed(path: Path, data_base64: str) -> None:
+    write_tags(
+        TagRequest(
+            path=str(path),
+            tags=tags(("TITLE", "Before")),
+            pictures=[PictureModel(data_base64=data_base64)],
+            clear=True,
+        )
+    )
+
+
+def _retag(path: Path, **extra: Any) -> Any:
+    return write_tags(
+        TagRequest(path=str(path), tags=tags(("TITLE", "After")), clear=True, **extra)
+    )
+
+
+def test_vorbis_clear_without_pictures_keeps_the_existing_one(
+    opus_file: Path, tiny_jpeg_base64: str
+):
+    _seed(opus_file, tiny_jpeg_base64)
+    result = _retag(opus_file)
+
+    assert _opus_picture_data(opus_file) == [base64.b64decode(tiny_jpeg_base64)]
+    assert result.pictures == 1
+    assert result.readback["TITLE"] == ["After"]
+
+
+def test_vorbis_explicit_pictures_replace_the_existing_one(opus_file: Path, tiny_jpeg_base64: str):
+    _seed(opus_file, tiny_jpeg_base64)
+    result = _retag(opus_file, pictures=[PictureModel(data_base64=OTHER_PICTURE)])
+
+    assert _opus_picture_data(opus_file) == [base64.b64decode(OTHER_PICTURE)]
+    assert result.pictures == 1
+
+
+def test_vorbis_keep_pictures_false_drops_the_existing_one(opus_file: Path, tiny_jpeg_base64: str):
+    _seed(opus_file, tiny_jpeg_base64)
+    result = _retag(opus_file, keep_pictures=False)
+
+    assert _opus_picture_data(opus_file) == []
+    assert result.pictures == 0
+
+
+def test_id3_clear_without_pictures_keeps_the_existing_one(mp3_file: Path, tiny_jpeg_base64: str):
+    _seed(mp3_file, tiny_jpeg_base64)
+    result = _retag(mp3_file)
+
+    frames = cast("list[Any]", cast(Any, ID3(mp3_file)).getall("APIC"))
+    assert [cast(bytes, frame.data) for frame in frames] == [base64.b64decode(tiny_jpeg_base64)]
+    assert result.pictures == 1
+
+
+def test_id3_explicit_pictures_replace_the_existing_one(mp3_file: Path, tiny_jpeg_base64: str):
+    _seed(mp3_file, tiny_jpeg_base64)
+    _retag(mp3_file, pictures=[PictureModel(data_base64=OTHER_PICTURE)])
+
+    frames = cast("list[Any]", cast(Any, ID3(mp3_file)).getall("APIC"))
+    assert [cast(bytes, frame.data) for frame in frames] == [base64.b64decode(OTHER_PICTURE)]
+
+
+def test_id3_keep_pictures_false_drops_the_existing_one(mp3_file: Path, tiny_jpeg_base64: str):
+    _seed(mp3_file, tiny_jpeg_base64)
+    _retag(mp3_file, keep_pictures=False)
+    assert cast(Any, ID3(mp3_file)).getall("APIC") == []
+
+
+def test_mp4_clear_without_pictures_keeps_the_existing_one(m4a_file: Path, tiny_jpeg_base64: str):
+    _seed(m4a_file, tiny_jpeg_base64)
+    result = _retag(m4a_file)
+
+    covers = cast(Any, MP4(m4a_file))["covr"]
+    assert len(covers) == 1
+    assert bytes(covers[0]) == base64.b64decode(tiny_jpeg_base64)
+    assert result.pictures == 1
+
+
+def test_mp4_explicit_pictures_replace_the_existing_one(m4a_file: Path, tiny_jpeg_base64: str):
+    _seed(m4a_file, tiny_jpeg_base64)
+    _retag(m4a_file, pictures=[PictureModel(data_base64=OTHER_PICTURE)])
+
+    covers = cast(Any, MP4(m4a_file))["covr"]
+    assert [bytes(cover) for cover in covers] == [base64.b64decode(OTHER_PICTURE)]
+
+
+def test_mp4_keep_pictures_false_drops_the_existing_one(m4a_file: Path, tiny_jpeg_base64: str):
+    _seed(m4a_file, tiny_jpeg_base64)
+    _retag(m4a_file, keep_pictures=False)
+    assert "covr" not in cast(Any, MP4(m4a_file))

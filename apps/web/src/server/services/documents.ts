@@ -862,6 +862,7 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
     ...(lastfmTags === undefined ? {} : { lastfm: lastfmTags }),
     ...(lbTags === undefined ? {} : { listenbrainz: lbTags }),
     tagOptions: { maxGenres: config.maxGenres, minCount: config.genreMinCount },
+    artistNameSource: config.artistNameSource,
     ...(rsgainRow === null
       ? {}
       : {

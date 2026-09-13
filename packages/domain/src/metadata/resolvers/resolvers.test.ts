@@ -36,6 +36,7 @@ import {
   fromRsgain,
   fromYouTubeEntry,
   type MbRecording,
+  type MbRelease,
 } from "./index.ts";
 
 const at = FETCHED_AT;
@@ -380,3 +381,106 @@ describe("the Skinny Love fixtures", () => {
     expect((releases.releases ?? []).length).toBeGreaterThan(1);
   });
 });
+
+/*
+ * `credit.name` vs `credit.artist.name` — the two names MusicBrainz holds per credit.
+ *
+ * v1 wrote `credit.artist.name` and only that. v2 preferred the credited-as name, which is
+ * why a v1 library re-tagged by v2 came out with different artist names on the handful of
+ * tracks where the two differ — and why `artistNameSource` exists.
+ *
+ * Discovery is credited plainly, so the fixture is used twice: as it stands, to prove the two
+ * modes agree when there is nothing to disagree about, and with one track's credit rewritten
+ * the way MusicBrainz records a "credited as" — which is the case the setting is for.
+ */
+describe("artistNameSource", () => {
+  const credited = { ...release, media: creditedAs(release) } as MbRelease;
+
+  it("changes nothing when the credit is the artist's own name", () => {
+    const asCredited = fromMusicBrainzRelease(release, {
+      trackPosition: 1,
+      fetchedAt: at,
+      artistNameSource: "credited",
+    });
+    const canonical = fromMusicBrainzRelease(release, {
+      trackPosition: 1,
+      fetchedAt: at,
+      artistNameSource: "canonical",
+    });
+    expect(asCredited.fields?.["artist"]?.value).toBe("Daft Punk");
+    expect(canonical.fields?.["artist"]?.value).toBe("Daft Punk");
+    expect(canonical.fields?.["artists"]?.value).toEqual(["Daft Punk"]);
+  });
+
+  it("writes the credited-as name by default", () => {
+    const patch = fromMusicBrainzRelease(credited, { trackPosition: 1, fetchedAt: at });
+    expect(patch.fields?.["artist"]?.value).toBe("Thomas Bangalter & Romanthony");
+    expect(patch.fields?.["artists"]?.value).toEqual(["Thomas Bangalter", "Romanthony"]);
+  });
+
+  it("writes the artist's canonical name in `canonical` mode, join phrases intact", () => {
+    const patch = fromMusicBrainzRelease(credited, {
+      trackPosition: 1,
+      fetchedAt: at,
+      artistNameSource: "canonical",
+    });
+    expect(patch.fields?.["artist"]?.value).toBe("Daft Punk & Anthony Moore");
+    expect(patch.fields?.["artists"]?.value).toEqual(["Daft Punk", "Anthony Moore"]);
+    // Sort names and MBIDs are artist-level facts: the setting does not touch them.
+    expect(patch.fields?.["artistsort"]?.value).toEqual(["Daft Punk", "Moore, Anthony"]);
+  });
+
+  it("applies to the recording resolver too", () => {
+    const withCredit = {
+      ...recording,
+      "artist-credit": creditPair(),
+    } as unknown as MbRecording;
+    expect(fromMusicBrainzRecording(withCredit, { fetchedAt: at }).fields?.["artist"]?.value).toBe(
+      "Thomas Bangalter & Romanthony",
+    );
+    expect(
+      fromMusicBrainzRecording(withCredit, { fetchedAt: at, artistNameSource: "canonical" })
+        .fields?.["artist"]?.value,
+    ).toBe("Daft Punk & Anthony Moore");
+  });
+});
+
+/** A two-artist credit where both entries are credited under a different name. */
+function creditPair() {
+  return [
+    {
+      name: "Thomas Bangalter",
+      joinphrase: " & ",
+      artist: {
+        id: "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+        name: "Daft Punk",
+        "sort-name": "Daft Punk",
+      },
+    },
+    {
+      name: "Romanthony",
+      joinphrase: "",
+      artist: {
+        id: "0f0b9a0b-1f2d-4a5e-8f1b-9a1b2c3d4e5f",
+        name: "Anthony Moore",
+        "sort-name": "Moore, Anthony",
+      },
+    },
+  ];
+}
+
+/** Discovery's first medium, with track 1 re-credited the way a "credited as" looks. */
+function creditedAs(source: MbRelease) {
+  const media = source.media ?? [];
+  const first = media[0];
+  if (first === undefined) throw new Error("the Discovery fixture lost its medium");
+  return [
+    {
+      ...first,
+      tracks: (first.tracks ?? []).map((track) =>
+        track.position === 1 ? { ...track, "artist-credit": creditPair() } : track,
+      ),
+    },
+    ...media.slice(1),
+  ];
+}

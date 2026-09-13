@@ -1290,6 +1290,12 @@
             "$ref": "#/components/schemas/TagFormat",
             "default": "auto"
           },
+          "keep_pictures": {
+            "default": true,
+            "description": "When `clear` drops the tag block and no picture is supplied, re-attach the pictures the file already carried instead of losing them.",
+            "title": "Keep Pictures",
+            "type": "boolean"
+          },
           "lyrics_lrc": {
             "anyOf": [
               {

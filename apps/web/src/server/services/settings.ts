@@ -14,6 +14,7 @@ import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { MMError, notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
 import {
+  ARTIST_NAME_SOURCES,
   DEFAULT_GROUP_LIMIT,
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_THRESHOLDS,
@@ -366,6 +367,11 @@ export const SETTING_DEFINITIONS = {
     z.array(z.enum(["musicbrainz", "lastfm", "listenbrainz"])),
     ["musicbrainz", "lastfm", "listenbrainz"],
     "Which source's genres win. §4: MusicBrainz first, Last.fm and ListenBrainz as fallbacks.",
+  ),
+  artistNameSource: define<"credited" | "canonical">(
+    z.enum(ARTIST_NAME_SOURCES),
+    "credited",
+    "Which of MusicBrainz's two artist names goes into ARTIST, ARTISTS and ALBUMARTIST. `credited` writes the name printed on this release (`Ye` credited as `Kanye West`), which is what Picard does. `canonical` writes the artist's own name, so one spelling covers the whole library — and it is what v1 wrote, so it is the value that reproduces a v1 library's artist names. The join phrases are MusicBrainz's either way.",
   ),
   maxGenres: define(
     z.number().int().min(1).max(10),

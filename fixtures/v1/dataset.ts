@@ -19,9 +19,12 @@
  *
  *  - **Daft Punk — Discovery (2001)**, thirteen rows, all `Present`, with the MusicBrainz ids
  *    of the *recorded* release. `documents.build` runs offline against the seeded raw cache,
- *    so this is the album on which "complete documents" is provable without a network.
+ *    so this is the album on which "complete documents" is provable without a network — and
+ *    therefore the only album where "a source would have overwritten this" is a real risk.
  *    Track 3's file has been renamed behind v1's back, so it can only be found by its
- *    recording MBID.
+ *    recording MBID. Its release MBID is **forced** (`MusicBrainzReleaseIdForce`, the plain
+ *    column empty), track 13 is `ForceSongMetadata` and track 12 is `ForceSourceMetadata`;
+ *    both credit somebody MusicBrainz does not, which is what makes the two flags testable.
  *  - **Justice — Woman Worldwide (2018)**, eight rows over **two discs**, no MusicBrainz ids
  *    at all — the common case of a v1 row whose lookup never succeeded. It exercises the
  *    `Disc N - ` prefix, the ` - ` separator, the `;`-joined lists and `SongForceMetadata`.
@@ -29,14 +32,40 @@
  *    in its comment.
  *  - **Birdy — Birdy (2011)**, nine rows: three `Present` with files, one `Present` whose file
  *    is gone, **two `Needed`** with forced MBIDs, one `NeedsManualReview`, one
- *    `DownloadFailed`, one `ProcessingFailed`.
+ *    `DownloadFailed`, one `ProcessingFailed`. Track 2 is the one SoundCloud row — no MBID and
+ *    no video id, so neither rung of the cover ladder can answer for it and its embedded
+ *    picture becomes a `cover_missing` question. Track 3 carries a forced `CoverArtBytes`.
  *
  * Plus one orphan file no row claims, and two `UserPlaylists`.
+ *
+ * Every file carries an embedded picture, because every v1 file did. See
+ * `FIXTURE_PICTURE_JPEG`.
  */
+
+/**
+ * The picture every v1 fixture file carries, base64.
+ *
+ * A 1×1 JPEG — small enough to inline, real enough for mutagen and ffprobe. v1 embedded a
+ * cover in *every* file it tagged (`ProcessSongJob.cs` §9 falls back to the YouTube thumbnail
+ * when the Cover Art Archive has nothing), so a fixture library of pictureless files could
+ * not detect the bug this fixture exists to catch: a migration that strips the cover.
+ */
+export const FIXTURE_PICTURE_JPEG =
+  "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////" +
+  "///////////////////////////////CABEIAAEAAQEBEQAA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/aAAgB" +
+  "AQAAAAAB";
+
+/**
+ * The picture v1's owner forced on one track, base64. Deliberately different bytes from
+ * `FIXTURE_PICTURE_JPEG`, so "the forced cover won" is distinguishable from "nothing moved".
+ */
+export const FIXTURE_FORCED_COVER_JPEG = `${FIXTURE_PICTURE_JPEG}/9k=`;
 
 export interface FixtureSong {
   readonly id: number;
   readonly sourceUrl: string;
+  /** `SourcePlatform`, the C# member name. Everything is `YouTube` bar the one exception. */
+  readonly platform?: "YouTube" | "SoundCloud";
   readonly sourceUrlParent: string | null;
   readonly sourceId: string;
   readonly sourceIdParent: string | null;
@@ -229,6 +258,28 @@ const ALBUM_A: FixtureSong[] = DISCOVERY_TRACKS.map((track, index) => {
   // Track 3's file was renamed by hand after v1 wrote it. Neither `FinalFilePath` nor v1's own
   // algorithm predicts where it is now, so the only way to find it is its recording MBID.
   const moved = track.position === 3;
+  /*
+   * Two rows carry a processing flag, and both are on *this* album on purpose: it is the only
+   * one whose MusicBrainz answer is in the seeded cache, so it is the only place where
+   * "`documents.build` would have overwritten this" is a real risk rather than a theoretical
+   * one. Track 13 is `ForceSongMetadata` — the Songs row as it stands, MusicBrainz skipped —
+   * and track 12 is `ForceSourceMetadata`, whose values v1 had already written back into the
+   * row from the YouTube description. Both credit somebody MusicBrainz does not.
+   */
+  const forcedSong = track.position === 13;
+  const forcedSource = track.position === 12;
+  /*
+   * The release MBID is *forced*, not resolved: `MusicBrainzReleaseId` is empty on every row
+   * and `MusicBrainzReleaseIdForce` holds the answer v1's owner typed in after v1 matched the
+   * wrong release. It is the only release this album has, so a migration that reads the plain
+   * column gives the album's import no release at all — and every rung that hangs off it, the
+   * cover included, has nothing to hang from.
+   */
+  const performers = forcedSong
+    ? ["Daft Punk", "Todd Edwards"]
+    : forcedSource
+      ? ["Thomas Bangalter"]
+      : ["Daft Punk"];
   return {
     id,
     sourceUrl: `https://www.youtube.com/watch?v=dpDiscovery${String(track.position).padStart(2, "0")}`,
@@ -238,8 +289,8 @@ const ALBUM_A: FixtureSong[] = DISCOVERY_TRACKS.map((track, index) => {
     sourceTitle: `Daft Punk - ${track.title} (Official Audio)`,
     title: track.title,
     subtitle: null,
-    artist: "Daft Punk",
-    performers: ["Daft Punk"],
+    artist: performers[0] ?? "Daft Punk",
+    performers,
     album: "Discovery",
     isrc: index === 0 ? "GBDUW0000059" : null,
     albumArtists: ["Daft Punk"],
@@ -250,24 +301,24 @@ const ALBUM_A: FixtureSong[] = DISCOVERY_TRACKS.map((track, index) => {
     // did not, so its paths carry no `Disc N - ` prefix — the plain `NN - Title` shape.
     discNumber: null,
     discCount: null,
-    publisher: "Virgin",
+    publisher: forcedSource ? "Crydamoure" : "Virgin",
     genres: ["Electronic", "House"],
     duration: track.lengthMs,
     downloadStatus: "Present",
     finalFilePath: path,
     errorMessage: null,
     recordingMbid: track.recording,
-    releaseMbid: DISCOVERY.release,
+    releaseMbid: null,
     releaseGroupMbid: DISCOVERY.releaseGroup,
     artistMbid: DISCOVERY.artist,
     albumArtistMbid: DISCOVERY.artist,
     releaseStatus: "Official",
     releaseCountry: "FR",
-    musicBrainzForced: false,
+    musicBrainzForced: true,
     recordingMbidForce: null,
-    releaseMbidForce: null,
-    forceSongMetadata: false,
-    forceSourceMetadata: false,
+    releaseMbidForce: DISCOVERY.release,
+    forceSongMetadata: forcedSong,
+    forceSourceMetadata: forcedSource,
     realPath: moved ? "Daft Punk/Discovery (2001)/03 - Digital Love [remastered edit].opus" : path,
   };
 });
@@ -352,11 +403,23 @@ interface BirdyRow {
   readonly error?: string;
   readonly forcedRecording?: string;
   readonly forcedRelease?: string;
+  readonly platform?: "YouTube" | "SoundCloud";
 }
 
 const C_ROWS: readonly BirdyRow[] = [
   { track: 1, title: "1901", status: "Present", hasFile: true, parent: BIRDY_PARENT },
-  { track: 2, title: "Skinny Love", status: "Present", hasFile: true, parent: BIRDY_PARENT },
+  {
+    track: 2,
+    title: "Skinny Love",
+    status: "Present",
+    hasFile: true,
+    parent: BIRDY_PARENT,
+    // The one row that is not a YouTube video. It has no MusicBrainz ids and no video id, so
+    // neither rung of §4's cover ladder can answer for it — and its file *does* carry the
+    // picture v1 embedded. That is exactly the `cover_missing` case: nothing is lost, but
+    // nothing in v2 can account for what is there either.
+    platform: "SoundCloud",
+  },
   {
     track: 3,
     title: "People Help the People",
@@ -423,7 +486,11 @@ const ALBUM_C: FixtureSong[] = C_ROWS.map((row, index) => {
   const path = v1Path("Birdy", "Birdy", 2011, row.track, row.title, 1);
   return {
     id,
-    sourceUrl: `https://www.youtube.com/watch?v=birdy${String(row.track).padStart(2, "0")}xxxx`,
+    sourceUrl:
+      row.platform === "SoundCloud"
+        ? `https://soundcloud.com/birdy/${row.title.toLowerCase().replace(/ /g, "-")}`
+        : `https://www.youtube.com/watch?v=birdy${String(row.track).padStart(2, "0")}xxxx`,
+    ...(row.platform === undefined ? {} : { platform: row.platform }),
     sourceUrlParent: row.parent,
     sourceId: `birdy${String(row.track).padStart(2, "0")}xxxx`,
     sourceIdParent: row.parent === null ? null : "OLAK5uy_v1birdy",
@@ -456,7 +523,7 @@ const ALBUM_C: FixtureSong[] = C_ROWS.map((row, index) => {
     albumArtistMbid: null,
     releaseStatus: null,
     releaseCountry: null,
-    musicBrainzForced: row.forcedRecording !== undefined,
+    musicBrainzForced: row.forcedRecording !== undefined || row.forcedRelease !== undefined,
     recordingMbidForce: row.forcedRecording ?? null,
     releaseMbidForce: row.forcedRelease ?? null,
     forceSongMetadata: false,
@@ -489,8 +556,24 @@ export const FIXTURE_FORCES: readonly FixtureForce[] = [
   },
   { id: 4, songId: 203, field: "AlbumArtists", value: "Justice; Gaspard Augé", isArrayValue: true },
   { id: 5, songId: 205, field: "DiscNumber", value: "2", isArrayValue: false },
-  // A row whose field v2 has no home for: it must be reported as ignored, not silently lost.
+  // A MIME type with no bytes beside it: half an override, and v2 has nothing to do with it.
+  // It must be reported as ignored, not silently lost.
   { id: 6, songId: 206, field: "CoverArtMimeType", value: "image/jpeg", isArrayValue: false },
+  /*
+   * The whole picture, on a Birdy row that has a file.
+   *
+   * v1 wrote these bytes and only these bytes into that track. v2 used to drop them on the
+   * theory that the Cover Art Archive would supply a better cover — which is precisely
+   * backwards: somebody forced a cover *because* the archive was wrong.
+   */
+  {
+    id: 7,
+    songId: 303,
+    field: "CoverArtBytes",
+    value: FIXTURE_FORCED_COVER_JPEG,
+    isArrayValue: false,
+  },
+  { id: 8, songId: 303, field: "CoverArtMimeType", value: "image/jpeg", isArrayValue: false },
 ];
 
 export const FIXTURE_PLAYLISTS: readonly FixturePlaylist[] = [

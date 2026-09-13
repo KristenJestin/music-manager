@@ -821,6 +821,12 @@ export interface components {
             /** @default auto */
             format: components["schemas"]["TagFormat"];
             /**
+             * Keep Pictures
+             * @description When `clear` drops the tag block and no picture is supplied, re-attach the pictures the file already carried instead of losing them.
+             * @default true
+             */
+            keep_pictures: boolean;
+            /**
              * Lyrics Lrc
              * @description Synchronised lyrics in LRC form; also written unsynced.
              */

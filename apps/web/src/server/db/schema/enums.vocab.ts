@@ -82,7 +82,7 @@ export type TrackState = (typeof TRACK_STATES)[number];
 export const TRACK_ROLES = ["mapped", "extra", "unmatched"] as const;
 export type TrackRole = (typeof TRACK_ROLES)[number];
 
-/** The twelve Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox. */
+/** The Inbox item types of `docs/04-pipeline-et-matching.md` § Inbox. */
 export const INBOX_TYPES = [
   "ambiguous_release",
   "ambiguous_recording",
@@ -96,6 +96,8 @@ export const INBOX_TYPES = [
   "orphan_files",
   "duplicate_recording",
   "verify_mismatch",
+  // A migrated file carries a picture no v2 source can account for (P08, migration v1).
+  "cover_missing",
 ] as const;
 export type InboxType = (typeof INBOX_TYPES)[number];
 

@@ -358,6 +358,33 @@ export function optionsFor(item: InboxItem): InboxOption[] {
         },
       ];
     }
+    case "cover_missing": {
+      return [
+        {
+          id: "keep",
+          label: "Keep the picture that is in the file",
+          detail:
+            "Nothing is removed: the cover v1 embedded stays where it is. It is simply not in the document, so a re-tag cannot re-create it.",
+          preselected: true,
+          value: { action: "keep_embedded", accepted: true },
+        },
+        {
+          id: "choose",
+          label: "Pick a cover on the album page",
+          detail:
+            "The cover picker lists the Cover Art Archive candidates and accepts an upload; whatever is chosen there is written to the document and locked.",
+          preselected: false,
+          value: { action: "choose_cover" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
     case "cookies_expiring": {
       return [
         {
