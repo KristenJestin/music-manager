@@ -127,6 +127,11 @@ export const saveIntegrationSettings = createServerFn({ method: "POST", strict: 
  *
  * It takes the form's current values rather than the stored ones, so you can find out whether
  * a password works *before* saving it — which is the only order in which the button is useful.
+ *
+ * It no longer forces `navidromeEnabled: true`. `navidromeStatus` probes whenever a URL and a
+ * user are present, so the button still answers while the toggle is off, and the answer it
+ * gives back carries `state: "disabled"` instead of a cheerful "connected" for a server that
+ * Discover and the signals collector are ignoring.
  */
 export const testNavidrome = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
@@ -135,6 +140,8 @@ export const testNavidrome = createServerFn({ method: "POST", strict: STRICT })
       url: z.string().optional(),
       user: z.string().optional(),
       password: z.string().optional(),
+      /** The form's toggle, so the answer describes the state you are about to save. */
+      enabled: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }): Promise<NavidromeStatus> => {
@@ -143,7 +150,7 @@ export const testNavidrome = createServerFn({ method: "POST", strict: STRICT })
       const stored = await loadSettings(database);
       const settings = {
         ...stored,
-        navidromeEnabled: true,
+        navidromeEnabled: data.enabled ?? stored.navidromeEnabled,
         navidromeUrl: data.url ?? stored.navidromeUrl,
         navidromeUser: data.user ?? stored.navidromeUser,
         navidromePassword:

@@ -390,17 +390,29 @@ function DownloaderPanel({
       <Diag
         testId="diag-navidrome"
         name="Navidrome"
-        tone={navidrome.ok ? "ok" : navidrome.configured ? "danger" : "muted"}
+        tone={
+          navidrome.state === "connected"
+            ? "ok"
+            : navidrome.state === "disabled"
+              ? "warn"
+              : navidrome.state === "unreachable"
+                ? "danger"
+                : "muted"
+        }
         detail={
-          navidrome.ok
+          // `state` is the shared notion: "it answers" and "it is switched on" are two facts,
+          // and a Tools row that reported only the first is what sent people to Discover
+          // wondering why the same server was described as missing there.
+          navidrome.state === "connected"
             ? `${navidrome.server} ${navidrome.serverVersion} · ${String(navidrome.latencyMs)} ms · ${navidrome.songCount === null ? "never scanned" : `${String(navidrome.songCount)} songs`}${navidrome.scanning ? " · scanning now" : ""}`
             : (navidrome.error ?? "No Navidrome server is configured.")
         }
       >
-        {navidrome.configured ? null : (
+        {navidrome.state === "connected" ? null : (
           <ConfigureLink
             to="/settings/integrations"
             hash="navidrome"
+            label={navidrome.state === "disabled" ? "Enable" : "Configure"}
             testId="navidrome-configure"
           />
         )}

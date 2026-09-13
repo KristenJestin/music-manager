@@ -65,9 +65,36 @@ export function navidromeClient(
   );
 }
 
+/**
+ * The one shared notion of "where does Navidrome stand?".
+ *
+ * There used to be two: Settings → Integrations and Tools asked "is a URL and a user set?",
+ * while Discover, the signals collector and the playlist push asked "is it *switched on*?".
+ * `navidromeEnabled` defaults to `false`, so a freshly filled form produced a page saying
+ * **connected** next to a Discover page saying **no Navidrome server is configured** — two
+ * true sentences about the same server, and no way to guess which one to act on.
+ *
+ *  - `unconfigured` — no URL or no user.
+ *  - `disabled` — URL and user are set, `navidromeEnabled` is off. Nothing reads it.
+ *  - `unreachable` — switched on, and it did not answer.
+ *  - `connected` — switched on and answering.
+ */
+export const NAVIDROME_STATES = ["unconfigured", "disabled", "unreachable", "connected"] as const;
+export type NavidromeState = (typeof NAVIDROME_STATES)[number];
+
+/** Named once, because Discover, Tools and Integrations must say the same thing. */
+export const NAVIDROME_DISABLED_MESSAGE =
+  "Navidrome is configured but switched off (the “Use Navidrome” toggle in " +
+  "Settings › Integrations). Enable it to use it.";
+
+export const NAVIDROME_UNCONFIGURED_MESSAGE = "No Navidrome server is configured.";
+
 export interface NavidromeStatus {
+  /** A URL and a user are set. Says nothing about the toggle — read `state` for that. */
   readonly configured: boolean;
+  /** Configured **and** switched on: what every consumer of the server actually requires. */
   readonly enabled: boolean;
+  readonly state: NavidromeState;
   readonly url: string;
   readonly user: string;
   readonly ok: boolean;
@@ -88,6 +115,11 @@ export interface NavidromeStatus {
  *
  * It never throws: a wrong password is an answer, and the Console wants to render it next to
  * the field that caused it rather than in an error boundary.
+ *
+ * It probes as soon as a URL and a user exist, **including while the toggle is off**, so that
+ * "Test" answers before you commit the credentials — which is the only order in which that
+ * button is useful. The toggle is reported separately (`state: "disabled"`) instead of being
+ * forged, so nothing here can make a switched-off server look switched on.
  */
 export async function navidromeStatus(options: {
   db?: Database;
@@ -96,9 +128,11 @@ export async function navidromeStatus(options: {
 }): Promise<NavidromeStatus> {
   const settings = options.settings ?? (await loadSettings(options.db));
   const config = navidromeConfig(settings);
+  const configured = config.url !== "" && config.user !== "";
   const base: NavidromeStatus = {
-    configured: config.url !== "" && config.user !== "",
+    configured,
     enabled: config.enabled,
+    state: configured ? (config.enabled ? "unreachable" : "disabled") : "unconfigured",
     url: config.url,
     user: config.user,
     ok: false,
@@ -114,7 +148,7 @@ export async function navidromeStatus(options: {
     error: null,
   };
   if (!base.configured) {
-    return { ...base, error: "No Navidrome server is configured." };
+    return { ...base, error: NAVIDROME_UNCONFIGURED_MESSAGE };
   }
 
   const client = options.client ?? navidromeClient(settings);
@@ -134,7 +168,9 @@ export async function navidromeStatus(options: {
       scanning: status.scanning,
       lastScan: status.lastScan ?? null,
       songCount: status.count ?? null,
-      error: null,
+      // Answering does not make a switched-off server usable; only the toggle does.
+      state: config.enabled ? "connected" : "disabled",
+      error: config.enabled ? null : NAVIDROME_DISABLED_MESSAGE,
     };
   } catch (error) {
     return { ...base, error: MMError.from(error).message };

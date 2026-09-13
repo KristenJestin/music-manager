@@ -13,6 +13,8 @@ import { Check } from "lucide-react";
 import { cn } from "cn";
 import { Label } from "#/components/ui/label.tsx";
 import { Switch } from "#/components/ui/switch.tsx";
+import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
 
 /** Label on the left, control on the right, help text under the label. */
 export function FormRow({
@@ -199,5 +201,70 @@ export function ReadOnly({ value, note }: { readonly value: string; readonly not
       </code>
       {note === undefined ? null : <span className="text-2xs text-fg-3">{note}</span>}
     </span>
+  );
+}
+
+/**
+ * A credential field that never displays a credential.
+ *
+ * The server sends `SETTING_MASK` — the string `"set"` — in place of every stored secret, and
+ * a plain `<Input>` rendered that word inside the box, which reads like a four-character key.
+ * So the masked state is a *placeholder* (`•••••• (set)`) over an empty, read-only input and a
+ * **Replace** button next to it; pressing Replace hands the field back, empty, and whatever is
+ * typed then is the new value. Leaving it empty after Replace removes the key, which is the
+ * only way to clear one and is said out loud in the help text of each call site.
+ *
+ * Shared rather than written twice: `lastfmKey` lives on Metadata & matching *and* on Discover,
+ * and two implementations of "do not show the secret" is one too many.
+ */
+export function SecretInput({
+  testId,
+  masked,
+  value,
+  onChange,
+  className,
+  placeholder = "not set",
+}: {
+  readonly testId?: string;
+  /** A value is stored and what `value` carries is the mask, not the secret. */
+  readonly masked: boolean;
+  readonly value: string;
+  readonly onChange: (next: string) => void;
+  readonly className?: string;
+  readonly placeholder?: string;
+}) {
+  if (masked) {
+    return (
+      <>
+        <Input
+          readOnly
+          data-testid={testId}
+          className={cn("h-7 max-w-md font-mono text-xs", className)}
+          value=""
+          placeholder="•••••• (set)"
+        />
+        <Button
+          size="xs"
+          variant="outline"
+          data-testid={testId === undefined ? undefined : `${testId}-replace`}
+          onClick={() => {
+            onChange("");
+          }}
+        >
+          Replace
+        </Button>
+      </>
+    );
+  }
+  return (
+    <Input
+      data-testid={testId}
+      className={cn("h-7 max-w-md font-mono text-xs", className)}
+      value={value}
+      placeholder={placeholder}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
+    />
   );
 }

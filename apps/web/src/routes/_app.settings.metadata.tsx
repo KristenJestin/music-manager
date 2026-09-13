@@ -28,7 +28,14 @@ import { Callout } from "#/components/callout.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
-import { ChipGroup, ChipMulti, FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import {
+  ChipGroup,
+  ChipMulti,
+  FormRow,
+  Section,
+  SecretInput,
+  Toggle,
+} from "#/components/settings/controls.tsx";
 import { SettingsForm } from "#/components/settings/settings-form.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { SchemaHeading } from "#/components/library/schema.tsx";
@@ -67,6 +74,9 @@ function MetadataSettings() {
   const hydrated = useHydrated();
 
   const value = <T,>(key: string, fallback: T): T => (values[key] as T | undefined) ?? fallback;
+  /** Is this key a credential? The payload says so; the page never guesses from the value. */
+  const isSecret = (key: string): boolean =>
+    payload.fields.find((field) => field.key === key)?.secret === true;
   const set = (key: string, next: unknown): void => {
     setValues((current) => ({ ...current, [key]: next }));
   };
@@ -384,14 +394,14 @@ function MetadataSettings() {
         </FormRow>
         <FormRow
           label="Last.fm key"
-          help="Moods and community genres. Empty means: take MM_LASTFM_KEY."
+          help="Moods and community genres, and Discover's similar-artist fallback — it is one key, shown on both tabs. Empty means: take MM_LASTFM_KEY. After “Replace”, leaving it empty removes it."
         >
-          <Input
-            data-testid="setting-lastfmKey"
-            className="h-7 max-w-md font-mono text-xs"
+          <SecretInput
+            testId="setting-lastfmKey"
+            masked={isSecret("lastfmKey") && String(value("lastfmKey", "")) !== ""}
             value={String(value("lastfmKey", ""))}
-            onChange={(event) => {
-              set("lastfmKey", event.target.value);
+            onChange={(next) => {
+              set("lastfmKey", next);
             }}
           />
           <Button

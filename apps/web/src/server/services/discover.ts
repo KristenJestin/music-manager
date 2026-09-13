@@ -42,7 +42,7 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { serverEnv } from "#/server/env.ts";
-import type { SourceContext } from "#/server/integrations/config.ts";
+import { sourcesConfig, type SourceContext } from "#/server/integrations/config.ts";
 import type { NavidromeClient } from "#/server/integrations/navidrome/client.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import {
@@ -50,7 +50,12 @@ import {
   openLibraryItem,
   openLibraryItems,
 } from "#/server/services/library-inbox.ts";
-import { navidromeConfig, navidromeClient } from "#/server/services/navidrome.ts";
+import {
+  NAVIDROME_DISABLED_MESSAGE,
+  NAVIDROME_UNCONFIGURED_MESSAGE,
+  navidromeClient,
+  navidromeConfig,
+} from "#/server/services/navidrome.ts";
 import { discographyGaps, gapReason, type DiscographyGap } from "#/server/services/discography.ts";
 import { collectRecommendations } from "#/server/services/recommendations.ts";
 import { collectSignals, sourceStrip, type ListeningSignals } from "#/server/services/signals.ts";
@@ -332,10 +337,7 @@ export interface SyncReport {
  * be worse than one.
  */
 export function explainDiscover(input: {
-  readonly settings: Pick<
-    Settings,
-    "discoverEnabled" | "navidromeUrl" | "listenbrainzUser" | "lastfmKey" | "discoverWindowDays"
-  >;
+  readonly settings: Settings;
   readonly totalPlays: number;
   readonly topArtists: number;
   readonly signalsError: string | null;
@@ -349,11 +351,22 @@ export function explainDiscover(input: {
   if (input.signalsError !== null) {
     notes.push(`Listening signals could not be read: ${input.signalsError}`);
   }
-  if (input.settings.navidromeUrl.trim() === "") {
+  /*
+   * Through `navidromeConfig`, not through `settings.navidromeUrl`.
+   *
+   * Reading the raw setting skipped the `MM_NAVIDROME_URL` fallback — a container configured
+   * entirely by its environment was told it had no server — and it could not tell "nothing is
+   * filled in" from "it is filled in and switched off", which are two different actions.
+   */
+  const navidrome = navidromeConfig(input.settings);
+  if (navidrome.url === "" || navidrome.user === "") {
     notes.push(
-      "No Navidrome server is configured (`navidromeUrl`), so there is no play history to " +
+      "No Navidrome server is configured (`navidromeUrl` / `navidromeUser`, or " +
+        "`MM_NAVIDROME_URL` / `MM_NAVIDROME_USER`), so there is no play history to " +
         "learn from — discography gaps are ranked by what you actually listen to.",
     );
+  } else if (!navidrome.enabled) {
+    notes.push(`${NAVIDROME_DISABLED_MESSAGE} Until then there is no play history to learn from.`);
   } else if (input.totalPlays === 0) {
     notes.push(
       `Navidrome reported no plays in the last ${String(input.settings.discoverWindowDays)} day(s), ` +
@@ -368,7 +381,13 @@ export function explainDiscover(input: {
         "has no source.",
     );
   }
-  if (input.settings.lastfmKey.trim() === "" && process.env.MM_LASTFM_KEY === undefined) {
+  /*
+   * `sourcesConfig` resolves setting-then-environment and returns the *effective* key, so an
+   * empty `MM_LASTFM_KEY=` in `.env` no longer counts as configured. The old test was
+   * `process.env.MM_LASTFM_KEY === undefined`, and `.env.example` ships that very line empty —
+   * so the note never appeared for anyone who had copied the example, which is everyone.
+   */
+  if (sourcesConfig(input.settings).lastfmKey === "") {
     notes.push(
       "No Last.fm key is configured (`lastfmKey` or `MM_LASTFM_KEY`), so similar artists " +
         "cannot be fetched.",
@@ -744,7 +763,11 @@ export async function pushRecommendedPlaylist(options: {
   const settings = options.settings ?? (await loadSettings(db));
   const config = navidromeConfig(settings);
   if (!config.enabled && options.client === undefined) {
-    return { pushed: 0, skipped: 0, error: "No Navidrome server is configured." };
+    const why =
+      config.url === "" || config.user === ""
+        ? NAVIDROME_UNCONFIGURED_MESSAGE
+        : NAVIDROME_DISABLED_MESSAGE;
+    return { pushed: 0, skipped: 0, error: why };
   }
   const client = options.client ?? navidromeClient(settings);
 

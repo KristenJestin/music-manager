@@ -15,7 +15,13 @@ import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { SettingsForm } from "#/components/settings/settings-form.tsx";
-import { ChipMulti, FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import {
+  ChipMulti,
+  FormRow,
+  Section,
+  SecretInput,
+  Toggle,
+} from "#/components/settings/controls.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import {
   fetchDiscoverSettings,
@@ -46,6 +52,9 @@ function DiscoverSettings() {
   );
 
   const value = <T,>(key: string, fallback: T): T => (values[key] as T | undefined) ?? fallback;
+  /** Is this key a credential? The payload says so; the page never guesses from the value. */
+  const secret = (key: string): boolean =>
+    payload.fields.find((field) => field.key === key)?.secret === true;
   const set = (key: string, next: unknown): void => {
     setValues((current) => ({ ...current, [key]: next }));
   };
@@ -67,7 +76,19 @@ function DiscoverSettings() {
 
   return (
     <SettingsForm hydrated={hydrated} testId="settings-discover">
-      {payload.navidromeConfigured ? null : (
+      {/*
+       * Three states, not two. "No URL" and "a URL with the switch off" have different fixes,
+       * and the page used to print the first sentence for both — which is how Integrations
+       * could say "connected" while this page said "nothing is configured".
+       */}
+      {payload.navidromeEnabled ? null : payload.navidromeConfigured ? (
+        <Callout tone="warn">
+          Navidrome is configured but switched off: the “Use Navidrome” toggle in Settings ›
+          Integrations is off, so nothing reads its play counts. The discography block still works
+          from what is already in the library; the other two need listening signals.{" "}
+          <Link to="/settings/integrations">Enable it</Link>.
+        </Callout>
+      ) : (
         <Callout tone="warn">
           No Navidrome server is configured, so there are no play counts to work from. The
           discography block still works from what is already in the library; the other two need
@@ -116,6 +137,27 @@ function DiscoverSettings() {
               set("listenbrainzUser", event.target.value);
             }}
           />
+        </FormRow>
+        {/*
+         * The same key as Settings › Metadata & matching, on purpose: it is the similar-artist
+         * source Discover falls back to when ListenBrainz has nothing, and a Discover tab that
+         * cannot show it cannot explain why that block is empty.
+         */}
+        <FormRow
+          label="Last.fm key"
+          help="Similar artists, the fallback when ListenBrainz is silent. Also used by Metadata & matching for genres and moods — it is one key. Empty means: take MM_LASTFM_KEY. After “Replace”, leaving it empty removes it."
+        >
+          <SecretInput
+            testId="setting-lastfmKey"
+            masked={secret("lastfmKey") && String(value("lastfmKey", "")) !== ""}
+            value={String(value("lastfmKey", ""))}
+            onChange={(next) => {
+              set("lastfmKey", next);
+            }}
+          />
+          <Link to="/settings/metadata" className="text-2xs text-fg-3 underline">
+            also on Metadata &amp; matching
+          </Link>
         </FormRow>
       </Section>
 

@@ -866,13 +866,10 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     expect(Array.isArray(list.notes)).toBe(true);
 
     const explained = discover.explainDiscover({
-      settings: {
-        discoverEnabled: true,
-        navidromeUrl: "",
-        listenbrainzUser: "",
-        lastfmKey: "",
-        discoverWindowDays: 30,
-      },
+      // The whole registry: `explainDiscover` resolves Navidrome and Last.fm through
+      // `navidromeConfig` / `sourcesConfig` now, so it needs the real shape rather than the
+      // five keys it happens to mention.
+      settings: { ...settings.defaults(), discoverEnabled: true },
       totalPlays: 0,
       topArtists: 0,
       signalsError: null,
