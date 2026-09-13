@@ -38,6 +38,18 @@ export interface MigrationCounts {
   readonly sidecarsWritten: number;
   readonly replaygainAlbums: number;
   readonly renamed: number;
+  /** Files moved into their album's folder by the consolidation. */
+  readonly consolidated: number;
+  /** Tracks moved from one `library_albums` row to another by the regrouping. */
+  readonly regrouped: number;
+  /** Album rows the regrouping left with no track, and therefore deleted. */
+  readonly albumsRemoved: number;
+  /** Albums whose key was a release MBID — the rule. */
+  readonly albumsByRelease: number;
+  /** Albums that fell back to v1's (album artist, album, year) triple plus the folder. */
+  readonly albumsByTags: number;
+  /** Present rows with no release MBID at all, which is the only reason `albumsByTags` is not 0. */
+  readonly withoutRelease: number;
   readonly albumsVerified: number;
   readonly inboxItems: number;
   readonly failed: number;
@@ -74,6 +86,31 @@ export interface ReportRename {
   readonly to: string;
 }
 
+export interface ReportMove {
+  readonly from: string;
+  readonly to: string;
+}
+
+/**
+ * One album the run regrouped: where its tracks were, and where they go.
+ *
+ * This is what `--dry-run` prints before anything moves, and it is the whole preview a person
+ * needs in order to say yes: which release, which album rows it dissolves, which folder wins,
+ * and every file the consolidation touches.
+ */
+export interface ReportRegroup {
+  /** The release MBID that is the album's key, `null` for a tag-grouped album. */
+  readonly release: string | null;
+  /** `Artist — Title`, for a human. */
+  readonly album: string;
+  /** The `library_albums` rows the tracks are in today, labelled. */
+  readonly from: readonly string[];
+  /** The folder the album lands in. */
+  readonly to: string;
+  readonly tracks: number;
+  readonly moves: readonly ReportMove[];
+}
+
 export interface ReportError {
   readonly songId: number | null;
   readonly path: string | null;
@@ -84,6 +121,10 @@ export interface MigrationReport {
   readonly runId: string;
   readonly dryRun: boolean;
   readonly renameToTemplate: boolean;
+  /** `release` or `tags` — which rule decided what an album is. */
+  readonly groupBy: "release" | "tags";
+  /** True when `--keep-folders` suppressed the consolidation. */
+  readonly keepFolders: boolean;
   readonly library: string;
   /** The v1 connection string, password removed. */
   readonly database: string;
@@ -95,6 +136,10 @@ export interface MigrationReport {
   readonly imports: readonly ReportImport[];
   readonly playlists: readonly { name: string; path: string; entries: number; missing: number }[];
   readonly renames: readonly ReportRename[];
+  /** The consolidation, file by file. Empty with `--keep-folders`. */
+  readonly moves: readonly ReportMove[];
+  /** The albums this run regrouped, planned in a dry run and performed in a real one. */
+  readonly regroup: readonly ReportRegroup[];
   readonly discrepancies: readonly Discrepancy[];
   readonly errors: readonly ReportError[];
   /**
@@ -125,6 +170,12 @@ export function emptyCounts(): MigrationCounts {
     sidecarsWritten: 0,
     replaygainAlbums: 0,
     renamed: 0,
+    consolidated: 0,
+    regrouped: 0,
+    albumsRemoved: 0,
+    albumsByRelease: 0,
+    albumsByTags: 0,
+    withoutRelease: 0,
     albumsVerified: 0,
     inboxItems: 0,
     failed: 0,
@@ -154,6 +205,10 @@ export function formatReport(report: MigrationReport): string {
   );
   lines.push(`  v1 database   ${report.database}`);
   lines.push(`  v1 library    ${report.library}`);
+  lines.push(
+    `  grouping      ${report.groupBy === "release" ? "by v1 release MBID" : "by v1 tags (album artist, album, year) + folder"}` +
+      `${report.keepFolders ? ", folders kept as they are" : ""}`,
+  );
   lines.push("");
 
   lines.push("  inventory");
@@ -162,6 +217,12 @@ export function formatReport(report: MigrationReport): string {
     lines.push(`    ${String(value).padStart(5)}  ${label}`);
   }
   lines.push(`    ${String(counts.orphanFiles).padStart(5)}  files no v1 row claims`);
+  lines.push(
+    `    ${String(counts.albumsByRelease).padStart(5)}  album(s) keyed on a v1 release MBID`,
+  );
+  lines.push(
+    `    ${String(counts.albumsByTags).padStart(5)}  album(s) keyed on v1 tags, for ${String(counts.withoutRelease)} row(s) with no release`,
+  );
   lines.push("");
 
   lines.push(report.dryRun ? "  would do" : "  did");
@@ -183,6 +244,11 @@ export function formatReport(report: MigrationReport): string {
   lines.push(`    ${String(counts.importsCreated).padStart(5)}  import(s) created`);
   lines.push(`    ${String(counts.importTracksCreated).padStart(5)}  import track(s)`);
   lines.push(`    ${String(counts.renamed).padStart(5)}  file(s) renamed to the v2 template`);
+  lines.push(
+    `    ${String(counts.consolidated).padStart(5)}  file(s) moved into their album's folder`,
+  );
+  lines.push(`    ${String(counts.regrouped).padStart(5)}  track(s) moved to another album row`);
+  lines.push(`    ${String(counts.albumsRemoved).padStart(5)}  album row(s) left empty and removed`);
   lines.push(`    ${String(counts.inboxItems).padStart(5)}  Inbox item(s)`);
   lines.push(`    ${String(counts.alreadyDone).padStart(5)}  row(s) already done, skipped`);
   lines.push(`    ${String(counts.failed).padStart(5)}  failure(s)`);
@@ -218,6 +284,38 @@ export function formatReport(report: MigrationReport): string {
       lines.push(
         `    ${String(playlist.entries).padStart(4)} entries (${String(playlist.missing)} not migrated)  ${playlist.name}`,
       );
+    }
+  }
+
+  if (report.regroup.length > 0) {
+    lines.push("");
+    lines.push(report.dryRun ? "  would regroup" : "  regrouped");
+    for (const entry of report.regroup.slice(0, 30)) {
+      lines.push(
+        `    ${entry.album}  ${String(entry.tracks)} tr` +
+          `${entry.release === null ? "" : `  release ${entry.release}`}`,
+      );
+      for (const from of entry.from) lines.push(`      was in  ${from}`);
+      lines.push(`      now in  ${entry.to}`);
+    }
+    if (report.regroup.length > 30) {
+      lines.push(`    … and ${String(report.regroup.length - 30)} more`);
+    }
+  }
+
+  if (report.moves.length > 0) {
+    lines.push("");
+    lines.push(
+      report.dryRun
+        ? "  would move into the album folder (Navidrome play counts follow the path)"
+        : "  moved into the album folder — Navidrome play counts follow the path",
+    );
+    for (const move of report.moves.slice(0, 20)) {
+      lines.push(`    ${move.from}`);
+      lines.push(`      → ${move.to}`);
+    }
+    if (report.moves.length > 20) {
+      lines.push(`    … and ${String(report.moves.length - 20)} more`);
     }
   }
 

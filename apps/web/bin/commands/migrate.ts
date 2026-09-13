@@ -51,6 +51,7 @@ const flagBoolean = (args: CliArgs, name: string): boolean =>
 
 export const MIGRATE_USAGE = `usage:
   mm migrate v1 --db <postgres url> --library <dir> [--dry-run] [--rename-to-template]
+                [--group-by release|tags] [--keep-folders]
                 [--limit N] [--resume] [--i-have-a-backup] [--verify] [--json]
   mm migrate runs
   mm migrate show <run id> [--json]`;
@@ -93,6 +94,17 @@ export async function cmdMigrate(args: CliArgs): Promise<number> {
   }
 
   const dryRun = flagBoolean(args, "dry-run");
+  // The album is the v1 release MBID. `--group-by tags` is the escape hatch back to the old
+  // (album artist, album, year) + folder key, kept so a library migrated that way can be
+  // reproduced and compared before it is regrouped.
+  const groupByRaw = flagString(args, "group-by") ?? "release";
+  if (groupByRaw !== "release" && groupByRaw !== "tags") {
+    throw new MMError("INVALID_INPUT", `--group-by must be "release" or "tags", got "${groupByRaw}".`, {
+      hint: "release (the default) keys an album on the v1 release MBID; tags reproduces the pre-P11.1 grouping.",
+    });
+  }
+  const groupBy: "release" | "tags" = groupByRaw;
+  const keepFolders = flagBoolean(args, "keep-folders");
   const renameToTemplate = flagBoolean(args, "rename-to-template");
   const limitRaw = flagString(args, "limit");
   const limit = limitRaw === undefined ? undefined : Number.parseInt(limitRaw, 10);
@@ -111,6 +123,8 @@ export async function cmdMigrate(args: CliArgs): Promise<number> {
     libraryPath: library,
     dryRun,
     renameToTemplate,
+    groupBy,
+    keepFolders,
     ...(limit === undefined ? {} : { limit }),
     resume: flagBoolean(args, "resume"),
     acknowledgeBackup: flagBoolean(args, "i-have-a-backup"),

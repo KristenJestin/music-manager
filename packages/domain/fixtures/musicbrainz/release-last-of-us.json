@@ -1,0 +1,353 @@
+{
+  "id": "9d3a1b74-5f21-4a5e-b3c8-7e2f6a0d1c45",
+  "title": "The Last of Us",
+  "status": "Official",
+  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+  "quality": "normal",
+  "date": "2013-06-07",
+  "country": "US",
+  "barcode": "888837052429",
+  "disambiguation": "",
+  "asin": null,
+  "packaging": null,
+  "packaging-id": null,
+  "artist-credit": [
+    {
+      "name": "Gustavo Santaolalla",
+      "joinphrase": "",
+      "artist": {
+        "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+        "name": "Gustavo Santaolalla",
+        "sort-name": "Santaolalla, Gustavo",
+        "disambiguation": "",
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "AR"
+      }
+    }
+  ],
+  "text-representation": {
+    "language": "eng",
+    "script": "Latn"
+  },
+  "release-group": {
+    "id": "6f2e0a87-1c93-4b5d-8e47-3a0b9c1d2e56",
+    "title": "The Last of Us",
+    "primary-type": "Album",
+    "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+    "secondary-types": [
+      "Soundtrack"
+    ],
+    "secondary-type-ids": [],
+    "first-release-date": "2013-06-07",
+    "disambiguation": ""
+  },
+  "label-info": [
+    {
+      "catalog-number": "88883705242",
+      "label": {
+        "id": "0e6b3a2c-6a3a-468b-8b0c-2f4c0d1b7e51",
+        "name": "Sony Classical",
+        "disambiguation": "",
+        "sort-name": "Sony Classical",
+        "label-code": null,
+        "type": null,
+        "type-id": null
+      }
+    }
+  ],
+  "release-events": [
+    {
+      "date": "2013-06-07",
+      "area": {
+        "id": "489ce91b-6658-3307-9877-795b68554c98",
+        "name": "United States",
+        "sort-name": "United States",
+        "iso-3166-1-codes": [
+          "US"
+        ],
+        "disambiguation": ""
+      }
+    }
+  ],
+  "cover-art-archive": {
+    "artwork": false,
+    "count": 0,
+    "front": false,
+    "back": false,
+    "darkened": false
+  },
+  "genres": [
+    {
+      "id": "d3b9b1c6-0000-4000-8000-000000000001",
+      "name": "soundtrack",
+      "count": 3,
+      "disambiguation": ""
+    }
+  ],
+  "tags": [],
+  "aliases": [],
+  "relations": [],
+  "media": [
+    {
+      "position": 1,
+      "format": "Digital Media",
+      "format-id": "907a28f9-b992-3b06-9ffa-df1ac2f8d2bd",
+      "title": "",
+      "track-count": 5,
+      "track-offset": 0,
+      "tracks": [
+        {
+          "id": "7a1e0c34-9d52-4b68-8f03-1c6a2e5d0947",
+          "position": 1,
+          "number": "1",
+          "title": "The Last of Us",
+          "length": 157000,
+          "artist-credit": [
+            {
+              "name": "Gustavo Santaolalla",
+              "joinphrase": "",
+              "artist": {
+                "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                "name": "Gustavo Santaolalla",
+                "sort-name": "Santaolalla, Gustavo",
+                "disambiguation": "",
+                "type": "Person",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "country": "AR"
+              }
+            }
+          ],
+          "recording": {
+            "id": "c4a91f38-6b72-4d05-9e18-7f2a3c5d0b61",
+            "title": "The Last of Us",
+            "length": 157000,
+            "disambiguation": "",
+            "video": false,
+            "first-release-date": "2013-06-07",
+            "artist-credit": [
+              {
+                "name": "Gustavo Santaolalla",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                  "name": "Gustavo Santaolalla",
+                  "sort-name": "Santaolalla, Gustavo",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "AR"
+                }
+              }
+            ],
+            "isrcs": [],
+            "genres": [],
+            "tags": [],
+            "aliases": [],
+            "relations": []
+          }
+        },
+        {
+          "id": "b5d27f81-3a06-4c19-9e74-2f8b0d3a6c15",
+          "position": 2,
+          "number": "2",
+          "title": "The Quarantine Zone (20 Years Later)",
+          "length": 161000,
+          "artist-credit": [
+            {
+              "name": "Gustavo Santaolalla",
+              "joinphrase": "",
+              "artist": {
+                "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                "name": "Gustavo Santaolalla",
+                "sort-name": "Santaolalla, Gustavo",
+                "disambiguation": "",
+                "type": "Person",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "country": "AR"
+              }
+            }
+          ],
+          "recording": {
+            "id": "e7b35d29-0c48-4a16-b9f3-2d6e8a4c1057",
+            "title": "The Quarantine Zone (20 Years Later)",
+            "length": 161000,
+            "disambiguation": "",
+            "video": false,
+            "first-release-date": "2013-06-07",
+            "artist-credit": [
+              {
+                "name": "Gustavo Santaolalla",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                  "name": "Gustavo Santaolalla",
+                  "sort-name": "Santaolalla, Gustavo",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "AR"
+                }
+              }
+            ],
+            "isrcs": [],
+            "genres": [],
+            "tags": [],
+            "aliases": [],
+            "relations": []
+          }
+        },
+        {
+          "id": "0c93a6e7-5b14-4d82-a01f-7e35c8b2d940",
+          "position": 3,
+          "number": "3",
+          "title": "The Path",
+          "length": 165000,
+          "artist-credit": [
+            {
+              "name": "Gustavo Santaolalla",
+              "joinphrase": "",
+              "artist": {
+                "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                "name": "Gustavo Santaolalla",
+                "sort-name": "Santaolalla, Gustavo",
+                "disambiguation": "",
+                "type": "Person",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "country": "AR"
+              }
+            }
+          ],
+          "recording": {
+            "id": "a2f68c14-9d07-4e53-8b1a-6c3f0e29d745",
+            "title": "The Path",
+            "length": 165000,
+            "disambiguation": "",
+            "video": false,
+            "first-release-date": "2013-06-07",
+            "artist-credit": [
+              {
+                "name": "Gustavo Santaolalla",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                  "name": "Gustavo Santaolalla",
+                  "sort-name": "Santaolalla, Gustavo",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "AR"
+                }
+              }
+            ],
+            "isrcs": [],
+            "genres": [],
+            "tags": [],
+            "aliases": [],
+            "relations": []
+          }
+        },
+        {
+          "id": "e41f8b05-2c67-4a93-b58d-09a7f1c46e23",
+          "position": 4,
+          "number": "4",
+          "title": "All Gone (No Escape)",
+          "length": 169000,
+          "artist-credit": [
+            {
+              "name": "Gustavo Santaolalla",
+              "joinphrase": "",
+              "artist": {
+                "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                "name": "Gustavo Santaolalla",
+                "sort-name": "Santaolalla, Gustavo",
+                "disambiguation": "",
+                "type": "Person",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "country": "AR"
+              }
+            }
+          ],
+          "recording": {
+            "id": "5d0e7a93-4f21-4c68-9a35-1b8d2e6f0c47",
+            "title": "All Gone (No Escape)",
+            "length": 169000,
+            "disambiguation": "",
+            "video": false,
+            "first-release-date": "2013-06-07",
+            "artist-credit": [
+              {
+                "name": "Gustavo Santaolalla",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                  "name": "Gustavo Santaolalla",
+                  "sort-name": "Santaolalla, Gustavo",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "AR"
+                }
+              }
+            ],
+            "isrcs": [],
+            "genres": [],
+            "tags": [],
+            "aliases": [],
+            "relations": []
+          }
+        },
+        {
+          "id": "36b0d9c2-7f48-4e15-8a6b-14d7e0f39c58",
+          "position": 5,
+          "number": "5",
+          "title": "Vanishing Grace",
+          "length": 173000,
+          "artist-credit": [
+            {
+              "name": "Gustavo Santaolalla",
+              "joinphrase": "",
+              "artist": {
+                "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                "name": "Gustavo Santaolalla",
+                "sort-name": "Santaolalla, Gustavo",
+                "disambiguation": "",
+                "type": "Person",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "country": "AR"
+              }
+            }
+          ],
+          "recording": {
+            "id": "83c1b6f5-2a09-4d74-b5e8-0f7a3c1d9626",
+            "title": "Vanishing Grace",
+            "length": 173000,
+            "disambiguation": "",
+            "video": false,
+            "first-release-date": "2013-06-07",
+            "artist-credit": [
+              {
+                "name": "Gustavo Santaolalla",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+                  "name": "Gustavo Santaolalla",
+                  "sort-name": "Santaolalla, Gustavo",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "country": "AR"
+                }
+              }
+            ],
+            "isrcs": [],
+            "genres": [],
+            "tags": [],
+            "aliases": [],
+            "relations": []
+          }
+        }
+      ]
+    }
+  ]
+}

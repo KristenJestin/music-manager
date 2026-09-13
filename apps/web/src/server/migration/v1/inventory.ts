@@ -10,7 +10,7 @@
  *
  *  - which v1 rows have a file, and which file (`reconcile.ts`);
  *  - which albums those files form — v1 has no album entity, so an album is the set of rows
- *    that agree on artist, title and year, which is exactly what v1's own path generator used;
+ *    that share a **release MBID**, which is the decision v1 had already made per track;
  *  - which rows have no file, and which parent playlist groups them into one v2 import.
  */
 import { existsSync } from "node:fs";
@@ -21,7 +21,12 @@ import { walkLibrary } from "#/server/services/scan.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { classify, needsImport } from "./classify.ts";
-import { reconcile, type Reconciliation, type ScannedFile } from "./reconcile.ts";
+import {
+  reconcile,
+  releaseMbidOf,
+  type Reconciliation,
+  type ScannedFile,
+} from "./reconcile.ts";
 import { albumKeyOf } from "./seed.ts";
 import { identifiersOf } from "./schema.ts";
 import type { V1Dataset, V1ForceMetadata, V1Song } from "./schema.ts";
@@ -36,11 +41,39 @@ export interface PlannedSong {
   readonly matchedBy: "path" | "recording_mbid" | "youtube_id" | "none";
 }
 
-/** An album is a set of v1 rows whose files sit in one folder. */
+/** How `groupAlbums` decided what an album is. */
+export type AlbumGrouping = "release" | "tags";
+
+/** One of the v1 folders an album's tracks are spread over, with how many are in it. */
+export interface PlannedFolder {
+  readonly folder: string;
+  readonly tracks: number;
+}
+
+/** A file the folder consolidation would move, library-relative on both ends. */
+export interface PlannedMove {
+  readonly songId: number;
+  readonly from: string;
+  readonly to: string;
+}
+
+/**
+ * An album is a set of v1 rows that share a **release MBID**.
+ *
+ * `groupedBy` says which of the two rules produced it, because the two behave differently
+ * afterwards: a `release_mbid` album is looked up in `library_albums` by its release, moves
+ * its files into one folder and takes its title from the release; a `tags` album is the old
+ * folder-bound grouping, kept only for the rows v1 never matched at all.
+ */
 export interface PlannedAlbum {
   readonly key: string;
-  /** Library-relative folder every track of the album is in. */
+  readonly groupedBy: "release_mbid" | "tags";
+  /** The folder holding the most tracks — where the album lands, and where the moves go. */
   readonly folder: string;
+  /** Every v1 folder the tracks are in today, most populated first. */
+  readonly folders: readonly PlannedFolder[];
+  /** The consolidation the plan would perform. Empty with `keepFolders`. */
+  readonly moves: readonly PlannedMove[];
   readonly artist: string;
   readonly title: string;
   readonly year: number | null;
@@ -70,6 +103,18 @@ export interface MigrationPlan {
   readonly importGroups: readonly PlannedImportGroup[];
   /** Files under the v1 library that no v1 row claims. */
   readonly orphans: readonly ScannedFile[];
+  /** Present rows with no release MBID anywhere, which is why any `tags` album exists. */
+  readonly withoutRelease: number;
+}
+
+/** What `planFrom` is allowed to decide differently. */
+export interface PlanOptions {
+  /** `release` (the default) or `tags`, the pre-P11.1 behaviour. */
+  readonly groupBy?: AlbumGrouping;
+  /** `--keep-folders`: plan no file move, and let the album's folder be the majority one. */
+  readonly keepFolders?: boolean;
+  /** Where a previous run left each row's file (`migration_v1.path`), by v1 song id. */
+  readonly knownPaths?: ReadonlyMap<number, string>;
 }
 
 export interface InventoryOptions {
@@ -164,9 +209,15 @@ export async function probeLibrary(options: InventoryOptions): Promise<ScannedFi
   return out;
 }
 
-/** Build the plan. Pure over `(dataset, files)` once the probing is done. */
-export function planFrom(dataset: V1Dataset, files: readonly ScannedFile[]): MigrationPlan {
-  const reconciliation = reconcile(dataset.songs, files);
+/** Build the plan. Pure over `(dataset, files, options)` once the probing is done. */
+export function planFrom(
+  dataset: V1Dataset,
+  files: readonly ScannedFile[],
+  options: PlanOptions = {},
+): MigrationPlan {
+  const reconciliation = reconcile(dataset.songs, files, {
+    ...(options.knownPaths === undefined ? {} : { knownPaths: options.knownPaths }),
+  });
   const matchBySong = new Map(reconciliation.matches.map((match) => [match.songId, match]));
 
   const songs: PlannedSong[] = dataset.songs.map((song) => {
@@ -180,33 +231,74 @@ export function planFrom(dataset: V1Dataset, files: readonly ScannedFile[]): Mig
     };
   });
 
+  const present = songs.filter(
+    (planned) => planned.file !== null && !needsImport(planned.classification),
+  );
+
   return {
     dataset,
     files,
     reconciliation,
     songs,
-    albums: groupAlbums(songs),
+    albums: groupAlbums(songs, options),
     importGroups: groupImports(songs, dataset),
     orphans: reconciliation.orphans,
+    withoutRelease: present.filter((planned) => releaseMbidFor(planned) === null).length,
   };
+}
+
+/**
+ * Which release a v1 row is on, in the order v1 itself would have answered.
+ *
+ * 1. the value somebody **forced** — `MusicBrainzReleaseIdForce` behind `MusicBrainzForced`,
+ *    or a `SongForceMetadata` row. `identifiersOf` applies both, in that precedence;
+ * 2. `Songs.MusicBrainzReleaseId`, what v1's own lookup settled on;
+ * 3. `MUSICBRAINZ_ALBUMID` in the file, which is where v1 wrote (2) at tagging time and is
+ *    the only copy left when the row was cleared afterwards.
+ *
+ * There is no fourth rung and no guessing: a row with none of the three has no release, full
+ * stop, and falls back to the tag triple.
+ */
+export function releaseMbidFor(planned: PlannedSong): string | null {
+  const fromRow = identifiersOf(planned.song, planned.forces).releaseMbid;
+  if (fromRow !== null) return fromRow;
+  return planned.file === null ? null : releaseMbidOf(planned.file.tags);
 }
 
 /**
  * Group the rows that have a file into albums.
  *
- * The grouping key is v1's own (album artist, album, year) triple, and the folder is the
- * directory the files are actually in. When the two disagree — two folders for one triple,
- * because somebody moved half an album — the folder wins and the album is split, because the
- * folder is what Navidrome groups by and a `library_albums` row whose tracks live in two
- * directories would be a lie in the one place it matters.
+ * **The album is the release MBID.** Every v1 row that was ever matched carries one - forced,
+ * resolved, or written into the file as `MUSICBRAINZ_ALBUMID` - and v1 already decided which
+ * release each track is on. So the grouping key *is* that MBID: one `library_albums` row per
+ * release, every track keeping its own recording MBID, and no second opinion. There is no vote
+ * and no "the first track's release wins", because there is nothing left to arbitrate.
+ *
+ * That replaces the old key, v1's (album artist, album, year) triple plus the folder, which
+ * invented albums for a living: each v1 song matched MusicBrainz *independently*, so the tracks
+ * of one release routinely disagreed about the album artist ("Various Artists" against the
+ * composer), about the year, and therefore about the folder v1 filed them in. Two v1 playlists
+ * came out as four v2 albums, each rebuilt from a different release.
+ *
+ * The triple survives for exactly one case: a row with **no release MBID at all**, which v1
+ * never matched and about which nothing but its own tags is known.
+ * `MigrationPlan.withoutRelease` counts those, so the report can say how much of the library
+ * is in that state.
+ *
+ * The folder is then the one holding the most tracks, and the minority files are moved into it
+ * unless `keepFolders` says otherwise - see `PlannedAlbum.moves`.
  */
-function groupAlbums(songs: readonly PlannedSong[]): PlannedAlbum[] {
+function groupAlbums(songs: readonly PlannedSong[], options: PlanOptions): PlannedAlbum[] {
+  const byRelease = (options.groupBy ?? "release") === "release";
   const buckets = new Map<string, PlannedSong[]>();
 
   for (const planned of songs) {
     if (planned.file === null || needsImport(planned.classification)) continue;
-    const folder = folderOf(planned.file.path);
-    const key = `${albumKeyOf(planned.song)} ${folder.toLowerCase()}`;
+    const release = byRelease ? releaseMbidFor(planned) : null;
+    const key =
+      release === null
+        ? `tags:${albumKeyOf(planned.song)} ${folderOf(planned.file.path).toLowerCase()}`
+        : `release:${release}`;
     const bucket = buckets.get(key);
     if (bucket === undefined) buckets.set(key, [planned]);
     else bucket.push(planned);
@@ -218,16 +310,27 @@ function groupAlbums(songs: readonly PlannedSong[]): PlannedAlbum[] {
     const first = sorted[0];
     if (first === undefined || first.file === null) continue;
     const song = first.song;
+    const groupedBy = key.startsWith("release:") ? "release_mbid" : "tags";
+    const folders = foldersOf(sorted);
+    const folder = folders[0]?.folder ?? folderOf(first.file.path);
     albums.push({
       key,
-      folder: folderOf(first.file.path),
+      groupedBy,
+      folder,
+      folders,
+      moves: options.keepFolders === true ? [] : movesInto(sorted, folder),
+      // Only a seed. `execute.ts` overwrites the three from the rebuilt documents, which is
+      // where the *release's* title, album artist and year come from. Taking them from the
+      // first track's v1 tags is exactly the habit this grouping exists to end.
       artist: song.albumArtists[0] ?? song.artist ?? "Unknown Artist",
       title: song.album ?? "Unknown Album",
       year: song.year,
-      // Through `identifiersOf`, not off the row: a release MBID somebody forced — on the row
-      // via `MusicBrainzReleaseIdForce`, or in `SongForceMetadata` — is the one v1 used, and
-      // reading the plain column instead sent the import looking up the release v1 rejected.
-      releaseMbid: firstOf(sorted, (item) => identifiersOf(item.song, item.forces).releaseMbid),
+      // The key itself when there is one - never `firstOf`, which was "take the first track's
+      // release and hope" and is what rebuilt one playlist from four different releases.
+      releaseMbid:
+        groupedBy === "release_mbid"
+          ? key.slice("release:".length)
+          : firstOf(sorted, (item) => identifiersOf(item.song, item.forces).releaseMbid),
       releaseGroupMbid: firstOf(
         sorted,
         (item) => identifiersOf(item.song, item.forces).releaseGroupMbid,
@@ -237,7 +340,40 @@ function groupAlbums(songs: readonly PlannedSong[]): PlannedAlbum[] {
     });
   }
 
-  return albums.sort((left, right) => left.folder.localeCompare(right.folder));
+  return albums.sort(
+    (left, right) => left.folder.localeCompare(right.folder) || left.key.localeCompare(right.key),
+  );
+}
+
+/**
+ * The folders an album's tracks are in, most populated first.
+ *
+ * A tie is broken by the folder name so that two runs over one library always choose the same
+ * majority. A consolidation that oscillated between two folders of equal size would move every
+ * file on every run, and each move costs a Navidrome play count.
+ */
+export function foldersOf(tracks: readonly PlannedSong[]): PlannedFolder[] {
+  const counts = new Map<string, number>();
+  for (const track of tracks) {
+    if (track.file === null) continue;
+    const folder = folderOf(track.file.path);
+    counts.set(folder, (counts.get(folder) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([folder, count]) => ({ folder, tracks: count }))
+    .sort((left, right) => right.tracks - left.tracks || left.folder.localeCompare(right.folder));
+}
+
+/** The moves that would put every track of an album in `folder`. */
+export function movesInto(tracks: readonly PlannedSong[], folder: string): PlannedMove[] {
+  const out: PlannedMove[] = [];
+  for (const track of tracks) {
+    if (track.file === null) continue;
+    const from = track.file.path;
+    if (folderOf(from) === folder) continue;
+    out.push({ songId: track.song.id, from, to: `${folder}/${baseOf(from)}` });
+  }
+  return out;
 }
 
 /**
@@ -320,4 +456,10 @@ function commonParent(songs: readonly PlannedSong[]): string | null {
 export function folderOf(path: string): string {
   const index = path.lastIndexOf("/");
   return index === -1 ? "" : path.slice(0, index);
+}
+
+/** `Artist/Album (2001)/01 - Title.opus` → `01 - Title.opus`. */
+export function baseOf(path: string): string {
+  const index = path.lastIndexOf("/");
+  return index === -1 ? path : path.slice(index + 1);
 }

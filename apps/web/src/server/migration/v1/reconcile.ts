@@ -75,6 +75,26 @@ export function recordingMbidOf(tags: Readonly<Record<string, string>>): string 
   return null;
 }
 
+/**
+ * The **release** MBID a v1 file carries.
+ *
+ * v1 wrote `MUSICBRAINZ_ALBUMID` into every file it tagged, straight off
+ * `Song.MusicBrainzReleaseId` (`fixtures/v1/build-library.ts` reproduces the exact tag set).
+ * It is the last rung of "which release is this track on": the forced value wins, then the
+ * `Songs` column, then this — a file whose row was cleared by hand still says what v1 decided.
+ *
+ * `MUSICBRAINZ_RELEASEID` is read too, as a courtesy to files tagged by something outside this
+ * lineage; Picard writes the album id under the first name, and so do v1 and v2.
+ */
+export function releaseMbidOf(tags: Readonly<Record<string, string>>): string | null {
+  const upper = upperKeys(tags);
+  for (const key of ["MUSICBRAINZ_ALBUMID", "MUSICBRAINZ_RELEASEID"]) {
+    const value = upper.get(key);
+    if (value !== undefined && value.trim() !== "") return value.trim().toLowerCase();
+  }
+  return null;
+}
+
 /** The video id hiding in v1's `COMMENT`, which is always `Source: <url>`. */
 export function commentVideoId(tags: Readonly<Record<string, string>>): string | null {
   const upper = upperKeys(tags);
@@ -100,6 +120,17 @@ export interface ReconcileOptions {
   /** Which `Path.GetInvalidFileNameChars()` the v1 worker ran with. Linux in practice. */
   readonly platform?: V1Platform;
   readonly extension?: string;
+  /**
+   * Where a *previous* migration left each v1 row's file, by v1 song id.
+   *
+   * `migration_v1.path` is the only record of a file this application itself moved: folder
+   * consolidation and `--rename-to-template` both put files somewhere `FinalFilePath` no
+   * longer describes. Without this, a second run over a consolidated library would fail to
+   * find those files by path, fall back to the MBID and to the video id, and turn whatever
+   * neither rescues into an orphan. It is tried *first*, because it is the strongest key
+   * there is: v2 wrote that path itself.
+   */
+  readonly knownPaths?: ReadonlyMap<number, string>;
 }
 
 /**
@@ -211,8 +242,15 @@ function locate(
   indexes: Indexes,
   options: ReconcileOptions,
 ): { file: ScannedFile; matchedBy: MigrationMatch } | null {
-  /* 1 · the path v1 recorded, then the path v1's own algorithm would produce. */
-  for (const candidate of [song.finalFilePath, predicted(song, options)]) {
+  /*
+   * 1 · the path a previous migration wrote, then the path v1 recorded, then the path v1's
+   *     own algorithm would produce.
+   */
+  for (const candidate of [
+    options.knownPaths?.get(song.id) ?? null,
+    song.finalFilePath,
+    predicted(song, options),
+  ]) {
     const key = pathKey(candidate);
     if (key === null) continue;
     const file = indexes.byPath.get(key);

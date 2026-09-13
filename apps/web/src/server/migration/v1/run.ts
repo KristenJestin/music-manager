@@ -25,6 +25,8 @@ import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   appMeta,
+  libraryAlbums,
+  libraryTracks,
   migrationV1,
   migrationV1Runs,
   type MigrationClass,
@@ -45,15 +47,24 @@ import { needsImport, reasonFor } from "./classify.ts";
 import {
   createImportGroup,
   migrateAlbum,
+  resolveAlbum,
   type ExecuteContext,
   type TrackOutcome,
 } from "./execute.ts";
-import { libraryPrefixOf, planFrom, probeLibrary, type MigrationPlan } from "./inventory.ts";
+import {
+  libraryPrefixOf,
+  planFrom,
+  probeLibrary,
+  type AlbumGrouping,
+  type MigrationPlan,
+} from "./inventory.ts";
 import { defaultPlaylistDir, exportPlaylists } from "./playlists.ts";
 import { openV1Reader, redactUrl } from "./reader.ts";
 import {
   emptyCounts,
   type MigrationCounts,
+  type ReportMove,
+  type ReportRegroup,
   type MigrationReport,
   type ReportAlbum,
   type ReportError,
@@ -104,6 +115,16 @@ export interface MigrationOptions {
   readonly libraryPath: string;
   readonly dryRun?: boolean;
   readonly renameToTemplate?: boolean;
+  /**
+   * How an album is decided: `release` (the default) or `tags`.
+   *
+   * `release` is the rule: one `library_albums` row per v1 release MBID. `tags` reproduces the
+   * pre-P11.1 grouping — v1's (album artist, album, year) triple plus the folder — and exists
+   * so a library migrated the old way can be reproduced, compared and regrouped on purpose.
+   */
+  readonly groupBy?: AlbumGrouping;
+  /** `--keep-folders`: do not move the minority files into the album's folder. */
+  readonly keepFolders?: boolean;
   readonly limit?: number;
   /** Continue the last unfinished run instead of starting a new one. */
   readonly resume?: boolean;
@@ -204,6 +225,13 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
   try {
     /* ---- inventory ---------------------------------------------------- */
 
+    const groupBy: AlbumGrouping = options.groupBy ?? "release";
+    const keepFolders = options.keepFolders ?? false;
+    // Where a previous run left each file. Read before the plan, because the reconciliation
+    // needs it as its strongest key: a consolidated or renamed file is at a path neither
+    // `FinalFilePath` nor v1's own algorithm predicts, and only this table remembers it.
+    const knownPaths = await loadKnownPaths(db);
+
     await say(`reading the v1 database at ${redactUrl(options.dbUrl)}`);
     const reader = openV1Reader({
       url: options.dbUrl,
@@ -225,7 +253,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         say,
       });
       await say(`${String(files.length)} audio file(s) under ${options.libraryPath}`);
-      plan = planFrom(dataset, files);
+      plan = planFrom(dataset, files, { groupBy, keepFolders, knownPaths });
     } finally {
       await reader.close();
     }
@@ -236,6 +264,14 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       if (needsImport(planned.classification)) counts.withoutFile += 1;
     }
     counts.orphanFiles = plan.orphans.length;
+    counts.withoutRelease = plan.withoutRelease;
+    counts.albumsByRelease = plan.albums.filter((a) => a.groupedBy === "release_mbid").length;
+    counts.albumsByTags = plan.albums.filter((a) => a.groupedBy === "tags").length;
+    await say(
+      `${String(plan.albums.length)} album(s): ${String(counts.albumsByRelease)} by release MBID, ` +
+        `${String(counts.albumsByTags)} by v1 tags (${String(plan.withoutRelease)} row(s) have no release)`,
+      { albums: plan.albums.length, byRelease: counts.albumsByRelease, byTags: counts.albumsByTags },
+    );
 
     /* ---- what a previous run already finished -------------------------- */
 
@@ -249,6 +285,8 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
     const albums: ReportAlbum[] = [];
     const created: ReportImport[] = [];
     const renames: ReportRename[] = [];
+    const moves: ReportMove[] = [];
+    const regroup: ReportRegroup[] = [];
     const filesBySong = new Map<number, string>();
 
     const ctx: ExecuteContext = {
@@ -258,6 +296,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       paths,
       runId: run.id,
       renameToTemplate: options.renameToTemplate ?? false,
+      keepFolders,
       offline: options.offline ?? serverEnv().MM_FIXTURES,
       ...(options.signal === undefined ? {} : { signal: options.signal }),
       now,
@@ -265,16 +304,84 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       count,
     };
 
+    /* ---- the regrouping, which is why a second run is not always a no-op --- */
+    //
+    // A library migrated before the release-MBID rule — or with `--group-by tags` — holds one
+    // `library_albums` row per (album artist, album, year, folder). Re-running puts every track
+    // in the row of its release instead, and that is a *move* between existing rows, not a new
+    // migration: the tracks are already done by `migration_v1`'s reckoning, so nothing below
+    // would touch them without this pass saying so.
+    //
+    // It is computed before anything is written, so the dry run prints exactly what the real
+    // run will do.
+    const previousAlbumIds = new Set(
+      [...stateBySong.values()]
+        .map((state) => state.libraryAlbumId)
+        .filter((id): id is string => id !== null),
+    );
+    const albumLabels = await loadAlbumLabels(db, [...previousAlbumIds]);
+    const targets = new Map<string, string | null>();
+    const mustRegroup = new Set<string>();
+
+    for (const album of plan.albums) {
+      const resolved = await resolveAlbum(db, album);
+      targets.set(album.key, resolved.id);
+
+      const from = new Map<string, number>();
+      for (const planned of album.tracks) {
+        const held = stateBySong.get(planned.song.id)?.libraryAlbumId ?? null;
+        if (held === null || held === resolved.id) continue;
+        from.set(held, (from.get(held) ?? 0) + 1);
+      }
+      if (from.size === 0 && album.moves.length === 0) continue;
+
+      mustRegroup.add(album.key);
+      counts.regrouped += [...from.values()].reduce((sum, value) => sum + value, 0);
+      regroup.push({
+        release: album.releaseMbid,
+        album: `${album.artist} — ${album.title}`,
+        from: [...from.keys()].map((id) => albumLabels.get(id) ?? id),
+        to: resolved.folder,
+        tracks: album.tracks.length,
+        moves: album.moves.map((move) => ({ from: move.from, to: move.to })),
+      });
+      await say(
+        `regrouping ${album.artist} — ${album.title}: ` +
+          `${String([...from.values()].reduce((sum, value) => sum + value, 0))} track(s) from ` +
+          `${String(from.size)} other album row(s), ${String(album.moves.length)} file move(s)`,
+        { album: album.key, release: album.releaseMbid, to: resolved.folder },
+      );
+    }
+
+    /*
+     * One import per album, even when two albums used to share one.
+     *
+     * `previousImport` below reuses whatever import a track's row remembers. Before the
+     * regrouping that was always the album's own; after it, two plan albums can both point at
+     * the import the single pre-regrouping album had. They would then overwrite each other's
+     * `import_tracks` by position and prune each other's rows, so the second claimant gets a
+     * fresh import instead.
+     */
+    const claimedImports = new Set<string>();
+
+
     for (const album of plan.albums) {
       options.signal?.throwIfAborted();
 
       const pending = album.tracks.filter(
         (planned) => !isDone(stateBySong.get(planned.song.id), planned.file?.path ?? null),
       );
-      counts.alreadyDone += album.tracks.length - pending.length;
+      // Not "already done" when the album is being regrouped: those tracks are about to be
+      // migrated again, and counting them in both columns would make the report add up to more
+      // rows than v1 has.
+      if (!mustRegroup.has(album.key)) counts.alreadyDone += album.tracks.length - pending.length;
 
       if (dryRun) {
         albums.push(dryAlbum(album));
+        // The preview must list the moves too: a dry run is the only chance to see them before
+        // the play counts follow the files.
+        for (const move of album.moves) moves.push({ from: move.from, to: move.to });
+        counts.consolidated += album.moves.length;
         for (const planned of album.tracks) {
           if (planned.file !== null) filesBySong.set(planned.song.id, planned.file.path);
         }
@@ -282,7 +389,10 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         continue;
       }
 
-      if (pending.length === 0) {
+      // An album whose tracks are all done is skipped — unless the regrouping pass found it
+      // sitting in the wrong `library_albums` row, or found files to consolidate. That is what
+      // makes a re-run over an already migrated library regroup it instead of doing nothing.
+      if (pending.length === 0 && !mustRegroup.has(album.key)) {
         albums.push({ ...dryAlbum(album), verified: "skipped" });
         for (const planned of album.tracks) {
           const state = stateBySong.get(planned.song.id);
@@ -293,7 +403,8 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
 
       const previousImport = album.tracks
         .map((planned) => stateBySong.get(planned.song.id)?.importId ?? null)
-        .find((value): value is string => value !== null);
+        .find((value): value is string => value !== null && !claimedImports.has(value));
+      if (previousImport !== undefined) claimedImports.add(previousImport);
 
       const outcome = await migrateAlbum(ctx, album, { importId: previousImport ?? null });
 
@@ -307,6 +418,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       counts.filesRetagged += outcome.tracks.filter((track) => track.retagged).length;
       counts.sidecarsWritten += outcome.tracks.reduce((sum, track) => sum + track.sidecars, 0);
       counts.renamed += outcome.tracks.filter((track) => track.renamedFrom !== null).length;
+      counts.consolidated += outcome.moves.length;
       if (outcome.replaygain) counts.replaygainAlbums += 1;
       counts.failed += outcome.failures.length;
 
@@ -315,23 +427,52 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         if (track.renamedFrom !== null) {
           renames.push({ from: track.renamedFrom, to: track.path });
         }
+        if (track.movedFrom !== null) {
+          moves.push({ from: track.movedFrom, to: track.path });
+        }
       }
       for (const failure of outcome.failures) errors.push(failure);
 
       await recordTrackRows(db, run.id, album, outcome.tracks, outcome.albumId);
       await recordFailures(db, run.id, album.tracks, outcome.failures);
 
+      const first = outcome.tracks[0];
       albums.push({
         id: outcome.albumId,
         folder: outcome.folder,
-        artist: album.artist,
-        title: album.title,
-        year: album.year,
+        // What the rebuilt documents say, which is the release's own name — not the v1 tags
+        // the plan was seeded with.
+        artist: first?.album.artist ?? album.artist,
+        title: first?.album.title ?? album.title,
+        year: first?.album.year ?? album.year,
         tracks: outcome.tracks.length,
         completeness: meanCompleteness(outcome.tracks),
         replaygain: outcome.replaygain,
         verified: "skipped",
       });
+    }
+
+    /* ---- the album rows the regrouping emptied -------------------------- */
+    //
+    // Only rows a track of this migration used to be in, and only when nothing is left in them.
+    // Deleting every empty `library_albums` row would reach outside the migration, into albums
+    // somebody imported normally and is in the middle of repairing.
+    if (!dryRun && previousAlbumIds.size > 0) {
+      for (const albumId of previousAlbumIds) {
+        options.signal?.throwIfAborted();
+        const remaining = await db
+          .select({ id: libraryTracks.id })
+          .from(libraryTracks)
+          .where(eq(libraryTracks.albumId, albumId))
+          .limit(1);
+        if (remaining.length > 0) continue;
+        await db.delete(libraryAlbums).where(eq(libraryAlbums.id, albumId));
+        count();
+        counts.albumsRemoved += 1;
+        await say(`removed the album row left empty by the regrouping: ${albumLabels.get(albumId) ?? albumId}`, {
+          album: albumId,
+        });
+      }
     }
 
     /* ---- the rows with no file ---------------------------------------- */
@@ -425,6 +566,8 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
       runId: run.id,
       dryRun,
       renameToTemplate: options.renameToTemplate ?? false,
+      groupBy,
+      keepFolders,
       library: options.libraryPath,
       database: redactUrl(options.dbUrl),
       startedAt: new Date(started).toISOString(),
@@ -440,6 +583,8 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         missing: playlist.missing,
       })),
       renames,
+      moves,
+      regroup,
       discrepancies: plan.reconciliation.discrepancies,
       errors,
       writes,
@@ -897,4 +1042,42 @@ function assertWritableDir(dir: string, what: string): void {
       details: { dir, cause: error instanceof Error ? error.message : String(error) },
     });
   }
+}
+
+/**
+ * Where a previous run left every v1 row's file, by v1 song id.
+ *
+ * Read from `migration_v1` for the whole table rather than for the rows of this plan: it is one
+ * query either way, and the plan is not built yet when this is needed — the reconciliation is
+ * what consumes it.
+ */
+async function loadKnownPaths(db: Database): Promise<Map<number, string>> {
+  const rows = await db
+    .select({ songId: migrationV1.v1SongId, path: migrationV1.path })
+    .from(migrationV1);
+  const out = new Map<number, string>();
+  for (const row of rows) {
+    if (row.path === null || row.path === "") continue;
+    const id = Number(row.songId);
+    if (Number.isFinite(id)) out.set(id, row.path);
+  }
+  return out;
+}
+
+/** `Artist — Title (folder)` for each album row, so the regrouping plan reads like prose. */
+async function loadAlbumLabels(
+  db: Database,
+  ids: readonly string[],
+): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({
+      id: libraryAlbums.id,
+      title: libraryAlbums.title,
+      artist: libraryAlbums.albumArtist,
+      folder: libraryAlbums.folder,
+    })
+    .from(libraryAlbums)
+    .where(inArray(libraryAlbums.id, [...ids]));
+  return new Map(rows.map((row) => [row.id, `${row.artist} — ${row.title} (${row.folder})`]));
 }

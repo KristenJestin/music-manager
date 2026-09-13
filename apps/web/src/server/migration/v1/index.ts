@@ -27,16 +27,26 @@ export {
   type ReportAlbum,
   type ReportError,
   type ReportImport,
+  type ReportMove,
+  type ReportRegroup,
   type ReportRename,
 } from "./report.ts";
 
 export {
+  baseOf,
+  foldersOf,
   libraryPrefixOf,
+  movesInto,
   planFrom,
   probeLibrary,
+  releaseMbidFor,
+  type AlbumGrouping,
   type MigrationPlan,
+  type PlanOptions,
   type PlannedAlbum,
+  type PlannedFolder,
   type PlannedImportGroup,
+  type PlannedMove,
   type PlannedSong,
 } from "./inventory.ts";
 
@@ -46,6 +56,7 @@ export {
   commentVideoId,
   recordingMbidOf,
   reconcile,
+  releaseMbidOf,
   type Discrepancy,
   type Reconciliation,
   type ScannedFile,

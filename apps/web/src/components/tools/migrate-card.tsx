@@ -87,6 +87,10 @@ export function MigrateCard() {
   const [dbUrl, setDbUrl] = useState("");
   const [libraryPath, setLibraryPath] = useState("");
   const [renameToTemplate, setRenameToTemplate] = useState(false);
+  // The album is the v1 release MBID; the folder consolidation follows from it. Both defaults
+  // are the rule, and the two boxes are the two ways of opting out of it.
+  const [groupByTags, setGroupByTags] = useState(false);
+  const [keepFolders, setKeepFolders] = useState(false);
   const [hasBackup, setHasBackup] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -145,6 +149,8 @@ export function MigrateCard() {
           libraryPath: library.trim(),
           dryRun,
           renameToTemplate,
+          groupBy: groupByTags ? ("tags" as const) : ("release" as const),
+          keepFolders,
           resume: false,
           verify: false,
         },
@@ -236,6 +242,47 @@ export function MigrateCard() {
               <span className="text-warn">
                 Navidrome identifies files by path: renaming loses play counts and favourites.
               </span>
+            </span>
+          </Label>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="migrate-group-tags"
+            data-testid="migrate-group-tags"
+            checked={groupByTags}
+            onCheckedChange={(next) => {
+              setGroupByTags(next);
+            }}
+          />
+          <Label
+            htmlFor="migrate-group-tags"
+            className="items-start text-2xs leading-normal font-normal text-fg-2"
+          >
+            <span>
+              Group albums by v1 tags instead of by release MBID. The default is one album per v1
+              release, which is the decision v1 already made per track.
+            </span>
+          </Label>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="migrate-keep-folders"
+            data-testid="migrate-keep-folders"
+            checked={keepFolders}
+            onCheckedChange={(next) => {
+              setKeepFolders(next);
+            }}
+          />
+          <Label
+            htmlFor="migrate-keep-folders"
+            className="items-start text-2xs leading-normal font-normal text-fg-2"
+          >
+            <span>
+              Keep the v1 folders. By default the tracks of one album are moved into the folder
+              holding most of them.{" "}
+              <span className="text-warn">Moving a file loses its Navidrome play count.</span>
             </span>
           </Label>
         </div>

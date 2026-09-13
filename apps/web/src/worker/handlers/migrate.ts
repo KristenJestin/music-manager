@@ -29,6 +29,10 @@ export interface MigrateJob {
   readonly libraryPath: string;
   readonly dryRun?: boolean;
   readonly renameToTemplate?: boolean;
+  /** `release` (the default) or `tags` — how an album is decided. */
+  readonly groupBy?: "release" | "tags";
+  /** Leave the minority files where v1 put them instead of consolidating the folders. */
+  readonly keepFolders?: boolean;
   readonly limit?: number;
   readonly resume?: boolean;
   readonly acknowledgeBackup?: boolean;
@@ -70,6 +74,8 @@ export async function handleMigrate(
       libraryPath: data.libraryPath,
       dryRun: data.dryRun ?? false,
       renameToTemplate: data.renameToTemplate ?? false,
+      groupBy: data.groupBy ?? "release",
+      keepFolders: data.keepFolders ?? false,
       ...(data.limit === undefined ? {} : { limit: data.limit }),
       resume: data.resume ?? false,
       acknowledgeBackup: data.acknowledgeBackup ?? false,
