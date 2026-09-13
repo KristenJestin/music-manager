@@ -1,4 +1,4 @@
-import { expect, test, signIn, typeInto } from "./helpers.ts";
+import { expect, test, reloadUntil, signIn, typeInto } from "./helpers.ts";
 
 /**
  * `/sources`, offline.
@@ -19,7 +19,12 @@ const URL_ONE = "fixture://watched?snapshot=1&spec=list";
 test.describe("watched sources", () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page);
-    await page.goto("/sources");
+    // `reloadUntil`, not a bare `goto`: on a cold stack the first navigation of the run can
+    // land while Postgres is still starting, and the loader answers with the error screen —
+    // which no amount of waiting on a locator inside it will ever turn into the page.
+    await reloadUntil(page, "/sources", async () => {
+      await expect(page.getByTestId("source-add")).toBeVisible({ timeout: 15_000 });
+    });
   });
 
   test("adds a source from the form and shows it in the table", async ({ page }) => {

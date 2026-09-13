@@ -31,7 +31,7 @@
  * one exception in the whole feature is `autoAccept`, which is per source, off by default, and
  * enforced in `confirmStep` against the match result rather than here.
  */
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -584,18 +584,4 @@ export async function enabledSources(db: Database = defaultDb()): Promise<Watche
     .from(watchedSources)
     .where(eq(watchedSources.enabled, true))
     .orderBy(watchedSources.createdAt);
-}
-
-/** The source an import came from, for the Console's "opened by" line and the Inbox card. */
-export async function sourceOfImport(
-  importId: string,
-  db: Database = defaultDb(),
-): Promise<WatchedSource | null> {
-  const [row] = await db
-    .select({ source: watchedSources })
-    .from(watchedSourceItems)
-    .innerJoin(watchedSources, eq(watchedSourceItems.sourceId, watchedSources.id))
-    .where(and(eq(watchedSourceItems.importId, importId)))
-    .limit(1);
-  return row?.source ?? null;
 }
