@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 2;
+export const TAG_SCHEMA_VERSION = 3;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,23 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 3,
+    at: "2026-09-13",
+    added: [],
+    changed: [
+      "ARTIST",
+      "ARTISTS",
+      "ALBUMARTIST",
+      "ALBUMARTISTS",
+      "ALBUM",
+      "ALBUMSORT",
+      "TITLE",
+      "TITLESORT",
+    ],
+    removed: [],
+    note: "Picard's “translate names to this locale”: with a preferred locale set, artist and album names are taken from the MusicBrainz alias of that locale (梶浦由記 → Yuki Kajiura) and the originals move into ALBUMSORT and TITLESORT, which MusicBrainz otherwise leaves empty. ARTISTSORT is unchanged — the sort-name already holds the original. **With the default empty locale nothing changes at all**, and that is what the golden files assert; the bump exists so a library tagged before the setting existed is re-projected the day somebody chooses one.",
+  },
   {
     version: 2,
     at: "2026-09-07",

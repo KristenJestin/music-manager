@@ -29,6 +29,10 @@ golden tests; `golden/` is regenerated with `MM_UPDATE_GOLDEN=1` (see `../golden
 | `musicbrainz/releases-of-skinny-love.json`  | `GET /ws/2/release?recording=5463ed3a-…&inc=artist-credits+release-groups+labels+media&limit=25&fmt=json`                                                                                                                                       |
 | `musicbrainz/recording-skinny-love-bon-iver.json` | `GET /ws/2/recording/8a8ca6f4-2150-4b2b-935d-b66962de3b89?inc=…&fmt=json` (Bon Iver — "Skinny Love"; the recording the toolbox's `fixture://skinny-love` video is)                                                                         |
 | `musicbrainz/release-for-emma.json`         | `GET /ws/2/release/0270cde6-6b5b-31fa-b04b-d8b68ff612d4?inc=…&fmt=json` (For Emma, Forever Ago — the album the single borrows its context from)                                                                                                 |
+| `musicbrainz/artist-kajiura.json`           | `GET /ws/2/artist/67e344da-ec54-4e26-b2a4-8351d744a14c?inc=aliases+genres+tags+url-rels+artist-rels&fmt=json` (梶浦由記 — the locale aliases of §2.1)                                                                                             |
+| `musicbrainz/release-tsubasa.json`          | `GET /ws/2/release/c1aea260-b33f-43c9-92e3-8e03c0a917bd?inc=…&fmt=json` (「ツバサ・クロニクル」オリジナルサウンドトラック Future Soundscape I — Official, script `Jpan`)                                                                          |
+| `musicbrainz/release-tsubasa-pseudo.json`   | `GET /ws/2/release/90f126ee-5246-471b-8745-bd7f1a39b19c?inc=…&fmt=json` (the same album as a `Pseudo-Release`, script `Latn`)                                                                                                                   |
+| `musicbrainz/search-tsubasa-pseudo.json`    | `GET /ws/2/release?query=rgid:f5952bf4-… AND status:"Pseudo-Release"&limit=25&fmt=json`                                                                                                                                                         |
 | `coverartarchive/release-discovery.json`    | `GET https://coverartarchive.org/release/d073287b-d1bd-4f11-a933-a4386f8cf701`                                                                                                                                                                  |
 | `lrclib/search-one-more-time.json`          | `GET https://lrclib.net/api/search?track_name=One+More+Time&artist_name=Daft+Punk` — **redacted, see below**                                                                                                                                    |
 | `deezer/track-one-more-time.json`           | `GET https://api.deezer.com/track/isrc:GBAHT1305744` (the first ISRC of the recording that Deezer answers for)                                                                                                                                  |
@@ -43,6 +47,32 @@ golden tests; `golden/` is regenerated with `MM_UPDATE_GOLDEN=1` (see `../golden
 | recording 1   | `60fa767a-d85d-4991-82bc-4294e0b11ae7` | One More Time                                    |
 | work          | `4bb47ffc-9006-32cf-8aa9-e213334550dc` | One More Time                                    |
 | artist        | `056e4f3e-d505-4dad-8ec1-d04f521cbb56` | Daft Punk                                        |
+
+### The locale-alias fixtures (docs/03 §2.1)
+
+| Entity        | MBID                                   | Title                                                        |
+| ------------- | -------------------------------------- | ------------------------------------------------------------ |
+| artist        | `67e344da-ec54-4e26-b2a4-8351d744a14c` | 梶浦由記, sort-name `Kajiura, Yuki`                           |
+| release-group | `f5952bf4-9a30-3efd-8861-42d8fcfd86a1` | 「ツバサ・クロニクル」オリジナルサウンドトラック Future Soundscape I |
+| release       | `c1aea260-b33f-43c9-92e3-8e03c0a917bd` | the Official pressing, script `Jpan`, 20 tracks              |
+| pseudo        | `90f126ee-5246-471b-8745-bd7f1a39b19c` | the `Pseudo-Release`, script `Latn`, 20 tracks               |
+
+**The artist MBID is looked up, never typed.** `record-fixtures.ts` searches for the artist and
+takes the one whose `sort-name` is `Kajiura, Yuki`; the point of the fixture is that the alias
+data is MusicBrainz's, and an MBID written from memory is the one way to get a fixture that
+proves nothing. `--only-locale` re-records these four files alone, so their diff is readable
+instead of being buried under a month of edits to every other fixture.
+
+What the recorded data actually shows, and what the tests assert:
+
+- the romanisation `Yuki Kajiura` is typed **`Artist name`**, `primary: true`, in both `en` and
+  `de`. **No alias of this artist is typed `Legal name`**, which matters because `pickAlias`
+  refuses that type: a legal name is a fact about the person, not the name to write;
+- three aliases (`Noir`, `Noir OST I`, `Noir OST II`) have **no type and no locale**. They are
+  the reason an untyped, non-primary alias is refused — they are neither translations nor
+  misspellings, just unclassified strings;
+- the release group has **no aliases at all**, which is the ordinary case and the reason the
+  pseudo-release exists: it is the only place a romanised *track* title can be read.
 
 **Release choice.** The brief asked for the 2001 · Digital Media · Worldwide edition. No such
 release exists in MusicBrainz: the only Worldwide Digital Media editions of Discovery are
