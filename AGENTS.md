@@ -85,7 +85,7 @@ Everything runs from the repository root with Bun. There is no `make`.
 | `bun run db:reset`                    | drop and recreate schema `public`, then migrate                                  |
 | `bun run toolbox:openapi`             | regenerate `packages/contracts/toolbox/` from the FastAPI app                    |
 | `bun run worker`                      | the job orchestrator (pg-boss): steps, the single download slot, cron            |
-| `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`                   |
+| `bun run mm -- <cmd>`                 | the CLI: `import`, `jobs`, `job`, `retry`, `inbox`, `settings`, `watch`          |
 | `bun run e2e-fixture`                 | the offline vertical slice, end to end (CLI, worker, toolbox — no browser)       |
 | `bun run e2e`                         | the Console's Playwright tests: brings up its own app, worker and database       |
 | `bun run e2e-migrate`                 | the v1 take-over: a fixture v1 installation, dry run then real run               |
@@ -360,6 +360,9 @@ thing: the single download slot.
 - Fixtures mode (`MM_TOOLBOX_FIXTURES=1`) answers every endpoint from `src/toolbox/fixtures/data/`:
   `fixture://discovery` (15 videos for 14 tracks), `fixture://skinny-love`, `fixture://currents`,
   and `fixture://discovery?fp=mismatch` for a fingerprint disagreement. `#n` selects one entry.
+  `fixture://watched?snapshot=1|2` is the same listing at two points in time, one video apart —
+  what the watched-source diff is exercised against; `flat: true` on `/extract` answers the
+  listing only, as production does.
   `/download` copies a bundled five-second Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it,
   and `?slow=<ms>` (capped at 2 s a slice) paces one import only — that is how a browser test
   catches a track _while_ it is downloading without slowing every other spec down.
