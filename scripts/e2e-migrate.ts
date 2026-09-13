@@ -629,8 +629,19 @@ async function main(): Promise<void> {
     "both v1 playlists were exported as M3U",
     report.playlists.map((playlist) => playlist.name).join(", "),
   );
-  const m3u = existsSync(archive) ? readdirSync(archive) : [];
+  const written = existsSync(archive) ? readdirSync(archive) : [];
+  const m3u = written.filter((name) => name.endsWith(".m3u8"));
   check(m3u.length === 2, `two .m3u8 files in ${archive}`, m3u.join(", "));
+  /*
+   * The export lives under a dot-prefixed directory *and* carries a `.ndignore`.
+   *
+   * It used to land in `<library>/_archive/v1-playlists`, which Navidrome walks like any other
+   * folder — and `ND_AUTOIMPORTPLAYLISTS` is on by default, so every exported v1 playlist came
+   * straight back as a Navidrome playlist of its own. Both guards are asserted because
+   * `MM_PLAYLIST_EXPORT_DIR` can move the directory somewhere the dot no longer helps.
+   */
+  check(archive.includes(".mm-archive"), "the export is out of the scanner's way (dot-prefixed)");
+  check(written.includes(".ndignore"), "and carries a .ndignore, whatever the directory is named");
   const roadTrip = m3u.find((name) => name.startsWith("Road trip"));
   if (roadTrip !== undefined) {
     const body = readFileSync(join(archive, roadTrip), "utf8");
