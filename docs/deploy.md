@@ -408,6 +408,19 @@ relit ce que le serveur affiche réellement : Settings → Integrations, URL, ut
 passe. La vérification par relecture OpenSubsonic est la seule preuve de ce que Feishin et
 Symfonium montreront.
 
+**Et l'interrupteur, pas seulement les identifiants.** Le réglage `navidromeEnabled` est à
+l'arrêt par défaut. Une URL et un utilisateur renseignés ne suffisent pas : tant que la bascule
+« Use Navidrome » est à l'arrêt, l'étape `verify` et Discover ignorent le serveur. La page
+l'annonce désormais comme tel (« configured, disabled ») au lieu de dire « connected » pendant
+que Discover dit « aucun serveur configuré ».
+
+**`ND_AUTOIMPORTPLAYLISTS: "false"`.** Navidrome importe par défaut tout `.m3u` trouvé sous le
+dossier musical comme une playlist à lui. Cette installation gère ses playlists par l'API
+Subsonic — Discover en pousse une, remplacée et jamais dupliquée — et l'export de la reprise v1
+vit dans `<bibliothèque>/.mm-archive/v1-playlists/`, hors du champ du scanner. L'import
+automatique n'a donc rien à apporter et un moyen de surprendre ; le service commenté de
+`docker-compose.prod.yml` le coupe. Voir `docs/migration-v1.md` si des doublons sont déjà là.
+
 ---
 
 ## 9. Sécurité

@@ -35,6 +35,14 @@ import { toolbox } from "#/server/toolbox/client.ts";
 
 /** How often the worker says it is alive. A third of `WORKER_STALE_MS`, so one miss is fine. */
 const WORKER_BEAT_MS = 30_000;
+
+/**
+ * How often the worker re-reads the cron settings.
+ *
+ * A minute is the resolution of a five-field cron expression, so a change can never be missed
+ * by more than the smallest interval it is able to express.
+ */
+const SCHEDULE_POLL_MS = 60_000;
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
@@ -61,6 +69,47 @@ const log = (message: string, extra: Record<string, unknown> = {}): void => {
     JSON.stringify({ at: new Date().toISOString(), source: "worker", message, ...extra }),
   );
 };
+
+/**
+ * The cron expression each scheduled queue should be running, as the settings say right now.
+ *
+ * Three of the four are settings ("3 a.m." is not 3 a.m. for everyone); `cron.refresh-sources`
+ * keeps the declared weekly default, and `mm sources refresh` is how you run it out of turn.
+ */
+export async function scheduleExpressions(): Promise<ReadonlyMap<string, string>> {
+  const settings = await loadSettings(db());
+  const chosen = new Map<string, string>();
+  for (const [name, declared] of Object.entries(CRON_QUEUES)) {
+    chosen.set(
+      name,
+      name === "cron.scan"
+        ? settings.scanCron
+        : name === "cron.ytdlp-update"
+          ? settings.ytdlpUpdateCron
+          : name === "cron.discover"
+            ? settings.discoverCron
+            : declared,
+    );
+  }
+  return chosen;
+}
+
+/**
+ * Push the current expressions into pg-boss, writing only what changed.
+ *
+ * `applied` is the worker's memory of what it last wrote, so the common case — nothing edited
+ * since the last poll — costs one `settings` read and no scheduler write at all.
+ */
+async function applySchedules(boss: PgBoss, applied: Map<string, string>): Promise<void> {
+  for (const [name, expression] of await scheduleExpressions()) {
+    if (applied.get(name) === expression) continue;
+    await boss.schedule(name, expression);
+    if (applied.has(name)) {
+      log("cron schedule changed", { queue: name, cron: expression });
+    }
+    applied.set(name, expression);
+  }
+}
 
 export interface Worker {
   readonly boss: PgBoss;
@@ -346,18 +395,24 @@ export async function startWorker(): Promise<Worker> {
   // The nightly scan and the yt-dlp refresh follow their settings; the rest keep the
   // declared default. A cron expression is a setting because "3 a.m." is not 3 a.m. for
   // everyone, and a library scan at the wrong hour is a fan spinning up during dinner.
-  const schedules = await loadSettings(db());
-  for (const [name, cron] of Object.entries(CRON_QUEUES)) {
-    const expression =
-      name === "cron.scan"
-        ? schedules.scanCron
-        : name === "cron.ytdlp-update"
-          ? schedules.ytdlpUpdateCron
-          : name === "cron.discover"
-            ? schedules.discoverCron
-            : cron;
-    await boss.schedule(name, expression);
-  }
+  const applied = new Map<string, string>();
+  await applySchedules(boss, applied);
+
+  /*
+   * Re-read them once a minute.
+   *
+   * The expressions were read exactly once, at boot. Editing `scanCron` or `discoverCron` in
+   * the Console therefore changed a row and nothing else, and the worker went on running the
+   * old schedule until somebody restarted it — with no page saying so, which is the worst
+   * version of that bug. `boss.schedule` is an upsert keyed by queue name, so re-applying an
+   * unchanged expression is free; `applied` is what keeps us from writing when nothing moved.
+   */
+  const rescheduler = setInterval(() => {
+    void applySchedules(boss, applied).catch((error: unknown) => {
+      log("could not re-read the cron schedules", { error: MMError.from(error).message });
+    });
+  }, SCHEDULE_POLL_MS);
+  rescheduler.unref?.();
 
   /* ---- resume whatever the last worker left behind ---- */
   //
@@ -419,6 +474,7 @@ export async function startWorker(): Promise<Worker> {
     async stop() {
       shutdown.abort();
       clearInterval(heartbeat);
+      clearInterval(rescheduler);
       // `graceful` lets the step that is running finish its current write before the
       // connection goes away; anything it did not reach is still in the database.
       await stopBoss(boss);

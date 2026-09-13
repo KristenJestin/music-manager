@@ -177,6 +177,9 @@ services:
   #     ND_SCANSCHEDULE: "@every 1h"
   #     ND_LOGLEVEL: info
   #     ND_MUSICFOLDER: /music
+  #     # See docker-compose.dev.yml: this installation owns its playlists through the
+  #     # Subsonic API, and auto-import turns any M3U under /music into one of its own.
+  #     ND_AUTOIMPORTPLAYLISTS: "false"
   #   volumes:
   #     - navidrome:/data
   #     - ${MM_LIBRARY_PATH:-library}:/music:ro

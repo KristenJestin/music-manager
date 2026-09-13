@@ -35,6 +35,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   discoverDismissals,
   discoverItems,
+  discoverPlaylists,
   discoverSyncs,
   libraryAlbums,
   type DiscoverItem,
@@ -42,7 +43,7 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { serverEnv } from "#/server/env.ts";
-import type { SourceContext } from "#/server/integrations/config.ts";
+import { sourcesConfig, type SourceContext } from "#/server/integrations/config.ts";
 import type { NavidromeClient } from "#/server/integrations/navidrome/client.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import {
@@ -50,7 +51,12 @@ import {
   openLibraryItem,
   openLibraryItems,
 } from "#/server/services/library-inbox.ts";
-import { navidromeConfig, navidromeClient } from "#/server/services/navidrome.ts";
+import {
+  NAVIDROME_DISABLED_MESSAGE,
+  NAVIDROME_UNCONFIGURED_MESSAGE,
+  navidromeClient,
+  navidromeConfig,
+} from "#/server/services/navidrome.ts";
 import { discographyGaps, gapReason, type DiscographyGap } from "#/server/services/discography.ts";
 import { collectRecommendations } from "#/server/services/recommendations.ts";
 import { collectSignals, sourceStrip, type ListeningSignals } from "#/server/services/signals.ts";
@@ -332,10 +338,7 @@ export interface SyncReport {
  * be worse than one.
  */
 export function explainDiscover(input: {
-  readonly settings: Pick<
-    Settings,
-    "discoverEnabled" | "navidromeUrl" | "listenbrainzUser" | "lastfmKey" | "discoverWindowDays"
-  >;
+  readonly settings: Settings;
   readonly totalPlays: number;
   readonly topArtists: number;
   readonly signalsError: string | null;
@@ -349,11 +352,22 @@ export function explainDiscover(input: {
   if (input.signalsError !== null) {
     notes.push(`Listening signals could not be read: ${input.signalsError}`);
   }
-  if (input.settings.navidromeUrl.trim() === "") {
+  /*
+   * Through `navidromeConfig`, not through `settings.navidromeUrl`.
+   *
+   * Reading the raw setting skipped the `MM_NAVIDROME_URL` fallback — a container configured
+   * entirely by its environment was told it had no server — and it could not tell "nothing is
+   * filled in" from "it is filled in and switched off", which are two different actions.
+   */
+  const navidrome = navidromeConfig(input.settings);
+  if (navidrome.url === "" || navidrome.user === "") {
     notes.push(
-      "No Navidrome server is configured (`navidromeUrl`), so there is no play history to " +
+      "No Navidrome server is configured (`navidromeUrl` / `navidromeUser`, or " +
+        "`MM_NAVIDROME_URL` / `MM_NAVIDROME_USER`), so there is no play history to " +
         "learn from — discography gaps are ranked by what you actually listen to.",
     );
+  } else if (!navidrome.enabled) {
+    notes.push(`${NAVIDROME_DISABLED_MESSAGE} Until then there is no play history to learn from.`);
   } else if (input.totalPlays === 0) {
     notes.push(
       `Navidrome reported no plays in the last ${String(input.settings.discoverWindowDays)} day(s), ` +
@@ -368,7 +382,13 @@ export function explainDiscover(input: {
         "has no source.",
     );
   }
-  if (input.settings.lastfmKey.trim() === "" && process.env.MM_LASTFM_KEY === undefined) {
+  /*
+   * `sourcesConfig` resolves setting-then-environment and returns the *effective* key, so an
+   * empty `MM_LASTFM_KEY=` in `.env` no longer counts as configured. The old test was
+   * `process.env.MM_LASTFM_KEY === undefined`, and `.env.example` ships that very line empty —
+   * so the note never appeared for anyone who had copied the example, which is everyone.
+   */
+  if (sourcesConfig(input.settings).lastfmKey === "") {
     notes.push(
       "No Last.fm key is configured (`lastfmKey` or `MM_LASTFM_KEY`), so similar artists " +
         "cannot be fetched.",
@@ -386,8 +406,82 @@ export function explainDiscover(input: {
 /** One row to insert, built from whichever service produced it. */
 type Proposal = Omit<typeof discoverItems.$inferInsert, "id" | "syncId">;
 
+/**
+ * The advisory-lock key the Discover sync holds while it runs. Arbitrary, fixed, and ours.
+ *
+ * `0x6d6d0901` is `"mm"` and the phase number. A `bigint` key rather than the two-`int` form
+ * so nothing else in this installation can collide with it by picking the same first half.
+ */
+const SYNC_LOCK_KEY = 0x6d6d0901;
+
+/**
+ * One sync at a time, across every process.
+ *
+ * "Sync now" ran `syncDiscover` **inline in the web request** while `cron.discover` ran the
+ * same function in the worker, and nothing stopped the two from overlapping: both would walk
+ * the same artists, both would `reconcile()` into `discover_items`, and both would push the
+ * playlist — the second one over the first one's shoulder.
+ *
+ * A Postgres advisory lock rather than a flag column: it is released when the connection dies,
+ * so a worker killed mid-sync does not leave Discover permanently "already running". It has to
+ * live on a **reserved** connection, because a lock taken on one pooled connection and
+ * released on another is not released at all.
+ */
+async function acquireSyncLock(db: Database): Promise<{ release: () => Promise<void> } | null> {
+  const reserved = await db.$client.reserve();
+  try {
+    const rows = await reserved<{ locked: boolean }[]>`
+      select pg_try_advisory_lock(${SYNC_LOCK_KEY}) as locked
+    `;
+    if (rows[0]?.locked !== true) {
+      reserved.release();
+      return null;
+    }
+  } catch (error) {
+    reserved.release();
+    throw error;
+  }
+  return {
+    release: async (): Promise<void> => {
+      try {
+        await reserved`select pg_advisory_unlock(${SYNC_LOCK_KEY})`;
+      } finally {
+        reserved.release();
+      }
+    },
+  };
+}
+
 export async function syncDiscover(options: SyncOptions = {}): Promise<SyncReport> {
   const db = options.db ?? defaultDb();
+  const lock = await acquireSyncLock(db);
+  if (lock === null) {
+    // No `discover_syncs` row: nothing ran, and a run log full of "I did not run" entries is
+    // the sort of noise that makes the real failures harder to find.
+    return {
+      id: "",
+      status: "skipped",
+      durationMs: 0,
+      discography: 0,
+      recommendations: 0,
+      similarArtists: 0,
+      incompleteAlbums: 0,
+      playlist: null,
+      error: "A Discover sync is already running; this one was not started.",
+      notes: [
+        "Discover allows one sync at a time across the Console, the API, the CLI and the " +
+          "`cron.discover` job. Wait for the one in flight and read its report.",
+      ],
+    };
+  }
+  try {
+    return await runSync(db, options);
+  } finally {
+    await lock.release();
+  }
+}
+
+async function runSync(db: Database, options: SyncOptions): Promise<SyncReport> {
   const settings = options.settings ?? (await loadSettings(db));
   const started = options.now ?? new Date();
   const syncId = newId("discoverSync");
@@ -733,7 +827,10 @@ export interface PlaylistPush {
  * missing files. Everything else is counted as skipped and reported.
  *
  * The list is replaced wholesale rather than appended to, so running the sync twice does not
- * produce a playlist of duplicates.
+ * produce a playlist of duplicates. That claim used to be false in two ways at once, and
+ * `resolvePlaylist` and `writePlaylist` below are the two halves of the fix: *which* playlist
+ * (a stored id first, then a case-insensitive name, then create) and *how* it is emptied (the
+ * entries the server reports, never a `songCount` that may not be there).
  */
 export async function pushRecommendedPlaylist(options: {
   db?: Database;
@@ -744,7 +841,11 @@ export async function pushRecommendedPlaylist(options: {
   const settings = options.settings ?? (await loadSettings(db));
   const config = navidromeConfig(settings);
   if (!config.enabled && options.client === undefined) {
-    return { pushed: 0, skipped: 0, error: "No Navidrome server is configured." };
+    const why =
+      config.url === "" || config.user === ""
+        ? NAVIDROME_UNCONFIGURED_MESSAGE
+        : NAVIDROME_DISABLED_MESSAGE;
+    return { pushed: 0, skipped: 0, error: why };
   }
   const client = options.client ?? navidromeClient(settings);
 
@@ -771,17 +872,136 @@ export async function pushRecommendedPlaylist(options: {
       songIds.push(song.id);
     }
 
-    const name = settings.discoverPlaylistName;
-    const existing = (await client.getPlaylists()).find((playlist) => playlist.name === name);
-    if (existing === undefined) {
-      await client.createPlaylist(name, songIds);
-    } else {
-      await client.replacePlaylist(existing.id, songIds, existing.songCount ?? 0);
-    }
+    await writePlaylist(
+      { db, client, server: config.url, name: settings.discoverPlaylistName },
+      songIds,
+    );
     return { pushed: songIds.length, skipped, error: null };
   } catch (error) {
     return { pushed: 0, skipped: 0, error: MMError.from(error).message };
   }
+}
+
+/** What `writePlaylist` needs, small enough that a fake client is a whole test. */
+export interface PlaylistTarget {
+  readonly db: Database;
+  readonly client: PlaylistClient;
+  /** The Navidrome URL the stored id belongs to. Empty when the caller supplied a client. */
+  readonly server: string;
+  readonly name: string;
+}
+
+/**
+ * The slice of `NavidromeClient` the playlist push uses.
+ *
+ * Named so the unit test can implement five methods instead of standing up a Subsonic server:
+ * the cases that matter here — a missing `songCount`, a renamed playlist, a stored id that has
+ * been deleted — are all about *which answers come back*, not about HTTP.
+ */
+export interface PlaylistClient {
+  getPlaylists(): Promise<readonly { id: string; name?: string; songCount?: number }[]>;
+  getPlaylist(playlistId: string): Promise<{ id: string; name?: string } | null>;
+  createPlaylist(
+    name: string,
+    songIds: readonly string[],
+  ): Promise<{ id: string; name?: string } | undefined>;
+  replacePlaylist(playlistId: string, songIds: readonly string[]): Promise<void>;
+  deletePlaylist(playlistId: string): Promise<void>;
+}
+
+/** Case- and whitespace-insensitive, because a playlist name is typed by a person. */
+function sameName(a: string | undefined, b: string): boolean {
+  return (a ?? "").trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/**
+ * Find the playlist this installation owns on this server, or create it.
+ *
+ * The order is deliberate and each step exists because the one before it can fail honestly:
+ *
+ *  1. the **stored id**, verified with `getPlaylist` — it survives a rename, which the name
+ *     lookup by definition cannot;
+ *  2. a **case-insensitive, trimmed name match**, which picks up the playlist of an install
+ *     that predates the stored id, and the one a person renamed back by hand;
+ *  3. **create**, and write the id down so step 1 answers next time.
+ */
+async function resolvePlaylist(
+  target: PlaylistTarget,
+  songIds: readonly string[],
+): Promise<{ id: string; created: true } | { id: string; created: false }> {
+  const key = target.server.trim().toLowerCase();
+  const [stored] =
+    key === ""
+      ? []
+      : await target.db
+          .select()
+          .from(discoverPlaylists)
+          .where(eq(discoverPlaylists.server, key))
+          .limit(1);
+
+  if (stored !== undefined) {
+    const live = await target.client.getPlaylist(stored.playlistId);
+    if (live !== null) return { id: live.id, created: false };
+    // The id is stale: somebody deleted the playlist in Navidrome. Fall through and look it
+    // up by name, then create — never leave the dead row to be "verified" again next week.
+  }
+
+  const byName = (await target.client.getPlaylists()).find((playlist) =>
+    sameName(playlist.name, target.name),
+  );
+  if (byName !== undefined) return { id: byName.id, created: false };
+
+  const made = await target.client.createPlaylist(target.name, songIds);
+  if (made === undefined) {
+    throw new MMError("NAVIDROME_FAILED", "Navidrome created the playlist but did not name it.", {
+      hint: "createPlaylist answered without a `playlist` object.",
+    });
+  }
+  return { id: made.id, created: true };
+}
+
+/**
+ * Make the playlist hold exactly `songIds`, and remember which playlist that was.
+ *
+ * A freshly created playlist already holds them — `createPlaylist` takes the songs — so it is
+ * not emptied and refilled. An existing one is replaced; if the server cannot say how many
+ * entries it has, it is deleted and made again rather than appended to, because appending to
+ * an unknown list is precisely the bug that grew a "Recommended" playlist by its own length on
+ * every sync.
+ */
+export async function writePlaylist(
+  target: PlaylistTarget,
+  songIds: readonly string[],
+): Promise<string> {
+  const resolved = await resolvePlaylist(target, songIds);
+  let id = resolved.id;
+  if (!resolved.created) {
+    try {
+      await target.client.replacePlaylist(id, songIds);
+    } catch {
+      await target.client.deletePlaylist(id);
+      const made = await target.client.createPlaylist(target.name, songIds);
+      if (made === undefined) {
+        throw new MMError(
+          "NAVIDROME_FAILED",
+          "Navidrome would neither empty the playlist nor create a new one.",
+        );
+      }
+      id = made.id;
+    }
+  }
+
+  const key = target.server.trim().toLowerCase();
+  if (key !== "") {
+    await target.db
+      .insert(discoverPlaylists)
+      .values({ server: key, playlistId: id, name: target.name, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: discoverPlaylists.server,
+        set: { playlistId: id, name: target.name, updatedAt: new Date() },
+      });
+  }
+  return id;
 }
 
 /* ------------------------------------------------------------------ */

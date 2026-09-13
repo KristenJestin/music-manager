@@ -92,6 +92,13 @@
       "when": 1789323751047,
       "tag": "0012_fantastic_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789326669264,
+      "tag": "0013_robust_shocker",
+      "breakpoints": true
     }
   ]
 }

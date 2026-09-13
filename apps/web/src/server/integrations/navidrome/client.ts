@@ -393,6 +393,33 @@ export class NavidromeClient {
     return payload?.playlist ?? [];
   }
 
+  /**
+   * One playlist, **with its entries**.
+   *
+   * `getPlaylists` is a list endpoint and its `songCount` is optional — Navidrome sends it,
+   * other Subsonic servers do not, and `replacePlaylist` used to read a missing count as zero
+   * and remove nothing, so every sync appended the same songs again. `getPlaylist` returns the
+   * `entry` array itself, which is a fact rather than a hint. `null` when there is no such id,
+   * which is the answer a stored id needs when the playlist has been deleted by hand.
+   */
+  async getPlaylist(playlistId: string): Promise<SubsonicPlaylist | null> {
+    try {
+      const envelope = await this.get("getPlaylist", { id: playlistId });
+      return NavidromeClient.payload<SubsonicPlaylist>(envelope, "playlist") ?? null;
+    } catch (error) {
+      // Subsonic error 70 is "the requested data was not found". That is an answer, not a
+      // failure: the caller's next move is to create the playlist again.
+      const failure = MMError.from(error);
+      if ((failure.details as { code?: number } | undefined)?.code === 70) return null;
+      throw error;
+    }
+  }
+
+  /** Remove a playlist. Used to recover from a playlist whose contents cannot be counted. */
+  async deletePlaylist(playlistId: string): Promise<void> {
+    await this.get("deletePlaylist", { id: playlistId });
+  }
+
   /** Create a playlist from a list of song ids. Subsonic answers with the playlist it made. */
   async createPlaylist(
     name: string,
@@ -403,20 +430,35 @@ export class NavidromeClient {
   }
 
   /**
-   * Replace the contents of an existing playlist.
+   * Replace the contents of an existing playlist — really replace, not append.
    *
    * `updatePlaylist` only appends and removes by index, so "make it exactly this" is
    * remove-every-index-then-add: the indices are sent descending because each removal shifts
    * the ones after it, and a caller who sends them ascending deletes every other track.
+   *
+   * The count comes from `getPlaylist(id).entry.length` and not from the caller, because the
+   * caller used to pass `existing.songCount ?? 0` off the *list* endpoint — where the field is
+   * optional. A missing count removed nothing, the additions landed on top of what was already
+   * there, and the playlist grew by its own length on every sync. `currentCount` is still
+   * accepted as a hint and is only trusted when the read-back cannot answer.
    */
   async replacePlaylist(
     playlistId: string,
     songIds: readonly string[],
-    currentCount: number,
+    currentCount?: number,
   ): Promise<void> {
-    const removals = Array.from({ length: currentCount }, (_, index) =>
-      String(currentCount - 1 - index),
-    );
+    const existing = await this.getPlaylist(playlistId);
+    const known = existing?.entry?.length ?? existing?.songCount ?? currentCount;
+    if (known === undefined) {
+      // Nothing could say how long it is. Appending blindly is the bug this method exists to
+      // prevent, so start again from an empty list instead.
+      throw new MMError(
+        "NAVIDROME_FAILED",
+        `Navidrome would not say how many songs playlist ${playlistId} holds.`,
+        { hint: "Delete it and create it again rather than appending to an unknown list." },
+      );
+    }
+    const removals = Array.from({ length: known }, (_, index) => String(known - 1 - index));
     await this.get("updatePlaylist", {
       playlistId,
       ...(removals.length === 0 ? {} : { songIndexToRemove: removals }),

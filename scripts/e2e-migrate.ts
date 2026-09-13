@@ -768,26 +768,48 @@ async function main(): Promise<void> {
   check((downloaded?.count ?? -1) === 0, "no track was downloaded during the migration");
 
   /* ---- playlists ---------------------------------------------------- */
-  const archive = resolve(LIBRARY, "_archive", "v1-playlists");
+  const archive = resolve(LIBRARY, ".mm-archive", "v1-playlists");
   check(
     report.playlists.length === 2,
     "both v1 playlists were exported as M3U",
     report.playlists.map((playlist) => playlist.name).join(", "),
   );
-  const m3u = existsSync(archive) ? readdirSync(archive) : [];
+  const written = existsSync(archive) ? readdirSync(archive) : [];
+  const m3u = written.filter((name) => name.endsWith(".m3u8"));
   check(m3u.length === 2, `two .m3u8 files in ${archive}`, m3u.join(", "));
+  /*
+   * The export lives under a dot-prefixed directory *and* carries a `.ndignore`.
+   *
+   * It used to land in `<library>/_archive/v1-playlists`, which Navidrome walks like any other
+   * folder — and `ND_AUTOIMPORTPLAYLISTS` is on by default, so every exported v1 playlist came
+   * straight back as a Navidrome playlist of its own. Both guards are asserted because
+   * `MM_PLAYLIST_EXPORT_DIR` can move the directory somewhere the dot no longer helps.
+   */
+  check(archive.includes(".mm-archive"), "the export is out of the scanner's way (dot-prefixed)");
+  check(written.includes(".ndignore"), "and carries a .ndignore, whatever the directory is named");
   const roadTrip = m3u.find((name) => name.startsWith("Road trip"));
   if (roadTrip !== undefined) {
     const body = readFileSync(join(archive, roadTrip), "utf8");
     check(body.startsWith("#EXTM3U"), "the export is a real M3U");
     check(body.includes("# not migrated"), "and says which of its songs v1 never downloaded");
   }
+  /*
+   * `discover_playlists` is excluded, and it is not a loophole.
+   *
+   * The claim under test is that **v1's playlists** are exported and then let go: v2 has no
+   * playlist model, no rows per playlist, no songs. `discover_playlists` holds one row per
+   * Navidrome server — a Subsonic id and the name it had — so that the "Recommended" push can
+   * update the list it already made instead of creating a twelfth one. It carries no track, no
+   * ordering and nothing that came out of v1.
+   */
   const [playlistTables] = await v2<{ count: number }[]>`
     select count(*)::int as count from information_schema.tables
-     where table_schema = 'public' and table_name like '%playlist%'`;
+     where table_schema = 'public'
+       and table_name like '%playlist%'
+       and table_name <> 'discover_playlists'`;
   check(
     (playlistTables?.count ?? -1) === 0,
-    "no playlist data entered v2 — the export is all there is",
+    "no v1 playlist data entered v2 — the export is all there is",
   );
 
   /* ---- the discrepancy report --------------------------------------- */
@@ -1120,7 +1142,7 @@ async function cleanup(): Promise<void> {
   }
   // Both the library and the playlist archive this run created, and nothing else.
   rmSync(LIBRARY, { recursive: true, force: true });
-  rmSync(resolve(LIBRARY, "_archive", "v1-playlists"), { recursive: true, force: true });
+  rmSync(resolve(LIBRARY, ".mm-archive", "v1-playlists"), { recursive: true, force: true });
 }
 
 try {

@@ -26,7 +26,8 @@ import {
 } from "#/server/services/tools.ts";
 import { systemStatus } from "#/server/services/status.ts";
 import { getScan, lastScan, recentScans, summariseScan } from "#/server/services/scan.ts";
-import { enqueueLibraryScan } from "#/server/services/queue.ts";
+import { enqueueLibraryScan, enqueueSourceRefresh } from "#/server/services/queue.ts";
+import { loadSettings } from "#/server/services/settings.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import { errorSchema, healthSchema } from "#/server/api/schemas.ts";
 
@@ -269,6 +270,47 @@ export function toolsRoutes(): OpenAPIHono<ApiEnv> {
     async (c) => {
       const jobId = await enqueueLibraryScan({ trigger: "api" });
       return c.json({ queued: true, jobId }, 202);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/sources/refresh",
+      tags: [TAG],
+      summary: "Re-read the cached upstream sources and re-tag what changed",
+      description:
+        "The weekly `cron.refresh-sources` sweep, on demand. It re-fetches each album's " +
+        "MusicBrainz release, compares it with the raw cache and queues a re-tag for the " +
+        "albums that moved upstream — a correction made in MusicBrainz reaches your files " +
+        "without waiting until Monday.\n\n" +
+        "Queued to the worker, not run here, and the queue is `singleton`: asking during the " +
+        "scheduled run joins it. `enabled: false` means `sourcesRefreshEnabled` is off and " +
+        "the handler will do nothing, which is a configuration answer rather than a failure.",
+      middleware: [requireScope("tools:write")] as const,
+      responses: {
+        202: {
+          content: {
+            "application/json": {
+              schema: z.object({
+                queued: z.boolean(),
+                jobId: z.string().nullable(),
+                enabled: z.boolean(),
+              }),
+            },
+          },
+          description: "Queued",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const settings = await loadSettings(db());
+      const jobId = await enqueueSourceRefresh({ trigger: "api" });
+      return c.json(
+        { queued: jobId !== null, jobId, enabled: settings.sourcesRefreshEnabled },
+        202,
+      );
     },
   );
 

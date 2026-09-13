@@ -121,7 +121,7 @@ export interface MigrationOptions {
    * never to `true`: in production every release outside the cache must reach MusicBrainz.
    */
   readonly offline?: boolean;
-  /** Where the M3U exports go. Defaults to `MM_PLAYLIST_EXPORT_DIR`, else `<library>/_archive/v1-playlists`. */
+  /** Where the M3U exports go. Defaults to `MM_PLAYLIST_EXPORT_DIR`, else `<library>/.mm-archive/v1-playlists`. */
   readonly playlistDir?: string;
   readonly now?: Date;
   say?(message: string, data?: Record<string, unknown>): Promise<void>;
@@ -876,7 +876,7 @@ export function reportOf(run: MigrationRun): MigrationReport | null {
   return run.report === null ? null : (run.report as unknown as MigrationReport);
 }
 
-/** `playlistDir` option, else `MM_PLAYLIST_EXPORT_DIR`, else `<library>/_archive/v1-playlists`. */
+/** `playlistDir` option, else `MM_PLAYLIST_EXPORT_DIR`, else `<library>/.mm-archive/v1-playlists`. */
 function resolvePlaylistDir(options: MigrationOptions, libraryRoot: string): string {
   if (options.playlistDir !== undefined && options.playlistDir !== "") return options.playlistDir;
   const fromEnv = serverEnv().MM_PLAYLIST_EXPORT_DIR;
@@ -892,7 +892,7 @@ function assertWritableDir(dir: string, what: string): void {
     throw new MMError("INVALID_INPUT", `The ${what} is not writable: ${dir}`, {
       hint:
         "Set MM_PLAYLIST_EXPORT_DIR to a directory this process can write, or leave it empty " +
-        "to use <library>/_archive/v1-playlists.",
+        "to use <library>/.mm-archive/v1-playlists.",
       action: "Fix the directory",
       details: { dir, cause: error instanceof Error ? error.message : String(error) },
     });

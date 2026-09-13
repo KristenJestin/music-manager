@@ -18,7 +18,7 @@ import {
   requestRescan,
   type NavidromeStatus,
 } from "#/server/services/navidrome.ts";
-import { enqueueLibraryScan } from "#/server/services/queue.ts";
+import { enqueueLibraryScan, enqueueSourceRefresh } from "#/server/services/queue.ts";
 import { verificationSummary } from "#/server/services/verify.ts";
 import {
   identifyOrphan,
@@ -71,6 +71,8 @@ export interface ToolsPayload {
   readonly toolbox: { readonly url: string; readonly authenticated: boolean };
   /** `TAG_SCHEMA_VERSION`, and how many files are behind it — P07a owns the second number. */
   readonly tagSchema: { readonly version: number; readonly behind: number | null };
+  /** The weekly upstream sweep: is it switched on, and what schedule does it keep? */
+  readonly sourcesRefresh: { readonly enabled: boolean; readonly cron: string };
 }
 
 export const fetchTools = createServerFn({ method: "GET", strict: STRICT })
@@ -96,6 +98,9 @@ export const fetchTools = createServerFn({ method: "GET", strict: STRICT })
 
       const verified = await verificationSummary(database);
       const { TAG_SCHEMA_VERSION } = await import("@mm/domain");
+      // Dynamic, like the line above: a top-level import of `worker/queues.ts` would put
+      // pg-boss in the browser bundle (`server/functions/base.ts`).
+      const { CRON_QUEUES } = await import("#/worker/queues.ts");
 
       return {
         downloader,
@@ -115,6 +120,11 @@ export const fetchTools = createServerFn({ method: "GET", strict: STRICT })
         log,
         toolbox: toolboxTarget(),
         tagSchema: { version: TAG_SCHEMA_VERSION, behind: null },
+        sourcesRefresh: {
+          enabled: settings.sourcesRefreshEnabled,
+          // Not a setting, unlike the other three crons: the sweep is weekly by design.
+          cron: CRON_QUEUES["cron.refresh-sources"],
+        },
       };
     } catch (error) {
       return toFailure(error);
@@ -189,6 +199,29 @@ export const runNavidromeRescan = createServerFn({ method: "POST", strict: STRIC
       }
     },
   );
+
+/**
+ * Run the weekly source refresh now.
+ *
+ * Same shape as `startScan`: the web process enqueues and the worker sweeps. Checking two
+ * hundred releases against MusicBrainz at one request a second is minutes of work, which is
+ * several proxies' worth of patience more than an HTTP request has.
+ *
+ * The queue is `cron.refresh-sources` itself, so pressing this during the Monday run joins it.
+ */
+export const startSourceRefresh = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .handler(async (): Promise<{ queued: boolean; enabled: boolean }> => {
+    try {
+      const settings = await loadSettings(db());
+      // `sourcesRefreshEnabled` is what the handler checks before doing anything; saying so
+      // here turns "nothing happened" into a sentence the page can render.
+      const jobId = await enqueueSourceRefresh({ trigger: "manual" });
+      return { queued: jobId !== null, enabled: settings.sourcesRefreshEnabled };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
 
 /* ------------------------------------------------------------------ */
 /* the scan card                                                       */

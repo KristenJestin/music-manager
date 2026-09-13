@@ -121,6 +121,33 @@ export const discoverSyncs = pgTable("discover_syncs", {
   error: text("error"),
 });
 
+/**
+ * Which Navidrome playlist the "Recommended" push owns, per server.
+ *
+ * The push used to find its playlist by an **exact, case-sensitive name match** over
+ * `getPlaylists()` and store nothing. Three ways that went wrong, all reported as "Discover
+ * duplicated my playlists":
+ *
+ *  - rename `discoverPlaylistName` and the old list stays behind while a new one appears;
+ *  - let anything normalise the name (a trailing space, a capital) and the match fails, so a
+ *    second playlist is created next to the first;
+ *  - and there was no id to fall back on, because none was ever written down.
+ *
+ * Keyed by server rather than globally: pointing the Console at another Navidrome must not
+ * make it try to update an id that belongs to the old one. The row is a cache — deleting it
+ * costs one name lookup, not a duplicate.
+ */
+export const discoverPlaylists = pgTable("discover_playlists", {
+  /** The server's URL, trimmed and lower-cased. One row per Navidrome. */
+  server: text("server").primaryKey(),
+  /** The Subsonic playlist id last written. Verified with `getPlaylist` before it is trusted. */
+  playlistId: text("playlist_id").notNull(),
+  /** The name it carried when we wrote it, so a rename in the settings is visible here. */
+  name: text("name").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type DiscoverPlaylist = typeof discoverPlaylists.$inferSelect;
 export type DiscoverItem = typeof discoverItems.$inferSelect;
 export type NewDiscoverItem = typeof discoverItems.$inferInsert;
 export type DiscoverDismissal = typeof discoverDismissals.$inferSelect;
