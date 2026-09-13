@@ -242,7 +242,12 @@ export function seedDocument(
 
   /* ---- the overrides, which win and stay won ---- */
   for (const force of forces) {
-    if (COVER_FORCE_FIELDS.has(force.field)) continue;
+    if (COVER_FORCE_FIELDS.has(force.field)) {
+      // A MIME type with no bytes beside it is half an override, and there is nothing to do
+      // with it. Say so rather than dropping it, which is the rule for every other field.
+      if (cover === null) ignoredForces.push(force.field);
+      continue;
+    }
     const name = FORCE_TO_FIELD[force.field as V1ForceField];
     if (name === undefined) {
       ignoredForces.push(force.field);

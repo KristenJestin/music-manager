@@ -120,8 +120,9 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    listé dans le rapport : fichier déplacé, ligne `Present` sans fichier, fichier orphelin,
    deux lignes qui réclament le même fichier.
 3. **Pistes présentes.** `library_albums` / `library_tracks`, un document amorcé depuis la v1
-   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata` et les
-   MBID forcés), puis `documents.build` avec les MBID v1, re-tag en place au schéma courant,
+   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata`, les
+   MBID forcés et les lignes marquées d'un drapeau de traitement — voir §4 bis), puis
+   `documents.build` avec les MBID v1, re-tag en place au schéma courant,
    sidecars, ReplayGain par album — et les documents sont reconstruits une dernière fois pour
    que la mesure de loudness y entre aussi.
 4. **Pistes non présentes.** Un import v2 par playlist parente, statut `paused` (« en file, à
@@ -130,6 +131,54 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    Aucune donnée de playlist n'entre en v2.
 6. **Vérification** (`--verify`) et items Inbox pour les écarts.
 7. **Rapport** : compteurs, écarts, erreurs, en JSON sur `migration_v1_runs.report`.
+
+### 4 bis. Les décisions de la v1 qui sont respectées
+
+La v1 avait quatre façons de dire « n'y touche plus ». Toutes les quatre sont honorées, et la
+règle est la même dans les quatre cas : le champ arrive en v2 **verrouillé**, à confiance 1,
+source `v1`, et aucune source ne l'écrase jamais.
+
+| Ce que la v1 tenait                | Ce que la v2 en fait                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SongForceMetadata`                | Un verrou par champ surchargé. Une ligne dont le champ n'a pas d'équivalent v2 est **signalée** dans le rapport (`ignoredForces`), jamais perdue en silence.                                                                                                                                                                                                 |
+| `MusicBrainzForced` + les `*Force` | Les MBID d'enregistrement et de **sortie** forcés gagnent, et le MBID de sortie forcé est celui que porte l'import de l'album — pas la colonne ordinaire, souvent vide sur les albums où quelqu'un a justement dû forcer.                                                                                                                                    |
+| `ForceSongMetadata`                | La v1 disait : « saute MusicBrainz, prends la ligne `Songs` telle quelle ». Tous les champs repris de cette ligne sont donc verrouillés — titre, artistes, artistes d'album, album, année, genres, numéros, label, MBID. Un champ que la v1 n'avait pas est tout de même rempli par les sources : forcer protège ce qui existe, cela n'aveugle pas le reste. |
+| `ForceSourceMetadata`              | La v1 analysait la description YouTube, **réécrivait le résultat dans la ligne `Songs`** et effaçait les MBID. La ligne contient donc déjà les valeurs utilisées ; la v2 verrouille exactement les champs que cette branche affectait (titre, artistes, artistes d'album, album, année, label). Les deux drapeaux ensemble : `ForceSongMetadata` l'emporte.  |
+
+### 4 ter. Les pochettes
+
+C'est le point qui a coûté le plus cher, alors il est décrit en détail.
+
+- **Un re-tag ne retire jamais l'image d'un fichier.** Le bloc de tags est réécrit en entier
+  (`clear`), et sur un fichier Opus l'image _est_ un tag (`METADATA_BLOCK_PICTURE`) : la
+  toolbox relit donc les images avant d'effacer et les remet si l'appelant n'en fournit pas
+  (`keep_pictures`, actif par défaut). Cela vaut pour la migration comme pour le re-tag de fond
+  de `docs/03-metadonnees.md` §8.
+- **`SongForceMetadata.CoverArtBytes` est migré.** C'était la seule pochette que cette piste ait
+  jamais eue ; elle arrive en `front_cover` verrouillé, source `v1`, et c'est elle qui est
+  écrite dans le fichier.
+- **La miniature YouTube reste le dernier échelon**, comme en v1 : la ligne v1 ne stockait pas
+  d'URL de miniature, mais l'adresse se déduit de l'identifiant de la vidéo, et la v2 la
+  reconstitue pour que l'échelon final de `docs/03-metadonnees.md` §4 fonctionne aussi sur une
+  bibliothèque migrée.
+- **Un fichier dont l'image n'est explicable par aucune source** — ni Cover Art Archive, ni
+  miniature — ouvre un item Inbox `cover_missing`. Rien n'est perdu : l'image reste dans le
+  fichier. Mais elle n'est plus reproductible, et c'est une question qui appartient à une
+  personne.
+- Les échecs de préparation d'image ne sont plus silencieux : ils passent par le journal de la
+  migration.
+
+### 4 quater. Les noms d'artistes
+
+MusicBrainz tient deux noms par crédit : celui **imprimé sur cette sortie** et celui de
+l'artiste. La v1 écrivait toujours le second, la v2 écrit le premier par défaut. Le réglage
+_Réglages › Métadonnées › Noms d'artistes_ (`artistNameSource`) choisit :
+
+- `credited` (défaut) — le nom crédité, ce que fait Picard ;
+- `canonical` — le nom de l'artiste, **ce que reproduit la v1**. À choisir si les noms
+  d'artistes d'une bibliothèque migrée doivent rester ceux que la v1 avait écrits.
+
+Les liaisons (« feat. », « & ») viennent de MusicBrainz dans les deux cas.
 
 ### Reprise et idempotence
 
@@ -183,7 +232,9 @@ bibliothèque.
   artiste, album, genres, et les surcharges verrouillées. C'est un plancher, pas un plafond —
   le re-tag de fond (`docs/03-metadonnees.md` §8) les reprendra dès qu'une source répondra.
 - **Les images intégrées par la v1** sont remplacées par celles du Cover Art Archive quand il en
-  a ; sinon le fichier garde ce que la v1 y avait mis.
+  a, sinon par la miniature YouTube reconstituée ; et si aucune source ne répond, le fichier
+  garde exactement ce que la v1 y avait mis, avec un item Inbox `cover_missing` pour le dire.
+  Voir §4 ter.
 
 ---
 
@@ -196,7 +247,7 @@ docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d po
 bun run e2e-migrate
 ```
 
-Ce script charge `fixtures/v1/dump.sql` (30 lignes `Songs`, 6 surcharges, 2 playlists) dans une
+Ce script charge `fixtures/v1/dump.sql` (30 lignes `Songs`, 8 surcharges, 2 playlists) dans une
 base jetable, fabrique la bibliothèque v1 en taguant des copies de l'échantillon de la toolbox
 **avec le jeu de tags de la v1**, puis migre, re-migre (no-op) et imprime le rapport.
 

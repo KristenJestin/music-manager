@@ -6,7 +6,7 @@
  * phase's acceptance criteria describe:
  *
  *  1. load `fixtures/v1/dump.sql` into a scratch database (`mm_v1_fixture`) — thirty `Songs`
- *     rows, six `SongForceMetadata` overrides, two `UserPlaylists`;
+ *     rows, eight `SongForceMetadata` overrides, two `UserPlaylists`;
  *  2. build the v1 library: one copy of the toolbox's five-second sample per `Present` row,
  *     tagged through `POST /tag` with **v1's** tag set and nothing else;
  *  3. `mm migrate v1 --dry-run` — a readable plan, and **zero** rows written anywhere but
@@ -41,6 +41,7 @@ import {
   withDatabaseName,
 } from "./lib.ts";
 import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
+import { FIXTURE_FORCED_COVER_JPEG } from "../fixtures/v1/dataset.ts";
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -220,15 +221,49 @@ async function toolboxReady(timeoutMs = 60_000): Promise<void> {
   }
 }
 
-async function probe(relative: string): Promise<Record<string, string>> {
+async function probeFull(
+  relative: string,
+): Promise<{ tags: Record<string, string>; hasPicture: boolean }> {
   const response = await fetch(`${TOOLBOX_URL}/probe`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ path: `${TOOLBOX_LIBRARY}/${relative}` }),
   });
   if (!response.ok) die(`toolbox /probe failed for ${relative}: HTTP ${String(response.status)}`);
-  const body = (await response.json()) as { tags?: Record<string, string> };
-  return body.tags ?? {};
+  const body = (await response.json()) as {
+    tags?: Record<string, string>;
+    has_picture?: boolean;
+  };
+  return { tags: body.tags ?? {}, hasPicture: body.has_picture === true };
+}
+
+async function probe(relative: string): Promise<Record<string, string>> {
+  return (await probeFull(relative)).tags;
+}
+
+/**
+ * The image bytes embedded in an Opus file, base64.
+ *
+ * Read straight off the host's copy of the file rather than through `/probe` or `/tag`: both
+ * deliberately leave `METADATA_BLOCK_PICTURE` out of their readback (a picture is not a tag),
+ * and this test needs to compare the *bytes* — "a picture is present" is not the same claim as
+ * "the picture v1's owner forced is present".
+ *
+ * The comment is `METADATA_BLOCK_PICTURE=<base64 FLAC picture block>`, contiguous in the Ogg
+ * packet; the block is a small header followed by the image, so the JPEG marker locates it.
+ */
+function pictureOf(relative: string): string | null {
+  const raw = readFileSync(join(LIBRARY, relative));
+  const marker = raw.indexOf("METADATA_BLOCK_PICTURE=");
+  if (marker === -1) return null;
+  let end = marker + "METADATA_BLOCK_PICTURE=".length;
+  while (end < raw.length && /[A-Za-z0-9+/=]/.test(String.fromCharCode(raw[end] ?? 0))) end += 1;
+  const block = Buffer.from(
+    raw.subarray(marker + "METADATA_BLOCK_PICTURE=".length, end).toString("ascii"),
+    "base64",
+  );
+  const start = block.indexOf(Buffer.from("ffd8ff", "hex"));
+  return start === -1 ? null : block.subarray(start).toString("base64");
 }
 
 /**
@@ -335,7 +370,11 @@ async function main(): Promise<void> {
   const v1Before = await v1Digest();
 
   check(songCount?.count === 30, "the dump loaded thirty Songs rows", String(songCount?.count));
-  check(forceCount?.count === 6, "with six SongForceMetadata overrides", String(forceCount?.count));
+  check(
+    forceCount?.count === 8,
+    "with eight SongForceMetadata overrides",
+    String(forceCount?.count),
+  );
   check(playlistCount?.count === 2, "and two UserPlaylists", String(playlistCount?.count));
 
   // The builder empties the directory; it deliberately does not delete it. See the note in
@@ -354,7 +393,13 @@ async function main(): Promise<void> {
   );
 
   // The files must carry v1's tags and none of v2's, or the migration proves nothing.
-  const sampleTags = await probe("Daft Punk/Discovery (2001)/01 - One More Time.opus");
+  const sampleProbe = await probeFull("Daft Punk/Discovery (2001)/01 - One More Time.opus");
+  const sampleTags = sampleProbe.tags;
+  check(
+    sampleProbe.hasPicture,
+    "and every v1 file carries the cover v1 embedded",
+    String(sampleProbe.hasPicture),
+  );
   check(
     sampleTags["MUSICBRAINZ_TRACKID"] === "60fa767a-d85d-4991-82bc-4294e0b11ae7",
     "v1 wrote the recording id into MUSICBRAINZ_TRACKID",
@@ -520,6 +565,104 @@ async function main(): Promise<void> {
     String(report.counts.replaygainAlbums),
   );
 
+  /* ---- the covers ---------------------------------------------------- */
+  //
+  // The regression this whole section exists for: `clear: true` with no picture supplied used
+  // to empty the tag block, and on Opus the picture *is* a tag. Twenty thousand embedded
+  // covers went that way. Every migrated file must still have one, whatever v2 could or could
+  // not source for it.
+  const pictureless: string[] = [];
+  for (const relative of afterFiles) {
+    if (!(await probeFull(relative)).hasPicture) pictureless.push(relative);
+  }
+  check(
+    pictureless.length === 0,
+    "every migrated file still carries a picture",
+    pictureless.length === 0 ? `${String(afterFiles.length)} file(s)` : pictureless.join(", "),
+  );
+
+  // `SongForceMetadata.CoverArtBytes`: the only cover that track ever had, and the one v2 used
+  // to discard in favour of a Cover Art Archive front it has no way of fetching offline.
+  const forcedCoverPath = "Birdy/Birdy (2011)/Disc 1 - 03 - People Help the People.opus";
+  check(
+    pictureOf(forcedCoverPath) === FIXTURE_FORCED_COVER_JPEG,
+    "the forced cover art of v1 is the picture in the file, byte for byte",
+    (pictureOf(forcedCoverPath) ?? "(none)").slice(0, 24),
+  );
+  const forcedCoverField = await v2<{ source: string; locked: boolean }[]>`
+    select d.document->'fields'->'front_cover'->>'source' as source,
+           (d.document->'fields'->'front_cover'->>'locked')::boolean as locked
+      from metadata_documents d
+      join import_tracks it on it.id = d.import_track_id
+     where it.raw->>'v1SongId' = '303'`;
+  check(
+    forcedCoverField[0]?.source === "v1" && forcedCoverField[0]?.locked === true,
+    "and the document records it as a locked v1 decision",
+    `${forcedCoverField[0]?.source ?? "(none)"} locked=${String(forcedCoverField[0]?.locked ?? false)}`,
+  );
+
+  // The SoundCloud row: no MusicBrainz ids, no video id, so neither rung of §4's ladder can
+  // answer — and its file has a picture nothing in v2 accounts for. That is a question.
+  const coverMissing = await v2<{ path: string }[]>`
+    select payload->>'path' as path from inbox_items
+     where type = 'cover_missing' and status = 'open'`;
+  check(
+    coverMissing.length === 1,
+    "a cover_missing item was opened for the file whose picture no source explains",
+    coverMissing.map((row) => row.path).join(", "),
+  );
+  check(
+    (coverMissing[0]?.path ?? "").includes("Skinny Love"),
+    "and it points at the track",
+    coverMissing[0]?.path ?? "(none)",
+  );
+
+  /* ---- the processing flags v1 set ---------------------------------- */
+  //
+  // `ForceSongMetadata` means "skip MusicBrainz, use the Songs row". v2 read the column and
+  // did nothing with it, so `documents.build` replaced the artist names — which is how a
+  // migrated library came out crediting people its owner had never seen.
+  const forcedSong = await probe("Daft Punk/Discovery (2001)/13 - Face to Face.opus");
+  check(
+    forcedSong["ARTIST"] === "Daft Punk & Todd Edwards",
+    "a ForceSongMetadata row keeps v1's ARTIST, not MusicBrainz's",
+    forcedSong["ARTIST"] ?? "(absent)",
+  );
+  check(
+    (forcedSong["ALBUMARTIST"] ?? forcedSong["ALBUM_ARTIST"]) === "Daft Punk",
+    "and its ALBUMARTIST is v1's too",
+    forcedSong["ALBUMARTIST"] ?? forcedSong["ALBUM_ARTIST"] ?? "(absent)",
+  );
+  const forcedSource = await probe("Daft Punk/Discovery (2001)/12 - Short Circuit.opus");
+  check(
+    forcedSource["ARTIST"] === "Thomas Bangalter",
+    "a ForceSourceMetadata row keeps the artist v1 parsed out of the description",
+    forcedSource["ARTIST"] ?? "(absent)",
+  );
+  check(
+    forcedSource["ORGANIZATION"] === "Crydamoure" || forcedSource["LABEL"] === "Crydamoure",
+    "and its label",
+    forcedSource["ORGANIZATION"] ?? forcedSource["LABEL"] ?? "(absent)",
+  );
+  // Its neighbours are untouched: forcing is per row, not per album.
+  const unforced = await probe("Daft Punk/Discovery (2001)/02 - Aerodynamic.opus");
+  check(
+    unforced["ARTIST"] === "Daft Punk",
+    "while an unforced row is still resolved from MusicBrainz",
+    unforced["ARTIST"] ?? "(absent)",
+  );
+
+  /* ---- the forced release MBID drives the album's import ------------- */
+  const discoveryImport = await v2<{ release: string | null }[]>`
+    select i.release_mbid as release from imports i
+      join import_tracks it on it.import_id = i.id
+     where it.raw->>'v1SongId' = '101'`;
+  check(
+    discoveryImport[0]?.release === "d073287b-d1bd-4f11-a933-a4386f8cf701",
+    "the release MBID v1's owner forced is the import's release, not the empty column",
+    discoveryImport[0]?.release ?? "(none)",
+  );
+
   /* ---- documents --------------------------------------------------- */
   const discovery = report.albums.find((album) => album.folder.includes("Discovery"));
   check(
@@ -535,16 +678,16 @@ async function main(): Promise<void> {
 
   // The overrides are the only good metadata album B has, so "locked" is the assertion that
   // matters most in the whole run: it is what a migration would otherwise silently revert.
-  const locked = await v2<{ field: string }[]>`
-    select jsonb_object_keys(d.document->'fields') as field
+  // Song by song, not "any locked title anywhere": the processing flags lock whole rows, so
+  // a query that takes the first locked document it finds would answer about the wrong one.
+  const lockedTitle = await v2<{ value: string; locked: boolean }[]>`
+    select d.document->'fields'->'title'->>'value' as value,
+           (d.document->'fields'->'title'->>'locked')::boolean as locked
       from metadata_documents d
-     where d.document->'fields' @> '{"title":{"locked":true}}'::jsonb`;
-  const lockedTitle = await v2<{ value: string }[]>`
-    select d.document->'fields'->'title'->>'value' as value
-      from metadata_documents d
-     where d.document->'fields' @> '{"title":{"locked":true}}'::jsonb`;
+      join import_tracks it on it.id = d.import_track_id
+     where it.raw->>'v1SongId' = '202'`;
   check(
-    locked.length > 0,
+    lockedTitle[0]?.locked === true,
     "the SongForceMetadata title override came across locked",
     lockedTitle[0]?.value ?? "(none)",
   );
@@ -557,7 +700,9 @@ async function main(): Promise<void> {
   const lockedGenre = await v2<{ value: string }[]>`
     select d.document->'fields'->'genre'->>'value' as value
       from metadata_documents d
-     where d.document->'fields' @> '{"genre":{"locked":true}}'::jsonb`;
+      join import_tracks it on it.id = d.import_track_id
+     where it.raw->>'v1SongId' = '201'
+       and d.document->'fields' @> '{"genre":{"locked":true}}'::jsonb`;
   check(
     (lockedGenre[0]?.value ?? "").includes("French House"),
     "and the `;`-joined forced genre list came across split and locked",
