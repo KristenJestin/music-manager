@@ -164,39 +164,40 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
     });
   }, [src, playing]);
 
+  /**
+   * Move to another entry of the queue.
+   *
+   * Written against the current `index` rather than inside a `setIndex` updater: an updater has
+   * to be a pure function of the previous state, and React is free to call it twice. Four other
+   * `setState` calls hiding in there would then fire twice too, which is the kind of bug that
+   * only shows up under StrictMode or a concurrent re-render.
+   */
+  const goTo = useCallback((to: number) => {
+    setIndex(to);
+    setPosition(0);
+    setDuration(0);
+    setError(null);
+    setPlaying(true);
+  }, []);
+
   const next = useCallback(() => {
-    setIndex((held) => {
-      if (held + 1 >= queue.length) {
-        setPlaying(false);
-        return held;
-      }
-      setPosition(0);
-      setDuration(0);
-      setError(null);
-      setPlaying(true);
-      return held + 1;
-    });
-  }, [queue.length]);
+    if (index + 1 >= queue.length) {
+      setPlaying(false);
+      return;
+    }
+    goTo(index + 1);
+  }, [goTo, index, queue.length]);
 
   const previous = useCallback(() => {
     const element = audio.current;
     // The convention every player follows: past three seconds, "previous" means "from the top".
-    if (element !== null && element.currentTime > 3) {
-      element.currentTime = 0;
+    if (index === 0 || (element !== null && element.currentTime > 3)) {
+      if (element !== null) element.currentTime = 0;
+      setPosition(0);
       return;
     }
-    setIndex((held) => {
-      if (held === 0) {
-        if (element !== null) element.currentTime = 0;
-        return held;
-      }
-      setPosition(0);
-      setDuration(0);
-      setError(null);
-      setPlaying(true);
-      return held - 1;
-    });
-  }, []);
+    goTo(index - 1);
+  }, [goTo, index]);
 
   const toggle = useCallback(() => {
     const element = audio.current;
