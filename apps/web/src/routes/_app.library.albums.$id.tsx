@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Lock,
+  Play,
   Sparkles,
   Tag,
   Trash2,
@@ -33,7 +34,9 @@ import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
+import { PlayButton } from "#/components/play-button.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
+import { usePlayer, libraryTrack } from "#/components/shell/player-context.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { CoverPicker } from "#/components/library/cover-picker.tsx";
@@ -102,6 +105,7 @@ function Album() {
   const navigate = useNavigate();
   const router = useRouter();
   const toast = useToast();
+  const player = usePlayer();
 
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -124,6 +128,7 @@ function Album() {
   const missing = album.tracks.filter((track) => !track.present);
   const profiled = params.profile !== "global";
   const score = profiled ? quality.byProfile[params.profile as never] : quality.score;
+  const { queue: albumQueue } = queueOf(album);
 
   const act = (label: string, run: () => Promise<string>): void => {
     setBusy(label);
@@ -285,6 +290,20 @@ function Album() {
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
+          <Button
+            data-testid="album-play"
+            disabled={albumQueue.length === 0}
+            title={
+              albumQueue.length === 0
+                ? "None of this album's files are on disk."
+                : "Play the album, in order, from the first track."
+            }
+            onClick={() => {
+              player.play(albumQueue, 0);
+            }}
+          >
+            <Play className="size-4" aria-hidden="true" /> Play
+          </Button>
           <Button
             variant="outline"
             disabled={busy !== null}
@@ -518,10 +537,63 @@ type AlbumData = NonNullable<Awaited<ReturnType<typeof fetchAlbum>>>;
 
 /** What the override server functions answer with. */
 type AlbumOverrideAnswer = Awaited<ReturnType<typeof setAlbumField>>;
+/**
+ * The album as a play queue: its tracks in their own order, minus the ones whose file is not
+ * on disk.
+ *
+ * Pressing play on track 7 must start at 7 and carry 8 through 14 with it, so the queue is the
+ * whole album and the index is where you pressed. Filtering the missing files out *before*
+ * indexing is what keeps that mapping right on an album with a hole in it.
+ */
+function queueOf(album: AlbumData): {
+  readonly rows: readonly AlbumTrackRow[];
+  readonly queue: readonly ReturnType<typeof libraryTrack>[];
+} {
+  const cover = albumCoverSources(album.album);
+  const rows = album.tracks.filter((track) => track.present);
+  return {
+    rows,
+    queue: rows.map((track) =>
+      libraryTrack({
+        id: track.id,
+        title: track.title,
+        artist: track.artist ?? album.album.albumArtist,
+        album: album.album.title,
+        coverUrl: cover[0] ?? null,
+        durationSeconds: track.duration,
+      }),
+    ),
+  };
+}
 
 function TracksTab({ album }: { readonly album: AlbumData }) {
   const navigate = useNavigate();
+  const player = usePlayer();
+  const { rows: playable, queue } = queueOf(album);
+
   const columns: Column<AlbumTrackRow>[] = [
+    {
+      key: "play",
+      header: "",
+      className: "w-9",
+      cell: (row) => {
+        const at = playable.findIndex((track) => track.id === row.id);
+        const active = player.current?.id === `library:${row.id}`;
+        return (
+          <PlayButton
+            data-testid="track-play"
+            active={active}
+            playing={player.playing}
+            disabled={at === -1}
+            title={at === -1 ? "The file is not on disk." : `Play from “${row.title}”`}
+            onPlay={() => {
+              if (active) player.toggle();
+              else player.play(queue, at);
+            }}
+          />
+        );
+      },
+    },
     {
       key: "n",
       header: "#",

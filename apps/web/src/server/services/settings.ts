@@ -335,7 +335,7 @@ export const SETTING_DEFINITIONS = {
       listenbrainz: true,
       wikimedia: true,
     },
-    "Which of the eight sources of §4 may be called. A disabled source is simply not asked.",
+    "Which of the eight sources of §4 may be called. A disabled source is simply not asked. Deezer's switch also governs the Console's 30-second previews: off means Discover offers no preview rather than a broken one.",
   ),
   sourceTtlDays: define(
     sourceDays,
@@ -351,7 +351,7 @@ export const SETTING_DEFINITIONS = {
       listenbrainz: 30,
       wikimedia: 180,
     },
-    "Days after which a stored source answer is refreshed. 0 = never. Rows are never deleted.",
+    "Days after which a stored source answer is refreshed. 0 = never. Rows are never deleted. Deezer preview lookups are the one exception: their URLs are signed and expire within hours, so they keep a fixed one-hour TTL of their own (PREVIEW_TTL_MS).",
   ),
   coverOrder: define<("coverartarchive" | "youtube")[]>(
     z.array(z.enum(["coverartarchive", "youtube"])),

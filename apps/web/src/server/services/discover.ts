@@ -295,6 +295,27 @@ export async function getItem(
   return row ?? null;
 }
 
+/**
+ * The item for a `subject`, whichever block proposed it.
+ *
+ * `subject` is unique per *kind*, not on its own, so a release-group can in principle sit in
+ * both the discography and the recommendation block. Anything that only wants "what is this
+ * thing called, and is it in the library" — the player, for one — gets the same answer from
+ * either, so the highest-scoring row is taken and the ambiguity never surfaces.
+ */
+export async function getItemBySubject(
+  subject: string,
+  db: Database = defaultDb(),
+): Promise<DiscoverItem | null> {
+  const [row] = await db
+    .select()
+    .from(discoverItems)
+    .where(eq(discoverItems.subject, subject))
+    .orderBy(desc(discoverItems.score))
+    .limit(1);
+  return row ?? null;
+}
+
 /* ------------------------------------------------------------------ */
 /* the sync                                                            */
 /* ------------------------------------------------------------------ */

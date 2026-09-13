@@ -11,8 +11,11 @@
  */
 import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { cn } from "cn";
 import { ActivityDrawer } from "#/components/shell/activity-drawer.tsx";
 import { CommandPalette } from "#/components/shell/command-palette.tsx";
+import { PlayerBar } from "#/components/shell/player-bar.tsx";
+import { usePlayer } from "#/components/shell/player-context.tsx";
 import { Sidebar } from "#/components/shell/sidebar.tsx";
 import { Toaster } from "#/components/shell/toaster.tsx";
 import { Topbar, type Crumb } from "#/components/shell/topbar.tsx";
@@ -34,6 +37,9 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const { setPaletteOpen, setDrawerOpen, paletteOpen } = useShell();
+  // The bar is fixed to the bottom of the viewport, so the page has to stop above it or the
+  // last row of every table sits underneath it and cannot be clicked.
+  const playing = usePlayer().current !== null;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -77,9 +83,10 @@ export function AppShell({
     <div data-testid="app-shell" className="shell-grid min-h-screen">
       <Sidebar />
       <Topbar crumbs={crumbs} />
-      <main className="min-w-0 px-6 pt-5 pb-16">{children}</main>
+      <main className={cn("min-w-0 px-6 pt-5", playing ? "pb-32" : "pb-16")}>{children}</main>
       <ActivityDrawer />
       <CommandPalette />
+      <PlayerBar />
       <Toaster />
     </div>
   );
