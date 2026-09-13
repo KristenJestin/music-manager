@@ -16,7 +16,7 @@ import { db } from "#/server/db/client.ts";
 import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { readEvents } from "#/server/services/events.ts";
+import { readEvents, readLatestEvents } from "#/server/services/events.ts";
 import {
   bumpImport,
   cancelImport,
@@ -85,10 +85,14 @@ export const fetchJob = createServerFn({ method: "GET", strict: STRICT })
     try {
       const detail = await jobDetail(data.id);
       if (detail === null) return null;
-      const [match, events] = await Promise.all([
+      const [match, latest] = await Promise.all([
         stepResult(data.id, "match"),
-        readEvents({ importId: data.id, since: 0, limit: 500 }),
+        // Newest 500 first, then back to chronological order: a job with a longer journal
+        // than that must never lose the end of its own history the way `since: 0, limit: 500`
+        // silently did (it always returned the *oldest* 500 lines).
+        readLatestEvents({ importId: data.id, limit: 500 }),
       ]);
+      const events = [...latest].reverse();
       return { ...detail, match, events };
     } catch (error) {
       return toFailure(error);

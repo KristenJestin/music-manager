@@ -34,7 +34,7 @@ import {
   describe as describeCookies,
   isMisconfigured,
 } from "#/server/services/cookies.ts";
-import { emit, readEvents } from "#/server/services/events.ts";
+import { emit, readLatestEvents } from "#/server/services/events.ts";
 import { openLibraryItem, closeLibraryItem } from "#/server/services/library-inbox.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
@@ -613,8 +613,12 @@ export async function workerLog(
   deps: ToolsDeps = {},
 ): Promise<readonly JobEventPayload[]> {
   const { db } = await resolve(deps);
-  const rows = await readEvents({ limit: options.limit ?? 200 }, db());
-  const tail = rows.slice(-(options.limit ?? 200));
+  // Newest rows first off the primary key, then back to chronological order: `LogViewer` is a
+  // terminal that auto-scrolls to the bottom, so it wants oldest-first, but the *window* must
+  // be the most recent `limit` lines — `readEvents({ limit })` used to hand back the oldest
+  // ones instead, because it has no `since` and orders ascending from the very first row.
+  const latest = await readLatestEvents({ limit: options.limit ?? 200 }, db());
+  const tail = [...latest].reverse();
   return options.level === "error" ? tail.filter((row) => row.level !== "info") : tail;
 }
 
