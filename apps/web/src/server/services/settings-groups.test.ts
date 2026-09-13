@@ -11,7 +11,13 @@
  * a home means adding it to that list on purpose, and writing down which phase will house it.
  */
 import { describe, expect, it } from "vitest";
-import { GENERAL_KEYS, METADATA_KEYS, inGroup, ungroupedKeys } from "./settings-groups.ts";
+import {
+  DISCOVER_KEYS,
+  GENERAL_KEYS,
+  METADATA_KEYS,
+  inGroup,
+  ungroupedKeys,
+} from "./settings-groups.ts";
 import { SETTING_KEYS, isSettingKey } from "./settings.ts";
 
 describe("the tabs reference real settings", () => {
@@ -74,5 +80,34 @@ describe("coverage", () => {
   it("the groups declared here are most of the registry", () => {
     const shown = SETTING_KEYS.length - ungroupedKeys().length;
     expect(shown).toBeGreaterThan(SETTING_KEYS.length / 2);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * A key on two tabs is allowed, and `lastfmKey` is the case that proves it.
+ *
+ * It enriches genres and moods during an import (Metadata & matching) *and* it is the
+ * similar-artist source Discover falls back to when ListenBrainz is silent. Showing it on one
+ * tab only left the other unable to explain why a whole block was empty. A group is a view
+ * over the registry, not an owner — which is exactly what these assertions state.
+ */
+describe("a key may belong to two tabs", () => {
+  it("lastfmKey is on Metadata & matching and on Discover", () => {
+    expect((METADATA_KEYS as readonly string[]).includes("lastfmKey")).toBe(true);
+    expect((DISCOVER_KEYS as readonly string[]).includes("lastfmKey")).toBe(true);
+  });
+
+  it("both save handlers therefore accept it", () => {
+    expect(inGroup(METADATA_KEYS, "lastfmKey")).toBe(true);
+    expect(inGroup(DISCOVER_KEYS, "lastfmKey")).toBe(true);
+  });
+
+  it("and it counts as grouped exactly once", () => {
+    // `ungroupedKeys` folds the groups into a set, so an overlap can never make a reachable
+    // key look orphaned, nor make the registry look larger than it is.
+    expect(ungroupedKeys().includes("lastfmKey")).toBe(false);
+    expect(new Set(ungroupedKeys()).size).toBe(ungroupedKeys().length);
   });
 });

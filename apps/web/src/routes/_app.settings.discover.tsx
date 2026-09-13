@@ -114,7 +114,7 @@ function DiscoverSettings() {
         </FormRow>
         <FormRow
           label="Schedule"
-          help="Five-field cron for `cron.discover`. Daily is plenty: your taste does not change hourly."
+          help="Five-field cron for `cron.discover`. Daily is plenty: your taste does not change hourly. The worker re-reads it within a minute of saving; no restart."
         >
           <Input
             data-testid="setting-discoverCron"

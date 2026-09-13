@@ -43,6 +43,7 @@ import {
   runYtdlpUpdate,
   scanStatus,
   startScan,
+  startSourceRefresh,
   trashFileAction,
 } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
@@ -429,6 +430,47 @@ function DownloaderPanel({
           data-testid="navidrome-rescan"
         >
           Rescan
+        </Button>
+      </Diag>
+
+      {/*
+       * `cron.refresh-sources` had no manual trigger at all: no button, no route, no CLI verb.
+       * A correction made in MusicBrainz therefore waited until Monday at 5 a.m., and the only
+       * way to hurry it was to restart the worker at the right minute.
+       */}
+      <Diag
+        testId="diag-sources-refresh"
+        name="Upstream sources"
+        tone={data.sourcesRefresh.enabled ? "ok" : "muted"}
+        detail={
+          data.sourcesRefresh.enabled
+            ? `re-read on ${data.sourcesRefresh.cron}; albums that changed upstream are queued for a re-tag`
+            : "switched off (`sourcesRefreshEnabled`) — nothing is re-read, and running it now would return immediately"
+        }
+      >
+        {data.sourcesRefresh.enabled ? null : (
+          <ConfigureLink
+            to="/settings/metadata"
+            hash="sources"
+            label="Configure"
+            testId="sources-refresh-configure"
+          />
+        )}
+        <Button
+          size="xs"
+          variant="outline"
+          disabled={busy !== null || !data.sourcesRefresh.enabled}
+          onClick={() => {
+            act("sources-refresh", async () => {
+              const result = await startSourceRefresh();
+              return result.queued
+                ? "Source refresh queued. The worker sweeps; watch the log below."
+                : "The refresh could not be queued.";
+            });
+          }}
+          data-testid="sources-refresh"
+        >
+          Refresh now
         </Button>
       </Diag>
 

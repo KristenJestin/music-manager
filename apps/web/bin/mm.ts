@@ -780,8 +780,35 @@ async function cmdDoc(args: Args): Promise<number> {
   });
 }
 
-/** `mm sources` — which credentials are configured, without printing any of them. */
-async function cmdSources(): Promise<number> {
+/**
+ * `mm sources` — which credentials are configured, without printing any of them.
+ *
+ * `mm sources refresh` is the manual trigger for `cron.refresh-sources`. The job had no way in
+ * at all before: no route, no tool, no command, so the only ways to run it were to wait until
+ * Monday at 5 a.m. or to restart the worker at the right minute.
+ */
+async function cmdSources(args: Args): Promise<number> {
+  if (args.positional[1] === "refresh") {
+    const settings = await loadSettings();
+    const { enqueueSourceRefresh } = await import("#/server/services/queue.ts");
+    const jobId = await enqueueSourceRefresh({ trigger: "cli" });
+    line(
+      jobId === null
+        ? "the refresh could not be queued — is the database reachable?"
+        : `queued ${jobId} on cron.refresh-sources`,
+    );
+    if (!settings.sourcesRefreshEnabled) {
+      line("note: sourcesRefreshEnabled is off, so the worker will return without doing anything.");
+      line("      mm settings set sourcesRefreshEnabled true");
+    }
+    return jobId === null ? 1 : 0;
+  }
+  if (args.positional[1] !== undefined) {
+    throw new MMError("INVALID_INPUT", `Unknown sources subcommand "${args.positional[1]}".`, {
+      hint: "usage: mm sources [refresh]",
+    });
+  }
+
   const settings = await loadSettings();
   const config = sourcesConfig(settings);
   line(`user-agent  ${config.userAgent}`);
@@ -1152,6 +1179,7 @@ const USAGE = `mm — Music Manager
   mm doc show <id> [--missing] [--json]
   mm doc rebuild <id> [--offline]        offline by default; exits 1 if anything left the machine
   mm sources                             which credentials are set, and every source's TTL
+  mm sources refresh                     run cron.refresh-sources now, on the worker
 
   mm verify <album> [--rescan] [--json]  read one album back through Navidrome, field by field
   mm verify --all [--json]               the whole library, with one scan for all of it
@@ -1208,7 +1236,7 @@ async function main(): Promise<number> {
     case "doc":
       return await cmdDoc(args);
     case "sources":
-      return await cmdSources();
+      return await cmdSources(args);
     case "verify":
       return await cmdVerify(args);
     case "scan":

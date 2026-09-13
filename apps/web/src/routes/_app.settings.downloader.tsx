@@ -130,7 +130,10 @@ function DownloaderSettings() {
             testId="toggle-autoupdate"
           />
         </FormRow>
-        <FormRow label="Schedule" help="A five-field cron expression, in the server's timezone.">
+        <FormRow
+          label="Schedule"
+          help="A five-field cron expression, in the server's timezone. The worker re-reads it within a minute of saving; no restart."
+        >
           <Input
             className="w-40 font-mono text-xs"
             value={form.ytdlpUpdateCron}

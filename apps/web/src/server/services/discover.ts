@@ -405,8 +405,82 @@ export function explainDiscover(input: {
 /** One row to insert, built from whichever service produced it. */
 type Proposal = Omit<typeof discoverItems.$inferInsert, "id" | "syncId">;
 
+/**
+ * The advisory-lock key the Discover sync holds while it runs. Arbitrary, fixed, and ours.
+ *
+ * `0x6d6d0901` is `"mm"` and the phase number. A `bigint` key rather than the two-`int` form
+ * so nothing else in this installation can collide with it by picking the same first half.
+ */
+const SYNC_LOCK_KEY = 0x6d6d0901;
+
+/**
+ * One sync at a time, across every process.
+ *
+ * "Sync now" ran `syncDiscover` **inline in the web request** while `cron.discover` ran the
+ * same function in the worker, and nothing stopped the two from overlapping: both would walk
+ * the same artists, both would `reconcile()` into `discover_items`, and both would push the
+ * playlist — the second one over the first one's shoulder.
+ *
+ * A Postgres advisory lock rather than a flag column: it is released when the connection dies,
+ * so a worker killed mid-sync does not leave Discover permanently "already running". It has to
+ * live on a **reserved** connection, because a lock taken on one pooled connection and
+ * released on another is not released at all.
+ */
+async function acquireSyncLock(db: Database): Promise<{ release: () => Promise<void> } | null> {
+  const reserved = await db.$client.reserve();
+  try {
+    const rows = await reserved<{ locked: boolean }[]>`
+      select pg_try_advisory_lock(${SYNC_LOCK_KEY}) as locked
+    `;
+    if (rows[0]?.locked !== true) {
+      reserved.release();
+      return null;
+    }
+  } catch (error) {
+    reserved.release();
+    throw error;
+  }
+  return {
+    release: async (): Promise<void> => {
+      try {
+        await reserved`select pg_advisory_unlock(${SYNC_LOCK_KEY})`;
+      } finally {
+        reserved.release();
+      }
+    },
+  };
+}
+
 export async function syncDiscover(options: SyncOptions = {}): Promise<SyncReport> {
   const db = options.db ?? defaultDb();
+  const lock = await acquireSyncLock(db);
+  if (lock === null) {
+    // No `discover_syncs` row: nothing ran, and a run log full of "I did not run" entries is
+    // the sort of noise that makes the real failures harder to find.
+    return {
+      id: "",
+      status: "skipped",
+      durationMs: 0,
+      discography: 0,
+      recommendations: 0,
+      similarArtists: 0,
+      incompleteAlbums: 0,
+      playlist: null,
+      error: "A Discover sync is already running; this one was not started.",
+      notes: [
+        "Discover allows one sync at a time across the Console, the API, the CLI and the " +
+          "`cron.discover` job. Wait for the one in flight and read its report.",
+      ],
+    };
+  }
+  try {
+    return await runSync(db, options);
+  } finally {
+    await lock.release();
+  }
+}
+
+async function runSync(db: Database, options: SyncOptions): Promise<SyncReport> {
   const settings = options.settings ?? (await loadSettings(db));
   const started = options.now ?? new Date();
   const syncId = newId("discoverSync");

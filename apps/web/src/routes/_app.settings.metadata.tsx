@@ -625,6 +625,7 @@ function MetadataSettings() {
 
       {/* ---- sources ---- */}
       <Section
+        id="sources"
         title="Sources"
         description="Every response is kept whole in the raw cache and never purged. A new field is computed from it, offline."
       >

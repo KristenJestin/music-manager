@@ -59,7 +59,12 @@ import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { updateYtdlp } from "#/server/services/tools.ts";
 import { loadSettings, maskedSettings, setSettings } from "#/server/services/settings.ts";
-import { enqueue, enqueueLibraryScan, enqueueRetagRun } from "#/server/services/queue.ts";
+import {
+  enqueue,
+  enqueueLibraryScan,
+  enqueueRetagRun,
+  enqueueSourceRefresh,
+} from "#/server/services/queue.ts";
 import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-rate-limit.ts";
 import {
   IMPORT_STATUSES,
@@ -1296,6 +1301,34 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "most download failures that appeared overnight.",
       inputSchema: {},
       run: async () => await updateYtdlp({ db: db() }),
+    },
+    {
+      name: "refresh_sources",
+      scope: "tools:write",
+      title: "Re-read the upstream sources and re-tag what changed",
+      description:
+        "The weekly `cron.refresh-sources` sweep, on demand. Each album's MusicBrainz release " +
+        "is fetched again, compared with the raw cache, and the albums that moved upstream are " +
+        "queued for a re-tag — so a correction made in MusicBrainz reaches the files without " +
+        "waiting for Monday.\n\n" +
+        "Queued to the worker: `get_status` must show a worker alive, and the queue is " +
+        "`singleton`, so asking during the scheduled run joins it rather than sweeping twice. " +
+        "`enabled: false` means the `sourcesRefreshEnabled` setting is off and the handler " +
+        "will return immediately — that is a setting to change, not a failure to retry.",
+      inputSchema: {},
+      run: async () => {
+        const settings = await loadSettings(db());
+        const jobId = await enqueueSourceRefresh({ trigger: "mcp" });
+        return {
+          queued: jobId !== null,
+          jobId,
+          enabled: settings.sourcesRefreshEnabled,
+          note: settings.sourcesRefreshEnabled
+            ? "Queued. The refresh reads upstream only; the re-tag it queues is offline."
+            : "Queued, but `sourcesRefreshEnabled` is off, so the handler will do nothing. " +
+              "`update_settings` turns it on.",
+        };
+      },
     },
     {
       name: "get_status",
