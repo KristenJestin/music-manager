@@ -11,7 +11,13 @@
  * a home means adding it to that list on purpose, and writing down which phase will house it.
  */
 import { describe, expect, it } from "vitest";
-import { GENERAL_KEYS, METADATA_KEYS, inGroup, ungroupedKeys } from "./settings-groups.ts";
+import {
+  GENERAL_KEYS,
+  METADATA_KEYS,
+  WATCHED_SOURCES_KEYS,
+  inGroup,
+  ungroupedKeys,
+} from "./settings-groups.ts";
 import { SETTING_KEYS, isSettingKey } from "./settings.ts";
 
 describe("the tabs reference real settings", () => {
@@ -74,5 +80,21 @@ describe("coverage", () => {
   it("the groups declared here are most of the registry", () => {
     const shown = SETTING_KEYS.length - ungroupedKeys().length;
     expect(shown).toBeGreaterThan(SETTING_KEYS.length / 2);
+  });
+});
+
+describe("Settings › Watched sources", () => {
+  it("every key on the tab exists in the registry", () => {
+    for (const key of WATCHED_SOURCES_KEYS) expect(isSettingKey(key)).toBe(true);
+  });
+
+  it("has a home for every knob the watched sources added", () => {
+    const homeless = WATCHED_SOURCES_KEYS.filter((key) => ungroupedKeys().includes(key));
+    expect(homeless).toEqual([]);
+  });
+
+  it("refuses a key from another tab, the way every save handler relies on", () => {
+    expect(inGroup(WATCHED_SOURCES_KEYS, "watchedSourcesCron")).toBe(true);
+    expect(inGroup(WATCHED_SOURCES_KEYS, "discoverCron")).toBe(false);
   });
 });

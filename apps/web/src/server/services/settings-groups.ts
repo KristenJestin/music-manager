@@ -90,6 +90,14 @@ export const DISCOVER_KEYS = [
   "discoverPlaylistName",
 ] as const satisfies readonly SettingKey[];
 
+/** Settings › Watched sources. When the scan runs, and what it may confirm alone (P12). */
+export const WATCHED_SOURCES_KEYS = [
+  "watchedSourcesEnabled",
+  "watchedSourcesCron",
+  "watchedSourcesAutoAcceptDefault",
+  "watchedSourcesAutoAcceptThreshold",
+] as const satisfies readonly SettingKey[];
+
 /** True when `key` belongs to the tab. The save handlers refuse anything else. */
 export function inGroup(group: readonly SettingKey[], key: string): key is SettingKey {
   return (group as readonly string[]).includes(key);
@@ -97,6 +105,11 @@ export function inGroup(group: readonly SettingKey[], key: string): key is Setti
 
 /** Every key of the registry that no tab shows. Printed by `mm settings list --orphans`. */
 export function ungroupedKeys(): SettingKey[] {
-  const shown = new Set<string>([...GENERAL_KEYS, ...METADATA_KEYS, ...DISCOVER_KEYS]);
+  const shown = new Set<string>([
+    ...GENERAL_KEYS,
+    ...METADATA_KEYS,
+    ...DISCOVER_KEYS,
+    ...WATCHED_SOURCES_KEYS,
+  ]);
   return SETTING_KEYS.filter((key) => !shown.has(key));
 }

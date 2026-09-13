@@ -18,6 +18,7 @@ import {
   Music,
   Plus,
   RotateCcw,
+  Rss,
   Scan,
   Settings,
   Shield,
@@ -42,6 +43,7 @@ import { signOut } from "#/lib/auth-client.ts";
 import { retryLastFailed } from "#/server/functions/jobs.ts";
 import { runYtdlpUpdate, startScan } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
+import { scanWatchedSourceNow } from "#/server/functions/watched-sources.ts";
 
 const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
@@ -56,6 +58,7 @@ const GO: readonly Destination[] = [
   { to: "/", label: "Dashboard", icon: Home },
   { to: "/import/new", label: "New import", icon: Plus, shortcut: "N" },
   { to: "/imports", label: "Jobs", icon: Activity },
+  { to: "/sources", label: "Watched sources", icon: Rss },
   { to: "/review", label: "Review queue", icon: Inbox, shortcut: "R" },
   { to: "/library", label: "Albums", icon: Disc3 },
   { to: "/library/tracks", label: "Tracks", icon: Music },
@@ -104,6 +107,15 @@ export function CommandPalette() {
       run: async () => {
         await startScan({ data: {} });
         return "Scan queued. Tools reports it when the worker lands.";
+      },
+    },
+    {
+      id: "watched-scan",
+      label: "Scan watched sources",
+      icon: Rss,
+      run: async () => {
+        await scanWatchedSourceNow({ data: {} });
+        return "Queued. Each enabled source is listed and its new videos become imports.";
       },
     },
     {

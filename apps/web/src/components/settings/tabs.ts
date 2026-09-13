@@ -48,6 +48,12 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     hint: "Listening window, discography filters, ListenBrainz and the optional playlist.",
   },
   {
+    id: "sources",
+    label: "Watched sources",
+    to: "/settings/sources",
+    hint: "When the scan runs, and what it is allowed to confirm without you.",
+  },
+  {
     id: "api",
     label: "API & agents",
     to: "/settings/api",
