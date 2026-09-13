@@ -9,6 +9,8 @@ import {
   field,
   lock,
   merge,
+  removeField,
+  setConsoleValue,
   setUserValue,
   unknownFields,
   unlock,
@@ -113,6 +115,89 @@ describe("lock / unlock / setUserValue", () => {
       locked: true,
     });
     expect(edited.na["subtitle"]).toBeUndefined();
+  });
+});
+
+/*
+ * The manual override of the Console — the clean equivalent of v1's `SongForceMetadata`.
+ *
+ * What has to be true is one sentence: *what a person typed survives every rebuild, and
+ * unlocking hands the field back*. The first half is the whole point; the second is what makes
+ * it safe to use, because an override nobody can undo is a corruption with a nice UI.
+ */
+describe("setConsoleValue / removeField", () => {
+  const base = merge([{ fields: { album: field("Discovery", "musicbrainz", at) } }], {
+    schemaVersion: 1,
+  });
+
+  it("records the value as locked, from the console, and clears any n/a", () => {
+    const withNa = merge([{ na: { subtitle: { reason: "none", source: "musicbrainz" } } }], {
+      schemaVersion: 1,
+    });
+    const edited = setConsoleValue(withNa, "subtitle", "radio edit", at, { note: "set by owner" });
+    expect(edited.fields["subtitle"]).toMatchObject({
+      value: "radio edit",
+      source: "console",
+      locked: true,
+      note: "set by owner",
+    });
+    expect(edited.na["subtitle"]).toBeUndefined();
+  });
+
+  it("survives a later MusicBrainz patch — that is the whole promise of a lock", () => {
+    const edited = setConsoleValue(base, "album", "Discovery (Remastered)", at);
+    const rebuilt = merge(
+      [
+        { fields: edited.fields },
+        { fields: { album: field("Discovery", "musicbrainz", "2026-09-13T00:00:00.000Z") } },
+      ],
+      { schemaVersion: 1, precedence: SOURCE_PRECEDENCE },
+    );
+    expect(rebuilt.fields["album"]?.value).toBe("Discovery (Remastered)");
+    expect(rebuilt.fields["album"]?.source).toBe("console");
+  });
+
+  it("beats a v1-migrated `user` value, so editing a migrated field is not a no-op", () => {
+    const rebuilt = merge(
+      [
+        { fields: { album: field("Forced in v1", "user", at) } },
+        { fields: { album: field("Typed here", "console", at) } },
+      ],
+      { schemaVersion: 1, precedence: SOURCE_PRECEDENCE },
+    );
+    expect(rebuilt.fields["album"]?.value).toBe("Typed here");
+  });
+
+  /*
+   * Unlocking is `removeField`, not `unlock`: an unlocked `console` value would still sit at
+   * the head of `SOURCE_PRECEDENCE` and go on winning. Removing it is what actually gives the
+   * field back to the resolvers, and this is the test that would have caught the shortcut.
+   */
+  it("lets MusicBrainz win again once the console value is removed", () => {
+    const edited = setConsoleValue(base, "album", "Discovery (Remastered)", at);
+    const released = removeField(edited, "album");
+    expect(released.fields["album"]).toBeUndefined();
+
+    const rebuilt = merge(
+      [{ fields: released.fields }, { fields: { album: field("Discovery", "musicbrainz", at) } }],
+      { schemaVersion: 1, precedence: SOURCE_PRECEDENCE },
+    );
+    expect(rebuilt.fields["album"]?.value).toBe("Discovery");
+    expect(rebuilt.fields["album"]?.source).toBe("musicbrainz");
+  });
+
+  it("would keep winning if `unlock` were used instead — which is why it is not", () => {
+    const unlocked = unlock(setConsoleValue(base, "album", "Typed here", at), "album");
+    const rebuilt = merge(
+      [{ fields: unlocked.fields }, { fields: { album: field("Discovery", "musicbrainz", at) } }],
+      { schemaVersion: 1, precedence: SOURCE_PRECEDENCE },
+    );
+    expect(rebuilt.fields["album"]?.value).toBe("Typed here");
+  });
+
+  it("removes nothing it was not asked to remove", () => {
+    const two = setConsoleValue(setConsoleValue(base, "album", "A", at), "genre", ["house"], at);
+    expect(Object.keys(removeField(two, "album").fields)).toEqual(["genre"]);
   });
 });
 
