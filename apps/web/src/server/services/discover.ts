@@ -38,6 +38,7 @@ import {
   discoverPlaylists,
   discoverSyncs,
   libraryAlbums,
+  libraryTracks,
   type DiscoverItem,
   type DiscoverKind,
 } from "#/server/db/schema/index.ts";
@@ -94,6 +95,15 @@ export interface DiscoverItemView {
   readonly reason: string;
   readonly source: string;
   readonly inLibrary: boolean;
+  /**
+   * The album in *our* library this proposal turns out to be, when it is one.
+   *
+   * Only ever filled for a row that is already `inLibrary`, and only because the page offers a
+   * link to it: "Recommended, and you own it" is useless without a way to go and play the
+   * thing. Null everywhere else, including for an owned recording whose album we cannot
+   * identify — a missing link is a missing button, never a broken one.
+   */
+  readonly libraryAlbumId: string | null;
   /** `similarTo`, `have`/`total`, the score factors — whatever the block needs. */
   readonly payload: Record<string, unknown>;
 }
@@ -122,8 +132,12 @@ export interface DiscoverView {
   readonly enabled: boolean;
 }
 
-function toView(row: DiscoverItem): DiscoverItemView {
+function toView(
+  row: DiscoverItem,
+  albums: ReadonlyMap<string, string> = new Map(),
+): DiscoverItemView {
   return {
+    libraryAlbumId: albums.get(row.subject) ?? null,
     id: row.id,
     kind: row.kind,
     status: row.status,
@@ -146,6 +160,61 @@ function toView(row: DiscoverItem): DiscoverItemView {
 }
 
 /**
+ * For the proposals we turn out to own, which album of ours they are — by subject.
+ *
+ * Two queries, not one per row: the "In your library" tab is a list, and a link per line is
+ * not worth a round trip per line. A recommendation is either a recording (join through
+ * `library_tracks.recording_mbid` to its album) or a release-group (`library_albums`
+ * directly), so both lookups are membership tests against an MBID and neither guesses from a
+ * title. A row whose MBID we hold no album for simply gets no link.
+ */
+async function ownedAlbums(
+  rows: readonly DiscoverItem[],
+  db: Database,
+): Promise<ReadonlyMap<string, string>> {
+  const owned = rows.filter((row) => row.inLibrary);
+  const recordings = [...new Set(owned.map((row) => row.recordingMbid).filter(isMbid))];
+  const groups = [...new Set(owned.map((row) => row.releaseGroupMbid).filter(isMbid))];
+
+  const byRecording = new Map<string, string>();
+  if (recordings.length > 0) {
+    const found = await db
+      .select({ mbid: libraryTracks.recordingMbid, albumId: libraryTracks.albumId })
+      .from(libraryTracks)
+      .where(inArray(libraryTracks.recordingMbid, recordings));
+    for (const row of found) {
+      if (row.mbid !== null && row.albumId !== null && !byRecording.has(row.mbid)) {
+        byRecording.set(row.mbid, row.albumId);
+      }
+    }
+  }
+
+  const byGroup = new Map<string, string>();
+  if (groups.length > 0) {
+    const found = await db
+      .select({ mbid: libraryAlbums.releaseGroupMbid, id: libraryAlbums.id })
+      .from(libraryAlbums)
+      .where(inArray(libraryAlbums.releaseGroupMbid, groups));
+    for (const row of found) {
+      if (row.mbid !== null && !byGroup.has(row.mbid)) byGroup.set(row.mbid, row.id);
+    }
+  }
+
+  const bySubject = new Map<string, string>();
+  for (const row of owned) {
+    const albumId =
+      (row.recordingMbid === null ? undefined : byRecording.get(row.recordingMbid)) ??
+      (row.releaseGroupMbid === null ? undefined : byGroup.get(row.releaseGroupMbid));
+    if (albumId !== undefined) bySubject.set(row.subject, albumId);
+  }
+  return bySubject;
+}
+
+function isMbid(value: string | null): value is string {
+  return value !== null && value !== "";
+}
+
+/**
  * Everything `/discover` renders, in one read.
  *
  * The signals come out of the **last sync's snapshot** rather than being recomputed: they are
@@ -164,6 +233,8 @@ export async function discoverView(
     .orderBy(desc(discoverSyncs.startedAt))
     .limit(1);
   const rows = await db.select().from(discoverItems).orderBy(desc(discoverItems.score));
+  // Resolved once for every row, so the two calls below share one pair of queries.
+  const albums = await ownedAlbums(rows, db);
 
   const gaps = rows.filter((row) => row.kind === "discography");
   const byArtist = new Map<string, DiscographyCard & { missing: DiscoverItemView[] }>();
@@ -209,8 +280,12 @@ export async function discoverView(
             error: last.error,
           },
     discography: [...byArtist.values()].sort((a, b) => b.plays - a.plays),
-    recommendations: rows.filter((row) => row.kind === "recommendation").map(toView),
-    similarArtists: rows.filter((row) => row.kind === "similar_artist").map(toView),
+    recommendations: rows
+      .filter((row) => row.kind === "recommendation")
+      .map((row) => toView(row, albums)),
+    similarArtists: rows
+      .filter((row) => row.kind === "similar_artist")
+      .map((row) => toView(row, albums)),
     inbox: inbox.map((item) => ({
       id: item.id,
       title: item.title,
@@ -1071,9 +1146,9 @@ export async function discoverList(
       })),
       topGenres: view.signals.topGenres.map((genre) => ({ name: genre.name, plays: genre.plays })),
     },
-    discography: all.filter((row) => row.kind === "discography").map(toView),
-    recommendations: all.filter((row) => row.kind === "recommendation").map(toView),
-    similarArtists: all.filter((row) => row.kind === "similar_artist").map(toView),
+    discography: all.filter((row) => row.kind === "discography").map((row) => toView(row)),
+    recommendations: all.filter((row) => row.kind === "recommendation").map((row) => toView(row)),
+    similarArtists: all.filter((row) => row.kind === "similar_artist").map((row) => toView(row)),
   };
 }
 
