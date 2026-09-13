@@ -1156,6 +1156,49 @@ export async function placedCover(
   return null;
 }
 
+/**
+ * The `artist.jpg` actually on disk for an artist, if there is one.
+ *
+ * The caller gives an artist **name**, never a path — same guard as `placedCover`. `artistList`
+ * groups by `library_albums.album_artist`, so that name is matched there, and the artist's
+ * *folder* is read off any one of that artist's placed albums (`folder`'s first path segment)
+ * rather than re-sanitising the name here: the folder a build actually wrote can drift from a
+ * fresh sanitisation of the name whenever the sanitise mode or the filing template changed
+ * since that album was placed, and disagreeing with the directory tree is exactly the mistake
+ * `artistList` already avoids.
+ *
+ * `null` means "no picture here" and the endpoint turns it into a 404 — the signal `<Cover>`
+ * needs to fall through to `artists_cache.imageUrl`.
+ */
+export async function placedArtistImage(
+  name: string,
+  db: Database = defaultDb(),
+): Promise<PlacedCover | null> {
+  const [album] = await db
+    .select({ folder: libraryAlbums.folder })
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.albumArtist, name))
+    .limit(1);
+  if (album === undefined) return null;
+
+  const artistFolder = album.folder.split("/")[0];
+  if (artistFolder === undefined || artistFolder === "") return null;
+
+  const settings = await loadSettings(db);
+  const paths = resolvePaths(settings);
+  const file = hostPath(paths, `${artistFolder}/artist.jpg`);
+  if (!existsSync(file)) return null;
+  const stats = statSync(file);
+  if (!stats.isFile()) return null;
+
+  return {
+    file,
+    contentType: COVER_TYPES["jpg"] ?? "image/jpeg",
+    bytes: stats.size,
+    etag: `W/"${stats.size.toString(16)}-${stats.mtimeMs.toString(16)}"`,
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* the cover picker                                                    */
 /* ------------------------------------------------------------------ */

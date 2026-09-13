@@ -98,6 +98,30 @@ export async function readEvents(
   return rows.map(toPayload);
 }
 
+/**
+ * The tail of the journal, newest first.
+ *
+ * `readEvents` is the cursor query every poller and every SSE stream wants: oldest first,
+ * `since` an id, so a subscriber can `slice` forward from where it left off. That shape is
+ * wrong for "what just happened" — `since: 0, limit: 500` is always the **oldest** 500 rows
+ * ever written, not the newest, so once the journal passes 500 events the activity drawer
+ * stops moving forever, showing the same first 500 lines no matter how much has happened
+ * since. This is the other query: newest first, straight off the primary key, for a caller
+ * that wants a tail rather than a cursor.
+ */
+export async function readLatestEvents(
+  options: { importId?: string; limit?: number } = {},
+  db: Database = defaultDb(),
+): Promise<JobEventPayload[]> {
+  const rows = await db
+    .select()
+    .from(jobEvents)
+    .where(options.importId === undefined ? undefined : eq(jobEvents.importId, options.importId))
+    .orderBy(desc(jobEvents.id))
+    .limit(options.limit ?? 40);
+  return rows.map(toPayload);
+}
+
 function toPayload(row: typeof jobEvents.$inferSelect): JobEventPayload {
   return {
     id: row.id,
