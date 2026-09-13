@@ -29,8 +29,10 @@ import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { PlayButton } from "#/components/play-button.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
+import { usePlayer } from "#/components/shell/player-context.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { dateTime, short, timeAgo } from "#/lib/format.ts";
@@ -44,6 +46,7 @@ import {
   postponeDiscoverItem,
   runDiscoverSync,
 } from "#/server/functions/discover.ts";
+import { resolvePreview } from "#/server/functions/player.ts";
 
 export const Route = createFileRoute("/_app/discover")({
   loader: async (): Promise<DiscoverView> => await fetchDiscover(),
@@ -63,7 +66,25 @@ function Discover() {
   const navigate = useNavigate();
   const toast = useToast();
   const hydrated = useHydrated();
+  const player = usePlayer();
   const [busy, setBusy] = useState<string | null>(null);
+  /** The subject a preview is being looked up for, so one card spins and the rest do not. */
+  const [listening, setListening] = useState<string | null>(null);
+  /**
+   * Subjects we have already asked about and got nothing for, with the reason.
+   *
+   * Remembered for the life of the page so a second click does not spend a second Deezer
+   * search to learn the same "no", and so the button can turn itself off and say why.
+   */
+  const [silent, setSilent] = useState<Readonly<Record<string, string>>>({});
+  /**
+   * Which subject the player's current queue came from.
+   *
+   * The queue holds Deezer track ids, which say nothing about the MusicBrainz subject that
+   * produced them, so the page remembers the link itself. That is what lets a card show a
+   * pause glyph instead of offering to start the same clip again.
+   */
+  const [playingSubject, setPlayingSubject] = useState<string | null>(null);
 
   const reload = (): void => {
     void navigate({ to: "/discover", replace: true });
@@ -108,6 +129,33 @@ function Discover() {
     }, fail);
   };
 
+  /**
+   * Listen to a suggestion before deciding to import it.
+   *
+   * The server prefers our own file when we already own the recording, so a row marked "in
+   * library" plays full length; everything else is a thirty-second Deezer clip, and the bar
+   * says which. Nothing to play is a warning toast and a button that turns itself off with the
+   * reason in its tooltip — it is not an error, Deezer simply does not have everything.
+   */
+  const listen = (item: DiscoverItemView): void => {
+    if (player.current !== null && playingSubject === item.subject) {
+      player.toggle();
+      return;
+    }
+    setListening(item.subject);
+    void resolvePreview({ data: { subject: item.subject } }).then((answer) => {
+      setListening(null);
+      if (answer.tracks.length === 0) {
+        const reason = answer.reason ?? "Nothing to play for this one.";
+        setSilent((held) => ({ ...held, [item.subject]: reason }));
+        toast(reason, "warn");
+        return;
+      }
+      setPlayingSubject(item.subject);
+      player.play(answer.tracks, 0);
+    }, fail);
+  };
+
   const dismiss = (item: DiscoverItemView): void => {
     setBusy(item.id);
     void dismissDiscoverItem({ data: { itemId: item.id } }).then(() => {
@@ -139,6 +187,17 @@ function Discover() {
       reload();
     }, fail);
   };
+
+  /** Everything one card's play button needs, gathered in one place. */
+  const playback = (item: DiscoverItemView): RowPlayback => ({
+    active: playingSubject === item.subject && player.current !== null,
+    playing: player.playing,
+    busy: listening === item.subject,
+    reason: silent[item.subject] ?? null,
+    onPlay: () => {
+      listen(item);
+    },
+  });
 
   const blocked = !hydrated || busy !== null;
   const signals = view.signals;
@@ -321,6 +380,7 @@ function Discover() {
                       item={item}
                       blocked={blocked}
                       busy={busy === item.id}
+                      playback={playback(item)}
                       onImport={importItem}
                       onDismiss={dismiss}
                       onLater={postpone}
@@ -354,6 +414,7 @@ function Discover() {
                 blocked={blocked}
                 busy={busy === item.id}
                 wide
+                playback={playback(item)}
                 onImport={importItem}
                 onDismiss={dismiss}
                 onLater={postpone}
@@ -383,10 +444,22 @@ function Discover() {
               >
                 <div className="flex items-center gap-2">
                   <Cover size="sm" seed={item.artistMbid ?? item.artist} label={item.artist} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 grow">
                     <div className="truncate font-semibold">{item.title}</div>
                     <div className="truncate text-2xs text-fg-3">{item.reason}</div>
                   </div>
+                  {/* An artist has no one track, so this queues what Deezer says they are
+                      known for — which is exactly the question "do I like these people?". */}
+                  <PlayButton
+                    data-testid="discover-play"
+                    active={playback(item).active}
+                    playing={playback(item).playing}
+                    busy={playback(item).busy}
+                    disabled={playback(item).reason !== null}
+                    label="Play their top tracks"
+                    title={playback(item).reason ?? "Thirty-second Deezer clips, top tracks first."}
+                    onPlay={playback(item).onPlay}
+                  />
                 </div>
                 <ScoreBar value={item.score} />
                 <div className="flex items-center justify-between gap-2">
@@ -478,12 +551,25 @@ function Empty({ synced, what }: { synced: boolean; what: string }) {
   );
 }
 
+/** What one card needs in order to draw its play button and know what pressing it means. */
+interface RowPlayback {
+  /** True when the player's queue came from this item. */
+  readonly active: boolean;
+  readonly playing: boolean;
+  /** A preview is being looked up for this item right now. */
+  readonly busy: boolean;
+  /** Why there is nothing to play, once we have asked and found out. */
+  readonly reason: string | null;
+  onPlay(): void;
+}
+
 /** One proposal, in either block. The reason is on the left, where it is read first. */
 function ItemRow({
   item,
   blocked,
   busy,
   wide = false,
+  playback,
   onImport,
   onDismiss,
   onLater,
@@ -492,6 +578,7 @@ function ItemRow({
   blocked: boolean;
   busy: boolean;
   wide?: boolean;
+  playback: RowPlayback;
   onImport: (item: DiscoverItemView) => void;
   onDismiss: (item: DiscoverItemView) => void;
   onLater: (item: DiscoverItemView) => void;
@@ -505,6 +592,25 @@ function ItemRow({
       data-status={item.status}
     >
       <Cover size="sm" seed={item.subject} label={item.title} />
+      {/*
+        Listen before you import. It is the cheapest possible way to disagree with the
+        algorithm, which is what decision 002 asks this page to make easy.
+      */}
+      <PlayButton
+        data-testid="discover-play"
+        active={playback.active}
+        playing={playback.playing}
+        busy={playback.busy}
+        disabled={playback.reason !== null}
+        label={item.inLibrary ? "Play from your library" : "Play a 30-second preview"}
+        title={
+          playback.reason ??
+          (item.inLibrary
+            ? "You own this: it plays in full, from your own file."
+            : "A thirty-second Deezer clip, if there is one.")
+        }
+        onPlay={playback.onPlay}
+      />
       <div className="min-w-0 grow">
         <div className="truncate">
           <span className="font-medium">{item.title}</span>

@@ -12,13 +12,14 @@
  */
 import { useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { Download, Tag, Trash2 } from "lucide-react";
+import { Download, Play, Tag, Trash2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
+import { usePlayer, libraryTrack } from "#/components/shell/player-context.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
@@ -54,6 +55,7 @@ function TrackPage() {
   const { id } = Route.useParams();
   const router = useRouter();
   const toast = useToast();
+  const player = usePlayer();
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -114,6 +116,24 @@ function TrackPage() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
+          <Button
+            data-testid="track-play"
+            title="Stream this file. The player stays at the bottom of every page."
+            onClick={() => {
+              player.play([
+                libraryTrack({
+                  id: track.id,
+                  title: track.title,
+                  artist: track.artist,
+                  album: album?.title ?? null,
+                  coverUrl: albumCoverSources(album)[0] ?? null,
+                  durationSeconds: track.duration,
+                }),
+              ]);
+            }}
+          >
+            <Play className="size-4" aria-hidden="true" /> Play
+          </Button>
           <Button
             variant="outline"
             disabled={busy !== null}
