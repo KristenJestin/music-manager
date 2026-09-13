@@ -226,6 +226,28 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       };
     }
 
+    /*
+     * This import's own file, already filed. **Checked before anything else**, because it is
+     * the only evidence that survives a worker killed inside `place`: the file has left the
+     * work directory, and the `library_tracks` row that `alreadyInLibrary` reads may not have
+     * been written yet. `place` records the destination before it moves anything precisely so
+     * that this line can be believed.
+     *
+     * A track found here is past `download` but not necessarily past `place`, so it is handed
+     * to `onTrackDownloaded` like any other file that is ready; `nextStepOfTrack` reads the
+     * row and answers `null` for one that is already filed.
+     */
+    const filed = track.libraryPath;
+    if (!force && filed !== null && filed !== "" && existsSync(hostPath(ctx.paths, filed))) {
+      await ctx.say("track.skipped", `${track.sourceTitle}: already present`, {
+        trackId: track.id,
+        data: { reason: "already present", path: filed },
+      });
+      skipped += 1;
+      await ctx.onTrackDownloaded?.(track.id);
+      continue;
+    }
+
     if (!force && (await alreadyInLibrary(ctx, track.recordingMbid))) {
       // A track *this* import has already filed must not be demoted to `skipped`. Since
       // `place` runs per track (decision 147), a worker restarted mid-album meets its own

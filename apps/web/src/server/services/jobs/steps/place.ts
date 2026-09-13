@@ -449,11 +449,37 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
 
     let size = track.downloadedBytes ?? 0;
     if (source !== null && existsSync(hostPath(ctx.paths, source))) {
-      const result = await ctx.toolbox.place({
-        src: containerPath(ctx.paths, source),
-        dest: containerPath(ctx.paths, relative),
-        onExists,
-      });
+      /*
+       * The destination is written **before** the move, and that ordering is the whole of
+       * "resume" for this step.
+       *
+       * `/place` is a rename: the instant it returns, the file has left the work directory,
+       * and until the rows below are written nothing in the database knows where it went. A
+       * worker killed in that window left the track with a `downloadPath` pointing at a file
+       * that is gone, no `library_tracks` row yet, and a state still short of `placed` — so
+       * the restarted `download` found nothing on disk anywhere and fetched the track a
+       * second time. That is the one thing this app is built never to do, and it is what
+       * `e2e-fixture`'s "no track was downloaded twice" caught once the steps were pipelined
+       * (decision 147) and the kill started landing inside a `place` instead of between two
+       * downloads.
+       *
+       * Recording the intent first makes the window harmless in both directions: the file is
+       * either still in the work directory — `download` reuses it — or already at
+       * `libraryPath`, where `download` now looks for it. Cleared again if the move itself
+       * fails, so `verify` is never handed a path nothing was ever written to.
+       */
+      await updateTrack(ctx, track.id, { libraryPath: relative });
+      let result: Awaited<ReturnType<typeof ctx.toolbox.place>>;
+      try {
+        result = await ctx.toolbox.place({
+          src: containerPath(ctx.paths, source),
+          dest: containerPath(ctx.paths, relative),
+          onExists,
+        });
+      } catch (error) {
+        await updateTrack(ctx, track.id, { libraryPath: track.libraryPath });
+        throw error;
+      }
       size = result.size;
       await ctx.say(
         "track.done",
