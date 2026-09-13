@@ -35,6 +35,11 @@ export const GENERAL_KEYS = [
 export const METADATA_KEYS = [
   /* MusicBrainz */
   "mbContact",
+  "preferredLocale",
+  "aliasTranslateArtists",
+  "aliasTranslateAlbums",
+  "aliasTranslateOnlyNonLatin",
+  "aliasPseudoRelease",
   /* matching */
   "safeThreshold",
   "titleMatchThreshold",

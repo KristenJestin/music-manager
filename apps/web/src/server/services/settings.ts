@@ -21,6 +21,7 @@ import {
   DEFAULT_WEIGHTS,
   DISC_MODES,
   PATH_TOKENS,
+  PREFERRED_LOCALES,
   validatePathTemplate,
 } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -373,6 +374,33 @@ export const SETTING_DEFINITIONS = {
     "credited",
     "Which of MusicBrainz's two artist names goes into ARTIST, ARTISTS and ALBUMARTIST. `credited` writes the name printed on this release (`Ye` credited as `Kanye West`), which is what Picard does. `canonical` writes the artist's own name, so one spelling covers the whole library — and it is what v1 wrote, so it is the value that reproduces a v1 library's artist names. The join phrases are MusicBrainz's either way.",
   ),
+  /* ---- Picard's "translate names to this locale" (docs/03 §2.1) ---- */
+  preferredLocale: define<"" | "en" | "fr" | "de" | "es" | "it" | "ja" | "pt" | "ru" | "zh" | "ko">(
+    z.enum(PREFERRED_LOCALES),
+    "",
+    "Write artist and album names in this locale when MusicBrainz has an alias for it: 梶浦由記 becomes Yuki Kajiura, with no manual step. The original is kept in ARTISTSORT, ALBUMSORT and TITLESORT, and in the document with its provenance. Empty — the default — translates nothing. Nothing is ever transliterated by machine: if MusicBrainz has no alias in this locale, the original name is written.",
+  ),
+  aliasTranslateArtists: define(
+    z.boolean(),
+    true,
+    "Apply the preferred locale to ARTIST, ARTISTS, ALBUMARTIST and ALBUMARTISTS. A name credited differently from the artist's own on this particular release is never translated: a “credited as” is an editorial fact about that sleeve.",
+  ),
+  aliasTranslateAlbums: define(
+    z.boolean(),
+    true,
+    "Apply the preferred locale to ALBUM, from the release group's aliases and then the release's. The original title moves into ALBUMSORT, which MusicBrainz otherwise leaves empty.",
+  ),
+  aliasTranslateOnlyNonLatin: define(
+    z.boolean(),
+    true,
+    "Only translate a name that is not already written in Latin script — Picard's behaviour. It is what keeps `Björk` and `Sigur Rós` as they are while 梶浦由記 is spelled out.",
+  ),
+  aliasPseudoRelease: define<"off" | "prefer">(
+    z.enum(["off", "prefer"]),
+    "off",
+    "Where a track TITLE in the preferred script comes from. Recording aliases carry no locale, so the only source is a MusicBrainz pseudo-release — the romanised edition of the album, filed in the same release group. `prefer` looks one up when the matched release is not in Latin script; that costs **one extra MusicBrainz search per album**, which is why it is opt-in. `off` leaves track titles as the release spells them.",
+  ),
+
   maxGenres: define(
     z.number().int().min(1).max(10),
     3,

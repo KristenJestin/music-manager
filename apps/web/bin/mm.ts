@@ -758,8 +758,12 @@ async function cmdDoc(args: Args): Promise<number> {
       if (entry.state === "present") {
         const held = stored.document.fields[entry.field];
         if (held === undefined) continue;
+        // `via` says how the value was obtained *within* its source — `alias en (primary)`,
+        // `pseudo-release <mbid>`. It answers the one question `source` cannot: why this tag
+        // does not say what MusicBrainz's canonical name says.
+        const via = held.via === undefined ? "" : ` · via ${held.via}`;
         line(
-          `${entry.field.padEnd(28)} ${entry.vorbis.padEnd(26)} ${held.source.padEnd(13)} ${held.fetchedAt.slice(0, 19).padEnd(21)} ${held.locked ? "🔒 " : ""}${short(held.value)}`,
+          `${entry.field.padEnd(28)} ${entry.vorbis.padEnd(26)} ${held.source.padEnd(13)} ${held.fetchedAt.slice(0, 19).padEnd(21)} ${held.locked ? "🔒 " : ""}${short(held.value)}${via}`,
         );
       } else if (entry.state === "na") {
         const held = stored.document.na[entry.field];

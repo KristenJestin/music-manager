@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { Download, Layers, ShieldCheck, Tag } from "lucide-react";
 import { cn } from "cn";
+import { PREFERRED_LOCALES } from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -56,6 +57,26 @@ export const Route = createFileRoute("/_app/settings/metadata")({
 });
 
 const COUNTRIES = ["XW", "FR", "GB", "US", "DE", "JP", "NL", "SE"];
+
+/** The locale picker, built from the domain's list so the two can never drift apart. */
+const LOCALE_NAMES: Readonly<Record<string, string>> = {
+  "": "off",
+  en: "English",
+  fr: "Français",
+  de: "Deutsch",
+  es: "Español",
+  it: "Italiano",
+  ja: "日本語",
+  pt: "Português",
+  ru: "Русский",
+  zh: "中文",
+  ko: "한국어",
+};
+
+const LOCALE_OPTIONS = PREFERRED_LOCALES.map((locale) => ({
+  value: locale,
+  label: LOCALE_NAMES[locale] ?? locale,
+}));
 
 function MetadataSettings() {
   const payload = Route.useLoaderData();
@@ -117,6 +138,9 @@ function MetadataSettings() {
     tests.find((entry) => entry.source === name);
 
   const enabled = value<Record<string, boolean>>("sourcesEnabled", {});
+  // The four alias switches only mean anything once a locale is chosen; an empty locale is
+  // the feature being off, so showing them would be four controls that do nothing.
+  const localeOn = String(value("preferredLocale", "")) !== "";
   const schema = payload.schema;
 
   return (
@@ -167,6 +191,106 @@ function MetadataSettings() {
         <FormRow label="Rate limit" help="One request per second, and it is not configurable.">
           <ToneBadge outline>1 req/s · enforced by the limiter, not by hope</ToneBadge>
         </FormRow>
+
+        {/*
+         * Picard's "Translate artist names to this locale", with its two consequences spelled
+         * out rather than left to be discovered: nothing is ever transliterated by machine,
+         * and the original never disappears — it stays in the sort fields and in the document,
+         * with the alias that replaced it recorded next to the value.
+         */}
+        <FormRow
+          label="Preferred locale"
+          help="Take artist and album names from the MusicBrainz alias of this locale: 梶浦由記 is written Yuki Kajiura. The original stays in ARTISTSORT, ALBUMSORT and TITLESORT. Nothing is transliterated by machine — with no alias, the original name is written."
+        >
+          <ChipGroup
+            testId="setting-preferredLocale"
+            value={String(value("preferredLocale", ""))}
+            options={LOCALE_OPTIONS}
+            onChange={(next) => {
+              set("preferredLocale", next);
+            }}
+          />
+        </FormRow>
+        {localeOn ? (
+          <>
+            <FormRow
+              label="Translate artists"
+              help="ARTIST, ARTISTS, ALBUMARTIST and ALBUMARTISTS. A name credited differently on this release is left alone: a “credited as” is an editorial fact about that sleeve."
+            >
+              <Toggle
+                testId="setting-aliasTranslateArtists"
+                checked={value("aliasTranslateArtists", true)}
+                onChange={(next) => {
+                  set("aliasTranslateArtists", next);
+                }}
+              />
+            </FormRow>
+            <FormRow
+              label="Translate albums"
+              help="ALBUM, from the release group's aliases then the release's. ALBUM feeds the path template, so this also decides where a later Relocate files the album."
+            >
+              <Toggle
+                testId="setting-aliasTranslateAlbums"
+                checked={value("aliasTranslateAlbums", true)}
+                onChange={(next) => {
+                  set("aliasTranslateAlbums", next);
+                }}
+              />
+            </FormRow>
+            <FormRow
+              label="Only non-Latin names"
+              help="Picard's behaviour, and the reason Björk and Sigur Rós are left exactly as they are."
+            >
+              <Toggle
+                testId="setting-aliasTranslateOnlyNonLatin"
+                checked={value("aliasTranslateOnlyNonLatin", true)}
+                onChange={(next) => {
+                  set("aliasTranslateOnlyNonLatin", next);
+                }}
+              />
+            </FormRow>
+            <FormRow
+              label="Track titles"
+              help="Recording aliases carry no locale, so a romanised TITLE can only come from a MusicBrainz pseudo-release. Looking one up costs one extra MusicBrainz search per album."
+            >
+              <ChipGroup
+                testId="setting-aliasPseudoRelease"
+                value={String(value("aliasPseudoRelease", "off"))}
+                options={[
+                  { value: "off", label: "as the release spells them" },
+                  { value: "prefer", label: "prefer a pseudo-release" },
+                ]}
+                onChange={(next) => {
+                  set("aliasPseudoRelease", next);
+                }}
+              />
+            </FormRow>
+            <FormRow
+              label="Existing library"
+              help="These rules apply when a document is built. Files already in the library keep the names they were written with until they are re-tagged — offline, from the raw cache, with a diff you approve first."
+            >
+              <Button
+                size="xs"
+                variant="outline"
+                data-testid="settings-retag-locale"
+                onClick={() => {
+                  void startRetag({
+                    data: { scope: "library", targetId: null, dryRun: true, onlyBehind: false },
+                  }).then(
+                    (run) => {
+                      toast(`Dry run started for ${String(run.total)} file(s).`, "ok");
+                    },
+                    (error: unknown) => {
+                      toast(error instanceof Error ? error.message : "Not queued.", "danger");
+                    },
+                  );
+                }}
+              >
+                <Tag className="size-3.5" aria-hidden="true" /> Re-tag the library with these rules
+              </Button>
+            </FormRow>
+          </>
+        ) : null}
       </Section>
 
       {/* ---- matching ---- */}

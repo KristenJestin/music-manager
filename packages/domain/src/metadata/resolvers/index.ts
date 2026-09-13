@@ -51,8 +51,22 @@ export type {
 } from "./musicbrainz.ts";
 
 /* ---- locale aliases: Picard's “translate names to this locale” ---- */
-export { creditIsCanonical, describeAlias, isLatinScript, pickAlias } from "../alias.ts";
-export type { AliasKind, AliasQuery, LocalePreference, MbAlias } from "../alias.ts";
+export {
+  creditIsCanonical,
+  describeAlias,
+  isLatinScript,
+  pickAlias,
+  PREFERRED_LOCALES,
+  translatesAlbums,
+  translatesArtists,
+} from "../alias.ts";
+export type {
+  AliasKind,
+  AliasQuery,
+  LocalePreference,
+  MbAlias,
+  PreferredLocale,
+} from "../alias.ts";
 
 export {
   genresFromTags,

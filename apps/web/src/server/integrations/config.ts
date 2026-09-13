@@ -8,7 +8,7 @@
  * the toolbox already reads (`services/toolbox/src/toolbox/config.py`), so it is the name
  * used here too: one key, one spelling, on both sides of the bridge.
  */
-import type { ArtistNameSource } from "@mm/domain";
+import type { ArtistNameSource, LocalePreference } from "@mm/domain";
 import type { Database } from "#/server/db/client.ts";
 import type { CacheStore } from "./cached.ts";
 import { serverEnv } from "#/server/env.ts";
@@ -52,6 +52,17 @@ export interface SourcesConfig {
   readonly ttlMs: Readonly<Record<SourceName, number>>;
   /** `credit.name` or `credit.artist.name` in ARTIST, ARTISTS and ALBUMARTIST. */
   readonly artistNameSource: ArtistNameSource;
+  /**
+   * Picard's “translate names to this locale”, resolved into the shape the resolvers take.
+   *
+   * `artists` and `albums` are separate switches on purpose — somebody wants Yuki Kajiura on
+   * every track without their album folders being renamed, and `ALBUM` feeds the path
+   * template. `undefined` when the locale is empty, which is the default and translates
+   * nothing at all.
+   */
+  readonly locale: LocalePreference | undefined;
+  /** `prefer` spends one extra MusicBrainz search per album to romanise track titles. */
+  readonly aliasPseudoRelease: "off" | "prefer";
   readonly maxGenres: number;
   readonly genrePreference: readonly ("musicbrainz" | "lastfm" | "listenbrainz")[];
   readonly genreMinCount: number;
@@ -111,6 +122,18 @@ export function sourcesConfig(
     enabled: settings.sourcesEnabled,
     ttlMs,
     artistNameSource: settings.artistNameSource,
+    // One object rather than two settings passed around: `undefined` is the off switch, so a
+    // caller that forgets to look at `preferredLocale` cannot accidentally translate anything.
+    locale:
+      settings.preferredLocale === ""
+        ? undefined
+        : {
+            locale: settings.preferredLocale,
+            onlyNonLatin: settings.aliasTranslateOnlyNonLatin,
+            artists: settings.aliasTranslateArtists,
+            albums: settings.aliasTranslateAlbums,
+          },
+    aliasPseudoRelease: settings.aliasPseudoRelease,
     maxGenres: settings.maxGenres,
     genrePreference: settings.genrePreference,
     genreMinCount: settings.genreMinCount,

@@ -13,7 +13,14 @@
 
 import type { DocumentPatch } from "../document.ts";
 import type { PerformerCredit } from "../document.ts";
-import { describeAlias, pickAlias, type LocalePreference, type MbAlias } from "../alias.ts";
+import {
+  describeAlias,
+  pickAlias,
+  translatesAlbums,
+  translatesArtists,
+  type LocalePreference,
+  type MbAlias,
+} from "../alias.ts";
 import {
   artistAliasVia,
   artistIds,
@@ -63,7 +70,9 @@ export function fromMusicBrainzRelease(
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
-  const locale = options.locale;
+  // Two switches, so the preference is split at the top rather than tested at six call sites.
+  const artistLocale = translatesArtists(options.locale) ? options.locale : undefined;
+  const albumLocale = translatesAlbums(options.locale) ? options.locale : undefined;
 
   const media = release.media ?? [];
   const medium =
@@ -85,8 +94,8 @@ export function fromMusicBrainzRelease(
    * original).
    */
   const albumAlias =
-    pickAlias(releaseGroup?.aliases, aliasQuery(locale, release.title)) ??
-    pickAlias(release.aliases, aliasQuery(locale, release.title));
+    pickAlias(releaseGroup?.aliases, aliasQuery(albumLocale, release.title)) ??
+    pickAlias(release.aliases, aliasQuery(albumLocale, release.title));
   patch.set("album", albumAlias?.name ?? release.title, {
     via: albumAlias === null ? null : describeAlias(albumAlias),
   });
@@ -97,11 +106,11 @@ export function fromMusicBrainzRelease(
   }
 
   const albumArtistCredit = release["artist-credit"];
-  const albumArtistVia = artistAliasVia(albumArtistCredit, names, locale);
-  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names, locale), {
+  const albumArtistVia = artistAliasVia(albumArtistCredit, names, artistLocale);
+  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names, artistLocale), {
     via: albumArtistVia,
   });
-  patch.set("albumartists", artistNames(albumArtistCredit, names, locale), {
+  patch.set("albumartists", artistNames(albumArtistCredit, names, artistLocale), {
     via: albumArtistVia,
   });
   // Untouched by the locale on purpose: MusicBrainz's `sort-name` already holds the original
@@ -119,9 +128,9 @@ export function fromMusicBrainzRelease(
     patch.set("title", track.title);
     patch.na("titlesort", "MusicBrainz has no sort title for recordings");
     const trackCredit = track["artist-credit"] ?? track.recording?.["artist-credit"];
-    const trackArtistVia = artistAliasVia(trackCredit, names, locale);
-    patch.set("artist", joinArtistCredit(trackCredit, names, locale), { via: trackArtistVia });
-    patch.set("artists", artistNames(trackCredit, names, locale), { via: trackArtistVia });
+    const trackArtistVia = artistAliasVia(trackCredit, names, artistLocale);
+    patch.set("artist", joinArtistCredit(trackCredit, names, artistLocale), { via: trackArtistVia });
+    patch.set("artists", artistNames(trackCredit, names, artistLocale), { via: trackArtistVia });
     patch.set("artistsort", artistSortNames(trackCredit));
     patch.set("musicbrainz_artistid", artistIds(trackCredit));
     patch.set("tracknumber", track.position);
@@ -326,7 +335,7 @@ export function fromMusicBrainzRecording(
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
-  const locale = options.locale;
+  const locale = translatesArtists(options.locale) ? options.locale : undefined;
 
   patch.set("title", recording.title);
   patch.setOrNa("subtitle", recording.disambiguation, "the recording has no disambiguation");

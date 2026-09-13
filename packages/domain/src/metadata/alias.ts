@@ -48,12 +48,56 @@ const NAME_TYPE: Readonly<Record<AliasKind, string>> = {
   release: "Release name",
 };
 
+/**
+ * The locales the Console offers, `""` first — “off”, and the default.
+ *
+ * A short list rather than every ISO 639-1 code: these are the locales MusicBrainz editors
+ * actually file aliases in, and a picker of a hundred and eighty entries in which a hundred
+ * and seventy do nothing is a worse answer than a picker of ten. It is data, so adding one is
+ * a line here and nothing else.
+ */
+export const PREFERRED_LOCALES = [
+  "",
+  "en",
+  "fr",
+  "de",
+  "es",
+  "it",
+  "ja",
+  "pt",
+  "ru",
+  "zh",
+  "ko",
+] as const;
+
+export type PreferredLocale = (typeof PREFERRED_LOCALES)[number];
+
 /** What the user asked for, in one object: the locale, and whether to spare Latin names. */
 export interface LocalePreference {
   /** An ISO 639-1 code, or `""` for “off” — the default, and the whole feature disabled. */
   readonly locale: string;
   /** Picard's rule: only translate a name that is not already written in Latin script. */
   readonly onlyNonLatin: boolean;
+  /**
+   * Translate `ARTIST`, `ARTISTS`, `ALBUMARTIST`, `ALBUMARTISTS`. Defaults to true.
+   *
+   * Separate from `albums` because the two have different consequences: an artist name is
+   * only a tag, while `ALBUM` and `ALBUMARTIST` feed the path template, so translating albums
+   * is also a decision about where files will be filed the next time `relocate` runs.
+   */
+  readonly artists?: boolean;
+  /** Translate `ALBUM` (and move the original into `ALBUMSORT`). Defaults to true. */
+  readonly albums?: boolean;
+}
+
+/** Does this preference translate artist names? Absent means yes. */
+export function translatesArtists(locale: LocalePreference | undefined): boolean {
+  return locale !== undefined && locale.artists !== false;
+}
+
+/** Does this preference translate album titles? Absent means yes. */
+export function translatesAlbums(locale: LocalePreference | undefined): boolean {
+  return locale !== undefined && locale.albums !== false;
 }
 
 /** The preference plus the two things that vary per call site. */
