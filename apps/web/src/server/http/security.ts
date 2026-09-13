@@ -36,6 +36,15 @@
  * `img-src` carries `https:` because album art is displayed both from `/api/cover` (proxied)
  * and, in the candidate pickers, straight from the Cover Art Archive; `data:` and `blob:`
  * cover the inline placeholders and the artwork cropper.
+ *
+ * `media-src` carries **`https://*.dzcdn.net`** for one feature and no other: the Discover
+ * page's thirty-second Deezer preview. The clip is a signed MP3 on Deezer's own CDN
+ * (`cdnt-preview.dzcdn.net`, `cdns-preview-*.dzcdn.net`), and the point of it is that the
+ * browser streams it directly with no proxy of ours in the middle. Leaving it out is not a
+ * quiet degradation: Chromium refuses the load *before* opening a socket, `MediaError.code` is
+ * `4` with the message "Media load rejected by URL safety check", and the Console — which can
+ * only see a media element that failed — blamed the expiring signature instead. Narrower than
+ * a bare `https:` because `media-src` is the directive that decides what this app will *play*.
  */
 
 /** What the caller has to tell this module. Both come from the environment, once, at boot. */
@@ -53,7 +62,7 @@ const CSP = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
-  "media-src 'self' data: blob:",
+  "media-src 'self' data: blob: https://*.dzcdn.net",
   "font-src 'self' data:",
   "connect-src 'self'",
   "worker-src 'self' blob:",
