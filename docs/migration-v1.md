@@ -180,6 +180,27 @@ _Réglages › Métadonnées › Noms d'artistes_ (`artistNameSource`) choisit :
 
 Les liaisons (« feat. », « & ») viennent de MusicBrainz dans les deux cas.
 
+Un second réglage agit sur les mêmes champs : _Réglages › Métadonnées › MusicBrainz › Langue
+préférée_ (`preferredLocale`). Vide par défaut, donc sans effet ; renseigné, les noms
+d'artistes et les titres d'albums sont pris dans l'alias MusicBrainz de cette langue — 梶浦由記
+devient `Yuki Kajiura` — tandis que l'original reste dans `ARTISTSORT`, `ALBUMSORT` et
+`TITLESORT`, et dans le document avec sa provenance (`via`). Rien n'est translittéré par
+machine : sans alias, le nom d'origine est écrit tel quel. Trois précisions qui comptent pour
+une bibliothèque migrée :
+
+- `aliasTranslateOnlyNonLatin` (activé par défaut) laisse intacts les noms déjà en alphabet
+  latin, donc `Björk` et `Sigur Rós` ne bougent pas. C'est le comportement de Picard ;
+- un nom **crédité différemment** du nom canonique sur une sortie donnée n'est jamais traduit :
+  c'est une décision éditoriale sur cette pochette, et elle l'emporte sur une préférence
+  générale ;
+- `ALBUM` alimente le gabarit de chemin. Changer la langue après coup ne renomme rien — le
+  re-tag ne renomme jamais, c'est `relocate` qui le fait — mais le prochain `relocate` classera
+  l'album sous son titre traduit.
+
+Le bouton _Re-taguer la bibliothèque avec ces règles_, dans la même section, lance un essai à
+blanc sur toute la bibliothèque : le diff est visible avant la moindre écriture, et l'opération
+reste hors ligne, à partir du cache brut.
+
 ### Reprise et idempotence
 
 L'état vit dans `migration_v1`, une ligne par chanson v1, avec l'identifiant v1 **et** le chemin
