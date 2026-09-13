@@ -17,6 +17,7 @@
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
+import { previewExpired } from "#/lib/playback.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { getItemBySubject } from "#/server/services/discover.ts";
 import { trackByRecordingMbid } from "#/server/services/library.ts";
@@ -43,7 +44,19 @@ const NOTHING: PreviewAnswer = {
 
 export const resolvePreview = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ subject: z.string().min(1) }))
+  .inputValidator(
+    z.object({
+      subject: z.string().min(1),
+      /**
+       * Skip the one-hour preview cache and ask Deezer again.
+       *
+       * The player sets it after a clip has failed to load, which is the only moment where
+       * paying a second search is obviously worth it. It is not a "give me a better answer"
+       * flag: the search and the scoring are identical, only the cached *ticket* is discarded.
+       */
+      refresh: z.boolean().default(false),
+    }),
+  )
   .handler(async ({ data }): Promise<PreviewAnswer> => {
     try {
       const parsed = parseSubject(data.subject);
@@ -66,6 +79,7 @@ export const resolvePreview = createServerFn({ method: "POST", strict: STRICT })
                 album: owned.albumTitle,
                 src: `/api/stream?track=${encodeURIComponent(owned.id)}`,
                 source: "library",
+                subject: data.subject,
                 coverUrl:
                   owned.albumId === null
                     ? null
@@ -82,12 +96,27 @@ export const resolvePreview = createServerFn({ method: "POST", strict: STRICT })
         return { tracks: [], source: "none", reason: "That suggestion is no longer listed." };
       }
 
-      const tracks = await resolvePreviewTracks(await sourceContextFor(db()), {
+      const request = {
         subject: item.subject,
         title: item.title,
         artist: item.artist,
         albumTitle: item.albumTitle,
-      });
+      };
+      const ctx = await sourceContextFor(db());
+      let tracks = await resolvePreviewTracks({ ...ctx, refresh: data.refresh }, request);
+
+      /*
+       * A cached ticket that has already lapsed is worse than no cache at all.
+       *
+       * The preview rows live for an hour and the signature for about four, so most of the
+       * time these agree. They stop agreeing whenever Deezer issues a shorter one, and the
+       * result is a button that looks fine and produces silence. Checking the `exp` we were
+       * about to hand out costs a regular expression, and re-asking once costs a search.
+       */
+      if (!data.refresh && tracks !== null && tracks.some((track) => previewExpired(track.src))) {
+        tracks = await resolvePreviewTracks({ ...ctx, refresh: true }, request);
+      }
+
       if (tracks === null || tracks.length === 0) return NOTHING;
       return { tracks, source: "deezer", reason: null };
     } catch (error) {
