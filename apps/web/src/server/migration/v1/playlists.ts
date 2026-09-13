@@ -20,15 +20,22 @@ import { toPosix } from "#/server/paths.ts";
 import type { V1Playlist, V1PlaylistSong, V1Song } from "./schema.ts";
 
 /**
- * `<library>/_archive/v1-playlists` — the default of § Étapes 5.
+ * `<library>/.mm-archive/v1-playlists` — the default of § Étapes 5.
  *
- * Inside the library on purpose: it is the only directory a production container is
- * guaranteed to write to. The previous default, `<library>/../_archive`, resolved to `/_archive`
- * when the library is mounted at `/library`, which uid 10001 cannot create (owner report,
- * 2026-09-08). Navidrome can read the M3U files from there through `ND_PLAYLISTSPATH`.
+ * Inside the library, because that is the only directory a production container is guaranteed
+ * to write to: the earlier default `<library>/../_archive` resolved to `/_archive` when the
+ * library is mounted at `/library`, which uid 10001 cannot create (owner report, 2026-09-08).
+ *
+ * **Dot-prefixed**, which is the part that was wrong until now. `_archive` is an ordinary
+ * directory as far as Navidrome's scanner is concerned — it skips names starting with `.` and
+ * folders holding a `.ndignore`, and nothing else — and `ND_AUTOIMPORTPLAYLISTS` defaults to
+ * on. So every exported v1 playlist was imported straight back into Navidrome as a playlist of
+ * its own, next to the user's real ones. That is the duplication reported after the migration.
+ * The dot is the same trick `.mm-work` uses for downloads, and `exportPlaylists` drops a
+ * `.ndignore` in there as well, because two cheap guards for one report is a fair price.
  */
 export function defaultPlaylistDir(libraryRoot: string): string {
-  return resolve(libraryRoot, "_archive", "v1-playlists");
+  return resolve(libraryRoot, ".mm-archive", "v1-playlists");
 }
 
 export interface PlaylistExportInput {
@@ -126,7 +133,23 @@ export function exportPlaylists(
   const prefixRaw = relative(input.targetDir, input.libraryRoot);
   const prefix = prefixRaw === "" ? "" : `${toPosix(prefixRaw)}/`;
 
-  if (!dryRun) mkdirSync(input.targetDir, { recursive: true });
+  if (!dryRun) {
+    mkdirSync(input.targetDir, { recursive: true });
+    /*
+     * Belt to the dot prefix's braces.
+     *
+     * The default target is dot-prefixed and Navidrome skips those, but `MM_PLAYLIST_EXPORT_DIR`
+     * and the `playlistDir` option can point anywhere — including, as before, somewhere inside
+     * the music folder that the scanner walks. A `.ndignore` is the one marker Navidrome honours
+     * in any directory, so it is written unconditionally and costs nothing.
+     */
+    writeFileSync(
+      join(input.targetDir, ".ndignore"),
+      "# Written by `mm migrate v1`. Keeps Navidrome from importing these M3U exports as\n" +
+        "# playlists of its own: they are an archive of v1, not a library folder.\n",
+      "utf8",
+    );
+  }
 
   const out: ExportedPlaylist[] = [];
   input.playlists.forEach((playlist, index) => {

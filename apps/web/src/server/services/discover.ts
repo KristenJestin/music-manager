@@ -35,6 +35,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   discoverDismissals,
   discoverItems,
+  discoverPlaylists,
   discoverSyncs,
   libraryAlbums,
   type DiscoverItem,
@@ -826,7 +827,10 @@ export interface PlaylistPush {
  * missing files. Everything else is counted as skipped and reported.
  *
  * The list is replaced wholesale rather than appended to, so running the sync twice does not
- * produce a playlist of duplicates.
+ * produce a playlist of duplicates. That claim used to be false in two ways at once, and
+ * `resolvePlaylist` and `writePlaylist` below are the two halves of the fix: *which* playlist
+ * (a stored id first, then a case-insensitive name, then create) and *how* it is emptied (the
+ * entries the server reports, never a `songCount` that may not be there).
  */
 export async function pushRecommendedPlaylist(options: {
   db?: Database;
@@ -868,17 +872,136 @@ export async function pushRecommendedPlaylist(options: {
       songIds.push(song.id);
     }
 
-    const name = settings.discoverPlaylistName;
-    const existing = (await client.getPlaylists()).find((playlist) => playlist.name === name);
-    if (existing === undefined) {
-      await client.createPlaylist(name, songIds);
-    } else {
-      await client.replacePlaylist(existing.id, songIds, existing.songCount ?? 0);
-    }
+    await writePlaylist(
+      { db, client, server: config.url, name: settings.discoverPlaylistName },
+      songIds,
+    );
     return { pushed: songIds.length, skipped, error: null };
   } catch (error) {
     return { pushed: 0, skipped: 0, error: MMError.from(error).message };
   }
+}
+
+/** What `writePlaylist` needs, small enough that a fake client is a whole test. */
+export interface PlaylistTarget {
+  readonly db: Database;
+  readonly client: PlaylistClient;
+  /** The Navidrome URL the stored id belongs to. Empty when the caller supplied a client. */
+  readonly server: string;
+  readonly name: string;
+}
+
+/**
+ * The slice of `NavidromeClient` the playlist push uses.
+ *
+ * Named so the unit test can implement five methods instead of standing up a Subsonic server:
+ * the cases that matter here — a missing `songCount`, a renamed playlist, a stored id that has
+ * been deleted — are all about *which answers come back*, not about HTTP.
+ */
+export interface PlaylistClient {
+  getPlaylists(): Promise<readonly { id: string; name?: string; songCount?: number }[]>;
+  getPlaylist(playlistId: string): Promise<{ id: string; name?: string } | null>;
+  createPlaylist(
+    name: string,
+    songIds: readonly string[],
+  ): Promise<{ id: string; name?: string } | undefined>;
+  replacePlaylist(playlistId: string, songIds: readonly string[]): Promise<void>;
+  deletePlaylist(playlistId: string): Promise<void>;
+}
+
+/** Case- and whitespace-insensitive, because a playlist name is typed by a person. */
+function sameName(a: string | undefined, b: string): boolean {
+  return (a ?? "").trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/**
+ * Find the playlist this installation owns on this server, or create it.
+ *
+ * The order is deliberate and each step exists because the one before it can fail honestly:
+ *
+ *  1. the **stored id**, verified with `getPlaylist` — it survives a rename, which the name
+ *     lookup by definition cannot;
+ *  2. a **case-insensitive, trimmed name match**, which picks up the playlist of an install
+ *     that predates the stored id, and the one a person renamed back by hand;
+ *  3. **create**, and write the id down so step 1 answers next time.
+ */
+async function resolvePlaylist(
+  target: PlaylistTarget,
+  songIds: readonly string[],
+): Promise<{ id: string; created: true } | { id: string; created: false }> {
+  const key = target.server.trim().toLowerCase();
+  const [stored] =
+    key === ""
+      ? []
+      : await target.db
+          .select()
+          .from(discoverPlaylists)
+          .where(eq(discoverPlaylists.server, key))
+          .limit(1);
+
+  if (stored !== undefined) {
+    const live = await target.client.getPlaylist(stored.playlistId);
+    if (live !== null) return { id: live.id, created: false };
+    // The id is stale: somebody deleted the playlist in Navidrome. Fall through and look it
+    // up by name, then create — never leave the dead row to be "verified" again next week.
+  }
+
+  const byName = (await target.client.getPlaylists()).find((playlist) =>
+    sameName(playlist.name, target.name),
+  );
+  if (byName !== undefined) return { id: byName.id, created: false };
+
+  const made = await target.client.createPlaylist(target.name, songIds);
+  if (made === undefined) {
+    throw new MMError("NAVIDROME_FAILED", "Navidrome created the playlist but did not name it.", {
+      hint: "createPlaylist answered without a `playlist` object.",
+    });
+  }
+  return { id: made.id, created: true };
+}
+
+/**
+ * Make the playlist hold exactly `songIds`, and remember which playlist that was.
+ *
+ * A freshly created playlist already holds them — `createPlaylist` takes the songs — so it is
+ * not emptied and refilled. An existing one is replaced; if the server cannot say how many
+ * entries it has, it is deleted and made again rather than appended to, because appending to
+ * an unknown list is precisely the bug that grew a "Recommended" playlist by its own length on
+ * every sync.
+ */
+export async function writePlaylist(
+  target: PlaylistTarget,
+  songIds: readonly string[],
+): Promise<string> {
+  const resolved = await resolvePlaylist(target, songIds);
+  let id = resolved.id;
+  if (!resolved.created) {
+    try {
+      await target.client.replacePlaylist(id, songIds);
+    } catch {
+      await target.client.deletePlaylist(id);
+      const made = await target.client.createPlaylist(target.name, songIds);
+      if (made === undefined) {
+        throw new MMError(
+          "NAVIDROME_FAILED",
+          "Navidrome would neither empty the playlist nor create a new one.",
+        );
+      }
+      id = made.id;
+    }
+  }
+
+  const key = target.server.trim().toLowerCase();
+  if (key !== "") {
+    await target.db
+      .insert(discoverPlaylists)
+      .values({ server: key, playlistId: id, name: target.name, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: discoverPlaylists.server,
+        set: { playlistId: id, name: target.name, updatedAt: new Date() },
+      });
+  }
+  return id;
 }
 
 /* ------------------------------------------------------------------ */

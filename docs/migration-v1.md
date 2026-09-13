@@ -126,7 +126,7 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    que la mesure de loudness y entre aussi.
 4. **Pistes non présentes.** Un import v2 par playlist parente, statut `paused` (« en file, à
    l'arrêt ») ou `awaiting_review`, les MBID forcés en présélection. **Rien n'est téléchargé.**
-5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/_archive/v1-playlists/` (ou `MM_PLAYLIST_EXPORT_DIR`) ; le dossier est créé et son accès en écriture vérifié **avant** le premier re-tag.
+5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/.mm-archive/v1-playlists/` (ou `MM_PLAYLIST_EXPORT_DIR`) ; le dossier est créé, un `.ndignore` y est déposé, et son accès en écriture est vérifié **avant** le premier re-tag. Le point en tête du nom est délibéré : il tient le scanner de Navidrome à l'écart, exactement comme `.mm-work`.
    Aucune donnée de playlist n'entre en v2.
 6. **Vérification** (`--verify`) et items Inbox pour les écarts.
 7. **Rapport** : compteurs, écarts, erreurs, en JSON sur `migration_v1_runs.report`.
@@ -154,9 +154,40 @@ Les imports créés sont **en pause** : rien ne se télécharge tant qu'on ne le
 par un ou en masse. C'est voulu — une migration qui lancerait vingt mille téléchargements est
 une migration qu'on ne peut pas surveiller.
 
-Les playlists exportées sont dans `_archive/v1-playlists/`. Pour les retrouver dans Navidrome,
-il faut lui indiquer ce dossier (`ND_PLAYLISTSPATH`) ou copier les `.m3u8` dans la
-bibliothèque.
+Les playlists exportées sont dans `.mm-archive/v1-playlists/`, à l'intérieur de la
+bibliothèque mais invisible pour Navidrome. Pour les lui donner, il faut le dire
+explicitement : `ND_PLAYLISTSPATH` pointé sur ce dossier, ou les `.m3u8` recopiés là où on
+les veut.
+
+### Si une migration antérieure a écrit dans `_archive/v1-playlists/`
+
+Jusqu'à cette version, l'export atterrissait dans `<bibliothèque>/_archive/v1-playlists/`. Ce
+nom-là n'a rien de spécial pour Navidrome — son scanner ignore les noms commençant par un
+point et les dossiers contenant un `.ndignore`, et rien d'autre — tandis que
+`ND_AUTOIMPORTPLAYLISTS` est actif par défaut. Résultat : **chaque playlist v1 exportée a été
+réimportée dans Navidrome** comme une playlist à elle, à côté de celles qui existaient déjà.
+C'est l'origine des doublons signalés après une reprise.
+
+Le ménage, dans cet ordre :
+
+1. Sortir l'archive du chemin du scanner — le point suffit :
+
+   ```bash
+   mv "<bibliothèque>/_archive/v1-playlists" "<bibliothèque>/.mm-archive/v1-playlists"
+   rmdir "<bibliothèque>/_archive"   # s'il ne reste rien dedans
+   ```
+
+2. Couper l'import automatique côté Navidrome : `ND_AUTOIMPORTPLAYLISTS=false` dans son
+   service (c'est désormais la valeur des deux `docker-compose` de ce dépôt), puis
+   redémarrer le conteneur.
+3. Supprimer les doublons déjà importés : dans Navidrome, **Playlists**, tri par date de
+   création — celles nées de l'import portent la date de la migration et le nom du fichier
+   `.m3u8`. Les supprimer depuis l'interface ; elles ne contiennent rien que la v2 ne sache
+   reproduire. Une fois l'import automatique coupé, un rescan ne les recrée pas.
+
+La playlist « Recommended » que Discover pousse n'est pas concernée : elle passe par l'API
+Subsonic, son identifiant est mémorisé côté v2 (`discover_playlists`), et elle est remplacée
+— jamais dupliquée — à chaque synchronisation.
 
 ---
 

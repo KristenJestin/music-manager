@@ -53,6 +53,12 @@ services:
       ND_DEVAUTOCREATEADMINPASSWORD: admin
       ND_SCANSCHEDULE: "@every 1m"
       ND_LOGLEVEL: info
+      # Off, and the reason is a bug report: Navidrome imports every M3U it finds under the
+      # music folder as a playlist of its own, and `mm migrate v1` used to write the v1 exports
+      # to `<library>/_archive/v1-playlists` — inside it. The export is dot-prefixed now, but
+      # this installation owns its playlists through the Subsonic API (Discover pushes one),
+      # never through files, so auto-import has nothing to contribute and one way to surprise.
+      ND_AUTOIMPORTPLAYLISTS: "false"
     ports:
       - "${MM_NAVIDROME_PORT:-4533}:4533"
     volumes:
