@@ -33,6 +33,19 @@ describe("securityHeaders", () => {
     expect(headers["content-security-policy"]).not.toContain("unsafe-eval");
   });
 
+  it("lets the player reach Deezer's preview CDN, and nothing wider", () => {
+    // The Discover preview is a signed MP3 on `cdnt-preview.dzcdn.net`, streamed straight by
+    // the `<audio>` element. Without the host in `media-src`, Chromium refuses the load before
+    // opening a socket — `MediaError.code = 4`, "Media load rejected by URL safety check" —
+    // which the Console could only report as "the clip link expired". It had not.
+    const csp = securityHeaders({ behindProxy: false })["content-security-policy"] ?? "";
+    const mediaSrc = csp.split("; ").find((directive) => directive.startsWith("media-src "));
+    expect(mediaSrc).toBe("media-src 'self' data: blob: https://*.dzcdn.net");
+    // Narrower than `img-src`: a bare `https:` here would let any host supply audio.
+    expect(mediaSrc).not.toContain(" https:;");
+    expect(mediaSrc?.endsWith(" https:")).toBe(false);
+  });
+
   it("keeps HSTS for the one case where it is not a foot-gun", () => {
     // On plain HTTP a browser ignores it; on `http://localhost` a browser that did *not*
     // ignore it would pin the developer's machine to a scheme it does not speak.
