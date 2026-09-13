@@ -1,0 +1,17 @@
+{
+  "entities": {
+    "Q193338": {
+      "claims": {
+        "P18": [
+          {
+            "mainsnak": {
+              "datavalue": {
+                "value": "Daft Punk pyramide.jpg"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

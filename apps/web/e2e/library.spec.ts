@@ -258,5 +258,25 @@ test.describe("the library", () => {
       await expect(row.getByTestId("field-edit-album")).toHaveText(original, { timeout: 5_000 });
     });
     await expect(row.getByTestId("field-source-badge")).toHaveCount(0);
+   * `artist.jpg`, placed beside "Daft Punk"'s folder once `import-album.spec.ts`'s import
+   * reaches `place` (`jobs/steps/place.ts`). `seed-fixtures.ts` seeds the MusicBrainz artist
+   * and the Wikidata entity Daft Punk's url-rels point at, offline, so `artists_cache.imageUrl`
+   * is filled the same way it would be live — this is what turns that URL into a file.
+   */
+  test("artist.jpg reaches the artists page through /api/artist-image", async ({ page }) => {
+    await signIn(page);
+
+    const answer = await page.request.get(
+      `/api/artist-image?artist=${encodeURIComponent("Daft Punk")}`,
+    );
+    expect(answer.status()).toBe(200);
+    expect(answer.headers()["content-type"]).toBe("image/jpeg");
+
+    // The same guard `api.cover.ts`'s C10 test proves: an unknown artist is a clean 404, not a
+    // page Vite's static asset pipeline swallowed.
+    const missing = await page.request.get(
+      `/api/artist-image?artist=${encodeURIComponent("Nobody At All")}`,
+    );
+    expect(missing.status()).toBe(404);
   });
 });

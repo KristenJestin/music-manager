@@ -23,6 +23,7 @@ export const GENERAL_KEYS = [
   "maxSegmentLength",
   "onExists",
   "writeCover",
+  "writeArtistImage",
   "writeLyricsSidecar",
   "embedArtwork",
   "artworkSize",

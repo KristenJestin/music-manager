@@ -32,6 +32,11 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { imports, libraryAlbums } from "#/server/db/schema/index.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
 import * as musicbrainz from "#/server/integrations/musicbrainz.ts";
+import {
+  refreshArtistImageCache,
+  writeArtistImageSidecar,
+} from "#/server/services/artist-image.ts";
+import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { scoreOneAlbum } from "#/server/services/quality.ts";
 import { createRun } from "#/server/services/retag.ts";
 import { enqueueRetagRun } from "#/server/services/queue.ts";
@@ -120,6 +125,35 @@ export async function refreshAlbumFromSource(
       .set({ releaseGroupMbid: after, updatedAt: new Date() })
       .where(eq(imports.releaseMbid, releaseMbid));
     repaired.push("releaseGroupMbid");
+  }
+
+  /*
+   * The artist's picture, on the same trip: this call is already online and already has the
+   * release's `artist-credit`, so refreshing `artists_cache.imageUrl` and writing `artist.jpg`
+   * costs nothing extra — unlike the re-tag below, which stays offline (§8) on purpose.
+   */
+  const artistMbid = release["artist-credit"]?.[0]?.artist?.id;
+  if (artistMbid !== undefined && artistMbid !== "") {
+    try {
+      const imageUrl = await refreshArtistImageCache(
+        { db, config: sourcesConfig(settings), offline: false, refresh: false },
+        artistMbid,
+      );
+      if (imageUrl !== null) {
+        const artistFolder = album.folder.split("/")[0] ?? "";
+        await writeArtistImageSidecar({
+          db,
+          paths: resolvePaths(settings),
+          artistName: album.albumArtist,
+          artistFolder,
+          size: settings.artworkSize,
+          enabled: settings.writeArtistImage,
+        });
+      }
+    } catch {
+      // A refetch that could not reach Wikidata or fanart.tv is not a reason to fail the
+      // album's own refresh — the release above already repaired what it came for.
+    }
   }
 
   /*

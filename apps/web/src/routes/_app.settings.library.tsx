@@ -257,6 +257,15 @@ function LibrarySettings() {
             }}
           />
         </FormRow>
+        <FormRow label="artist.jpg in each artist folder">
+          <Toggle
+            testId="setting-writeArtistImage"
+            checked={value("writeArtistImage", true)}
+            onChange={(next) => {
+              set("writeArtistImage", next);
+            }}
+          />
+        </FormRow>
         <FormRow label=".lrc next to each track">
           <Toggle
             testId="setting-writeLyricsSidecar"

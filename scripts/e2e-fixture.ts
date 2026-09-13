@@ -447,6 +447,13 @@ async function main(): Promise<void> {
   );
   check(present.includes("cover.jpg"), "cover.jpg written");
 
+  const artistImagePath = join(LIBRARY, "Daft Punk", "artist.jpg");
+  check(
+    existsSync(artistImagePath) && statSync(artistImagePath).size > 0,
+    "artist.jpg written",
+    artistImagePath,
+  );
+
   /* ---------------------------------------------------------------- */
   section("3 · the tags, read back through the toolbox");
   /* ---------------------------------------------------------------- */

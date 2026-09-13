@@ -36,6 +36,7 @@ import {
 import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath, workFolder } from "#/server/paths.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
+import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import type { StepResult } from "../machine.ts";
 import { aborted, updateTrack, type StepContext } from "../context.ts";
 
@@ -423,6 +424,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
   let albumId: string | null = null;
   let folder: string | null = null;
   let cover: string | null = null;
+  let albumArtist: string | null = null;
 
   for (const track of movable) {
     if (aborted(ctx)) {
@@ -442,6 +444,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     const relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
     folder ??= renderAlbumFolder(ctx.settings.pathTemplate, input, options);
     cover ??= coverUrl(document);
+    albumArtist ??= input.albumArtist;
     albumId ??= await upsertAlbum(ctx, input, options, document);
 
     let size = track.downloadedBytes ?? 0;
@@ -488,6 +491,29 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
   }
 
   if (folder !== null && (await writeCover(ctx, folder, cover))) sidecars += 1;
+
+  // `artist.jpg`, once per album placed (§3) — the artist folder is the album folder's first
+  // segment, whatever the path template put there. Never fails the step: a download error here
+  // is journaled and the import still finishes, exactly like a missing `.lrc`.
+  if (folder !== null && albumArtist !== null) {
+    const artistFolder = folder.split("/")[0] ?? "";
+    const image = await writeArtistImageSidecar({
+      db: ctx.db,
+      toolbox: ctx.toolbox,
+      paths: ctx.paths,
+      artistName: albumArtist,
+      artistFolder,
+      size: ctx.settings.artworkSize,
+      enabled: ctx.settings.writeArtistImage,
+    });
+    if (image.outcome === "written") sidecars += 1;
+    if (image.outcome === "error") {
+      await ctx.say("track.warn", `Could not write artist.jpg for ${albumArtist}: ${image.error}`, {
+        level: "warn",
+        data: { artist: albumArtist, folder: artistFolder },
+      });
+    }
+  }
 
   if (albumId !== null) {
     const present = await ctx.db

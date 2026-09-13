@@ -256,6 +256,11 @@ export const SETTING_DEFINITIONS = {
   /* ---- tagging and sidecars (docs/03 §3) ---- */
   writeLyricsSidecar: define(z.boolean(), true, "Write `<track>.lrc` next to the file."),
   writeCover: define(z.boolean(), true, "Write `cover.jpg` in the album folder."),
+  writeArtistImage: define(
+    z.boolean(),
+    true,
+    "Write `artist.jpg` in the artist folder, from the image `artists_cache` found for them.",
+  ),
   embedArtwork: define(z.boolean(), true, "Embed the front cover in the audio file itself."),
   artworkSize: define(z.number().int().min(16).max(4000), 1200, "Longest side of `cover.jpg`."),
   replayGain: define(z.boolean(), true, "Run rsgain per album once every track is present."),

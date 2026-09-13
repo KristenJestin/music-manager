@@ -19,8 +19,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { CaaIndex, LrclibEntry, MbRecording, MbRelease, MbTrack, MbWork } from "@mm/domain";
+import type {
+  CaaIndex,
+  LrclibEntry,
+  MbArtistLike,
+  MbRecording,
+  MbRelease,
+  MbTrack,
+  MbWork,
+} from "@mm/domain";
 import type { DeezerTrack } from "@mm/domain";
+import type { WikidataResponse } from "./wikimedia.ts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { put } from "#/server/services/cache.ts";
 import { absentPayload } from "./cached.ts";
@@ -83,6 +92,19 @@ export async function seedFixtures(db: Database = defaultDb()): Promise<SeedRepo
 
   const work = read<MbWork>("musicbrainz/work-one-more-time.json");
   if (work.id !== undefined) await write("musicbrainz", `work/${work.id}?inc=workFull`, work);
+
+  /*
+   * The artist, and the Wikidata entity `rememberArtist` (`services/documents.ts`) chases for
+   * `artist.jpg` (§3). Without these two rows the offline build hits a cache miss at both hops
+   * and `artists_cache.imageUrl` stays null for ever — no importer would ever have anything to
+   * write a sidecar from, and the fixture E2E could not assert one exists.
+   */
+  const artist = read<MbArtistLike>("musicbrainz/artist-daft-punk.json");
+  if (artist.id !== undefined) {
+    await write("musicbrainz", `artist/${artist.id}?inc=artistFull`, artist);
+  }
+  const wikidata = read<WikidataResponse>("wikimedia/wikidata-q193338.json");
+  await write("wikimedia", "wikidata/Q193338", wikidata);
 
   /* ---- Cover Art Archive ---- */
   const caa = read<CaaIndex>("coverartarchive/release-discovery.json");
