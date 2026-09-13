@@ -180,6 +180,29 @@ class ExtractEntry(BaseModel):
     description: str | None = None
     thumbnails: list[Thumbnail] = Field(default_factory=list[Thumbnail])
     webpage_url: str | None = None
+    playlist_index: int | None = Field(
+        default=None,
+        description=(
+            "Position yt-dlp read off the playlist itself, one-based. `index` is our own "
+            "zero-based numbering of what came back, and the two diverge the moment an entry "
+            "is skipped."
+        ),
+    )
+    availability: str | None = Field(
+        default=None,
+        description=(
+            "yt-dlp's own word for what this entry is: `public`, `unlisted`, "
+            "`subscriber_only`, `needs_auth`, `premium_only`… Absent when it did not say."
+        ),
+    )
+    unavailable: bool = Field(
+        default=False,
+        description=(
+            "The entry is in the listing but cannot be fetched — private, deleted, or "
+            "region-locked. It is **reported, not dropped**: a watched source whose whole scan "
+            "failed because one video went private would stop working silently."
+        ),
+    )
 
 
 class ExtractResult(BaseModel):
@@ -192,6 +215,17 @@ class ExtractResult(BaseModel):
 
 class ExtractRequest(YtdlpOptions):
     url: str
+    flat: bool = Field(
+        default=False,
+        description=(
+            "Ask yt-dlp for the listing only (`extract_flat`). One request for a whole "
+            "playlist instead of one per video, answering id, title, duration, url, "
+            "availability and playlist index — and nothing else: no description, no YouTube "
+            "Music tags. That is the right trade for *watching* a source, where the question "
+            "is 'what is new?' rather than 'what is in it?', and the wrong one for `resolve`, "
+            "which lives on the description."
+        ),
+    )
 
 
 # --------------------------------------------------------------------------------------

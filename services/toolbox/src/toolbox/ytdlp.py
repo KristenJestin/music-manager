@@ -16,7 +16,7 @@ import tempfile
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Final, cast
 
 from yt_dlp import YoutubeDL  # pyright: ignore[reportMissingTypeStubs]
 
@@ -30,6 +30,7 @@ __all__ = [
     "downloaded_path",
     "entry_from_info",
     "extract_info",
+    "is_unavailable",
     "result_from_info",
     "yt_dlp_version",
 ]
@@ -193,6 +194,41 @@ def _as_str(value: Any) -> str | None:
     return value if isinstance(value, str) and value.strip() else None
 
 
+#: Titles yt-dlp substitutes for an entry it listed but cannot reach. In flat mode that is
+#: *all* it says — there is no error to classify, only this placeholder — so the words are the
+#: signal. Matched case-insensitively against the whole title.
+_UNAVAILABLE_TITLES: Final[frozenset[str]] = frozenset(
+    {
+        "[private video]",
+        "[deleted video]",
+        "[unavailable video]",
+        "private video",
+        "deleted video",
+        "[age restricted video]",
+    }
+)
+
+
+def is_unavailable(info: Mapping[str, Any]) -> bool:
+    """True when an entry is in the listing but cannot be fetched.
+
+    Three independent tells, because yt-dlp uses whichever it happens to have: the explicit
+    ``availability`` string, its placeholder title, or an entry with no id at all.
+    """
+    availability = _as_str(info.get("availability"))
+    if availability is not None and availability.lower() in {
+        "private",
+        "needs_auth",
+        "subscriber_only",
+        "premium_only",
+    }:
+        return True
+    title = str(info.get("title") or "").strip().casefold()
+    if title in _UNAVAILABLE_TITLES:
+        return True
+    return not str(info.get("id") or "").strip()
+
+
 def entry_from_info(info: Mapping[str, Any], index: int) -> ExtractEntry:
     """Project one yt-dlp entry onto the contract, keeping YouTube Music's own tags."""
     return ExtractEntry(
@@ -207,7 +243,10 @@ def entry_from_info(info: Mapping[str, Any], index: int) -> ExtractEntry:
         release_year=_as_int(info.get("release_year")),
         description=_as_str(info.get("description")),
         thumbnails=_thumbnails(info),
-        webpage_url=_as_str(info.get("webpage_url")),
+        webpage_url=_as_str(info.get("webpage_url")) or _as_str(info.get("url")),
+        playlist_index=_as_int(info.get("playlist_index")),
+        availability=_as_str(info.get("availability")),
+        unavailable=is_unavailable(info),
     )
 
 
@@ -216,9 +255,12 @@ def result_from_info(info: Mapping[str, Any]) -> ExtractResult:
     entries_raw = info.get("entries")
     if isinstance(entries_raw, list):
         entries: list[ExtractEntry] = []
-        for index, item in enumerate(cast(list[Any], entries_raw)):
+        # `ignoreerrors` (flat mode) replaces an entry it could not read with `None`. There is
+        # nothing to report about it — no id, no title — so it is dropped, and the gap shows
+        # up as a `playlist_index` that skips a number rather than as a failed scan.
+        for item in cast(list[Any], entries_raw):
             if isinstance(item, dict):
-                entries.append(entry_from_info(cast(dict[str, Any], item), index))
+                entries.append(entry_from_info(cast(dict[str, Any], item), len(entries)))
         return ExtractResult(
             kind="playlist",
             title=_as_str(info.get("title")),

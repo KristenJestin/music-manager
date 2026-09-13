@@ -12,4 +12,4 @@
  */
 export const TOOLBOX_SCHEMA_VERSION = 1;
 
-export const TOOLBOX_CONTRACT_HASH = "e0d497071ad88544";
+export const TOOLBOX_CONTRACT_HASH = "61f326391f35698d";

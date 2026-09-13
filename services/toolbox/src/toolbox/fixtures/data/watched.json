@@ -1,0 +1,97 @@
+{
+  "name": "watched",
+  "note": "A watched source: the same listing at two points in time. `?snapshot=1` is what it looked like yesterday, `?snapshot=2` today — one video longer. Every reachable entry points its `webpage_url` at `fixture://skinny-love`, so the import each new video opens resolves, matches and downloads entirely offline.",
+  "extract": {
+    "kind": "playlist",
+    "title": "Watched — new uploads",
+    "uploader": "Watched Source - Topic",
+    "id": "PLmmwatchedfixture",
+    "entries": [
+      {
+        "id": "wsvAAAAAAAA",
+        "title": "Bon Iver - Skinny Love",
+        "duration": 202.0,
+        "uploader": "Watched Source - Topic",
+        "index": 0,
+        "track": "Skinny Love",
+        "artist": "Bon Iver",
+        "album": null,
+        "release_year": 2008,
+        "description": null,
+        "thumbnails": [],
+        "webpage_url": "fixture://skinny-love",
+        "playlist_index": 1,
+        "availability": "public",
+        "unavailable": false
+      },
+      {
+        "id": "wsvBBBBBBBB",
+        "title": "Bon Iver - Skinny Love (live)",
+        "duration": 215.0,
+        "uploader": "Watched Source - Topic",
+        "index": 1,
+        "track": "Skinny Love",
+        "artist": "Bon Iver",
+        "album": null,
+        "release_year": 2009,
+        "description": null,
+        "thumbnails": [],
+        "webpage_url": "fixture://skinny-love",
+        "playlist_index": 2,
+        "availability": "public",
+        "unavailable": false
+      },
+      {
+        "id": "wsvPPPPPPPP",
+        "title": "[Private video]",
+        "duration": null,
+        "uploader": null,
+        "index": 2,
+        "track": null,
+        "artist": null,
+        "album": null,
+        "release_year": null,
+        "description": null,
+        "thumbnails": [],
+        "webpage_url": null,
+        "playlist_index": 3,
+        "availability": "private",
+        "unavailable": true
+      },
+      {
+        "id": "wsvCCCCCCCC",
+        "title": "Bon Iver - Skinny Love (2026 remaster)",
+        "duration": 204.0,
+        "uploader": "Watched Source - Topic",
+        "index": 3,
+        "track": "Skinny Love",
+        "artist": "Bon Iver",
+        "album": null,
+        "release_year": 2026,
+        "description": null,
+        "thumbnails": [],
+        "webpage_url": "fixture://skinny-love",
+        "playlist_index": 4,
+        "availability": "public",
+        "unavailable": false
+      }
+    ]
+  },
+  "snapshots": { "1": 3, "2": 4 },
+  "album": {
+    "artist": "Bon Iver",
+    "title": "For Emma, Forever Ago",
+    "year": 2008,
+    "date": "2008-02-19",
+    "label": "Jagjaguwar",
+    "release_mbid": "3e1e5fef-5b9b-49b8-b4ab-1a4c4d9a2e0e",
+    "release_group_mbid": "d6cd5d1e-8e5e-4b0f-9c2f-0b5bb2cbb1b1",
+    "artist_mbid": "9dc38f4b-1b1b-4a4c-95a3-2a2c9cd6e9ee"
+  },
+  "ytmusic": [],
+  "fingerprint": {
+    "fingerprint": "AQADtMmSREkSJUmSJEmSJEmSJEmSJEmSJEmSJEmSJEmSJEk",
+    "duration": 202.0,
+    "candidates": []
+  }
+}
