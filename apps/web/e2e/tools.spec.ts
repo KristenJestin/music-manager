@@ -48,6 +48,29 @@ test.describe("tools", () => {
     await expect(page.getByTestId("diag-readback")).toBeVisible();
   });
 
+  /**
+   * `cron.refresh-sources` used to have no way in: no button, no route, no MCP tool, no CLI
+   * verb. The only trigger was Monday at 5 a.m., or a worker restarted at the right minute.
+   */
+  test("the weekly source refresh can be started by hand", async ({ page }) => {
+    const row = page.getByTestId("diag-sources-refresh");
+    await expect(row).toBeVisible();
+    await expect(row).toContainText(/re-read on|switched off/);
+    const button = page.getByTestId("sources-refresh");
+    await expect(button).toBeVisible();
+    // Enabled by default; the row says so, and pressing it enqueues rather than sweeping here.
+    if (await button.isEnabled()) {
+      const [response] = await Promise.all([
+        page.waitForResponse((event) => event.url().includes("_serverFn"), { timeout: 120_000 }),
+        button.click(),
+      ]);
+      expect(response.status()).toBeLessThan(500);
+      await expect(page.getByTestId("toaster")).toContainText(/queued|could not be queued/, {
+        timeout: 60_000,
+      });
+    }
+  });
+
   test("the yt-dlp self-test runs and says what it checked", async ({ page }) => {
     /*
      * Waits on the server function's own response, not on the toast.

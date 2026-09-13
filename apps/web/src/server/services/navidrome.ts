@@ -173,7 +173,15 @@ export async function navidromeStatus(options: {
       error: config.enabled ? null : NAVIDROME_DISABLED_MESSAGE,
     };
   } catch (error) {
-    return { ...base, error: MMError.from(error).message };
+    /*
+     * `unreachable` even while the toggle is off.
+     *
+     * Two facts are true at once here — "it is switched off" and "the credentials do not
+     * reach anything" — and only the second one is actionable from this page. Switching it on
+     * would not help. Discover and the signals collector still say "switched off", which is
+     * the fact *they* own.
+     */
+    return { ...base, state: "unreachable", error: MMError.from(error).message };
   }
 }
 

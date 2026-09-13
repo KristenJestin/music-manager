@@ -117,6 +117,60 @@ test.describe("settings › integrations", () => {
     await page.reload();
     await expect(page.getByTestId("navidrome-url")).toHaveValue("");
   });
+
+  /**
+   * The bug this suite grew for: two pages describing the same server differently.
+   *
+   * `navidromeEnabled` defaults to off, so a URL and a user on their own made Integrations
+   * say "connected" while Settings › Discover said "no Navidrome server is configured". Both
+   * sentences were true about a different half of the state and neither said what to do. The
+   * assertion is on Discover rather than on the badge because it needs no server at all:
+   * filled in with the switch off is a pure settings state.
+   */
+  test("a filled-in server with the switch off is called that, on both pages", async ({ page }) => {
+    await typeInto(page.getByTestId("navidrome-url"), "http://navidrome.test:4533");
+    await typeInto(page.getByTestId("navidrome-user"), "admin");
+    await page.getByTestId("integrations-save").click();
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
+
+    await page.goto("/settings/discover");
+    await expect(page.getByTestId("settings-discover")).toBeVisible({ timeout: 60_000 });
+    // Not "no Navidrome server is configured": there is one, it is simply not switched on.
+    await expect(page.getByTestId("settings-discover")).toContainText(/switched off/);
+    await expect(page.getByTestId("settings-discover")).not.toContainText(
+      /No Navidrome server is configured/,
+    );
+
+    // Put it back, so the specs that follow see the empty installation they expect.
+    await page.goto("/settings/integrations");
+    await expect(page.getByTestId("settings-integrations")).toBeVisible({ timeout: 60_000 });
+    await typeInto(page.getByTestId("navidrome-url"), "");
+    await typeInto(page.getByTestId("navidrome-user"), "");
+    await page.getByTestId("integrations-save").click();
+    await expect(page.getByTestId("toaster")).toContainText(/setting\(s\) saved/, {
+      timeout: 60_000,
+    });
+  });
+
+  /**
+   * The Last.fm key is on two tabs, and neither of them may print it.
+   *
+   * Discover consumes it (similar artists) and Metadata & matching consumes it (genres and
+   * moods), so it is shown on both — and the masked form is a placeholder over an empty box
+   * plus a Replace button, because the old rendering put the literal word `set` inside the
+   * field, which reads like a three-character key.
+   */
+  test("the Last.fm key is on Settings › Discover and is never rendered in clear", async ({
+    page,
+  }) => {
+    await page.goto("/settings/discover");
+    await expect(page.getByTestId("settings-discover")).toBeVisible({ timeout: 60_000 });
+    const field = page.getByTestId("setting-lastfmKey");
+    await expect(field).toBeVisible();
+    await expect(field).not.toHaveValue("set");
+  });
 });
 
 test.describe("settings › downloader", () => {
