@@ -306,6 +306,13 @@ class TagRequest(Strict):
     )
     sidecar_lrc: bool = Field(default=False, description="Also write `<stem>.lrc` next to it.")
     clear: bool = Field(default=False, description="Drop every existing tag first.")
+    keep_pictures: bool = Field(
+        default=True,
+        description=(
+            "When `clear` drops the tag block and no picture is supplied, re-attach the "
+            "pictures the file already carried instead of losing them."
+        ),
+    )
 
 
 class TagResult(BaseModel):

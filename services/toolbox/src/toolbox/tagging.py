@@ -183,11 +183,30 @@ def _open_vorbis(path: Path) -> tuple[Any, bool]:
 # --------------------------------------------------------------------------------------
 
 
-def _write_vorbis(path: Path, request: TagRequest, grouped: Grouped) -> int:
+def _keeps_pictures(request: TagRequest) -> bool:
+    """True when ``clear`` would destroy the pictures already in the file for nothing.
+
+    ``clear`` empties the whole tag block, and on Ogg the picture *is* a tag
+    (``METADATA_BLOCK_PICTURE``). A caller that re-writes the tags without supplying a
+    picture means "rewrite the metadata", not "drop the cover", so the existing pictures are
+    read before the clear and put back afterwards. ``keep_pictures=False`` opts out.
+    """
+    return request.clear and request.keep_pictures and not request.pictures
+
+
+def _write_vorbis(path: Path, request: TagRequest, grouped: Grouped) -> tuple[int, int]:
     audio, is_flac = _open_vorbis(path)
     if audio.tags is None:
         audio.add_tags()
     tags = cast("dict[str, list[str]]", audio.tags)
+
+    kept_blocks: list[Picture] = []
+    kept_encoded: list[str] = []
+    if _keeps_pictures(request):
+        if is_flac:
+            kept_blocks = list(cast("Iterable[Picture]", audio.pictures))
+        else:
+            kept_encoded = list(tags.get("METADATA_BLOCK_PICTURE") or [])
 
     if request.clear:
         tags.clear()
@@ -216,9 +235,15 @@ def _write_vorbis(path: Path, request: TagRequest, grouped: Grouped) -> int:
                 base64.b64encode(_flac_picture(picture).write()).decode("ascii")
                 for picture in request.pictures
             ]
+    elif is_flac:
+        for block in kept_blocks:
+            audio.add_picture(block)
+    elif kept_encoded:
+        tags["METADATA_BLOCK_PICTURE"] = kept_encoded
 
+    pictures = len(audio.pictures) if is_flac else len(tags.get("METADATA_BLOCK_PICTURE") or [])
     audio.save()
-    return written
+    return written, pictures
 
 
 def _read_vorbis(path: Path) -> dict[str, list[str]]:
@@ -259,13 +284,18 @@ def _id3_pair(grouped: Grouped, number: str, total: str, alias: str) -> str | No
     return f"{numbers[0]}/{totals[0]}" if totals else numbers[0]
 
 
-def _write_id3(path: Path, request: TagRequest, grouped: Grouped) -> int:
+def _write_id3(path: Path, request: TagRequest, grouped: Grouped) -> tuple[int, int]:
     audio = cast(Any, MP3(path))
     if audio.tags is None:
         audio.add_tags()
     tags = cast(Any, audio.tags)
+    kept_apic: list[Any] = (
+        list(cast("list[Any]", tags.getall("APIC"))) if _keeps_pictures(request) else []
+    )
     if request.clear:
         tags.clear()
+    for frame in kept_apic:
+        tags.add(frame)
 
     written = 0
     tipl: list[list[str]] = []
@@ -329,8 +359,9 @@ def _write_id3(path: Path, request: TagRequest, grouped: Grouped) -> int:
             )
         )
 
+    pictures = len(cast("list[Any]", tags.getall("APIC")))
     audio.save(v2_version=4)
-    return written
+    return written, pictures
 
 
 def _write_id3_lyrics(tags: Any, request: TagRequest, grouped: Grouped) -> int:
@@ -401,13 +432,18 @@ def _read_id3(path: Path) -> dict[str, list[str]]:
 # --------------------------------------------------------------------------------------
 
 
-def _write_mp4(path: Path, request: TagRequest, grouped: Grouped) -> int:
+def _write_mp4(path: Path, request: TagRequest, grouped: Grouped) -> tuple[int, int]:
     audio = cast(Any, MP4(path))
     if audio.tags is None:
         audio.add_tags()
     tags = cast(Any, audio.tags)
+    kept_covers: list[Any] = (
+        list(cast("list[Any]", tags.get("covr") or [])) if _keeps_pictures(request) else []
+    )
     if request.clear:
         tags.clear()
+    if kept_covers:
+        tags["covr"] = kept_covers
 
     written = 0
     for key, values in grouped.items():
@@ -446,8 +482,9 @@ def _write_mp4(path: Path, request: TagRequest, grouped: Grouped) -> int:
             covers.append(MP4Cover(data, imageformat=fmt))
         tags["covr"] = covers
 
+    pictures = len(cast("list[Any]", tags.get("covr") or []))
     audio.save()
-    return written
+    return written, pictures
 
 
 def _read_mp4(path: Path) -> dict[str, list[str]]:
@@ -483,7 +520,7 @@ def _read_mp4(path: Path) -> dict[str, list[str]]:
 # Entry points
 # --------------------------------------------------------------------------------------
 
-_WRITERS: Final[dict[TagFormat, Callable[[Path, TagRequest, Grouped], int]]] = {
+_WRITERS: Final[dict[TagFormat, Callable[[Path, TagRequest, Grouped], tuple[int, int]]]] = {
     TagFormat.VORBIS: _write_vorbis,
     TagFormat.ID3: _write_id3,
     TagFormat.MP4: _write_mp4,
@@ -512,7 +549,7 @@ def write_tags(request: TagRequest) -> TagResult:
     grouped = _grouped(request.tags)
 
     try:
-        written = _WRITERS[fmt](path, request, grouped)
+        written, pictures = _WRITERS[fmt](path, request, grouped)
     except ToolboxError:
         raise
     except Exception as exc:
@@ -531,7 +568,7 @@ def write_tags(request: TagRequest) -> TagResult:
         path=str(path),
         format=fmt,
         written=written,
-        pictures=len(request.pictures),
+        pictures=pictures,
         size=path.stat().st_size,
         sidecar_path=str(sidecar) if sidecar else None,
         readback=read_tags(path, fmt),
