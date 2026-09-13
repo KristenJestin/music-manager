@@ -43,6 +43,28 @@ export async function enqueueLibraryScan(
 }
 
 /**
+ * Ask the worker to scan a watched source, or every enabled one (P12).
+ *
+ * The dynamic import is the same trick the re-tag helper below uses: `handlers/watched-sources`
+ * owns the queue name *and* the scan handler, and importing it statically from a server
+ * function would pull `scanSource` and its toolbox client into the web process for the sake
+ * of one string.
+ */
+export async function enqueueWatchedSourceScan(
+  job: { sourceId?: string; trigger?: string } = {},
+): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    const { enqueueWatchedScan } = await import("#/worker/handlers/watched-sources.ts");
+    return await enqueueWatchedScan(boss, job);
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
  * Ask the worker to run a re-tag run (P08's REST route, P07a's run).
  *
  * `handlers/retag.ts` owns `enqueueRetag`, but it also owns the batch handler, and importing

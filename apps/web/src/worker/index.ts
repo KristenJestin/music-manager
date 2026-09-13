@@ -55,6 +55,7 @@ import { queueOutdated, registerRetagHandlers } from "./handlers/retag.ts";
 import { cleanupEmptyRetagRuns } from "#/server/services/retag.ts";
 import { registerMigrateHandlers } from "./handlers/migrate.ts";
 import { registerDiscoverHandlers } from "./handlers/discover.ts";
+import { registerWatchedSourceHandlers } from "./handlers/watched-sources.ts";
 
 const log = (message: string, extra: Record<string, unknown> = {}): void => {
   console.log(
@@ -289,6 +290,9 @@ export async function startWorker(): Promise<Worker> {
   /* ---- discover: the nightly recommendation refresh (P09) ---- */
   await registerDiscoverHandlers(boss, { db: db(), signal: shutdown.signal, log });
 
+  /* ---- watched sources: the six-hourly scan of the playlists and channels (P12) ---- */
+  await registerWatchedSourceHandlers(boss, { db: db(), signal: shutdown.signal, log, boss });
+
   /* ---- scan: walk the library and reconcile it with the database (P07b) ---- */
   await boss.work<ScanJob>(
     QUEUES.scan,
@@ -335,6 +339,7 @@ export async function startWorker(): Promise<Worker> {
     "cron.scan",
     "cron.ytdlp-update",
     "cron.discover",
+    "cron.watched-sources",
   ]);
   for (const name of [QUEUES.retag, QUEUES.scan, ...Object.keys(CRON_QUEUES)]) {
     if (HANDLED.has(name)) continue;
@@ -355,7 +360,9 @@ export async function startWorker(): Promise<Worker> {
           ? schedules.ytdlpUpdateCron
           : name === "cron.discover"
             ? schedules.discoverCron
-            : cron;
+            : name === "cron.watched-sources"
+              ? schedules.watchedSourcesCron
+              : cron;
     await boss.schedule(name, expression);
   }
 
