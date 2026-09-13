@@ -31,13 +31,16 @@ export class PatchBuilder {
   set(
     name: string,
     value: FieldValue | null | undefined,
-    options: { confidence?: number } = {},
+    options: { confidence?: number; via?: string | null } = {},
   ): boolean {
     if (value === null || value === undefined) return false;
     if (typeof value === "string" && value.trim() === "") return false;
     if (Array.isArray(value) && value.length === 0) return false;
     this.fields[name] = field(value, this.source, this.fetchedAt, {
       confidence: options.confidence ?? this.confidence,
+      // `via` is descriptive provenance within the source (see `Field.via`); a resolver that
+      // has nothing to say passes nothing and the key is not written.
+      ...(options.via == null || options.via === "" ? {} : { via: options.via }),
     });
     return true;
   }

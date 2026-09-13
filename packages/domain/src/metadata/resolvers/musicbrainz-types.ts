@@ -7,11 +7,23 @@
  * the rest.
  */
 
+import {
+  creditIsCanonical,
+  describeAlias,
+  pickAlias,
+  type LocalePreference,
+  type MbAlias,
+} from "../alias.ts";
+
+export type { LocalePreference, MbAlias };
+
 export interface MbArtist {
   readonly id?: string;
   readonly name?: string;
   readonly "sort-name"?: string;
   readonly disambiguation?: string;
+  /** `inc=aliases`: the locale spellings of the name. See `../alias.ts`. */
+  readonly aliases?: readonly MbAlias[];
 }
 
 export interface MbArtistCreditEntry {
@@ -67,6 +79,12 @@ export interface MbRecording {
   readonly relations?: readonly MbRelation[];
   readonly "artist-credit"?: readonly MbArtistCreditEntry[];
   readonly "first-release-date"?: string;
+  /**
+   * `inc=aliases`, and **unusable for translation**: recording aliases carry no `locale` in
+   * MusicBrainz's data, so `pickAlias` never matches one. A track title is translated from a
+   * pseudo-release instead (docs/03 §2.1).
+   */
+  readonly aliases?: readonly MbAlias[];
 }
 
 export interface MbTrack {
@@ -101,6 +119,8 @@ export interface MbReleaseGroup {
   readonly "first-release-date"?: string;
   readonly genres?: readonly MbGenre[];
   readonly tags?: readonly MbTag[];
+  /** `inc=aliases`: rarer than on artists, and the first place an album title is looked for. */
+  readonly aliases?: readonly MbAlias[];
 }
 
 /**
@@ -141,6 +161,7 @@ export interface MbRelease {
   readonly relations?: readonly MbRelation[];
   readonly genres?: readonly MbGenre[];
   readonly tags?: readonly MbTag[];
+  readonly aliases?: readonly MbAlias[];
 }
 
 /**
@@ -168,14 +189,48 @@ function nameOf(entry: MbArtistCreditEntry, source: ArtistNameSource): string {
   return credited === "" ? canonical : credited;
 }
 
+/**
+ * One credit entry's name, translated to the preferred locale when there is an alias for it.
+ *
+ * **A deliberate “credited as” is never translated.** The credit carries the name printed on
+ * this release next to the artist's canonical one; when an editor has recorded that the two
+ * differ, that is a fact about this sleeve, and a library-wide locale preference does not get
+ * to overrule it. So the alias is only applied when the printed name *is* the canonical name
+ * (NFC-normalised) — see `creditIsCanonical` in `../alias.ts`.
+ *
+ * The alias is looked up on `entry.artist`, never on the credit: only the artist entity has
+ * an alias list, and it is the entity the locale preference is about.
+ */
+function translate(
+  entry: MbArtistCreditEntry,
+  source: ArtistNameSource,
+  locale: LocalePreference | undefined,
+): { name: string; alias: MbAlias | null } {
+  const fallback = nameOf(entry, source);
+  const canonical = entry.artist?.name ?? "";
+  if (locale === undefined || canonical === "") return { name: fallback, alias: null };
+  if (!creditIsCanonical(entry.name ?? canonical, canonical)) return { name: fallback, alias: null };
+
+  const alias = pickAlias(entry.artist?.aliases, {
+    ...locale,
+    kind: "artist",
+    credited: fallback,
+  });
+  const name = alias?.name ?? "";
+  return name === "" ? { name: fallback, alias: null } : { name, alias };
+}
+
 /** `ARTIST` is the credit rebuilt with MusicBrainz's own join phrases (§2.1). */
 export function joinArtistCredit(
   credit: readonly MbArtistCreditEntry[] | undefined,
   source: ArtistNameSource = "credited",
+  locale?: LocalePreference,
 ): string | null {
   if (credit === undefined || credit.length === 0) return null;
+  // The join phrases are MusicBrainz's, untouched: translating names must never turn
+  // "Daft Punk feat. Romanthony" into "Daft Punk Romanthony".
   const joined = credit
-    .map((entry) => `${nameOf(entry, source)}${entry.joinphrase ?? ""}`)
+    .map((entry) => `${translate(entry, source, locale).name}${entry.joinphrase ?? ""}`)
     .join("");
   return joined === "" ? null : joined;
 }
@@ -184,8 +239,30 @@ export function joinArtistCredit(
 export function artistNames(
   credit: readonly MbArtistCreditEntry[] | undefined,
   source: ArtistNameSource = "credited",
+  locale?: LocalePreference,
 ): string[] {
-  return (credit ?? []).map((entry) => nameOf(entry, source)).filter((name) => name !== "");
+  return (credit ?? [])
+    .map((entry) => translate(entry, source, locale).name)
+    .filter((name) => name !== "");
+}
+
+/**
+ * The `via` clause for a translated credit — `alias en (primary)` — or `null`.
+ *
+ * The first alias actually applied describes the whole credit: a credit whose names come from
+ * two locales does not exist, and one where only the second artist was translated is still
+ * “this tag was translated”, which is all `via` claims (see `Field.via`).
+ */
+export function artistAliasVia(
+  credit: readonly MbArtistCreditEntry[] | undefined,
+  source: ArtistNameSource = "credited",
+  locale?: LocalePreference,
+): string | null {
+  for (const entry of credit ?? []) {
+    const alias = translate(entry, source, locale).alias;
+    if (alias !== null) return describeAlias(alias);
+  }
+  return null;
 }
 
 /** `ARTISTSORT`: the artists' sort-names, same order. */

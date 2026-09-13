@@ -19,6 +19,7 @@ import {
   fromListenBrainzTags,
   fromLrclib,
   fromMusicBrainzArtist,
+  fromMusicBrainzPseudoRelease,
   fromMusicBrainzRecording,
   fromMusicBrainzRelease,
   fromMusicBrainzWork,
@@ -34,6 +35,7 @@ import {
   type DeezerTrack,
   type LastfmTagInput,
   type ListenBrainzTagInput,
+  type LocalePreference,
   type LrclibEntry,
   type MbRecording,
   type MbRelease,
@@ -53,6 +55,15 @@ export interface Cached<T> {
 
 export interface TrackResolutionInput {
   readonly release?: Cached<MbRelease> & {
+    readonly mediumPosition?: number;
+    readonly trackPosition: number;
+  };
+  /**
+   * The Latin pseudo-release of the same release group, when one was found and the setting
+   * asked for it. It only ever overwrites `ALBUM`, `ALBUMSORT`, `TITLE` and `TITLESORT`; see
+   * `fromMusicBrainzPseudoRelease`.
+   */
+  readonly pseudoRelease?: Cached<MbRelease> & {
     readonly mediumPosition?: number;
     readonly trackPosition: number;
   };
@@ -92,6 +103,12 @@ export interface TrackResolutionInput {
    * the one credited on the release, or the artist's canonical one. Defaults to `credited`.
    */
   readonly artistNameSource?: ArtistNameSource;
+  /**
+   * Picard's “translate names to this locale”: the artist and album names are taken from the
+   * MusicBrainz alias of that locale, the originals stay in the sort fields. Absent — the
+   * default — is the behaviour that existed before the feature, tag for tag.
+   */
+  readonly locale?: LocalePreference;
 }
 
 export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument {
@@ -111,6 +128,7 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
         ...(input.artistNameSource === undefined
           ? {}
           : { artistNameSource: input.artistNameSource }),
+        ...(input.locale === undefined ? {} : { locale: input.locale }),
       }),
     );
   }
@@ -121,7 +139,28 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
         ...(input.artistNameSource === undefined
           ? {}
           : { artistNameSource: input.artistNameSource }),
+        ...(input.locale === undefined ? {} : { locale: input.locale }),
       }),
+    );
+  }
+  // After the release *and* the recording, both of which set `TITLE`: the pseudo-release is a
+  // spelling of what they said, so it must be the last MusicBrainz word on the four names it
+  // owns. Equal source, equal confidence — `merge` then keeps the later patch.
+  if (input.pseudoRelease !== undefined) {
+    const { data, fetchedAt, mediumPosition, trackPosition } = input.pseudoRelease;
+    patches.push(
+      fromMusicBrainzPseudoRelease(
+        data,
+        {
+          album: input.release?.data.title,
+          title: trackOf(input.release, mediumPosition, trackPosition),
+        },
+        {
+          ...(mediumPosition === undefined ? {} : { mediumPosition }),
+          trackPosition,
+          fetchedAt,
+        },
+      ),
     );
   }
   if (input.work !== undefined) {
@@ -183,6 +222,23 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
   }
 
   return merge(patches, { schemaVersion: TAG_SCHEMA_VERSION, precedence: SOURCE_PRECEDENCE });
+}
+
+/** The original title of the track a pseudo-release is about to rename — for `TITLESORT`. */
+function trackOf(
+  release: TrackResolutionInput["release"],
+  mediumPosition: number | undefined,
+  trackPosition: number,
+): string | undefined {
+  const media = release?.data.media ?? [];
+  const medium =
+    mediumPosition === undefined
+      ? media[0]
+      : media.find((candidate) => candidate.position === mediumPosition);
+  const track = (medium?.tracks ?? []).find(
+    (candidate) => candidate.position === trackPosition,
+  );
+  return track?.title ?? track?.recording?.title;
 }
 
 function lockAll(fields: Readonly<Record<string, Field>>): Record<string, Field> {

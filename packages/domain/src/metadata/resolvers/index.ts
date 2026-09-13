@@ -36,12 +36,23 @@ export { chooseLrclibEntry, fromLrclib } from "./lrclib.ts";
 export type { LrclibEntry, LrclibOptions } from "./lrclib.ts";
 
 export {
+  choosePseudoRelease,
   fromMusicBrainzArtist,
+  fromMusicBrainzPseudoRelease,
   fromMusicBrainzRecording,
   fromMusicBrainzRelease,
   fromMusicBrainzWork,
 } from "./musicbrainz.ts";
-export type { ArtistResolverOptions, MbArtistLike, ReleaseResolverOptions } from "./musicbrainz.ts";
+export type {
+  ArtistResolverOptions,
+  MbArtistLike,
+  PseudoReleaseOptions,
+  ReleaseResolverOptions,
+} from "./musicbrainz.ts";
+
+/* ---- locale aliases: Picard's “translate names to this locale” ---- */
+export { creditIsCanonical, describeAlias, isLatinScript, pickAlias } from "../alias.ts";
+export type { AliasKind, AliasQuery, LocalePreference, MbAlias } from "../alias.ts";
 
 export {
   genresFromTags,
@@ -55,6 +66,7 @@ export type { CountedTag } from "./vocabulary.ts";
 
 export {
   ARTIST_NAME_SOURCES,
+  artistAliasVia,
   artistNames,
   joinArtistCredit,
   topGenres,
