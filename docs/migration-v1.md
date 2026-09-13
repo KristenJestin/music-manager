@@ -120,16 +120,65 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    listé dans le rapport : fichier déplacé, ligne `Present` sans fichier, fichier orphelin,
    deux lignes qui réclament le même fichier.
 3. **Pistes présentes.** `library_albums` / `library_tracks`, un document amorcé depuis la v1
-   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata` et les
-   MBID forcés), puis `documents.build` avec les MBID v1, re-tag en place au schéma courant,
+   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata`, les
+   MBID forcés et les lignes marquées d'un drapeau de traitement — voir §4 bis), puis
+   `documents.build` avec les MBID v1, re-tag en place au schéma courant,
    sidecars, ReplayGain par album — et les documents sont reconstruits une dernière fois pour
    que la mesure de loudness y entre aussi.
 4. **Pistes non présentes.** Un import v2 par playlist parente, statut `paused` (« en file, à
    l'arrêt ») ou `awaiting_review`, les MBID forcés en présélection. **Rien n'est téléchargé.**
-5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/_archive/v1-playlists/` (ou `MM_PLAYLIST_EXPORT_DIR`) ; le dossier est créé et son accès en écriture vérifié **avant** le premier re-tag.
+5. **Playlists.** Un `.m3u8` par `UserPlaylist` dans `<bibliothèque>/.mm-archive/v1-playlists/` (ou `MM_PLAYLIST_EXPORT_DIR`) ; le dossier est créé, un `.ndignore` y est déposé, et son accès en écriture est vérifié **avant** le premier re-tag. Le point en tête du nom est délibéré : il tient le scanner de Navidrome à l'écart, exactement comme `.mm-work`.
    Aucune donnée de playlist n'entre en v2.
 6. **Vérification** (`--verify`) et items Inbox pour les écarts.
 7. **Rapport** : compteurs, écarts, erreurs, en JSON sur `migration_v1_runs.report`.
+
+### 4 bis. Les décisions de la v1 qui sont respectées
+
+La v1 avait quatre façons de dire « n'y touche plus ». Toutes les quatre sont honorées, et la
+règle est la même dans les quatre cas : le champ arrive en v2 **verrouillé**, à confiance 1,
+source `v1`, et aucune source ne l'écrase jamais.
+
+| Ce que la v1 tenait                | Ce que la v2 en fait                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SongForceMetadata`                | Un verrou par champ surchargé. Une ligne dont le champ n'a pas d'équivalent v2 est **signalée** dans le rapport (`ignoredForces`), jamais perdue en silence.                                                                                                                                                                                                 |
+| `MusicBrainzForced` + les `*Force` | Les MBID d'enregistrement et de **sortie** forcés gagnent, et le MBID de sortie forcé est celui que porte l'import de l'album — pas la colonne ordinaire, souvent vide sur les albums où quelqu'un a justement dû forcer.                                                                                                                                    |
+| `ForceSongMetadata`                | La v1 disait : « saute MusicBrainz, prends la ligne `Songs` telle quelle ». Tous les champs repris de cette ligne sont donc verrouillés — titre, artistes, artistes d'album, album, année, genres, numéros, label, MBID. Un champ que la v1 n'avait pas est tout de même rempli par les sources : forcer protège ce qui existe, cela n'aveugle pas le reste. |
+| `ForceSourceMetadata`              | La v1 analysait la description YouTube, **réécrivait le résultat dans la ligne `Songs`** et effaçait les MBID. La ligne contient donc déjà les valeurs utilisées ; la v2 verrouille exactement les champs que cette branche affectait (titre, artistes, artistes d'album, album, année, label). Les deux drapeaux ensemble : `ForceSongMetadata` l'emporte.  |
+
+### 4 ter. Les pochettes
+
+C'est le point qui a coûté le plus cher, alors il est décrit en détail.
+
+- **Un re-tag ne retire jamais l'image d'un fichier.** Le bloc de tags est réécrit en entier
+  (`clear`), et sur un fichier Opus l'image _est_ un tag (`METADATA_BLOCK_PICTURE`) : la
+  toolbox relit donc les images avant d'effacer et les remet si l'appelant n'en fournit pas
+  (`keep_pictures`, actif par défaut). Cela vaut pour la migration comme pour le re-tag de fond
+  de `docs/03-metadonnees.md` §8.
+- **`SongForceMetadata.CoverArtBytes` est migré.** C'était la seule pochette que cette piste ait
+  jamais eue ; elle arrive en `front_cover` verrouillé, source `v1`, et c'est elle qui est
+  écrite dans le fichier.
+- **La miniature YouTube reste le dernier échelon**, comme en v1 : la ligne v1 ne stockait pas
+  d'URL de miniature, mais l'adresse se déduit de l'identifiant de la vidéo, et la v2 la
+  reconstitue pour que l'échelon final de `docs/03-metadonnees.md` §4 fonctionne aussi sur une
+  bibliothèque migrée.
+- **Un fichier dont l'image n'est explicable par aucune source** — ni Cover Art Archive, ni
+  miniature — ouvre un item Inbox `cover_missing`. Rien n'est perdu : l'image reste dans le
+  fichier. Mais elle n'est plus reproductible, et c'est une question qui appartient à une
+  personne.
+- Les échecs de préparation d'image ne sont plus silencieux : ils passent par le journal de la
+  migration.
+
+### 4 quater. Les noms d'artistes
+
+MusicBrainz tient deux noms par crédit : celui **imprimé sur cette sortie** et celui de
+l'artiste. La v1 écrivait toujours le second, la v2 écrit le premier par défaut. Le réglage
+_Réglages › Métadonnées › Noms d'artistes_ (`artistNameSource`) choisit :
+
+- `credited` (défaut) — le nom crédité, ce que fait Picard ;
+- `canonical` — le nom de l'artiste, **ce que reproduit la v1**. À choisir si les noms
+  d'artistes d'une bibliothèque migrée doivent rester ceux que la v1 avait écrits.
+
+Les liaisons (« feat. », « & ») viennent de MusicBrainz dans les deux cas.
 
 ### Reprise et idempotence
 
@@ -154,9 +203,81 @@ Les imports créés sont **en pause** : rien ne se télécharge tant qu'on ne le
 par un ou en masse. C'est voulu — une migration qui lancerait vingt mille téléchargements est
 une migration qu'on ne peut pas surveiller.
 
-Les playlists exportées sont dans `_archive/v1-playlists/`. Pour les retrouver dans Navidrome,
-il faut lui indiquer ce dossier (`ND_PLAYLISTSPATH`) ou copier les `.m3u8` dans la
-bibliothèque.
+Les playlists exportées sont dans `.mm-archive/v1-playlists/`, à l'intérieur de la
+bibliothèque mais invisible pour Navidrome. Pour les lui donner, il faut le dire
+explicitement : `ND_PLAYLISTSPATH` pointé sur ce dossier, ou les `.m3u8` recopiés là où on
+les veut.
+
+### Si une migration antérieure a écrit dans `_archive/v1-playlists/`
+
+Jusqu'à cette version, l'export atterrissait dans `<bibliothèque>/_archive/v1-playlists/`. Ce
+nom-là n'a rien de spécial pour Navidrome — son scanner ignore les noms commençant par un
+point et les dossiers contenant un `.ndignore`, et rien d'autre — tandis que
+`ND_AUTOIMPORTPLAYLISTS` est actif par défaut. Résultat : **chaque playlist v1 exportée a été
+réimportée dans Navidrome** comme une playlist à elle, à côté de celles qui existaient déjà.
+C'est l'origine des doublons signalés après une reprise.
+
+Le ménage, dans cet ordre :
+
+1. Sortir l'archive du chemin du scanner — le point suffit :
+
+   ```bash
+   mv "<bibliothèque>/_archive/v1-playlists" "<bibliothèque>/.mm-archive/v1-playlists"
+   rmdir "<bibliothèque>/_archive"   # s'il ne reste rien dedans
+   ```
+
+2. Couper l'import automatique côté Navidrome : `ND_AUTOIMPORTPLAYLISTS=false` dans son
+   service (c'est désormais la valeur des deux `docker-compose` de ce dépôt), puis
+   redémarrer le conteneur.
+3. Supprimer les doublons déjà importés : dans Navidrome, **Playlists**, tri par date de
+   création — celles nées de l'import portent la date de la migration et le nom du fichier
+   `.m3u8`. Les supprimer depuis l'interface ; elles ne contiennent rien que la v2 ne sache
+   reproduire. Une fois l'import automatique coupé, un rescan ne les recrée pas.
+
+La playlist « Recommended » que Discover pousse n'est pas concernée : elle passe par l'API
+Subsonic, son identifiant est mémorisé côté v2 (`discover_playlists`), et elle est remplacée
+— jamais dupliquée — à chaque synchronisation.
+
+### Corriger un champ à la main, après coup
+
+`SongForceMetadata` n'a pas d'équivalent parce qu'il n'en a plus besoin : en v2, **n'importe
+quel champ du document se saisit à la main et se verrouille**, et un champ verrouillé survit à
+tous les re-calculs (`docs/03-metadonnees.md` §1). Les surcharges migrées arrivent avec la
+source `user` ; ce qu'on saisit ici porte la source `console`. Les deux passent devant toutes
+les sources réseau, et le badge de la colonne « Source » dit laquelle.
+
+- **Console** — fiche piste, tableau « The document » : le crayon sur la valeur, le cadenas à
+  côté. Fiche album, onglet Metadata, bloc « Album fields » pour les champs à portée album, plus
+  un bouton « Lock for the album » sur chaque divergence signalée.
+- **CLI** :
+
+  ```bash
+  bun run mm -- doc set <ltr_…> title "One More Time (Radio Edit)"
+  bun run mm -- doc set <alb_…> genre house "french house"   # portée album : toutes les pistes
+  bun run mm -- doc lock <ltr_…> artist        # épingle ce que les sources disent déjà
+  bun run mm -- doc unlock <ltr_…> artist      # rend le champ aux résolveurs
+  ```
+
+- **API / agents** : `PATCH /api/v1/library/tracks/{id}/fields`,
+  `PATCH /api/v1/library/albums/{id}/fields`, outil MCP `set_field`.
+
+Trois règles à connaître :
+
+1. **Un champ à portée album se saisit sur l'album, jamais sur une piste.** La valeur est écrite
+   sur _toutes_ les pistes dans une seule transaction (§2.7) ; l'écrire sur une seule est
+   exactement ce qui fait scinder l'album en deux chez Navidrome, Plex et Jellyfin, et c'est
+   refusé avec le message qui renvoie vers l'album.
+2. **Déverrouiller supprime le champ**, puis reconstruit le document hors ligne. Se contenter
+   d'enlever le verrou laisserait une valeur saisie en tête de la précédence des sources, où
+   elle continuerait de gagner : « déverrouillé » serait un mensonge.
+3. **Aucun fichier n'est déplacé.** Un re-tag est mis en file pour que les fichiers rattrapent
+   la base ; si le champ modifié entre dans le gabarit de chemin (titre, artiste, album, numéro
+   de piste, date…), la réponse contient le _plan_ de déplacement et la Console le propose
+   derrière une confirmation. Navidrome identifie un fichier par son chemin : un déplacement lui
+   coûte ses écoutes et ses favoris.
+
+Une piste sans import derrière elle (fichier adopté par le scan) n'a pas de document et ne peut
+donc pas être surchargée ; le message le dit plutôt que d'échouer en silence.
 
 ---
 
@@ -183,7 +304,9 @@ bibliothèque.
   artiste, album, genres, et les surcharges verrouillées. C'est un plancher, pas un plafond —
   le re-tag de fond (`docs/03-metadonnees.md` §8) les reprendra dès qu'une source répondra.
 - **Les images intégrées par la v1** sont remplacées par celles du Cover Art Archive quand il en
-  a ; sinon le fichier garde ce que la v1 y avait mis.
+  a, sinon par la miniature YouTube reconstituée ; et si aucune source ne répond, le fichier
+  garde exactement ce que la v1 y avait mis, avec un item Inbox `cover_missing` pour le dire.
+  Voir §4 ter.
 
 ---
 
@@ -196,7 +319,7 @@ docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d po
 bun run e2e-migrate
 ```
 
-Ce script charge `fixtures/v1/dump.sql` (30 lignes `Songs`, 6 surcharges, 2 playlists) dans une
+Ce script charge `fixtures/v1/dump.sql` (30 lignes `Songs`, 8 surcharges, 2 playlists) dans une
 base jetable, fabrique la bibliothèque v1 en taguant des copies de l'échantillon de la toolbox
 **avec le jeu de tags de la v1**, puis migre, re-migre (no-op) et imprime le rapport.
 

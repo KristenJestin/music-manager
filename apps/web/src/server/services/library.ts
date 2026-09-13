@@ -19,7 +19,14 @@ import { existsSync, rmSync, readdirSync, rmdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
-import { field, projectDocument, type ProfileId, type TrackDocument } from "@mm/domain";
+import {
+  canonicalValue,
+  field,
+  projectDocument,
+  tagByField,
+  type ProfileId,
+  type TrackDocument,
+} from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   artistsCache,
@@ -45,6 +52,7 @@ import {
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { retryStep } from "#/server/services/jobs/index.ts";
+import { ALBUM_EDITABLE_FIELDS } from "#/server/services/overrides.ts";
 import { diffProjection, formatOf, type ProjectionDiff } from "#/server/services/retag.ts";
 import {
   documentsOfTracks,
@@ -58,6 +66,7 @@ import {
 } from "#/server/services/quality.ts";
 import { effectiveSchemaVersion, isSchemaOverridden } from "#/server/services/schema-version.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
+import { audioContentType, resolveInLibrary } from "#/server/services/stream.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 
 /* ------------------------------------------------------------------ */
@@ -233,11 +242,32 @@ export interface AlbumDetail {
   readonly quality: AlbumQuality;
   readonly identifiers: AlbumIdentifiers;
   readonly tagMap: readonly TagMapRow[];
+  /** The album-scope fields the Metadata tab lets you type into, with their provenance. */
+  readonly albumFields: readonly AlbumFieldRow[];
   readonly imports: readonly { id: string; url: string; status: string; createdAt: string }[];
   readonly decision: MatchingDecision | null;
   readonly currentSchema: number;
   readonly schemaOverridden: boolean;
   readonly sizeBytes: number;
+}
+
+/**
+ * One editable album-scope field, as the Metadata tab shows it.
+ *
+ * `value` is read from the album's *first* document and `divergent` says whether the others
+ * agree. They should: §2.7 makes the `tag` step write one value per album-scope field across
+ * the album, and a manual override writes all the tracks at once. When they do not, the field
+ * is exactly what `quality.divergences` is complaining about, and locking it is the remedy.
+ */
+export interface AlbumFieldRow {
+  readonly field: string;
+  readonly vorbis: string;
+  readonly value: string | null;
+  readonly multi: boolean;
+  readonly source: string | null;
+  readonly locked: boolean;
+  readonly note: string | null;
+  readonly divergent: boolean;
 }
 
 /** Read one string field of a document. The documents hold typed values; the UI wants text. */
@@ -373,6 +403,7 @@ export async function albumDetail(
       genres: strings(first, "genre"),
     },
     tagMap: tagMapRows(documents),
+    albumFields: albumFieldRows(documents),
     imports: jobs.map((job) => ({
       id: job.id,
       url: job.url,
@@ -391,6 +422,36 @@ export async function albumDetail(
     schemaOverridden: isSchemaOverridden(settings),
     sizeBytes: tracks.reduce((total, track) => total + (track.size ?? 0), 0),
   };
+}
+
+/** The editable album-scope fields of an album, read off its documents. */
+function albumFieldRows(documents: readonly TrackDocument[]): AlbumFieldRow[] {
+  const first = documents[0];
+  return ALBUM_EDITABLE_FIELDS.map((name) => {
+    const tag = tagByField(name);
+    const held = first?.fields[name];
+    const shown = held === undefined ? null : canonicalValue(held.value);
+    return {
+      field: name,
+      vorbis: tag?.vorbis ?? name.toUpperCase(),
+      value: held === undefined ? null : renderValue(held.value),
+      multi: tag?.multi ?? false,
+      source: held?.source ?? null,
+      locked: held?.locked ?? false,
+      note: held?.note ?? null,
+      divergent: documents.some((document) => {
+        const other = document.fields[name];
+        return (other === undefined ? null : canonicalValue(other.value)) !== shown;
+      }),
+    };
+  });
+}
+
+/** A document value as one line of text. Multi-valued fields keep the ` · ` the Console uses. */
+function renderValue(value: unknown): string {
+  if (Array.isArray(value)) return value.map((entry) => String(entry)).join(" · ");
+  if (typeof value === "object" && value !== null) return "(structured)";
+  return String(value);
 }
 
 /** One track's document, for the Metadata tab and the track page. */
@@ -1154,6 +1215,155 @@ export async function placedCover(
     };
   }
   return null;
+}
+
+/**
+ * The `artist.jpg` actually on disk for an artist, if there is one.
+ *
+ * The caller gives an artist **name**, never a path — same guard as `placedCover`. `artistList`
+ * groups by `library_albums.album_artist`, so that name is matched there, and the artist's
+ * *folder* is read off any one of that artist's placed albums (`folder`'s first path segment)
+ * rather than re-sanitising the name here: the folder a build actually wrote can drift from a
+ * fresh sanitisation of the name whenever the sanitise mode or the filing template changed
+ * since that album was placed, and disagreeing with the directory tree is exactly the mistake
+ * `artistList` already avoids.
+ *
+ * `null` means "no picture here" and the endpoint turns it into a 404 — the signal `<Cover>`
+ * needs to fall through to `artists_cache.imageUrl`.
+ */
+export async function placedArtistImage(
+  name: string,
+  db: Database = defaultDb(),
+): Promise<PlacedCover | null> {
+  const [album] = await db
+    .select({ folder: libraryAlbums.folder })
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.albumArtist, name))
+    .limit(1);
+  if (album === undefined) return null;
+
+  const artistFolder = album.folder.split("/")[0];
+  if (artistFolder === undefined || artistFolder === "") return null;
+
+  const settings = await loadSettings(db);
+  const paths = resolvePaths(settings);
+  const file = hostPath(paths, `${artistFolder}/artist.jpg`);
+  if (!existsSync(file)) return null;
+  const stats = statSync(file);
+  if (!stats.isFile()) return null;
+
+  return {
+    file,
+    contentType: COVER_TYPES["jpg"] ?? "image/jpeg",
+    bytes: stats.size,
+    etag: `W/"${stats.size.toString(16)}-${stats.mtimeMs.toString(16)}"`,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* playback                                                            */
+/* ------------------------------------------------------------------ */
+
+/** One library track, resolved to the file `/api/stream` is about to send. */
+export interface PlacedTrackFile {
+  /** Absolute host path — never sent to a browser, only read from. */
+  readonly file: string;
+  readonly contentType: string;
+  readonly title: string;
+  readonly artist: string | null;
+  readonly albumId: string | null;
+  readonly durationSeconds: number | null;
+}
+
+/**
+ * The audio file of a library track, if it is really on disk.
+ *
+ * Like `placedCover`, the caller gives an **id** and the row says where the file is. The row's
+ * `path` is still pushed through `resolveInLibrary`, because "the value came from our own
+ * database" is not a security property — a scan, a migration or a future importer writes that
+ * column, and a single `..` in it would otherwise be a file server for the whole disk.
+ *
+ * `null` covers all three of "no such track", "its path escapes the library" and "the file is
+ * not there"; the route turns every one of them into a 404, which is exactly what the player
+ * needs to hear — a track whose file has been deleted is not playable, and why is the Tools
+ * page's business, not the audio element's.
+ */
+export async function placedTrackFile(
+  trackId: string,
+  db: Database = defaultDb(),
+): Promise<PlacedTrackFile | null> {
+  const [track] = await db
+    .select({
+      path: libraryTracks.path,
+      title: libraryTracks.title,
+      artist: libraryTracks.artist,
+      albumId: libraryTracks.albumId,
+      duration: libraryTracks.duration,
+    })
+    .from(libraryTracks)
+    .where(eq(libraryTracks.id, trackId))
+    .limit(1);
+  if (track === undefined) return null;
+
+  const settings = await loadSettings(db);
+  const file = resolveInLibrary(resolvePaths(settings), track.path);
+  if (file === null || !existsSync(file) || !statSync(file).isFile()) return null;
+
+  return {
+    file,
+    contentType: audioContentType(track.path),
+    title: track.title,
+    artist: track.artist,
+    albumId: track.albumId,
+    durationSeconds: track.duration,
+  };
+}
+
+/** What Discover needs to prefer our own file over a thirty-second clip. */
+export interface PlayableLibraryTrack {
+  readonly id: string;
+  readonly title: string;
+  readonly artist: string | null;
+  readonly albumId: string | null;
+  readonly albumTitle: string | null;
+  readonly durationSeconds: number | null;
+}
+
+/**
+ * The library track for a MusicBrainz recording id, if we own it.
+ *
+ * Discover's items are MBIDs and its `inLibrary` flag already says "you have this"; this is
+ * the join that turns that flag into something playable. `missingAt` is respected — a row
+ * whose file the last scan could not find is not offered as a full-length alternative to a
+ * preview — and the newest row wins when a recording was imported twice.
+ */
+export async function trackByRecordingMbid(
+  mbid: string,
+  db: Database = defaultDb(),
+): Promise<PlayableLibraryTrack | null> {
+  const [row] = await db
+    .select({
+      id: libraryTracks.id,
+      title: libraryTracks.title,
+      artist: libraryTracks.artist,
+      albumId: libraryTracks.albumId,
+      albumTitle: libraryAlbums.title,
+      duration: libraryTracks.duration,
+    })
+    .from(libraryTracks)
+    .leftJoin(libraryAlbums, eq(libraryTracks.albumId, libraryAlbums.id))
+    .where(and(eq(libraryTracks.recordingMbid, mbid), sql`${libraryTracks.missingAt} is null`))
+    .orderBy(desc(libraryTracks.createdAt))
+    .limit(1);
+  if (row === undefined) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    artist: row.artist,
+    albumId: row.albumId,
+    albumTitle: row.albumTitle,
+    durationSeconds: row.duration,
+  };
 }
 
 /* ------------------------------------------------------------------ */

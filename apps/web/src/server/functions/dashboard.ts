@@ -9,7 +9,7 @@ import { z } from "zod";
 import { db } from "#/server/db/client.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { readEvents } from "#/server/services/events.ts";
+import { readLatestEvents } from "#/server/services/events.ts";
 import { listInbox } from "#/server/services/inbox.ts";
 import {
   dashboardStats,
@@ -87,16 +87,9 @@ export const fetchShell = createServerFn({ method: "GET", strict: STRICT })
     }
   });
 
-/**
- * The tail of the whole journal.
- *
- * `readEvents` returns oldest-first from a cursor, and there is no "last N" query on the
- * service. Rather than add one to a P03 file, the tail is taken here: the journal of a
- * self-hosted instance is small, and this is one indexed scan.
- */
+/** The tail of the whole journal, newest first. */
 async function recentActivity(limit = 40): Promise<readonly JobEventPayload[]> {
-  const all = await readEvents({ since: 0, limit: 500 }, db());
-  return all.slice(-limit).reverse();
+  return await readLatestEvents({ limit }, db());
 }
 
 /* ------------------------------------------------------------------ */

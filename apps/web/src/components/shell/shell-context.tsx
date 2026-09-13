@@ -19,6 +19,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { PlayerProvider } from "#/components/shell/player-context.tsx";
 import { toast as toastManager } from "#/components/ui/toast.tsx";
 import { fetchShell, type ShellPayload } from "#/server/functions/dashboard.ts";
 
@@ -141,7 +142,27 @@ export function ShellProvider({
     [data, toasts, toast, dismissToast, refresh, paletteOpen, drawerOpen],
   );
 
-  return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
+  /*
+   * The player sits inside the shell's own provider, not beside it.
+   *
+   * Both are "state the chrome owns and any page may reach for", and both are mounted exactly
+   * where the chrome is. Nesting them here rather than in  means the two places that
+   * build a shell — the layout and its error boundary — cannot get one and forget the other,
+   * which is how a page ends up calling  and throwing.
+   */
+  /*
+   * The player sits inside the shell's own provider rather than beside it.
+   *
+   * Both are "state the chrome owns and any page may reach for", and both are mounted exactly
+   * where the chrome is. Nesting them here rather than in `_app.tsx` means the two places that
+   * build a shell — the layout and its error boundary — cannot get one and forget the other,
+   * which is how a page ends up calling `usePlayer()` and throwing.
+   */
+  return (
+    <ShellContext.Provider value={value}>
+      <PlayerProvider>{children}</PlayerProvider>
+    </ShellContext.Provider>
+  );
 }
 
 export function useShell(): ShellContextValue {

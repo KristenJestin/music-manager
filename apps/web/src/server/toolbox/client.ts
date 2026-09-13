@@ -239,9 +239,21 @@ export class ToolboxClient {
     });
   }
 
-  async tag(request: TagRequest): Promise<TagResult> {
+  /**
+   * `keep_pictures` is optional here and defaults to the toolbox's own default, `true`.
+   *
+   * Every caller means the same thing by `clear: true` — "rewrite the metadata" — and none of
+   * them means "throw the cover away", so the safe value is the one nobody has to remember to
+   * pass. Opting out is explicit, which is the right way round for a destructive flag.
+   */
+  async tag(
+    request: Omit<TagRequest, "keep_pictures"> & { keep_pictures?: boolean },
+  ): Promise<TagResult> {
     return await this.call("POST /tag", async () => {
-      const result = await this.http.POST("/tag", { body: request, signal: this.signal() });
+      const result = await this.http.POST("/tag", {
+        body: { ...request, keep_pictures: request.keep_pictures ?? true },
+        signal: this.signal(),
+      });
       return this.unwrap(result, "POST /tag");
     });
   }

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MappingLine, ReleaseCandidate, ReleaseGroupCandidate } from "@mm/domain";
 import { Callout } from "./callout.tsx";
-import { Cover, coverArtFront } from "./cover.tsx";
+import { artistImageSources, Cover, coverArtFront, libraryArtistImage } from "./cover.tsx";
 import { DataTable } from "./data-table.tsx";
 import { KeyValueList } from "./key-value.tsx";
 import { LogViewer } from "./log-viewer.tsx";
@@ -647,6 +647,41 @@ describe("the small ones", () => {
     const second = render(<Cover seed="imp_1" label="Discovery" />).container.innerHTML;
     expect(first).toBe(second);
     expect(first).toContain("D");
+  });
+
+  it("libraryArtistImage builds the endpoint URL, or nothing for a blank name", () => {
+    expect(libraryArtistImage("Daft Punk")).toBe("/api/artist-image?artist=Daft%20Punk");
+    expect(libraryArtistImage(null)).toBeNull();
+    expect(libraryArtistImage(undefined)).toBeNull();
+    expect(libraryArtistImage("  ")).toBeNull();
+  });
+
+  it("artistImageSources tries the local artist.jpg before the cached remote URL", () => {
+    expect(
+      artistImageSources({ name: "Daft Punk", imageUrl: "https://commons.wikimedia.org/x.jpg" }),
+    ).toEqual(["/api/artist-image?artist=Daft%20Punk", "https://commons.wikimedia.org/x.jpg"]);
+    // No name and no cached image: nothing to try, the gradient stays.
+    expect(artistImageSources({ name: "", imageUrl: null })).toEqual([]);
+    expect(artistImageSources(null)).toEqual([]);
+  });
+
+  it("Cover falls from an artist's local image to its cached remote one", () => {
+    render(
+      <Cover
+        seed="Daft Punk"
+        label="Daft Punk"
+        src={artistImageSources({
+          name: "Daft Punk",
+          imageUrl: "https://example.invalid/remote.jpg",
+        })}
+      />,
+    );
+    const image = screen.getByTestId("cover-image");
+    expect(image.getAttribute("src")).toBe("/api/artist-image?artist=Daft%20Punk");
+    fireEvent.error(image);
+    expect(screen.getByTestId("cover-image").getAttribute("src")).toBe(
+      "https://example.invalid/remote.jpg",
+    );
   });
 
   it("Cover shows the real image when it has one, and falls back when it breaks", () => {

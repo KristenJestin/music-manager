@@ -518,8 +518,10 @@ export async function retagOne(ctx: FileContext, track: LibraryTrack): Promise<F
       format: "auto",
       tags,
       // Pictures are deliberately not re-sent: re-embedding the artwork would mean fetching
-      // it, and §8's re-tag is offline. `clear` drops the tag block, not the picture frames
-      // the toolbox re-attaches from the file it already has.
+      // it, and §8's re-tag is offline. `clear` does empty the whole tag block — on Ogg the
+      // picture *is* a tag — so the toolbox reads the existing pictures first and puts them
+      // back (`keep_pictures`, on by default). Sending `pictures: []` therefore keeps the
+      // cover; it does not strip it.
       pictures: [],
       lyrics_lrc: lrc,
       sidecar_lrc: false,

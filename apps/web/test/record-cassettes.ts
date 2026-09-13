@@ -136,6 +136,23 @@ const TAPES: Record<string, { note: string; run: Tape }> = {
       await deezer.byIsrc(ctx, "ZZZZZ0000000");
     },
   },
+  "deezer-preview": {
+    note: "The player's side of Deezer: a track search, an album and its tracklist, an artist's top tracks, and a search that matches nothing.",
+    run: async (ctx) => {
+      // A recording: what `resolvePreview` asks, in the order it asks it.
+      await deezer.searchTracks(ctx, `${ARTIST_NAME} ${TRACK_NAME}`, 10);
+      // A release-group: find the album, then its tracklist, each track with its preview.
+      const albums = await deezer.searchAlbums(ctx, `${ARTIST_NAME} ${ALBUM_NAME}`, 5);
+      const albumId = albums.data?.[0]?.id;
+      if (albumId !== undefined) await deezer.albumTracks(ctx, albumId);
+      // An artist: the id, then the top tracks.
+      const artists = await deezer.searchArtists(ctx, ARTIST_NAME, 5);
+      const artistId = artists.data?.[0]?.id;
+      if (artistId !== undefined) await deezer.artistTopTracks(ctx, artistId, 10);
+      // And the case the UI has to render as "No preview" rather than as an error.
+      await deezer.searchTracks(ctx, "Zzzqqx Nonexistent Artist Zzzqqx Nonexistent Track", 10);
+    },
+  },
   lastfm: {
     note: "Top tags for the track and for the artist — the genre fallback of §4. Key redacted.",
     run: async (ctx) => {

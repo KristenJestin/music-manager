@@ -43,6 +43,7 @@ import {
   runYtdlpUpdate,
   scanStatus,
   startScan,
+  startSourceRefresh,
   trashFileAction,
 } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
@@ -390,17 +391,29 @@ function DownloaderPanel({
       <Diag
         testId="diag-navidrome"
         name="Navidrome"
-        tone={navidrome.ok ? "ok" : navidrome.configured ? "danger" : "muted"}
+        tone={
+          navidrome.state === "connected"
+            ? "ok"
+            : navidrome.state === "disabled"
+              ? "warn"
+              : navidrome.state === "unreachable"
+                ? "danger"
+                : "muted"
+        }
         detail={
-          navidrome.ok
+          // `state` is the shared notion: "it answers" and "it is switched on" are two facts,
+          // and a Tools row that reported only the first is what sent people to Discover
+          // wondering why the same server was described as missing there.
+          navidrome.state === "connected"
             ? `${navidrome.server} ${navidrome.serverVersion} · ${String(navidrome.latencyMs)} ms · ${navidrome.songCount === null ? "never scanned" : `${String(navidrome.songCount)} songs`}${navidrome.scanning ? " · scanning now" : ""}`
             : (navidrome.error ?? "No Navidrome server is configured.")
         }
       >
-        {navidrome.configured ? null : (
+        {navidrome.state === "connected" ? null : (
           <ConfigureLink
             to="/settings/integrations"
             hash="navidrome"
+            label={navidrome.state === "disabled" ? "Enable" : "Configure"}
             testId="navidrome-configure"
           />
         )}
@@ -417,6 +430,47 @@ function DownloaderPanel({
           data-testid="navidrome-rescan"
         >
           Rescan
+        </Button>
+      </Diag>
+
+      {/*
+       * `cron.refresh-sources` had no manual trigger at all: no button, no route, no CLI verb.
+       * A correction made in MusicBrainz therefore waited until Monday at 5 a.m., and the only
+       * way to hurry it was to restart the worker at the right minute.
+       */}
+      <Diag
+        testId="diag-sources-refresh"
+        name="Upstream sources"
+        tone={data.sourcesRefresh.enabled ? "ok" : "muted"}
+        detail={
+          data.sourcesRefresh.enabled
+            ? `re-read on ${data.sourcesRefresh.cron}; albums that changed upstream are queued for a re-tag`
+            : "switched off (`sourcesRefreshEnabled`) — nothing is re-read, and running it now would return immediately"
+        }
+      >
+        {data.sourcesRefresh.enabled ? null : (
+          <ConfigureLink
+            to="/settings/metadata"
+            hash="sources"
+            label="Configure"
+            testId="sources-refresh-configure"
+          />
+        )}
+        <Button
+          size="xs"
+          variant="outline"
+          disabled={busy !== null || !data.sourcesRefresh.enabled}
+          onClick={() => {
+            act("sources-refresh", async () => {
+              const result = await startSourceRefresh();
+              return result.queued
+                ? "Source refresh queued. The worker sweeps; watch the log below."
+                : "The refresh could not be queued.";
+            });
+          }}
+          data-testid="sources-refresh"
+        >
+          Refresh now
         </Button>
       </Diag>
 

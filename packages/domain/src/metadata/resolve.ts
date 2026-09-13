@@ -28,6 +28,7 @@ import {
   type AcoustIdOptions,
   type AcoustIdResponse,
   type AppProvenance,
+  type ArtistNameSource,
   type CaaIndex,
   type CoverArtOrigin,
   type DeezerTrack,
@@ -86,6 +87,11 @@ export interface TrackResolutionInput {
   readonly app: Omit<AppProvenance, "fetchedAt"> & { readonly fetchedAt: string };
   /** Values you entered or confirmed. They are locked and win every merge (§1). */
   readonly locked?: Readonly<Record<string, Field>>;
+  /**
+   * Which of MusicBrainz's two artist names goes into ARTIST / ARTISTS / ALBUMARTIST:
+   * the one credited on the release, or the artist's canonical one. Defaults to `credited`.
+   */
+  readonly artistNameSource?: ArtistNameSource;
 }
 
 export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument {
@@ -97,11 +103,25 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
   }
   if (input.release !== undefined) {
     const { data, fetchedAt, mediumPosition, trackPosition } = input.release;
-    patches.push(fromMusicBrainzRelease(data, { mediumPosition, trackPosition, fetchedAt }));
+    patches.push(
+      fromMusicBrainzRelease(data, {
+        mediumPosition,
+        trackPosition,
+        fetchedAt,
+        ...(input.artistNameSource === undefined
+          ? {}
+          : { artistNameSource: input.artistNameSource }),
+      }),
+    );
   }
   if (input.recording !== undefined) {
     patches.push(
-      fromMusicBrainzRecording(input.recording.data, { fetchedAt: input.recording.fetchedAt }),
+      fromMusicBrainzRecording(input.recording.data, {
+        fetchedAt: input.recording.fetchedAt,
+        ...(input.artistNameSource === undefined
+          ? {}
+          : { artistNameSource: input.artistNameSource }),
+      }),
     );
   }
   if (input.work !== undefined) {

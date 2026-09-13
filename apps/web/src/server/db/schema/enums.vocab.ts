@@ -96,6 +96,8 @@ export const INBOX_TYPES = [
   "orphan_files",
   "duplicate_recording",
   "verify_mismatch",
+  // A migrated file carries a picture no v2 source can account for (P08, migration v1).
+  "cover_missing",
   /** A watched source found a video, and the confidence was not high enough to accept it. */
   "source_new_video",
 ] as const;

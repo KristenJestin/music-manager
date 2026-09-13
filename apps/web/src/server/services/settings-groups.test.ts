@@ -12,6 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  DISCOVER_KEYS,
   GENERAL_KEYS,
   METADATA_KEYS,
   WATCHED_SOURCES_KEYS,
@@ -96,5 +97,34 @@ describe("Settings › Watched sources", () => {
   it("refuses a key from another tab, the way every save handler relies on", () => {
     expect(inGroup(WATCHED_SOURCES_KEYS, "watchedSourcesCron")).toBe(true);
     expect(inGroup(WATCHED_SOURCES_KEYS, "discoverCron")).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * A key on two tabs is allowed, and `lastfmKey` is the case that proves it.
+ *
+ * It enriches genres and moods during an import (Metadata & matching) *and* it is the
+ * similar-artist source Discover falls back to when ListenBrainz is silent. Showing it on one
+ * tab only left the other unable to explain why a whole block was empty. A group is a view
+ * over the registry, not an owner — which is exactly what these assertions state.
+ */
+describe("a key may belong to two tabs", () => {
+  it("lastfmKey is on Metadata & matching and on Discover", () => {
+    expect((METADATA_KEYS as readonly string[]).includes("lastfmKey")).toBe(true);
+    expect((DISCOVER_KEYS as readonly string[]).includes("lastfmKey")).toBe(true);
+  });
+
+  it("both save handlers therefore accept it", () => {
+    expect(inGroup(METADATA_KEYS, "lastfmKey")).toBe(true);
+    expect(inGroup(DISCOVER_KEYS, "lastfmKey")).toBe(true);
+  });
+
+  it("and it counts as grouped exactly once", () => {
+    // `ungroupedKeys` folds the groups into a set, so an overlap can never make a reachable
+    // key look orphaned, nor make the registry look larger than it is.
+    expect(ungroupedKeys().includes("lastfmKey")).toBe(false);
+    expect(new Set(ungroupedKeys()).size).toBe(ungroupedKeys().length);
   });
 });

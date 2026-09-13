@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-one tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-six tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-one, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-six, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-one of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-six of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -58,6 +58,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
+import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
 import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
 import { systemStatus } from "#/server/services/status.ts";
 import { getScan, recentScans, summariseScan } from "#/server/services/scan.ts";
@@ -68,6 +69,7 @@ import {
   enqueue,
   enqueueLibraryScan,
   enqueueRetagRun,
+  enqueueSourceRefresh,
   enqueueWatchedSourceScan,
 } from "#/server/services/queue.ts";
 import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-rate-limit.ts";
@@ -357,7 +359,7 @@ interface ToolSpec {
  * external MCP test report asked for (`get_status`, `discover_sync`, `scan`, `relocate`),
  * `get_scan_report` from the second, and `refresh_album` from the third.
  *
- * A table rather than twenty-one `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-six `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -1308,6 +1310,34 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       run: async () => await updateYtdlp({ db: db() }),
     },
     {
+      name: "refresh_sources",
+      scope: "tools:write",
+      title: "Re-read the upstream sources and re-tag what changed",
+      description:
+        "The weekly `cron.refresh-sources` sweep, on demand. Each album's MusicBrainz release " +
+        "is fetched again, compared with the raw cache, and the albums that moved upstream are " +
+        "queued for a re-tag — so a correction made in MusicBrainz reaches the files without " +
+        "waiting for Monday.\n\n" +
+        "Queued to the worker: `get_status` must show a worker alive, and the queue is " +
+        "`singleton`, so asking during the scheduled run joins it rather than sweeping twice. " +
+        "`enabled: false` means the `sourcesRefreshEnabled` setting is off and the handler " +
+        "will return immediately — that is a setting to change, not a failure to retry.",
+      inputSchema: {},
+      run: async () => {
+        const settings = await loadSettings(db());
+        const jobId = await enqueueSourceRefresh({ trigger: "mcp" });
+        return {
+          queued: jobId !== null,
+          jobId,
+          enabled: settings.sourcesRefreshEnabled,
+          note: settings.sourcesRefreshEnabled
+            ? "Queued. The refresh reads upstream only; the re-tag it queues is offline."
+            : "Queued, but `sourcesRefreshEnabled` is off, so the handler will do nothing. " +
+              "`update_settings` turns it on.",
+        };
+      },
+    },
+    {
       name: "get_status",
       scope: "tools:read",
       title: "Is this installation working?",
@@ -1544,6 +1574,74 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           };
         }
         return summariseScan(latest, args.limit);
+      },
+    },
+    {
+      name: "set_field",
+      scope: "library:write",
+      title: "Set, lock or release a metadata field by hand",
+      description:
+        "Write a value into the metadata document **by hand** and lock it, so no resolver can " +
+        "take it back. The database is the source of truth and the files are a projection of " +
+        "it, so this is how a wrong tag is corrected: never by editing a file.\n\n" +
+        "Three shapes, three different meanings:\n\n" +
+        "- `value` given → the field is set and locked, with `source: console`;\n" +
+        "- no `value`, `locked: true` → pin what the sources already say, keeping their " +
+        "`source`. The value does not change; what changes is that the next rebuild cannot " +
+        "change it either;\n" +
+        "- no `value`, `locked: false` → **release** it: the field is removed and re-resolved " +
+        "offline, so MusicBrainz owns it again. Merely clearing a flag would not do, because a " +
+        "hand-typed value heads the source precedence and would go on winning.\n\n" +
+        "**Which id.** `trackId` for a per-track field (`title`, `tracknumber`, `isrc`…), " +
+        "`albumId` for an album-scope one (`album`, `genre`, `date`, `label`…). They are not " +
+        "interchangeable and the wrong one is refused by name: an album-scope value written on " +
+        "one track is precisely what makes Navidrome, Plex and Jellyfin split one album into " +
+        "two, so an album edit is written on **every track of the album in one transaction**.\n\n" +
+        "**It writes.** A re-tag is queued so the files catch up — `retagRunId` is the run to " +
+        "follow, and `get_status.worker` says whether anything will run it. **No file is " +
+        "moved**: if the change touched a name the path template uses, `relocatePlan` says what " +
+        "a relocate would do and the `relocate` tool is what does it, because Navidrome " +
+        "identifies a file by its path and a move costs that track its play count.\n\n" +
+        "A multi-valued field (`genre`, `label`, `isrc`) takes an array. `mm://tagmap` lists " +
+        "every field by name; a name it does not have is refused rather than invented, and so " +
+        "are the fields with no text form (`front_cover`, `lyrics`, `performer`).",
+      inputSchema: {
+        trackId: z.string().optional().describe("A library track id, for a per-track field."),
+        albumId: z.string().optional().describe("An album id, for an album-scope field."),
+        field: z.string().min(1).describe("A tag map field name — `album`, not `ALBUM`."),
+        value: z
+          .union([z.string(), z.array(z.string())])
+          .nullable()
+          .optional()
+          .describe("Omit to lock or release what is already there."),
+        locked: z
+          .boolean()
+          .optional()
+          .describe("Defaults to true when a value is given. `false` with no value releases it."),
+      },
+      run: async (args: {
+        trackId?: string;
+        albumId?: string;
+        field: string;
+        value?: string | string[] | null;
+        locked?: boolean;
+      }) => {
+        const edits = [
+          {
+            field: args.field,
+            value: args.value ?? null,
+            ...(args.locked === undefined ? {} : { locked: args.locked }),
+          },
+        ];
+        if (args.trackId !== undefined) {
+          return await overrideTrackFields(args.trackId, edits, { db: db(), setBy: "an MCP tool" });
+        }
+        if (args.albumId !== undefined) {
+          return await overrideAlbumFields(args.albumId, edits, { db: db(), setBy: "an MCP tool" });
+        }
+        throw new MMError("INVALID_INPUT", "Give a `trackId` or an `albumId`.", {
+          hint: "`trackId` for a per-track field, `albumId` for an album-scope one.",
+        });
       },
     },
     {

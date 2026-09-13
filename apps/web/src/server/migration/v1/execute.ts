@@ -59,6 +59,7 @@ import { importStatusFor, reasonFor } from "./classify.ts";
 import type { PlannedAlbum, PlannedImportGroup, PlannedSong } from "./inventory.ts";
 import { seedDocument } from "./seed.ts";
 import { identifiersOf, sourceVideoId } from "./schema.ts";
+import type { V1Song } from "./schema.ts";
 
 export interface ExecuteContext {
   readonly db: Database;
@@ -385,8 +386,21 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
     key: tag.key,
     value: tag.value,
   }));
-  const pictures = await picturesFor(ctx, document, format);
+  const pictures = await picturesFor(ctx, document, format, path);
   const lrc = syncedLyrics(document);
+
+  /*
+   * The cover the file already has is never taken away.
+   *
+   * `clear: true` empties the tag block, and on Opus the picture *is* a tag — which is how
+   * twenty thousand embedded covers went missing. `/tag` now puts them back when no picture
+   * is supplied, so this call is safe; what is left is to *say* that the document has no
+   * cover of its own, because the file's picture is now the only copy and nothing in v2
+   * knows where it came from.
+   */
+  if (file.hasPicture === true && document.fields["front_cover"] === undefined) {
+    await openCoverMissingItem(ctx, { importId, importTrackId, path, planned });
+  }
 
   await ctx.toolbox.tag({
     path: containerPath(ctx.paths, path),
@@ -633,12 +647,20 @@ async function upsertImportTrack(ctx: ExecuteContext, input: UpsertTrackInput): 
      * tag, and every migrated document would be incomplete for want of provenance it has.
      *
      * The v1 row itself is kept alongside, verbatim, under keys of its own.
+     *
+     * `thumbnail` / `thumbnails` are derived rather than stored, because v1 stored neither and
+     * YouTube's thumbnail URLs are a pure function of the video id. That matters: §4's cover
+     * ladder ends on the YouTube thumbnail (`youtubeThumbnail`, read straight off this entry),
+     * v1 *always* fell back to it (`ProcessSongJob.cs` §9), and an entry without these keys
+     * made the last rung unreachable — so a migrated track with no Cover Art Archive front
+     * ended up with no cover at all, where v1 had one.
      */
     raw: {
       id: sourceVideoId(song) ?? String(song.id),
       webpage_url: song.sourceUrl,
       title: song.sourceTitle ?? song.title ?? "",
       ext: "opus",
+      ...youtubeThumbnails(song),
       ...(song.sourceDescription === null ? {} : { description: song.sourceDescription }),
       source: "migration-v1",
       v1SongId: song.id,
@@ -668,6 +690,76 @@ async function upsertImportTrack(ctx: ExecuteContext, input: UpsertTrackInput): 
   await ctx.db.insert(importTracks).values({ id, ...values });
   ctx.count();
   return id;
+}
+
+/**
+ * Raise `cover_missing` for a file whose picture v2 cannot account for.
+ *
+ * The file has a cover, the document does not: the Cover Art Archive has no front for this
+ * release (or there is no release MBID at all) and the YouTube rung did not answer either.
+ * Nothing is lost — the picture stays in the file — but it is now unmanaged: a re-tag cannot
+ * reproduce it, `cover.jpg` will not be written, and the album page has nothing to show as
+ * *the* cover. That is a question for a person, which is what the Inbox is for.
+ */
+async function openCoverMissingItem(
+  ctx: ExecuteContext,
+  input: { importId: string; importTrackId: string; path: string; planned: PlannedSong },
+): Promise<void> {
+  const song = input.planned.song;
+  await openInboxItem(
+    {
+      type: "cover_missing",
+      importId: input.importId,
+      trackId: input.importTrackId,
+      title: `“${song.title ?? song.sourceTitle ?? input.path}” has an embedded cover v2 cannot source`,
+      summary:
+        "The file keeps the picture v1 embedded, but no source claims it, so nothing can " +
+        "re-create it and no cover.jpg was written for the album.",
+      payload: {
+        source: "migration-v1",
+        v1SongId: song.id,
+        path: input.path,
+        url: song.sourceUrl,
+      },
+      preselected: { action: "keep_embedded" },
+    },
+    ctx.db,
+  );
+  ctx.count();
+  await ctx.say(`cover_missing: ${input.path}`, { path: input.path, cover: "unsourced" });
+}
+
+/** yt-dlp's thumbnail keys for a v1 row, derived from the video id. */
+interface RawThumbnails {
+  readonly thumbnail?: string;
+  readonly thumbnails?: readonly { url: string; width: number; height: number }[];
+}
+
+/**
+ * The YouTube thumbnail URLs of a v1 row, in yt-dlp's shape.
+ *
+ * v1 never stored them, and it did not need to: `i.ytimg.com/vi/<id>/<name>.jpg` is a pure
+ * function of the video id, which the row does have. So this is a derivation, not an
+ * invention — the same image v1 embedded, at the same address.
+ *
+ * `thumbnail` is `hqdefault`, deliberately, even though `maxresdefault` is in the list and is
+ * bigger: `youtubeThumbnail` prefers the scalar, `hqdefault` exists for every video ever
+ * uploaded, and `maxresdefault` 404s on anything that was not published in HD. A migration
+ * trades 480×360 for "there is a cover", every time.
+ */
+function youtubeThumbnails(song: V1Song): RawThumbnails {
+  if (song.platform !== "YouTube") return {};
+  const id = sourceVideoId(song);
+  if (id === null || !/^[A-Za-z0-9_-]{6,}$/.test(id)) return {};
+  const at = (name: string) => `https://i.ytimg.com/vi/${id}/${name}.jpg`;
+  return {
+    thumbnail: at("hqdefault"),
+    thumbnails: [
+      { url: at("maxresdefault"), width: 1280, height: 720 },
+      { url: at("sddefault"), width: 640, height: 480 },
+      { url: at("hqdefault"), width: 480, height: 360 },
+    ],
+  };
 }
 
 async function persistDocument(
@@ -898,16 +990,24 @@ export async function writeCover(
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, Buffer.from(prepared.data_base64, "base64"));
     return true;
-  } catch {
+  } catch (error) {
     // No artwork cached and no network: the album keeps whatever v1 embedded in its files.
+    // Silence was the bug — a cover that failed to materialise left no trace anywhere, so
+    // nobody could tell "the album never had one" from "the fetch failed". The journal now
+    // says which, and the migration still does not fail on it.
+    await ctx.say(`no cover.jpg for ${folder}: ${MMError.from(error).message}`, {
+      folder,
+      cover: "failed",
+    });
     return false;
   }
 }
 
-async function picturesFor(
+export async function picturesFor(
   ctx: ExecuteContext,
   document: TrackDocument,
   format: ReturnType<typeof formatOf>,
+  path?: string,
 ): Promise<Picture[]> {
   if (!ctx.settings.embedArtwork) return [];
   const out: Picture[] = [];
@@ -920,20 +1020,35 @@ async function picturesFor(
         data_base64: prepared.data_base64,
         description: picture.comment ?? "",
       });
-    } catch {
-      // The picture v1 embedded is already in the file, and re-fetching one is a network call
-      // a migration must not depend on. The gap shows up in the album's completeness score,
-      // which is where a missing cover belongs — not in a failed migration.
+    } catch (error) {
+      // Re-fetching a picture is a network call a migration must not depend on, so a failure
+      // here is not fatal — but it is not invisible either. It goes in the journal, and the
+      // picture already in the file survives regardless: `/tag` re-attaches what it finds
+      // when no replacement is supplied (`keep_pictures`).
+      await ctx.say(`could not prepare ${picture.kind} cover: ${MMError.from(error).message}`, {
+        ...(path === undefined ? {} : { path }),
+        kind: picture.kind,
+        picture: "failed",
+      });
     }
   }
   return out;
 }
 
-/** One prepared cover, through the raw cache — never fetched twice for the same URL and size. */
+/**
+ * One prepared cover, through the raw cache — never fetched twice for the same URL and size.
+ *
+ * A `data:` URL is decoded here rather than handed to the toolbox: the bytes are already in
+ * hand (that is what `data:` means), `/artwork/prepare` would have to fetch a URL that no
+ * server serves, and caching a megabyte-long cache *key* would be its own kind of silly. This
+ * is the path the v1 forced cover (`SongForceMetadata.CoverArtBytes`) takes.
+ */
 async function preparedArtwork(
   ctx: ExecuteContext,
   url: string,
 ): Promise<{ data_base64: string; mime: string }> {
+  const inline = decodeDataUrl(url);
+  if (inline !== null) return inline;
   const entry = await getOrFetch(
     "artwork",
     `${url}#${String(ctx.settings.artworkSize)}`,
@@ -944,6 +1059,18 @@ async function preparedArtwork(
     { db: ctx.db },
   );
   return entry.data;
+}
+
+/** `data:image/jpeg;base64,…` → the bytes, still base64. Anything else → `null`. */
+export function decodeDataUrl(url: string): { data_base64: string; mime: string } | null {
+  const match = /^data:([^;,]*);base64,([\s\S]+)$/.exec(url);
+  if (match === null) return null;
+  const data = (match[2] ?? "").replace(/\s+/g, "");
+  if (data === "") return null;
+  return {
+    data_base64: data,
+    mime: match[1] === undefined || match[1] === "" ? "image/jpeg" : match[1],
+  };
 }
 
 /* ------------------------------------------------------------------ */

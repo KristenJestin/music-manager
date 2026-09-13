@@ -23,6 +23,7 @@ import { containerPath, hostPath } from "#/server/paths.ts";
 import { classify, needsImport } from "./classify.ts";
 import { reconcile, type Reconciliation, type ScannedFile } from "./reconcile.ts";
 import { albumKeyOf } from "./seed.ts";
+import { identifiersOf } from "./schema.ts";
 import type { V1Dataset, V1ForceMetadata, V1Song } from "./schema.ts";
 
 /** One v1 song with everything the executor needs to act on it. */
@@ -223,8 +224,14 @@ function groupAlbums(songs: readonly PlannedSong[]): PlannedAlbum[] {
       artist: song.albumArtists[0] ?? song.artist ?? "Unknown Artist",
       title: song.album ?? "Unknown Album",
       year: song.year,
-      releaseMbid: firstOf(sorted, (item) => item.song.musicBrainzReleaseId),
-      releaseGroupMbid: firstOf(sorted, (item) => item.song.musicBrainzReleaseGroupId),
+      // Through `identifiersOf`, not off the row: a release MBID somebody forced — on the row
+      // via `MusicBrainzReleaseIdForce`, or in `SongForceMetadata` — is the one v1 used, and
+      // reading the plain column instead sent the import looking up the release v1 rejected.
+      releaseMbid: firstOf(sorted, (item) => identifiersOf(item.song, item.forces).releaseMbid),
+      releaseGroupMbid: firstOf(
+        sorted,
+        (item) => identifiersOf(item.song, item.forces).releaseGroupMbid,
+      ),
       tracks: sorted,
       sourceUrl: commonParent(sorted) ?? song.sourceUrl,
     });

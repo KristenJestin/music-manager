@@ -19,6 +19,7 @@ import {
   artistSortNames,
   joinArtistCredit,
   topGenres,
+  type ArtistNameSource,
   type MbRecording,
   type MbRelation,
   type MbRelease,
@@ -38,6 +39,8 @@ export interface ReleaseResolverOptions {
   readonly trackPosition: number;
   /** ISO-8601 instant the response was fetched — becomes every field's `fetchedAt`. */
   readonly fetchedAt: string;
+  /** `credit.name` or `credit.artist.name` for ARTIST/ARTISTS. Defaults to `credited`. */
+  readonly artistNameSource?: ArtistNameSource;
 }
 
 /**
@@ -52,6 +55,7 @@ export function fromMusicBrainzRelease(
   options: ReleaseResolverOptions,
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
+  const names = options.artistNameSource ?? "credited";
 
   const media = release.media ?? [];
   const medium =
@@ -67,8 +71,8 @@ export function fromMusicBrainzRelease(
   patch.set("album", release.title);
   patch.na("albumsort", "MusicBrainz has no sort title for releases");
   const albumArtistCredit = release["artist-credit"];
-  patch.set("albumartist", joinArtistCredit(albumArtistCredit));
-  patch.set("albumartists", artistNames(albumArtistCredit));
+  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names));
+  patch.set("albumartists", artistNames(albumArtistCredit, names));
   patch.set("albumartistsort", artistSortNames(albumArtistCredit));
   patch.set("musicbrainz_albumartistid", artistIds(albumArtistCredit));
   patch.setOrNa(
@@ -81,8 +85,8 @@ export function fromMusicBrainzRelease(
     patch.set("title", track.title);
     patch.na("titlesort", "MusicBrainz has no sort title for recordings");
     const trackCredit = track["artist-credit"] ?? track.recording?.["artist-credit"];
-    patch.set("artist", joinArtistCredit(trackCredit));
-    patch.set("artists", artistNames(trackCredit));
+    patch.set("artist", joinArtistCredit(trackCredit, names));
+    patch.set("artists", artistNames(trackCredit, names));
     patch.set("artistsort", artistSortNames(trackCredit));
     patch.set("musicbrainz_artistid", artistIds(trackCredit));
     patch.set("tracknumber", track.position);
@@ -97,7 +101,8 @@ export function fromMusicBrainzRelease(
   patch.set("totaldiscs_alias", media.length);
   patch.setOrNa("discsubtitle", medium?.title, "the medium has no title");
 
-  const isCompilation = artistNames(albumArtistCredit).includes("Various Artists");
+  // Always the canonical name: "Various Artists" is a database fact, not a printed credit.
+  const isCompilation = artistNames(albumArtistCredit, "canonical").includes("Various Artists");
   if (isCompilation) patch.set("compilation", true);
   else patch.na("compilation", "the release is not a Various Artists compilation");
 
@@ -161,9 +166,10 @@ export function fromMusicBrainzRelease(
  */
 export function fromMusicBrainzRecording(
   recording: MbRecording,
-  options: { fetchedAt: string },
+  options: { fetchedAt: string; artistNameSource?: ArtistNameSource },
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
+  const names = options.artistNameSource ?? "credited";
 
   patch.set("title", recording.title);
   patch.setOrNa("subtitle", recording.disambiguation, "the recording has no disambiguation");
@@ -173,8 +179,8 @@ export function fromMusicBrainzRecording(
   patch.setOrNa("mood", moodsFromTags(recording), "no mood among the MusicBrainz tags");
 
   const credit = recording["artist-credit"];
-  patch.set("artist", joinArtistCredit(credit));
-  patch.set("artists", artistNames(credit));
+  patch.set("artist", joinArtistCredit(credit, names));
+  patch.set("artists", artistNames(credit, names));
   patch.set("artistsort", artistSortNames(credit));
   patch.set("musicbrainz_artistid", artistIds(credit));
 

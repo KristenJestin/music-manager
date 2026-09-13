@@ -65,6 +65,28 @@ export async function enqueueWatchedSourceScan(
 }
 
 /**
+ * Ask for the weekly source refresh to run now (`cron.refresh-sources`).
+ *
+ * The cron queue is the trigger, not a second one: the handler is already registered on it
+ * (`worker/handlers/retag.ts`), its policy is `singleton`, and a manual push therefore joins
+ * the scheduled run rather than sweeping MusicBrainz twice. Until this existed the job could
+ * only be started by waiting until Monday at 5 a.m. or by restarting the worker.
+ */
+export async function enqueueSourceRefresh(job: { trigger?: string } = {}): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    return await boss.send("cron.refresh-sources", job, {
+      singletonKey: "refresh-sources",
+      retryLimit: 0,
+    });
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
  * Ask the worker to run a re-tag run (P08's REST route, P07a's run).
  *
  * `handlers/retag.ts` owns `enqueueRetag`, but it also owns the batch handler, and importing

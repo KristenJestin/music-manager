@@ -57,6 +57,7 @@ export const METADATA_KEYS = [
   "acoustidKey",
   "writeAcoustidFingerprint",
   /* enrichment */
+  "artistNameSource",
   "coverOrder",
   "coverMaxBytes",
   "genrePreference",
@@ -74,7 +75,16 @@ export const METADATA_KEYS = [
   "retagBatchSize",
 ] as const satisfies readonly SettingKey[];
 
-/** Settings › Discover. What the recommendations are computed from, and how many (P09). */
+/**
+ * Settings › Discover. What the recommendations are computed from, and how many (P09).
+ *
+ * `lastfmKey` is here **and** in `METADATA_KEYS`, deliberately. A group is a view over the
+ * registry, not an owner: the key enriches genres during an import (Metadata) and it is the
+ * similar-artist source Discover falls back to when ListenBrainz is silent, so hiding it from
+ * one of the two tabs makes that tab lie about why a block is empty. `ungroupedKeys()` folds
+ * the groups into a set, so an overlap costs nothing there; the two save handlers each accept
+ * their own group, so either tab can write it.
+ */
 export const DISCOVER_KEYS = [
   "discoverEnabled",
   "discoverCron",
@@ -86,6 +96,7 @@ export const DISCOVER_KEYS = [
   "discoverExcludeLive",
   "discoverExcludeCompilations",
   "listenbrainzUser",
+  "lastfmKey",
   "discoverPlaylistEnabled",
   "discoverPlaylistName",
 ] as const satisfies readonly SettingKey[];

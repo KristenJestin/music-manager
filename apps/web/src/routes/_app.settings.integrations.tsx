@@ -77,8 +77,8 @@ function Integrations() {
         description="The read-back of docs/03 §7: what a server gives back is the only proof a tag arrived."
       >
         <FormRow
-          label="Read back after every import"
-          help="Off means the verify step only checks the files exist on disk."
+          label="Use Navidrome"
+          help="The master switch. Off means the verify step only checks the files exist on disk, and Discover gets no play counts — a URL and a user on their own are not enough."
         >
           <Toggle
             checked={form.navidromeEnabled}
@@ -136,6 +136,7 @@ function Integrations() {
                   url: form.navidromeUrl,
                   user: form.navidromeUser,
                   password: form.navidromePassword,
+                  enabled: form.navidromeEnabled,
                 },
               }).then(
                 (result) => {
@@ -158,26 +159,46 @@ function Integrations() {
             <Plug className="size-3.5" aria-hidden="true" /> Test
           </Button>
         </FormRow>
+        {/*
+         * One badge, four states, and they come from the server (`status.state`) rather than
+         * from a second opinion computed here — the bug this replaces was exactly that: this
+         * page read "a URL and a user are set" while Discover read "the toggle is on".
+         */}
         <FormRow label="Status">
-          <span className="flex flex-wrap items-center gap-2 text-2xs">
+          <span
+            className="flex flex-wrap items-center gap-2 text-2xs"
+            data-testid="navidrome-status"
+          >
+            <ToneBadge
+              tone={
+                status.state === "connected"
+                  ? "ok"
+                  : status.state === "disabled"
+                    ? "warn"
+                    : status.state === "unreachable"
+                      ? "danger"
+                      : "muted"
+              }
+            >
+              {status.state === "connected"
+                ? "connected"
+                : status.state === "disabled"
+                  ? "configured, disabled"
+                  : status.state === "unreachable"
+                    ? "not answering"
+                    : "not configured"}
+            </ToneBadge>
             {status.ok ? (
-              <>
-                <ToneBadge tone="ok">connected</ToneBadge>
-                <span className="text-fg-2">
-                  {status.server} {status.serverVersion} · API {status.apiVersion} ·{" "}
-                  {status.openSubsonic ? "OpenSubsonic" : "Subsonic only"} ·{" "}
-                  {status.songCount === null
-                    ? "never scanned"
-                    : `${String(status.songCount)} songs`}
-                </span>
-              </>
+              <span className="text-fg-2">
+                {status.server} {status.serverVersion} · API {status.apiVersion} ·{" "}
+                {status.openSubsonic ? "OpenSubsonic" : "Subsonic only"} ·{" "}
+                {status.songCount === null ? "never scanned" : `${String(status.songCount)} songs`}
+                {status.state === "disabled"
+                  ? " · it answers, but nothing reads it while the switch above is off"
+                  : ""}
+              </span>
             ) : (
-              <>
-                <ToneBadge tone={status.configured ? "danger" : "muted"}>
-                  {status.configured ? "not answering" : "not configured"}
-                </ToneBadge>
-                <span className="text-fg-2">{status.error ?? ""}</span>
-              </>
+              <span className="text-fg-2">{status.error ?? ""}</span>
             )}
           </span>
         </FormRow>

@@ -12,7 +12,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { ExternalLink } from "lucide-react";
 
-import { Cover } from "#/components/cover.tsx";
+import { artistImageSources, Cover } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
@@ -41,7 +41,14 @@ function Artists() {
       key: "cover",
       header: "",
       className: "w-10",
-      cell: (row) => <Cover size="sm" seed={row.mbid ?? row.name} label={row.name} />,
+      cell: (row) => (
+        <Cover
+          size="sm"
+          src={artistImageSources(row)}
+          seed={row.mbid ?? row.name}
+          label={row.name}
+        />
+      ),
     },
     {
       key: "name",

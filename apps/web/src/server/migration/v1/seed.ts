@@ -7,16 +7,32 @@
  * and so that a track whose MBID lookup never succeeds still arrives in v2 with a title, an
  * artist and an album rather than with nothing.
  *
- * Two categories are **locked** instead, because they are decisions a human already made and
+ * Four categories are **locked** instead, because they are decisions a human already made and
  * a migration that quietly reverted them would be worse than one that refused to run:
  *
  *  - every field with a `SongForceMetadata` row — that table exists for no other purpose;
  *  - the forced MBIDs (`MusicBrainzRecordingIdForce` / `…ReleaseIdForce`, gated by
- *    `MusicBrainzForced`), which are the answer somebody typed in after v1 got it wrong.
+ *    `MusicBrainzForced`), which are the answer somebody typed in after v1 got it wrong;
+ *  - every field v1 took from the row itself when `ForceSongMetadata` is set. That flag means
+ *    "skip MusicBrainz and use the Songs row as it stands" (`v1/core/Data/Entities/Song.cs`
+ *    §Processing Flags, applied in `ProcessSongJob.cs`), so a v2 that let `documents.build`
+ *    overwrite those values would produce different tags than the ones on disk today;
+ *  - the same, for `ForceSourceMetadata`. v1 parsed the YouTube description, wrote the result
+ *    **back into the Songs row** and cleared every MBID, so by migration time the row already
+ *    holds the description-derived values — there is nothing to re-derive, only to protect.
+ *
+ * `ForceSongMetadata` wins over `ForceSourceMetadata` when both are set, because v1's
+ * `if / else if` says so.
  *
  * Everything here is pure. The v1 row and its overrides go in, a `DocumentPatch` comes out.
  */
-import { field, type DocumentPatch, type Field, type FieldValue } from "@mm/domain";
+import {
+  field,
+  type DocumentPatch,
+  type EmbeddedPicture,
+  type Field,
+  type FieldValue,
+} from "@mm/domain";
 import {
   identifiersOf,
   splitForcedList,
@@ -70,9 +86,66 @@ const FORCE_TO_FIELD: Readonly<Partial<Record<V1ForceField, string>>> = {
   MusicBrainzReleaseGroupId: "musicbrainz_releasegroupid",
   MusicBrainzReleaseStatus: "releasestatus",
   MusicBrainzReleaseCountry: "releasecountry",
-  // `CoverArtBytes` / `CoverArtMimeType` are bytes, not a document field: the picture is
-  // re-fetched from the Cover Art Archive in v2 and the v1 blob is deliberately dropped.
+  // `CoverArtBytes` / `CoverArtMimeType` are bytes rather than text, so they are not in this
+  // table; `forcedCover` below turns the pair into a locked `front_cover` instead.
 };
+
+/** The two `SongForceMetadata` members that carry the picture rather than a text field. */
+const COVER_FORCE_FIELDS: ReadonlySet<string> = new Set(["CoverArtBytes", "CoverArtMimeType"]);
+
+/**
+ * The document fields `ForceSongMetadata` freezes.
+ *
+ * One entry per assignment in `ProcessSongJob.cs`'s `if (song.ForceSongMetadata)` block, in
+ * the same order, plus the Vorbis aliases the projection reads separately.
+ */
+const FORCE_SONG_FIELDS: readonly string[] = [
+  "title",
+  "subtitle",
+  "artists",
+  "artist",
+  "album",
+  "isrc",
+  "albumartists",
+  "albumartist",
+  "date",
+  "originalyear",
+  "label",
+  "tracknumber",
+  "totaltracks",
+  "totaltracks_alias",
+  "discnumber",
+  "totaldiscs",
+  "totaldiscs_alias",
+  "genre",
+  "musicbrainz_recordingid",
+  "musicbrainz_albumid",
+  "musicbrainz_artistid",
+  "musicbrainz_albumartistid",
+  "musicbrainz_releasegroupid",
+  "releasestatus",
+  "releasecountry",
+];
+
+/**
+ * The document fields `ForceSourceMetadata` freezes.
+ *
+ * Exactly the properties v1's `else if (song.ForceSourceMetadata)` branch assigns from the
+ * parsed description. `TrackNumber` and `TrackCount` are copied into the tag DTO there but are
+ * never *set* from the parse, so they stay unlocked; the MBIDs are nulled out, so there is
+ * nothing to lock.
+ */
+const FORCE_SOURCE_FIELDS: readonly string[] = [
+  "title",
+  "artists",
+  "artist",
+  "album",
+  "albumartists",
+  "albumartist",
+  "date",
+  "originalyear",
+  "label",
+];
 
 /**
  * Build the seed patch.
@@ -106,6 +179,11 @@ export function seedDocument(
   // can defend: "A; B" would be wrong, "A" alone would lose information, so " & " it is.
   if (artists.length > 0) put("artist", artists.join(" & "));
   put("album", song.album);
+  // v1 wrote `ALBUMARTIST ← performers` when the album artists were empty
+  // (`ProcessSongJob.ApplyID3TagsInternal`), so the fallback is part of the seed rather than
+  // of the projection: seeded at `V1_CONFIDENCE`, it fills the hole a source leaves and gets
+  // out of the way the moment one answers, which is what keeps ALBUMARTIST non-empty for
+  // every v1 row that had a performer.
   const albumArtists = song.albumArtists.length > 0 ? song.albumArtists : artists;
   put("albumartists", albumArtists);
   if (albumArtists.length > 0) put("albumartist", albumArtists.join(" & "));
@@ -142,8 +220,34 @@ export function seedDocument(
   /* ---- provenance: the one thing a v1 file already carried ---- */
   put("musicmanager_sourceurl", song.sourceUrl);
 
+  /* ---- the processing flags, which freeze what v1 would not have re-derived ---- */
+  const frozen = song.forceSongMetadata
+    ? FORCE_SONG_FIELDS
+    : song.forceSourceMetadata
+      ? FORCE_SOURCE_FIELDS
+      : [];
+  for (const name of frozen) {
+    const held = fields[name];
+    if (held === undefined) continue;
+    fields[name] = { ...held, locked: true, confidence: 1 };
+    locked.add(name);
+  }
+
+  /* ---- the picture v1's owner forced, which v2 used to throw away ---- */
+  const cover = forcedCover(forces);
+  if (cover !== null) {
+    fields["front_cover"] = field([cover], "v1", fetchedAt, { confidence: 1, locked: true });
+    locked.add("front_cover");
+  }
+
   /* ---- the overrides, which win and stay won ---- */
   for (const force of forces) {
+    if (COVER_FORCE_FIELDS.has(force.field)) {
+      // A MIME type with no bytes beside it is half an override, and there is nothing to do
+      // with it. Say so rather than dropping it, which is the rule for every other field.
+      if (cover === null) ignoredForces.push(force.field);
+      continue;
+    }
     const name = FORCE_TO_FIELD[force.field as V1ForceField];
     if (name === undefined) {
       ignoredForces.push(force.field);
@@ -172,6 +276,34 @@ export function seedDocument(
   }
 
   return { patch: { fields }, locked: [...locked], ignoredForces };
+}
+
+/**
+ * The picture `SongForceMetadata` holds, as an `EmbeddedPicture`.
+ *
+ * v1 stores it base64-encoded in `Value` (`ApplyForceMetadata` calls
+ * `Convert.FromBase64String`) with the MIME type in a second row, and it is the *only* cover
+ * v1 would have written for that track. v2 used to drop it on the theory that the Cover Art
+ * Archive would supply a better one — which is true when there is a release MBID and a
+ * network, and false in exactly the cases somebody bothered to force a cover.
+ *
+ * The bytes travel as a `data:` URL because that is what an `EmbeddedPicture` carries: a URL.
+ * It needs no file on disk, no fetch and no cache entry, it renders in the Console's cover
+ * picker like any other candidate, and `execute.ts` decodes it locally rather than asking the
+ * toolbox to "download" it.
+ */
+function forcedCover(forces: readonly V1ForceMetadata[]): EmbeddedPicture | null {
+  const bytes = forces.find((force) => force.field === "CoverArtBytes")?.value.trim();
+  if (bytes === undefined || bytes === "") return null;
+  if (!/^[A-Za-z0-9+/=\s]+$/.test(bytes)) return null;
+  const mime = forces.find((force) => force.field === "CoverArtMimeType")?.value.trim();
+  return {
+    kind: "front",
+    mimeType: mime === undefined || mime === "" ? "image/jpeg" : mime,
+    url: `data:${mime === undefined || mime === "" ? "image/jpeg" : mime};base64,${bytes.replace(/\s+/g, "")}`,
+    comment: "v1 forced cover",
+    provenance: "v1 · SongForceMetadata.CoverArtBytes",
+  };
 }
 
 function mirror(fields: Record<string, Field>, name: string, source: Field | undefined): void {

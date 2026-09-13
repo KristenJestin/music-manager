@@ -14,6 +14,7 @@ import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { MMError, notifiableEventSchema, type NotifiableEvent } from "@mm/contracts";
 import {
+  ARTIST_NAME_SOURCES,
   DEFAULT_GROUP_LIMIT,
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_THRESHOLDS,
@@ -334,7 +335,7 @@ export const SETTING_DEFINITIONS = {
       listenbrainz: true,
       wikimedia: true,
     },
-    "Which of the eight sources of §4 may be called. A disabled source is simply not asked.",
+    "Which of the eight sources of §4 may be called. A disabled source is simply not asked. Deezer's switch also governs the Console's 30-second previews: off means Discover offers no preview rather than a broken one.",
   ),
   sourceTtlDays: define(
     sourceDays,
@@ -350,7 +351,7 @@ export const SETTING_DEFINITIONS = {
       listenbrainz: 30,
       wikimedia: 180,
     },
-    "Days after which a stored source answer is refreshed. 0 = never. Rows are never deleted.",
+    "Days after which a stored source answer is refreshed. 0 = never. Rows are never deleted. Deezer preview lookups are the one exception: their URLs are signed and expire within hours, so they keep a fixed one-hour TTL of their own (PREVIEW_TTL_MS).",
   ),
   coverOrder: define<("coverartarchive" | "youtube")[]>(
     z.array(z.enum(["coverartarchive", "youtube"])),
@@ -366,6 +367,11 @@ export const SETTING_DEFINITIONS = {
     z.array(z.enum(["musicbrainz", "lastfm", "listenbrainz"])),
     ["musicbrainz", "lastfm", "listenbrainz"],
     "Which source's genres win. §4: MusicBrainz first, Last.fm and ListenBrainz as fallbacks.",
+  ),
+  artistNameSource: define<"credited" | "canonical">(
+    z.enum(ARTIST_NAME_SOURCES),
+    "credited",
+    "Which of MusicBrainz's two artist names goes into ARTIST, ARTISTS and ALBUMARTIST. `credited` writes the name printed on this release (`Ye` credited as `Kanye West`), which is what Picard does. `canonical` writes the artist's own name, so one spelling covers the whole library — and it is what v1 wrote, so it is the value that reproduces a v1 library's artist names. The join phrases are MusicBrainz's either way.",
   ),
   maxGenres: define(
     z.number().int().min(1).max(10),

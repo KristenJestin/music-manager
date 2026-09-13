@@ -32,7 +32,12 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FIXTURE_ORPHANS, filesToBuild, type FixtureSong } from "./dataset.ts";
+import {
+  FIXTURE_ORPHANS,
+  FIXTURE_PICTURE_JPEG,
+  filesToBuild,
+  type FixtureSong,
+} from "./dataset.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../..");
@@ -89,6 +94,21 @@ export function v1Tags(song: FixtureSong): Tag[] {
   return tags;
 }
 
+/**
+ * Every v1 file carries a cover, because every v1 file did.
+ *
+ * `ProcessSongJob.cs` §9 embeds the Cover Art Archive front when there is one and the YouTube
+ * thumbnail when there is not, so "no picture" was not a state a tagged v1 file could be in.
+ * A fixture library without pictures cannot catch a migration that strips them — which is
+ * exactly the regression this fixture now exists to catch.
+ */
+const V1_PICTURE = {
+  type: 3,
+  mime: "image/jpeg",
+  data_base64: FIXTURE_PICTURE_JPEG,
+  description: "",
+} as const;
+
 async function tagFile(relative: string, tags: readonly Tag[]): Promise<void> {
   const response = await fetch(`${TOOLBOX_URL}/tag`, {
     method: "POST",
@@ -97,7 +117,7 @@ async function tagFile(relative: string, tags: readonly Tag[]): Promise<void> {
       path: `${CONTAINER_ROOT}/${relative}`,
       format: "auto",
       tags,
-      pictures: [],
+      pictures: [V1_PICTURE],
       lyrics_lrc: null,
       sidecar_lrc: false,
       clear: true,

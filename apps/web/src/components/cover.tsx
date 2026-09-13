@@ -124,6 +124,42 @@ export function albumCoverSources(
   );
 }
 
+/**
+ * The library's own `artist.jpg` for an artist, as a URL.
+ *
+ * The path is never in the URL: the endpoint takes an artist name and resolves the file from
+ * the row that folder belongs to, exactly like `libraryCover` does for an album id. A 404
+ * means the artist has no local image, which is the same signal `<Cover>` already knows how
+ * to fall through on.
+ */
+export function libraryArtistImage(name: string | null | undefined): string | null {
+  if (name === null || name === undefined) return null;
+  const trimmed = name.trim();
+  if (trimmed === "") return null;
+  return `/api/artist-image?artist=${encodeURIComponent(trimmed)}`;
+}
+
+/** Just enough of an artist row to say where its picture could come from. */
+export interface ArtistImageSource {
+  readonly name?: string | null;
+  /** `artists_cache.image_url` — a remote URL, Wikimedia or fanart.tv, used verbatim. */
+  readonly imageUrl?: string | null;
+}
+
+/**
+ * Where an artist's picture may be found, best first: the `artist.jpg` placed beside their
+ * folder, then the remote URL `artists_cache` recorded (§3). Hand the result straight to
+ * `<Cover src={…}>`, the same way `albumCoverSources` feeds an album tile.
+ */
+export function artistImageSources(
+  artist: ArtistImageSource | null | undefined,
+): readonly string[] {
+  if (artist === null || artist === undefined) return [];
+  return [libraryArtistImage(artist.name), artist.imageUrl ?? null].filter(
+    (entry): entry is string => entry !== null,
+  );
+}
+
 export interface CoverProps extends VariantProps<typeof coverVariants> {
   /**
    * The real image, or several to try in order: the placed `cover.jpg`, a Cover Art Archive

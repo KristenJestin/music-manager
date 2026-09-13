@@ -53,8 +53,14 @@ export {
 } from "./vocabulary.ts";
 export type { CountedTag } from "./vocabulary.ts";
 
-export { topGenres } from "./musicbrainz-types.ts";
+export {
+  ARTIST_NAME_SOURCES,
+  artistNames,
+  joinArtistCredit,
+  topGenres,
+} from "./musicbrainz-types.ts";
 export type {
+  ArtistNameSource,
   MbArtist,
   MbArtistCreditEntry,
   MbCoverArtArchive,
@@ -82,8 +88,15 @@ export { PatchBuilder } from "./patch.ts";
  * The genre chain of §4 — MusicBrainz, then Last.fm, then ListenBrainz — is this list, not a
  * special case somewhere: the two folksonomy sources sit below MusicBrainz, so they can only
  * ever fill a `GENRE` that MusicBrainz left missing.
+ *
+ * The two *people* sources head the list and are ranked together in spirit: `console` is a
+ * value typed here, `user` one v1 forced and P11 migrated. Neither can lose to a network
+ * source, and `console` sits first only so that editing a v1-migrated field by hand is not a
+ * no-op. In practice both are always locked, and `merge` settles a locked value before it ever
+ * reaches this table.
  */
 export const SOURCE_PRECEDENCE: readonly SourceId[] = Object.freeze([
+  "console",
   "user",
   "musicbrainz",
   "coverartarchive",

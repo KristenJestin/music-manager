@@ -392,9 +392,88 @@ describe("the seed document", () => {
 
   it("reports a forced field v2 has no home for instead of dropping it silently", () => {
     const result = seedDocument(song(), [
+      force({ field: "SomethingV1NeverHad", value: "whatever" }),
+    ]);
+    expect(result.ignoredForces).toEqual(["SomethingV1NeverHad"]);
+  });
+
+  /*
+   * `ProcessSongJob.cs` §9 writes `SongForceMetadata.CoverArtBytes` into the file and nothing
+   * else; it is the only cover that track ever had. Dropping it on the theory that the Cover
+   * Art Archive has a better one is exactly backwards — somebody forced a cover *because* the
+   * archive was wrong.
+   */
+  it("migrates the forced cover art instead of dropping it", () => {
+    const result = seedDocument(song(), [
+      force({ field: "CoverArtBytes", value: "/9j/4AAQSkZJRg==" }),
       force({ field: "CoverArtMimeType", value: "image/jpeg" }),
     ]);
-    expect(result.ignoredForces).toEqual(["CoverArtMimeType"]);
+    const front = result.patch.fields?.["front_cover"];
+    expect(front?.locked).toBe(true);
+    expect(front?.source).toBe("v1");
+    expect(result.locked).toContain("front_cover");
+    expect(result.ignoredForces).toEqual([]);
+    const picture = (front?.value as readonly { url: string; kind: string }[])[0];
+    expect(picture?.kind).toBe("front");
+    expect(picture?.url).toBe("data:image/jpeg;base64,/9j/4AAQSkZJRg==");
+  });
+
+  it("defaults the forced cover's MIME type to JPEG when v1 recorded none", () => {
+    const result = seedDocument(song(), [force({ field: "CoverArtBytes", value: "QUJD" })]);
+    const picture = (
+      result.patch.fields?.["front_cover"]?.value as readonly { mimeType: string }[]
+    )[0];
+    expect(picture?.mimeType).toBe("image/jpeg");
+  });
+
+  /*
+   * `Song.ForceSongMetadata` means "skip MusicBrainz and use the Songs row as it stands"
+   * (`v1/core/Data/Entities/Song.cs` §Processing Flags). v2 read the column and did nothing
+   * with it, so `documents.build` replaced every one of those values — which is how artist
+   * names came out of a migration different from the ones on disk.
+   */
+  it("locks everything ForceSongMetadata told v1 to take from the row", () => {
+    const result = seedDocument(song({ forceSongMetadata: true }));
+    for (const name of ["title", "artist", "artists", "albumartist", "album", "genre", "date"]) {
+      expect(result.patch.fields?.[name]?.locked, name).toBe(true);
+      expect(result.patch.fields?.[name]?.confidence, name).toBe(1);
+      expect(result.patch.fields?.[name]?.source, name).toBe("v1");
+    }
+    expect(result.locked).toContain("title");
+  });
+
+  /*
+   * `ForceSourceMetadata` writes the parsed description *back into the Songs row* and clears
+   * the MBIDs, so the row already holds the values v1 used. Only the fields that branch
+   * assigns are locked: the track position is not one of them.
+   */
+  it("locks the description-derived fields for ForceSourceMetadata, and only those", () => {
+    const result = seedDocument(song({ forceSourceMetadata: true }));
+    expect(result.patch.fields?.["title"]?.locked).toBe(true);
+    expect(result.patch.fields?.["album"]?.locked).toBe(true);
+    expect(result.patch.fields?.["label"]?.locked).toBe(true);
+    expect(result.patch.fields?.["tracknumber"]?.locked).toBe(false);
+    expect(result.patch.fields?.["genre"]?.locked).toBe(false);
+  });
+
+  /** v1's `if / else if`: `ForceSongMetadata` is tested first, so it wins. */
+  it("gives ForceSongMetadata precedence when both flags are set", () => {
+    const result = seedDocument(song({ forceSongMetadata: true, forceSourceMetadata: true }));
+    expect(result.patch.fields?.["genre"]?.locked).toBe(true);
+  });
+
+  it("leaves everything unlocked when neither flag is set", () => {
+    const result = seedDocument(song());
+    expect(result.patch.fields?.["title"]?.locked).toBe(false);
+    expect(result.patch.fields?.["title"]?.confidence).toBe(0.2);
+  });
+
+  /* v1's `ApplyID3TagsInternal`: `AlbumArtists ?? Performers`, never an empty ALBUMARTIST. */
+  it("falls back to the performers when v1 recorded no album artist", () => {
+    const result = seedDocument(song({ albumArtists: [], performers: ["Stardust", "Roulé"] }));
+    expect(result.patch.fields?.["albumartist"]?.value).toBe("Stardust & Roulé");
+    expect(result.patch.fields?.["albumartists"]?.value).toEqual(["Stardust", "Roulé"]);
+    expect(result.patch.fields?.["albumartist"]?.confidence).toBe(0.2);
   });
 
   it("lets a real source overwrite a seeded value but never a locked one", () => {
@@ -422,6 +501,39 @@ describe("the seed document", () => {
     });
     expect(document.fields["title"]?.value).toBe("The forced title");
     expect(document.fields["album"]?.source).toBe("musicbrainz");
+  });
+
+  /*
+   * The other half of the rule above, and the one that was missing: with `ForceSongMetadata`
+   * the *whole* row is the decision, so MusicBrainz fills holes and overwrites nothing. This
+   * is what makes a migrated ARTIST equal to the one v1 wrote rather than to the credited-as
+   * name MusicBrainz prefers.
+   */
+  it("keeps the v1 values when ForceSongMetadata was set, whatever MusicBrainz says", () => {
+    const seed = seedDocument(song({ forceSongMetadata: true }));
+    const fromMusicBrainz = {
+      fields: {
+        artist: {
+          value: "Daft Punk feat. Romanthony",
+          source: "musicbrainz" as const,
+          confidence: 1,
+          fetchedAt: "2026-01-01T00:00:00.000Z",
+          locked: false,
+        },
+        media: {
+          value: "Digital Media",
+          source: "musicbrainz" as const,
+          confidence: 1,
+          fetchedAt: "2026-01-01T00:00:00.000Z",
+          locked: false,
+        },
+      },
+    };
+    const document = merge([seed.patch, fromMusicBrainz], { schemaVersion: TAG_SCHEMA_VERSION });
+    expect(document.fields["artist"]?.value).toBe("Daft Punk");
+    expect(document.fields["albumartist"]?.value).toBe("Daft Punk");
+    // A field v1 never had is still filled: forcing protects, it does not blind.
+    expect(document.fields["media"]?.value).toBe("Digital Media");
   });
 
   it("honours the gate when reading the identifiers back", () => {

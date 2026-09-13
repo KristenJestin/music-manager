@@ -27,7 +27,7 @@ const envSchema = z.object({
 
   /**
    * Where `mm migrate v1` writes the exported M3U playlists. Empty means
-   * `<library>/_archive/v1-playlists`, the only directory production is sure to own.
+   * `<library>/.mm-archive/v1-playlists`, the only directory production is sure to own.
    */
   MM_PLAYLIST_EXPORT_DIR: z.string().default(""),
 

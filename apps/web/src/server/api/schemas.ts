@@ -376,6 +376,35 @@ export const verifySchema = z
  * run again, a relocate moves files and takes Navidrome's play counts with them. The safe
  * default is the one you would have chosen if you had read the warning.
  */
+/**
+ * One manual override of one field — `docs/03-metadonnees.md` §1's lock, written.
+ *
+ * `value` and `locked` are not two spellings of the same thing. A value sets *and* locks; no
+ * value with `locked: true` pins what the resolvers already say; no value with `locked: false`
+ * removes the field and re-resolves it offline, which is what "unlock" has to mean for a value
+ * no resolver produced.
+ */
+export const fieldEditSchema = z
+  .object({
+    field: z
+      .string()
+      .min(1)
+      .openapi({ description: "A tag map field name — `album`, not `ALBUM`.", example: "album" }),
+    value: z
+      .union([z.string(), z.array(z.string())])
+      .nullable()
+      .optional()
+      .openapi({ description: "The new value. An array (or newlines) for a multi-valued field." }),
+    locked: z.boolean().optional().openapi({
+      description: "Defaults to true when a value is given. `false` with no value releases it.",
+    }),
+  })
+  .openapi("FieldEdit");
+
+export const fieldsPatchSchema = z
+  .object({ edits: z.array(fieldEditSchema).min(1) })
+  .openapi("FieldsPatch");
+
 export const relocateSchema = z
   .object({
     albumId: z.string().optional().openapi({ description: "Omit for the whole library." }),

@@ -17,6 +17,7 @@ import { db } from "#/server/db/client.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
 import { createRun, runToCompletion } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
+import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
 import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { enqueueRetagRun } from "#/server/services/queue.ts";
@@ -24,6 +25,7 @@ import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
   albumSchema,
   errorSchema,
+  fieldsPatchSchema,
   idParam,
   listAlbumsQuery,
   listTracksQuery,
@@ -420,6 +422,90 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
           ? await verifyLibrary({ db: db(), rescan })
           : await verifyAlbum(albumId, { db: db(), rescan });
       return c.json(report as unknown as Record<string, unknown>, 200);
+    },
+  );
+
+  /* ---- manual overrides: §1's lock, finally written by something ---- */
+
+  const OVERRIDE_DESCRIPTION =
+    "Write a value into the metadata document **by hand** and lock it, so no resolver can " +
+    "take it back — the clean equivalent of v1's forced metadata.\n\n" +
+    "Three shapes, and they mean three different things:\n\n" +
+    "- `{field, value}` sets the value and locks it (`source: console`);\n" +
+    "- `{field, locked: true}` with no value pins what the sources already say, keeping their " +
+    "`source` — what changes is that the next rebuild can no longer change it;\n" +
+    "- `{field, locked: false}` with no value **removes** the field and re-resolves it " +
+    "offline. Clearing the flag would not be enough: a `console` value heads the source " +
+    "precedence, so an unlocked one would go on winning.\n\n" +
+    "**It writes.** An album-scope re-tag is queued so the files catch up; `retagRunId` is the " +
+    "run to follow. **No file is ever moved**: if the change touched a name the path template " +
+    "uses, `relocatePlan` says what a relocate *would* do, and `POST /library/relocate` is " +
+    "what does it — Navidrome keys on the path, so a move costs that track its play count.";
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/tracks/{id}/fields",
+      tags: [TAG],
+      summary: "Set, lock or release fields on one track",
+      description:
+        `${OVERRIDE_DESCRIPTION}\n\n` +
+        "Per-track fields only. An **album-scope** field (`genre`, `date`, `album`…) is refused " +
+        "here and named: one track carrying its own value is exactly what makes Navidrome, Plex " +
+        "and Jellyfin split one album into two. Use `/albums/{id}/fields`.",
+      middleware: [requireScope("library:write")] as const,
+      request: {
+        params: z.object({ id: idParam }),
+        body: { content: { "application/json": { schema: fieldsPatchSchema } }, required: true },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
+          description: "What changed, the queued re-tag, and any relocate plan",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const result = await overrideTrackFields(c.req.valid("param").id, c.req.valid("json").edits, {
+        db: db(),
+        setBy: c.get("principal")?.label ?? "the API",
+      });
+      return c.json(result as unknown as Record<string, unknown>, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/albums/{id}/fields",
+      tags: [TAG],
+      summary: "Set, lock or release album-scope fields on every track of an album",
+      description:
+        `${OVERRIDE_DESCRIPTION}\n\n` +
+        "Album-scope fields only, and the value is written on **every track of the album in one " +
+        "transaction**. That is what makes `docs/03-metadonnees.md` §2.7 — one value per " +
+        "album-scope field — a property of the database rather than a hope about the next " +
+        "re-tag. A per-track field (`title`, `tracknumber`…) is refused here.",
+      middleware: [requireScope("library:write")] as const,
+      request: {
+        params: z.object({ id: idParam }),
+        body: { content: { "application/json": { schema: fieldsPatchSchema } }, required: true },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
+          description: "What changed, on how many tracks, and the queued re-tag",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const result = await overrideAlbumFields(c.req.valid("param").id, c.req.valid("json").edits, {
+        db: db(),
+        setBy: c.get("principal")?.label ?? "the API",
+      });
+      return c.json(result as unknown as Record<string, unknown>, 200);
     },
   );
 

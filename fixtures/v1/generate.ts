@@ -192,7 +192,7 @@ function songInsert(song: FixtureSong): string {
     quote(song.id),
     quote(song.sourceUrl),
     quote(song.sourceUrlParent),
-    quote("YouTube"),
+    quote(song.platform ?? "YouTube"),
     quote(song.sourceId),
     quote(song.sourceIdParent),
     quote(song.sourceTitle),

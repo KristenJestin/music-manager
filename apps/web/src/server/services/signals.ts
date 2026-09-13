@@ -467,6 +467,7 @@ export function sourceStrip(
   navidrome: { navidrome: SourceSignal["status"]; metric: string },
   extra: { listenbrainz?: string; lastfm?: string } = {},
 ): readonly SourceSignal[] {
+  const nd = navidromeConfig(settings);
   const lbUser = settings.listenbrainzUser.trim();
   const lbOn = settings.sourcesEnabled.listenbrainz && lbUser !== "";
   const lastfmOn = settings.sourcesEnabled.lastfm;
@@ -474,9 +475,11 @@ export function sourceStrip(
     {
       name: "Navidrome",
       detail:
-        navidrome.navidrome === "off"
-          ? "not configured — Settings › Integrations"
-          : "play counts, stars and ratings, scrobbled by your players",
+        navidrome.navidrome !== "off"
+          ? "play counts, stars and ratings, scrobbled by your players"
+          : nd.url === "" || nd.user === ""
+            ? "not configured — Settings › Integrations"
+            : "configured but switched off — Settings › Integrations",
       status: navidrome.navidrome,
       metric: navidrome.metric,
     },
