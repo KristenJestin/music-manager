@@ -50,6 +50,7 @@ import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath, type PathMap } from "#/server/paths.ts";
 import { getOrFetch, put as cachePut } from "#/server/services/cache.ts";
 import { build as buildDocument, rsgainKey, RSGAIN_SOURCE } from "#/server/services/documents.ts";
+import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
 import { hashProjection, formatOf } from "#/server/services/retag.ts";
 import type { Settings } from "#/server/services/settings.ts";
@@ -418,6 +419,29 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
   // `cover.jpg` is per album, so the first track of the folder writes it and the rest find it
   // already there. v1 wrote no sidecars at all, which is why this runs on every migrated album.
   if (input.index === 0 && (await writeCover(ctx, album.folder, document))) sidecars += 1;
+  // `artist.jpg`, same "first track of the folder" rule as `cover.jpg` above. v1 never wrote
+  // it either, and `artists_cache.imageUrl` is only ever filled by `documents.build`'s own
+  // `rememberArtist` (`services/documents.ts`) — whatever this migration already looked up
+  // while building the document, not a second network trip of its own.
+  if (input.index === 0) {
+    const artistFolder = album.folder.split("/")[0] ?? "";
+    const image = await writeArtistImageSidecar({
+      db: ctx.db,
+      toolbox: ctx.toolbox,
+      paths: ctx.paths,
+      artistName: album.artist,
+      artistFolder,
+      size: ctx.settings.artworkSize,
+      enabled: ctx.settings.writeArtistImage,
+    });
+    if (image.outcome === "written") sidecars += 1;
+    if (image.outcome === "error") {
+      await ctx.say(`no artist.jpg for ${artistFolder}: ${image.error}`, {
+        folder: artistFolder,
+        artistImage: "failed",
+      });
+    }
+  }
 
   /* ---- 7 · the library row ---- */
   const libraryTrackId = await upsertLibraryTrack(ctx, {
