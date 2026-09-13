@@ -648,12 +648,23 @@ async function main(): Promise<void> {
     check(body.startsWith("#EXTM3U"), "the export is a real M3U");
     check(body.includes("# not migrated"), "and says which of its songs v1 never downloaded");
   }
+  /*
+   * `discover_playlists` is excluded, and it is not a loophole.
+   *
+   * The claim under test is that **v1's playlists** are exported and then let go: v2 has no
+   * playlist model, no rows per playlist, no songs. `discover_playlists` holds one row per
+   * Navidrome server — a Subsonic id and the name it had — so that the "Recommended" push can
+   * update the list it already made instead of creating a twelfth one. It carries no track, no
+   * ordering and nothing that came out of v1.
+   */
   const [playlistTables] = await v2<{ count: number }[]>`
     select count(*)::int as count from information_schema.tables
-     where table_schema = 'public' and table_name like '%playlist%'`;
+     where table_schema = 'public'
+       and table_name like '%playlist%'
+       and table_name <> 'discover_playlists'`;
   check(
     (playlistTables?.count ?? -1) === 0,
-    "no playlist data entered v2 — the export is all there is",
+    "no v1 playlist data entered v2 — the export is all there is",
   );
 
   /* ---- the discrepancy report --------------------------------------- */
