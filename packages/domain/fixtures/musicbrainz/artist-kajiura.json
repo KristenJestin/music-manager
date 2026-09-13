@@ -1,0 +1,973 @@
+{
+  "tags": [
+    {
+      "count": 1,
+      "name": "anime score"
+    },
+    {
+      "count": 1,
+      "name": "arranger"
+    },
+    {
+      "count": 1,
+      "name": "cinematic classical"
+    },
+    {
+      "name": "composer",
+      "count": 2
+    },
+    {
+      "count": 1,
+      "name": "film score"
+    },
+    {
+      "count": 1,
+      "name": "japanese soundtrack"
+    },
+    {
+      "name": "japanese vgm",
+      "count": 1
+    },
+    {
+      "name": "keyboard",
+      "count": 1
+    },
+    {
+      "name": "modern classical",
+      "count": 1
+    },
+    {
+      "name": "music producer",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "neoclassical darkwave"
+    },
+    {
+      "name": "neoclassical new age",
+      "count": 1
+    },
+    {
+      "name": "piano",
+      "count": 1
+    },
+    {
+      "name": "soundtrack",
+      "count": 1
+    },
+    {
+      "count": 1,
+      "name": "television music"
+    }
+  ],
+  "aliases": [
+    {
+      "end": null,
+      "type-id": null,
+      "primary": null,
+      "locale": null,
+      "begin": null,
+      "sort-name": "Noir",
+      "type": null,
+      "ended": false,
+      "name": "Noir"
+    },
+    {
+      "end": null,
+      "primary": null,
+      "type-id": null,
+      "locale": null,
+      "begin": null,
+      "type": null,
+      "sort-name": "Noir OST I",
+      "ended": false,
+      "name": "Noir OST I"
+    },
+    {
+      "begin": null,
+      "locale": null,
+      "primary": null,
+      "type-id": null,
+      "end": null,
+      "name": "Noir OST II",
+      "ended": false,
+      "sort-name": "Noir OST II",
+      "type": null
+    },
+    {
+      "sort-name": "Kajiura, Yuki",
+      "type": "Artist name",
+      "ended": false,
+      "name": "Yuki Kajiura",
+      "end": null,
+      "primary": true,
+      "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+      "locale": "de",
+      "begin": null
+    },
+    {
+      "end": null,
+      "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+      "primary": true,
+      "locale": "en",
+      "begin": null,
+      "sort-name": "Kajiura, Yuki",
+      "type": "Artist name",
+      "ended": false,
+      "name": "Yuki Kajiura"
+    },
+    {
+      "name": "かじうらゆき",
+      "ended": false,
+      "sort-name": "かじうらゆき",
+      "type": "Search hint",
+      "begin": null,
+      "locale": null,
+      "end": null,
+      "type-id": "1937e404-b981-3cb7-8151-4c86ebfc8d8e",
+      "primary": null
+    },
+    {
+      "sort-name": "かじうらゆき",
+      "type": "Artist name",
+      "ended": false,
+      "name": "梶浦由記",
+      "end": null,
+      "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+      "primary": true,
+      "locale": "ja",
+      "begin": null
+    }
+  ],
+  "genres": [
+    {
+      "disambiguation": "",
+      "id": "23b490c7-69f9-418c-8e63-32f1a683dcf1",
+      "count": 1,
+      "name": "cinematic classical"
+    },
+    {
+      "disambiguation": "",
+      "id": "e328c306-8e35-46d2-93c3-623412ec7c13",
+      "name": "modern classical",
+      "count": 1
+    },
+    {
+      "disambiguation": "",
+      "count": 1,
+      "name": "neoclassical new age",
+      "id": "27f6e0f8-8d02-4f15-ac9f-45c5798978b7"
+    }
+  ],
+  "disambiguation": "",
+  "ipis": [
+    "00171018108"
+  ],
+  "name": "梶浦由記",
+  "country": "JP",
+  "gender": "Female",
+  "begin-area": {
+    "type": null,
+    "sort-name": "Tokyo",
+    "name": "Tokyo",
+    "iso-3166-2-codes": [
+      "JP-13"
+    ],
+    "disambiguation": "",
+    "type-id": null,
+    "id": "8dc97297-ac95-4d33-82bc-e07fab26fb5f"
+  },
+  "end-area": null,
+  "sort-name": "Kajiura, Yuki",
+  "type": "Person",
+  "gender-id": "93452b5a-a947-30c8-934f-6a4056b151c2",
+  "area": {
+    "sort-name": "Japan",
+    "type": null,
+    "name": "Japan",
+    "iso-3166-1-codes": [
+      "JP"
+    ],
+    "disambiguation": "",
+    "type-id": null,
+    "id": "2db42837-c832-3c27-b4a3-08198f75693c"
+  },
+  "id": "67e344da-ec54-4e26-b2a4-8351d744a14c",
+  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+  "relations": [
+    {
+      "ended": true,
+      "target-credit": "",
+      "type": "artistic director",
+      "attribute-ids": {},
+      "begin": "2007",
+      "source-credit": "",
+      "attributes": [],
+      "artist": {
+        "type": "Group",
+        "sort-name": "Kalafina",
+        "name": "Kalafina",
+        "country": "JP",
+        "disambiguation": "",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "id": "7b684693-2b64-4f38-b747-359d111dafbb"
+      },
+      "direction": "forward",
+      "target-type": "artist",
+      "attribute-values": {},
+      "end": "2018-02",
+      "type-id": "ab666dde-bd85-4ac2-a209-165eaf4146a0"
+    },
+    {
+      "attribute-values": {},
+      "end": null,
+      "type-id": "6ed4bfc4-0a0d-44c0-b025-b7fc4d900b67",
+      "target-type": "artist",
+      "direction": "forward",
+      "artist": {
+        "id": "7b684693-2b64-4f38-b747-359d111dafbb",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "disambiguation": "",
+        "country": "JP",
+        "name": "Kalafina",
+        "type": "Group",
+        "sort-name": "Kalafina"
+      },
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "founder",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "end": null,
+      "type-id": "dd9886f2-1dfe-4270-97db-283f6839a666",
+      "attribute-values": {},
+      "target-type": "artist",
+      "direction": "forward",
+      "artist": {
+        "disambiguation": "",
+        "country": "JP",
+        "name": "FictionJunction",
+        "type": "Person",
+        "sort-name": "FictionJunction",
+        "id": "741a8da6-9b87-4b49-acda-6cc6d9f579ac",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+      },
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "is person",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "type": "member of band",
+      "target-credit": "",
+      "ended": false,
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "target-type": "artist",
+      "artist": {
+        "type": "Group",
+        "sort-name": "FictionJunction ASUKA",
+        "country": null,
+        "name": "FictionJunction ASUKA",
+        "disambiguation": "",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "id": "62cb540c-e383-4f86-8254-a5527d08c226"
+      },
+      "direction": "forward",
+      "attribute-values": {},
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "end": null
+    },
+    {
+      "target-type": "artist",
+      "artist": {
+        "country": null,
+        "name": "FictionJunction WAKANA",
+        "disambiguation": "",
+        "type": "Group",
+        "sort-name": "FictionJunction WAKANA",
+        "id": "1668d69d-9d68-481c-8ca1-09f7ab8637c8",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+      },
+      "direction": "forward",
+      "attribute-values": {},
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "end": null,
+      "type": "member of band",
+      "ended": false,
+      "target-credit": "",
+      "attributes": [],
+      "source-credit": "",
+      "attribute-ids": {},
+      "begin": null
+    },
+    {
+      "source-credit": "",
+      "attributes": [],
+      "begin": null,
+      "attribute-ids": {},
+      "type": "member of band",
+      "ended": false,
+      "target-credit": "",
+      "end": null,
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "attribute-values": {},
+      "target-type": "artist",
+      "artist": {
+        "disambiguation": "",
+        "country": null,
+        "name": "FictionJunction KEIKO",
+        "sort-name": "FictionJunction KEIKO",
+        "type": "Group",
+        "id": "55f340cb-4f8d-49fb-aea4-e1eb0c166a8e",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+      },
+      "direction": "forward"
+    },
+    {
+      "source-credit": "",
+      "attributes": [],
+      "begin": null,
+      "attribute-ids": {},
+      "type": "member of band",
+      "ended": false,
+      "target-credit": "",
+      "attribute-values": {},
+      "end": null,
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "target-type": "artist",
+      "artist": {
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "id": "6aeddba4-c987-4976-ad2a-906c385c6b99",
+        "type": "Group",
+        "sort-name": "FictionJunction KAORI",
+        "country": "JP",
+        "name": "FictionJunction KAORI",
+        "disambiguation": ""
+      },
+      "direction": "forward"
+    },
+    {
+      "target-type": "artist",
+      "direction": "forward",
+      "artist": {
+        "id": "3b19d629-6d4a-4426-974b-aeb1dbbf0782",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "disambiguation": "",
+        "country": "JP",
+        "name": "FictionJunction YUUKA",
+        "sort-name": "FictionJunction YUUKA",
+        "type": "Group"
+      },
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "end": null,
+      "attribute-values": {},
+      "type": "member of band",
+      "ended": false,
+      "target-credit": "",
+      "attributes": [],
+      "source-credit": "",
+      "attribute-ids": {},
+      "begin": null
+    },
+    {
+      "end": null,
+      "type-id": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+      "attribute-values": {},
+      "direction": "forward",
+      "artist": {
+        "sort-name": "See-Saw",
+        "type": "Group",
+        "country": "JP",
+        "name": "See-Saw",
+        "disambiguation": "Japanese group",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "id": "2176a230-eee0-4a42-9d6d-1b69acf855a8"
+      },
+      "target-type": "artist",
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "member of band"
+    },
+    {
+      "attribute-values": {},
+      "type-id": "6b3e3c85-0002-4f34-aca6-80ace0d7e846",
+      "end": null,
+      "url": {
+        "resource": "https://www.allmusic.com/artist/mn0000964270",
+        "id": "1ebe5031-047b-41ba-92ec-d5470d949112"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "attributes": [],
+      "source-credit": "",
+      "attribute-ids": {},
+      "begin": null,
+      "type": "allmusic",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "target-credit": "",
+      "ended": true,
+      "type": "BBC Music page",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "resource": "https://www.bbc.co.uk/music/artists/67e344da-ec54-4e26-b2a4-8351d744a14c",
+        "id": "09f913ec-8c03-4d25-9137-f7da45405858"
+      },
+      "attribute-values": {},
+      "end": "2020-11-19",
+      "type-id": "d028a975-000c-4525-9333-d3c8425e4b54"
+    },
+    {
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "discogs",
+      "url": {
+        "resource": "https://www.discogs.com/artist/296240",
+        "id": "0f962a00-f6a6-43cf-9824-e054c442931a"
+      },
+      "end": null,
+      "type-id": "04a5b104-a4c2-4bac-99a1-7b837c37d9e4",
+      "attribute-values": {},
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "id": "f10fcbcd-b69f-4dab-84a9-0d20892a5d02",
+        "resource": "http://dic.nicovideo.jp/a/%E6%A2%B6%E6%B5%A6%E7%94%B1%E8%A8%98"
+      },
+      "attribute-values": {},
+      "end": null,
+      "type-id": "f484f897-81cc-406e-96f9-cd799a04ee24",
+      "ended": false,
+      "target-credit": "",
+      "type": "fanpage",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": []
+    },
+    {
+      "ended": false,
+      "target-credit": "",
+      "type": "free streaming",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "id": "e6df4bf0-b000-4b3e-8503-13eaca8d8177",
+        "resource": "https://open.spotify.com/artist/0BLHMPWOZ2aTI0ZCCbtZem"
+      },
+      "end": null,
+      "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+      "attribute-values": {}
+    },
+    {
+      "type": "free streaming",
+      "ended": false,
+      "target-credit": "",
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "target-type": "url",
+      "direction": "forward",
+      "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+      "end": null,
+      "attribute-values": {},
+      "url": {
+        "resource": "https://open.spotify.com/artist/67vfW2lHnf3YQq0RsOz2KH",
+        "id": "7bdd591d-aa29-4464-a5f5-7c5e0cd162ae"
+      }
+    },
+    {
+      "attribute-values": {},
+      "end": null,
+      "type-id": "769085a1-c2f7-4c24-a532-2375a77693bd",
+      "url": {
+        "resource": "https://www.deezer.com/artist/4663498",
+        "id": "dd38eb95-3c81-4afe-b823-360ad3492c6b"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "free streaming",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "attribute-values": {},
+      "end": null,
+      "type-id": "221132e9-e30e-43f2-a741-15afc4c5fa7c",
+      "url": {
+        "resource": "https://commons.wikimedia.org/wiki/File:Yuki%20Kajiura%20at%20Anime%20Expo%202012.jpg",
+        "id": "ce24d7c2-8473-40f9-8823-ffe174060532"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "image",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "attribute-values": {},
+      "type-id": "94c8b0cc-4477-4106-932c-da60e63de61c",
+      "end": null,
+      "url": {
+        "id": "42471b8b-95c4-4ad7-b004-df63af52fb13",
+        "resource": "https://www.imdb.com/name/nm0435317/"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "type": "IMDb",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "id": "48a3089b-7326-4603-b421-a8b05ec75ed6",
+        "resource": "https://www.last.fm/music/%E6%A2%B6%E6%B5%A6%E7%94%B1%E8%A8%98"
+      },
+      "attribute-values": {},
+      "end": null,
+      "type-id": "08db8098-c0df-4b78-82c3-c8697b4bba7f",
+      "ended": false,
+      "target-credit": "",
+      "type": "last.fm",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": []
+    },
+    {
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "lyrics",
+      "url": {
+        "id": "5796ce71-8c07-4966-b517-cc75a78ff508",
+        "resource": "https://genius.com/artists/Yuki-kajiura"
+      },
+      "attribute-values": {},
+      "end": null,
+      "type-id": "e4d73442-3762-45a8-905c-401da65544ed",
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "attribute-values": {},
+      "end": null,
+      "type-id": "fe33d22f-c3b0-4d68-bd53-a856badf2b15",
+      "url": {
+        "id": "300310d3-41f7-4271-aefc-2707551d67a9",
+        "resource": "http://www.fictionjunction.com/"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "source-credit": "",
+      "attributes": [],
+      "begin": null,
+      "attribute-ids": {},
+      "type": "official homepage",
+      "target-credit": "",
+      "ended": false
+    },
+    {
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "target-credit": "",
+      "ended": false,
+      "type": "other databases",
+      "url": {
+        "id": "f856f17c-3edc-4bf7-9308-5977e3975abb",
+        "resource": "http://anison.info/data/person/1242.html"
+      },
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "attribute-values": {},
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "other databases",
+      "url": {
+        "resource": "http://id.loc.gov/authorities/names/no2007036675",
+        "id": "38a77d98-a735-4b58-ac0c-bdd066f7906a"
+      },
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "attribute-values": {},
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "attribute-values": {},
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "url": {
+        "id": "67e43b85-fc57-4934-b4ed-a40e34053184",
+        "resource": "https://catalogue.bnf.fr/ark:/12148/cb150058170"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "other databases",
+      "target-credit": "",
+      "ended": false
+    },
+    {
+      "type": "other databases",
+      "ended": false,
+      "target-credit": "",
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "target-type": "url",
+      "direction": "forward",
+      "attribute-values": {},
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "url": {
+        "resource": "https://d-nb.info/gnd/135373387",
+        "id": "88fc2488-b806-4316-a6cc-c8eab76645fc"
+      }
+    },
+    {
+      "type": "other databases",
+      "ended": false,
+      "target-credit": "",
+      "attributes": [],
+      "source-credit": "",
+      "attribute-ids": {},
+      "begin": null,
+      "target-type": "url",
+      "direction": "forward",
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "end": null,
+      "attribute-values": {},
+      "url": {
+        "id": "8f18b2f8-b3e3-4166-a02f-7fcf3707058b",
+        "resource": "https://rateyourmusic.com/artist/%E6%A2%B6%E6%B5%A6%E7%94%B1%E8%A8%98"
+      }
+    },
+    {
+      "url": {
+        "resource": "https://utaitedb.net/Ar/3160",
+        "id": "7f452daf-eaa5-4a41-9ac8-76fab04fbfc7"
+      },
+      "attribute-values": {},
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "direction": "forward",
+      "target-type": "url",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "target-credit": "",
+      "ended": false,
+      "type": "other databases"
+    },
+    {
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "resource": "https://www.generasia.com/wiki/Kajiura_Yuki",
+        "id": "718b06b7-276d-46c7-ad31-b6a24461cca9"
+      },
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "end": null,
+      "attribute-values": {},
+      "ended": false,
+      "target-credit": "",
+      "type": "other databases",
+      "begin": null,
+      "attribute-ids": {},
+      "attributes": [],
+      "source-credit": ""
+    },
+    {
+      "type": "other databases",
+      "ended": false,
+      "target-credit": "",
+      "source-credit": "",
+      "attributes": [],
+      "begin": null,
+      "attribute-ids": {},
+      "target-type": "url",
+      "direction": "forward",
+      "attribute-values": {},
+      "end": null,
+      "type-id": "d94fb61c-fa20-4e3c-a19a-71a949fb2c55",
+      "url": {
+        "resource": "https://www.worldcat.org/identities/lccn-no2007036675/",
+        "id": "5dd5f8a7-f5ae-4919-9e4e-6e61eac90926"
+      }
+    },
+    {
+      "url": {
+        "resource": "https://itunes.apple.com/jp/artist/id251013990",
+        "id": "6086432d-8745-4e13-a79f-04541b9b9079"
+      },
+      "attribute-values": {},
+      "end": null,
+      "type-id": "f8319a2f-f824-4617-81c8-be6560b3b203",
+      "direction": "forward",
+      "target-type": "url",
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "purchase for download"
+    },
+    {
+      "target-credit": "",
+      "ended": false,
+      "type": "social network",
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "resource": "https://twitter.com/Fion0806",
+        "id": "ff55b994-f458-4ace-8eb4-680f82843298"
+      },
+      "end": null,
+      "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+      "attribute-values": {}
+    },
+    {
+      "attributes": [],
+      "source-credit": "",
+      "attribute-ids": {},
+      "begin": null,
+      "type": "social network",
+      "ended": false,
+      "target-credit": "",
+      "attribute-values": {},
+      "type-id": "99429741-f3f6-484b-84f8-23af51991770",
+      "end": null,
+      "url": {
+        "id": "3b57bc7d-c555-43cd-8a7d-98e96bddffaa",
+        "resource": "https://www.facebook.com/profile.php?id=100001583365922"
+      },
+      "target-type": "url",
+      "direction": "forward"
+    },
+    {
+      "source-credit": "",
+      "attributes": [],
+      "attribute-ids": {},
+      "begin": null,
+      "type": "songkick",
+      "ended": false,
+      "target-credit": "",
+      "attribute-values": {},
+      "end": null,
+      "type-id": "aac9c4bc-a5b9-30b8-9839-e3ac314c6e58",
+      "url": {
+        "id": "f952332d-6f90-41e1-b5a8-85da2b729127",
+        "resource": "https://www.songkick.com/artists/2726276"
+      },
+      "target-type": "url",
+      "direction": "forward"
+    },
+    {
+      "attribute-ids": {},
+      "begin": null,
+      "source-credit": "",
+      "attributes": [],
+      "ended": false,
+      "target-credit": "",
+      "type": "soundcloud",
+      "url": {
+        "id": "445dc685-6b92-45d4-9cfa-ffe2cdb127e5",
+        "resource": "https://soundcloud.com/yuki_kajiura"
+      },
+      "end": null,
+      "type-id": "89e4a949-0976-440d-bda1-5f772c1e5710",
+      "attribute-values": {},
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "type": "streaming",
+      "target-credit": "",
+      "ended": false,
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "target-type": "url",
+      "direction": "forward",
+      "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+      "end": null,
+      "attribute-values": {},
+      "url": {
+        "resource": "https://music.apple.com/jp/artist/251013990",
+        "id": "7f148d4f-123c-4e5e-ac60-025fc7ce5c37"
+      }
+    },
+    {
+      "target-credit": "",
+      "ended": false,
+      "type": "streaming",
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": [],
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "id": "9b0242f8-6aad-4ec7-a3a5-f6659dc96dc3",
+        "resource": "https://tidal.com/artist/20720767"
+      },
+      "end": null,
+      "type-id": "63cc5d1f-f096-4c94-a43f-ecb32ea94161",
+      "attribute-values": {}
+    },
+    {
+      "type-id": "0af15ab3-c615-46d6-b95b-a5fcd2a92ed9",
+      "end": null,
+      "attribute-values": {},
+      "url": {
+        "resource": "https://vgmdb.net/artist/356",
+        "id": "f7931f18-6530-46ae-a1f0-8a7e0b72e2c7"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "type": "vgmdb",
+      "ended": false,
+      "target-credit": ""
+    },
+    {
+      "direction": "forward",
+      "target-type": "url",
+      "url": {
+        "resource": "http://viaf.org/viaf/66742422",
+        "id": "ae1107e6-8e26-4c90-86f4-19277012d2ed"
+      },
+      "end": null,
+      "type-id": "e8571dcc-35d4-4e91-a577-a3382fd84460",
+      "attribute-values": {},
+      "target-credit": "",
+      "ended": false,
+      "type": "VIAF",
+      "begin": null,
+      "attribute-ids": {},
+      "source-credit": "",
+      "attributes": []
+    },
+    {
+      "attribute-ids": {},
+      "begin": null,
+      "attributes": [],
+      "source-credit": "",
+      "target-credit": "",
+      "ended": false,
+      "type": "wikidata",
+      "url": {
+        "id": "96a2d0bc-bd18-43ba-8395-5479e7efc03f",
+        "resource": "https://www.wikidata.org/wiki/Q132433"
+      },
+      "attribute-values": {},
+      "type-id": "689870a4-a1e4-4912-b17f-7b2664215698",
+      "end": null,
+      "direction": "forward",
+      "target-type": "url"
+    },
+    {
+      "type-id": "6a540e5b-58c6-4192-b6ba-dbc71ec8fcf0",
+      "end": null,
+      "attribute-values": {},
+      "url": {
+        "resource": "https://www.youtube.com/channel/UCH-6nujw1qBPOvqzFSKSMug",
+        "id": "5a75ae9e-6916-476d-b59b-b178aa8018e3"
+      },
+      "target-type": "url",
+      "direction": "forward",
+      "attributes": [],
+      "source-credit": "",
+      "begin": null,
+      "attribute-ids": {},
+      "type": "youtube",
+      "ended": false,
+      "target-credit": ""
+    }
+  ],
+  "isnis": [
+    "000000011446834X"
+  ],
+  "life-span": {
+    "begin": "1965-08-06",
+    "ended": false,
+    "end": null
+  }
+}

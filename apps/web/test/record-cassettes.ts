@@ -39,6 +39,8 @@ const RELEASE = "d073287b-d1bd-4f11-a933-a4386f8cf701";
 const RECORDING = "60fa767a-d85d-4991-82bc-4294e0b11ae7";
 const WORK = "4bb47ffc-9006-32cf-8aa9-e213334550dc";
 const ARTIST = "056e4f3e-d505-4dad-8ec1-d04f521cbb56";
+/** ツバサ・クロニクル OST — a release group with a real Latin `Pseudo-Release` (docs/03 §2.1). */
+const PSEUDO_RELEASE_GROUP = "f5952bf4-9a30-3efd-8861-42d8fcfd86a1";
 /** The two ISRCs MusicBrainz has for "One More Time", in its own order. */
 const ISRCS = ["GBAHT1305744", "GBDUW0000053"];
 const ARTIST_NAME = "Daft Punk";
@@ -99,6 +101,16 @@ const TAPES: Record<string, { note: string; run: Tape }> = {
       await musicbrainz.search(ctx, "release", `release:"Discovery" AND artist:"Daft Punk"`, {
         limit: 5,
       });
+      // The pseudo-release search of docs/03 §2.1: the romanised edition of a Japanese album,
+      // which the matcher's `status:Official` filter deliberately never returns. Recorded on
+      // a release group that really has one, so the cassette proves the query shape works
+      // against MusicBrainz rather than against our idea of it.
+      await musicbrainz.search(
+        ctx,
+        "release",
+        `rgid:${PSEUDO_RELEASE_GROUP} AND status:"Pseudo-Release"`,
+        { limit: 25 },
+      );
       // A deliberate 404, so the "absent is a fact" path is recorded rather than imagined.
       await musicbrainz.lookupRelease(ctx, "11111111-2222-4333-8444-555555555555");
     },

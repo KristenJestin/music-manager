@@ -1,0 +1,52 @@
+{
+  "created": "2026-09-13T19:37:57.000Z",
+  "count": 1,
+  "offset": 0,
+  "releases": [
+    {
+      "id": "90f126ee-5246-471b-8745-bd7f1a39b19c",
+      "score": 100,
+      "status-id": "41121bb9-3413-3818-8a9a-9742318349aa",
+      "artist-credit-id": "35c131d1-8262-38eb-af3f-3c1e8ccdcf4d",
+      "count": 1,
+      "title": "Tsubasa Chronicle Original Soundtrack: Future Soundscape I",
+      "status": "Pseudo-Release",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "artist-credit": [
+        {
+          "name": "Yuki Kajiura",
+          "artist": {
+            "id": "67e344da-ec54-4e26-b2a4-8351d744a14c",
+            "name": "梶浦由記",
+            "sort-name": "Kajiura, Yuki"
+          }
+        }
+      ],
+      "release-group": {
+        "id": "f5952bf4-9a30-3efd-8861-42d8fcfd86a1",
+        "type-id": "22a628ad-c082-3c4f-b1b6-d41665107b88",
+        "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+        "title": "「ツバサ・クロニクル」オリジナルサウンドトラック Future Soundscape I",
+        "primary-type": "Album",
+        "secondary-types": [
+          "Soundtrack"
+        ],
+        "secondary-type-ids": [
+          "22a628ad-c082-3c4f-b1b6-d41665107b88"
+        ]
+      },
+      "track-count": 20,
+      "media": [
+        {
+          "id": "17b5b190-16c2-3f85-9aac-0c3aaf39e6d3",
+          "format": "CD",
+          "disc-count": 0,
+          "track-count": 20
+        }
+      ]
+    }
+  ]
+}

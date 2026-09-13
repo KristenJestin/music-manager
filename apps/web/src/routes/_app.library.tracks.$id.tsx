@@ -292,6 +292,14 @@ function TrackPage() {
                           album field
                         </Link>
                       ) : null}
+                      {entry.via === null ? null : (
+                        <span
+                          className="block text-2xs text-fg-3"
+                          title="how this value was obtained within its source"
+                        >
+                          via {entry.via}
+                        </span>
+                      )}
                     </td>
                     <td className="px-2.5 py-1 font-mono text-2xs text-fg-3">
                       {entry.fetchedAt.slice(0, 10)}
@@ -520,6 +528,8 @@ interface DocumentEntry {
   readonly vorbis: string;
   readonly value: string;
   readonly source: string;
+  /** Provenance within the source — `alias en (primary)`. Descriptive only (`Field.via`). */
+  readonly via: string | null;
   readonly fetchedAt: string;
   readonly locked: boolean;
   readonly note: string | undefined;
@@ -550,6 +560,7 @@ function entriesOf(document: TrackDocument): DocumentEntry[] {
         fetchedAt: held.fetchedAt,
         locked: held.locked,
         note: held.note,
+        via: held.via ?? null,
         multi: tag?.multi ?? false,
         editable: !albumScope && !NOT_EDITABLE.has(field),
         albumScope,

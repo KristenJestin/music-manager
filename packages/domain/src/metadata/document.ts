@@ -122,6 +122,20 @@ export interface Field<T extends FieldValue = FieldValue> {
    * without a journal lookup.
    */
   readonly note?: string;
+  /**
+   * How this value was obtained *within* its source, in one readable clause.
+   *
+   * `source` says `musicbrainz`; it cannot say that `ARTIST` reads `Yuki Kajiura` because the
+   * `en` alias of 梶浦由記 was preferred, or that `TITLE` comes from a Latin pseudo-release
+   * rather than from the release we matched. So the rung is written into the field:
+   * `alias en (primary)`, `pseudo-release <mbid>`.
+   *
+   * Exactly like `EmbeddedPicture.provenance` (decision 168), this is **descriptive only**.
+   * Nothing is chosen from it, no merge rule reads it, and dropping it would change no tag —
+   * it is what the track page and `mm doc show` print when asked why a tag does not say what
+   * MusicBrainz's canonical name says.
+   */
+  readonly via?: string;
 }
 
 /** Why a field does not apply to this track. Shown as “n/a” rather than “missing”. */
@@ -152,7 +166,7 @@ export function field<T extends FieldValue>(
   value: T,
   source: SourceId,
   fetchedAt: string,
-  options: { confidence?: number; locked?: boolean; note?: string } = {},
+  options: { confidence?: number; locked?: boolean; note?: string; via?: string } = {},
 ): Field<T> {
   return {
     value,
@@ -161,6 +175,9 @@ export function field<T extends FieldValue>(
     fetchedAt,
     locked: options.locked ?? false,
     ...(options.note === undefined ? {} : { note: options.note }),
+    // Spread rather than assigned: a `via: undefined` key on every field of every document
+    // would be a difference in every golden file for a value nothing carries.
+    ...(options.via === undefined || options.via === "" ? {} : { via: options.via }),
   };
 }
 

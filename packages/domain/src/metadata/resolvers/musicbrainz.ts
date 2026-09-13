@@ -14,6 +14,15 @@
 import type { DocumentPatch } from "../document.ts";
 import type { PerformerCredit } from "../document.ts";
 import {
+  describeAlias,
+  pickAlias,
+  translatesAlbums,
+  translatesArtists,
+  type LocalePreference,
+  type MbAlias,
+} from "../alias.ts";
+import {
+  artistAliasVia,
   artistIds,
   artistNames,
   artistSortNames,
@@ -41,6 +50,11 @@ export interface ReleaseResolverOptions {
   readonly fetchedAt: string;
   /** `credit.name` or `credit.artist.name` for ARTIST/ARTISTS. Defaults to `credited`. */
   readonly artistNameSource?: ArtistNameSource;
+  /**
+   * Picard's “translate names to this locale”. Absent — the default — translates nothing,
+   * and every tag below is exactly what it was before the feature existed.
+   */
+  readonly locale?: LocalePreference;
 }
 
 /**
@@ -56,6 +70,9 @@ export function fromMusicBrainzRelease(
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
+  // Two switches, so the preference is split at the top rather than tested at six call sites.
+  const artistLocale = translatesArtists(options.locale) ? options.locale : undefined;
+  const albumLocale = translatesAlbums(options.locale) ? options.locale : undefined;
 
   const media = release.media ?? [];
   const medium =
@@ -68,11 +85,37 @@ export function fromMusicBrainzRelease(
   const releaseGroup = release["release-group"];
 
   /* ---- §2.1 identity and position ---- */
-  patch.set("album", release.title);
-  patch.na("albumsort", "MusicBrainz has no sort title for releases");
+  /*
+   * The album title, translated when the locale asks for it: the release *group*'s aliases
+   * first — the album as a work, which is where a translated title belongs — then the
+   * pressing's own. `ALBUMSORT` normally has nothing to hold, because MusicBrainz files no
+   * sort title for releases; when the title has been translated it holds the original, which
+   * is the one thing that must not be lost (§1: the document keeps the provenance *and* the
+   * original).
+   */
+  const albumAlias =
+    pickAlias(releaseGroup?.aliases, aliasQuery(albumLocale, release.title)) ??
+    pickAlias(release.aliases, aliasQuery(albumLocale, release.title));
+  patch.set("album", albumAlias?.name ?? release.title, {
+    via: albumAlias === null ? null : describeAlias(albumAlias),
+  });
+  if (albumAlias === null || release.title === undefined || release.title === "") {
+    patch.na("albumsort", "MusicBrainz has no sort title for releases");
+  } else {
+    patch.set("albumsort", release.title, { via: describeAlias(albumAlias) });
+  }
+
   const albumArtistCredit = release["artist-credit"];
-  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names));
-  patch.set("albumartists", artistNames(albumArtistCredit, names));
+  const albumArtistVia = artistAliasVia(albumArtistCredit, names, artistLocale);
+  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names, artistLocale), {
+    via: albumArtistVia,
+  });
+  patch.set("albumartists", artistNames(albumArtistCredit, names, artistLocale), {
+    via: albumArtistVia,
+  });
+  // Untouched by the locale on purpose: MusicBrainz's `sort-name` already holds the original
+  // name in sortable form (`梶浦由記` sorts as `Kajiura, Yuki`), which is exactly where §1
+  // wants the original kept when the displayed name has been translated.
   patch.set("albumartistsort", artistSortNames(albumArtistCredit));
   patch.set("musicbrainz_albumartistid", artistIds(albumArtistCredit));
   patch.setOrNa(
@@ -85,8 +128,11 @@ export function fromMusicBrainzRelease(
     patch.set("title", track.title);
     patch.na("titlesort", "MusicBrainz has no sort title for recordings");
     const trackCredit = track["artist-credit"] ?? track.recording?.["artist-credit"];
-    patch.set("artist", joinArtistCredit(trackCredit, names));
-    patch.set("artists", artistNames(trackCredit, names));
+    const trackArtistVia = artistAliasVia(trackCredit, names, artistLocale);
+    patch.set("artist", joinArtistCredit(trackCredit, names, artistLocale), {
+      via: trackArtistVia,
+    });
+    patch.set("artists", artistNames(trackCredit, names, artistLocale), { via: trackArtistVia });
     patch.set("artistsort", artistSortNames(trackCredit));
     patch.set("musicbrainz_artistid", artistIds(trackCredit));
     patch.set("tracknumber", track.position);
@@ -159,6 +205,127 @@ export function fromMusicBrainzRelease(
   return patch.build();
 }
 
+/** The `pickAlias` query for a release-side name, or one that matches nothing when off. */
+function aliasQuery(
+  locale: LocalePreference | undefined,
+  credited: string | undefined,
+): { locale: string; onlyNonLatin: boolean; kind: "release"; credited?: string } {
+  return {
+    locale: locale?.locale ?? "",
+    onlyNonLatin: locale?.onlyNonLatin ?? true,
+    kind: "release",
+    ...(credited === undefined ? {} : { credited }),
+  };
+}
+
+/**
+ * Which of a release group's pseudo-releases is the transliteration of the one we matched.
+ *
+ * Pure, so the choice is a test rather than a hope, and **totally ordered**, so two rebuilds
+ * from the same cache pick the same one (§8):
+ *
+ *  1. a Latin `text-representation.script` first — that is the whole point of the exercise;
+ *  2. the same track count on every medium as the chosen release — a pseudo-release with a
+ *     different tracklist is a different edition, and pairing by position would then write
+ *     track 7's title onto track 7 of something else;
+ *  3. the oldest date, then the MBID — the two remaining tie-breaks, in that order.
+ *
+ * Returns `null` when nothing qualifies, which is the ordinary case and is silent by design.
+ */
+export function choosePseudoRelease(
+  candidates: readonly MbRelease[],
+  chosen: MbRelease,
+): MbRelease | null {
+  const shape = trackShape(chosen);
+  const usable = candidates.filter(
+    (candidate) =>
+      candidate.id !== undefined &&
+      candidate.id !== "" &&
+      candidate.id !== chosen.id &&
+      sameShape(trackShape(candidate), shape),
+  );
+
+  const ranked = [...usable].sort((a, b) => {
+    const latin = latinRank(a) - latinRank(b);
+    if (latin !== 0) return latin;
+    const date = (a.date ?? "9999").localeCompare(b.date ?? "9999");
+    if (date !== 0) return date;
+    return (a.id ?? "").localeCompare(b.id ?? "");
+  });
+
+  const best = ranked[0];
+  if (best === undefined) return null;
+  return latinRank(best) === 0 ? best : null;
+}
+
+function latinRank(release: MbRelease): number {
+  return release["text-representation"]?.script === "Latn" ? 0 : 1;
+}
+
+/** The track count of each medium, in medium order — the fingerprint of a tracklist. */
+function trackShape(release: MbRelease): readonly number[] {
+  return [...(release.media ?? [])]
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    .map((medium) => medium["track-count"] ?? medium.tracks?.length ?? 0);
+}
+
+function sameShape(a: readonly number[], b: readonly number[]): boolean {
+  return a.length === b.length && a.every((count, index) => count === b[index]);
+}
+
+export interface PseudoReleaseOptions {
+  /** 1-based medium position on the **chosen** release; matched by position on the pseudo. */
+  readonly mediumPosition?: number;
+  readonly trackPosition: number;
+  readonly fetchedAt: string;
+}
+
+/**
+ * The transliterated titles of a **pseudo-release**, on top of the real release's patch.
+ *
+ * MusicBrainz models a romanised edition of a Japanese album as a separate release with
+ * `status: Pseudo-Release` inside the same release group. It is not a pressing anybody owns,
+ * which is why the matcher filters it out (`status:Official` in `matching/lucene.ts`), and it
+ * is the only place a *track* title exists in Latin script: recording aliases carry no locale,
+ * so there is nothing else to read.
+ *
+ * This resolver produces four fields and nothing else — the pseudo-release is a spelling of
+ * the album we already matched, not a second opinion about its label, its barcode or its
+ * credits. `ALBUMSORT` and `TITLESORT` keep the originals, so the document holds both names
+ * exactly as §1 asks.
+ *
+ * Tracks are paired by **position**, medium by medium: a pseudo-release with a different
+ * tracklist is not this album transliterated, and the caller checks the track counts before
+ * ever getting here.
+ */
+export function fromMusicBrainzPseudoRelease(
+  pseudo: MbRelease,
+  original: { readonly album?: string | undefined; readonly title?: string | undefined },
+  options: PseudoReleaseOptions,
+): DocumentPatch {
+  const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
+  const via = `pseudo-release ${pseudo.id ?? "?"}`;
+
+  if (patch.set("album", pseudo.title, { via }) && original.album !== undefined) {
+    patch.set("albumsort", original.album, { via });
+  }
+
+  const media = pseudo.media ?? [];
+  const medium =
+    options.mediumPosition === undefined
+      ? media[0]
+      : media.find((candidate) => candidate.position === options.mediumPosition);
+  const track = (medium?.tracks ?? []).find(
+    (candidate) => candidate.position === options.trackPosition,
+  );
+  const title = track?.title ?? track?.recording?.title;
+  if (patch.set("title", title, { via }) && original.title !== undefined) {
+    patch.set("titlesort", original.title, { via });
+  }
+
+  return patch.build();
+}
+
 /**
  * What a recording says about itself: its title, its ISRCs, its genres, and the credits its
  * relations carry — including the work it performs, whose own relations bring the composer,
@@ -166,10 +333,11 @@ export function fromMusicBrainzRelease(
  */
 export function fromMusicBrainzRecording(
   recording: MbRecording,
-  options: { fetchedAt: string; artistNameSource?: ArtistNameSource },
+  options: { fetchedAt: string; artistNameSource?: ArtistNameSource; locale?: LocalePreference },
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
+  const locale = translatesArtists(options.locale) ? options.locale : undefined;
 
   patch.set("title", recording.title);
   patch.setOrNa("subtitle", recording.disambiguation, "the recording has no disambiguation");
@@ -179,8 +347,9 @@ export function fromMusicBrainzRecording(
   patch.setOrNa("mood", moodsFromTags(recording), "no mood among the MusicBrainz tags");
 
   const credit = recording["artist-credit"];
-  patch.set("artist", joinArtistCredit(credit, names));
-  patch.set("artists", artistNames(credit, names));
+  const via = artistAliasVia(credit, names, locale);
+  patch.set("artist", joinArtistCredit(credit, names, locale), { via });
+  patch.set("artists", artistNames(credit, names, locale), { via });
   patch.set("artistsort", artistSortNames(credit));
   patch.set("musicbrainz_artistid", artistIds(credit));
 
@@ -249,6 +418,8 @@ export interface MbArtistLike {
   readonly relations?: readonly MbRelation[];
   readonly genres?: readonly { readonly name?: string; readonly count?: number }[];
   readonly tags?: readonly { readonly name?: string; readonly count?: number }[];
+  /** `artistFull` asks for `aliases`; this is where the locale names of §2.1 come from. */
+  readonly aliases?: readonly MbAlias[];
 }
 
 function mergeWorkInto(patch: PatchBuilder, work: MbWork): void {

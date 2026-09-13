@@ -140,6 +140,26 @@ describe("musicbrainz", () => {
     expect((found.data?.releases ?? []).length).toBeGreaterThan(0);
   });
 
+  /**
+   * The one query `matching/lucene.ts` can never make: it pins `status:Official`, because a
+   * pseudo-release is not a pressing anybody owns. It is also the only place a romanised
+   * *track* title exists (docs/03 §2.1), so the locale feature asks for it separately — and
+   * this is the proof that the query shape works against MusicBrainz rather than against our
+   * idea of it.
+   */
+  it("finds the Latin pseudo-release of a Japanese album, which `status:Official` hides", async () => {
+    const found = await musicbrainz.search(
+      ctx,
+      "release",
+      `rgid:f5952bf4-9a30-3efd-8861-42d8fcfd86a1 AND status:"Pseudo-Release"`,
+      { limit: 25 },
+    );
+    const releases = found.data?.releases ?? [];
+    expect(releases.length).toBeGreaterThan(0);
+    expect(releases.every((entry) => entry.status === "Pseudo-Release")).toBe(true);
+    expect(releases.some((entry) => entry["text-representation"]?.script === "Latn")).toBe(true);
+  });
+
   it("turns a 404 into a cached absence, so it is never asked twice", async () => {
     const missing = await musicbrainz.lookupRelease(ctx, ABSENT);
     expect(missing.data).toBeNull();

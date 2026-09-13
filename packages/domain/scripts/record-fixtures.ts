@@ -2,6 +2,7 @@
  * Re-record the network fixtures under `packages/domain/fixtures/`.
  *
  *     bun run --cwd packages/domain fixtures:record
+ *     bun run --cwd packages/domain fixtures:record -- --only-locale
  *
  * This is the ONLY code in this package that touches the network, and it is never
  * run by the test suite (see ../fixtures/README.md). Tests read the committed JSON.
@@ -58,6 +59,20 @@ const SKINNY_LOVE_RECORDING = "5463ed3a-5fc1-49b6-8260-3b5bb36ee047";
 const SKINNY_LOVE_BON_IVER_RECORDING = "8a8ca6f4-2150-4b2b-935d-b66962de3b89";
 const FOR_EMMA_RELEASE = "0270cde6-6b5b-31fa-b04b-d8b68ff612d4";
 
+/**
+ * 梶浦由記 — the locale-alias case of `docs/03-metadonnees.md` §2.1, recorded from reality.
+ *
+ * The artist is looked up by **search**, never by a hard-coded MBID: the point of this fixture
+ * is that the aliases are MusicBrainz's, and an MBID typed from memory is exactly the kind of
+ * guess that produces a fixture proving nothing. The two releases are a pair: a Japanese
+ * `Official` pressing and the Latin `Pseudo-Release` of the same release group, which is the
+ * only place a romanised *track* title exists.
+ */
+const KAJIURA_QUERY = "Kajiura";
+const TSUBASA_RELEASE = "c1aea260-b33f-43c9-92e3-8e03c0a917bd";
+const TSUBASA_PSEUDO_RELEASE = "90f126ee-5246-471b-8745-bd7f1a39b19c";
+const TSUBASA_RELEASE_GROUP = "f5952bf4-9a30-3efd-8861-42d8fcfd86a1";
+
 let lastMusicBrainzCall = 0;
 
 async function throttleMusicBrainz(): Promise<void> {
@@ -66,13 +81,28 @@ async function throttleMusicBrainz(): Promise<void> {
   lastMusicBrainzCall = Date.now();
 }
 
+/**
+ * `503 Service Temporarily Unavailable` is MusicBrainz's “currently busy”, not a refusal, and
+ * it arrives often enough that a single one used to abandon a fifteen-request recording
+ * halfway through. Retried with a widening pause, which is what their guidance asks for; a
+ * real error status still fails on the first try.
+ */
+const RETRIES = 12;
+
 async function getJson(url: string, { throttle = false } = {}): Promise<unknown> {
-  if (throttle) await throttleMusicBrainz();
-  const response = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText} for ${url}`);
-  return (await response.json()) as unknown;
+  for (let attempt = 0; ; attempt += 1) {
+    if (throttle) await throttleMusicBrainz();
+    const response = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+    });
+    if (response.ok) return (await response.json()) as unknown;
+    if (response.status !== 503 || attempt >= RETRIES) {
+      throw new Error(`${String(response.status)} ${response.statusText} for ${url}`);
+    }
+    const pause = Math.min(2000 * (attempt + 1), 15_000);
+    console.log(`  503, retrying in ${String(pause)} ms…`);
+    await Bun.sleep(pause);
+  }
 }
 
 async function write(relativePath: string, body: unknown): Promise<void> {
@@ -192,13 +222,73 @@ async function main(): Promise<void> {
     await getJson(`${MB}/release/${FOR_EMMA_RELEASE}?inc=${MB_INC}&fmt=json`, { throttle: true }),
   );
 
+  // 4c. The locale-alias case.
+  await recordLocaleAliases();
+
   // 5. Cover Art Archive index for the release.
   console.log("Cover Art Archive…");
   await write(
     "coverartarchive/release-discovery.json",
     await getJson(`https://coverartarchive.org/release/${DISCOVERY_RELEASE}`),
   );
+  await recordTail(firstRecording);
+}
 
+/**
+ * 梶浦由記 / Yuki Kajiura, one Japanese release, and the Latin pseudo-release of the same
+ * group — the fixtures behind `docs/03-metadonnees.md` §2.1's locale aliases.
+ *
+ * Its own function, and reachable on its own with `--only-locale`, because re-recording the
+ * whole set to add one artist produces a diff nobody can review: MusicBrainz changes under
+ * every other fixture at the same time.
+ */
+async function recordLocaleAliases(): Promise<void> {
+  console.log("MusicBrainz artist 梶浦由記…");
+  const search = asRecord(
+    await getJson(`${MB}/artist?query=${encodeURIComponent(KAJIURA_QUERY)}&limit=25&fmt=json`, {
+      throttle: true,
+    }),
+  );
+  const found = (search["artists"] as Array<Record<string, unknown>>).find(
+    (candidate) => candidate["sort-name"] === "Kajiura, Yuki",
+  );
+  if (found === undefined) throw new Error("no artist sorting as “Kajiura, Yuki” was found");
+  const kajiuraId = String(found["id"]);
+  console.log(`  resolved to ${kajiuraId}`);
+  await write(
+    "musicbrainz/artist-kajiura.json",
+    await getJson(
+      `${MB}/artist/${kajiuraId}?inc=aliases+genres+tags+url-rels+artist-rels&fmt=json`,
+      {
+        throttle: true,
+      },
+    ),
+  );
+
+  console.log("MusicBrainz release ツバサ・クロニクル (Official, Jpan)…");
+  await write(
+    "musicbrainz/release-tsubasa.json",
+    await getJson(`${MB}/release/${TSUBASA_RELEASE}?inc=${MB_INC}&fmt=json`, { throttle: true }),
+  );
+  console.log("MusicBrainz release ツバサ・クロニクル (Pseudo-Release, Latn)…");
+  await write(
+    "musicbrainz/release-tsubasa-pseudo.json",
+    await getJson(`${MB}/release/${TSUBASA_PSEUDO_RELEASE}?inc=${MB_INC}&fmt=json`, {
+      throttle: true,
+    }),
+  );
+  console.log("MusicBrainz pseudo-release search…");
+  await write(
+    "musicbrainz/search-tsubasa-pseudo.json",
+    await getJson(
+      `${MB}/release?query=${encodeURIComponent(`rgid:${TSUBASA_RELEASE_GROUP} AND status:"Pseudo-Release"`)}&limit=25&fmt=json`,
+      { throttle: true },
+    ),
+  );
+}
+
+/** The two sources keyed by what the first recording says: LRCLIB, then Deezer by ISRC. */
+async function recordTail(firstRecording: Record<string, unknown>): Promise<void> {
   // 6. LRCLIB lyrics search. The response is kept real in shape, count and metadata but the
   //    lyric bodies are redacted before it is committed: they are third-party copyrighted
   //    text and none of the domain code looks at the words, only at the LRC structure and
@@ -227,4 +317,7 @@ async function main(): Promise<void> {
   console.log("Done. `ytdlp/` and `rsgain/` are hand-written — see fixtures/README.md.");
 }
 
-await main();
+// `--only-locale` re-records the §2.1 alias fixtures alone. Everything else stays as
+// committed, so the diff is the thing that changed rather than a month of MusicBrainz edits.
+if (Bun.argv.includes("--only-locale")) await recordLocaleAliases();
+else await main();

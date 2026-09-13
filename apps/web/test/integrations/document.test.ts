@@ -230,6 +230,52 @@ describe("a source that is unavailable", () => {
   });
 });
 
+/**
+ * The property `docs/03-metadonnees.md` §8 rests on: **the document is a function of the raw
+ * cache**. Two resolutions of the same cached responses must be the same document, byte for
+ * byte, or the background re-tag rewrites files for no reason and the golden files mean
+ * nothing.
+ *
+ * It is asserted with the locale feature switched on because that is the part that could
+ * plausibly break it: choosing an alias is a choice among several candidates, and a choice
+ * settled by anything other than MusicBrainz's own ordering would be stable per process and
+ * unstable across them.
+ */
+describe("resolving twice from the same cache", () => {
+  it("produces an identical document", () => {
+    const first = resolveTrackDocument(input());
+    const second = resolveTrackDocument(input());
+    expect(second).toEqual(first);
+    expect(JSON.stringify(second)).toBe(JSON.stringify(first));
+  });
+
+  it("produces an identical document with a preferred locale, too", () => {
+    const withLocale = (): TrackDocument =>
+      resolveTrackDocument({
+        ...input(),
+        locale: { locale: "ja", onlyNonLatin: false },
+      });
+    expect(JSON.stringify(withLocale())).toBe(JSON.stringify(withLocale()));
+  });
+
+  it("translates Daft Punk to ダフト・パンク, and records the alias in `via`", () => {
+    const document = resolveTrackDocument({
+      ...input(),
+      locale: { locale: "ja", onlyNonLatin: false },
+    });
+    expect(valueOf(document, "artist")).toBe("ダフト・パンク");
+    expect(document.fields["artist"]?.via).toBe("alias ja (primary)");
+    // The sort name is MusicBrainz's and is where the original stays.
+    expect(valueOf(document, "artistsort")).toEqual(["Daft Punk"]);
+  });
+
+  it("changes nothing at all when no locale is set — the default", () => {
+    expect(JSON.stringify(resolveTrackDocument({ ...input(), locale: undefined }))).toBe(
+      JSON.stringify(resolveTrackDocument(input())),
+    );
+  });
+});
+
 describe("locks", () => {
   it("survive a rebuild, whatever the sources now say", () => {
     const document = resolveTrackDocument({

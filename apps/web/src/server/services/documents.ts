@@ -25,6 +25,7 @@
 import { and, eq, isNull, or } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
+  choosePseudoRelease,
   resolveTrackDocument,
   TAG_SCHEMA_VERSION,
   trackCompleteness,
@@ -376,6 +377,68 @@ async function siblingCover(
   return null;
 }
 
+/**
+ * A **pseudo-release**: the romanised edition of an album, when MusicBrainz has one.
+ *
+ * Track titles are the one name the alias machinery cannot reach. Recording aliases carry no
+ * locale, so there is nothing to pick from; MusicBrainz's answer to “what is this tracklist in
+ * Latin script” is a whole separate release inside the same group, with
+ * `status: Pseudo-Release`. The matcher never sees those — `matching/lucene.ts` pins
+ * `status:Official`, deliberately, because a pseudo-release is not a pressing anybody owns —
+ * so this is its own search, and the setting says so: **one extra MusicBrainz search per
+ * album**, which is why `aliasPseudoRelease` defaults to `off`.
+ *
+ * The winner is looked up in full (`releaseFull`, the ordinary preset) rather than used as the
+ * search stub it arrives as. Two reasons, and both matter: a search result has no tracklist,
+ * and a lookup **lands in the raw cache**, so §8's offline re-tag re-reads the same bytes and
+ * produces the same document without a single request.
+ *
+ * Every failure is silent and returns `null`: a romanised title is a nicety, never a reason
+ * for an import to stop.
+ */
+async function pseudoRelease(
+  ctx: SourceContext,
+  releaseGroupMbid: string,
+  chosen: MbRelease,
+  collected: Collected,
+): Promise<{ data: MbRelease; fetchedAt: string } | null> {
+  const query = `rgid:${releaseGroupMbid} AND status:"Pseudo-Release"`;
+  const searchKey = `search/release?query=${query}`;
+  const found = await optional(
+    collected,
+    { source: "musicbrainz", key: searchKey },
+    async () => await musicbrainz.search(ctx, "release", query, { limit: 25 }),
+  );
+  if (found === null) return null;
+
+  const candidates = found.data?.releases ?? [];
+  note(collected, {
+    source: "musicbrainz",
+    key: searchKey,
+    outcome: candidates.length === 0 ? "absent" : found.fresh ? "fetched" : "hit",
+    fetchedAt: found.fetchedAt,
+  });
+
+  const best = choosePseudoRelease(candidates, chosen);
+  const mbid = best?.id;
+  if (mbid === undefined || mbid === "") return null;
+
+  const full = await optional(
+    collected,
+    { source: "musicbrainz", key: `release/${mbid}` },
+    async () => await musicbrainz.lookupRelease(ctx, mbid),
+  );
+  if (full === null || full.data === null) return null;
+  note(collected, {
+    source: "musicbrainz",
+    key: `release/${mbid}`,
+    outcome: full.fresh ? "fetched" : "hit",
+    fetchedAt: full.fetchedAt,
+    note: "pseudo-release",
+  });
+  return { data: full.data, fetchedAt: full.fetchedAt };
+}
+
 /** The locked fields of the document already stored for this track, if there is one. */
 async function lockedFields(
   db: Database,
@@ -511,6 +574,21 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
         fetchedAt: answer.fetchedAt,
       });
     }
+  }
+
+  /* ---- the romanised tracklist, when the setting asks for it and the album needs it ---- */
+  let pseudo: { data: MbRelease; fetchedAt: string } | null = null;
+  if (
+    config.aliasPseudoRelease === "prefer" &&
+    config.locale !== undefined &&
+    enabled.musicbrainz &&
+    release !== null &&
+    job.releaseGroupMbid !== null &&
+    job.releaseGroupMbid !== "" &&
+    // Already Latin: there is nothing to romanise, and the search would be a wasted request.
+    release["text-representation"]?.script !== "Latn"
+  ) {
+    pseudo = await pseudoRelease(ctx, job.releaseGroupMbid, release, collected);
   }
 
   /* ---- the work: embedded when the recording carried its relations ---- */
@@ -827,6 +905,16 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
             ...(track.mediumPosition === null ? {} : { mediumPosition: track.mediumPosition }),
           },
         }),
+    ...(pseudo === null
+      ? {}
+      : {
+          pseudoRelease: {
+            data: pseudo.data,
+            fetchedAt: pseudo.fetchedAt,
+            trackPosition: track.trackPosition ?? 1,
+            ...(track.mediumPosition === null ? {} : { mediumPosition: track.mediumPosition }),
+          },
+        }),
     ...(recording === null
       ? {}
       : { recording: { data: recording, fetchedAt: recordingFetchedAt } }),
@@ -863,6 +951,7 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
     ...(lbTags === undefined ? {} : { listenbrainz: lbTags }),
     tagOptions: { maxGenres: config.maxGenres, minCount: config.genreMinCount },
     artistNameSource: config.artistNameSource,
+    ...(config.locale === undefined ? {} : { locale: config.locale }),
     ...(rsgainRow === null
       ? {}
       : {
@@ -893,7 +982,15 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
   });
 }
 
-/** `ARTIST` as the sources credit it, for the LRCLIB and Last.fm queries. */
+/**
+ * `ARTIST` as the sources credit it, for the LRCLIB and Last.fm queries.
+ *
+ * **Never translated**, whatever the preferred locale says. LRCLIB and Last.fm are indexed
+ * under the name the rest of the world uses for the record, which is the credited one; asking
+ * them about `Yuki Kajiura` when their rows say 梶浦由記 turns a search that finds the lyrics
+ * into a search that finds nothing. The translation is a decision about *our* tags, not about
+ * how we address somebody else's database.
+ */
 function joinedArtist(
   release: MbRelease | null,
   mbTrack: MbTrack | undefined,
