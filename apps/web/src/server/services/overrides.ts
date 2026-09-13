@@ -392,6 +392,21 @@ async function targetsOf(
   return { targets, skipped };
 }
 
+/** The stored documents of these import tracks, keyed by import track id. */
+async function documentsByImportTrack(
+  db: Database,
+  importTrackIds: readonly string[],
+): Promise<Map<string, TrackDocument>> {
+  if (importTrackIds.length === 0) return new Map();
+  const rows = await db
+    .select()
+    .from(metadataDocuments)
+    .where(inArray(metadataDocuments.importTrackId, [...importTrackIds]));
+  return new Map(
+    rows.map((row) => [row.importTrackId ?? "", row.document as unknown as TrackDocument]),
+  );
+}
+
 /** A value as the Console prints it — for the `before`/`after` of a change, and the journal. */
 function show(value: FieldValue | undefined): string | null {
   if (value === undefined) return null;
@@ -695,27 +710,55 @@ async function write(
     };
   }
 
-  /* ---- 2 · one transaction: the documents and the columns the grids read ---- */
+  /* ---- 2 · write the documents ---- */
+  for (const entry of touched) {
+    // `storeDocument` rather than a bare update: it re-scores, and a field filled or released
+    // by hand really does move the track's completeness.
+    await storeDocument(entry.target.importTrackId, entry.document, db);
+  }
+
+  /*
+   * ---- 3 · a released field is re-resolved, offline ----
+   *
+   * After the write, never before: `documents.build` re-reads its locks from the stored row,
+   * so rebuilding first would put the lock we just removed straight back on.
+   */
+  for (const entry of touched) {
+    if (!entry.needsRebuild) continue;
+    await rebuild(entry.target.importTrackId, { db, settings, now });
+  }
+
+  /*
+   * ---- 4 · the denormalised columns follow, from the *final* documents ----
+   *
+   * After the rebuild, not before, and that ordering is the whole point: releasing `album`
+   * removes the typed value and lets MusicBrainz answer again, so a column computed from the
+   * pruned document would have been `null` — and "keep the old one" would have left the album
+   * row saying `Discovery (Deluxe)` under a document that says `Discovery`. The grids read
+   * these columns and not the document, so a stale one is a screen that lies.
+   *
+   * One transaction, because a track row and its album row disagreeing about the album's name
+   * is worse than either of them being briefly old.
+   */
+  const finalDocuments = await documentsByImportTrack(
+    db,
+    touched.map((entry) => entry.target.importTrackId),
+  );
+  const changedFields = [...new Set(touched.flatMap((entry) => [...entry.changes.keys()]))];
+
   await db.transaction(async (tx) => {
     for (const entry of touched) {
-      await tx
-        .update(metadataDocuments)
-        .set({
-          document: entry.document as unknown as Record<string, unknown>,
-          updatedAt: now,
-        })
-        .where(eq(metadataDocuments.importTrackId, entry.target.importTrackId));
-
+      const document = finalDocuments.get(entry.target.importTrackId) ?? entry.document;
       const columns: Record<string, string | number | null> = {};
       for (const field of entry.changes.keys()) {
         const column = TRACK_COLUMN[field];
         if (column === undefined) continue;
         columns[column] =
           column === "title" || column === "artist"
-            ? textOf(entry.document, field)
-            : numberOf(entry.document, field);
+            ? textOf(document, field)
+            : numberOf(document, field);
       }
-      // `title` is `not null`: a released field whose resolver has nothing keeps the old one.
+      // `title` is `not null`: a released field the resolvers cannot fill keeps the old one.
       if (columns["title"] === null) delete columns["title"];
       if (Object.keys(columns).length > 0) {
         await tx
@@ -727,10 +770,11 @@ async function write(
 
     /* The album row carries the same two names, and the grid reads them, not the document. */
     const albumId = touched[0]?.target.track.albumId ?? null;
-    const first = touched[0]?.document;
+    const first =
+      finalDocuments.get(touched[0]?.target.importTrackId ?? "") ?? touched[0]?.document;
     if (albumId !== null && first !== undefined) {
       const columns: Record<string, string | number | null> = {};
-      for (const field of touched[0]?.changes.keys() ?? []) {
+      for (const field of changedFields) {
         const column = ALBUM_COLUMN[field];
         if (column === undefined) continue;
         columns[column] =
@@ -749,24 +793,14 @@ async function write(
     }
   });
 
-  /*
-   * ---- 3 · a released field is re-resolved, offline ----
-   *
-   * After the write, never before: `documents.build` re-reads its locks from the stored row,
-   * so rebuilding first would put the lock we just removed straight back on.
-   */
-  for (const entry of touched) {
-    if (!entry.needsRebuild) continue;
-    await rebuild(entry.target.importTrackId, { db, settings, now });
-  }
-
-  /* `storeDocument` re-scores; a released or filled field really does move the score. */
-  for (const entry of touched) {
-    if (entry.needsRebuild) continue;
-    await storeDocument(entry.target.importTrackId, entry.document, db);
-  }
-
-  const changed = summarise(touched, edits, targets.length);
+  const changed = summarise(
+    touched.map((entry) => ({
+      document: finalDocuments.get(entry.target.importTrackId) ?? entry.document,
+      changes: entry.changes,
+    })),
+    edits,
+    targets.length,
+  );
 
   await emit(
     {
@@ -800,21 +834,15 @@ async function write(
   }
 
   const albumId = touched[0]?.target.track.albumId ?? null;
-  const relocatePlan = touchesPath(changed.map((entry) => entry.field))
+  const relocatePlan = touchesPath(changedFields)
     ? await planRelocate({ db, settings, albumId })
     : null;
-
-  const [stored] = await db
-    .select({ document: metadataDocuments.document })
-    .from(metadataDocuments)
-    .where(eq(metadataDocuments.importTrackId, touched[0]?.target.importTrackId ?? ""))
-    .limit(1);
 
   return {
     scope,
     targetId,
     changed,
-    document: stored === undefined ? null : (stored.document as unknown as TrackDocument),
+    document: finalDocuments.get(touched[0]?.target.importTrackId ?? "") ?? null,
     retagRunId,
     relocatePlan,
     skipped,
