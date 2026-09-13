@@ -153,7 +153,6 @@ describe("Daft Punk, the other direction", () => {
     expect(japanese.fields?.["artist"]?.value).toBe("Daft Punk");
     expect(japanese.fields?.["artist"]?.via).toBeUndefined();
   });
-
 });
 
 describe("the pseudo-release", () => {

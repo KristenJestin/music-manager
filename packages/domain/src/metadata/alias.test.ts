@@ -27,7 +27,9 @@ describe("isLatinScript", () => {
     ["Björk", true],
     ["Sigur Rós", true],
     // NFD: the diaeresis is a combining mark, Script=Inherited, and must not read as foreign.
-    ["Björk", true],
+    // Built with `normalize`, because Prettier unescapes a `̈` written by hand and the
+    // decomposed form then becomes invisible in the source.
+    ["Björk".normalize("NFD"), true],
     ["!!!", true],
     ["21", true],
     ["梶浦由記", false],
@@ -66,10 +68,7 @@ describe("pickAlias", () => {
     },
     {
       what: "no primary: MusicBrainz's own order decides, so the answer is deterministic",
-      aliases: [
-        alias("First", { primary: false }),
-        alias("Second", { primary: false }),
-      ],
+      aliases: [alias("First", { primary: false }), alias("Second", { primary: false })],
       query: EN,
       expected: "First",
     },
@@ -202,7 +201,7 @@ describe("describeAlias", () => {
 
 describe("creditIsCanonical", () => {
   it("is true for the same name, whatever its normalisation", () => {
-    expect(creditIsCanonical("Björk", "Björk")).toBe(true);
+    expect(creditIsCanonical("Björk".normalize("NFC"), "Björk".normalize("NFD"))).toBe(true);
     expect(creditIsCanonical("梶浦由記", "梶浦由記")).toBe(true);
   });
 

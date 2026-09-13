@@ -129,7 +129,9 @@ export function fromMusicBrainzRelease(
     patch.na("titlesort", "MusicBrainz has no sort title for recordings");
     const trackCredit = track["artist-credit"] ?? track.recording?.["artist-credit"];
     const trackArtistVia = artistAliasVia(trackCredit, names, artistLocale);
-    patch.set("artist", joinArtistCredit(trackCredit, names, artistLocale), { via: trackArtistVia });
+    patch.set("artist", joinArtistCredit(trackCredit, names, artistLocale), {
+      via: trackArtistVia,
+    });
     patch.set("artists", artistNames(trackCredit, names, artistLocale), { via: trackArtistVia });
     patch.set("artistsort", artistSortNames(trackCredit));
     patch.set("musicbrainz_artistid", artistIds(trackCredit));

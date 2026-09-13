@@ -257,9 +257,12 @@ async function recordLocaleAliases(): Promise<void> {
   console.log(`  resolved to ${kajiuraId}`);
   await write(
     "musicbrainz/artist-kajiura.json",
-    await getJson(`${MB}/artist/${kajiuraId}?inc=aliases+genres+tags+url-rels+artist-rels&fmt=json`, {
-      throttle: true,
-    }),
+    await getJson(
+      `${MB}/artist/${kajiuraId}?inc=aliases+genres+tags+url-rels+artist-rels&fmt=json`,
+      {
+        throttle: true,
+      },
+    ),
   );
 
   console.log("MusicBrainz release ツバサ・クロニクル (Official, Jpan)…");

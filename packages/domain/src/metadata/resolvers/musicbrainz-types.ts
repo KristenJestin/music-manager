@@ -209,7 +209,8 @@ function translate(
   const fallback = nameOf(entry, source);
   const canonical = entry.artist?.name ?? "";
   if (locale === undefined || canonical === "") return { name: fallback, alias: null };
-  if (!creditIsCanonical(entry.name ?? canonical, canonical)) return { name: fallback, alias: null };
+  if (!creditIsCanonical(entry.name ?? canonical, canonical))
+    return { name: fallback, alias: null };
 
   const alias = pickAlias(entry.artist?.aliases, {
     ...locale,

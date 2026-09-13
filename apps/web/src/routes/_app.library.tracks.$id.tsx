@@ -186,7 +186,10 @@ function TrackPage() {
                       {entry.source}
                       {entry.locked ? " · locked" : ""}
                       {entry.via === null ? null : (
-                        <span className="block text-fg-3" title="how this value was obtained within its source">
+                        <span
+                          className="block text-fg-3"
+                          title="how this value was obtained within its source"
+                        >
                           via {entry.via}
                         </span>
                       )}

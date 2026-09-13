@@ -235,9 +235,7 @@ function trackOf(
     mediumPosition === undefined
       ? media[0]
       : media.find((candidate) => candidate.position === mediumPosition);
-  const track = (medium?.tracks ?? []).find(
-    (candidate) => candidate.position === trackPosition,
-  );
+  const track = (medium?.tracks ?? []).find((candidate) => candidate.position === trackPosition);
   return track?.title ?? track?.recording?.title;
 }
 
