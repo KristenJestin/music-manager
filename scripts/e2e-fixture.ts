@@ -541,6 +541,110 @@ async function main(): Promise<void> {
   }
 
   /* ---------------------------------------------------------------- */
+  section("7 · watched sources: the diff, and the auto-accept gate");
+  /* ---------------------------------------------------------------- */
+  //
+  // The fixture playlist exists at two points in time, one video apart, and every reachable
+  // entry points at `fixture://skinny-love`, so the imports a scan opens resolve, match and
+  // download entirely offline. Three properties are worth an end-to-end run rather than a
+  // unit test: the diff is idempotent, a source that opted in reaches `done` with nobody
+  // looking, and a source that did not opt in stops at `awaiting_confirm` — **including in
+  // fixtures mode**, which confirms every other import automatically.
+
+  await mm(
+    "watch",
+    "add",
+    "fixture://watched?snapshot=1&e2e=auto",
+    "--label",
+    "Auto",
+    "--auto-accept",
+  );
+  await mm("watch", "add", "fixture://watched?snapshot=1&e2e=manual", "--label", "Manual");
+
+  const sourceIds = await sql<{ id: string; url: string }[]>`
+    select id, url from watched_sources order by created_at`;
+  const autoSource = sourceIds.find((row) => row.url.includes("e2e=auto"))?.id ?? "";
+  const manualSource = sourceIds.find((row) => row.url.includes("e2e=manual"))?.id ?? "";
+  check(autoSource !== "" && manualSource !== "", "`mm watch add` registered two sources");
+
+  await mm("watch", "scan", autoSource);
+  const firstPass = await sql<{ status: string; n: string }[]>`
+    select status::text as status, count(*)::text as n from watched_source_items
+     where source_id = ${autoSource} group by status order by status`;
+  const countOf = (rows: { status: string; n: string }[], status: string): number =>
+    Number(rows.find((row) => row.status === status)?.n ?? "0");
+  check(
+    countOf(firstPass, "imported") === 2 && countOf(firstPass, "skipped") === 1,
+    "snapshot 1: two videos imported, the private one skipped",
+    firstPass.map((row) => `${row.status} ${row.n}`).join(", "),
+  );
+
+  await mm("watch", "scan", autoSource);
+  const secondPass = await sql<{ n: string }[]>`
+    select count(*)::text as n from watched_source_items where source_id = ${autoSource}`;
+  check(
+    Number(secondPass[0]?.n ?? "0") === 3,
+    "scanning the same listing again discovers nothing",
+    `${secondPass[0]?.n ?? "?"} item(s)`,
+  );
+
+  // Tomorrow: the same playlist, one video longer.
+  await sql`update watched_sources set url = ${"fixture://watched?snapshot=2&e2e=auto"}
+             where id = ${autoSource}`;
+  await mm("watch", "scan", autoSource);
+  const thirdPass = await sql<{ n: string }[]>`
+    select count(*)::text as n from watched_source_items where source_id = ${autoSource}`;
+  check(
+    Number(thirdPass[0]?.n ?? "0") === 4,
+    "snapshot 2 discovers exactly one new video",
+    `${thirdPass[0]?.n ?? "?"} item(s)`,
+  );
+
+  const autoImports = await sql<{ import_id: string }[]>`
+    select import_id from watched_source_items
+     where source_id = ${autoSource} and import_id is not null order by first_seen_at`;
+  const autoImport = autoImports[0]?.import_id ?? "";
+  check(autoImport !== "", "the scan opened imports for the new videos");
+
+  const accepted = await waitFor(
+    autoImport,
+    (row) => row.status === "done" || row.status === "failed",
+    "the auto-accepted import to finish",
+  );
+  check(accepted.status === "done", "an auto-accepting source takes its import to done");
+  const decidedBy = await sql<{ decided_by: string }[]>`
+    select decided_by from decisions where import_id = ${autoImport} limit 1`;
+  check(
+    decidedBy[0]?.decided_by === "watched-source",
+    "the confirmation is signed `watched-source`, never `fixtures`",
+    decidedBy[0]?.decided_by ?? "no decision row",
+  );
+
+  await mm("watch", "scan", manualSource);
+  const manualImports = await sql<{ import_id: string }[]>`
+    select import_id from watched_source_items
+     where source_id = ${manualSource} and import_id is not null order by first_seen_at`;
+  const manualImport = manualImports[0]?.import_id ?? "";
+  const waiting = await waitFor(
+    manualImport,
+    (row) => row.status === "awaiting_confirm" || row.status === "done",
+    "the un-opted-in import to reach its gate",
+  );
+  check(
+    waiting.status === "awaiting_confirm",
+    "a source without auto-accept waits, even in fixtures mode",
+    waiting.status,
+  );
+  const sourceItems = await sql<{ n: string }[]>`
+    select count(*)::text as n from inbox_items
+     where import_id = ${manualImport} and type = 'source_new_video' and status = 'open'`;
+  check(
+    Number(sourceItems[0]?.n ?? "0") === 1,
+    "a `source_new_video` Inbox item points at it",
+    `${sourceItems[0]?.n ?? "?"} item(s)`,
+  );
+
+  /* ---------------------------------------------------------------- */
   section("summary");
   /* ---------------------------------------------------------------- */
 
