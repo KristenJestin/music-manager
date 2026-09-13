@@ -158,6 +158,47 @@ Les playlists exportées sont dans `_archive/v1-playlists/`. Pour les retrouver 
 il faut lui indiquer ce dossier (`ND_PLAYLISTSPATH`) ou copier les `.m3u8` dans la
 bibliothèque.
 
+### Corriger un champ à la main, après coup
+
+`SongForceMetadata` n'a pas d'équivalent parce qu'il n'en a plus besoin : en v2, **n'importe
+quel champ du document se saisit à la main et se verrouille**, et un champ verrouillé survit à
+tous les re-calculs (`docs/03-metadonnees.md` §1). Les surcharges migrées arrivent avec la
+source `user` ; ce qu'on saisit ici porte la source `console`. Les deux passent devant toutes
+les sources réseau, et le badge de la colonne « Source » dit laquelle.
+
+- **Console** — fiche piste, tableau « The document » : le crayon sur la valeur, le cadenas à
+  côté. Fiche album, onglet Metadata, bloc « Album fields » pour les champs à portée album, plus
+  un bouton « Lock for the album » sur chaque divergence signalée.
+- **CLI** :
+
+  ```bash
+  bun run mm -- doc set <ltr_…> title "One More Time (Radio Edit)"
+  bun run mm -- doc set <alb_…> genre house "french house"   # portée album : toutes les pistes
+  bun run mm -- doc lock <ltr_…> artist        # épingle ce que les sources disent déjà
+  bun run mm -- doc unlock <ltr_…> artist      # rend le champ aux résolveurs
+  ```
+
+- **API / agents** : `PATCH /api/v1/library/tracks/{id}/fields`,
+  `PATCH /api/v1/library/albums/{id}/fields`, outil MCP `set_field`.
+
+Trois règles à connaître :
+
+1. **Un champ à portée album se saisit sur l'album, jamais sur une piste.** La valeur est écrite
+   sur _toutes_ les pistes dans une seule transaction (§2.7) ; l'écrire sur une seule est
+   exactement ce qui fait scinder l'album en deux chez Navidrome, Plex et Jellyfin, et c'est
+   refusé avec le message qui renvoie vers l'album.
+2. **Déverrouiller supprime le champ**, puis reconstruit le document hors ligne. Se contenter
+   d'enlever le verrou laisserait une valeur saisie en tête de la précédence des sources, où
+   elle continuerait de gagner : « déverrouillé » serait un mensonge.
+3. **Aucun fichier n'est déplacé.** Un re-tag est mis en file pour que les fichiers rattrapent
+   la base ; si le champ modifié entre dans le gabarit de chemin (titre, artiste, album, numéro
+   de piste, date…), la réponse contient le _plan_ de déplacement et la Console le propose
+   derrière une confirmation. Navidrome identifie un fichier par son chemin : un déplacement lui
+   coûte ses écoutes et ses favoris.
+
+Une piste sans import derrière elle (fichier adopté par le scan) n'a pas de document et ne peut
+donc pas être surchargée ; le message le dit plutôt que d'échouer en silence.
+
 ---
 
 ## 6. Ce qui peut mal se passer
