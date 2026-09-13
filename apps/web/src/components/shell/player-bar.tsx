@@ -35,14 +35,17 @@ export function PlayerBar() {
 
   return (
     /*
-     * A focusable region rather than a bare `<div>`: `Space` has to mean something *here* and
-     * nowhere else, and "here" is only definable if the strip can hold the focus. Tab into it
-     * and the shortcut is live; tab away and it is not.
+     * A focusable labelled region rather than a bare `<div>`: `Space` has to mean something
+     * *here* and nowhere else, and "here" is only definable if the strip can hold the focus.
+     * `tabIndex={0}` is what makes that reachable — Tab into the bar and the shortcut is live,
+     * tab away and it is not — and the `region` role with a name is what tells a screen reader
+     * why an otherwise non-interactive container is in the tab order.
      */
     <section
       data-testid="player-bar"
+      role="region"
       aria-label="Player"
-      tabIndex={-1}
+      tabIndex={0}
       onKeyDown={(event) => {
         if (event.key !== " " && event.key !== "Spacebar") return;
         // A space on a button or the slider is that control's own business.
