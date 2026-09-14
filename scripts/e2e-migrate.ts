@@ -579,10 +579,14 @@ async function main(): Promise<void> {
    * the rows whose `Songs.MusicBrainzRecordingId` is empty and whose file still carries what
    * v1 wrote there, and it was 0 — invisibly — while the migration only read the row.
    */
+  const rungs = dryReport.counts.recordings;
   check(
-    JSON.stringify(dryReport.counts.recordings) === JSON.stringify(RECORDING_RUNGS),
+    rungs.forced === RECORDING_RUNGS.forced &&
+      rungs.fromColumn === RECORDING_RUNGS.fromColumn &&
+      rungs.fromTags === RECORDING_RUNGS.fromTags &&
+      rungs.none === RECORDING_RUNGS.none,
     `the recording MBIDs come from the rungs they should (${String(RECORDING_RUNGS.fromTags)} off MUSICBRAINZ_TRACKID)`,
-    JSON.stringify(dryReport.counts.recordings),
+    JSON.stringify(rungs),
   );
   // The consolidation is previewed, file by file: a dry run is the only chance to see a move
   // before the Navidrome play counts follow the path.
