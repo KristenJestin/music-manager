@@ -25,6 +25,9 @@
  *    recording MBID. Its release MBID is **forced** (`MusicBrainzReleaseIdForce`, the plain
  *    column empty), track 13 is `ForceSongMetadata` and track 12 is `ForceSourceMetadata`;
  *    both credit somebody MusicBrainz does not, which is what makes the two flags testable.
+ *    Track 7's `MusicBrainzRecordingId` is **empty while its file still carries the recording
+ *    id** in `MUSICBRAINZ_TRACKID` — the row v1 tagged and somebody emptied afterwards, and
+ *    the reason `inventory.recordingMbidFor` has a third rung at all.
  *  - **Justice — Woman Worldwide (2018)**, eight rows over **two discs**, no MusicBrainz ids
  *    at all — the common case of a v1 row whose lookup never succeeded. It exercises the
  *    `Disc N - ` prefix, the ` - ` separator, the `;`-joined lists and `SongForceMetadata`.
@@ -99,6 +102,18 @@ export interface FixtureSong {
   readonly finalFilePath: string | null;
   readonly errorMessage: string | null;
   readonly recordingMbid: string | null;
+  /**
+   * The recording id the **file** carries when the `Songs` column no longer does.
+   *
+   * v1 wrote `MusicBrainzRecordingId` into TagLib's `MusicBrainzTrackId` at tagging time, so a
+   * row somebody emptied afterwards — a re-match that failed, a hand-edited database, v1's own
+   * `ForceSourceMetadata` clearing the MBIDs (`ProcessSongJob.cs` §2) — leaves the file as the
+   * only copy of what v1 had decided. Set this and leave `recordingMbid` null to build exactly
+   * that row: the column says nothing, the file says everything.
+   *
+   * Absent, the file simply carries `recordingMbid`, which is every other row.
+   */
+  readonly recordingMbidInFile?: string;
   readonly releaseMbid: string | null;
   readonly releaseGroupMbid: string | null;
   readonly artistMbid: string | null;
@@ -232,6 +247,20 @@ const DISCOVERY_TRACKS: readonly {
 const DISCOVERY_PARENT = "https://www.youtube.com/playlist?list=OLAK5uy_v1discovery";
 
 /**
+ * The one row whose recording MBID survives only in its file.
+ *
+ * `Songs.MusicBrainzRecordingId` is empty, `MusicBrainzRecordingIdForce` is empty, and
+ * `MUSICBRAINZ_TRACKID` in the Opus holds the answer v1 had written there. It is the third
+ * rung of `inventory.recordingMbidFor`, and the only rung the migration used not to read.
+ */
+export const CLEARED_RECORDING = {
+  songId: 107,
+  position: 7,
+  recording: "8a98614f-0533-44ef-890a-639cab407a2d",
+  path: "Daft Punk/Discovery (2001)/07 - Superheroes.opus",
+} as const;
+
+/**
  * v1's own path algorithm, reproduced here so the fixture states its expectations.
  *
  * The sanitisation is v1's Linux one — `Path.GetInvalidFileNameChars()` is `{ '\0', '/' }`
@@ -278,6 +307,17 @@ const ALBUM_A: FixtureSong[] = DISCOVERY_TRACKS.map((track, index) => {
   const forcedSong = track.position === 13;
   const forcedSource = track.position === 12;
   /*
+   * Track 7's `MusicBrainzRecordingId` was emptied after v1 had already tagged the file, so
+   * the only copy of its recording left is `MUSICBRAINZ_TRACKID` in the Opus. The
+   * reconciliation has always read that tag to *find* the file; until `recordingMbidFor`, the
+   * migration then dropped it, and the track was adopted with no recording at all —
+   * `import_tracks.recording_mbid` null, nothing for `documents.build` to look up, and no
+   * `MUSICBRAINZ_TRACKID` written back. It is on this album because this is the one whose
+   * MusicBrainz answers are in the seeded cache, so "the recording was really used" is
+   * provable offline.
+   */
+  const clearedRecording = id === CLEARED_RECORDING.songId;
+  /*
    * The release MBID is *forced*, not resolved: `MusicBrainzReleaseId` is empty on every row
    * and `MusicBrainzReleaseIdForce` holds the answer v1's owner typed in after v1 matched the
    * wrong release. It is the only release this album has, so a migration that reads the plain
@@ -316,7 +356,8 @@ const ALBUM_A: FixtureSong[] = DISCOVERY_TRACKS.map((track, index) => {
     downloadStatus: "Present",
     finalFilePath: path,
     errorMessage: null,
-    recordingMbid: track.recording,
+    recordingMbid: clearedRecording ? null : track.recording,
+    ...(clearedRecording ? { recordingMbidInFile: track.recording } : {}),
     releaseMbid: null,
     releaseGroupMbid: DISCOVERY.releaseGroup,
     artistMbid: DISCOVERY.artist,
