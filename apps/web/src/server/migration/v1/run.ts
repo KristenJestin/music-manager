@@ -265,6 +265,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
     }
     counts.orphanFiles = plan.orphans.length;
     counts.withoutRelease = plan.withoutRelease;
+    counts.recordings = plan.recordings;
     counts.albumsByRelease = plan.albums.filter((a) => a.groupedBy === "release_mbid").length;
     counts.albumsByTags = plan.albums.filter((a) => a.groupedBy === "tags").length;
     await say(
@@ -275,6 +276,15 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         byRelease: counts.albumsByRelease,
         byTags: counts.albumsByTags,
       },
+    );
+    // The other half of "the MBIDs build the track", said out loud for the same reason: a
+    // recording recovered from the file is invisible otherwise, and so is one that was lost.
+    await say(
+      `recording MBIDs: ${String(plan.recordings.forced)} forced, ` +
+        `${String(plan.recordings.fromColumn)} from the v1 column, ` +
+        `${String(plan.recordings.fromTags)} from MUSICBRAINZ_TRACKID in the file, ` +
+        `${String(plan.recordings.none)} with none`,
+      { recordings: plan.recordings },
     );
 
     /* ---- what a previous run already finished -------------------------- */

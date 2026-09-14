@@ -12,6 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  CLEARED_RECORDING,
   FIXTURE_FORCES,
   FIXTURE_ORPHANS,
   FIXTURE_PLAYLISTS,
@@ -122,6 +123,29 @@ describe("the v1 fixture", () => {
     // One is findable by its recording MBID, the other only by its YouTube id.
     expect(moved.filter((song) => song.recordingMbid !== null)).toHaveLength(1);
     expect(moved.filter((song) => song.recordingMbid === null)).toHaveLength(1);
+  });
+
+  /*
+   * The row the recording ladder's third rung exists for, checked on both halves of the
+   * fixture at once: the `Songs` row that `dump.sql` will carry says nothing, and the tag set
+   * `build-library.ts` will write says everything. Get one of the two wrong and the
+   * integration run passes for the wrong reason.
+   */
+  it("has one row whose recording MBID is only in its file", () => {
+    const cleared = FIXTURE_SONGS.filter((song) => song.recordingMbidInFile !== undefined);
+    expect(cleared).toHaveLength(1);
+
+    const song = cleared[0];
+    expect(song?.id).toBe(CLEARED_RECORDING.songId);
+    expect(song?.realPath).toBe(CLEARED_RECORDING.path);
+    expect(song?.recordingMbidInFile).toBe(CLEARED_RECORDING.recording);
+    // Nothing on the row: not the column, not the force, not the flag behind it.
+    expect(song?.recordingMbid).toBeNull();
+    expect(song?.recordingMbidForce).toBeNull();
+    // …and the file really carries it, under Picard's name for the recording id.
+    const tags = Object.fromEntries(v1Tags(song!).map((tag) => [tag.key, tag.value]));
+    expect(tags["MUSICBRAINZ_TRACKID"]).toBe(CLEARED_RECORDING.recording);
+    expect(recordingMbidOf(tags)).toBe(CLEARED_RECORDING.recording);
   });
 
   it("gives both Needed rows a forced MBID, so the import carries a preselection", () => {

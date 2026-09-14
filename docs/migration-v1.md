@@ -147,6 +147,29 @@ viennent de MusicBrainz. C'est la meilleure information que la v1 ait jamais enr
 migration qui l'ignorerait au profit d'une copie de 2019 rendrait la bibliothèque moins bonne
 qu'elle ne l'est.
 
+**Les deux MBID se lisent de la même façon, sur trois échelons chacun**, et le troisième est le
+même dans les deux cas : la copie que la v1 avait elle-même écrite dans le fichier au moment du
+tag. Une colonne vidée après coup — un ré-appariement raté, une base corrigée à la main,
+`ForceSourceMetadata` qui efface les MBID — ne fait donc rien perdre.
+
+| Échelon                   | MBID de sortie                                                                     | MBID d'enregistrement                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1. forcé                  | `SongForceMetadata`, puis `MusicBrainzReleaseIdForce` derrière `MusicBrainzForced` | `SongForceMetadata`, puis `MusicBrainzRecordingIdForce` derrière `MusicBrainzForced` |
+| 2. la colonne `Songs`     | `MusicBrainzReleaseId`                                                             | `MusicBrainzRecordingId`                                                             |
+| 3. le tag dans le fichier | `MUSICBRAINZ_ALBUMID`                                                              | `MUSICBRAINZ_TRACKID`                                                                |
+
+`MUSICBRAINZ_TRACKID` porte bien l'**enregistrement** et non la piste de sortie : c'est la
+convention de Picard, que la v1 suivait (`Tag.MusicBrainzTrackId = MusicBrainzRecordingId`) et que
+la table de tags de la v2 suit aussi — la clé veut donc dire la même chose des deux côtés de la
+migration. `MUSICBRAINZ_RELEASETRACKID`, lui, est l'identifiant de la piste de sortie ; la v1 ne
+l'écrivait pas, la v2 l'ajoute, et il n'est jamais lu comme un enregistrement.
+
+Il n'y a pas de quatrième échelon et rien n'est deviné. Le recoupement fichier ↔ ligne lisait
+déjà ce tag pour **retrouver** le fichier ; le lire aussi ici est ce qui empêche d'adopter un
+fichier grâce à son enregistrement puis de jeter cet enregistrement. Le rapport compte les lignes
+échelon par échelon (`counts.recordings` : `forced`, `fromColumn`, `fromTags`, `none`), comme il
+compte `withoutRelease` pour la sortie, et le journal de l'exécution le dit aussi.
+
 La v1 avait quatre façons de dire « n'y touche plus ». Elles ne pèsent pas toutes le même poids,
 et c'est le fond de ce paragraphe : **deux sont des verrous, deux sont des filets de sécurité.**
 
@@ -158,8 +181,9 @@ et c'est le fond de ce paragraphe : **deux sont des verrous, deux sont des filet
 | `ForceSourceMetadata`              | **Filet, pas verrou.** La v1 analysait la description YouTube, **réécrivait le résultat dans la ligne `Songs`** et effaçait les MBID. Même règle : s'il reste un MBID (forcé, ou remis dans la ligne depuis), il l'emporte. Les deux drapeaux ensemble : `ForceSongMetadata` gagne, comme en v1.                                                                                           |
 
 **La seule exception, et elle est étroite.** Une ligne qui n'a **ni MBID de sortie ni MBID
-d'enregistrement** — ni forcé, ni dans la colonne, ni écrit dans le fichier en
-`MUSICBRAINZ_ALBUMID` — n'a rien à interroger : la ligne v1 est tout ce que la piste possède.
+d'enregistrement** — aucun des trois échelons, ni pour l'un ni pour l'autre, donc pas davantage
+`MUSICBRAINZ_ALBUMID` ou `MUSICBRAINZ_TRACKID` dans le fichier — n'a rien à interroger : la ligne
+v1 est tout ce que la piste possède.
 Dans ce cas seulement, le drapeau **gèle** les champs qu'il couvrait. Ce n'est pas « la v1 gagne
 contre MusicBrainz », c'est « un titre de vidéo ne remplace pas en silence ce que la v1 avait
 délibérément figé ». Car un document sans MBID n'est pas vide pour autant : le résolveur YouTube
@@ -171,7 +195,8 @@ sous le nom « Justice - Safe and Sound _ D.A.N.C.E. _ Fire ».
 La chaîne complète, pour une piste migrée, du premier au dernier mot :
 
 1. les **MBID forcés** (`MusicBrainzForced` + `*Force`, puis les lignes `SongForceMetadata`),
-   sinon ceux de la ligne, sinon celui du fichier ;
+   sinon ceux de la ligne, sinon ceux du fichier — les trois échelons du tableau ci-dessus,
+   pour la sortie comme pour l'enregistrement ;
 2. la **sortie et l'enregistrement** effectivement récupérés avec ces MBID ;
 3. les **valeurs MusicBrainz** (et les sources qui en dépendent : Cover Art Archive, Deezer,
    LRCLIB, Last.fm…) ;
@@ -256,7 +281,9 @@ Le MBID de sortie, lui, la v1 l'avait déjà décidé, piste par piste. On le li
 3. `MUSICBRAINZ_ALBUMID` dans le fichier, où la v1 avait écrit (2) au moment du tag : c'est la
    seule copie qui reste quand la ligne a été vidée après coup.
 
-Il n'y a pas de quatrième échelon et rien n'est deviné.
+Il n'y a pas de quatrième échelon et rien n'est deviné. Le MBID d'**enregistrement** se lit sur
+les trois mêmes échelons, le troisième étant `MUSICBRAINZ_TRACKID` au lieu de
+`MUSICBRAINZ_ALBUMID` — le tableau du §4 bis les met côte à côte.
 
 **Le repli.** Une ligne qui n'a aucun des trois n'a pas de sortie du tout — la v1 ne l'a jamais
 appariée — et il ne reste que ses propres tags. Ces lignes-là gardent l'ancienne clé : le

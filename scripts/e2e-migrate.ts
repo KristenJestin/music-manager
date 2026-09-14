@@ -45,7 +45,11 @@ import {
   withDatabaseName,
 } from "./lib.ts";
 import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
-import { FIXTURE_FORCED_COVER_JPEG, LAST_OF_US } from "../fixtures/v1/dataset.ts";
+import {
+  CLEARED_RECORDING,
+  FIXTURE_FORCED_COVER_JPEG,
+  LAST_OF_US,
+} from "../fixtures/v1/dataset.ts";
 
 /* ------------------------------------------------------------------ */
 /* what the fixture is                                                 */
@@ -75,6 +79,17 @@ const ALBUMS_BY_RELEASE = 3;
 const ALBUMS_BY_TAGS = 2;
 /** Justice's eight rows and Birdy's three: the rows with no release MBID anywhere. */
 const WITHOUT_RELEASE = 11;
+
+/**
+ * Where the thirty present rows' recording MBIDs come from, rung by rung.
+ *
+ * Daft Punk's twelve remaining rows and the soundtrack's six answer from the `Songs` column;
+ * Daft Punk's track 7 answers from `MUSICBRAINZ_TRACKID` in its file, because its column was
+ * emptied after v1 tagged it; Justice's eight and Birdy's three have no recording anywhere.
+ * Nothing is forced: the two `Needed` rows that force a recording have no file, and this is
+ * the present population, the same one `withoutRelease` counts.
+ */
+const RECORDING_RUNGS = { forced: 0, fromColumn: 18, fromTags: 1, none: 11 } as const;
 
 /**
  * The soundtrack: one release, six rows, two folders, and one row with another release forced.
@@ -370,6 +385,7 @@ interface Report {
     albumsByRelease: number;
     albumsByTags: number;
     withoutRelease: number;
+    recordings: { forced: number; fromColumn: number; fromTags: number; none: number };
     inboxItems: number;
     failed: number;
     alreadyDone: number;
@@ -557,6 +573,20 @@ async function main(): Promise<void> {
     dryReport.counts.withoutRelease === WITHOUT_RELEASE,
     `and the tag-keyed ones cover exactly the ${String(WITHOUT_RELEASE)} rows with no release`,
     String(dryReport.counts.withoutRelease),
+  );
+  /*
+   * The other identifier, counted the same way. `fromTags` is the number that matters: it is
+   * the rows whose `Songs.MusicBrainzRecordingId` is empty and whose file still carries what
+   * v1 wrote there, and it was 0 — invisibly — while the migration only read the row.
+   */
+  const rungs = dryReport.counts.recordings;
+  check(
+    rungs.forced === RECORDING_RUNGS.forced &&
+      rungs.fromColumn === RECORDING_RUNGS.fromColumn &&
+      rungs.fromTags === RECORDING_RUNGS.fromTags &&
+      rungs.none === RECORDING_RUNGS.none,
+    `the recording MBIDs come from the rungs they should (${String(RECORDING_RUNGS.fromTags)} off MUSICBRAINZ_TRACKID)`,
+    JSON.stringify(rungs),
   );
   // The consolidation is previewed, file by file: a dry run is the only chance to see a move
   // before the Navidrome play counts follow the path.
@@ -944,6 +974,57 @@ async function main(): Promise<void> {
     discoveryImport[0]?.release === "d073287b-d1bd-4f11-a933-a4386f8cf701",
     "the release MBID v1's owner forced is the import's release, not the empty column",
     discoveryImport[0]?.release ?? "(none)",
+  );
+
+  /* ---- the recording MBID that only the file still had -------------- */
+  //
+  // The recording half of the same rule. Song 107's `MusicBrainzRecordingId` is empty and its
+  // Opus carries `MUSICBRAINZ_TRACKID`, which is where v1 wrote the recording id at tagging
+  // time. The reconciliation has always read that tag to *find* the file; the migration used
+  // to drop it afterwards, so the track was adopted with `recording_mbid` null and rebuilt
+  // from its release alone.
+  const cleared = await v2<
+    {
+      importTrack: string | null;
+      libraryTrack: string | null;
+      document: string | null;
+      source: string | null;
+      documentId: string | null;
+    }[]
+  >`
+    select it.recording_mbid as "importTrack",
+           lt.recording_mbid as "libraryTrack",
+           d.document->'fields'->'musicbrainz_recordingid'->>'value' as document,
+           d.document->'fields'->'musicbrainz_recordingid'->>'source' as source,
+           d.recording_mbid as "documentId"
+      from import_tracks it
+      left join metadata_documents d on d.import_track_id = it.id
+      left join library_tracks lt on lt.import_track_id = it.id
+     where it.raw->>'v1SongId' = ${String(CLEARED_RECORDING.songId)}`;
+  const row = cleared[0];
+  check(
+    row?.importTrack === CLEARED_RECORDING.recording,
+    "a row whose recording MBID survives only in its file keeps it in import_tracks",
+    row?.importTrack ?? "(none)",
+  );
+  check(
+    row?.libraryTrack === CLEARED_RECORDING.recording &&
+      row?.documentId === CLEARED_RECORDING.recording,
+    "and in library_tracks and metadata_documents with it",
+    `${row?.libraryTrack ?? "(none)"} / ${row?.documentId ?? "(none)"}`,
+  );
+  // Built from that recording, not left on the v1 seed: the field is MusicBrainz's, which
+  // only happens when `documents.build` had an id to look the recording up with.
+  check(
+    row?.document === CLEARED_RECORDING.recording && row?.source === "musicbrainz",
+    "and its document was rebuilt from that recording rather than seeded from v1",
+    `${row?.document ?? "(none)"} from ${row?.source ?? "(no source)"}`,
+  );
+  const clearedTags = await probe(CLEARED_RECORDING.path);
+  check(
+    clearedTags["MUSICBRAINZ_TRACKID"] === CLEARED_RECORDING.recording,
+    "and the file it came from still carries it after the re-tag",
+    clearedTags["MUSICBRAINZ_TRACKID"] ?? "(absent)",
   );
 
   /* ---- documents --------------------------------------------------- */

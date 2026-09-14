@@ -22,10 +22,13 @@ import {
   libraryPrefixOf,
   movesInto,
   planFrom,
+  recordingMbidFor,
+  recordingSourceOf,
   releaseMbidFor,
   type PlannedSong,
 } from "./inventory.ts";
 import { normalizeV1Path, padD2, pathKey, predictV1Path, sanitizeV1 } from "./paths.ts";
+import { emptyCounts, formatReport, type MigrationCounts } from "./report.ts";
 import { playlistFileName, renderPlaylist } from "./playlists.ts";
 import { redactUrl } from "./reader.ts";
 import { commentVideoId, reconcile, recordingMbidOf, type ScannedFile } from "./reconcile.ts";
@@ -525,6 +528,140 @@ describe("which release a v1 row is on", () => {
   });
 });
 
+/*
+ * The recording ladder, which is the release ladder one identifier over.
+ *
+ * "When a release MBID and a recording MBID exist in v1, those are what build the track" is
+ * the whole rule, and the recording half of it used to stop one rung short: a row whose
+ * `MusicBrainzRecordingId` had been emptied kept its file — the reconciliation finds it by
+ * the very tag that holds the answer — and lost its recording on the way into
+ * `import_tracks`, so `documents.build` had nothing to look up.
+ */
+describe("which recording a v1 row is", () => {
+  const RECORDING = "60fa767a-d85d-4991-82bc-4294e0b11ae7";
+  const OTHER_RECORDING = "3f60ae01-43cc-4db9-86ec-97b79f83764f";
+
+  it("prefers the forced recording over the column v1's own lookup filled", () => {
+    const forced = plannedSong(
+      {
+        musicBrainzRecordingId: RECORDING,
+        musicBrainzForced: true,
+        musicBrainzRecordingIdForce: OTHER_RECORDING,
+      },
+      file("a/01.opus", { MUSICBRAINZ_TRACKID: RECORDING }),
+    );
+    expect(recordingMbidFor(forced)).toBe(OTHER_RECORDING);
+    expect(recordingSourceOf(forced)).toBe("forced");
+  });
+
+  it("ignores a *Force value that MusicBrainzForced does not stand behind", () => {
+    const unarmed = plannedSong({
+      musicBrainzRecordingId: RECORDING,
+      musicBrainzForced: false,
+      musicBrainzRecordingIdForce: OTHER_RECORDING,
+    });
+    expect(recordingMbidFor(unarmed)).toBe(RECORDING);
+    expect(recordingSourceOf(unarmed)).toBe("fromColumn");
+  });
+
+  it("prefers a SongForceMetadata override over both", () => {
+    const overridden = plannedSong(
+      {
+        musicBrainzRecordingId: RECORDING,
+        musicBrainzForced: true,
+        musicBrainzRecordingIdForce: RECORDING,
+      },
+      file("a/01.opus"),
+      [
+        {
+          id: 1,
+          songId: 1,
+          field: "MusicBrainzRecordingId",
+          value: OTHER_RECORDING,
+          isArrayValue: false,
+        },
+      ],
+    );
+    expect(recordingMbidFor(overridden)).toBe(OTHER_RECORDING);
+    expect(recordingSourceOf(overridden)).toBe("forced");
+  });
+
+  it("takes the Songs column when nothing was forced, over the tag in the file", () => {
+    const resolved = plannedSong(
+      { musicBrainzRecordingId: RECORDING },
+      file("a/01.opus", { MUSICBRAINZ_TRACKID: OTHER_RECORDING }),
+    );
+    expect(recordingMbidFor(resolved)).toBe(RECORDING);
+    expect(recordingSourceOf(resolved)).toBe("fromColumn");
+  });
+
+  /*
+   * The rung that makes a cleared row survivable. v1 wrote the *recording* id into TagLib's
+   * `MusicBrainzTrackId` (`ProcessSongJob.ApplyID3TagsInternal`), which is
+   * `MUSICBRAINZ_TRACKID` on Opus — Picard's name for the recording, which v2's tag map keeps.
+   */
+  it("falls back to MUSICBRAINZ_TRACKID in the file, in either spelling", () => {
+    const fromTag = plannedSong(
+      { musicBrainzRecordingId: null },
+      file("a/01.opus", { MUSICBRAINZ_TRACKID: RECORDING }),
+    );
+    expect(recordingMbidFor(fromTag)).toBe(RECORDING);
+    expect(recordingSourceOf(fromTag)).toBe("fromTags");
+
+    const alias = plannedSong(
+      { musicBrainzRecordingId: null },
+      file("a/01.opus", { MUSICBRAINZ_RECORDINGID: RECORDING.toUpperCase() }),
+    );
+    expect(recordingMbidFor(alias)).toBe(RECORDING);
+  });
+
+  /*
+   * And the trap the tag map names in so many words: `MUSICBRAINZ_RELEASETRACKID` is the
+   * *release-track* id, not the recording. v1 never wrote it and v2 does, so reading it here
+   * would give a re-migrated file its own release-track id back as a recording.
+   */
+  it("never reads MUSICBRAINZ_RELEASETRACKID, which is a different identifier", () => {
+    const releaseTrack = plannedSong(
+      { musicBrainzRecordingId: null },
+      file("a/01.opus", { MUSICBRAINZ_RELEASETRACKID: OTHER_RECORDING }),
+    );
+    expect(recordingMbidFor(releaseTrack)).toBeNull();
+    expect(recordingSourceOf(releaseTrack)).toBe("none");
+  });
+
+  it("has no fourth rung: a row with none of the three has no recording", () => {
+    const bare = plannedSong({ musicBrainzRecordingId: null }, file("a/01.opus"));
+    expect(recordingMbidFor(bare)).toBeNull();
+
+    // And a row with no file at all cannot borrow one from somewhere else either.
+    expect(recordingMbidFor(plannedSong({ musicBrainzRecordingId: null }, null))).toBeNull();
+  });
+
+  it("counts the rows that have a file by the rung that answered", () => {
+    const rows: V1Song[] = [
+      song({ id: 1, finalFilePath: "a/01.opus", musicBrainzRecordingId: RECORDING }),
+      song({ id: 2, finalFilePath: "a/02.opus", musicBrainzRecordingId: null }),
+      song({ id: 3, finalFilePath: "a/03.opus", musicBrainzRecordingId: null }),
+      song({
+        id: 4,
+        finalFilePath: "a/04.opus",
+        musicBrainzRecordingId: null,
+        musicBrainzForced: true,
+        musicBrainzRecordingIdForce: OTHER_RECORDING,
+      }),
+    ];
+    const plan = planFrom(dataset(rows), [
+      file("a/01.opus"),
+      // The row was emptied; the tag v1 wrote is the only copy left.
+      file("a/02.opus", { MUSICBRAINZ_TRACKID: OTHER_RECORDING }),
+      file("a/03.opus"),
+      file("a/04.opus"),
+    ]);
+
+    expect(plan.recordings).toEqual({ forced: 1, fromColumn: 1, fromTags: 1, none: 1 });
+  });
+});
+
 describe("the album an inventory plans", () => {
   it("puts every row of one release in one album, whatever the tags disagree about", () => {
     const { songs, files } = soundtrack();
@@ -903,6 +1040,32 @@ describe("the seed document", () => {
   });
 
   /*
+   * The same, for the recording: `inventory.recordingMbidFor` reads `MUSICBRAINZ_TRACKID` off
+   * the file when the column is empty, and the seed has to be told, or the document would say
+   * the track has no recording while `import_tracks.recording_mbid` says it has one.
+   */
+  it("accepts the plan's recording when the row's column is empty", () => {
+    const recording = "60fa767a-d85d-4991-82bc-4294e0b11ae7";
+    const result = seedDocument(noMbid({ forceSongMetadata: true }), [], {
+      recordingMbid: recording,
+    });
+
+    expect(result.patch.fields?.["musicbrainz_recordingid"]?.value).toBe(recording);
+    // And it counts as something to query, so nothing is frozen.
+    expect(result.patch.fields?.["title"]?.locked).toBe(false);
+  });
+
+  /** The row still wins over it, exactly as `recordingMbidFor` orders the two. */
+  it("prefers the row's own recording to the one the plan passes", () => {
+    const result = seedDocument(song(), [], {
+      recordingMbid: "00000000-0000-4000-8000-000000000000",
+    });
+    expect(result.patch.fields?.["musicbrainz_recordingid"]?.value).toBe(
+      "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+    );
+  });
+
+  /*
    * `ForceSourceMetadata` writes the parsed description *back into the Songs row* and clears
    * the MBIDs, so a row carrying that flag usually has nothing to query — which is the case
    * where it freezes. Only the fields that branch assigns: the track position is not one.
@@ -1073,5 +1236,58 @@ describe("guards", () => {
     expect(libraryPrefixOf(paths, "D:/lib")).toBe("");
     expect(libraryPrefixOf(paths, "D:/lib/v1")).toBe("v1/");
     expect(() => libraryPrefixOf(paths, "D:/elsewhere")).toThrow(/must be the v2 library root/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the rendered report                                                 */
+/* ------------------------------------------------------------------ */
+
+describe("the report the CLI prints", () => {
+  const report = (counts: MigrationCounts): string =>
+    formatReport({
+      runId: "mig_test",
+      dryRun: true,
+      renameToTemplate: false,
+      groupBy: "release",
+      keepFolders: false,
+      library: "D:/lib",
+      database: "postgres://mm:***@db/v1",
+      startedAt: "2026-09-05T00:00:00.000Z",
+      finishedAt: "2026-09-05T00:00:01.000Z",
+      durationMs: 1000,
+      counts,
+      albums: [],
+      imports: [],
+      playlists: [],
+      renames: [],
+      moves: [],
+      regroup: [],
+      discrepancies: [],
+      errors: [],
+      writes: 0,
+    });
+
+  it("says where the recording MBIDs came from, rung by rung", () => {
+    const text = report({
+      ...emptyCounts(),
+      recordings: { forced: 2, fromColumn: 18, fromTags: 1, none: 11 },
+    });
+    expect(text).toContain("1  recording MBID(s) read off MUSICBRAINZ_TRACKID in the file");
+    expect(text).toContain("2 forced");
+    expect(text).toContain("18 from the v1 column");
+    expect(text).toContain("11 row(s) with no recording");
+  });
+
+  /*
+   * `migrate show <run id>` renders a report stored months ago, and stored reports are never
+   * migrated. One written before the counter existed has no `recordings` key at all, and the
+   * renderer must print the rest of it rather than throw on the missing one.
+   */
+  it("still renders a report stored before the counter existed", () => {
+    const { recordings: _dropped, ...older } = emptyCounts();
+    const text = report(older as MigrationCounts);
+    expect(text).toContain("Dry run mig_test");
+    expect(text).not.toContain("MUSICBRAINZ_TRACKID");
   });
 });

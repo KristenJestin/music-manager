@@ -21,7 +21,13 @@ import { walkLibrary } from "#/server/services/scan.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { classify, needsImport } from "./classify.ts";
-import { reconcile, releaseMbidOf, type Reconciliation, type ScannedFile } from "./reconcile.ts";
+import {
+  reconcile,
+  recordingMbidOf,
+  releaseMbidOf,
+  type Reconciliation,
+  type ScannedFile,
+} from "./reconcile.ts";
 import { albumKeyOf } from "./seed.ts";
 import { identifiersOf } from "./schema.ts";
 import type { V1Dataset, V1ForceMetadata, V1Song } from "./schema.ts";
@@ -100,6 +106,28 @@ export interface MigrationPlan {
   readonly orphans: readonly ScannedFile[];
   /** Present rows with no release MBID anywhere, which is why any `tags` album exists. */
   readonly withoutRelease: number;
+  /** Present rows by the rung of `recordingMbidFor` that answered for them. */
+  readonly recordings: RecordingRungs;
+}
+
+/**
+ * How many present rows each rung of `recordingMbidFor` answered for.
+ *
+ * The counterpart of `withoutRelease`, one rung finer: a migration that loses recordings
+ * loses them silently — the track is still migrated, still tagged, still filed — so the only
+ * way to notice is to say, run after run, where the recordings came from. `fromTags` moving
+ * is the interesting number: it is the rows whose `Songs` column was emptied after v1 tagged
+ * them, and it used to be part of `none`.
+ */
+export interface RecordingRungs {
+  /** `SongForceMetadata`, or `MusicBrainzRecordingIdForce` behind `MusicBrainzForced`. */
+  readonly forced: number;
+  /** `Songs.MusicBrainzRecordingId`, what v1's own lookup settled on. */
+  readonly fromColumn: number;
+  /** `MUSICBRAINZ_TRACKID` in the file, the copy v1 wrote at tagging time. */
+  readonly fromTags: number;
+  /** No recording on any rung. */
+  readonly none: number;
 }
 
 /** What `planFrom` is allowed to decide differently. */
@@ -239,7 +267,15 @@ export function planFrom(
     importGroups: groupImports(songs, dataset),
     orphans: reconciliation.orphans,
     withoutRelease: present.filter((planned) => releaseMbidFor(planned) === null).length,
+    recordings: countRecordings(present),
   };
+}
+
+/** Tally `recordingSourceOf` over the rows that have a file. */
+export function countRecordings(songs: readonly PlannedSong[]): RecordingRungs {
+  const counts = { forced: 0, fromColumn: 0, fromTags: 0, none: 0 };
+  for (const planned of songs) counts[recordingSourceOf(planned)] += 1;
+  return counts;
 }
 
 /**
@@ -258,6 +294,44 @@ export function releaseMbidFor(planned: PlannedSong): string | null {
   const fromRow = identifiersOf(planned.song, planned.forces).releaseMbid;
   if (fromRow !== null) return fromRow;
   return planned.file === null ? null : releaseMbidOf(planned.file.tags);
+}
+
+/**
+ * Which recording a v1 row is, in the order v1 itself would have answered.
+ *
+ * The exact ladder of `releaseMbidFor`, one identifier over:
+ *
+ * 1. the value somebody **forced** — a `SongForceMetadata` row, then
+ *    `MusicBrainzRecordingIdForce` behind `MusicBrainzForced`. `identifiersOf` applies both,
+ *    in that precedence;
+ * 2. `Songs.MusicBrainzRecordingId`, what v1's own lookup settled on;
+ * 3. **`MUSICBRAINZ_TRACKID` in the file**, which is where v1 wrote (2) at tagging time
+ *    (`ProcessSongJob.ApplyID3TagsInternal`: `Tag.MusicBrainzTrackId = MusicBrainzRecordingId`)
+ *    and is the only copy left when the row was cleared afterwards. Picard's confusing name —
+ *    that key holds the *recording* id, not the release-track id — and v2's tag map follows
+ *    Picard, so the same key means the same thing on both sides of the migration.
+ *
+ * The third rung is what `reconcile` has always read to *match* a file to a row; until it was
+ * read here too, a row whose column had been emptied matched its file perfectly and then had
+ * its recording thrown away — `import_tracks.recording_mbid` came out null, `documents.build`
+ * had nothing to look up, and the track was rebuilt from its release alone.
+ *
+ * There is no fourth rung and no guessing.
+ */
+export function recordingMbidFor(planned: PlannedSong): string | null {
+  const fromRow = identifiersOf(planned.song, planned.forces).recordingMbid;
+  if (fromRow !== null) return fromRow;
+  return planned.file === null ? null : recordingMbidOf(planned.file.tags);
+}
+
+/** Which rung of `recordingMbidFor` answered for this row. */
+export function recordingSourceOf(planned: PlannedSong): keyof RecordingRungs {
+  const ids = identifiersOf(planned.song, planned.forces);
+  if (ids.recordingMbid !== null) {
+    return ids.forced.includes("MusicBrainzRecordingId") ? "forced" : "fromColumn";
+  }
+  if (planned.file !== null && recordingMbidOf(planned.file.tags) !== null) return "fromTags";
+  return "none";
 }
 
 /**

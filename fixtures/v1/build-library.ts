@@ -86,8 +86,14 @@ export function v1Tags(song: FixtureSong): Tag[] {
   put("MUSICBRAINZ_ALBUMARTISTID", song.albumArtistMbid);
   put("MUSICBRAINZ_ALBUMID", song.releaseMbid);
   put("MUSICBRAINZ_RELEASEGROUPID", song.releaseGroupMbid);
-  // Picard's naming: the *recording* id goes into the *track* id tag. v2 does the same.
-  put("MUSICBRAINZ_TRACKID", song.recordingMbid);
+  /*
+   * Picard's naming: the *recording* id goes into the *track* id tag. v2 does the same.
+   *
+   * `recordingMbidInFile` wins where it is set, and that is the point of it: v1 wrote this tag
+   * from the column at tagging time, so a row emptied afterwards still has the answer here and
+   * nowhere else. The file is not lying — it is the older, truer copy.
+   */
+  put("MUSICBRAINZ_TRACKID", song.recordingMbidInFile ?? song.recordingMbid);
   put("RELEASESTATUS", song.releaseStatus);
   put("RELEASECOUNTRY", song.releaseCountry);
 
