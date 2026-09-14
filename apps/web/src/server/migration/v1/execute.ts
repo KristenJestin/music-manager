@@ -803,7 +803,8 @@ async function upsertImportTrack(ctx: ExecuteContext, input: UpsertTrackInput): 
     /*
      * `recordingMbidFor`, not `identifiersOf`: the last rung is `MUSICBRAINZ_TRACKID` in the
      * file, and this column is what `documents.build` looks the recording up with. A row v1
-     * matched and then had emptied would otherwise be rebuilt from its release alone.
+     * matched and that somebody emptied afterwards would otherwise be rebuilt from its
+     * release alone.
      */
     recordingMbid: recordingMbidFor(input.planned),
     trackTitle: song.title,
