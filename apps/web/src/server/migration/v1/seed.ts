@@ -71,6 +71,16 @@ export interface SeedOptions {
    * two are a union, because either one is a release somebody can look up.
    */
   readonly releaseMbid?: string | null;
+  /**
+   * The recording the plan settled on for this track — `inventory.recordingMbidFor`.
+   *
+   * Same reason as `releaseMbid`, one identifier over: `identifiersOf` sees the forced value
+   * and the row, not `MUSICBRAINZ_TRACKID` in the file. A row whose `MusicBrainzRecordingId`
+   * was emptied after v1 tagged it would otherwise be seeded with no recording id at all,
+   * while `import_tracks.recording_mbid` — which reads the file — had one, and the document
+   * and the row it hangs off would disagree about what the track is.
+   */
+  readonly recordingMbid?: string | null;
 }
 
 export interface SeedResult {
@@ -256,7 +266,8 @@ export function seedDocument(
 
   /* ---- identifiers ---- */
   const ids = identifiersOf(song, forces);
-  put("musicbrainz_recordingid", ids.recordingMbid);
+  const recordingMbid = ids.recordingMbid ?? options.recordingMbid ?? null;
+  put("musicbrainz_recordingid", recordingMbid);
   put("musicbrainz_albumid", ids.releaseMbid);
   put("musicbrainz_releasegroupid", ids.releaseGroupMbid);
   put("musicbrainz_artistid", ids.artistMbid === null ? null : [ids.artistMbid]);
@@ -267,7 +278,7 @@ export function seedDocument(
   put("musicmanager_sourceurl", song.sourceUrl);
 
   /* ---- the processing flags, which freeze only when there is nothing to query ---- */
-  const hasMbid = ids.recordingMbid !== null || (options.releaseMbid ?? ids.releaseMbid) !== null;
+  const hasMbid = recordingMbid !== null || (options.releaseMbid ?? ids.releaseMbid) !== null;
   for (const name of frozenFields(song, hasMbid)) {
     const held = fields[name];
     if (held === undefined) continue;

@@ -39,6 +39,8 @@ export {
   movesInto,
   planFrom,
   probeLibrary,
+  recordingMbidFor,
+  recordingSourceOf,
   releaseMbidFor,
   type AlbumGrouping,
   type MigrationPlan,
@@ -48,6 +50,7 @@ export {
   type PlannedImportGroup,
   type PlannedMove,
   type PlannedSong,
+  type RecordingRungs,
 } from "./inventory.ts";
 
 export { classify, importStatusFor, needsImport, reasonFor } from "./classify.ts";

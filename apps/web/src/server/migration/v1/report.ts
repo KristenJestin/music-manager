@@ -10,6 +10,7 @@
  * created, orphan files, rows without a file, duration, errors.
  */
 import type { MigrationClass } from "#/server/db/schema/migration.ts";
+import type { RecordingRungs } from "./inventory.ts";
 import type { Discrepancy } from "./reconcile.ts";
 
 export interface MigrationCounts {
@@ -50,6 +51,15 @@ export interface MigrationCounts {
   readonly albumsByTags: number;
   /** Present rows with no release MBID at all, which is the only reason `albumsByTags` is not 0. */
   readonly withoutRelease: number;
+  /**
+   * Where the present rows' recording MBIDs came from, one entry per rung.
+   *
+   * The release has `withoutRelease` and the albums that follow from it; the recording is the
+   * other half of "the MBIDs build the track" and had no number at all. `fromTags` is the one
+   * to read: rows whose `Songs` column is empty and whose file still carries what v1 wrote
+   * there. They used to migrate with no recording, and nothing in the report said so.
+   */
+  readonly recordings: RecordingRungs;
   readonly albumsVerified: number;
   readonly inboxItems: number;
   readonly failed: number;
@@ -176,6 +186,7 @@ export function emptyCounts(): MigrationCounts {
     albumsByRelease: 0,
     albumsByTags: 0,
     withoutRelease: 0,
+    recordings: { forced: 0, fromColumn: 0, fromTags: 0, none: 0 },
     albumsVerified: 0,
     inboxItems: 0,
     failed: 0,
@@ -222,6 +233,11 @@ export function formatReport(report: MigrationReport): string {
   );
   lines.push(
     `    ${String(counts.albumsByTags).padStart(5)}  album(s) keyed on v1 tags, for ${String(counts.withoutRelease)} row(s) with no release`,
+  );
+  lines.push(
+    `    ${String(counts.recordings.fromTags).padStart(5)}  recording MBID(s) read off MUSICBRAINZ_TRACKID in the file` +
+      ` (${String(counts.recordings.forced)} forced, ${String(counts.recordings.fromColumn)} from the v1 column,` +
+      ` ${String(counts.recordings.none)} row(s) with no recording)`,
   );
   lines.push("");
 

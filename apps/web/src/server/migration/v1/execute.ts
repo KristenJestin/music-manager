@@ -57,7 +57,7 @@ import type { Settings } from "#/server/services/settings.ts";
 import type { Picture, ReplayGainResult, Tag, ToolboxClient } from "#/server/toolbox/client.ts";
 import { renderPathTemplate, type DiscMode, type SanitizeMode } from "@mm/domain";
 import { importStatusFor, reasonFor } from "./classify.ts";
-import { movesInto } from "./inventory.ts";
+import { movesInto, recordingMbidFor } from "./inventory.ts";
 import type { PlannedAlbum, PlannedImportGroup, PlannedSong } from "./inventory.ts";
 import { seedDocument } from "./seed.ts";
 import { identifiersOf, sourceVideoId } from "./schema.ts";
@@ -321,6 +321,7 @@ async function rebuildAfterLoudness(
       const seed = seedDocument(planned.song, planned.forces, {
         now: ctx.now,
         releaseMbid: album.releaseMbid,
+        recordingMbid: recordingMbidFor(planned),
       });
       const built = await buildDocument(outcome.importTrackId, {
         db: ctx.db,
@@ -419,6 +420,7 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
   const seed = seedDocument(planned.song, planned.forces, {
     now: ctx.now,
     releaseMbid: album.releaseMbid,
+    recordingMbid: recordingMbidFor(planned),
   });
   const seeded = merge([seed.patch], { schemaVersion: TAG_SCHEMA_VERSION });
   await persistDocument(ctx, importTrackId, seeded, trackCompleteness(seeded).score);
@@ -428,9 +430,11 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
   // The whole chain for a migrated track, top to bottom, ends here:
   //
   //  1. the MBIDs — `identifiersOf` (a `SongForceMetadata` row, then `*Force` behind
-  //     `MusicBrainzForced`, then the plain column), then `inventory.releaseMbidFor`'s last
-  //     rung, `MUSICBRAINZ_ALBUMID` in the file. That is `album.releaseMbid` and
-  //     `import_tracks.recording_mbid`;
+  //     `MusicBrainzForced`, then the plain column), then the last rung, the copy v1 wrote
+  //     into the file itself: `MUSICBRAINZ_ALBUMID` for the release (`releaseMbidFor`, which
+  //     is `album.releaseMbid`) and `MUSICBRAINZ_TRACKID` for the recording
+  //     (`recordingMbidFor`, which is `import_tracks.recording_mbid`). Both ladders are the
+  //     same three rungs, and neither has a fourth;
   //  2. the release and the recording `build` actually fetches with them;
   //  3. MusicBrainz's field values, and everything hanging off them — Cover Art Archive,
   //     Deezer, LRCLIB, Last.fm;
@@ -666,6 +670,9 @@ export async function createImportGroup(
   for (const [index, planned] of group.songs.entries()) {
     ctx.signal?.throwIfAborted();
     const ids = identifiersOf(planned.song, planned.forces);
+    // These rows have no file, so the third rung has nothing to read — but the question asked
+    // is the same one `import_tracks.recording_mbid` answers, so it is asked the same way.
+    const recordingMbid = recordingMbidFor(planned);
     const importTrackId = await upsertImportTrack(ctx, {
       importId,
       position: index,
@@ -675,7 +682,7 @@ export async function createImportGroup(
       libraryPath: null,
       note: reasonFor(planned.song, planned.classification),
     });
-    const preselected = ids.recordingMbid !== null || ids.forced.length > 0;
+    const preselected = recordingMbid !== null || ids.forced.length > 0;
     tracks.push({ songId: planned.song.id, importTrackId, preselected });
 
     if (planned.classification === "needs_manual_review") {
@@ -693,9 +700,9 @@ export async function createImportGroup(
             url: planned.song.sourceUrl,
             forced: ids.forced,
           },
-          ...(ids.recordingMbid === null
+          ...(recordingMbid === null
             ? {}
-            : { preselected: { recordingMbid: ids.recordingMbid, releaseMbid: ids.releaseMbid } }),
+            : { preselected: { recordingMbid, releaseMbid: ids.releaseMbid } }),
         },
         ctx.db,
       );
@@ -793,7 +800,12 @@ async function upsertImportTrack(ctx: ExecuteContext, input: UpsertTrackInput): 
     sourceDuration: song.duration === null ? null : song.duration / 1000,
     role: input.role,
     state: input.state,
-    recordingMbid: ids.recordingMbid,
+    /*
+     * `recordingMbidFor`, not `identifiersOf`: the last rung is `MUSICBRAINZ_TRACKID` in the
+     * file, and this column is what `documents.build` looks the recording up with. A row v1
+     * matched and then had emptied would otherwise be rebuilt from its release alone.
+     */
+    recordingMbid: recordingMbidFor(input.planned),
     trackTitle: song.title,
     trackPosition: song.trackNumber,
     mediumPosition: song.discNumber ?? 1,
@@ -1484,7 +1496,7 @@ async function openUnresolvedReleaseItem(
   },
 ): Promise<void> {
   const song = input.planned.song;
-  const ids = identifiersOf(song, input.planned.forces);
+  const recordingMbid = recordingMbidFor(input.planned);
   await openInboxItem(
     {
       type: "ambiguous_release",
@@ -1498,12 +1510,12 @@ async function openUnresolvedReleaseItem(
         source: "migration-v1",
         v1SongId: song.id,
         releaseMbid: input.release,
-        recordingMbid: ids.recordingMbid,
+        recordingMbid,
         reason: input.reason,
       },
-      ...(ids.recordingMbid === null
+      ...(recordingMbid === null
         ? {}
-        : { preselected: { recordingMbid: ids.recordingMbid, releaseMbid: input.release } }),
+        : { preselected: { recordingMbid, releaseMbid: input.release } }),
     },
     ctx.db,
   );
