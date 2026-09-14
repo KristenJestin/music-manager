@@ -318,7 +318,10 @@ async function rebuildAfterLoudness(
       continue;
     }
     try {
-      const seed = seedDocument(planned.song, planned.forces, { now: ctx.now });
+      const seed = seedDocument(planned.song, planned.forces, {
+        now: ctx.now,
+        releaseMbid: album.releaseMbid,
+      });
       const built = await buildDocument(outcome.importTrackId, {
         db: ctx.db,
         settings: ctx.settings,
@@ -408,8 +411,15 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
     libraryPath: file.path,
   });
 
-  /* ---- 2 · the seed, from v1 alone, with the forced fields locked ---- */
-  const seed = seedDocument(planned.song, planned.forces, { now: ctx.now });
+  /* ---- 2 · the seed, from v1 alone, with the per-field overrides locked ---- */
+  //
+  // `album.releaseMbid` is passed because the seed's one remaining lock — the row flags, when
+  // the track has no MBID at all — must be decided on the same release the rest of the
+  // migration uses, `MUSICBRAINZ_ALBUMID` rung included. See `seed.ts`'s `frozenFields`.
+  const seed = seedDocument(planned.song, planned.forces, {
+    now: ctx.now,
+    releaseMbid: album.releaseMbid,
+  });
   const seeded = merge([seed.patch], { schemaVersion: TAG_SCHEMA_VERSION });
   await persistDocument(ctx, importTrackId, seeded, trackCompleteness(seeded).score);
 
