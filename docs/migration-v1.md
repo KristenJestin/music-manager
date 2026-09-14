@@ -118,10 +118,12 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    `UserPlaylistSongs` sur une connexion **read-only** (`default_transaction_read_only`, posé à
    la connexion, re-posé sur la session, puis relu — sinon la commande refuse de continuer).
    Puis parcours du dossier et `/probe` de chaque fichier.
-2. **Recoupement.** Fichier ↔ ligne par `FinalFilePath`, puis par MBID d'enregistrement
-   (`MUSICBRAINZ_TRACKID`), puis par l'id YouTube du commentaire `Source: <url>`. Tout écart est
-   listé dans le rapport : fichier déplacé, ligne `Present` sans fichier, fichier orphelin,
-   deux lignes qui réclament le même fichier.
+2. **Recoupement.** Fichier ↔ ligne par le chemin qu'une migration précédente a écrit
+   (`migration_v1.path`, le seul endroit qui se souvienne d'un fichier que la v2 a elle-même
+   déplacé), puis par `FinalFilePath`, puis par MBID d'enregistrement (`MUSICBRAINZ_TRACKID`),
+   puis par l'id YouTube du commentaire `Source: <url>`. Tout écart est listé dans le rapport :
+   fichier déplacé, ligne `Present` sans fichier, fichier orphelin, deux lignes qui réclament le
+   même fichier.
 3. **Pistes présentes.** `library_albums` / `library_tracks` — un album v2 est **un MBID de
    sortie v1**, voir §4 quinquies —, un document amorcé depuis la v1
    (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata`, les
