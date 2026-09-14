@@ -103,7 +103,11 @@ export interface TrackOutcome {
   /** Where the folder consolidation moved the file from, or `null` when it did not move it. */
   readonly movedFrom: string | null;
   /** The album this track's rebuilt document claims — the release's own title, not v1's. */
-  readonly album: { readonly title: string | null; readonly artist: string | null; readonly year: number | null };
+  readonly album: {
+    readonly title: string | null;
+    readonly artist: string | null;
+    readonly year: number | null;
+  };
   readonly locked: readonly string[];
   /** Recommended fields the document still lacks. Reported, never fatal. */
   readonly recommendedGaps: readonly string[];
@@ -173,8 +177,7 @@ export async function migrateAlbum(
   const albumId = await upsertAlbum(ctx, album, resolved);
   // `--rename-to-template` moves every file anyway, so consolidating first would be two moves
   // for one file and two lines in the report for one decision.
-  const moves =
-    ctx.keepFolders || ctx.renameToTemplate ? [] : movesInto(album.tracks, folder);
+  const moves = ctx.keepFolders || ctx.renameToTemplate ? [] : movesInto(album.tracks, folder);
   const moveBySong = new Map(moves.map((move) => [move.songId, move.to]));
 
   const outcomes: TrackOutcome[] = [];

@@ -248,7 +248,9 @@ export function formatReport(report: MigrationReport): string {
     `    ${String(counts.consolidated).padStart(5)}  file(s) moved into their album's folder`,
   );
   lines.push(`    ${String(counts.regrouped).padStart(5)}  track(s) moved to another album row`);
-  lines.push(`    ${String(counts.albumsRemoved).padStart(5)}  album row(s) left empty and removed`);
+  lines.push(
+    `    ${String(counts.albumsRemoved).padStart(5)}  album row(s) left empty and removed`,
+  );
   lines.push(`    ${String(counts.inboxItems).padStart(5)}  Inbox item(s)`);
   lines.push(`    ${String(counts.alreadyDone).padStart(5)}  row(s) already done, skipped`);
   lines.push(`    ${String(counts.failed).padStart(5)}  failure(s)`);

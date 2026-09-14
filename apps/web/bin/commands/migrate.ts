@@ -99,9 +99,13 @@ export async function cmdMigrate(args: CliArgs): Promise<number> {
   // reproduced and compared before it is regrouped.
   const groupByRaw = flagString(args, "group-by") ?? "release";
   if (groupByRaw !== "release" && groupByRaw !== "tags") {
-    throw new MMError("INVALID_INPUT", `--group-by must be "release" or "tags", got "${groupByRaw}".`, {
-      hint: "release (the default) keys an album on the v1 release MBID; tags reproduces the pre-P11.1 grouping.",
-    });
+    throw new MMError(
+      "INVALID_INPUT",
+      `--group-by must be "release" or "tags", got "${groupByRaw}".`,
+      {
+        hint: "release (the default) keys an album on the v1 release MBID; tags reproduces the pre-P11.1 grouping.",
+      },
+    );
   }
   const groupBy: "release" | "tags" = groupByRaw;
   const keepFolders = flagBoolean(args, "keep-folders");
