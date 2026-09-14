@@ -9,6 +9,7 @@
  * step that resumes after a worker restart must see the rows as they are now, not as they
  * were when the job was first queued.
  */
+import { existsSync, statSync } from "node:fs";
 import { and, asc, eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -22,7 +23,7 @@ import {
   type TrackState,
 } from "#/server/db/schema/index.ts";
 import { serverEnv } from "#/server/env.ts";
-import { pathMap, type PathMap } from "#/server/paths.ts";
+import { hostPath, pathMap, type PathMap } from "#/server/paths.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { emit } from "#/server/services/events.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -181,6 +182,25 @@ export async function makeContext(
       return await everyMapped();
     },
   };
+}
+
+/**
+ * The library-relative path `relative` if a real, non-empty file is sitting there — `null`
+ * otherwise.
+ *
+ * The steps never trust a row about a file; they ask the filesystem. This is that question,
+ * asked the same way everywhere, and the "non-empty **regular** file" part is the whole point
+ * of having one function for it: a directory at the destination (`/place` answers
+ * `PLACE_CONFLICT` for one) and a zero-byte stub left by a copy that died halfway are both
+ * `existsSync`-true, and neither one is a track. Believing either would make `download` skip a
+ * track that was never fetched, which is a silently missing file at the end of the import.
+ */
+export function fileOnDisk(paths: PathMap, relative: string | null): string | null {
+  if (relative === null || relative === "") return null;
+  const absolute = hostPath(paths, relative);
+  if (!existsSync(absolute)) return null;
+  const stat = statSync(absolute);
+  return stat.isFile() && stat.size > 0 ? relative : null;
 }
 
 /** Patch one import track and stamp `updated_at`. */
