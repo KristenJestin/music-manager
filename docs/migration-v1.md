@@ -77,19 +77,22 @@ Puis on vérifie sur la copie, avant de toucher à l'original :
 
 ```
 mm migrate v1 --db <postgres v1> --library <dossier v1>
-              [--dry-run] [--rename-to-template] [--limit N] [--resume]
+              [--dry-run] [--rename-to-template] [--group-by release|tags]
+              [--keep-folders] [--limit N] [--resume]
               [--i-have-a-backup] [--verify] [--json] [--verbose]
 ```
 
-| Option                 | Effet                                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `--dry-run`            | Inventaire, recoupement, plan — **zéro écriture** hors `migration_v1*`. Le rapport porte un compteur d'écritures.   |
-| `--i-have-a-backup`    | Acquitte la sauvegarde, une fois pour toutes (`app_meta`). Sans lui, une exécution réelle refuse de démarrer.       |
-| `--rename-to-template` | Applique le gabarit v2 au lieu de garder les chemins v1. **Perd les statistiques Navidrome.** Averti à chaque fois. |
-| `--limit N`            | Ne lit que les N premières lignes de `Songs`. Pour un premier essai sur une grosse base.                            |
-| `--resume`             | Reprend le dernier run laissé `running` au lieu d'en ouvrir un nouveau.                                             |
-| `--verify`             | Relit chaque album migré via Navidrome (§ Étapes 6). Demande un Navidrome configuré.                                |
-| `--json`               | Le rapport, pour un script.                                                                                         |
+| Option                     | Effet                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--dry-run`                | Inventaire, recoupement, plan — **zéro écriture** hors `migration_v1*`. Le rapport porte un compteur d'écritures.                    |
+| `--i-have-a-backup`        | Acquitte la sauvegarde, une fois pour toutes (`app_meta`). Sans lui, une exécution réelle refuse de démarrer.                        |
+| `--rename-to-template`     | Applique le gabarit v2 au lieu de garder les chemins v1. **Perd les statistiques Navidrome.** Averti à chaque fois.                  |
+| `--group-by release\|tags` | Ce qui fait un album. `release` (défaut) : le MBID de sortie v1. `tags` : l'ancienne clé, décrite au §4 quinquies.                   |
+| `--keep-folders`           | N'effectue aucun regroupement de fichiers : les albums sont recomposés en base, mais chaque fichier reste dans le dossier où il est. |
+| `--limit N`                | Ne lit que les N premières lignes de `Songs`. Pour un premier essai sur une grosse base.                                             |
+| `--resume`                 | Reprend le dernier run laissé `running` au lieu d'en ouvrir un nouveau.                                                              |
+| `--verify`                 | Relit chaque album migré via Navidrome (§ Étapes 6). Demande un Navidrome configuré.                                                 |
+| `--json`                   | Le rapport, pour un script.                                                                                                          |
 
 `V1_DATABASE_URL` et `V1_LIBRARY_PATH` sont lus quand les deux drapeaux sont absents.
 
@@ -115,11 +118,14 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    `UserPlaylistSongs` sur une connexion **read-only** (`default_transaction_read_only`, posé à
    la connexion, re-posé sur la session, puis relu — sinon la commande refuse de continuer).
    Puis parcours du dossier et `/probe` de chaque fichier.
-2. **Recoupement.** Fichier ↔ ligne par `FinalFilePath`, puis par MBID d'enregistrement
-   (`MUSICBRAINZ_TRACKID`), puis par l'id YouTube du commentaire `Source: <url>`. Tout écart est
-   listé dans le rapport : fichier déplacé, ligne `Present` sans fichier, fichier orphelin,
-   deux lignes qui réclament le même fichier.
-3. **Pistes présentes.** `library_albums` / `library_tracks`, un document amorcé depuis la v1
+2. **Recoupement.** Fichier ↔ ligne par le chemin qu'une migration précédente a écrit
+   (`migration_v1.path`, le seul endroit qui se souvienne d'un fichier que la v2 a elle-même
+   déplacé), puis par `FinalFilePath`, puis par MBID d'enregistrement (`MUSICBRAINZ_TRACKID`),
+   puis par l'id YouTube du commentaire `Source: <url>`. Tout écart est listé dans le rapport :
+   fichier déplacé, ligne `Present` sans fichier, fichier orphelin, deux lignes qui réclament le
+   même fichier.
+3. **Pistes présentes.** `library_albums` / `library_tracks` — un album v2 est **un MBID de
+   sortie v1**, voir §4 quinquies —, un document amorcé depuis la v1
    (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata`, les
    MBID forcés et les lignes marquées d'un drapeau de traitement — voir §4 bis), puis
    `documents.build` avec les MBID v1, re-tag en place au schéma courant,
@@ -201,6 +207,54 @@ Le bouton _Re-taguer la bibliothèque avec ces règles_, dans la même section, 
 blanc sur toute la bibliothèque : le diff est visible avant la moindre écriture, et l'opération
 reste hors ligne, à partir du cache brut.
 
+### 4 quinquies. Ce qui fait un album : le MBID de sortie v1
+
+**Un album v2 est un MBID de sortie v1.** C'est la règle, et elle n'a pas d'exception en dehors
+du repli décrit plus bas.
+
+La v1 n'avait pas d'entité album : chaque chanson interrogeait MusicBrainz pour son compte, puis
+était classée dans `ArtisteAlbum/Album (Année)`. Les lignes d'une même sortie n'étaient donc pas
+tenues d'être d'accord entre elles — et elles ne l'étaient pas. Sur une bande originale, trois
+lignes créditaient « Various Artists » en 2013 et deux le compositeur en 2014 : **une** sortie,
+**deux** dossiers. L'ancienne clé de la v2 — le triplet (artiste d'album, album, année) plus le
+dossier — transformait ce désaccord en deux albums v2, chacun reconstruit depuis la sortie que
+sa première piste nommait. Deux playlists v1 pouvaient ressortir en quatre albums v2.
+
+Le MBID de sortie, lui, la v1 l'avait déjà décidé, piste par piste. On le lit dans cet ordre :
+
+1. le MBID **forcé** — `MusicBrainzReleaseIdForce` derrière `MusicBrainzForced`, ou une ligne
+   `SongForceMetadata` ; une sortie forcée décide le plus fort, parce que quelqu'un l'a saisie ;
+2. `Songs.MusicBrainzReleaseId`, ce que la recherche de la v1 avait retenu ;
+3. `MUSICBRAINZ_ALBUMID` dans le fichier, où la v1 avait écrit (2) au moment du tag : c'est la
+   seule copie qui reste quand la ligne a été vidée après coup.
+
+Il n'y a pas de quatrième échelon et rien n'est deviné.
+
+**Le repli.** Une ligne qui n'a aucun des trois n'a pas de sortie du tout — la v1 ne l'a jamais
+appariée — et il ne reste que ses propres tags. Ces lignes-là gardent l'ancienne clé : le
+triplet (artiste d'album, album, année) plus le dossier. Le rapport les compte
+(`withoutRelease`), ainsi que les albums qui en découlent (`albumsByTags`), pour qu'on sache
+quelle part de la bibliothèque est dans cet état.
+
+**Le titre, l'artiste d'album et l'année de l'album viennent des documents reconstruits**, donc
+de la sortie elle-même — jamais des tags v1 de la piste qui se trouvait être la première.
+
+**Le regroupement des dossiers.** Un album réparti sur plusieurs dossiers v1 est ramené dans
+**celui qui contient déjà le plus de pistes** ; les fichiers minoritaires y sont déplacés, et
+`library_tracks.path` suit le fichier. En cas d'égalité, c'est le nom de dossier qui tranche,
+pour que deux exécutions choisissent toujours le même gagnant : une majorité qui oscillerait
+déplacerait tous les fichiers à chaque passage, et chaque déplacement coûte des écoutes
+Navidrome. `--keep-folders` supprime ces déplacements : les albums sont recomposés en base,
+les fichiers ne bougent pas.
+
+**Une sortie que la reconstruction ne sait pas résoudre** — absente du cache et injoignable —
+ne fait pas échouer son album : la piste garde les tags de la v1, elle est migrée normalement,
+et un item Inbox `ambiguous_release` pose la question à une personne.
+
+**`--group-by tags`** rejoue l'ancienne clé à l'identique. Ce n'est pas un mode d'emploi
+recommandé : il existe pour reproduire l'état d'une bibliothèque migrée avant cette règle, la
+comparer, et la regrouper en connaissance de cause (§5).
+
 ### Reprise et idempotence
 
 L'état vit dans `migration_v1`, une ligne par chanson v1, avec l'identifiant v1 **et** le chemin
@@ -228,6 +282,51 @@ Les playlists exportées sont dans `.mm-archive/v1-playlists/`, à l'intérieur 
 bibliothèque mais invisible pour Navidrome. Pour les lui donner, il faut le dire
 explicitement : `ND_PLAYLISTSPATH` pointé sur ce dossier, ou les `.m3u8` recopiés là où on
 les veut.
+
+### Regrouper une bibliothèque déjà migrée
+
+Une bibliothèque migrée **avant** la règle du §4 quinquies — ou avec `--group-by tags` — porte
+une ligne `library_albums` par (artiste d'album, album, année, dossier). Une même sortie peut
+donc y occuper deux lignes, et c'est le symptôme : un album coupé en deux dans la Console et
+chez Navidrome, avec deux pochettes et deux scores de complétude.
+
+Relancer la migration la regroupe. Ce n'est pas une nouvelle migration : les pistes sont déjà
+faites, elles **changent de ligne d'album**, les fichiers minoritaires rejoignent le dossier
+majoritaire, et la ligne d'album laissée vide est supprimée. Le reste n'est pas touché.
+
+La séquence, dans cet ordre :
+
+```bash
+# 1. l'aperçu. Rien n'est écrit : ni ligne d'album, ni fichier déplacé.
+bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT" --dry-run
+
+# 2. le vrai passage, une fois l'aperçu lu.
+bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT"
+
+# 3. la vérification : un troisième passage ne doit plus rien regrouper.
+bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT"
+```
+
+L'aperçu imprime une section **`would regroup`** : par album, le MBID de sortie, les lignes
+d'album dissoutes, le dossier qui gagne, et — sous **`would move into the album folder`** —
+chaque fichier déplacé, un par un. C'est tout ce qu'il faut pour dire oui ou non, et c'est la
+seule occasion de le voir avant que les compteurs de lecture Navidrome ne suivent les chemins.
+
+Quelques points à connaître :
+
+- `--i-have-a-backup` n'est pas redemandé : l'acquittement est mémorisé dans `app_meta`. Cela
+  ne dispense pas de la sauvegarde — l'opération déplace des fichiers.
+- **Si les déplacements ne sont pas souhaités**, `--keep-folders` regroupe les albums en base
+  et laisse chaque fichier où il est. Les écoutes Navidrome sont alors intactes, au prix d'un
+  album dont les fichiers restent éparpillés sur deux dossiers.
+- La commande se relit : `mm migrate show <run id>` réaffiche le rapport, y compris
+  `regrouped` et la liste des déplacements.
+- Le troisième passage est le test qui compte. Il doit annoncer `0 track(s) moved to another
+album row`, `0 file(s) moved into their album's folder` et toutes les lignes en
+  « already done ». S'il regroupe encore, c'est que quelque chose déplace les fichiers entre
+  deux passages, et il faut le chercher là plutôt que de relancer.
+- Depuis la Console, Tools › **Migrate from v1** propose les deux réglages (le mode de
+  regroupement et « garder les dossiers ») ; le job part sur la file `migrate` du worker.
 
 ### Si une migration antérieure a écrit dans `_archive/v1-playlists/`
 
@@ -340,9 +439,15 @@ docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d po
 bun run e2e-migrate
 ```
 
-Ce script charge `fixtures/v1/dump.sql` (30 lignes `Songs`, 8 surcharges, 2 playlists) dans une
+Ce script charge `fixtures/v1/dump.sql` (36 lignes `Songs`, 8 surcharges, 2 playlists) dans une
 base jetable, fabrique la bibliothèque v1 en taguant des copies de l'échantillon de la toolbox
-**avec le jeu de tags de la v1**, puis migre, re-migre (no-op) et imprime le rapport.
+**avec le jeu de tags de la v1** (31 fichiers, orphelin compris), puis migre — 5 albums, 30
+pistes —, re-migre (no-op) et imprime le rapport.
+
+Le jeu d'essai contient la bande originale du §4 quinquies : une sortie dont six lignes se
+contredisent sur l'artiste d'album et l'année, réparties sur deux dossiers, dont une ligne avec
+une autre sortie forcée. Le script rejoue aussi la séquence de regroupement au complet —
+migration `--group-by tags`, aperçu, regroupement, puis un troisième passage qui ne fait rien.
 
 `fixtures/v1/dataset.ts` est la source unique ; `dump.sql` en est engendré
 (`bun run fixtures:v1`) et ne s'édite pas à la main.

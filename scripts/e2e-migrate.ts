@@ -5,17 +5,21 @@
  * It builds a whole v1 installation out of fixtures and then takes it over, exactly as the
  * phase's acceptance criteria describe:
  *
- *  1. load `fixtures/v1/dump.sql` into a scratch database (`mm_v1_fixture`) — thirty `Songs`
- *     rows, eight `SongForceMetadata` overrides, two `UserPlaylists`;
+ *  1. load `fixtures/v1/dump.sql` into a scratch database (`mm_v1_fixture`) — thirty-six
+ *     `Songs` rows, eight `SongForceMetadata` overrides, two `UserPlaylists`;
  *  2. build the v1 library: one copy of the toolbox's five-second sample per `Present` row,
  *     tagged through `POST /tag` with **v1's** tag set and nothing else;
  *  3. `mm migrate v1 --dry-run` — a readable plan, and **zero** rows written anywhere but
  *     `migration_v1*`, asserted against the write counter and against the tables themselves;
- *  4. `mm migrate v1` — three albums migrated, documents built offline from the seeded raw
- *     cache, files re-tagged in place at the current schema, sidecars written, ReplayGain per
- *     album, paths unchanged, imports created for everything v1 never downloaded;
+ *  4. `mm migrate v1` — five albums migrated, one per v1 release MBID, documents built offline
+ *     from the seeded raw cache, files re-tagged in place at the current schema, sidecars
+ *     written, ReplayGain per album, the minority files of a split release consolidated into
+ *     its majority folder, imports created for everything v1 never downloaded;
  *  5. `mm migrate v1` again — a genuine no-op;
- *  6. the report, printed.
+ *  6. the report, printed;
+ *  … and, after the v1 source and `--resume`, the regrouping: a library migrated with
+ *     `--group-by tags` comes out split, and re-running with the default puts it back
+ *     together — previewed by `--dry-run` first, and a no-op on the pass after that.
  *
  * Everything is offline: the toolbox is in fixtures mode and `documents.build` runs with the
  * network unplugged against the cache `cache:seed-fixtures` wrote.
@@ -41,7 +45,48 @@ import {
   withDatabaseName,
 } from "./lib.ts";
 import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
-import { FIXTURE_FORCED_COVER_JPEG } from "../fixtures/v1/dataset.ts";
+import { FIXTURE_FORCED_COVER_JPEG, LAST_OF_US } from "../fixtures/v1/dataset.ts";
+
+/* ------------------------------------------------------------------ */
+/* what the fixture is                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The numbers every count in this file is checked against, named once.
+ *
+ * They are derived from `fixtures/v1/dataset.ts` by hand rather than computed from it, and
+ * that is the point: a count computed from the fixture agrees with the fixture whatever the
+ * fixture says. Thirty-six rows: thirteen Daft Punk, eight Justice, nine Birdy, six on the
+ * soundtrack. Thirty of them have a file (Birdy loses one to a deleted file, two are `Needed`,
+ * one needs a review, two failed), and the library holds those thirty plus the orphan.
+ */
+const SONGS = 36;
+const OPUS_FILES = 31;
+const PRESENT_WITH_FILE = 30;
+/**
+ * Five, one per distinct v1 release MBID plus the two albums whose rows have no release at all.
+ *
+ * Daft Punk (one forced release), the soundtrack (one release over two folders), the release
+ * forced on one soundtrack row — then Justice and Birdy, which v1 never matched and which are
+ * therefore still keyed on the (album artist, album, year) triple plus the folder.
+ */
+const ALBUMS = 5;
+const ALBUMS_BY_RELEASE = 3;
+const ALBUMS_BY_TAGS = 2;
+/** Justice's eight rows and Birdy's three: the rows with no release MBID anywhere. */
+const WITHOUT_RELEASE = 11;
+
+/**
+ * The soundtrack: one release, six rows, two folders, and one row with another release forced.
+ *
+ * `library_albums.folder` is the majority one, and the two minority files move into it. The
+ * sixth row is on the same v1 playlist and must come out as an album of its own.
+ */
+const SOUNDTRACK_MAJORITY_FOLDER = "Various Artists/The Last of Us (2013)";
+const SOUNDTRACK_MINORITY_FOLDER = "Gustavo Santaolalla/The Last of Us (2014)";
+const SOUNDTRACK_SONG_IDS = [401, 402, 403, 404, 405];
+/** The two files the consolidation moves, by the name v1 gave them. */
+const SOUNDTRACK_MOVED = ["03 - The Path.opus", "04 - All Gone (No Escape).opus"];
 
 /* ------------------------------------------------------------------ */
 /* configuration                                                       */
@@ -317,13 +362,40 @@ interface Report {
     sidecarsWritten: number;
     replaygainAlbums: number;
     renamed: number;
+    /** Files moved into their album's folder by the consolidation. */
+    consolidated: number;
+    /** Tracks moved from one `library_albums` row to another by the regrouping. */
+    regrouped: number;
+    albumsRemoved: number;
+    albumsByRelease: number;
+    albumsByTags: number;
+    withoutRelease: number;
     inboxItems: number;
     failed: number;
     alreadyDone: number;
   };
-  albums: { folder: string; tracks: number; completeness: number | null; replaygain: boolean }[];
+  groupBy: "release" | "tags";
+  keepFolders: boolean;
+  albums: {
+    folder: string;
+    artist: string;
+    title: string;
+    year: number | null;
+    tracks: number;
+    completeness: number | null;
+    replaygain: boolean;
+  }[];
   imports: { importId: string; status: string; tracks: number; preselected: number }[];
   playlists: { name: string; entries: number; missing: number }[];
+  moves: { from: string; to: string }[];
+  regroup: {
+    release: string | null;
+    album: string;
+    from: string[];
+    to: string;
+    tracks: number;
+    moves: { from: string; to: string }[];
+  }[];
   discrepancies: { kind: string; detail: string }[];
   errors: { message: string }[];
   writes: number;
@@ -369,7 +441,11 @@ async function main(): Promise<void> {
 
   const v1Before = await v1Digest();
 
-  check(songCount?.count === 30, "the dump loaded thirty Songs rows", String(songCount?.count));
+  check(
+    songCount?.count === SONGS,
+    `the dump loaded ${String(SONGS)} Songs rows`,
+    String(songCount?.count),
+  );
   check(
     forceCount?.count === 8,
     "with eight SongForceMetadata overrides",
@@ -387,9 +463,21 @@ async function main(): Promise<void> {
   ]);
   const beforeFiles = walk(LIBRARY);
   check(
-    beforeFiles.filter((path) => path.endsWith(".opus")).length === 25,
-    "the v1 library holds twenty-five tagged Opus files",
+    beforeFiles.filter((path) => path.endsWith(".opus")).length === OPUS_FILES,
+    `the v1 library holds ${String(OPUS_FILES)} tagged Opus files`,
     String(beforeFiles.filter((path) => path.endsWith(".opus")).length),
+  );
+
+  /*
+   * The soundtrack, as v1 left it: one release filed in two folders, because each of its rows
+   * matched MusicBrainz on its own and they disagreed about the album artist and the year.
+   * That is the state the grouping rule exists to read, so it is asserted before anything runs.
+   */
+  check(
+    beforeFiles.filter((path) => path.startsWith(`${SOUNDTRACK_MAJORITY_FOLDER}/`)).length === 3 &&
+      beforeFiles.filter((path) => path.startsWith(`${SOUNDTRACK_MINORITY_FOLDER}/`)).length === 2,
+    "and one soundtrack release sits in two v1 folders, three files against two",
+    beforeFiles.filter((path) => path.includes("The Last of Us")).join(", "),
   );
 
   // The files must carry v1's tags and none of v2's, or the migration proves nothing.
@@ -436,10 +524,14 @@ async function main(): Promise<void> {
   const dryReport = JSON.parse(dry.stdout) as Report;
 
   check(dryReport.dryRun, "the run is marked as a dry run");
-  check(dryReport.counts.songs === 30, "it read thirty v1 songs", String(dryReport.counts.songs));
   check(
-    dryReport.counts.byClass["present_with_file"] === 24,
-    "twenty-four rows have a file",
+    dryReport.counts.songs === SONGS,
+    `it read ${String(SONGS)} v1 songs`,
+    String(dryReport.counts.songs),
+  );
+  check(
+    dryReport.counts.byClass["present_with_file"] === PRESENT_WITH_FILE,
+    `${String(PRESENT_WITH_FILE)} rows have a file`,
     JSON.stringify(dryReport.counts.byClass),
   );
   check(dryReport.counts.byClass["needed"] === 2, "two rows were never downloaded");
@@ -449,7 +541,35 @@ async function main(): Promise<void> {
     dryReport.counts.byClass["present_missing_file"] === 1,
     "one Present row has lost its file",
   );
-  check(dryReport.albums.length === 3, "it plans three albums", String(dryReport.albums.length));
+  check(
+    dryReport.albums.length === ALBUMS,
+    `it plans ${String(ALBUMS)} albums`,
+    String(dryReport.albums.length),
+  );
+  check(dryReport.groupBy === "release", "keyed on the v1 release MBID by default");
+  check(
+    dryReport.counts.albumsByRelease === ALBUMS_BY_RELEASE &&
+      dryReport.counts.albumsByTags === ALBUMS_BY_TAGS,
+    `${String(ALBUMS_BY_RELEASE)} of them keyed on a release, ${String(ALBUMS_BY_TAGS)} on v1 tags`,
+    `${String(dryReport.counts.albumsByRelease)} / ${String(dryReport.counts.albumsByTags)}`,
+  );
+  check(
+    dryReport.counts.withoutRelease === WITHOUT_RELEASE,
+    `and the tag-keyed ones cover exactly the ${String(WITHOUT_RELEASE)} rows with no release`,
+    String(dryReport.counts.withoutRelease),
+  );
+  // The consolidation is previewed, file by file: a dry run is the only chance to see a move
+  // before the Navidrome play counts follow the path.
+  check(
+    dryReport.moves.length === 2 &&
+      dryReport.moves.every(
+        (move) =>
+          move.from.startsWith(`${SOUNDTRACK_MINORITY_FOLDER}/`) &&
+          move.to.startsWith(`${SOUNDTRACK_MAJORITY_FOLDER}/`),
+      ),
+    "the two minority soundtrack files are listed as moves into the majority folder",
+    dryReport.moves.map((move) => `${move.from} → ${move.to}`).join(", ") || "(none)",
+  );
   check(dryReport.counts.orphanFiles === 1, "and finds the one orphan file");
   check(dryReport.writes === 0, "the write counter is zero", String(dryReport.writes));
 
@@ -515,26 +635,140 @@ async function main(): Promise<void> {
   const report = JSON.parse(real.stdout) as Report;
 
   check(report.counts.failed === 0, "nothing failed", JSON.stringify(report.errors.slice(0, 3)));
-  check(report.albums.length === 3, "three albums migrated", String(report.albums.length));
   check(
-    report.counts.migrated === 24,
-    "twenty-four tracks migrated",
+    report.albums.length === ALBUMS,
+    `${String(ALBUMS)} albums migrated`,
+    String(report.albums.length),
+  );
+  check(
+    report.counts.migrated === PRESENT_WITH_FILE,
+    `${String(PRESENT_WITH_FILE)} tracks migrated`,
     String(report.counts.migrated),
   );
   check(
-    report.counts.filesRetagged === 24,
+    report.counts.filesRetagged === PRESENT_WITH_FILE,
     "and every one of them was re-tagged in place",
     String(report.counts.filesRetagged),
   );
   check(report.counts.renamed === 0, "no file was renamed (paths are kept by default)");
 
-  /* ---- paths unchanged --------------------------------------------- */
+  /* ---- one album per v1 release ------------------------------------- */
+  //
+  // The rule, asserted against the database rather than against the report: `library_albums`
+  // holds one row per distinct v1 release MBID, and never two. Two rows carrying one release
+  // is precisely the state the old (album artist, album, year) + folder key produced, and
+  // there is nothing else in the schema that forbids it.
+  const albumRows = await v2<
+    { id: string; release: string | null; folder: string; artist: string; title: string }[]
+  >`select id, release_mbid as release, folder, album_artist as artist, title
+      from library_albums order by folder`;
+  check(
+    albumRows.length === ALBUMS,
+    `the library holds ${String(ALBUMS)} album rows`,
+    albumRows.map((row) => row.folder).join(", "),
+  );
+  const releases = albumRows.map((row) => row.release).filter((value) => value !== null);
+  check(
+    new Set(releases).size === releases.length && releases.length === ALBUMS_BY_RELEASE,
+    "exactly one album row per distinct v1 release MBID, and no release on two rows",
+    releases.join(", "),
+  );
+
+  /* ---- the split soundtrack came out as one album -------------------- */
+  const soundtrack = albumRows.find((row) => row.release === LAST_OF_US.release);
+  const soundtrackTracks = await v2<{ path: string; songId: string }[]>`
+    select t.path, m.v1_song_id as "songId"
+      from library_tracks t
+      join migration_v1 m on m.library_track_id = t.id
+     where t.album_id = ${soundtrack?.id ?? ""}
+     order by m.v1_song_id`;
+  check(
+    soundtrackTracks.length === SOUNDTRACK_SONG_IDS.length &&
+      soundtrackTracks.every((row, index) => Number(row.songId) === SOUNDTRACK_SONG_IDS[index]),
+    "the soundtrack rows that disagreed about the album artist and the year are one album",
+    soundtrackTracks.map((row) => row.songId).join(", "),
+  );
+  check(
+    soundtrack?.folder === SOUNDTRACK_MAJORITY_FOLDER,
+    "filed in the folder that already held the most of them",
+    soundtrack?.folder ?? "(no album)",
+  );
+  // The title, the album artist and the year come from the *rebuilt* documents, so they are the
+  // release's own — not the first track's v1 tags, which is the habit the grouping ends.
+  check(
+    soundtrack?.title === "The Last of Us",
+    "and its title comes from the release, not from whichever row happened to be first",
+    `${soundtrack?.artist ?? "?"} — ${soundtrack?.title ?? "?"}`,
+  );
+
+  /* ---- and the forced release is an album of its own ----------------- */
+  //
+  // Same v1 playlist, same `MusicBrainzReleaseId` on the row — but somebody forced another
+  // release, and a forced release decides hardest.
+  const forcedAlbum = albumRows.find((row) => row.release === LAST_OF_US.forcedRelease);
+  const forcedTracks = await v2<{ songId: string }[]>`
+    select m.v1_song_id as "songId"
+      from library_tracks t
+      join migration_v1 m on m.library_track_id = t.id
+     where t.album_id = ${forcedAlbum?.id ?? ""}`;
+  check(
+    forcedTracks.length === 1 && Number(forcedTracks[0]?.songId) === 406,
+    "the row with a different release forced is an album of its own, on the same v1 playlist",
+    forcedTracks.map((row) => row.songId).join(", ") || "(none)",
+  );
+  // A release the rebuild cannot resolve (this one is deliberately not in the fixture cache)
+  // costs the track its enrichment and opens a question — never its migration.
+  const ambiguous = await v2<{ release: string | null }[]>`
+    select payload->>'releaseMbid' as release from inbox_items
+     where type = 'ambiguous_release' and status = 'open'`;
+  check(
+    ambiguous.some((row) => row.release === LAST_OF_US.forcedRelease),
+    "and an ambiguous_release item says the rebuild could not resolve it",
+    ambiguous.map((row) => row.release ?? "(none)").join(", ") || "(none)",
+  );
+
+  /* ---- the consolidation, on disk ------------------------------------ */
   const afterFiles = walk(LIBRARY).filter((path) => path.endsWith(".opus"));
   const beforeOpus = beforeFiles.filter((path) => path.endsWith(".opus"));
+  /** What the library looks like once the soundtrack's minority files have moved. */
+  const consolidatedOpus = beforeOpus
+    .map((path) =>
+      path.startsWith(`${SOUNDTRACK_MINORITY_FOLDER}/`)
+        ? `${SOUNDTRACK_MAJORITY_FOLDER}/${path.slice(SOUNDTRACK_MINORITY_FOLDER.length + 1)}`
+        : path,
+    )
+    .sort();
   check(
-    JSON.stringify(afterFiles) === JSON.stringify(beforeOpus),
-    "every .opus file is exactly where v1 left it",
+    JSON.stringify(afterFiles) === JSON.stringify(consolidatedOpus),
+    "every .opus file is where v1 left it, bar the two the consolidation moved",
     `${String(afterFiles.length)} file(s)`,
+  );
+  check(
+    report.counts.consolidated === 2 &&
+      SOUNDTRACK_MOVED.every((name) =>
+        afterFiles.includes(`${SOUNDTRACK_MAJORITY_FOLDER}/${name}`),
+      ),
+    "the two minority files are now in the majority folder",
+    SOUNDTRACK_MOVED.join(", "),
+  );
+  check(
+    !afterFiles.some((path) => path.startsWith(`${SOUNDTRACK_MINORITY_FOLDER}/`)),
+    "and nothing is left in the folder they came from",
+    afterFiles.filter((path) => path.startsWith(`${SOUNDTRACK_MINORITY_FOLDER}/`)).join(", "),
+  );
+
+  /* ---- library_tracks.path says where the files really are ----------- */
+  //
+  // A path left behind points at a file that is not there, and the next scan reports the track
+  // as missing and its new location as an orphan. `moveInLibrary` carries the row with the
+  // file for exactly that reason, and this is the assertion that keeps it true.
+  const trackPaths = await v2<{ path: string }[]>`select path from library_tracks order by path`;
+  const onDisk = new Set(afterFiles);
+  const dangling = trackPaths.map((row) => row.path).filter((path) => !onDisk.has(path));
+  check(
+    dangling.length === 0 && trackPaths.length === PRESENT_WITH_FILE,
+    "every library_tracks.path points at a file that is really there",
+    dangling.length === 0 ? `${String(trackPaths.length)} row(s)` : dangling.join(", "),
   );
 
   /* ---- the tags are v2's now --------------------------------------- */
@@ -560,7 +794,7 @@ async function main(): Promise<void> {
     migrated["R128_TRACK_GAIN"] ?? migrated["REPLAYGAIN_TRACK_GAIN"] ?? "(absent)",
   );
   check(
-    report.counts.replaygainAlbums === 3,
+    report.counts.replaygainAlbums === ALBUMS,
     "once per album, not once per file",
     String(report.counts.replaygainAlbums),
   );
@@ -607,14 +841,16 @@ async function main(): Promise<void> {
     select payload->>'path' as path from inbox_items
      where type = 'cover_missing' and status = 'open'`;
   check(
-    coverMissing.length === 1,
+    coverMissing.some((row) => (row.path ?? "").includes("Skinny Love")),
     "a cover_missing item was opened for the file whose picture no source explains",
     coverMissing.map((row) => row.path).join(", "),
   );
+  // The other one is the soundtrack row whose forced release is deliberately absent from the
+  // fixture cache: no release, so no Cover Art Archive front, so the same question.
   check(
-    (coverMissing[0]?.path ?? "").includes("Skinny Love"),
-    "and it points at the track",
-    coverMissing[0]?.path ?? "(none)",
+    coverMissing.length === 2 && coverMissing.some((row) => (row.path ?? "").includes("Longing")),
+    "and one for the track whose forced release the rebuild could not resolve",
+    coverMissing.map((row) => row.path).join(", "),
   );
 
   /* ---- the processing flags v1 set ---------------------------------- */
@@ -672,7 +908,7 @@ async function main(): Promise<void> {
   );
   check(
     report.counts.documentsComplete >= 13,
-    "and its thirteen documents have every required field, n/a excluded",
+    "and the documents of the albums whose release is in the cache are complete, n/a excluded",
     String(report.counts.documentsComplete),
   );
 
@@ -855,11 +1091,24 @@ async function main(): Promise<void> {
     String(second.counts.importsCreated),
   );
   check(
-    second.counts.alreadyDone === 30,
-    "all thirty rows were recognised as already done",
+    second.counts.alreadyDone === SONGS,
+    `all ${String(SONGS)} rows were recognised as already done`,
     String(second.counts.alreadyDone),
   );
   check(second.counts.failed === 0, "and nothing failed");
+  /*
+   * The consolidation does not run twice.
+   *
+   * `migration_v1.path` is what makes that true: the two moved files are at a path neither
+   * `FinalFilePath` nor v1's own algorithm predicts, and only that column remembers where this
+   * application put them. Without it the second run would find them unmatched, plan the same
+   * move again, and cost the album two more Navidrome play counts.
+   */
+  check(
+    second.counts.consolidated === 0 && second.counts.regrouped === 0,
+    "and it neither moved a file nor regrouped a track a second time",
+    `${String(second.counts.consolidated)} move(s), ${String(second.counts.regrouped)} regrouped`,
+  );
 
   const untouched = afterFiles.every(
     (path) => statSync(join(LIBRARY, path)).mtimeMs === sizesBefore.get(path),
@@ -873,7 +1122,7 @@ async function main(): Promise<void> {
     { count: number }[]
   >`select count(*)::int as count from library_tracks`;
   check(
-    (albumsNow?.count ?? 0) === 3 && (tracksNow?.count ?? 0) === 24,
+    (albumsNow?.count ?? 0) === ALBUMS && (tracksNow?.count ?? 0) === PRESENT_WITH_FILE,
     "the library still holds exactly what the first run put there",
     `${String(albumsNow?.count)} album(s), ${String(tracksNow?.count)} track(s)`,
   );
@@ -989,9 +1238,9 @@ async function main(): Promise<void> {
     `${String(interrupted?.count ?? 0)} row(s) migrated before the kill`,
   );
   check(
-    (interrupted?.count ?? 0) < 24,
+    (interrupted?.count ?? 0) < PRESENT_WITH_FILE,
     "and it did not finish",
-    `${String(interrupted?.count ?? 0)} of 24`,
+    `${String(interrupted?.count ?? 0)} of ${String(PRESENT_WITH_FILE)}`,
   );
   check((stillRunning?.count ?? 0) === 1, "the run row is left `running`, for --resume to find");
 
@@ -1020,14 +1269,14 @@ async function main(): Promise<void> {
   const [resumedAlbums] = await resumeSql<{ count: number }[]>`
     select count(*)::int as count from library_albums`;
   check(
-    (resumedTracks?.count ?? 0) === 24 && (resumedAlbums?.count ?? 0) === 3,
+    (resumedTracks?.count ?? 0) === PRESENT_WITH_FILE && (resumedAlbums?.count ?? 0) === ALBUMS,
     "and the library ends up exactly where an uninterrupted run would have left it",
     `${String(resumedAlbums?.count)} album(s), ${String(resumedTracks?.count)} track(s)`,
   );
   const resumedFiles = walk(resumeInstall.library).filter((path) => path.endsWith(".opus"));
   check(
-    JSON.stringify(resumedFiles) === JSON.stringify(beforeOpus),
-    "with every file still at its v1 path",
+    JSON.stringify(resumedFiles) === JSON.stringify(consolidatedOpus),
+    "with every file at its v1 path, the consolidation included",
     `${String(resumedFiles.length)} file(s)`,
   );
   await resumeSql.end();
@@ -1125,6 +1374,247 @@ async function main(): Promise<void> {
     renamedTracks?.path ?? "(no track)",
   );
   await renameSql.end();
+
+  /* ---------------------------------------------------------------- */
+  section("10 · regrouping a library that was migrated the old way");
+  /* ---------------------------------------------------------------- */
+  //
+  // The upgrade path, end to end. A library migrated before the release-MBID rule — which
+  // `--group-by tags` reproduces exactly — holds one `library_albums` row per (album artist,
+  // album, year, folder), so one release can sit in two of them. Re-running with the default
+  // must move the tracks into the row of their release, move the minority files into the
+  // majority folder, delete the row that is left empty, and then be a no-op for ever after.
+  //
+  // It runs on an installation of its own because it is the only section that needs a library
+  // in the *old* shape, and section 4 already regrouped this one.
+
+  const regroupInstall = await freshInstallation("regroup");
+  const regroupSql = new SQL({ url: regroupInstall.v2Url, max: 2 });
+
+  /* ---- the old way, reproduced -------------------------------------- */
+  const oldWay = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    regroupInstall.library,
+    "--i-have-a-backup",
+    "--group-by",
+    "tags",
+    "--json",
+  ]);
+  const oldReport = JSON.parse(oldWay.stdout) as Report;
+
+  check(oldReport.groupBy === "tags", "`--group-by tags` is recorded in the report");
+  check(oldReport.counts.failed === 0, "the old grouping still migrates everything");
+  check(
+    oldReport.counts.albumsByTags === 6 && oldReport.counts.albumsByRelease === 0,
+    "and produces six albums, every one of them keyed on v1's tags",
+    `${String(oldReport.counts.albumsByTags)} by tags, ${String(oldReport.counts.albumsByRelease)} by release`,
+  );
+  check(
+    oldReport.counts.consolidated === 0 && oldReport.moves.length === 0,
+    "it moves no file: without a release to key on, the folders *are* the albums",
+    String(oldReport.counts.consolidated),
+  );
+
+  // The bug itself, in the database: one release over two `library_albums` rows.
+  const splitRows = await regroupSql<{ id: string; folder: string }[]>`
+    select id, folder from library_albums
+     where release_mbid = ${LAST_OF_US.release} order by folder`;
+  check(
+    splitRows.length === 2,
+    "one v1 release ends up on two album rows — the split this rule exists to end",
+    splitRows.map((row) => row.folder).join(" | "),
+  );
+  check(
+    splitRows.some((row) => row.folder === SOUNDTRACK_MAJORITY_FOLDER) &&
+      splitRows.some((row) => row.folder === SOUNDTRACK_MINORITY_FOLDER),
+    "one per v1 folder, exactly as v1 filed them",
+    splitRows.map((row) => row.folder).join(" | "),
+  );
+  const oldFiles = walk(regroupInstall.library).filter((path) => path.endsWith(".opus"));
+  check(
+    JSON.stringify(oldFiles) === JSON.stringify(beforeOpus),
+    "and every file is still at its v1 path",
+    `${String(oldFiles.length)} file(s)`,
+  );
+
+  /* ---- the preview: the plan, and not one write --------------------- */
+  const beforeRegroupAlbums = await regroupSql<{ id: string; folder: string }[]>`
+    select id, folder from library_albums order by folder`;
+  const beforeRegroupMtimes = new Map(
+    oldFiles.map((path) => [path, statSync(join(regroupInstall.library, path)).mtimeMs]),
+  );
+
+  const preview = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    regroupInstall.library,
+    "--dry-run",
+    "--json",
+  ]);
+  const previewReport = JSON.parse(preview.stdout) as Report;
+
+  const planned = previewReport.regroup.find((entry) => entry.release === LAST_OF_US.release);
+  check(
+    planned !== undefined,
+    "the dry run names the release it would regroup",
+    previewReport.regroup.map((entry) => entry.release ?? "(none)").join(", ") || "(nothing)",
+  );
+  check(
+    (planned?.from.length ?? 0) === 1 && planned?.to === SOUNDTRACK_MAJORITY_FOLDER,
+    "says which album row it dissolves and which folder wins",
+    `${(planned?.from ?? []).join(", ")} → ${planned?.to ?? "(none)"}`,
+  );
+  check(
+    previewReport.counts.regrouped === 2 && (planned?.moves.length ?? 0) === 2,
+    "and counts the two tracks that move and the two files that follow them",
+    `${String(previewReport.counts.regrouped)} track(s), ${String(planned?.moves.length ?? 0)} move(s)`,
+  );
+  check(
+    previewReport.writes === 0,
+    "the write counter is zero, as for any dry run",
+    String(previewReport.writes),
+  );
+
+  // Printed, not only serialised: the plan has to be readable by the person deciding.
+  const previewText = await mm(["migrate", "show", previewReport.runId]);
+  check(
+    previewText.stdout.includes("would regroup") && previewText.stdout.includes(LAST_OF_US.release),
+    "and the rendered report shows it under `would regroup`",
+    previewText.stdout
+      .split("\n")
+      .find((line) => line.includes("would regroup"))
+      ?.trim() ?? "(absent)",
+  );
+
+  const afterPreviewAlbums = await regroupSql<{ id: string; folder: string }[]>`
+    select id, folder from library_albums order by folder`;
+  check(
+    JSON.stringify(afterPreviewAlbums) === JSON.stringify(beforeRegroupAlbums),
+    "not one album row was created, moved or deleted by the preview",
+    `${String(afterPreviewAlbums.length)} row(s)`,
+  );
+  const afterPreviewFiles = walk(regroupInstall.library).filter((path) => path.endsWith(".opus"));
+  check(
+    JSON.stringify(afterPreviewFiles) === JSON.stringify(oldFiles) &&
+      afterPreviewFiles.every(
+        (path) =>
+          statSync(join(regroupInstall.library, path)).mtimeMs === beforeRegroupMtimes.get(path),
+      ),
+    "and not one file was moved or rewritten",
+    `${String(afterPreviewFiles.length)} file(s)`,
+  );
+
+  /* ---- the regrouping itself ---------------------------------------- */
+  const regrouped = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    regroupInstall.library,
+    "--json",
+  ]);
+  const regroupReport = JSON.parse(regrouped.stdout) as Report;
+
+  check(regroupReport.counts.failed === 0, "the regrouping run fails nothing");
+  check(
+    regroupReport.counts.regrouped === 2,
+    "two tracks moved from one album row to another",
+    String(regroupReport.counts.regrouped),
+  );
+  check(
+    regroupReport.counts.consolidated === 2,
+    "and their two files followed, into the majority folder",
+    regroupReport.moves.map((move) => move.to).join(", ") || "(none)",
+  );
+  check(
+    regroupReport.counts.albumsRemoved === 1,
+    "the album row the regrouping emptied was deleted",
+    String(regroupReport.counts.albumsRemoved),
+  );
+  // Everything else was recognised as done: the regrouping touches the release it must and
+  // nothing else. Thirty-six rows, less the five of the album that was re-migrated.
+  check(
+    regroupReport.counts.alreadyDone === SONGS - SOUNDTRACK_SONG_IDS.length,
+    "and every other row was left alone",
+    String(regroupReport.counts.alreadyDone),
+  );
+
+  const regroupedRows = await regroupSql<{ id: string; folder: string }[]>`
+    select id, folder from library_albums order by folder`;
+  check(
+    regroupedRows.length === ALBUMS,
+    `the library is down to ${String(ALBUMS)} album rows`,
+    regroupedRows.map((row) => row.folder).join(", "),
+  );
+  check(
+    !regroupedRows.some((row) => row.folder === SOUNDTRACK_MINORITY_FOLDER),
+    "the emptied row is gone, not left behind as an album with no track",
+    regroupedRows.map((row) => row.folder).join(", "),
+  );
+  const survivor = regroupedRows.find((row) => row.folder === SOUNDTRACK_MAJORITY_FOLDER);
+  const [survivorTracks] = await regroupSql<{ count: number }[]>`
+    select count(*)::int as count from library_tracks where album_id = ${survivor?.id ?? ""}`;
+  check(
+    (survivorTracks?.count ?? 0) === SOUNDTRACK_SONG_IDS.length,
+    "and the surviving row holds every track of the release",
+    String(survivorTracks?.count),
+  );
+  const regroupFiles = walk(regroupInstall.library).filter((path) => path.endsWith(".opus"));
+  check(
+    JSON.stringify(regroupFiles) === JSON.stringify(consolidatedOpus),
+    "the files on disk are the consolidated layout",
+    `${String(regroupFiles.length)} file(s)`,
+  );
+  const regroupDangling = await regroupSql<{ path: string }[]>`
+    select path from library_tracks order by path`;
+  const regroupOnDisk = new Set(regroupFiles);
+  check(
+    regroupDangling.every((row) => regroupOnDisk.has(row.path)),
+    "and every library_tracks.path still points at a file that is really there",
+    regroupDangling
+      .map((row) => row.path)
+      .filter((path) => !regroupOnDisk.has(path))
+      .join(", ") || `${String(regroupDangling.length)} row(s)`,
+  );
+
+  /* ---- and the pass after that does nothing ------------------------- */
+  const settled = await mm([
+    "migrate",
+    "v1",
+    "--db",
+    V1_DATABASE_URL,
+    "--library",
+    regroupInstall.library,
+    "--json",
+  ]);
+  const settledReport = JSON.parse(settled.stdout) as Report;
+  check(
+    settledReport.counts.migrated === 0 &&
+      settledReport.counts.regrouped === 0 &&
+      settledReport.counts.consolidated === 0 &&
+      settledReport.counts.albumsRemoved === 0,
+    "a third run regroups nothing: the library has settled",
+    `${String(settledReport.counts.migrated)} migrated, ${String(settledReport.counts.regrouped)} regrouped`,
+  );
+  check(
+    settledReport.counts.alreadyDone === SONGS,
+    `all ${String(SONGS)} rows are already done`,
+    String(settledReport.counts.alreadyDone),
+  );
+  check(
+    JSON.stringify(walk(regroupInstall.library).filter((path) => path.endsWith(".opus"))) ===
+      JSON.stringify(regroupFiles),
+    "and not one file moved again",
+  );
+  await regroupSql.end();
 
   section("result");
   console.log(`  ${String(checks - failures)}/${String(checks)} checks passed`);

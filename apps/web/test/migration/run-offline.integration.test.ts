@@ -18,8 +18,17 @@
  *    client (`integrations/musicbrainz.ts`) with a cassette standing in for the socket, never a
  *    mock of `documents.build` itself — and the track migrates.
  *  - **`MM_FIXTURES=1`, same empty cache.** No request may be attempted at all — a network call
- *    here is itself a failure of the test, not just the wrong branch — and the track fails with
- *    the explicit `OFFLINE_CACHE_MISS` message instead of hanging or silently succeeding.
+ *    here is itself a failure of the test, not just the wrong branch — and the rebuild says so
+ *    explicitly, with `OFFLINE_CACHE_MISS`, instead of hanging or silently succeeding.
+ *
+ * What the second scenario does with that failure changed with the release-MBID grouping
+ * (P11.1) and the test changed with it: an unresolvable release no longer fails its track. The
+ * album is the v1 release MBID, and two ordinary things make one unresolvable — nothing cached
+ * and no network, or a recording that is simply not on the release v1 paired it with — so
+ * failing would lose a whole album's worth of good files over one bad pairing. The track is
+ * migrated from the v1 seed instead, and the question goes to the Inbox as
+ * `ambiguous_release`. The assertion that matters is unchanged in substance: nothing was
+ * fetched, and the reason is named rather than swallowed.
  *
  * Both runs go through `runMigration` exactly as the worker handler and the CLI call it: real
  * Postgres, real toolbox (fixtures mode, for `/probe` and `/tag` — unrelated to MusicBrainz's
@@ -29,6 +38,7 @@
 import { copyFileSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { eq } from "drizzle-orm";
 import postgres from "postgres";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { play, type Player } from "../cassette.ts";
@@ -128,6 +138,7 @@ const { requestCount, resetRequestCount, resetFetch, setFetch } =
   await import("#/server/integrations/http.ts");
 const { ToolboxClient } = await import("#/server/toolbox/client.ts");
 const { defaults } = await import("#/server/services/settings.ts");
+const { inboxItems } = await import("#/server/db/schema/index.ts");
 
 const ORIGINAL_MM_FIXTURES = process.env["MM_FIXTURES"];
 
@@ -237,7 +248,7 @@ describe.skipIf(unavailable !== null)("runMigration's offline default (decision 
     }
   }, 60_000);
 
-  it("makes no request and fails explicitly when MM_FIXTURES=1, same empty cache", async () => {
+  it("makes no request and says why when MM_FIXTURES=1, same empty cache", async () => {
     await createDatabase(V2_DB_FIXTURES);
     await migrateSchema(V2_FIXTURES_URL);
     const db = createDrizzleClient(V2_FIXTURES_URL, 5);
@@ -269,10 +280,22 @@ describe.skipIf(unavailable !== null)("runMigration's offline default (decision 
       });
 
       expect(requestCount()).toBe(0);
-      expect(report.counts.migrated).toBe(0);
-      expect(report.counts.failed).toBe(1);
-      expect(report.errors[0]?.message).toContain("Offline: musicbrainz");
-      expect(report.errors[0]?.message).toContain("has never been fetched");
+      // The track is migrated from the v1 seed: an unresolvable release costs it its
+      // enrichment, not its migration (P11.1, `migrateTrack` step 3).
+      expect(report.counts.failed, JSON.stringify(report.errors)).toBe(0);
+      expect(report.counts.migrated).toBe(1);
+
+      // …and the reason is on the record, in the Inbox, naming the release and the miss.
+      const raised = await db
+        .select({ summary: inboxItems.summary, payload: inboxItems.payload })
+        .from(inboxItems)
+        .where(eq(inboxItems.type, "ambiguous_release"));
+      expect(raised).toHaveLength(1);
+      expect(raised[0]?.summary).toContain("Offline: musicbrainz");
+      expect(raised[0]?.summary).toContain("has never been fetched");
+      expect((raised[0]?.payload as { releaseMbid?: string | null }).releaseMbid).toBe(
+        SONG.releaseMbidForce ?? SONG.releaseMbid,
+      );
     } finally {
       resetFetch();
       await db.$client.end({ timeout: 1 }).catch(() => undefined);

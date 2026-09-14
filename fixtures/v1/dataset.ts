@@ -15,7 +15,7 @@
  *
  * ## What the fixture is designed to prove
  *
- * Three albums, thirty `Songs` rows, and every case the phase names:
+ * Four albums, thirty-six `Songs` rows, and every case the phase names:
  *
  *  - **Daft Punk — Discovery (2001)**, thirteen rows, all `Present`, with the MusicBrainz ids
  *    of the *recorded* release. `documents.build` runs offline against the seeded raw cache,
@@ -35,6 +35,15 @@
  *    `DownloadFailed`, one `ProcessingFailed`. Track 2 is the one SoundCloud row — no MBID and
  *    no video id, so neither rung of the cover ladder can answer for it and its embedded
  *    picture becomes a `cover_missing` question. Track 3 carries a forced `CoverArtBytes`.
+ *
+ *  - **The Last of Us (2013)**, six rows on one v1 playlist, all `Present`. Five name one
+ *    release and disagree about the album artist and the year, so v1 filed them in **two**
+ *    folders; the sixth has that release on its row and a **different one forced**. It is the
+ *    fixture for the grouping rule itself: five tracks must come out as one album, the minority
+ *    files must move into the majority folder, and the forced row must be an album of its own
+ *    even though it sits on the same playlist. Its release is deliberately absent from the
+ *    seeded cache, so it also proves a release the rebuild cannot resolve costs the track its
+ *    enrichment and an Inbox question, not its migration.
  *
  * Plus one orphan file no row claims, and two `UserPlaylists`.
  *
@@ -533,10 +542,159 @@ const ALBUM_C: FixtureSong[] = C_ROWS.map((row, index) => {
 });
 
 /* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/* album D — The Last of Us: one release, four album artists, two years */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The case the release-MBID grouping exists for.
+ *
+ * Every v1 song matched MusicBrainz on its own, so a soundtrack came out of v1 disagreeing
+ * with itself: three rows credited "Various Artists" and dated 2013, two credited the composer
+ * and dated 2014. v1 files by `AlbumArtist/Album (Year)`, so those five tracks of **one
+ * release** went into two folders — and the old (album artist, album, year) + folder key then
+ * made them two v2 albums, each rebuilt from whichever release its first track happened to
+ * name. That is the bug: 2 v1 playlists, 4 v2 albums.
+ *
+ * All five rows carry the same `MusicBrainzReleaseId`, so the new rule puts them in one album,
+ * and the consolidation moves the two minority files into the folder holding the other three.
+ *
+ * The sixth row is on the **same v1 playlist** and has that same release on its `Songs` row —
+ * but somebody forced a different one (`MusicBrainzReleaseIdForce`). It must come out as its
+ * own album: the release decides, and a forced release decides hardest. Nothing seeds that
+ * second release into the fixture cache, so it also exercises the other half of the rule — a
+ * release the rebuild cannot resolve keeps v1's tags, opens an Inbox question, and does not
+ * fail its album.
+ */
+export const LAST_OF_US = {
+  release: "9d3a1b74-5f21-4a5e-b3c8-7e2f6a0d1c45",
+  releaseGroup: "6f2e0a87-1c93-4b5d-8e47-3a0b9c1d2e56",
+  /** The release somebody forced on one row of the same playlist. Deliberately not seeded. */
+  forcedRelease: "2b6c8d91-7a34-4f18-9c05-e1d47b3a6f20",
+  artist: "4b1c5d20-8e63-4f91-a2d7-5c08e3b17f4a",
+} as const;
+
+const LAST_OF_US_PARENT = "https://www.youtube.com/playlist?list=OLAK5uy_v1lastofus";
+
+interface LastOfUsRow {
+  readonly track: number;
+  readonly title: string;
+  readonly recording: string;
+  /** What v1's own lookup decided the album artist was, per row. They disagree on purpose. */
+  readonly albumArtist: string;
+  readonly year: number;
+  readonly album: string;
+  /** The release forced on this row, which beats `MusicBrainzReleaseId`. */
+  readonly forcedRelease?: string;
+}
+
+const D_ROWS: readonly LastOfUsRow[] = [
+  {
+    track: 1,
+    title: "The Last of Us",
+    recording: "c4a91f38-6b72-4d05-9e18-7f2a3c5d0b61",
+    albumArtist: "Various Artists",
+    year: 2013,
+    album: "The Last of Us",
+  },
+  {
+    track: 2,
+    title: "The Quarantine Zone (20 Years Later)",
+    recording: "e7b35d29-0c48-4a16-b9f3-2d6e8a4c1057",
+    albumArtist: "Various Artists",
+    year: 2013,
+    album: "The Last of Us",
+  },
+  {
+    track: 3,
+    title: "The Path",
+    recording: "a2f68c14-9d07-4e53-8b1a-6c3f0e29d745",
+    albumArtist: "Gustavo Santaolalla",
+    year: 2014,
+    album: "The Last of Us",
+  },
+  {
+    track: 4,
+    title: "All Gone (No Escape)",
+    recording: "5d0e7a93-4f21-4c68-9a35-1b8d2e6f0c47",
+    albumArtist: "Gustavo Santaolalla",
+    year: 2014,
+    album: "The Last of Us",
+  },
+  {
+    track: 5,
+    title: "Vanishing Grace",
+    recording: "83c1b6f5-2a09-4d74-b5e8-0f7a3c1d9626",
+    albumArtist: "Various Artists",
+    year: 2013,
+    album: "The Last of Us",
+  },
+  {
+    track: 1,
+    title: "Longing",
+    recording: "1f4a7e62-8b35-4c09-a7d1-3e05b9c2f846",
+    albumArtist: "Gustavo Santaolalla",
+    year: 2020,
+    album: "The Last of Us Part II",
+    forcedRelease: LAST_OF_US.forcedRelease,
+  },
+];
+
+const ALBUM_D: FixtureSong[] = D_ROWS.map((row, index) => {
+  const id = 400 + index + 1;
+  const path = v1Path(row.albumArtist, row.album, row.year, row.track, row.title);
+  return {
+    id,
+    sourceUrl: `https://www.youtube.com/watch?v=tlou${String(index + 1).padStart(2, "0")}xxxxx`,
+    sourceUrlParent: LAST_OF_US_PARENT,
+    sourceId: `tlou${String(index + 1).padStart(2, "0")}xxxxx`,
+    sourceIdParent: "OLAK5uy_v1lastofus",
+    sourceTitle: `${row.albumArtist} - ${row.title}`,
+    title: row.title,
+    subtitle: null,
+    artist: "Gustavo Santaolalla",
+    performers: ["Gustavo Santaolalla"],
+    album: row.album,
+    isrc: null,
+    albumArtists: [row.albumArtist],
+    year: row.year,
+    trackNumber: row.track,
+    trackCount: 5,
+    discNumber: null,
+    discCount: null,
+    publisher: "Sony Classical",
+    genres: ["Soundtrack"],
+    duration: 150000 + index * 4000,
+    downloadStatus: "Present",
+    finalFilePath: path,
+    errorMessage: null,
+    recordingMbid: row.recording,
+    // Every row names the same release. What differs is the album artist and the year v1
+    // stored beside it, which is what used to split the album into two.
+    releaseMbid: LAST_OF_US.release,
+    releaseGroupMbid: LAST_OF_US.releaseGroup,
+    artistMbid: LAST_OF_US.artist,
+    albumArtistMbid: null,
+    releaseStatus: "Official",
+    releaseCountry: "US",
+    musicBrainzForced: row.forcedRelease !== undefined,
+    recordingMbidForce: null,
+    releaseMbidForce: row.forcedRelease ?? null,
+    forceSongMetadata: false,
+    forceSourceMetadata: false,
+    realPath: path,
+  };
+});
 /* the fixture                                                         */
 /* ------------------------------------------------------------------ */
 
-export const FIXTURE_SONGS: readonly FixtureSong[] = [...ALBUM_A, ...ALBUM_B, ...ALBUM_C];
+export const FIXTURE_SONGS: readonly FixtureSong[] = [
+  ...ALBUM_A,
+  ...ALBUM_B,
+  ...ALBUM_C,
+  ...ALBUM_D,
+];
 
 /**
  * `SongForceMetadata` — the overrides v1's owner typed in by hand.

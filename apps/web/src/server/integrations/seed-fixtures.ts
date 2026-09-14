@@ -106,6 +106,32 @@ export async function seedFixtures(db: Database = defaultDb()): Promise<SeedRepo
   const wikidata = read<WikidataResponse>("wikimedia/wikidata-q193338.json");
   await write("wikimedia", "wikidata/Q193338", wikidata);
 
+  /*
+   * The v1 migration fixture's soundtrack release (`fixtures/v1/dataset.ts`, album D).
+   *
+   * The album is the v1 release MBID, so a migration rebuilds five tracks from *this* row. It
+   * is seeded with its tracklist and with an LRCLIB absence per track, and with nothing else:
+   * the Cover Art Archive answer is deliberately missing, which is the ordinary state of a
+   * soundtrack and keeps the fixture honest about what an offline rebuild can and cannot fill.
+   */
+  const soundtrack = read<MbRelease>("musicbrainz/release-last-of-us.json");
+  const soundtrackMbid = soundtrack.id ?? "";
+  await write("musicbrainz", `release/${soundtrackMbid}?inc=releaseFull`, soundtrack);
+  for (const track of soundtrack.media?.[0]?.tracks ?? []) {
+    const millis = track.length ?? track.recording?.length;
+    const query: LyricsQuery = {
+      artist: creditOf(track, soundtrack),
+      track: track.title ?? "",
+      ...(soundtrack.title === undefined ? {} : { album: soundtrack.title }),
+      ...(typeof millis === "number" && millis > 0
+        ? { durationSeconds: Math.round(millis / 1000) }
+        : {}),
+    };
+    if (query.track === "") continue;
+    await write("lrclib", queryKey("get", query), absentPayload("LRCLIB has no exact match"));
+    await write("lrclib", queryKey("search", query), []);
+  }
+
   /* ---- Cover Art Archive ---- */
   const caa = read<CaaIndex>("coverartarchive/release-discovery.json");
   await write("coverartarchive", `release/${releaseMbid}`, caa);
