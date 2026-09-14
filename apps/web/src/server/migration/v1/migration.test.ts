@@ -8,7 +8,15 @@
 import { describe, expect, it } from "vitest";
 import { TAG_SCHEMA_VERSION, merge } from "@mm/domain";
 import { classify, importStatusFor, needsImport } from "./classify.ts";
-import { libraryPrefixOf } from "./inventory.ts";
+import {
+  baseOf,
+  foldersOf,
+  libraryPrefixOf,
+  movesInto,
+  planFrom,
+  releaseMbidFor,
+  type PlannedSong,
+} from "./inventory.ts";
 import { normalizeV1Path, padD2, pathKey, predictV1Path, sanitizeV1 } from "./paths.ts";
 import { playlistFileName, renderPlaylist } from "./playlists.ts";
 import { redactUrl } from "./reader.ts";
@@ -19,6 +27,7 @@ import {
   splitList,
   sourceVideoId,
   videoIdFromUrl,
+  type V1Dataset,
   type V1ForceMetadata,
   type V1Song,
 } from "./schema.ts";
@@ -322,6 +331,378 @@ describe("reconciliation", () => {
     expect(videoIdFromUrl("not a url")).toBeNull();
     expect(commentVideoId({ COMMENT: "Source: https://youtu.be/abcdefghijk" })).toBe("abcdefghijk");
     expect(sourceVideoId(song({ sourceId: "" }))).toBe("abcdefghijk");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* album grouping — the album is the v1 release MBID                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The bug these tests exist for.
+ *
+ * Every v1 song matched MusicBrainz on its own, so the tracks of one release routinely
+ * disagreed about the album artist and the year — and v1 files by `AlbumArtist/Album (Year)`,
+ * so one release ended up in two folders. Keying an album on (album artist, album, year) plus
+ * the folder then turned that disagreement into two v2 albums, each rebuilt from whichever
+ * release its first track happened to name. The release MBID is the decision v1 had already
+ * made per track, so it is the key.
+ */
+
+/** The soundtrack release five rows of fixture album D agree on. */
+const SOUNDTRACK = "9d3a1b74-5f21-4a5e-b3c8-7e2f6a0d1c45";
+/** The release somebody forced on the sixth row, which sits on the same v1 playlist. */
+const FORCED_ELSEWHERE = "2b6c8d91-7a34-4f18-9c05-e1d47b3a6f20";
+
+const MAJORITY_FOLDER = "Various Artists/The Last of Us (2013)";
+const MINORITY_FOLDER = "Gustavo Santaolalla/The Last of Us (2014)";
+
+function plannedSong(
+  overrides: Partial<V1Song>,
+  scanned: ScannedFile | null = null,
+  forces: readonly V1ForceMetadata[] = [],
+): PlannedSong {
+  return {
+    song: song(overrides),
+    forces,
+    classification: scanned === null ? "present_missing_file" : "present_with_file",
+    file: scanned,
+    matchedBy: scanned === null ? "none" : "path",
+  };
+}
+
+/** One soundtrack row, filed where v1's own per-row answer put it. */
+function soundtrackRow(input: {
+  id: number;
+  track: number;
+  title: string;
+  albumArtist: string;
+  year: number;
+  album?: string;
+  release: string | null;
+  forcedRelease?: string;
+}): V1Song {
+  const album = input.album ?? "The Last of Us";
+  const folder = `${input.albumArtist}/${album} (${String(input.year)})`;
+  return song({
+    id: input.id,
+    sourceUrl: `https://www.youtube.com/watch?v=tlou${padD2(input.id)}xxxxx`,
+    sourceId: `tlou${padD2(input.id)}xxxxx`,
+    sourceUrlParent: "https://www.youtube.com/playlist?list=OLAK5uy_v1lastofus",
+    title: input.title,
+    artist: "Gustavo Santaolalla",
+    performers: ["Gustavo Santaolalla"],
+    album,
+    albumArtists: [input.albumArtist],
+    year: input.year,
+    trackNumber: input.track,
+    trackCount: 5,
+    discNumber: null,
+    discCount: null,
+    musicBrainzRecordingId: null,
+    musicBrainzReleaseId: input.release,
+    musicBrainzForced: input.forcedRelease !== undefined,
+    musicBrainzReleaseIdForce: input.forcedRelease ?? null,
+    finalFilePath: `${folder}/${padD2(input.track)} - ${input.title}.opus`,
+  });
+}
+
+function dataset(songs: readonly V1Song[]): V1Dataset {
+  return { songs, forces: new Map(), playlists: [], playlistSongs: [] };
+}
+
+/** The six rows of fixture album D, and the files v1 left behind for them. */
+function soundtrack(): { songs: V1Song[]; files: ScannedFile[] } {
+  const rows: {
+    id: number;
+    track: number;
+    title: string;
+    albumArtist: string;
+    year: number;
+    album?: string;
+    forcedRelease?: string;
+  }[] = [
+    { id: 401, track: 1, title: "The Last of Us", albumArtist: "Various Artists", year: 2013 },
+    { id: 402, track: 2, title: "The Quarantine Zone", albumArtist: "Various Artists", year: 2013 },
+    { id: 403, track: 3, title: "The Path", albumArtist: "Gustavo Santaolalla", year: 2014 },
+    { id: 404, track: 4, title: "All Gone", albumArtist: "Gustavo Santaolalla", year: 2014 },
+    { id: 405, track: 5, title: "Vanishing Grace", albumArtist: "Various Artists", year: 2013 },
+    {
+      id: 406,
+      track: 1,
+      title: "Longing",
+      albumArtist: "Gustavo Santaolalla",
+      year: 2020,
+      album: "The Last of Us Part II",
+      forcedRelease: FORCED_ELSEWHERE,
+    },
+  ];
+  const songs = rows.map((row) => soundtrackRow({ ...row, release: SOUNDTRACK }));
+  return { songs, files: songs.map((entry) => file(entry.finalFilePath ?? "")) };
+}
+
+describe("which release a v1 row is on", () => {
+  /*
+   * The order is v1's own, and it is not negotiable: `identifiersOf` applies the forced value
+   * over the column, and the file is only consulted when the row says nothing. A migration
+   * that read the plain column first would give album A of the fixture — thirteen rows whose
+   * `MusicBrainzReleaseId` is empty and whose `MusicBrainzReleaseIdForce` is the answer — no
+   * release at all, and every rung hanging off it, the cover included, nothing to hang from.
+   */
+  it("prefers the forced release over the column v1's own lookup filled", () => {
+    const forced = plannedSong(
+      {
+        musicBrainzReleaseId: "d073287b-d1bd-4f11-a933-a4386f8cf701",
+        musicBrainzForced: true,
+        musicBrainzReleaseIdForce: FORCED_ELSEWHERE,
+      },
+      file("a/01.opus", { MUSICBRAINZ_ALBUMID: SOUNDTRACK }),
+    );
+    expect(releaseMbidFor(forced)).toBe(FORCED_ELSEWHERE);
+  });
+
+  it("prefers a SongForceMetadata override over both", () => {
+    const overridden = plannedSong(
+      {
+        musicBrainzReleaseId: "d073287b-d1bd-4f11-a933-a4386f8cf701",
+        musicBrainzForced: true,
+        musicBrainzReleaseIdForce: SOUNDTRACK,
+      },
+      file("a/01.opus"),
+      [
+        {
+          id: 1,
+          songId: 1,
+          field: "MusicBrainzReleaseId",
+          value: FORCED_ELSEWHERE,
+          isArrayValue: false,
+        },
+      ],
+    );
+    expect(releaseMbidFor(overridden)).toBe(FORCED_ELSEWHERE);
+  });
+
+  it("takes the Songs column when nothing was forced, over the tag in the file", () => {
+    const resolved = plannedSong(
+      { musicBrainzReleaseId: SOUNDTRACK },
+      file("a/01.opus", { MUSICBRAINZ_ALBUMID: FORCED_ELSEWHERE }),
+    );
+    expect(releaseMbidFor(resolved)).toBe(SOUNDTRACK);
+  });
+
+  /*
+   * The rung that makes a cleared row survivable: v1 wrote the column into the file at tagging
+   * time, so `MUSICBRAINZ_ALBUMID` is the only copy left when somebody emptied the row later.
+   */
+  it("falls back to MUSICBRAINZ_ALBUMID in the file, in either spelling", () => {
+    const fromTag = plannedSong(
+      { musicBrainzReleaseId: null },
+      file("a/01.opus", { MUSICBRAINZ_ALBUMID: SOUNDTRACK }),
+    );
+    expect(releaseMbidFor(fromTag)).toBe(SOUNDTRACK);
+
+    const alias = plannedSong(
+      { musicBrainzReleaseId: null },
+      file("a/01.opus", { MUSICBRAINZ_RELEASEID: SOUNDTRACK.toUpperCase() }),
+    );
+    expect(releaseMbidFor(alias)).toBe(SOUNDTRACK);
+  });
+
+  it("has no fourth rung: a row with none of the three has no release", () => {
+    const bare = plannedSong({ musicBrainzReleaseId: null }, file("a/01.opus"));
+    expect(releaseMbidFor(bare)).toBeNull();
+
+    // And a row with no file at all cannot borrow one from somewhere else either.
+    expect(releaseMbidFor(plannedSong({ musicBrainzReleaseId: null }, null))).toBeNull();
+  });
+});
+
+describe("the album an inventory plans", () => {
+  it("puts every row of one release in one album, whatever the tags disagree about", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files);
+
+    const byRelease = plan.albums.filter((album) => album.groupedBy === "release_mbid");
+    expect(byRelease).toHaveLength(2);
+
+    const main = byRelease.find((album) => album.releaseMbid === SOUNDTRACK);
+    expect(main?.tracks.map((track) => track.song.id)).toEqual([401, 402, 403, 404, 405]);
+    expect(plan.withoutRelease).toBe(0);
+  });
+
+  it("gives the row with a forced release an album of its own, on the same v1 playlist", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files);
+
+    const forced = plan.albums.find((album) => album.releaseMbid === FORCED_ELSEWHERE);
+    expect(forced?.tracks.map((track) => track.song.id)).toEqual([406]);
+    expect(forced?.groupedBy).toBe("release_mbid");
+  });
+
+  /*
+   * The old key, kept for exactly one case and reachable on purpose through `--group-by tags`
+   * so that a library migrated the old way can be reproduced before it is regrouped.
+   */
+  it("reproduces the old split with --group-by tags: two albums for one release", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files, { groupBy: "tags" });
+
+    expect(plan.albums.every((album) => album.groupedBy === "tags")).toBe(true);
+    // The five rows of one release, spread over the two folders their tags disagreed about.
+    const holdingTheRelease = plan.albums.filter((album) =>
+      album.tracks.some((track) => track.song.id <= 405),
+    );
+    expect(holdingTheRelease.map((album) => album.folder)).toEqual([
+      MINORITY_FOLDER,
+      MAJORITY_FOLDER,
+    ]);
+    expect(holdingTheRelease.map((album) => album.tracks.length)).toEqual([2, 3]);
+    // No release keyed them, so nothing is consolidated either: the folders *are* the albums.
+    expect(plan.albums.flatMap((album) => album.moves)).toEqual([]);
+  });
+
+  it("keeps the v1 tag triple plus the folder for a row with no release at all", () => {
+    const bare = song({
+      id: 900,
+      musicBrainzRecordingId: null,
+      musicBrainzReleaseId: null,
+      finalFilePath: "Justice/Woman Worldwide (2018)/01 - Chorus.opus",
+    });
+    const plan = planFrom(dataset([bare]), [file(bare.finalFilePath ?? "")]);
+
+    expect(plan.albums).toHaveLength(1);
+    expect(plan.albums[0]?.groupedBy).toBe("tags");
+    expect(plan.albums[0]?.releaseMbid).toBeNull();
+    expect(plan.withoutRelease).toBe(1);
+  });
+});
+
+describe("the folder an album consolidates into", () => {
+  it("is the one holding the most tracks", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files);
+    const main = plan.albums.find((album) => album.releaseMbid === SOUNDTRACK);
+
+    expect(main?.folder).toBe(MAJORITY_FOLDER);
+    expect(main?.folders).toEqual([
+      { folder: MAJORITY_FOLDER, tracks: 3 },
+      { folder: MINORITY_FOLDER, tracks: 2 },
+    ]);
+  });
+
+  it("moves the minority files into it, keeping each file name", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files);
+    const main = plan.albums.find((album) => album.releaseMbid === SOUNDTRACK);
+
+    expect(main?.moves).toEqual([
+      {
+        songId: 403,
+        from: `${MINORITY_FOLDER}/03 - The Path.opus`,
+        to: `${MAJORITY_FOLDER}/03 - The Path.opus`,
+      },
+      {
+        songId: 404,
+        from: `${MINORITY_FOLDER}/04 - All Gone.opus`,
+        to: `${MAJORITY_FOLDER}/04 - All Gone.opus`,
+      },
+    ]);
+  });
+
+  it("plans no move at all with keepFolders, and still keeps one album", () => {
+    const { songs, files } = soundtrack();
+    const plan = planFrom(dataset(songs), files, { keepFolders: true });
+    const main = plan.albums.find((album) => album.releaseMbid === SOUNDTRACK);
+
+    expect(main?.tracks).toHaveLength(5);
+    expect(main?.moves).toEqual([]);
+    expect(main?.folder).toBe(MAJORITY_FOLDER);
+  });
+
+  /*
+   * A tie is broken by the folder name, and that is a correctness property rather than a
+   * cosmetic one: a majority that oscillated between two folders of equal size would move
+   * every file on every run, and each move costs a Navidrome play count.
+   */
+  it("breaks a tie by folder name, so two runs choose the same majority", () => {
+    const tracks = [
+      plannedSong({ id: 1 }, file("Zed/Album (2001)/01 - A.opus")),
+      plannedSong({ id: 2 }, file("Abe/Album (2001)/02 - B.opus")),
+    ];
+    expect(foldersOf(tracks)).toEqual([
+      { folder: "Abe/Album (2001)", tracks: 1 },
+      { folder: "Zed/Album (2001)", tracks: 1 },
+    ]);
+    expect(movesInto(tracks, "Abe/Album (2001)")).toEqual([
+      { songId: 1, from: "Zed/Album (2001)/01 - A.opus", to: "Abe/Album (2001)/01 - A.opus" },
+    ]);
+  });
+
+  it("ignores a row with no file when counting a folder's tracks", () => {
+    const tracks = [
+      plannedSong({ id: 1 }, file("Artist/Album (2001)/01 - A.opus")),
+      plannedSong({ id: 2 }, null),
+    ];
+    expect(foldersOf(tracks)).toEqual([{ folder: "Artist/Album (2001)", tracks: 1 }]);
+    expect(movesInto(tracks, "Artist/Album (2001)")).toEqual([]);
+  });
+});
+
+/**
+ * The regrouping plan: what a second run over an already migrated library would do.
+ *
+ * `run.ts` needs a database to say which `library_albums` row each track sits in today, but the
+ * half that decides *what the answer should be* is this one, and it is pure. A library migrated
+ * with `--group-by tags` is exactly the first plan; re-running with the default is the second;
+ * the difference between the two is the regrouping.
+ */
+describe("the regrouping plan", () => {
+  it("dissolves the tag-grouped albums of one release into one, with the moves", () => {
+    const { songs, files } = soundtrack();
+    const before = planFrom(dataset(songs), files, { groupBy: "tags" });
+    const after = planFrom(dataset(songs), files);
+
+    // One release over two album rows before, one after — and the moves that get it there.
+    const splitBefore = before.albums.filter((album) =>
+      album.tracks.some((track) => track.song.id <= 405),
+    );
+    expect(splitBefore.map((album) => album.folder)).toEqual([MINORITY_FOLDER, MAJORITY_FOLDER]);
+
+    const main = after.albums.find((album) => album.releaseMbid === SOUNDTRACK);
+    expect(main?.tracks).toHaveLength(5);
+    expect(main?.folder).toBe(MAJORITY_FOLDER);
+    expect(main?.moves.map((move) => move.songId)).toEqual([403, 404]);
+
+    // The forced row is not swept up by the release that surrounds it on the v1 playlist.
+    const forced = after.albums.find((album) => album.releaseMbid === FORCED_ELSEWHERE);
+    expect(forced?.tracks.map((track) => track.song.id)).toEqual([406]);
+    expect(forced?.moves).toEqual([]);
+  });
+
+  /*
+   * The second half of the regrouping, and the reason `knownPaths` exists: once the files have
+   * been consolidated, neither `FinalFilePath` nor v1's own path algorithm predicts where they
+   * are. Only `migration_v1.path` remembers. Without it a third run would find the moved rows
+   * unmatched and plan the same move all over again.
+   */
+  it("is a no-op on a second pass, because knownPaths finds the consolidated files", () => {
+    const { songs } = soundtrack();
+    const consolidated = songs.map((entry) =>
+      entry.id === 403 || entry.id === 404
+        ? file(`${MAJORITY_FOLDER}/${baseOf(entry.finalFilePath ?? "")}`)
+        : file(entry.finalFilePath ?? ""),
+    );
+    const knownPaths = new Map(
+      songs.map((entry, index) => [entry.id, consolidated[index]?.path ?? ""]),
+    );
+
+    const again = planFrom(dataset(songs), consolidated, { knownPaths });
+    const main = again.albums.find((album) => album.releaseMbid === SOUNDTRACK);
+
+    expect(main?.tracks).toHaveLength(5);
+    expect(main?.folder).toBe(MAJORITY_FOLDER);
+    expect(main?.folders).toEqual([{ folder: MAJORITY_FOLDER, tracks: 5 }]);
+    expect(main?.moves).toEqual([]);
   });
 });
 
