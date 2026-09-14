@@ -16,6 +16,7 @@ import {
   FIXTURE_ORPHANS,
   FIXTURE_PLAYLISTS,
   FIXTURE_SONGS,
+  LAST_OF_US,
   filesToBuild,
 } from "../../../../../../fixtures/v1/dataset.ts";
 import { v1Tags } from "../../../../../../fixtures/v1/build-library.ts";
@@ -24,10 +25,47 @@ import { commentVideoId, recordingMbidOf } from "./reconcile.ts";
 import { isV1ForceField, isV1SongStatus } from "./schema.ts";
 
 describe("the v1 fixture", () => {
-  it("has the thirty rows and three albums the phase asks for", () => {
-    expect(FIXTURE_SONGS).toHaveLength(30);
+  it("has the thirty-six rows and four albums the phase asks for", () => {
+    expect(FIXTURE_SONGS).toHaveLength(36);
     const albums = new Set(FIXTURE_SONGS.map((song) => song.album));
-    expect([...albums].sort()).toEqual(["Birdy", "Discovery", "Woman Worldwide"]);
+    expect([...albums].sort()).toEqual([
+      "Birdy",
+      "Discovery",
+      "The Last of Us",
+      "The Last of Us Part II",
+      "Woman Worldwide",
+    ]);
+  });
+
+  /**
+   * Album D, and the reason it exists: the album is the v1 release MBID.
+   *
+   * Five rows name one release and disagree about the album artist and the year, so v1 filed
+   * them in two folders; the sixth is on the same v1 playlist, carries that same release on its
+   * row, and has a different one forced. A migration keyed on the tags makes three albums out
+   * of that; a migration keyed on the release makes two, which is what v1 had decided.
+   */
+  it("has one release whose rows disagree about the album artist and the year", () => {
+    const soundtrack = FIXTURE_SONGS.filter((song) => song.releaseMbid === LAST_OF_US.release);
+    expect(soundtrack).toHaveLength(6);
+
+    const agreeing = soundtrack.filter((song) => song.releaseMbidForce === null);
+    expect(agreeing).toHaveLength(5);
+    expect(new Set(agreeing.map((song) => song.albumArtists[0])).size).toBe(2);
+    expect(new Set(agreeing.map((song) => song.year)).size).toBe(2);
+    // Two v1 folders, three files against two: the majority is what the consolidation keeps.
+    const folders = agreeing.map((song) => (song.realPath ?? "").split("/").slice(0, 2).join("/"));
+    expect(new Set(folders).size).toBe(2);
+    expect(
+      folders.filter((folder) => folder === "Various Artists/The Last of Us (2013)"),
+    ).toHaveLength(3);
+
+    const forced = soundtrack.filter((song) => song.releaseMbidForce !== null);
+    expect(forced).toHaveLength(1);
+    expect(forced[0]?.musicBrainzForced).toBe(true);
+    expect(forced[0]?.releaseMbidForce).toBe(LAST_OF_US.forcedRelease);
+    // Same v1 playlist as the other five, which is exactly what makes it a test.
+    expect(forced[0]?.sourceIdParent).toBe(agreeing[0]?.sourceIdParent);
   });
 
   it("covers every status the migration has to classify", () => {
@@ -98,7 +136,7 @@ describe("the v1 fixture", () => {
   });
 
   it("builds one file per Present row, plus an orphan nobody claims", () => {
-    expect(filesToBuild()).toHaveLength(24);
+    expect(filesToBuild()).toHaveLength(30);
     expect(FIXTURE_ORPHANS).toHaveLength(1);
   });
 
