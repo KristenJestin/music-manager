@@ -425,9 +425,28 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
 
   /* ---- 3 · the real document, from the sources, using v1's MBIDs ---- */
   //
-  // `build` reads the locked fields of the document already stored, so what v1's owner forced
-  // survives the rebuild. What v1 merely *guessed* does not: it is merged back underneath the
-  // built document afterwards, so it only ever fills a hole the sources left.
+  // The whole chain for a migrated track, top to bottom, ends here:
+  //
+  //  1. the MBIDs — `identifiersOf` (a `SongForceMetadata` row, then `*Force` behind
+  //     `MusicBrainzForced`, then the plain column), then `inventory.releaseMbidFor`'s last
+  //     rung, `MUSICBRAINZ_ALBUMID` in the file. That is `album.releaseMbid` and
+  //     `import_tracks.recording_mbid`;
+  //  2. the release and the recording `build` actually fetches with them;
+  //  3. MusicBrainz's field values, and everything hanging off them — Cover Art Archive,
+  //     Deezer, LRCLIB, Last.fm;
+  //  4. the v1 seed, underneath, for the gaps: it is `merge`'s *first* patch and its source is
+  //     unranked, so it only ever fills what step 3 left missing;
+  //  5. the `SongForceMetadata` overrides, locked, on top of all of it.
+  //
+  // `build` reads the locked fields of the document persisted a moment ago, so step 5 is
+  // already true inside the build as well as in the merge after it — and a later
+  // `documents.rebuild`, which has no seed patch to layer, reads the same locks back off the
+  // stored document and answers the same thing. What v1 merely *guessed* has no lock and no
+  // rank, so it loses to every source that speaks.
+  //
+  // A row that was migrated by an older build, with the processing flags locking everything,
+  // is corrected by re-running: `persistDocument` replaces the stored document outright, so
+  // step 3 above sees the new, unlocked seed.
   //
   // A failure here is **not** a failure of the track. The album's release is the one v1 chose,
   // and two ordinary things can make it unresolvable: the release is not in the cache and there
