@@ -28,6 +28,7 @@ import {
   type PlannedSong,
 } from "./inventory.ts";
 import { normalizeV1Path, padD2, pathKey, predictV1Path, sanitizeV1 } from "./paths.ts";
+import { emptyCounts, formatReport, type MigrationCounts } from "./report.ts";
 import { playlistFileName, renderPlaylist } from "./playlists.ts";
 import { redactUrl } from "./reader.ts";
 import { commentVideoId, reconcile, recordingMbidOf, type ScannedFile } from "./reconcile.ts";
@@ -1235,5 +1236,58 @@ describe("guards", () => {
     expect(libraryPrefixOf(paths, "D:/lib")).toBe("");
     expect(libraryPrefixOf(paths, "D:/lib/v1")).toBe("v1/");
     expect(() => libraryPrefixOf(paths, "D:/elsewhere")).toThrow(/must be the v2 library root/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the rendered report                                                 */
+/* ------------------------------------------------------------------ */
+
+describe("the report the CLI prints", () => {
+  const report = (counts: MigrationCounts): string =>
+    formatReport({
+      runId: "mig_test",
+      dryRun: true,
+      renameToTemplate: false,
+      groupBy: "release",
+      keepFolders: false,
+      library: "D:/lib",
+      database: "postgres://mm:***@db/v1",
+      startedAt: "2026-09-05T00:00:00.000Z",
+      finishedAt: "2026-09-05T00:00:01.000Z",
+      durationMs: 1000,
+      counts,
+      albums: [],
+      imports: [],
+      playlists: [],
+      renames: [],
+      moves: [],
+      regroup: [],
+      discrepancies: [],
+      errors: [],
+      writes: 0,
+    });
+
+  it("says where the recording MBIDs came from, rung by rung", () => {
+    const text = report({
+      ...emptyCounts(),
+      recordings: { forced: 2, fromColumn: 18, fromTags: 1, none: 11 },
+    });
+    expect(text).toContain("1  recording MBID(s) read off MUSICBRAINZ_TRACKID in the file");
+    expect(text).toContain("2 forced");
+    expect(text).toContain("18 from the v1 column");
+    expect(text).toContain("11 row(s) with no recording");
+  });
+
+  /*
+   * `migrate show <run id>` renders a report stored months ago, and stored reports are never
+   * migrated. One written before the counter existed has no `recordings` key at all, and the
+   * renderer must print the rest of it rather than throw on the missing one.
+   */
+  it("still renders a report stored before the counter existed", () => {
+    const { recordings: _dropped, ...older } = emptyCounts();
+    const text = report(older as MigrationCounts);
+    expect(text).toContain("Dry run mig_test");
+    expect(text).not.toContain("MUSICBRAINZ_TRACKID");
   });
 });
