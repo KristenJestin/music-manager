@@ -14,6 +14,7 @@
  */
 import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   Disc3,
   Download,
@@ -28,6 +29,7 @@ import {
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
+import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { PlayButton } from "#/components/play-button.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
@@ -48,7 +50,20 @@ import {
 } from "#/server/functions/discover.ts";
 import { resolvePreview } from "#/server/functions/player.ts";
 
+/**
+ * Which half of "Recommended for you" is on screen.
+ *
+ * In the URL, like every other filter in this Console (`/library?filter=incomplete`), and for
+ * the same reasons: a tab is a link you can send someone, the back button means what it looks
+ * like, and a reload does not silently drop you back on the default.
+ */
+const RECOMMENDED_TABS = ["to-import", "in-library"] as const;
+type RecommendedTab = (typeof RECOMMENDED_TABS)[number];
+
+const search = z.object({ recommended: z.enum(RECOMMENDED_TABS).default("to-import") });
+
 export const Route = createFileRoute("/_app/discover")({
+  validateSearch: search,
   loader: async (): Promise<DiscoverView> => await fetchDiscover(),
   staticData: { crumbs: [{ label: "Discover" }] },
   component: Discover,
@@ -202,6 +217,16 @@ function Discover() {
   const blocked = !hydrated || busy !== null;
   const signals = view.signals;
   const synced = view.lastSync !== null;
+
+  /*
+   * The two halves of the Recommended block, computed once and mutually exclusive by
+   * construction: every recommendation is in exactly one of them, so the counts on the tabs
+   * always add up to the number in the heading.
+   */
+  const tab: RecommendedTab = Route.useSearch().recommended;
+  const toImport = view.recommendations.filter((item) => !item.inLibrary);
+  const owned = view.recommendations.filter((item) => item.inLibrary);
+  const shown = tab === "in-library" ? owned : toImport;
 
   return (
     <div data-testid="discover">
@@ -406,21 +431,64 @@ function Discover() {
             what="Nothing yet. Set a ListenBrainz user in Settings › Discover and scrobble from Navidrome, or leave it and use the discography block."
           />
         ) : (
-          <div className="divide-y divide-line rounded-xl border border-line bg-surface-1">
-            {view.recommendations.map((item) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                blocked={blocked}
-                busy={busy === item.id}
-                wide
-                playback={playback(item)}
-                onImport={importItem}
-                onDismiss={dismiss}
-                onLater={postpone}
+          <>
+            {/*
+              Two views of one list, never both at once.
+
+              The split is the same fact the badge used to carry — `inLibrary` — promoted to a
+              filter, because the two halves answer different questions and want different
+              buttons. "To import" is the recommendation proper. "In your library" is the
+              other output of the same computation: it is what feeds the Navidrome
+              "Recommended" playlist, and it exists so you can check what was pushed there.
+            */}
+            <FilterChips
+              chips={[
+                {
+                  value: "to-import",
+                  label: "To import",
+                  count: toImport.length,
+                  title: "Recommended, and not in your library yet.",
+                },
+                {
+                  value: "in-library",
+                  label: "In your library",
+                  count: owned.length,
+                  title:
+                    "Recommended, and you already own it. These are what the Navidrome “Recommended” playlist is built from.",
+                },
+              ]}
+              active={tab}
+              link={(value) => ({ to: "/discover", search: { recommended: value } })}
+              testId="discover-recommended-tab"
+            />
+            {shown.length === 0 ? (
+              <Empty
+                synced={synced}
+                what={
+                  tab === "to-import"
+                    ? "Every recommendation is already in your library. Nothing to import from this block."
+                    : "None of the recommendations is in your library yet. The Navidrome playlist is empty until one is."
+                }
               />
-            ))}
-          </div>
+            ) : (
+              <div className="divide-y divide-line rounded-xl border border-line bg-surface-1">
+                {shown.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    blocked={blocked}
+                    busy={busy === item.id}
+                    wide
+                    owned={tab === "in-library"}
+                    playback={playback(item)}
+                    onImport={importItem}
+                    onDismiss={dismiss}
+                    onLater={postpone}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -569,6 +637,7 @@ function ItemRow({
   blocked,
   busy,
   wide = false,
+  owned = false,
   playback,
   onImport,
   onDismiss,
@@ -578,6 +647,14 @@ function ItemRow({
   blocked: boolean;
   busy: boolean;
   wide?: boolean;
+  /**
+   * This row is being shown as something you already own.
+   *
+   * It removes Import rather than disabling it: there is nothing to import, and a greyed
+   * button with a tooltip explaining why would be a worse way of saying so. What replaces it
+   * is the thing you actually want from a record you have — a way to open it.
+   */
+  owned?: boolean;
   playback: RowPlayback;
   onImport: (item: DiscoverItemView) => void;
   onDismiss: (item: DiscoverItemView) => void;
@@ -637,7 +714,9 @@ function ItemRow({
         </div>
       </div>
       {wide ? <ScoreBar value={item.score} className="shrink-0" /> : null}
-      {item.inLibrary ? (
+      {/* In the "In your library" tab the badge would repeat the tab it is under, on every
+          single row. The tab is the statement; the badge is only needed where rows mix. */}
+      {owned ? null : item.inLibrary ? (
         <ToneBadge tone="ok">in library</ToneBadge>
       ) : (
         <ToneBadge tone="info" title="Found by MusicBrainz id, not by a title guess.">
@@ -650,21 +729,36 @@ function ItemRow({
         </ToneBadge>
       )}
       <div className="flex shrink-0 gap-1">
-        <Button
-          size="xs"
-          disabled={blocked}
-          data-testid="discover-import"
-          onClick={() => {
-            onImport(item);
-          }}
-        >
-          {busy ? (
-            <Search className="size-3 animate-spin" aria-hidden="true" />
-          ) : (
-            <Download className="size-3" aria-hidden="true" />
-          )}
-          Import
-        </Button>
+        {owned ? (
+          item.libraryAlbumId === null ? null : (
+            <Button
+              size="xs"
+              variant="outline"
+              nativeButton={false}
+              data-testid="discover-open-album"
+              render={<Link to="/library/albums/$id" params={{ id: item.libraryAlbumId }} />}
+            >
+              <ListMusic className="size-3" aria-hidden="true" />
+              Open album
+            </Button>
+          )
+        ) : (
+          <Button
+            size="xs"
+            disabled={blocked}
+            data-testid="discover-import"
+            onClick={() => {
+              onImport(item);
+            }}
+          >
+            {busy ? (
+              <Search className="size-3 animate-spin" aria-hidden="true" />
+            ) : (
+              <Download className="size-3" aria-hidden="true" />
+            )}
+            Import
+          </Button>
+        )}
         <Button
           size="xs"
           variant="ghost"
@@ -676,7 +770,9 @@ function ItemRow({
         >
           Not interested
         </Button>
-        {item.status === "later" ? null : (
+        {/* "Later" only sinks a row down the list you are going to act on; there is nothing to
+            postpone about a record you already have. */}
+        {owned || item.status === "later" ? null : (
           <Button
             size="xs"
             variant="ghost"

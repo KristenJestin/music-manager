@@ -29,6 +29,7 @@ const item = (over: Partial<DiscoverItemView>): DiscoverItemView =>
     reason: "because you played Daft Punk 192× this month",
     source: "ListenBrainz",
     inLibrary: false,
+    libraryAlbumId: null,
     payload: {},
     ...over,
   }) satisfies DiscoverItemView;
