@@ -270,7 +270,11 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
     await say(
       `${String(plan.albums.length)} album(s): ${String(counts.albumsByRelease)} by release MBID, ` +
         `${String(counts.albumsByTags)} by v1 tags (${String(plan.withoutRelease)} row(s) have no release)`,
-      { albums: plan.albums.length, byRelease: counts.albumsByRelease, byTags: counts.albumsByTags },
+      {
+        albums: plan.albums.length,
+        byRelease: counts.albumsByRelease,
+        byTags: counts.albumsByTags,
+      },
     );
 
     /* ---- what a previous run already finished -------------------------- */
@@ -363,7 +367,6 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
      * fresh import instead.
      */
     const claimedImports = new Set<string>();
-
 
     for (const album of plan.albums) {
       options.signal?.throwIfAborted();
@@ -469,9 +472,12 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         await db.delete(libraryAlbums).where(eq(libraryAlbums.id, albumId));
         count();
         counts.albumsRemoved += 1;
-        await say(`removed the album row left empty by the regrouping: ${albumLabels.get(albumId) ?? albumId}`, {
-          album: albumId,
-        });
+        await say(
+          `removed the album row left empty by the regrouping: ${albumLabels.get(albumId) ?? albumId}`,
+          {
+            album: albumId,
+          },
+        );
       }
     }
 
@@ -759,6 +765,7 @@ async function upsertRow(
     detail?: Record<string, unknown>;
     error?: { code: string; message: string } | null;
   },
+  options: { onlyIfPlanned?: boolean } = {},
 ): Promise<void> {
   await db
     .insert(migrationV1)
@@ -766,6 +773,7 @@ async function upsertRow(
     .onConflictDoUpdate({
       target: migrationV1.v1SongId,
       set: { ...values, updatedAt: new Date() },
+      ...(options.onlyIfPlanned === true ? { setWhere: eq(migrationV1.outcome, "planned") } : {}),
     });
 }
 
@@ -781,15 +789,30 @@ async function recordRows(
   options: { outcome: MigrationRow["outcome"] },
 ): Promise<void> {
   for (const planned of songs) {
-    await upsertRow(db, {
-      runId,
-      v1SongId: String(planned.song.id),
-      v1Path: planned.song.finalFilePath,
-      path: planned.file?.path ?? null,
-      classification: planned.classification,
-      outcome: options.outcome,
-      matchedBy: planned.matchedBy,
-    });
+    await upsertRow(
+      db,
+      {
+        runId,
+        v1SongId: String(planned.song.id),
+        v1Path: planned.song.finalFilePath,
+        path: planned.file?.path ?? null,
+        classification: planned.classification,
+        outcome: options.outcome,
+        matchedBy: planned.matchedBy,
+      },
+      /*
+       * A dry run never downgrades a finished row.
+       *
+       * `planned` is the outcome this writes, and it is the only one a dry run produces. Left
+       * to overwrite, it would take a library that is already migrated and mark all of it
+       * `planned` again: the next real run would then re-migrate everything instead of
+       * recognising it as done, and — worse — `loadKnownPaths` would lose the paths this
+       * application itself wrote when it consolidated or renamed a file. That matters because
+       * "dry run, then real run" is the documented way to regroup a migrated library
+       * (`docs/migration-v1.md`), so the preview must be free.
+       */
+      { onlyIfPlanned: options.outcome === "planned" },
+    );
   }
 }
 
@@ -1050,11 +1073,21 @@ function assertWritableDir(dir: string, what: string): void {
  * Read from `migration_v1` for the whole table rather than for the rows of this plan: it is one
  * query either way, and the plan is not built yet when this is needed — the reconciliation is
  * what consumes it.
+ *
+ * **Only `migrated` rows.** The path on a `planned` row is not new information — it is where the
+ * *inventory* found the file, which the reconciliation is about to work out again by itself —
+ * and a dry run writes one for every row. Trusting those made the ordinary "dry run, then real
+ * run" sequence hand the reconciliation the answer: every file then matched by path, the two
+ * that had really been moved stopped being reported as `path_moved`, and `matched_by` said
+ * `path` for the whole library. A `migrated` row is different in kind: it records a path *this
+ * application wrote*, after a consolidation or a `--rename-to-template`, and nothing else in
+ * the world remembers it.
  */
 async function loadKnownPaths(db: Database): Promise<Map<number, string>> {
   const rows = await db
     .select({ songId: migrationV1.v1SongId, path: migrationV1.path })
-    .from(migrationV1);
+    .from(migrationV1)
+    .where(eq(migrationV1.outcome, "migrated"));
   const out = new Map<number, string>();
   for (const row of rows) {
     if (row.path === null || row.path === "") continue;
@@ -1065,10 +1098,7 @@ async function loadKnownPaths(db: Database): Promise<Map<number, string>> {
 }
 
 /** `Artist — Title (folder)` for each album row, so the regrouping plan reads like prose. */
-async function loadAlbumLabels(
-  db: Database,
-  ids: readonly string[],
-): Promise<Map<string, string>> {
+async function loadAlbumLabels(db: Database, ids: readonly string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const rows = await db
     .select({
