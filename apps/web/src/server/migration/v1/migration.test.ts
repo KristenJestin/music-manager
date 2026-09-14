@@ -6,7 +6,15 @@
  * are written against the source they came from, with the file and method named.
  */
 import { describe, expect, it } from "vitest";
-import { TAG_SCHEMA_VERSION, merge } from "@mm/domain";
+import {
+  SOURCE_PRECEDENCE,
+  TAG_SCHEMA_VERSION,
+  field,
+  merge,
+  type DocumentPatch,
+  type Field,
+  type FieldValue,
+} from "@mm/domain";
 import { classify, importStatusFor, needsImport } from "./classify.ts";
 import {
   baseOf,
@@ -720,6 +728,31 @@ describe("the seed document", () => {
     ...overrides,
   });
 
+  /** The same row with nothing to look up: v1 matched it and never got an answer. */
+  const noMbid = (overrides: Partial<V1Song> = {}): V1Song =>
+    song({
+      musicBrainzRecordingId: null,
+      musicBrainzReleaseId: null,
+      musicBrainzReleaseGroupId: null,
+      ...overrides,
+    });
+
+  const mb = (value: FieldValue): Field => field(value, "musicbrainz", "2026-01-01T00:00:00.000Z");
+
+  /** What `documents.build` hands back once the release and the recording have answered. */
+  const fromMusicBrainz = (): DocumentPatch => ({
+    fields: {
+      title: mb("Face to Face"),
+      artist: mb("Daft Punk feat. Romanthony"),
+      artists: mb(["Daft Punk", "Romanthony"]),
+      albumartist: mb("Daft Punk & Guest"),
+      albumartists: mb(["Daft Punk", "Guest"]),
+      album: mb("Discovery (remastered)"),
+      genre: mb(["Electronic", "House"]),
+      media: mb("Digital Media"),
+    },
+  });
+
   it("carries v1's fields at a low confidence and an unranked source", () => {
     const { patch } = seedDocument(song());
     expect(patch.fields?.["title"]?.value).toBe("One More Time");
@@ -809,12 +842,29 @@ describe("the seed document", () => {
 
   /*
    * `Song.ForceSongMetadata` means "skip MusicBrainz and use the Songs row as it stands"
-   * (`v1/core/Data/Entities/Song.cs` §Processing Flags). v2 read the column and did nothing
-   * with it, so `documents.build` replaced every one of those values — which is how artist
-   * names came out of a migration different from the ones on disk.
+   * (`v1/core/Data/Entities/Song.cs` §Processing Flags). That was v1's answer to a matcher it
+   * could not trust, and it is not v2's: a row that carries a release MBID **and** a recording
+   * MBID says exactly which record it is, so those are what build the track. The flag locks
+   * nothing on such a row — the seed stays the floor, at `V1_CONFIDENCE`.
    */
-  it("locks everything ForceSongMetadata told v1 to take from the row", () => {
+  it("locks nothing from ForceSongMetadata when the row carries its MBIDs", () => {
     const result = seedDocument(song({ forceSongMetadata: true }));
+    for (const name of ["title", "artist", "artists", "albumartist", "album", "genre", "date"]) {
+      expect(result.patch.fields?.[name]?.locked, name).toBe(false);
+      expect(result.patch.fields?.[name]?.confidence, name).toBe(0.2);
+      expect(result.patch.fields?.[name]?.source, name).toBe("v1");
+    }
+    expect(result.locked).not.toContain("title");
+  });
+
+  /*
+   * The other half: no release MBID and no recording MBID, so there is nothing to look up and
+   * the v1 row is all the track has. The flag then freezes what it covered, because
+   * `documents.build` is *not* silent in that case — the YouTube resolver answers from the
+   * reconstructed yt-dlp entry, and `youtube` outranks `v1` in `SOURCE_PRECEDENCE`.
+   */
+  it("freezes what ForceSongMetadata covered when there is no MBID to query", () => {
+    const result = seedDocument(noMbid({ forceSongMetadata: true }));
     for (const name of ["title", "artist", "artists", "albumartist", "album", "genre", "date"]) {
       expect(result.patch.fields?.[name]?.locked, name).toBe(true);
       expect(result.patch.fields?.[name]?.confidence, name).toBe(1);
@@ -823,23 +873,56 @@ describe("the seed document", () => {
     expect(result.locked).toContain("title");
   });
 
+  /** One MBID is enough: the track has something to look up, so nothing is frozen. */
+  it("treats a lone recording MBID as something to query", () => {
+    const result = seedDocument(noMbid({ forceSongMetadata: true }), [], {
+      releaseMbid: null,
+    });
+    expect(result.patch.fields?.["title"]?.locked).toBe(true);
+
+    const withRecording = seedDocument(
+      noMbid({
+        forceSongMetadata: true,
+        musicBrainzRecordingId: "60fa767a-d85d-4991-82bc-4294e0b11ae7",
+      }),
+    );
+    expect(withRecording.patch.fields?.["title"]?.locked).toBe(false);
+  });
+
+  /*
+   * The release the *plan* settled on, not the one on the row: `inventory.releaseMbidFor` has
+   * a third rung, `MUSICBRAINZ_ALBUMID` in the file, and a track found that way has just as
+   * much to query as one whose row was filled in.
+   */
+  it("accepts the album's release when the row's column is empty", () => {
+    const result = seedDocument(noMbid({ forceSongMetadata: true }), [], {
+      releaseMbid: "d073287b-d1bd-4f11-a933-a4386f8cf701",
+    });
+    expect(result.patch.fields?.["title"]?.locked).toBe(false);
+    expect(result.locked).toEqual([]);
+  });
+
   /*
    * `ForceSourceMetadata` writes the parsed description *back into the Songs row* and clears
-   * the MBIDs, so the row already holds the values v1 used. Only the fields that branch
-   * assigns are locked: the track position is not one of them.
+   * the MBIDs, so a row carrying that flag usually has nothing to query — which is the case
+   * where it freezes. Only the fields that branch assigns: the track position is not one.
    */
-  it("locks the description-derived fields for ForceSourceMetadata, and only those", () => {
-    const result = seedDocument(song({ forceSourceMetadata: true }));
+  it("freezes the description-derived fields for ForceSourceMetadata, and only those", () => {
+    const result = seedDocument(noMbid({ forceSourceMetadata: true }));
     expect(result.patch.fields?.["title"]?.locked).toBe(true);
     expect(result.patch.fields?.["album"]?.locked).toBe(true);
     expect(result.patch.fields?.["label"]?.locked).toBe(true);
     expect(result.patch.fields?.["tracknumber"]?.locked).toBe(false);
     expect(result.patch.fields?.["genre"]?.locked).toBe(false);
+
+    // …and somebody who re-filled the MBIDs afterwards gets MusicBrainz back.
+    const queryable = seedDocument(song({ forceSourceMetadata: true }));
+    expect(queryable.patch.fields?.["title"]?.locked).toBe(false);
   });
 
   /** v1's `if / else if`: `ForceSongMetadata` is tested first, so it wins. */
   it("gives ForceSongMetadata precedence when both flags are set", () => {
-    const result = seedDocument(song({ forceSongMetadata: true, forceSourceMetadata: true }));
+    const result = seedDocument(noMbid({ forceSongMetadata: true, forceSourceMetadata: true }));
     expect(result.patch.fields?.["genre"]?.locked).toBe(true);
   });
 
@@ -885,35 +968,51 @@ describe("the seed document", () => {
   });
 
   /*
-   * The other half of the rule above, and the one that was missing: with `ForceSongMetadata`
-   * the *whole* row is the decision, so MusicBrainz fills holes and overwrites nothing. This
-   * is what makes a migrated ARTIST equal to the one v1 wrote rather than to the credited-as
-   * name MusicBrainz prefers.
+   * The rule the whole file turns on: when a release MBID and a recording MBID exist in v1,
+   * **those** are what build the song. `ForceSongMetadata` does not change that — it was v1's
+   * way of distrusting its own matcher, and the identifiers on the row are the answer that
+   * matcher was eventually given.
    */
-  it("keeps the v1 values when ForceSongMetadata was set, whatever MusicBrainz says", () => {
-    const seed = seedDocument(song({ forceSongMetadata: true }));
-    const fromMusicBrainz = {
-      fields: {
-        artist: {
-          value: "Daft Punk feat. Romanthony",
-          source: "musicbrainz" as const,
-          confidence: 1,
-          fetchedAt: "2026-01-01T00:00:00.000Z",
-          locked: false,
-        },
-        media: {
-          value: "Digital Media",
-          source: "musicbrainz" as const,
-          confidence: 1,
-          fetchedAt: "2026-01-01T00:00:00.000Z",
-          locked: false,
-        },
-      },
-    };
-    const document = merge([seed.patch, fromMusicBrainz], { schemaVersion: TAG_SCHEMA_VERSION });
+  it("takes title, artists and album from MusicBrainz on a ForceSongMetadata row with MBIDs", () => {
+    const seed = seedDocument(song({ forceSongMetadata: true }), [
+      force({ field: "Genres", value: "French House;Electro", isArrayValue: true }),
+    ]);
+    const document = merge([seed.patch, fromMusicBrainz()], {
+      schemaVersion: TAG_SCHEMA_VERSION,
+      precedence: SOURCE_PRECEDENCE,
+    });
+
+    expect(document.fields["title"]?.value).toBe("Face to Face");
+    expect(document.fields["artist"]?.value).toBe("Daft Punk feat. Romanthony");
+    expect(document.fields["artists"]?.value).toEqual(["Daft Punk", "Romanthony"]);
+    expect(document.fields["albumartist"]?.value).toBe("Daft Punk & Guest");
+    expect(document.fields["album"]?.value).toBe("Discovery (remastered)");
+    // A field v1 never had is filled as it always was.
+    expect(document.fields["media"]?.value).toBe("Digital Media");
+    // …and the per-field override on the same row still wins over MusicBrainz.
+    expect(document.fields["genre"]?.value).toEqual(["French House", "Electro"]);
+    expect(document.fields["genre"]?.locked).toBe(true);
+  });
+
+  /*
+   * The same row with its identifiers taken away: nothing to query, so the v1 values are all
+   * there is and they stay. `musicbrainz` here stands in for any later source — including the
+   * YouTube resolver, which really does answer for a track with no MBID.
+   */
+  it("keeps the v1 values on a ForceSongMetadata row with no MBID at all", () => {
+    const seed = seedDocument(noMbid({ forceSongMetadata: true }));
+    const document = merge([seed.patch, fromMusicBrainz()], {
+      schemaVersion: TAG_SCHEMA_VERSION,
+      precedence: SOURCE_PRECEDENCE,
+    });
+
+    expect(document.fields["title"]?.value).toBe("One More Time");
     expect(document.fields["artist"]?.value).toBe("Daft Punk");
+    expect(document.fields["artists"]?.value).toEqual(["Daft Punk"]);
     expect(document.fields["albumartist"]?.value).toBe("Daft Punk");
-    // A field v1 never had is still filled: forcing protects, it does not blind.
+    expect(document.fields["album"]?.value).toBe("Discovery");
+    expect(document.fields["genre"]?.value).toEqual(["Electronic"]);
+    // Forcing protects, it does not blind: a field v1 never had is still filled.
     expect(document.fields["media"]?.value).toBe("Digital Media");
   });
 

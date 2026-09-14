@@ -7,19 +7,26 @@
  * and so that a track whose MBID lookup never succeeds still arrives in v2 with a title, an
  * artist and an album rather than with nothing.
  *
- * Four categories are **locked** instead, because they are decisions a human already made and
- * a migration that quietly reverted them would be worse than one that refused to run:
+ * Two categories are **locked** instead, because they are decisions a human already made
+ * field by field, and a migration that quietly reverted them would be worse than one that
+ * refused to run:
  *
  *  - every field with a `SongForceMetadata` row — that table exists for no other purpose;
  *  - the forced MBIDs (`MusicBrainzRecordingIdForce` / `…ReleaseIdForce`, gated by
- *    `MusicBrainzForced`), which are the answer somebody typed in after v1 got it wrong;
- *  - every field v1 took from the row itself when `ForceSongMetadata` is set. That flag means
- *    "skip MusicBrainz and use the Songs row as it stands" (`v1/core/Data/Entities/Song.cs`
- *    §Processing Flags, applied in `ProcessSongJob.cs`), so a v2 that let `documents.build`
- *    overwrite those values would produce different tags than the ones on disk today;
- *  - the same, for `ForceSourceMetadata`. v1 parsed the YouTube description, wrote the result
- *    **back into the Songs row** and cleared every MBID, so by migration time the row already
- *    holds the description-derived values — there is nothing to re-derive, only to protect.
+ *    `MusicBrainzForced`), which are the answer somebody typed in after v1 got it wrong.
+ *
+ * The two **row** flags, `ForceSongMetadata` and `ForceSourceMetadata`, lock nothing by
+ * themselves. They say "skip MusicBrainz and use the Songs row as it stands"
+ * (`v1/core/Data/Entities/Song.cs` §Processing Flags, applied in `ProcessSongJob.cs`), and
+ * that was v1's answer to a lookup it could not trust. It is not v2's answer: when the row
+ * carries a release MBID and a recording MBID, **those** are what build the track — title,
+ * artists, album artists, album, year, genres, numbers and label all come from the release v1
+ * itself pointed at, and the seed stays underneath them as the floor it has always been.
+ * Locking a whole row on the strength of a boolean throws away the best identifier v1 ever
+ * recorded, which is the opposite of migrating it.
+ *
+ * `frozenFields` below is the one exception, and it is narrow on purpose: read it for why a
+ * row with **no** MBID at all still freezes what its flag covered.
  *
  * `ForceSongMetadata` wins over `ForceSourceMetadata` when both are set, because v1's
  * `if / else if` says so.
@@ -54,6 +61,16 @@ export const V1_CONFIDENCE = 0.2;
 export interface SeedOptions {
   /** Stamped on every field as `fetchedAt`. Defaults to the row's `UpdatedAt`, then to now. */
   readonly now?: Date;
+  /**
+   * The release the plan settled on for this track — `PlannedAlbum.releaseMbid`.
+   *
+   * `identifiersOf` sees the forced value and the row; it cannot see the third rung,
+   * `MUSICBRAINZ_ALBUMID` in the file, which `inventory.releaseMbidFor` adds. Passing the
+   * album's answer here is what makes "is there anything to query?" the *same* question the
+   * rest of the migration asks. Absent or `null`, the row's own column answers instead — the
+   * two are a union, because either one is a release somebody can look up.
+   */
+  readonly releaseMbid?: string | null;
 }
 
 export interface SeedResult {
@@ -94,10 +111,11 @@ const FORCE_TO_FIELD: Readonly<Partial<Record<V1ForceField, string>>> = {
 const COVER_FORCE_FIELDS: ReadonlySet<string> = new Set(["CoverArtBytes", "CoverArtMimeType"]);
 
 /**
- * The document fields `ForceSongMetadata` freezes.
+ * The document fields `ForceSongMetadata` covers.
  *
  * One entry per assignment in `ProcessSongJob.cs`'s `if (song.ForceSongMetadata)` block, in
- * the same order, plus the Vorbis aliases the projection reads separately.
+ * the same order, plus the Vorbis aliases the projection reads separately. They are frozen
+ * only in the no-MBID case — see `frozenFields`.
  */
 const FORCE_SONG_FIELDS: readonly string[] = [
   "title",
@@ -128,12 +146,12 @@ const FORCE_SONG_FIELDS: readonly string[] = [
 ];
 
 /**
- * The document fields `ForceSourceMetadata` freezes.
+ * The document fields `ForceSourceMetadata` covers.
  *
  * Exactly the properties v1's `else if (song.ForceSourceMetadata)` branch assigns from the
  * parsed description. `TrackNumber` and `TrackCount` are copied into the tag DTO there but are
- * never *set* from the parse, so they stay unlocked; the MBIDs are nulled out, so there is
- * nothing to lock.
+ * never *set* from the parse, so they are not in the list; the MBIDs are nulled out, so there
+ * is nothing to freeze there either.
  */
 const FORCE_SOURCE_FIELDS: readonly string[] = [
   "title",
@@ -146,6 +164,34 @@ const FORCE_SOURCE_FIELDS: readonly string[] = [
   "originalyear",
   "label",
 ];
+
+/**
+ * What a row flag freezes, which is nothing at all as soon as there is an MBID to query.
+ *
+ * The rule the flags now obey:
+ *
+ *  - **a release MBID or a recording MBID exists** (forced, or on the row, or written into the
+ *    file as `MUSICBRAINZ_ALBUMID`): MusicBrainz is queried and its answer is the track. The
+ *    flag freezes nothing; the seed stays at `V1_CONFIDENCE` and fills only what MusicBrainz
+ *    leaves missing. This is the case the rule exists for — v1 held a perfectly good pair of
+ *    identifiers and set the flag because *its own* matcher had been wrong, not because the
+ *    release was.
+ *  - **neither exists**: there is no build to speak of, and the seed is all the track has. The
+ *    flag then freezes the fields it covered, because `documents.build` is not empty in that
+ *    case either — the YouTube resolver still answers from the yt-dlp entry `execute.ts`
+ *    reconstructs (`title` from the video title, `artist` from the uploader, `label` and
+ *    `date` from the parsed description), and `youtube` *is* in `SOURCE_PRECEDENCE` while `v1`
+ *    is not. Left unlocked, a v1 row reading "Safe and Sound / D.A.N.C.E. / Fire" would come
+ *    back out of a later `rebuild` titled "Justice - Safe and Sound _ D.A.N.C.E. _ Fire".
+ *    Freezing here is not "v1 wins over MusicBrainz"; it is "a video title does not silently
+ *    replace what v1 deliberately froze, when nobody asked for a match".
+ */
+function frozenFields(song: V1Song, hasMbid: boolean): readonly string[] {
+  if (hasMbid) return [];
+  if (song.forceSongMetadata) return FORCE_SONG_FIELDS;
+  if (song.forceSourceMetadata) return FORCE_SOURCE_FIELDS;
+  return [];
+}
 
 /**
  * Build the seed patch.
@@ -220,13 +266,9 @@ export function seedDocument(
   /* ---- provenance: the one thing a v1 file already carried ---- */
   put("musicmanager_sourceurl", song.sourceUrl);
 
-  /* ---- the processing flags, which freeze what v1 would not have re-derived ---- */
-  const frozen = song.forceSongMetadata
-    ? FORCE_SONG_FIELDS
-    : song.forceSourceMetadata
-      ? FORCE_SOURCE_FIELDS
-      : [];
-  for (const name of frozen) {
+  /* ---- the processing flags, which freeze only when there is nothing to query ---- */
+  const hasMbid = ids.recordingMbid !== null || (options.releaseMbid ?? ids.releaseMbid) !== null;
+  for (const name of frozenFields(song, hasMbid)) {
     const held = fields[name];
     if (held === undefined) continue;
     fields[name] = { ...held, locked: true, confidence: 1 };

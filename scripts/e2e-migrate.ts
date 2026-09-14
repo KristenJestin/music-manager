@@ -6,7 +6,7 @@
  * phase's acceptance criteria describe:
  *
  *  1. load `fixtures/v1/dump.sql` into a scratch database (`mm_v1_fixture`) — thirty-six
- *     `Songs` rows, eight `SongForceMetadata` overrides, two `UserPlaylists`;
+ *     `Songs` rows, nine `SongForceMetadata` overrides, two `UserPlaylists`;
  *  2. build the v1 library: one copy of the toolbox's five-second sample per `Present` row,
  *     tagged through `POST /tag` with **v1's** tag set and nothing else;
  *  3. `mm migrate v1 --dry-run` — a readable plan, and **zero** rows written anywhere but
@@ -447,8 +447,8 @@ async function main(): Promise<void> {
     String(songCount?.count),
   );
   check(
-    forceCount?.count === 8,
-    "with eight SongForceMetadata overrides",
+    forceCount?.count === 9,
+    "with nine SongForceMetadata overrides",
     String(forceCount?.count),
   );
   check(playlistCount?.count === 2, "and two UserPlaylists", String(playlistCount?.count));
@@ -855,29 +855,30 @@ async function main(): Promise<void> {
 
   /* ---- the processing flags v1 set ---------------------------------- */
   //
-  // `ForceSongMetadata` means "skip MusicBrainz, use the Songs row". v2 read the column and
-  // did nothing with it, so `documents.build` replaced the artist names — which is how a
-  // migrated library came out crediting people its owner had never seen.
+  // `ForceSongMetadata` means "skip MusicBrainz, use the Songs row" — v1's answer to a matcher
+  // it no longer trusted. It is not v2's answer: both flagged rows of this album carry a
+  // recording MBID and a forced release MBID, so **those** build the track. The flag is a
+  // fallback for what MusicBrainz leaves empty, not a veto over what it says.
   const forcedSong = await probe("Daft Punk/Discovery (2001)/13 - Face to Face.opus");
   check(
-    forcedSong["ARTIST"] === "Daft Punk & Todd Edwards",
-    "a ForceSongMetadata row keeps v1's ARTIST, not MusicBrainz's",
+    forcedSong["ARTIST"] === "Daft Punk",
+    "a ForceSongMetadata row with MBIDs takes MusicBrainz's ARTIST, not v1's row",
     forcedSong["ARTIST"] ?? "(absent)",
   );
   check(
     (forcedSong["ALBUMARTIST"] ?? forcedSong["ALBUM_ARTIST"]) === "Daft Punk",
-    "and its ALBUMARTIST is v1's too",
+    "and its ALBUMARTIST comes from the release v1 pointed at",
     forcedSong["ALBUMARTIST"] ?? forcedSong["ALBUM_ARTIST"] ?? "(absent)",
   );
   const forcedSource = await probe("Daft Punk/Discovery (2001)/12 - Short Circuit.opus");
   check(
-    forcedSource["ARTIST"] === "Thomas Bangalter",
-    "a ForceSourceMetadata row keeps the artist v1 parsed out of the description",
+    forcedSource["ARTIST"] === "Daft Punk",
+    "a ForceSourceMetadata row with MBIDs does the same",
     forcedSource["ARTIST"] ?? "(absent)",
   );
   check(
-    forcedSource["ORGANIZATION"] === "Crydamoure" || forcedSource["LABEL"] === "Crydamoure",
-    "and its label",
+    (forcedSource["ORGANIZATION"] ?? forcedSource["LABEL"] ?? "").includes("Virgin"),
+    "and its label is the release's, not the one v1 read out of a description",
     forcedSource["ORGANIZATION"] ?? forcedSource["LABEL"] ?? "(absent)",
   );
   // Its neighbours are untouched: forcing is per row, not per album.
@@ -886,6 +887,52 @@ async function main(): Promise<void> {
     unforced["ARTIST"] === "Daft Punk",
     "while an unforced row is still resolved from MusicBrainz",
     unforced["ARTIST"] ?? "(absent)",
+  );
+  //
+  // The other half of the rule, and the one the lock now exists for: Justice has
+  // `ForceSongMetadata` on every row and **no MBID anywhere**. Nothing to query, so the v1 row
+  // is all the track has — and it must survive the YouTube resolver, which answers from the
+  // reconstructed yt-dlp entry and outranks `v1`.
+  const noMbid = await probe(
+    "Justice/Woman Worldwide (2018)/Disc 1 - 01 - Safe and Sound _ D.A.N.C.E. _ Fire.opus",
+  );
+  check(
+    noMbid["TITLE"] === "Safe and Sound / D.A.N.C.E. / Fire",
+    "a flagged row with no MBID keeps v1's TITLE, not the video title",
+    noMbid["TITLE"] ?? "(absent)",
+  );
+  check(
+    noMbid["ARTIST"] === "Justice & Gaspard Augé",
+    "and v1's ARTIST with it",
+    noMbid["ARTIST"] ?? "(absent)",
+  );
+  const noMbidLocks = await v2<{ locked: boolean }[]>`
+    select (d.document->'fields'->'title'->>'locked')::boolean as locked
+      from metadata_documents d
+      join import_tracks it on it.id = d.import_track_id
+     where it.raw->>'v1SongId' = '201'`;
+  check(
+    noMbidLocks[0]?.locked === true,
+    "the document says so: frozen, because there was nothing to query",
+    String(noMbidLocks[0]?.locked ?? false),
+  );
+  // …while the flagged row that *did* have MBIDs locked nothing of the sort.
+  const flaggedWithMbid = await v2<{ locked: boolean; source: string }[]>`
+    select (d.document->'fields'->'title'->>'locked')::boolean as locked,
+           d.document->'fields'->'title'->>'source' as source
+      from metadata_documents d
+      join import_tracks it on it.id = d.import_track_id
+     where it.raw->>'v1SongId' = '113'`;
+  check(
+    flaggedWithMbid[0]?.locked === false && flaggedWithMbid[0]?.source === "musicbrainz",
+    "and the flagged row with MBIDs left its title unlocked, sourced from MusicBrainz",
+    `${flaggedWithMbid[0]?.source ?? "(none)"} locked=${String(flaggedWithMbid[0]?.locked ?? false)}`,
+  );
+  // The one thing that still beats the release on that very row: its per-field override.
+  check(
+    (forcedSong["ORGANIZATION"] ?? forcedSong["LABEL"] ?? "").includes("Daft Life Ltd."),
+    "while its SongForceMetadata label still wins over the release's own",
+    forcedSong["ORGANIZATION"] ?? forcedSong["LABEL"] ?? "(absent)",
   );
 
   /* ---- the forced release MBID drives the album's import ------------- */

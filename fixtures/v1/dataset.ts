@@ -699,8 +699,13 @@ export const FIXTURE_SONGS: readonly FixtureSong[] = [
 /**
  * `SongForceMetadata` — the overrides v1's owner typed in by hand.
  *
- * All on album B, which has no MusicBrainz data at all: they are the only good metadata that
- * album has, which is exactly why they must survive the migration **locked**.
+ * Most are on album B, which has no MusicBrainz data at all: they are the only good metadata
+ * that album has, which is exactly why they must survive the migration **locked**.
+ *
+ * One is deliberately elsewhere: song 113 is on album A, it carries a recording MBID and a
+ * forced release MBID, and it is `ForceSongMetadata`. Everything else about that row now comes
+ * from MusicBrainz — the row flag is a fallback, not a veto — so its one per-field override is
+ * the proof that `SongForceMetadata` is the thing that still wins over a resolved release.
  */
 export const FIXTURE_FORCES: readonly FixtureForce[] = [
   { id: 1, songId: 201, field: "Genres", value: "French House;Electro", isArrayValue: true },
@@ -732,6 +737,14 @@ export const FIXTURE_FORCES: readonly FixtureForce[] = [
     isArrayValue: false,
   },
   { id: 8, songId: 303, field: "CoverArtMimeType", value: "image/jpeg", isArrayValue: false },
+  /*
+   * The one override on a row that MusicBrainz *can* answer for.
+   *
+   * Song 113 is `ForceSongMetadata` with a recording MBID and a forced release MBID: its
+   * title, artists and album now come from the release. Its label does not — the release says
+   * "Virgin" and somebody typed this in instead, which is what a per-field override is for.
+   */
+  { id: 9, songId: 113, field: "Publisher", value: "Daft Life Ltd.", isArrayValue: false },
 ];
 
 export const FIXTURE_PLAYLISTS: readonly FixturePlaylist[] = [

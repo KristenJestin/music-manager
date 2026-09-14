@@ -126,8 +126,8 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
    même fichier.
 3. **Pistes présentes.** `library_albums` / `library_tracks` — un album v2 est **un MBID de
    sortie v1**, voir §4 quinquies —, un document amorcé depuis la v1
-   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata`, les
-   MBID forcés et les lignes marquées d'un drapeau de traitement — voir §4 bis), puis
+   (source `v1`, confiance basse ; **verrouillé** pour les champs de `SongForceMetadata` et les
+   MBID forcés, voir §4 bis), puis
    `documents.build` avec les MBID v1, re-tag en place au schéma courant,
    sidecars, ReplayGain par album — et les documents sont reconstruits une dernière fois pour
    que la mesure de loudness y entre aussi.
@@ -140,16 +140,44 @@ ce que la page réaffiche est l'étiquette expurgée que le serveur a stockée.
 
 ### 4 bis. Les décisions de la v1 qui sont respectées
 
-La v1 avait quatre façons de dire « n'y touche plus ». Toutes les quatre sont honorées, et la
-règle est la même dans les quatre cas : le champ arrive en v2 **verrouillé**, à confiance 1,
-source `v1`, et aucune source ne l'écrase jamais.
+**Ce sont les MBID qui construisent la piste.** Quand une ligne v1 porte un MBID de sortie et un
+MBID d'enregistrement, ce sont eux qui font foi : la v2 interroge cette sortie et cet
+enregistrement, et titre, artistes, artistes d'album, album, année, genres, numéros et label
+viennent de MusicBrainz. C'est la meilleure information que la v1 ait jamais enregistrée, et une
+migration qui l'ignorerait au profit d'une copie de 2019 rendrait la bibliothèque moins bonne
+qu'elle ne l'est.
 
-| Ce que la v1 tenait                | Ce que la v2 en fait                                                                                                                                                                                                                                                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SongForceMetadata`                | Un verrou par champ surchargé. Une ligne dont le champ n'a pas d'équivalent v2 est **signalée** dans le rapport (`ignoredForces`), jamais perdue en silence.                                                                                                                                                                                                 |
-| `MusicBrainzForced` + les `*Force` | Les MBID d'enregistrement et de **sortie** forcés gagnent, et le MBID de sortie forcé est celui que porte l'import de l'album — pas la colonne ordinaire, souvent vide sur les albums où quelqu'un a justement dû forcer.                                                                                                                                    |
-| `ForceSongMetadata`                | La v1 disait : « saute MusicBrainz, prends la ligne `Songs` telle quelle ». Tous les champs repris de cette ligne sont donc verrouillés — titre, artistes, artistes d'album, album, année, genres, numéros, label, MBID. Un champ que la v1 n'avait pas est tout de même rempli par les sources : forcer protège ce qui existe, cela n'aveugle pas le reste. |
-| `ForceSourceMetadata`              | La v1 analysait la description YouTube, **réécrivait le résultat dans la ligne `Songs`** et effaçait les MBID. La ligne contient donc déjà les valeurs utilisées ; la v2 verrouille exactement les champs que cette branche affectait (titre, artistes, artistes d'album, album, année, label). Les deux drapeaux ensemble : `ForceSongMetadata` l'emporte.  |
+La v1 avait quatre façons de dire « n'y touche plus ». Elles ne pèsent pas toutes le même poids,
+et c'est le fond de ce paragraphe : **deux sont des verrous, deux sont des filets de sécurité.**
+
+| Ce que la v1 tenait                | Ce que la v2 en fait                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SongForceMetadata`                | **Verrouillé.** Un verrou par champ surchargé, à confiance 1, source `v1` : aucune source ne l'écrase jamais, MusicBrainz compris. C'est la surcharge manuelle, champ par champ, « pour les cas que MusicBrainz n'a pas ». Une ligne dont le champ n'a pas d'équivalent v2 est **signalée** dans le rapport (`ignoredForces`), jamais perdue en silence.                                   |
+| `MusicBrainzForced` + les `*Force` | **Verrouillé.** Les MBID d'enregistrement et de **sortie** forcés gagnent, et le MBID de sortie forcé est celui que porte l'import de l'album — pas la colonne ordinaire, souvent vide sur les albums où quelqu'un a justement dû forcer.                                                                                                                                                  |
+| `ForceSongMetadata`                | **Filet, pas verrou.** La v1 disait : « saute MusicBrainz, prends la ligne `Songs` telle quelle » — sa réponse à un appariement auquel elle ne se fiait plus. Ce n'est pas celle de la v2 : si la ligne a un MBID, MusicBrainz construit la piste et les valeurs v1 restent dessous, à confiance basse, pour combler ce que les sources laissent vide. Le drapeau seul ne verrouille rien. |
+| `ForceSourceMetadata`              | **Filet, pas verrou.** La v1 analysait la description YouTube, **réécrivait le résultat dans la ligne `Songs`** et effaçait les MBID. Même règle : s'il reste un MBID (forcé, ou remis dans la ligne depuis), il l'emporte. Les deux drapeaux ensemble : `ForceSongMetadata` gagne, comme en v1.                                                                                           |
+
+**La seule exception, et elle est étroite.** Une ligne qui n'a **ni MBID de sortie ni MBID
+d'enregistrement** — ni forcé, ni dans la colonne, ni écrit dans le fichier en
+`MUSICBRAINZ_ALBUMID` — n'a rien à interroger : la ligne v1 est tout ce que la piste possède.
+Dans ce cas seulement, le drapeau **gèle** les champs qu'il couvrait. Ce n'est pas « la v1 gagne
+contre MusicBrainz », c'est « un titre de vidéo ne remplace pas en silence ce que la v1 avait
+délibérément figé ». Car un document sans MBID n'est pas vide pour autant : le résolveur YouTube
+répond quand même depuis l'entrée yt-dlp (titre de la vidéo, chaîne, label et date lus dans la
+description), et `youtube` passe avant `v1` dans l'ordre de précédence. Sans ce gel, une piste
+intitulée « Safe and Sound / D.A.N.C.E. / Fire » ressortirait d'une reconstruction ultérieure
+sous le nom « Justice - Safe and Sound _ D.A.N.C.E. _ Fire ».
+
+La chaîne complète, pour une piste migrée, du premier au dernier mot :
+
+1. les **MBID forcés** (`MusicBrainzForced` + `*Force`, puis les lignes `SongForceMetadata`),
+   sinon ceux de la ligne, sinon celui du fichier ;
+2. la **sortie et l'enregistrement** effectivement récupérés avec ces MBID ;
+3. les **valeurs MusicBrainz** (et les sources qui en dépendent : Cover Art Archive, Deezer,
+   LRCLIB, Last.fm…) ;
+4. l'**amorce v1** pour les trous, à confiance basse — et gelée si et seulement si l'étape 1 n'a
+   rien donné et qu'un drapeau de traitement était posé ;
+5. les surcharges **`SongForceMetadata`**, verrouillées, par-dessus tout le reste.
 
 ### 4 ter. Les pochettes
 

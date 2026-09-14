@@ -203,6 +203,8 @@ INSERT INTO "SongForceMetadata" ("Id", "SongId", "Field", "Value", "IsArrayValue
 VALUES (7, 303, 'CoverArtBytes', '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP/////////////////////////////////////////////////////////////////////////////////CABEIAAEAAQEBEQAA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/aAAgBAQAAAAAB/9k=', false, NULL, '2024-11-03T21:14:00Z', '2025-04-18T09:32:00Z');
 INSERT INTO "SongForceMetadata" ("Id", "SongId", "Field", "Value", "IsArrayValue", "GroupId", "CreatedAt", "UpdatedAt")
 VALUES (8, 303, 'CoverArtMimeType', 'image/jpeg', false, NULL, '2024-11-03T21:14:00Z', '2025-04-18T09:32:00Z');
+INSERT INTO "SongForceMetadata" ("Id", "SongId", "Field", "Value", "IsArrayValue", "GroupId", "CreatedAt", "UpdatedAt")
+VALUES (9, 113, 'Publisher', 'Daft Life Ltd.', false, NULL, '2024-11-03T21:14:00Z', '2025-04-18T09:32:00Z');
 
 --
 -- UserPlaylists
