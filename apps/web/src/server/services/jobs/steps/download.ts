@@ -22,7 +22,14 @@ import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
 import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
-import { aborted, sleep, setTrackState, updateTrack, type StepContext } from "../context.ts";
+import {
+  aborted,
+  fileOnDisk,
+  sleep,
+  setTrackState,
+  updateTrack,
+  type StepContext,
+} from "../context.ts";
 
 /** How often a `progress` event is written to the journal. The toolbox emits four a second. */
 const PROGRESS_EVERY_MS = 2_000;
@@ -227,18 +234,26 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     }
 
     /*
-     * This import's own file, already filed. **Checked before anything else**, because it is
-     * the only evidence that survives a worker killed inside `place`: the file has left the
-     * work directory, and the `library_tracks` row that `alreadyInLibrary` reads may not have
-     * been written yet. `place` records the destination before it moves anything precisely so
-     * that this line can be believed.
+     * This import's own file, already filed.
+     *
+     * Checked before `alreadyInLibrary` and before `fileReady`, because it is the only
+     * evidence that survives a worker killed inside `place`: the file has left the work
+     * directory — so `fileReady` finds nothing — and the `library_tracks` row that
+     * `alreadyInLibrary` reads had not been written yet. `place` records the destination
+     * *before* it moves anything precisely so that this line can be believed.
+     *
+     * The path alone is not taken as proof: `fileOnDisk` insists on a non-empty regular file,
+     * so a stale row pointing at a directory or at a zero-byte stub still falls through to a
+     * real download.
      *
      * A track found here is past `download` but not necessarily past `place`, so it is handed
      * to `onTrackDownloaded` like any other file that is ready; `nextStepOfTrack` reads the
-     * row and answers `null` for one that is already filed.
+     * row and sends it to whatever step its state actually calls for — `place` for a track
+     * caught in that window, nothing at all for one already filed. Its state is deliberately
+     * *not* rewritten to `skipped`: it is mid-pipeline, not spared.
      */
-    const filed = track.libraryPath;
-    if (!force && filed !== null && filed !== "" && existsSync(hostPath(ctx.paths, filed))) {
+    const filed = force ? null : fileOnDisk(ctx.paths, track.libraryPath);
+    if (filed !== null) {
       await ctx.say("track.skipped", `${track.sourceTitle}: already present`, {
         trackId: track.id,
         data: { reason: "already present", path: filed },
