@@ -14,7 +14,7 @@
  * Idempotent: a track already at its destination is left alone, and `library_*` is upserted
  * on the path, so re-running the step twice produces exactly one row.
  */
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, eq, isNull } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
@@ -38,7 +38,7 @@ import { containerPath, hostPath, workFolder } from "#/server/paths.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import type { StepResult } from "../machine.ts";
-import { aborted, updateTrack, type StepContext } from "../context.ts";
+import { aborted, fileOnDisk, updateTrack, type StepContext } from "../context.ts";
 
 /** States meaning the track has nothing left in the work directory. */
 const LEFT_THE_WORK_DIR = new Set(["placed", "done", "skipped"]);
@@ -465,8 +465,9 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
        *
        * Recording the intent first makes the window harmless in both directions: the file is
        * either still in the work directory — `download` reuses it — or already at
-       * `libraryPath`, where `download` now looks for it. Cleared again if the move itself
-       * fails, so `verify` is never handed a path nothing was ever written to.
+       * `libraryPath`, where `download` now looks for it. Withdrawn again if the move failed
+       * *and left nothing behind* (see the `catch`), so `verify` is never handed a path
+       * nothing was ever written to.
        */
       await updateTrack(ctx, track.id, { libraryPath: relative });
       let result: Awaited<ReturnType<typeof ctx.toolbox.place>>;
@@ -477,7 +478,20 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
           onExists,
         });
       } catch (error) {
-        await updateTrack(ctx, track.id, { libraryPath: track.libraryPath });
+        /*
+         * A failed call is **not** proof that nothing moved. The rename belongs to the
+         * container, which finishes it whatever happens to the connection — that is the exact
+         * behaviour the investigation pinned the duplicate on — so a timeout, an aborted
+         * fetch or a dropped socket can all come back here with the file already at its
+         * destination. Clearing the row unconditionally would hand the next `download` a
+         * track with no file anywhere and re-open the window the line above closes.
+         *
+         * So ask the filesystem, which is the only honest witness: the intent is withdrawn
+         * only when the destination really is empty.
+         */
+        if (fileOnDisk(ctx.paths, relative) === null) {
+          await updateTrack(ctx, track.id, { libraryPath: track.libraryPath });
+        }
         throw error;
       }
       size = result.size;
@@ -487,8 +501,20 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
         { trackId: track.id, data: { path: relative, moved: result.moved } },
       );
       placed += 1;
-    } else if (!existsSync(hostPath(ctx.paths, relative))) {
-      continue;
+    } else {
+      /*
+       * No source to move. Either the file is already at its destination — an earlier run of
+       * this step that was killed between the rename and the rows below, which is the case
+       * `libraryPath`-before-the-move exists to survive — or there is nothing here at all and
+       * the track is not this step's business.
+       *
+       * The size is read from the file rather than from `downloadedBytes`, which was measured
+       * before `tag` and ReplayGain wrote to it and would put a stale number in
+       * `library_tracks`.
+       */
+      const already = fileOnDisk(ctx.paths, relative);
+      if (already === null) continue;
+      size = statSync(hostPath(ctx.paths, already)).size;
     }
 
     await updateTrack(ctx, track.id, {
