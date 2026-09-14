@@ -234,11 +234,19 @@ export function formatReport(report: MigrationReport): string {
   lines.push(
     `    ${String(counts.albumsByTags).padStart(5)}  album(s) keyed on v1 tags, for ${String(counts.withoutRelease)} row(s) with no release`,
   );
-  lines.push(
-    `    ${String(counts.recordings.fromTags).padStart(5)}  recording MBID(s) read off MUSICBRAINZ_TRACKID in the file` +
-      ` (${String(counts.recordings.forced)} forced, ${String(counts.recordings.fromColumn)} from the v1 column,` +
-      ` ${String(counts.recordings.none)} row(s) with no recording)`,
-  );
+  /*
+   * `migrate show <run id>` renders whatever JSON was stored at the time, and stored reports
+   * are never migrated, so a run from before this counter existed has no `recordings` at all.
+   * Skip the line rather than crash on it: an old report is still worth reading.
+   */
+  const recordings = counts.recordings as RecordingRungs | undefined;
+  if (recordings !== undefined) {
+    lines.push(
+      `    ${String(recordings.fromTags).padStart(5)}  recording MBID(s) read off MUSICBRAINZ_TRACKID in the file` +
+        ` (${String(recordings.forced)} forced, ${String(recordings.fromColumn)} from the v1 column,` +
+        ` ${String(recordings.none)} row(s) with no recording)`,
+    );
+  }
   lines.push("");
 
   lines.push(report.dryRun ? "  would do" : "  did");
