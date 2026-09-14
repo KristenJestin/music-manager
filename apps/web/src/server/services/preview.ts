@@ -41,6 +41,15 @@ export interface PlayableTrack {
   /** What goes into `audio.src`. Same-origin for the library, a CDN URL for a preview. */
   readonly src: string;
   readonly source: "deezer" | "library";
+  /**
+   * The Discover subject this came from, when it came from one.
+   *
+   * Carried so the player can re-resolve its own queue without knowing anything about the page
+   * that filled it: a Deezer `src` is a signed ticket that goes stale, and "ask for this
+   * subject again, skipping the cache" is the only repair available. Null for anything the
+   * player was handed directly, such as a library track picked off an album page.
+   */
+  readonly subject: string | null;
   readonly coverUrl: string | null;
   /** Seconds. The *full* track length for a preview, which is why the bar says "30 s". */
   readonly durationSeconds: number | null;
@@ -95,6 +104,18 @@ export async function resolvePreview(
   const subject = parseSubject(request.subject);
   if (subject === null) return null;
 
+  const tracks = await resolveTracks(ctx, subject, request);
+  if (tracks === null) return null;
+  // Stamped here, once, rather than threaded through three resolvers that have no use for it:
+  // it is the caller's question, not a property of the Deezer record.
+  return tracks.map((track) => ({ ...track, subject: request.subject }));
+}
+
+async function resolveTracks(
+  ctx: SourceContext,
+  subject: Subject,
+  request: PreviewRequest,
+): Promise<readonly PlayableTrack[] | null> {
   if (subject.kind === "recording") {
     const track = await previewForRecording(ctx, subject.mbid, request);
     return track === null ? null : [track];
@@ -270,6 +291,7 @@ function playable(
     album: track.album?.title ?? albumTitle,
     src: track.preview ?? "",
     source: "deezer",
+    subject: null,
     coverUrl: track.album?.cover_medium ?? cover,
     durationSeconds:
       typeof track.duration === "number" && track.duration > 0 ? track.duration : null,

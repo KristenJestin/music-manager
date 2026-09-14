@@ -28,6 +28,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  classifyMediaError,
+  classifyPlayRejection,
+  previewExpired,
+  worthShowing,
+  type PlaybackFailure,
+} from "#/lib/playback.ts";
+import { resolvePreview } from "#/server/functions/player.ts";
 import type { PlayableTrack } from "#/server/services/preview.ts";
 
 export type { PlayableTrack };
@@ -53,6 +61,8 @@ export function libraryTrack(track: {
     album: track.album ?? null,
     src: streamUrl(track.id),
     source: "library",
+    // Nothing to re-resolve: `/api/stream` takes an id and never expires.
+    subject: null,
     coverUrl: track.coverUrl ?? null,
     durationSeconds: track.durationSeconds ?? null,
   };
@@ -114,7 +124,30 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
   const [muted, setMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * The queue entries we have already re-resolved once, by id.
+   *
+   * A ref and not state: it must not cause a render, and it has to be readable from inside the
+   * `error` handler that is about to write it. One retry per entry is the whole policy — a
+   * second failure after a freshly minted URL is not a stale ticket, it is something we cannot
+   * fix by asking again, and a player that loops on a broken clip is worse than one that stops.
+   */
+  const retried = useRef<Set<string>>(new Set());
+
   const current = queue[index] ?? null;
+
+  /**
+   * Say what went wrong: once to the console with the browser's own words, once to the reader.
+   *
+   * The console line is the half that was missing. `MediaError.code` and the `DOMException`
+   * name are the only facts that separate an autoplay refusal from a blocked `media-src` from
+   * a genuinely dead link, and none of them reach the screen — so they go where a developer
+   * looking at a broken player will actually find them.
+   */
+  const report = useCallback((failure: PlaybackFailure): void => {
+    console.warn(`[player] ${failure.kind}: ${failure.detail}`);
+    setError(worthShowing(failure) ? failure.message : null);
+  }, []);
 
   useEffect(() => {
     const element = audio.current;
@@ -127,6 +160,8 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
     const playable = tracks.filter((track) => track.src !== "");
     if (playable.length === 0) return;
     const from = Math.min(Math.max(startAt, 0), playable.length - 1);
+    // A new queue is a new set of tickets: whatever failed last time gets its retry back.
+    retried.current = new Set();
     setError(null);
     setQueue(playable);
     setIndex(from);
@@ -145,6 +180,7 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
    * reason never does.
    */
   const src = current?.src ?? null;
+  const stale = current !== null && current.source === "deezer" && previewExpired(current.src);
   useEffect(() => {
     const element = audio.current;
     if (element === null || src === null) return;
@@ -154,15 +190,82 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
     }
   }, [src]);
 
+  /**
+   * Ask the server for this entry again, with the preview cache bypassed, and swap the URL in.
+   *
+   * Answers whether a retry is actually under way, so the caller knows whether to show the
+   * failure now or wait and see. Only a Deezer clip that carries the subject it came from can
+   * be repaired this way; everything else is reported straight away.
+   */
+  const reresolve = useCallback(
+    (track: PlayableTrack): boolean => {
+      if (track.source !== "deezer" || track.subject === null) return false;
+      if (retried.current.has(track.id)) return false;
+      retried.current.add(track.id);
+
+      void resolvePreview({ data: { subject: track.subject, refresh: true } }).then(
+        (answer) => {
+          // Match by id first: an album queue holds a dozen clips and only one of them failed.
+          const fresh =
+            answer.tracks.find((candidate) => candidate.id === track.id) ?? answer.tracks[0];
+          if (fresh === undefined || fresh.src === "" || fresh.src === track.src) {
+            report(
+              classifyMediaError(
+                { code: 4, message: "re-resolved to the same dead URL" },
+                track.source,
+              ),
+            );
+            return;
+          }
+          setError(null);
+          setQueue((held) =>
+            held.map((entry) => (entry.id === track.id ? { ...entry, src: fresh.src } : entry)),
+          );
+          setPlaying(true);
+        },
+        (cause: unknown) => {
+          // The server call itself failed — a session that lapsed, a network blip. Say that,
+          // rather than dressing it up as something the media element reported.
+          console.warn("[player] re-resolving the preview failed", cause);
+          setError("The preview could not be renewed. Try again.");
+        },
+      );
+      return true;
+    },
+    [report],
+  );
+
+  /*
+   * A clip whose signature has already lapsed gets a new one asked for, in parallel.
+   *
+   * Not *instead* of loading it: the element is allowed to try the URL it has, because `exp`
+   * is a claim about a CDN we do not control and the clip sometimes still plays. If it does
+   * not, the `error` handler below reports it properly — and the retry has already been spent
+   * here, so it says the honest thing rather than promising a renewal twice.
+   *
+   * The server checks the same expiry and is the better place for it, since it can refill the
+   * cache. This is the second net, for a queue that has sat on an open page long enough for
+   * its tickets to go stale under it without any server call in between.
+   */
+  useEffect(() => {
+    if (current === null || !stale) return;
+    console.warn(`[player] ${current.id}: the clip signature has lapsed; asking for a new one`);
+    reresolve(current);
+  }, [current, reresolve, stale]);
+
   useEffect(() => {
     const element = audio.current;
     if (element === null || src === null || !playing) return;
-    void element.play().catch(() => {
-      // Autoplay policies, a dead preview URL, a codec the browser will not take: all three
-      // are "it did not start", and the `error`/`pause` handlers below say which.
+    void element.play().catch((cause: unknown) => {
+      /*
+       * A rejected `play()` is not a media error, and reporting it as one is how the Console
+       * came to blame Deezer for the autoplay policy. `AbortError` in particular is the normal
+       * consequence of the queue moving on mid-load and deserves no words at all.
+       */
       setPlaying(false);
+      report(classifyPlayRejection(cause, current?.source ?? "library"));
     });
-  }, [src, playing]);
+  }, [src, playing, current?.source, report]);
 
   /**
    * Move to another entry of the queue.
@@ -204,14 +307,15 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
     if (element === null || element.getAttribute("src") === null) return;
     if (element.paused) {
       setPlaying(true);
-      void element.play().catch(() => {
+      void element.play().catch((cause: unknown) => {
         setPlaying(false);
+        report(classifyPlayRejection(cause, current?.source ?? "library"));
       });
     } else {
       element.pause();
       setPlaying(false);
     }
-  }, []);
+  }, [current?.source, report]);
 
   const seek = useCallback((seconds: number) => {
     const element = audio.current;
@@ -238,6 +342,7 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
       element.removeAttribute("src");
       element.load();
     }
+    retried.current = new Set();
     setPlaying(false);
     setQueue([]);
     setIndex(0);
@@ -302,6 +407,9 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
         className="hidden"
         onPlay={() => {
           setPlaying(true);
+          // Sound is coming out, so whatever was said a moment ago is no longer true. This is
+          // what clears the message when a re-resolved clip starts after its dead one failed.
+          setError(null);
         }}
         onPause={() => {
           setPlaying(false);
@@ -314,13 +422,22 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
           setDuration(Number.isFinite(value) ? value : 0);
         }}
         onEnded={next}
-        onError={() => {
+        onError={(event) => {
           setPlaying(false);
-          setError(
-            current?.source === "deezer"
-              ? "This preview could not be played. Deezer's clip links expire; try again."
-              : "This file could not be played.",
+          const failure = classifyMediaError(
+            event.currentTarget.error,
+            current?.source ?? "library",
           );
+          console.warn(`[player] ${failure.kind}: ${failure.detail}`);
+          /*
+           * One silent repair before any accusation.
+           *
+           * Code 4 is what a browser reports for an expired signature, a CORS refusal, a
+           * blocked `media-src` and an unknown codec alike. Re-resolving fixes exactly one of
+           * those, so it is tried once and only the failure that survives it is shown.
+           */
+          if (failure.retryable && current !== null && reresolve(current)) return;
+          setError(worthShowing(failure) ? failure.message : null);
         }}
       >
         <track kind="captions" />
