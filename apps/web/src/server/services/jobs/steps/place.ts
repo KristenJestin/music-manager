@@ -34,7 +34,7 @@ import {
   type ImportTrack,
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
-import { containerPath, hostPath, workFolder } from "#/server/paths.ts";
+import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import type { StepResult } from "../machine.ts";
@@ -441,7 +441,9 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
 
     const extension = (source ?? track.libraryPath ?? ".opus").split(".").pop() ?? "opus";
     const input = pathInputFor(document, track, extension);
-    const relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
+    // Not `const`: `keep_both` files the track under another name, and `result.path` below is
+    // the only witness of which one.
+    let relative = renderPathTemplate(ctx.settings.pathTemplate, input, options);
     folder ??= renderAlbumFolder(ctx.settings.pathTemplate, input, options);
     cover ??= coverUrl(document);
     albumArtist ??= input.albumArtist;
@@ -495,6 +497,18 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
         throw error;
       }
       size = result.size;
+      /*
+       * Where the file *actually* landed.
+       *
+       * Under `onExists: keep_both` the toolbox renames `04 Within.opus` to
+       * `04 Within (2).opus` and says so in `result.path`; asking for a name is not being
+       * given it. Everything below this line — `import_tracks.library_path`,
+       * `library_tracks.path`, the `.lrc` next to the audio — used to record the name we
+       * asked for, so the rows pointed at a file that is not there: `scan` reports the track
+       * missing and the real file as an orphan, the sidecar lands beside nothing, and
+       * `download`'s skip looks for the track at a path that was never written.
+       */
+      relative = toRelative(ctx.paths, result.path) ?? relative;
       await ctx.say(
         "track.done",
         `${track.sourceTitle}: ${result.moved ? "placed" : "left in place"} at ${relative}`,
