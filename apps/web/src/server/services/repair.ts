@@ -64,14 +64,29 @@ import { containerPath, type PathMap } from "#/server/paths.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { emit } from "#/server/services/events.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
+import { discBucket, freeAlbumPosition, insertLibraryTrack } from "#/server/services/positions.ts";
 import { hashProjection, formatOf } from "#/server/services/retag.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
-import { walkLibrary } from "#/server/services/scan.ts";
+import { walkLibrary, type WalkedFile } from "#/server/services/scan.ts";
 
-/** What the repair did with one orphan file, and why. */
+/**
+ * What the repair did with one orphan file, and why.
+ *
+ * Four outcomes, and the difference between the last two is the difference between "this file
+ * is not something I can put back" and "I tried and the database refused me":
+ *
+ * - `reattached` — an existing row was pointed back at the file;
+ * - `created` — a new row (and possibly a new album row) was written for it;
+ * - `skipped` — nothing was attempted, and `reason` says why (an unreadable file, typically);
+ * - `failed` — the write was attempted and refused, and `reason` is the refusal.
+ *
+ * A `failed` file is recorded and the walk goes on. One file used to take the whole command
+ * down with it: nine orphans, three attached, an insert refused on the fourth, and the last
+ * five never looked at.
+ */
 export interface RepairedOrphan {
   readonly path: string;
-  readonly outcome: "reattached" | "created" | "skipped";
+  readonly outcome: "reattached" | "created" | "skipped" | "failed";
   readonly title: string;
   /** The album row the file was attached to, and how it was found. */
   readonly albumId: string | null;
@@ -84,7 +99,7 @@ export interface RepairedOrphan {
   readonly releaseMbid: string | null;
   /** True when the file's `Source:` comment let the import behind it be recreated. */
   readonly provenance: boolean;
-  /** Why a `skipped` file was skipped. */
+  /** Why a `skipped` file was skipped, or why a `failed` one failed. */
   readonly reason: string | null;
 }
 
@@ -97,6 +112,8 @@ export interface RepairReport {
   readonly reattached: number;
   readonly created: number;
   readonly skipped: number;
+  /** Files the repair tried to write and could not. `items` carries the reason for each. */
+  readonly failed: number;
   readonly albumsCreated: number;
   readonly items: readonly RepairedOrphan[];
   readonly notes: readonly string[];
@@ -286,11 +303,25 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
    * reported as re-attaching to the same row. The preview has to be the plan.
    */
   const claimed = new Set<string>();
+  /**
+   * Positions promised to an earlier orphan of the same `(album, coalesce(disc, 1))`.
+   *
+   * The same reason one level down. A real run writes the row, so the database is the record
+   * of what has been handed out and this stays empty; a dry run writes nothing, and without it
+   * every file of one album is previewed at the position the first of them took.
+   */
+  const reserved = new Map<string, Set<number>>();
+  /** Album rows a dry run would create, so two files of one folder plan *one* album. */
+  const plannedAlbums = new Map<string, AlbumChoice>();
   let albumsCreated = 0;
 
-  for (const file of orphans) {
-    options.signal?.throwIfAborted();
-
+  /**
+   * One orphan, start to finish.
+   *
+   * It throws, and the loop below is what makes that survivable: a file the database refuses
+   * is one line in the report, not the end of the run.
+   */
+  async function attach(file: WalkedFile): Promise<void> {
     let tags: ReadonlyMap<string, string>;
     let duration: number | null = null;
     try {
@@ -303,7 +334,7 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
       items.push(
         skipped(file.path, baseName(file.path), `the file could not be read: ${failure.message}`),
       );
-      continue;
+      return;
     }
 
     const title = tagValue(tags, "TITLE") ?? baseName(file.path);
@@ -367,7 +398,6 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
         provenance: false,
         reason: null,
       };
-      items.push(entry);
       await say(
         `${dryRun ? "would reattach" : "reattached"} ${file.path} → “${title}” (${album ?? "—"})`,
       );
@@ -383,28 +413,54 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
           })
           .where(eq(libraryTracks.id, stray.id));
       }
-      continue;
+      // Pushed once the write has gone through, so an item in the report is something that
+      // happened rather than something that was about to be tried.
+      items.push(entry);
+      return;
     }
 
     /* ---- rungs 2 and 3: which album ---- */
 
-    const choice = await chooseAlbum(db, {
-      releaseMbid,
-      folder: folderOf(file.path),
-      albumTitle: tagValue(tags, "ALBUM"),
-      albumArtist: tagValue(tags, "ALBUMARTIST") ?? tagValue(tags, "ARTIST"),
-      year: tagNumber(tags, "DATE") ?? tagNumber(tags, "ORIGINALYEAR"),
-      dryRun,
-      now,
-    });
-    if (choice.created) albumsCreated += 1;
+    /*
+     * A dry run has to answer the album question the same way twice.
+     *
+     * `chooseAlbum` writes the new row it invents, except when it is not allowed to — so in a
+     * dry run two files of one unknown folder each get their own invented id, and the preview
+     * promises two albums where an `--apply` creates one. Remembered under the key
+     * `chooseAlbum` itself decides on: the release first, the folder second.
+     */
+    const albumKey = `${releaseMbid ?? ""}|${folderOf(file.path)}`;
+    const remembered = plannedAlbums.get(albumKey);
+    const choice =
+      remembered ??
+      (await chooseAlbum(db, {
+        releaseMbid,
+        folder: folderOf(file.path),
+        albumTitle: tagValue(tags, "ALBUM"),
+        albumArtist: tagValue(tags, "ALBUMARTIST") ?? tagValue(tags, "ARTIST"),
+        year: tagNumber(tags, "DATE") ?? tagNumber(tags, "ORIGINALYEAR"),
+        dryRun,
+        now,
+      }));
+    if (remembered === undefined) {
+      if (choice.created) albumsCreated += 1;
+      if (dryRun) plannedAlbums.set(albumKey, choice);
+    }
 
     const document = documentFromTags(tags, now);
     const sourceUrl = sourceUrlOf(tags);
-    const position = await freePosition(db, {
+    const discNumber = tagNumber(tags, "DISCNUMBER");
+    const bucket = `${choice.id}|${String(discBucket(discNumber))}`;
+    let held = reserved.get(bucket);
+    if (held === undefined) {
+      held = new Set<number>();
+      reserved.set(bucket, held);
+    }
+    const position = await freeAlbumPosition(db, {
       albumId: choice.id,
-      discNumber: tagNumber(tags, "DISCNUMBER"),
+      discNumber,
       candidate: tagNumber(tags, "TRACKNUMBER"),
+      ...(dryRun ? { reserved: held } : {}),
     });
 
     const entry: RepairedOrphan = {
@@ -415,7 +471,7 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
       album: choice.title,
       albumFoundBy: choice.foundBy,
       trackId: null,
-      discNumber: tagNumber(tags, "DISCNUMBER"),
+      discNumber,
       trackNumber: position,
       recordingMbid,
       releaseMbid,
@@ -425,13 +481,55 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
 
     await say(
       `${dryRun ? "would attach" : "attached"} ${file.path} → “${title}” ` +
-        `(${choice.title}, ${choice.foundBy}, position ${String(position ?? "—")})`,
+        `(${choice.title}, ${choice.foundBy}, position ${String(position)})`,
     );
 
     if (dryRun) {
+      held.add(position);
       items.push(entry);
-      continue;
+      return;
     }
+
+    /*
+     * The row goes in **first**, and the position it takes is read one statement before it.
+     *
+     * Both halves of that sentence are the fix for a real failure. The position used to be
+     * decided before `recreateProvenance` ran, four statements earlier, which is a read-then-
+     * write with a gap another writer fits into; and the provenance used to be written before
+     * the row, so a refused insert left an `import_tracks` row pointing at a file that has no
+     * `library_tracks` row — rubbish a second run would then double. Nothing at all is written
+     * for a file this insert refuses.
+     *
+     * Even this read can lose the race, which is why the insert itself retries rather than
+     * trusting it.
+     */
+    const trackId = newId("libraryTrack");
+    const finalPosition = await freeAlbumPosition(db, {
+      albumId: choice.id,
+      discNumber,
+      candidate: position,
+    });
+    const written = await insertLibraryTrack(
+      db,
+      {
+        id: trackId,
+        albumId: choice.id,
+        recordingMbid,
+        trackMbid: tagValue(tags, "MUSICBRAINZ_RELEASETRACKID"),
+        title,
+        artist: tagValue(tags, "ARTIST"),
+        discNumber,
+        trackNumber: finalPosition,
+        path: file.path,
+        format: file.path.split(".").pop() ?? null,
+        size: file.size,
+        duration,
+        tagSchemaVersion: tagNumber(tags, "MUSICMANAGER_TAGSCHEMA"),
+        projectionHash: hashProjection(projectDocument(document, formatOf(file.path))),
+        updatedAt: now,
+      },
+      { say },
+    );
 
     const importTrackId =
       sourceUrl === null
@@ -445,29 +543,15 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
             title,
             duration,
             libraryPath: file.path,
-            position: position ?? 0,
+            position: written.trackNumber ?? finalPosition,
             now,
           });
-
-    const trackId = newId("libraryTrack");
-    await db.insert(libraryTracks).values({
-      id: trackId,
-      albumId: choice.id,
-      recordingMbid,
-      trackMbid: tagValue(tags, "MUSICBRAINZ_RELEASETRACKID"),
-      title,
-      artist: tagValue(tags, "ARTIST"),
-      discNumber: tagNumber(tags, "DISCNUMBER"),
-      trackNumber: position,
-      path: file.path,
-      format: file.path.split(".").pop() ?? null,
-      size: file.size,
-      duration,
-      tagSchemaVersion: tagNumber(tags, "MUSICMANAGER_TAGSCHEMA"),
-      projectionHash: hashProjection(projectDocument(document, formatOf(file.path))),
-      ...(importTrackId === null ? {} : { importTrackId }),
-      updatedAt: now,
-    });
+    if (importTrackId !== null) {
+      await db
+        .update(libraryTracks)
+        .set({ importTrackId, updatedAt: now })
+        .where(eq(libraryTracks.id, trackId));
+    }
 
     await db.insert(metadataDocuments).values({
       id: newId("metadataDocument"),
@@ -481,7 +565,28 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
       updatedAt: now,
     });
 
-    items.push({ ...entry, trackId });
+    items.push({ ...entry, trackId, trackNumber: written.trackNumber });
+  }
+
+  for (const file of orphans) {
+    options.signal?.throwIfAborted();
+    try {
+      await attach(file);
+    } catch (error) {
+      // An abort is the operator asking to stop, not a bad file: it ends the walk.
+      if (options.signal?.aborted === true) throw error;
+      /*
+       * Everything else is one file's problem and stays one file's problem.
+       *
+       * This is what the loop is for. A unique violation on the fourth of nine orphans used to
+       * abort `mm library repair-orphans` outright, and the five files behind it were never
+       * looked at. They are now, and the refusal is in the report under the file it belongs to.
+       */
+      const reason = refusalOf(error);
+      notes.push(`Could not repair ${file.path}: ${reason}`);
+      items.push(failed(file.path, baseName(file.path), reason));
+      await say(`failed ${file.path} — ${reason}`);
+    }
   }
 
   if (!dryRun) await refreshCounts(db);
@@ -495,6 +600,7 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
     reattached: items.filter((item) => item.outcome === "reattached").length,
     created: items.filter((item) => item.outcome === "created").length,
     skipped: items.filter((item) => item.outcome === "skipped").length,
+    failed: items.filter((item) => item.outcome === "failed").length,
     albumsCreated,
     items,
     notes,
@@ -517,10 +623,41 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
   return report;
 }
 
+/**
+ * What a refusal actually says, which is on the driver's error and not on Drizzle's.
+ *
+ * Drizzle's `message` is the failed statement and its parameters — the half that carries the
+ * data and none of the diagnosis; it is what turned a duplicate key into an unreadable wall of
+ * `UNKNOWN: Failed query: insert into "library_tracks" … params: …`. Postgres already said
+ * which rule was broken, and that is the sentence the report is for.
+ */
+function refusalOf(error: unknown): string {
+  const failure = MMError.from(error);
+  const cause = (error as { cause?: unknown }).cause as
+    { constraint_name?: string; message?: string } | undefined;
+  if (cause?.constraint_name === undefined) return failure.message;
+  return `${cause.message ?? failure.message} (${cause.constraint_name})`;
+}
+
+/** A file the repair could not even try — its reason is what it could not read. */
 function skipped(path: string, title: string, reason: string): RepairedOrphan {
+  return entry(path, "skipped", title, reason);
+}
+
+/** A file the repair tried to write and was refused. The run carries on without it. */
+function failed(path: string, title: string, reason: string): RepairedOrphan {
+  return entry(path, "failed", title, reason);
+}
+
+function entry(
+  path: string,
+  outcome: "skipped" | "failed",
+  title: string,
+  reason: string,
+): RepairedOrphan {
   return {
     path,
-    outcome: "skipped",
+    outcome,
     title,
     albumId: null,
     album: null,
@@ -618,42 +755,6 @@ async function chooseAlbum(
     });
   }
   return { id, title: `${artist} — ${title}`, foundBy: "new", created: true };
-}
-
-/**
- * A position inside the album that no other row holds.
- *
- * The same rule `migration/v1/execute.ts` applies, and for the same reason: the position index
- * is unique, so a repair that handed a track a number another track already had would fail the
- * repair — which is exactly the failure mode being repaired.
- */
-async function freePosition(
-  db: Database,
-  input: {
-    readonly albumId: string;
-    readonly discNumber: number | null;
-    readonly candidate: number | null;
-  },
-): Promise<number | null> {
-  const onDisc = and(
-    eq(libraryTracks.albumId, input.albumId),
-    sql`coalesce(${libraryTracks.discNumber}, 1) = ${input.discNumber ?? 1}`,
-  );
-  const taken = new Set(
-    (
-      await db
-        .select({ trackNumber: libraryTracks.trackNumber })
-        .from(libraryTracks)
-        .where(and(onDisc, isNotNull(libraryTracks.trackNumber)))
-    )
-      .map((row) => row.trackNumber)
-      .filter((value): value is number => value !== null),
-  );
-
-  if (input.candidate !== null && !taken.has(input.candidate)) return input.candidate;
-  let next = Math.max(0, ...taken, input.candidate ?? 0) + 1;
-  while (taken.has(next)) next += 1;
-  return next;
 }
 
 /**

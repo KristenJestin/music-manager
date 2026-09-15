@@ -280,21 +280,26 @@ export async function cmdRepairOrphans(args: CliArgs): Promise<number> {
     `${String(report.filesSeen)} file(s) on disk · ${String(report.orphans)} with no library row`,
   );
   out(
-    `  ${report.dryRun ? "would reattach" : "reattached"} ${String(report.reattached)} · ` +
-      `${report.dryRun ? "would recreate" : "recreated"} ${String(report.created)} · ` +
-      `skipped ${String(report.skipped)} · album rows ${report.dryRun ? "needed" : "created"} ${String(report.albumsCreated)}`,
+    `  ${report.dryRun ? "would attach" : "attached"} ${String(report.reattached + report.created)} ` +
+      `(${report.dryRun ? "would reattach" : "reattached"} ${String(report.reattached)} · ` +
+      `${report.dryRun ? "would recreate" : "recreated"} ${String(report.created)}) · ` +
+      `skipped ${String(report.skipped)} · failed ${String(report.failed)} · ` +
+      `album rows ${report.dryRun ? "needed" : "created"} ${String(report.albumsCreated)}`,
   );
   for (const note of report.notes) out(`  note: ${note}`);
 
   if (report.items.length > 0) {
     out("");
-    out("OUTCOME     TRACK                                 ALBUM");
+    out("OUTCOME     TRACK                                 ALBUM / REASON");
     for (const item of report.items.slice(0, 200)) {
       out(
         `${item.outcome.padEnd(11)} ${truncate(item.title, 37).padEnd(37)} ` +
           `${item.album ?? item.reason ?? "—"}`,
       );
       out(`            ${item.path}`);
+      // An album *and* a reason is a file that was attached and has something to say about it;
+      // the reason is the whole value of the line, so it is never the thing that gets dropped.
+      if (item.album !== null && item.reason !== null) out(`            ${item.reason}`);
     }
   }
 
@@ -302,7 +307,9 @@ export async function cmdRepairOrphans(args: CliArgs): Promise<number> {
     out("");
     out("Nothing was written. Run it again with --apply to do it.");
   }
-  return 0;
+  // A file the repair could not write is not a reason to fail the command — the other eight
+  // were repaired — but it is a reason for the exit code to say so.
+  return report.failed === 0 ? 0 : 1;
 }
 
 export async function cmdScan(args: CliArgs): Promise<number> {

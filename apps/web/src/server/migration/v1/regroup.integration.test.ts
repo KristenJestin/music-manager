@@ -847,3 +847,267 @@ describe.skipIf(unavailable !== null)("which row a v1 song is", () => {
     expect(same).toBeDefined();
   }, 60_000);
 });
+
+/* ------------------------------------------------------------------ */
+/* the repair, one file at a time                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A recording MBID two rows of one album would both claim.
+ *
+ * `library_tracks_album_recording_idx` is unique over `(album_id, recording_mbid)`, so the
+ * second of those rows is refused — and a refused row is how the incident reported here
+ * actually ended: `mm library repair-orphans --apply` attached three of nine orphans, was
+ * refused on the fourth, and **stopped**. The last five files were never looked at, and the
+ * only way to find out which they were was to run the command again.
+ */
+const DUPLICATE_RECORDING = "dddddddd-eeee-ffff-0000-111111111111";
+
+function rowOf(title: string): Row {
+  const row = ROWS.find((entry) => entry.title === title);
+  if (row === undefined) throw new Error(`no fixture row titled ${title}`);
+  return row;
+}
+
+/** The suite's toolbox, with extra tags bolted onto the files that are named. */
+function probeWith(
+  extra: ReadonlyMap<string, Readonly<Record<string, string>>>,
+): Parameters<typeof migrateAlbum>[0]["toolbox"] {
+  return {
+    tag: async () => ({ ok: true, written: [], readback: {} }),
+    probe: async (path: string) => {
+      const relative = path.replace("/library/.mm-regrouptest/", "");
+      const row = ROWS.find((entry) => pathOf(entry) === relative);
+      return {
+        size: 1024,
+        duration: 180,
+        has_picture: true,
+        tags:
+          row === undefined
+            ? {}
+            : {
+                TITLE: row.title,
+                ALBUM: "The Last of Us Part II",
+                ALBUMARTIST: row.albumArtist,
+                ARTIST: "Gustavo Santaolalla",
+                TRACKNUMBER: String(row.track),
+                MUSICBRAINZ_ALBUMID: RELEASE,
+                COMMENT: `Source: https://www.youtube.com/watch?v=tlou2${String(row.id).padStart(6, "0")}`,
+                ...(extra.get(relative) ?? {}),
+              },
+      };
+    },
+  } as unknown as Parameters<typeof migrateAlbum>[0]["toolbox"];
+}
+
+describe.skipIf(unavailable !== null)("mm library repair-orphans, one file at a time", () => {
+  /** Lose the rows of these tracks, leaving their files on disk. */
+  async function loseRows(titles: readonly string[]): Promise<string[]> {
+    const paths: string[] = [];
+    for (const title of titles) {
+      const [row] = await db()
+        .select({ id: schema.libraryTracks.id, path: schema.libraryTracks.path })
+        .from(schema.libraryTracks)
+        .where(eq(schema.libraryTracks.title, title));
+      if (row === undefined) throw new Error(`the fixture did not migrate ${title}`);
+      await db().delete(schema.libraryTracks).where(eq(schema.libraryTracks.id, row.id));
+      paths.push(row.path);
+    }
+    return paths;
+  }
+
+  /** Make `Eye for an Eye` a file the album's own rows will not let in. */
+  async function blockEyeForAnEye(): Promise<
+    ReadonlyMap<string, Readonly<Record<string, string>>>
+  > {
+    await db()
+      .update(schema.libraryTracks)
+      .set({ recordingMbid: DUPLICATE_RECORDING })
+      .where(eq(schema.libraryTracks.title, "Beyond Desolation"));
+    return new Map([
+      [pathOf(rowOf("Eye for an Eye")), { MUSICBRAINZ_TRACKID: DUPLICATE_RECORDING }],
+    ]);
+  }
+
+  const options = (toolbox: Parameters<typeof migrateAlbum>[0]["toolbox"]) => ({
+    db: db(),
+    settings: settings(),
+    paths: PATHS,
+    toolbox,
+  });
+
+  it("records the file the database refuses and walks to the end of the library anyway", async () => {
+    await migrateAll("tags");
+    const blocked = await blockEyeForAnEye();
+    // Three orphans, in this order on disk: 02, 03, 04. The refusal is the middle one, so a
+    // run that stops at it is a run that never reaches `Unbroken`.
+    await loseRows(["The Cycle of Violence", "Eye for an Eye", "Unbroken"]);
+
+    const report = await repairOrphans({ ...options(probeWith(blocked)), dryRun: false });
+
+    expect(report.orphans).toBe(3);
+    expect(report.created).toBe(2);
+    expect(report.failed).toBe(1);
+    expect(report.skipped).toBe(0);
+
+    // The refusal is written down against the file it belongs to, in the words Postgres used.
+    const refused = report.items.filter((item) => item.outcome === "failed");
+    expect(refused).toHaveLength(1);
+    expect(refused[0]?.path).toBe(pathOf(rowOf("Eye for an Eye")));
+    expect(refused[0]?.reason).toMatch(/library_tracks_album_recording_idx/);
+    expect(report.notes.join(" ")).toMatch(/Eye for an Eye/);
+
+    // And the file behind it was attempted, which is the whole point.
+    const unbroken = report.items.find((item) => item.path === pathOf(rowOf("Unbroken")));
+    expect(unbroken?.outcome).toBe("created");
+
+    // Six rows: the four that survived, plus the two that went back.
+    expect(await libraryRows()).toHaveLength(ROWS.length - 1);
+  }, 60_000);
+
+  it("writes nothing at all for the file it could not attach", async () => {
+    await migrateAll("tags");
+    const blocked = await blockEyeForAnEye();
+    await loseRows(["Eye for an Eye"]);
+
+    const before = await db().select({ id: schema.importTracks.id }).from(schema.importTracks);
+    await repairOrphans({ ...options(probeWith(blocked)), dryRun: false });
+    const after = await db().select({ id: schema.importTracks.id }).from(schema.importTracks);
+
+    // The provenance used to be recreated *before* the row, so a refused insert left an
+    // `import_tracks` row pointing at a file with no `library_tracks` row behind it.
+    expect(after).toHaveLength(before.length);
+    const rows = await libraryRows();
+    expect(rows.find((row) => row.title === "Eye for an Eye")).toBeUndefined();
+  }, 60_000);
+
+  it("a dry run survives a file it cannot read, and says why it skipped it", async () => {
+    await migrateAll("tags");
+    await loseRows(["The Cycle of Violence", "Unbroken"]);
+    const unreadable = pathOf(rowOf("The Cycle of Violence"));
+    const box = {
+      tag: async () => ({ ok: true, written: [], readback: {} }),
+      probe: async (path: string) => {
+        if (path.endsWith(unreadable)) throw new Error("ffprobe found no stream it could read");
+        return probeWith(new Map()).probe(path);
+      },
+    } as unknown as Parameters<typeof migrateAlbum>[0]["toolbox"];
+
+    const report = await repairOrphans({ ...options(box), dryRun: true });
+
+    expect(report.orphans).toBe(2);
+    expect(report.skipped).toBe(1);
+    expect(report.created).toBe(1);
+    const skipped = report.items.find((item) => item.outcome === "skipped");
+    expect(skipped?.path).toBe(unreadable);
+    expect(skipped?.reason).toMatch(/could not be read/);
+    // A dry run is still a dry run.
+    expect(await libraryRows()).toHaveLength(ROWS.length - 2);
+  }, 60_000);
+
+  /**
+   * The preview has to be the plan.
+   *
+   * Two files of one album whose tags claim the same position, in a run that writes nothing:
+   * with no record of what it has already promised, the second is offered the slot the first
+   * was, and an `--apply` of that plan would put one of them somewhere else without saying so.
+   */
+  it("gives two files of one album two positions in a dry run, not one twice", async () => {
+    await migrateAll("tags");
+    await loseRows(["The Cycle of Violence", "Unbroken"]);
+    // Both files now claim track 1, which `Beyond Desolation` holds.
+    const claims = new Map([
+      [pathOf(rowOf("The Cycle of Violence")), { TRACKNUMBER: "1" }],
+      [pathOf(rowOf("Unbroken")), { TRACKNUMBER: "1" }],
+    ]);
+
+    const report = await repairOrphans({ ...options(probeWith(claims)), dryRun: true });
+
+    const positions = report.items.map((item) => item.trackNumber);
+    expect(positions).toHaveLength(2);
+    expect(new Set(positions).size).toBe(2);
+    // The album holds 1 and 3; past the end is 4, then 5.
+    expect(positions.sort((left, right) => (left ?? 0) - (right ?? 0))).toEqual([4, 5]);
+  }, 60_000);
+
+  it("plans one album row for two files of one unknown folder, rather than two", async () => {
+    // No migration at all, and nothing else on disk: two files the database has never
+    // heard of, in a folder no album row points at.
+    rmSync(join(LIBRARY_HOST, MAJORITY), { recursive: true, force: true });
+    rmSync(join(LIBRARY_HOST, MINORITY), { recursive: true, force: true });
+    const folder = "Unknown Band/Demos (1999)";
+    for (const name of ["01 - First.opus", "02 - Second.opus"]) {
+      const full = join(LIBRARY_HOST, folder, name);
+      mkdirSync(dirname(full), { recursive: true });
+      writeFileSync(full, "not really audio");
+    }
+    const box = {
+      tag: async () => ({ ok: true, written: [], readback: {} }),
+      probe: async (path: string) => ({
+        size: 1024,
+        duration: 180,
+        has_picture: false,
+        tags: {
+          TITLE: path.endsWith("01 - First.opus") ? "First" : "Second",
+          ALBUM: "Demos",
+          ALBUMARTIST: "Unknown Band",
+          TRACKNUMBER: "1",
+        },
+      }),
+    } as unknown as Parameters<typeof migrateAlbum>[0]["toolbox"];
+
+    const report = await repairOrphans({ ...options(box), dryRun: true });
+
+    const demos = report.items.filter((item) => item.album?.includes("Demos") === true);
+    expect(demos).toHaveLength(2);
+    expect(report.albumsCreated).toBe(1);
+    // Both claim track 1; the preview has to hand out 1 and then 2.
+    expect(demos.map((item) => item.trackNumber).sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual([
+      1, 2,
+    ]);
+  }, 60_000);
+
+  /**
+   * The re-run, which is what somebody does after reading the report.
+   *
+   * It has to pick up exactly what is left — the file that was refused, and nothing else — and
+   * it must not write a second row for any of the files the first pass attached.
+   */
+  it("picks up exactly what a partial run left, and duplicates none of what it attached", async () => {
+    await migrateAll("tags");
+    const blocked = await blockEyeForAnEye();
+    await loseRows(["The Cycle of Violence", "Eye for an Eye", "Unbroken"]);
+
+    const first = await repairOrphans({ ...options(probeWith(blocked)), dryRun: false });
+    expect(first.created).toBe(2);
+    expect(first.failed).toBe(1);
+
+    // Whoever read the report clears what was in the way: the duplicate recording MBID.
+    await db()
+      .update(schema.libraryTracks)
+      .set({ recordingMbid: null })
+      .where(eq(schema.libraryTracks.title, "Beyond Desolation"));
+
+    const second = await repairOrphans({ ...options(probeWith(blocked)), dryRun: false });
+
+    // Exactly what was left: one orphan, the one that was refused.
+    expect(second.orphans).toBe(1);
+    expect(second.items.map((item) => item.path)).toEqual([pathOf(rowOf("Eye for an Eye"))]);
+    expect(second.created).toBe(1);
+    expect(second.failed).toBe(0);
+
+    // Every file back, once each, and one position per track.
+    const rows = await libraryRows();
+    expect(rows).toHaveLength(ROWS.length);
+    expect(new Set(rows.map((row) => row.path)).size).toBe(ROWS.length);
+    expect(rows.filter((row) => row.title === "The Cycle of Violence")).toHaveLength(1);
+    const majority = rows.filter((row) => row.path.startsWith(MAJORITY));
+    const positions = majority.map((row) => row.trackNumber);
+    expect(new Set(positions).size).toBe(positions.length);
+
+    // A third run has nothing left to do.
+    const third = await repairOrphans({ ...options(probeWith(blocked)), dryRun: false });
+    expect(third.orphans).toBe(0);
+    expect(third.items).toEqual([]);
+  }, 60_000);
+});
