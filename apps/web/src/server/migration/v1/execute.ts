@@ -24,7 +24,7 @@
  */
 import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { and, eq, gte, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
   merge,
@@ -1148,19 +1148,129 @@ interface UpsertLibraryTrackInput {
   readonly projectionHash: string;
 }
 
+/**
+ * Whether a document's `tracknumber` is a fact about **this album** or a leftover of v1's.
+ *
+ * `documents.build` sets it from `track.position` on the release it resolved
+ * (`resolvers/musicbrainz.ts`), and that is the only value that describes the album the
+ * regrouping just built. The v1 seed sets the same field from `Songs.TrackNumber`
+ * (`seed.ts`), which describes *the folder v1 filed the row in* — and v1 filed one release
+ * into several folders, each numbered from 1. Carrying that number into the regrouped album
+ * is what made two tracks claim position 1.
+ */
+function positionIsFromRelease(document: TrackDocument): boolean {
+  const source = document.fields["tracknumber"]?.source;
+  return source !== undefined && source !== "v1";
+}
+
+/**
+ * The position a track takes inside its `library_albums` row, and never a collision.
+ *
+ * `library_tracks_album_position_idx` is unique over
+ * `(album_id, coalesce(disc_number, 1), track_number)`, so two tracks claiming one position
+ * is not a cosmetic problem: the second write is *rejected*, `migrateAlbum` catches it as a
+ * track failure, and the track is left behind in the album row the regrouping is dissolving —
+ * with its file already moved into the new folder. That is the incident this function exists
+ * to stop, so the rule is decided here rather than hoped for:
+ *
+ *  1. **the release's own position wins**, whenever the rebuild found the track on it;
+ *  2. a row that already sits in this album keeps the position it has, which is what makes a
+ *     second run a no-op rather than a renumbering;
+ *  3. a free v1 position is taken as-is — an album nothing could be looked up for keeps v1's
+ *     numbering, which is the only numbering anybody has;
+ *  4. and a **taken** one is refused: the track goes past the end of the album instead, at
+ *     the first free position above the highest one the album currently holds.
+ *
+ * Deterministic in all four cases: the album's tracks are processed in `byPosition` order,
+ * which is stable, so the same library regrouped twice produces the same numbering.
+ */
+async function albumPosition(
+  ctx: ExecuteContext,
+  input: {
+    readonly albumId: string;
+    readonly trackId: string | null;
+    readonly discNumber: number | null;
+    readonly candidate: number | null;
+    readonly fromRelease: boolean;
+  },
+): Promise<number | null> {
+  const disc = input.discNumber ?? 1;
+  const onDisc = and(
+    eq(libraryTracks.albumId, input.albumId),
+    sql`coalesce(${libraryTracks.discNumber}, 1) = ${disc}`,
+  );
+
+  /** Free means: nobody holds it, or the only holder is the row we are about to write. */
+  const free = async (position: number): Promise<boolean> => {
+    const rows = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(and(onDisc, eq(libraryTracks.trackNumber, position)));
+    return rows.every((row) => row.id === input.trackId);
+  };
+
+  if (input.fromRelease && input.candidate !== null && (await free(input.candidate))) {
+    return input.candidate;
+  }
+
+  if (input.trackId !== null) {
+    const [held] = await ctx.db
+      .select({ albumId: libraryTracks.albumId, trackNumber: libraryTracks.trackNumber })
+      .from(libraryTracks)
+      .where(eq(libraryTracks.id, input.trackId))
+      .limit(1);
+    if (
+      held !== undefined &&
+      held.albumId === input.albumId &&
+      held.trackNumber !== null &&
+      (await free(held.trackNumber))
+    ) {
+      return held.trackNumber;
+    }
+  }
+
+  if (input.candidate !== null && (await free(input.candidate))) return input.candidate;
+
+  const [highest] = await ctx.db
+    .select({ max: sql<number | null>`max(${libraryTracks.trackNumber})` })
+    .from(libraryTracks)
+    .where(onDisc);
+  let next = Math.max(highest?.max ?? 0, input.candidate ?? 0) + 1;
+  // A loop rather than `max + 1` alone, because `max` is read before this write and two
+  // tracks of one album are written one after the other.
+  while (!(await free(next))) next += 1;
+  return next;
+}
+
 async function upsertLibraryTrack(
   ctx: ExecuteContext,
   input: UpsertLibraryTrackInput,
 ): Promise<string> {
   const { document, planned } = input;
+
+  const [existing] = await ctx.db
+    .select({ id: libraryTracks.id })
+    .from(libraryTracks)
+    .where(eq(libraryTracks.path, input.path))
+    .limit(1);
+
+  const discNumber = numberField(document, "discnumber") ?? planned.song.discNumber;
+  const trackNumber = await albumPosition(ctx, {
+    albumId: input.albumId,
+    trackId: existing?.id ?? null,
+    discNumber,
+    candidate: numberField(document, "tracknumber") ?? planned.song.trackNumber,
+    fromRelease: positionIsFromRelease(document),
+  });
+
   const values = {
     albumId: input.albumId,
     recordingMbid: stringField(document, "musicbrainz_recordingid"),
     trackMbid: stringField(document, "musicbrainz_releasetrackid"),
     title: stringField(document, "title") ?? planned.song.title ?? "Unknown",
     artist: stringField(document, "artist") ?? planned.song.artist,
-    discNumber: numberField(document, "discnumber") ?? planned.song.discNumber,
-    trackNumber: numberField(document, "tracknumber") ?? planned.song.trackNumber,
+    discNumber,
+    trackNumber,
     path: input.path,
     format: input.path.split(".").pop() ?? null,
     size: input.sizeBytes,
@@ -1171,12 +1281,6 @@ async function upsertLibraryTrack(
     importTrackId: input.importTrackId,
     updatedAt: ctx.now,
   } as const;
-
-  const [existing] = await ctx.db
-    .select({ id: libraryTracks.id })
-    .from(libraryTracks)
-    .where(eq(libraryTracks.path, input.path))
-    .limit(1);
 
   if (existing !== undefined) {
     await ctx.db.update(libraryTracks).set(values).where(eq(libraryTracks.id, existing.id));
