@@ -70,6 +70,7 @@ const { runMigration, acknowledgeBackup } = await import("./run.ts");
 const { put: cachePut } = await import("#/server/services/cache.ts");
 const { albumGrid } = await import("#/server/services/library.ts");
 const { recountAlbums } = await import("#/server/services/album-counters.ts");
+const { runScan } = await import("#/server/services/scan.ts");
 
 resetServerEnv();
 
@@ -422,6 +423,22 @@ describe.skipIf(unavailable !== null)(
       const second = await recountAlbums(db());
       expect(second.changed).toBe(0);
       expect(await counters()).toEqual(before);
+    }, 120_000);
+
+    it("drops present_count and holds track_count when a file leaves the library", async () => {
+      await migrateAll();
+      rmSync(join(LIBRARY_HOST, pathOf(ROWS[0] as Row)));
+
+      // The scan is the only thing that walks the tree, so it is the only thing that can see a
+      // file go. It now decides both columns in one place rather than writing `present_count`
+      // alone and leaving the denominator to whoever wrote it last.
+      const { report } = await runScan({ db: db(), toolbox: TOOLBOX, driftLimit: 0 });
+      expect(report.missing).toHaveLength(1);
+
+      const discovery = (await counters())["Discovery"];
+      expect(discovery?.presentCount).toBe(0);
+      expect(discovery?.trackCount).toBe(13);
+      expect(discovery?.trackCountSource).toBe("release");
     }, 120_000);
 
     it("backfills a library whose albums were left claiming to be complete", async () => {
