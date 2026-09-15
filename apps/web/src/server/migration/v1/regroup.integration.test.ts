@@ -69,6 +69,7 @@ const { defaults } = await import("#/server/services/settings.ts");
 const { migrateAlbum } = await import("./execute.ts");
 const { planFrom } = await import("./inventory.ts");
 const { mergeDuplicateTracks } = await import("#/server/services/scan.ts");
+const { documentFromTags, repairOrphans } = await import("#/server/services/repair.ts");
 const { newId } = await import("#/server/ids.ts");
 
 resetServerEnv();
@@ -85,6 +86,9 @@ resetServerEnv();
  * to the v1 seed, which is the state that carries v1's track number forward.
  */
 const RELEASE = "11111111-2222-3333-4444-555555555555";
+
+/** The recording MBID a stray row carries in the "re-point, do not duplicate" case below. */
+const STRAY_RECORDING = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
 /** The folder v1 filed the majority in, and the one it filed the minority in. */
 const MAJORITY = "Various Artists/The Last of Us Part II (2020)";
@@ -205,6 +209,33 @@ const PATHS = pathMap({ host: LIBRARY_HOST, container: "/library/.mm-regrouptest
  */
 const TOOLBOX = {
   tag: async () => ({ ok: true, written: [], readback: {} }),
+  /**
+   * `/probe`, answered from the fixture rather than from ffprobe.
+   *
+   * The files on disk here are text, because everything under test is a decision about rows;
+   * what the repair needs from a file is its tag dictionary, and this is the one v1 wrote.
+   */
+  probe: async (path: string) => {
+    const relative = path.replace("/library/.mm-regrouptest/", "");
+    const row = ROWS.find((entry) => pathOf(entry) === relative);
+    return {
+      size: 1024,
+      duration: 180,
+      has_picture: true,
+      tags:
+        row === undefined
+          ? {}
+          : {
+              TITLE: row.title,
+              ALBUM: "The Last of Us Part II",
+              ALBUMARTIST: row.albumArtist,
+              ARTIST: "Gustavo Santaolalla",
+              TRACKNUMBER: String(row.track),
+              MUSICBRAINZ_ALBUMID: RELEASE,
+              COMMENT: `Source: https://www.youtube.com/watch?v=tlou2${String(row.id).padStart(6, "0")}`,
+            },
+    };
+  },
 } as unknown as Parameters<typeof migrateAlbum>[0]["toolbox"];
 
 function settings(): ReturnType<typeof defaults> {
@@ -280,6 +311,13 @@ beforeEach(async () => {
   await sql.unsafe(
     `truncate table library_tracks, library_albums, metadata_documents, import_tracks, imports,
      inbox_items, library_scans restart identity cascade`,
+  );
+  // Two tests below drop it on purpose, to build a state only a database that predates the
+  // constraint can hold. Put it back, verbatim from `drizzle/0009_heavy_layla_miller.sql`.
+  await sql.unsafe(
+    `create unique index if not exists library_tracks_album_position_idx
+       on library_tracks (album_id, coalesce(disc_number, 1), track_number)
+      where album_id is not null and track_number is not null`,
   );
   await sql.end();
 
@@ -406,43 +444,304 @@ describe.skipIf(unavailable !== null)("the scan's duplicate merge", () => {
       title: "The Last of Us Part II",
       folder: MAJORITY,
     });
-    // `disc_number` null on one and 1 on the other is *not* a way around the index — it
-    // coalesces — so the rows are given different positions and the album id is rewritten
-    // underneath them, which is exactly the state a half-finished regrouping leaves.
-    const first = newId("libraryTrack");
-    const second = newId("libraryTrack");
+    // The index is dropped so the collision can be *built*, exactly as the MCP suite does for
+    // the repair it tests: a database that predates the constraint is the only one that can
+    // hold this state, and it is the one somebody upgrading arrives with.
+    await db().$client`drop index library_tracks_album_position_idx`;
     await db()
       .insert(schema.libraryTracks)
       .values([
         {
-          id: first,
+          id: newId("libraryTrack"),
           albumId,
           title: "Through the Valley",
           path: `${MAJORITY}/01 - Through the Valley.opus`,
           trackNumber: 1,
           discNumber: 1,
+          duration: 180,
         },
         {
-          id: second,
+          id: newId("libraryTrack"),
           albumId,
           title: "American Venom",
           path: `${MINORITY}/03 - American Venom.opus`,
-          trackNumber: 2,
+          trackNumber: 1,
+          discNumber: 1,
+          duration: 240,
+        },
+      ]);
+
+    const onDisk = new Set([
+      `${MAJORITY}/01 - Through the Valley.opus`,
+      `${MINORITY}/03 - American Venom.opus`,
+    ]);
+    const { merged, conflicts } = await mergeDuplicateTracks(db(), onDisk);
+
+    expect(merged).toEqual([]);
+    expect(await libraryRows()).toHaveLength(2);
+    // And it is not silent about it: the group becomes a question, with both files named.
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0]?.on).toBe("position");
+    expect(conflicts[0]?.rows.map((row) => row.title).sort()).toEqual([
+      "American Venom",
+      "Through the Valley",
+    ]);
+  }, 30_000);
+
+  /**
+   * The case the merge was written for, which must keep working: one file, two rows.
+   *
+   * A `pathTemplate` change renamed the file and inserted a second row; the first points at a
+   * path that is not there any more. The titles agree, the ghost has no file, and the merge
+   * deletes the ghost — journalling enough of it to put it back.
+   */
+  it("still merges the ghost a path template change left, and writes down what it deleted", async () => {
+    const albumId = newId("libraryAlbum");
+    await db().insert(schema.libraryAlbums).values({
+      id: albumId,
+      albumArtist: "Gustavo Santaolalla",
+      title: "The Last of Us Part II",
+      folder: MAJORITY,
+    });
+    await db().$client`drop index library_tracks_album_position_idx`;
+    const ghost = newId("libraryTrack");
+    const real = newId("libraryTrack");
+    await db()
+      .insert(schema.libraryTracks)
+      .values([
+        {
+          id: ghost,
+          albumId,
+          title: "American Venom",
+          path: `${MAJORITY}/old name.opus`,
+          trackNumber: 3,
+          discNumber: 1,
+        },
+        {
+          id: real,
+          albumId,
+          title: "American Venom",
+          path: `${MAJORITY}/03 - American Venom.opus`,
+          trackNumber: 3,
           discNumber: 1,
         },
       ]);
-    // Force the collision the index cannot hold: the merge is handed the rows directly.
+
+    const { merged, conflicts } = await mergeDuplicateTracks(
+      db(),
+      new Set([`${MAJORITY}/03 - American Venom.opus`]),
+    );
+
+    expect(conflicts).toEqual([]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.keptId).toBe(real);
+    expect(merged[0]?.removedId).toBe(ghost);
+    expect(merged[0]?.why).toMatch(/not on disk/);
+    // Everything needed to write the row back by hand, from the report alone.
+    expect(merged[0]?.removedPath).toBe(`${MAJORITY}/old name.opus`);
+    expect(merged[0]?.removedTitle).toBe("American Venom");
+    expect(merged[0]?.removedAlbumId).toBe(albumId);
+    expect(merged[0]?.removedTrackNumber).toBe(3);
+    expect(merged[0]?.removedOnDisk).toBe(false);
+    expect(await libraryRows()).toHaveLength(1);
+  }, 30_000);
+});
+
+/* ------------------------------------------------------------------ */
+/* the repair                                                          */
+/* ------------------------------------------------------------------ */
+
+describe.skipIf(unavailable !== null)("mm library repair-orphans", () => {
+  /** The damage the incident left: the file is in the library, the row is not. */
+  async function loseAmericanVenom(): Promise<string> {
+    await migrateAll("tags");
+    const [venom] = await db()
+      .select({ id: schema.libraryTracks.id, path: schema.libraryTracks.path })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.title, "American Venom"));
+    if (venom === undefined) throw new Error("the fixture did not migrate American Venom");
+    await db().delete(schema.libraryTracks).where(eq(schema.libraryTracks.id, venom.id));
+    return venom.path;
+  }
+
+  const options = () => ({
+    db: db(),
+    settings: settings(),
+    paths: PATHS,
+    toolbox: TOOLBOX,
+  });
+
+  it("finds the file the database has forgotten and says where it would go", async () => {
+    const path = await loseAmericanVenom();
+
+    const report = await repairOrphans({ ...options(), dryRun: true });
+
+    expect(report.orphans).toBe(1);
+    const [item] = report.items;
+    expect(item?.path).toBe(path);
+    expect(item?.title).toBe("American Venom");
+    // Found by the release in its own tags, not by its folder and not by a fingerprint.
+    expect(item?.albumFoundBy).toBe("release");
+    expect(item?.releaseMbid).toBe(RELEASE);
+    // A dry run writes nothing.
+    expect(await libraryRows()).toHaveLength(ROWS.length - 1);
+  }, 60_000);
+
+  it("puts the row back, on the album of the release its own tags name", async () => {
+    await loseAmericanVenom();
+    const report = await repairOrphans({ ...options(), dryRun: false });
+
+    expect(report.created).toBe(1);
+    const rows = await libraryRows();
+    expect(rows).toHaveLength(ROWS.length);
+    const venom = rows.find((row) => row.title === "American Venom");
+    expect(venom).toBeDefined();
+    const sibling = rows.find((row) => row.title === "Longing");
+    expect(venom?.albumId).toBe(sibling?.albumId);
+  }, 60_000);
+
+  it("gives the repaired row a position no other track on the album holds", async () => {
+    await loseAmericanVenom();
+    await repairOrphans({ ...options(), dryRun: false });
+
+    const rows = await libraryRows();
+    const albumId = rows.find((entry) => entry.title === "American Venom")?.albumId;
+    const positions = rows
+      .filter((row) => row.albumId === albumId)
+      .map((row) => row.trackNumber)
+      .filter((value): value is number => value !== null);
+    expect(new Set(positions).size).toBe(positions.length);
+  }, 60_000);
+
+  it("gives it a document and the import behind it, so a re-tag still has sources", async () => {
+    await loseAmericanVenom();
+    await repairOrphans({ ...options(), dryRun: false });
+
+    const [venom] = await db()
+      .select()
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.title, "American Venom"));
+    expect(venom?.importTrackId).not.toBeNull();
+
+    const documents = await db()
+      .select({ document: schema.metadataDocuments.document })
+      .from(schema.metadataDocuments)
+      .where(eq(schema.metadataDocuments.libraryTrackId, venom?.id ?? ""));
+    expect(documents).toHaveLength(1);
+    const fields = (documents[0]?.document as { fields: Record<string, { value: unknown }> })
+      .fields;
+    expect(fields["title"]?.value).toBe("American Venom");
+  }, 60_000);
+
+  it("is a no-op the second time: nothing is an orphan any more", async () => {
+    await loseAmericanVenom();
+    await repairOrphans({ ...options(), dryRun: false });
+    const again = await repairOrphans({ ...options(), dryRun: false });
+
+    expect(again.orphans).toBe(0);
+    expect(again.items).toEqual([]);
+    expect(await libraryRows()).toHaveLength(ROWS.length);
+  }, 60_000);
+
+  it("re-points a row that only lost its path rather than inserting a second one", async () => {
+    await migrateAll("tags");
+    const [venom] = await db()
+      .select({ id: schema.libraryTracks.id })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.title, "American Venom"));
+    // What a half-finished consolidation leaves: the row points somewhere the file is not,
+    // and the scan has already stamped it missing.
     await db()
       .update(schema.libraryTracks)
-      .set({ trackNumber: 1 })
-      .where(eq(schema.libraryTracks.id, second))
-      .catch(() => undefined);
+      .set({
+        path: "somewhere/else/03 - American Venom.opus",
+        recordingMbid: STRAY_RECORDING,
+        missingAt: new Date(),
+      })
+      .where(eq(schema.libraryTracks.id, venom?.id ?? ""));
 
-    const merged = await mergeDuplicateTracks(
-      db(),
-      new Set([`${MAJORITY}/01 - Through the Valley.opus`, `${MINORITY}/03 - American Venom.opus`]),
+    // The file's own `MUSICBRAINZ_TRACKID` is what ties it back; give it the same one.
+    const report = await repairOrphans({
+      ...options(),
+      toolbox: {
+        probe: async () => ({
+          size: 1024,
+          duration: 180,
+          has_picture: true,
+          tags: {
+            TITLE: "American Venom",
+            MUSICBRAINZ_ALBUMID: RELEASE,
+            MUSICBRAINZ_TRACKID: STRAY_RECORDING,
+          },
+        }),
+      } as unknown as Parameters<typeof migrateAlbum>[0]["toolbox"],
+      dryRun: false,
+    });
+
+    expect(report.reattached).toBe(1);
+    expect(report.created).toBe(0);
+    const rows = await libraryRows();
+    expect(rows.filter((row) => row.title === "American Venom")).toHaveLength(1);
+    const [again] = await db()
+      .select({ path: schema.libraryTracks.path, missingAt: schema.libraryTracks.missingAt })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.id, venom?.id ?? ""));
+    expect(again?.path).toBe(`${MINORITY}/03 - American Venom.opus`);
+    expect(again?.missingAt).toBeNull();
+  }, 60_000);
+});
+
+/* ------------------------------------------------------------------ */
+/* a document out of a file                                            */
+/* ------------------------------------------------------------------ */
+
+describe("documentFromTags", () => {
+  const AT = new Date("2026-09-15T00:00:00.000Z");
+
+  it("reads the tag map backwards, so the document speaks the pipeline vocabulary", () => {
+    const document = documentFromTags(
+      new Map([
+        ["TITLE", "American Venom"],
+        ["ALBUMARTIST", "Gustavo Santaolalla"],
+        ["TRACKNUMBER", "3/14"],
+        ["MUSICBRAINZ_ALBUMID", RELEASE],
+      ]),
+      AT,
     );
-    expect(merged).toEqual([]);
-    expect(await libraryRows()).toHaveLength(2);
-  }, 30_000);
+    expect(document.fields["title"]?.value).toBe("American Venom");
+    expect(document.fields["albumartist"]?.value).toBe("Gustavo Santaolalla");
+    // `3/14` is a legal TRACKNUMBER; the position is the part before the slash.
+    expect(document.fields["tracknumber"]?.value).toBe(3);
+    expect(document.fields["musicbrainz_albumid"]?.value).toBe(RELEASE);
+  });
+
+  it("marks every value `app`, which loses to every network source on the next rebuild", () => {
+    const document = documentFromTags(new Map([["TITLE", "American Venom"]]), AT);
+    expect(document.fields["title"]?.source).toBe("app");
+    expect(document.fields["title"]?.locked).toBe(false);
+  });
+
+  it("splits a multi-valued tag the way a repeated Vorbis comment folds", () => {
+    const document = documentFromTags(new Map([["ARTISTS", "Ellie; Gustavo Santaolalla"]]), AT);
+    expect(document.fields["artists"]?.value).toEqual(["Ellie", "Gustavo Santaolalla"]);
+  });
+
+  it("keeps out of the picture and the lyrics, which a probe cannot report usefully", () => {
+    const document = documentFromTags(
+      new Map([
+        ["METADATA_BLOCK_PICTURE", "AAAA"],
+        ["LYRICS", "[00:01.00] a line"],
+        ["TITLE", "American Venom"],
+      ]),
+      AT,
+    );
+    expect(document.fields["front_cover"]).toBeUndefined();
+    expect(document.fields["lyrics"]).toBeUndefined();
+    expect(document.fields["title"]).toBeDefined();
+  });
+
+  it("ignores a key the tag map does not know rather than inventing a field for it", () => {
+    const document = documentFromTags(new Map([["SOMEBODYS_OWN_TAG", "whatever"]]), AT);
+    expect(Object.keys(document.fields)).toEqual([]);
+  });
 });

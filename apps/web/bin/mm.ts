@@ -85,7 +85,7 @@ import {
   runView,
 } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
-import { cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
+import { cmdRepairOrphans, cmdScan, cmdTools, cmdVerify } from "./commands/library-ops.ts";
 import { cmdDiscover } from "./commands/discover.ts";
 import { cmdWatch } from "./commands/watch.ts";
 import { cmdMigrate } from "./commands/migrate.ts";
@@ -1091,7 +1091,19 @@ async function cmdLibrary(args: Args): Promise<number> {
     return 0;
   }
 
-  throw new MMError("INVALID_INPUT", "usage: mm library albums|tracks|artists|show <id>");
+  /*
+   * The repair of the orphan half of the scan report.
+   *
+   * It lives under `mm library` rather than under `mm scan` because it is not a finding, it is
+   * a *write*: the scan says "these files have no row", and this is the one command that puts
+   * the rows back. `--apply` is the second ask; without it nothing is written.
+   */
+  if (sub === "repair-orphans") return await cmdRepairOrphans(args);
+
+  throw new MMError(
+    "INVALID_INPUT",
+    "usage: mm library albums|tracks|artists|show <id>|repair-orphans [--apply]",
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -1304,6 +1316,9 @@ const USAGE = `mm — Music Manager
   mm library tracks [--search s] [--filter f] [--limit n]     every file, one line each
   mm library show <album id> [--json]     one album: identifiers, score, what is missing
   mm library artists                      grouped as the folders name them
+  mm library repair-orphans [--apply] [--limit n] [--json]
+                                          re-attach library files that have no row, from their
+                                          own MUSICBRAINZ_* tags; dry run unless --apply
   mm retag [--album <id>|--track <id>] [--dry-run] [--all] [--queue]
                                           re-project from the raw cache; offline, no re-download
   mm retag runs | show <run id> | cancel <run id>             the runs, and the per-file diffs
