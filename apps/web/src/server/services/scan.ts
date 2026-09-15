@@ -22,7 +22,7 @@
  */
 import { existsSync, readdirSync, renameSync, statSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { projectDocument, type TrackDocument } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -38,6 +38,7 @@ import { containerPath, hostPath, toPosix, type PathMap } from "#/server/paths.t
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeLibraryItem, openLibraryItem } from "#/server/services/library-inbox.ts";
+import { recountAlbums } from "#/server/services/album-counters.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 
@@ -236,6 +237,15 @@ export interface ScanReport {
   /** True when the drift pass stopped at its cap rather than at the end of the library. */
   readonly driftTruncated: boolean;
   readonly probed: number;
+  /**
+   * Albums whose `track_count` / `present_count` the walk corrected, and how many it looked at.
+   *
+   * Every scan recomputes the pair through `services/album-counters.ts`, so this is also the
+   * backfill for a library migrated from v1, where both columns were the file count and every
+   * album claimed to be complete. A second run over an unchanged library reports `0`.
+   */
+  readonly recounted?: number;
+  readonly albumsCounted?: number;
   readonly notes: readonly string[];
 }
 
@@ -569,39 +579,6 @@ function baseName(path: string): string {
   return (index === -1 ? path : path.slice(index + 1)).toLowerCase();
 }
 
-/**
- * Recount `track_count` and `present_count` from the rows that are actually there.
- *
- * Called after a merge, because the counters were computed when the ghosts still existed —
- * one album reported twenty-five tracks for a thirteen-track record, and the completeness
- * score was a fraction of that twenty-five.
- */
-async function refreshAlbumCounts(
-  db: Database,
-  onDisk: ReadonlyMap<string, WalkedFile>,
-): Promise<void> {
-  const rows = await db
-    .select({ albumId: libraryTracks.albumId, path: libraryTracks.path })
-    .from(libraryTracks)
-    .where(isNotNull(libraryTracks.albumId));
-
-  const counts = new Map<string, { total: number; present: number }>();
-  for (const row of rows) {
-    if (row.albumId === null) continue;
-    const held = counts.get(row.albumId) ?? { total: 0, present: 0 };
-    held.total += 1;
-    if (onDisk.has(row.path)) held.present += 1;
-    counts.set(row.albumId, held);
-  }
-
-  for (const [albumId, count] of counts) {
-    await db
-      .update(libraryAlbums)
-      .set({ trackCount: count.total, presentCount: count.present, updatedAt: new Date() })
-      .where(eq(libraryAlbums.id, albumId));
-  }
-}
-
 /* ------------------------------------------------------------------ */
 /* the scan                                                            */
 /* ------------------------------------------------------------------ */
@@ -644,7 +621,6 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       new Set(onDisk.keys()),
     );
     if (merged.length > 0) {
-      await refreshAlbumCounts(db, onDisk);
       await say(`Merged ${String(merged.length)} duplicate library row(s).`);
       // Every deletion, named, in the journal as well as in the report — the report is a row
       // in one table and the journal is what somebody reads the morning after.
@@ -779,6 +755,26 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       }
     }
 
+    /*
+     * Stamp the walk onto the rows, then let one rule decide the album counters.
+     *
+     * Order matters only for readability — `recountAlbums` is handed the same `onDisk` map,
+     * so it does not depend on `missing_at` having been written first. What matters is that
+     * this is the *only* place a scan touches `track_count` / `present_count`, and that it
+     * runs on every walk rather than only after a merge. That is the backfill: an existing
+     * library whose albums all carry `track_count = present_count` — the shape the v1
+     * migration left behind — is corrected the next time `mm scan` runs, offline, from the
+     * releases already in `source_cache`. Idempotent, so running it again reports 0.
+     */
+    await recordMissing(db, rows, onDisk);
+    const recount = await recountAlbums(db, { onDisk: new Set(onDisk.keys()) });
+    if (recount.changed > 0) {
+      await say(
+        `Recounted ${String(recount.changed)} album(s) of ${String(recount.albums)}: ` +
+          "track_count now comes from the release rather than from the files on hand.",
+      );
+    }
+
     const report: ScanReport = {
       at: new Date().toISOString(),
       root,
@@ -793,6 +789,8 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       mergeConflicts,
       driftTruncated,
       probed,
+      recounted: recount.changed,
+      albumsCounted: recount.albums,
       notes,
     };
 
@@ -813,7 +811,6 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       .where(eq(libraryScans.id, id))
       .returning();
 
-    await recordMissing(db, rows, onDisk);
     await raiseScanItems(db, report);
     await emit(
       {
@@ -862,7 +859,10 @@ export async function runScan(options: ScanOptions = {}): Promise<{
  *  - `library_tracks.missing_at`, stamped when a row's file is absent and cleared when it is
  *    back, which is what the badges and the "Missing files" filter read;
  *  - `library_albums.present_count`, which was maintained on delete only and therefore drifted
- *    the moment a file disappeared behind the app's back.
+ *    the moment a file disappeared behind the app's back. That half now lives in
+ *    `recountAlbums` (`services/album-counters.ts`), because `present_count` has a
+ *    denominator and the two must be decided together; this function stops at `missing_at`,
+ *    which is the fact the walk alone establishes.
  */
 async function recordMissing(
   db: Database,
@@ -885,18 +885,6 @@ async function recordMissing(
       .update(libraryTracks)
       .set({ missingAt: null, updatedAt: now })
       .where(and(inArray(libraryTracks.id, batch), isNotNull(libraryTracks.missingAt)));
-  }
-
-  const albums = new Map<string, number>();
-  for (const row of rows) {
-    if (row.albumId === null) continue;
-    albums.set(row.albumId, (albums.get(row.albumId) ?? 0) + (onDisk.has(row.path) ? 1 : 0));
-  }
-  for (const [albumId, present] of albums) {
-    await db
-      .update(libraryAlbums)
-      .set({ presentCount: present, updatedAt: now })
-      .where(and(eq(libraryAlbums.id, albumId), ne(libraryAlbums.presentCount, present)));
   }
 }
 
@@ -1084,6 +1072,8 @@ export interface ScanSummary {
     readonly merged: number;
     readonly mergeConflicts: number;
     readonly probed: number;
+    /** Albums whose `track_count` / `present_count` this walk corrected. */
+    readonly recounted: number;
   };
   readonly orphans: { readonly items: readonly OrphanFile[]; readonly more: number };
   readonly missing: { readonly items: readonly MissingFile[]; readonly more: number };
@@ -1128,6 +1118,7 @@ export function summariseScan(scan: LibraryScan, limit = 10): ScanSummary {
       merged: report?.merged?.length ?? 0,
       mergeConflicts: report?.mergeConflicts?.length ?? 0,
       probed: report?.probed ?? 0,
+      recounted: report?.recounted ?? 0,
     },
     orphans: cut(report?.orphans),
     missing: cut(report?.missing),

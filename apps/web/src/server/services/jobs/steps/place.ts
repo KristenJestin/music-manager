@@ -35,6 +35,7 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
+import { recountAlbum } from "#/server/services/album-counters.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import type { StepResult } from "../machine.ts";
@@ -419,7 +420,6 @@ async function cleanWorkDir(ctx: StepContext): Promise<void> {
 }
 
 export async function placeStep(ctx: StepContext): Promise<StepResult> {
-  const album = await ctx.albumTracks();
   const mapped = await ctx.mappedTracks();
   const movable = mapped.filter(
     (track) => track.state === "tagged" || track.state === "placed" || track.state === "done",
@@ -604,19 +604,24 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
   }
 
   if (albumId !== null) {
-    const present = await ctx.db
-      .select({ id: libraryTracks.id })
-      .from(libraryTracks)
-      .where(eq(libraryTracks.albumId, albumId));
     await ctx.db
       .update(libraryAlbums)
       .set({
-        presentCount: present.length,
-        trackCount: Math.max(present.length, album.length),
         coverPath: folder === null ? null : `${folder}/cover.jpg`,
         updatedAt: new Date(),
       })
       .where(eq(libraryAlbums.id, albumId));
+    /*
+     * The counters are not this step's to invent.
+     *
+     * It used to write `trackCount: Math.max(present.length, album.length)` — the import's own
+     * mapped-track count as a stand-in for the release's — while the migration wrote
+     * `tracks.length` and the scan wrote the row count. Three writers, three definitions, one
+     * pair of columns. `recountAlbum` is the single rule (`services/album-counters.ts`): the
+     * release that `match` has already pulled into `source_cache` is the total, and a playlist
+     * that was eleven tracks of a thirteen-track record now says `11/13` instead of `11/11`.
+     */
+    await recountAlbum(albumId, ctx.db);
   }
 
   await cleanWorkDir(ctx);

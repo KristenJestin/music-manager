@@ -243,7 +243,12 @@ function Albums() {
         >
           {albums.map((album) => {
             const score = scoreOf(album.quality);
-            const incomplete = album.presentCount < album.trackCount;
+            // Three states, not two. An album whose total came from the release (or from
+            // tracks that agree on `totaltracks`) can be called incomplete; one whose
+            // `track_count` is just our own file count cannot be called anything, and saying
+            // `5/5` there is the lie this badge exists to stop.
+            const totalKnown = album.quality.totalKnown;
+            const incomplete = totalKnown && album.presentCount < album.trackCount;
             return (
               <Link
                 key={album.id}
@@ -268,6 +273,16 @@ function Albums() {
                       {album.presentCount}/{album.trackCount}
                     </ToneBadge>
                   ) : null}
+                  {totalKnown ? null : (
+                    <ToneBadge
+                      tone="muted"
+                      data-testid="album-total-unknown"
+                      className="absolute top-1.5 left-1.5"
+                      title="No release and no track totals in the tags: how many tracks this album should have is unknown."
+                    >
+                      {album.presentCount}/?
+                    </ToneBadge>
+                  )}
                   {/*
                     A file that has gone, which is not the same as a track never imported
                     (DRIVE-1 §B5): the scan writes `missing_at`, so the grid can say it

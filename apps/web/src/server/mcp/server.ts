@@ -1007,6 +1007,9 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             year: album.year,
             trackCount: album.trackCount,
             presentCount: album.presentCount,
+            // An agent reading `13/13` must be able to tell a counted release from a counted
+            // directory: false means the total is unknown, not that the album is complete.
+            totalKnown: album.quality.totalKnown,
             score: album.quality.score,
           })),
           tracks: tracks.tracks.slice(0, args.limit).map((track) => ({
@@ -1102,6 +1105,7 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             byProfile: detail.quality.byProfile,
             trackCount: detail.quality.trackCount,
             presentCount: detail.quality.presentCount,
+            totalKnown: detail.quality.totalKnown,
             schemaVersion: detail.quality.schemaVersion,
             filesBehind: detail.quality.filesBehind,
             driftCount: detail.quality.driftCount,

@@ -28,6 +28,7 @@ import {
   type StepName,
   type StepStatus,
 } from "#/server/db/schema/index.ts";
+import { totalIsKnown } from "#/server/services/album-counters.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
 import { assertSigned } from "#/server/services/imports.ts";
 
@@ -442,6 +443,8 @@ export interface RecentAlbum {
   readonly coverPath: string | null;
   readonly trackCount: number;
   readonly presentCount: number;
+  /** False when `trackCount` is our own file count rather than the release's total. */
+  readonly totalKnown: boolean;
   /** `library_albums.created_at` — when the album entered the library, not when it was released. */
   readonly addedAt: string;
 }
@@ -467,6 +470,7 @@ export async function recentAlbums(
       coverPath: libraryAlbums.coverPath,
       trackCount: libraryAlbums.trackCount,
       presentCount: libraryAlbums.presentCount,
+      trackCountSource: libraryAlbums.trackCountSource,
       createdAt: libraryAlbums.createdAt,
     })
     .from(libraryAlbums)
@@ -482,6 +486,7 @@ export async function recentAlbums(
     coverPath: row.coverPath,
     trackCount: row.trackCount,
     presentCount: row.presentCount,
+    totalKnown: totalIsKnown(row.trackCountSource),
     addedAt: row.createdAt.toISOString(),
   }));
 }
@@ -493,7 +498,9 @@ export async function dashboardStats(db: Database = defaultDb()): Promise<Dashbo
     db
       .select({
         total: count(),
-        complete: sql<number>`count(*) filter (where ${libraryAlbums.presentCount} >= ${libraryAlbums.trackCount} and ${libraryAlbums.trackCount} > 0)`,
+        // "Complete" needs a counted release behind it; an album whose total is its own
+        // file count is not complete, it is unknown (`services/album-counters.ts`).
+        complete: sql<number>`count(*) filter (where ${libraryAlbums.presentCount} >= ${libraryAlbums.trackCount} and ${libraryAlbums.trackCount} > 0 and ${libraryAlbums.trackCountSource} <> 'rows')`,
         artists: sql<number>`count(distinct ${libraryAlbums.albumArtist})`,
         quality: sql<number | null>`avg(${libraryAlbums.completeness})`,
       })

@@ -50,6 +50,7 @@ import {
   type LibraryAlbum,
   type LibraryTrack,
 } from "#/server/db/schema/index.ts";
+import { totalIsKnown } from "#/server/services/album-counters.ts";
 import { projectionHash } from "#/server/services/jobs/steps/tag.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
@@ -142,6 +143,15 @@ export interface AlbumQuality {
   readonly naCount: number;
   readonly trackCount: number;
   readonly presentCount: number;
+  /**
+   * Whether `trackCount` is a **total** or merely the number of files we hold.
+   *
+   * False means `library_albums.track_count_source` is `rows`: no release in the cache and
+   * no `totaltracks` in the files, so the denominator is the numerator and `n/n` would be a
+   * claim nothing supports. The Console prints `n/?` instead — see
+   * `services/album-counters.ts`, which is the only thing that writes the pair.
+   */
+  readonly totalKnown: boolean;
   readonly documentCount: number;
   /**
    * How many of this album's files the **last scan** could not find on disk.
@@ -518,6 +528,7 @@ export function scoreAlbum(
       onDisk === undefined
         ? tracks.length
         : tracks.filter((track) => onDisk.has(track.libraryTrackId)).length,
+    totalKnown: totalIsKnown(album.trackCountSource),
     documentCount: documents.length,
     missingCount: loaded.filter((entry) => entry.track.missingAt !== null).length,
     schemaVersion: schemaVersions.length === 0 ? null : Math.min(...schemaVersions),
@@ -646,7 +657,9 @@ export function summarise(
     averageByProfile,
     below80: rows.filter((row) => row.quality.score !== null && row.quality.score < 0.8).length,
     untagged: rows.filter((row) => row.quality.untagged).length,
-    incomplete: rows.filter((row) => row.quality.presentCount < row.quality.trackCount).length,
+    incomplete: rows.filter(
+      (row) => row.quality.totalKnown && row.quality.presentCount < row.quality.trackCount,
+    ).length,
     noLyrics: tracks.filter((track) => track.hasDocument && !track.hasLyrics).length,
     noReplayGain: tracks.filter((track) => track.hasDocument && !track.hasReplayGain).length,
     youtubeCover: rows.filter((row) => row.quality.youtubeCover).length,
@@ -683,7 +696,8 @@ export function matchesFilter(
     case "below80":
       return score !== null && score < 0.8;
     case "incomplete":
-      return quality.presentCount < quality.trackCount;
+      // Same rule as the album grid: an unknown total cannot make an album incomplete.
+      return quality.totalKnown && quality.presentCount < quality.trackCount;
     // "Files the last scan could not find", which is not the same question as "incomplete":
     // one is a file that has gone, the other a track that was never imported (DRIVE-1 §B5).
     case "missing":

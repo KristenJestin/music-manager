@@ -33,8 +33,26 @@ export const libraryAlbums = pgTable(
     year: integer("year"),
     /** `Daft Punk/Discovery (2001)` — relative to the library root. */
     folder: text("folder").notNull(),
+    /**
+     * How many tracks the *release* has — the denominator, not the number of files we hold.
+     *
+     * The two were the same expression for a while (`migration/v1/execute.ts` set both to
+     * `tracks.length`), so an album holding track 4 of a thirteen-track record reported
+     * `1/1`, rendered green and was invisible to the "incomplete" filter. One helper owns the
+     * pair now: `src/server/services/album-counters.ts`, and nothing else may write either
+     * column.
+     */
     trackCount: integer("track_count").notNull().default(0),
     presentCount: integer("present_count").notNull().default(0),
+    /**
+     * Which rung of that helper's ladder produced `track_count` — `release`, `tags` or `rows`.
+     *
+     * `rows` means **unknown**: no release in the cache and no `totaltracks` in the files, so
+     * the "total" is our own file count and `track_count = present_count` by construction. The
+     * Console reads this column to render `n/?` instead of a confident `n/n`, which is the
+     * difference between "we have all of them" and "we have no idea how many there are".
+     */
+    trackCountSource: text("track_count_source").notNull().default("rows"),
     completeness: doublePrecision("completeness"),
     coverPath: text("cover_path"),
     /**

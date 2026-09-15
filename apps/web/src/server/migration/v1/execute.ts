@@ -49,6 +49,7 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { containerPath, hostPath, type PathMap } from "#/server/paths.ts";
+import { countersFor } from "#/server/services/album-counters.ts";
 import { getOrFetch, put as cachePut } from "#/server/services/cache.ts";
 import { build as buildDocument, rsgainKey, RSGAIN_SOURCE } from "#/server/services/documents.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
@@ -1121,8 +1122,12 @@ async function upsertAlbum(
     title: album.title,
     year: album.year,
     folder: resolved.folder,
-    trackCount: album.tracks.length,
-    presentCount: album.tracks.length,
+    // `track_count` and `present_count` are deliberately absent here. They used to be set to
+    // `album.tracks.length` — both of them, the same expression — which is what made an album
+    // holding one track of thirteen report `1/1`. The pair has one owner now
+    // (`services/album-counters.ts`) and it is called from `refreshAlbumCounters` below, once
+    // the tracks and their documents exist and the release can actually be counted. An insert
+    // leaves the column defaults (`0`, `0`, `rows`) standing for the few milliseconds between.
     updatedAt: ctx.now,
   } as const;
 
@@ -1390,6 +1395,14 @@ async function upsertLibraryTrack(
  * the first place. `documents.build` resolved the release, so the tracks now all carry the
  * release's own `ALBUM`, `ALBUMARTIST` and `DATE`, and the most common value among them is the
  * album's. v1's guess is kept as the fallback for a release nothing could be looked up for.
+ *
+ * `track_count` and `present_count` come from `services/album-counters.ts` and from nowhere
+ * else. They used to be `tracks.length` — *both* of them — so a v1 library that had only ever
+ * downloaded track 4 of a thirteen-track release migrated into an album that said `1/1`, and
+ * "incomplete" matched nothing anywhere. The helper reads the release out of `source_cache`,
+ * which the rebuild above has just populated, so the real total is in hand without a single
+ * request; where there is no release it falls back to what the files' own `totaltracks` and
+ * `totaldiscs` agree on, and where there is neither it says so rather than guessing.
  */
 async function refreshAlbumCounters(
   ctx: ExecuteContext,
@@ -1403,6 +1416,7 @@ async function refreshAlbumCounters(
   const mean =
     scores.length === 0 ? null : scores.reduce((sum, value) => sum + value, 0) / scores.length;
   const cover = tracks[0] === undefined ? null : `${folderOfPath(tracks[0].path)}/cover.jpg`;
+  const counters = await countersFor(albumId, ctx.db);
 
   await ctx.db
     .update(libraryAlbums)
@@ -1410,8 +1424,7 @@ async function refreshAlbumCounters(
       title: commonest(tracks.map((track) => track.album.title)) ?? album.title,
       albumArtist: commonest(tracks.map((track) => track.album.artist)) ?? album.artist,
       year: commonest(tracks.map((track) => track.album.year)) ?? album.year,
-      trackCount: tracks.length,
-      presentCount: tracks.length,
+      ...counters,
       completeness: mean,
       ...(cover !== null && existsSync(hostPath(ctx.paths, cover)) ? { coverPath: cover } : {}),
       updatedAt: ctx.now,
