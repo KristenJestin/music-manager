@@ -189,6 +189,13 @@ function printReport(report: ScanReport): void {
   out(
     `  orphans ${String(report.orphans.length)} · missing ${String(report.missing.length)} · drift ${String(report.drift.length)} · duplicate groups ${String(report.duplicates.length)} · probed ${String(report.probed)}`,
   );
+  // The backfill, reported as a number rather than as silence: every walk recomputes
+  // `track_count` / `present_count` through `services/album-counters.ts`, and a v1-migrated
+  // library — where both columns were the file count — is corrected on the first run and
+  // reports 0 on every run after it.
+  out(
+    `  albums recounted ${String(report.recounted ?? 0)} of ${String(report.albumsCounted ?? 0)}`,
+  );
   for (const note of report.notes) out(`  note: ${note}`);
 
   if (report.orphans.length > 0) {

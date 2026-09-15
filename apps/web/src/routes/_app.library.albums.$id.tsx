@@ -251,9 +251,26 @@ function Album() {
             {album.identifiers.media === null ? null : ` · ${album.identifiers.media}`}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <ToneBadge tone={quality.presentCount === quality.trackCount ? "ok" : "warn"}>
-              {quality.presentCount}/{quality.trackCount} tracks
-            </ToneBadge>
+            {/*
+              `n/n` is only printable when the denominator is a *total*. This album said
+              "1/1 tracks", green, at 97%, holding track 4 of a thirteen-track release, because
+              both columns were the same file count. When the total is unknown — no release in
+              the cache, no `totaltracks` in the files — the badge says how many tracks are
+              here and admits it does not know how many there should be.
+            */}
+            {quality.totalKnown ? (
+              <ToneBadge tone={quality.presentCount >= quality.trackCount ? "ok" : "warn"}>
+                {quality.presentCount}/{quality.trackCount} tracks
+              </ToneBadge>
+            ) : (
+              <ToneBadge
+                tone="muted"
+                data-testid="album-total-unknown"
+                title="No MusicBrainz release for this album and no track totals in its tags, so how many tracks it should have is unknown."
+              >
+                {quality.presentCount}/? tracks
+              </ToneBadge>
+            )}
             {/*
               The album said "13/13 tracks · 50.6 MB" over a directory one file short, because
               only the "DB vs files" tab ever looked at the disk (DRIVE-1 §B5). `present` is a
@@ -780,8 +797,12 @@ function MetadataTab({
         />
         <StatTile
           label="Tracks"
-          value={`${quality.presentCount}/${quality.trackCount}`}
-          sub={`${quality.naCount} field(s) n/a for this release`}
+          value={`${quality.presentCount}/${quality.totalKnown ? quality.trackCount : "?"}`}
+          sub={
+            quality.totalKnown
+              ? `${quality.naCount} field(s) n/a for this release`
+              : "the release total is unknown"
+          }
         />
         <StatTile
           label="Missing"

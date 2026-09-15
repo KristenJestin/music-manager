@@ -868,6 +868,11 @@ export async function raiseIncompleteAlbums(db: Database = defaultDb()): Promise
       and(
         lt(libraryAlbums.presentCount, libraryAlbums.trackCount),
         ne(libraryAlbums.trackCount, 0),
+        // Only where `track_count` is a real total. Where it is the row count, the gap is a
+        // file that went missing — the `missing_files` question, with a re-download behind it
+        // — and telling the owner to "re-import the rest" of a release nobody has counted is
+        // an Inbox item made of nothing (`services/album-counters.ts`).
+        ne(libraryAlbums.trackCountSource, "rows"),
       ),
     );
 

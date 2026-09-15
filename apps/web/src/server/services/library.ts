@@ -50,6 +50,7 @@ import {
   type TrackFilter,
 } from "#/lib/library-filters.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
+import { recountAlbum } from "#/server/services/album-counters.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { retryStep } from "#/server/services/jobs/index.ts";
 import { ALBUM_EDITABLE_FIELDS } from "#/server/services/overrides.ts";
@@ -106,7 +107,11 @@ function passesAlbumFilter(card: AlbumCard, filter: AlbumFilter): boolean {
     case "all":
       return true;
     case "incomplete":
-      return card.presentCount < card.trackCount;
+      // `totalKnown` is not redundant. Where the total is only the row count, a gap between
+      // the two columns means "a file went missing", which is the `missing` question and has
+      // its own badge and its own remedy. "Incomplete" is "the release has tracks we never
+      // imported", and that can only be said when something actually counted the release.
+      return card.quality.totalKnown && card.presentCount < card.trackCount;
     case "untagged":
       return card.quality.untagged;
     case "nocover":
@@ -979,16 +984,17 @@ export async function deleteTrack(
   return { ...removed, rows: 1, folder: null };
 }
 
-/** Keep `present_count` honest after a delete. */
+/**
+ * Keep the counters honest after a delete.
+ *
+ * It used to write `present_count` alone, from a `count(*)` — which was right about the
+ * numerator and silent about the denominator, so an album you deleted three tracks from went
+ * from `13/13` to `10/13` or from `13/13` to `10/10` depending on which of the five writers
+ * had last touched the row. `recountAlbum` is the one rule now
+ * (`services/album-counters.ts`), and it decides both columns together.
+ */
 export async function refreshAlbumCounts(albumId: string, db: Database = defaultDb()) {
-  const [row] = await db
-    .select({ present: sql<number>`count(*)::int` })
-    .from(libraryTracks)
-    .where(eq(libraryTracks.albumId, albumId));
-  await db
-    .update(libraryAlbums)
-    .set({ presentCount: row?.present ?? 0, updatedAt: new Date() })
-    .where(eq(libraryAlbums.id, albumId));
+  await recountAlbum(albumId, db);
 }
 
 /* ------------------------------------------------------------------ */

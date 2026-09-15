@@ -514,13 +514,21 @@ function Quality() {
                       <div className="text-3xs text-fg-3">global {pct(row.quality.score)}</div>
                     ) : null}
                   </td>
+                  {/* `?` rather than a denominator equal to the numerator: this column is
+                      read as "how much of the record is here", and an album with no release
+                      and no track totals cannot answer that. */}
                   <td
                     className={cn(
                       "px-2.5 py-1.5 text-right font-mono",
-                      row.quality.presentCount < row.quality.trackCount && "text-danger",
+                      row.quality.totalKnown &&
+                        row.quality.presentCount < row.quality.trackCount &&
+                        "text-danger",
+                      row.quality.totalKnown ? "" : "text-fg-3",
                     )}
+                    title={row.quality.totalKnown ? undefined : "The release total is unknown."}
                   >
-                    {row.quality.presentCount}/{row.quality.trackCount}
+                    {row.quality.presentCount}/
+                    {row.quality.totalKnown ? row.quality.trackCount : "?"}
                   </td>
                   <td className="px-2.5 py-1.5">
                     <SchemaBadge

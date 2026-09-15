@@ -1,0 +1,1 @@
+ALTER TABLE "library_albums" ADD COLUMN "track_count_source" text DEFAULT 'rows' NOT NULL;

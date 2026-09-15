@@ -326,6 +326,11 @@ export const albumSchema = z
     releaseMbid: z.string().nullable(),
     trackCount: z.number(),
     presentCount: z.number(),
+    /**
+     * False when `trackCount` is the number of files held rather than the release's total.
+     * A client that draws a progress bar must not draw a full one on the strength of it.
+     */
+    totalKnown: z.boolean(),
     score: z.number().nullable(),
   })
   .openapi("Album");

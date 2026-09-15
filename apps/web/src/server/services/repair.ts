@@ -62,6 +62,7 @@ import {
 import { newId } from "#/server/ids.ts";
 import { containerPath, type PathMap } from "#/server/paths.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
+import { recountAlbums } from "#/server/services/album-counters.ts";
 import { emit } from "#/server/services/events.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { discBucket, freeAlbumPosition, insertLibraryTrack } from "#/server/services/positions.ts";
@@ -839,32 +840,15 @@ function videoIdOf(url: string): string | null {
   return match?.[1] ?? match?.[2] ?? null;
 }
 
-/** `track_count` and `present_count`, recomputed for every album the repair touched. */
+/**
+ * `track_count` and `present_count`, recomputed for every album the repair touched.
+ *
+ * This was the fifth writer of that pair, and the fifth definition of it: one `update … from`
+ * that set the total to the row count. It now delegates to `services/album-counters.ts` like
+ * everything else, which is what makes `track_count` mean the same thing on an album the
+ * repair rebuilt as on one the importer placed. An album every track left still comes out
+ * `0/0`; the helper reaches that by counting nothing, not by a special case.
+ */
 async function refreshCounts(db: Database): Promise<void> {
-  await db.execute(sql`
-    update library_albums a
-       set track_count = c.total,
-           present_count = c.present,
-           updated_at = now()
-      from (
-        select album_id,
-               count(*)::int as total,
-               count(*) filter (where missing_at is null)::int as present
-          from library_tracks
-         where album_id is not null
-      group by album_id
-      ) c
-     where c.album_id = a.id
-       and (a.track_count is distinct from c.total or a.present_count is distinct from c.present)
-  `);
-  // An album every track left is not an error, it is an empty album; say so honestly.
-  await db
-    .update(libraryAlbums)
-    .set({ trackCount: 0, presentCount: 0 })
-    .where(
-      and(
-        sql`not exists (select 1 from library_tracks t where t.album_id = ${libraryAlbums.id})`,
-        or(sql`${libraryAlbums.trackCount} <> 0`, sql`${libraryAlbums.presentCount} <> 0`),
-      ),
-    );
+  await recountAlbums(db);
 }

@@ -239,7 +239,11 @@ function Dashboard() {
                         {album.year === null ? "" : ` · ${String(album.year)}`}
                       </div>
                     </div>
-                    {album.presentCount >= album.trackCount ? null : (
+                    {!album.totalKnown ? (
+                      <ToneBadge tone="muted" title="The release total is unknown.">
+                        {album.presentCount}/?
+                      </ToneBadge>
+                    ) : album.presentCount >= album.trackCount ? null : (
                       <ToneBadge tone="warn">
                         {album.presentCount}/{album.trackCount}
                       </ToneBadge>
