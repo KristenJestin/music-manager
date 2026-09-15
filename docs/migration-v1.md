@@ -78,7 +78,7 @@ Puis on vérifie sur la copie, avant de toucher à l'original :
 ```
 mm migrate v1 --db <postgres v1> --library <dossier v1>
               [--dry-run] [--rename-to-template] [--group-by release|tags]
-              [--keep-folders] [--limit N] [--resume]
+              [--keep-folders] [--limit N] [--no-resume]
               [--i-have-a-backup] [--verify] [--json] [--verbose]
 ```
 
@@ -90,7 +90,7 @@ mm migrate v1 --db <postgres v1> --library <dossier v1>
 | `--group-by release\|tags` | Ce qui fait un album. `release` (défaut) : le MBID de sortie v1. `tags` : l'ancienne clé, décrite au §4 quinquies.                   |
 | `--keep-folders`           | N'effectue aucun regroupement de fichiers : les albums sont recomposés en base, mais chaque fichier reste dans le dossier où il est. |
 | `--limit N`                | Ne lit que les N premières lignes de `Songs`. Pour un premier essai sur une grosse base.                                             |
-| `--resume`                 | Reprend le dernier run laissé `running` au lieu d'en ouvrir un nouveau.                                                              |
+| `--no-resume`              | Ouvre une nouvelle course au lieu de reprendre celle laissée `running`. La reprise est le défaut.                                    |
 | `--verify`                 | Relit chaque album migré via Navidrome (§ Étapes 6). Demande un Navidrome configuré.                                                 |
 | `--json`                   | Le rapport, pour un script.                                                                                                          |
 
@@ -383,53 +383,88 @@ album row`, `0 file(s) moved into their album's folder` et toutes les lignes en
 - Depuis la Console, Tools › **Migrate from v1** propose les deux réglages (le mode de
   regroupement et « garder les dossiers ») ; le job part sur la file `migrate` du worker.
 
-### Si un regroupement a perdu des pistes (versions antérieures à celle-ci)
+### Si une migration s'est arrêtée en route (versions antérieures à celle-ci)
 
-Un regroupement fait par une version antérieure pouvait **échouer piste par piste, en
-silence**, et le symptôme est double : une piste disparue de la Console alors que son fichier
-est toujours sur le disque, et une même sortie v1 restée coupée en deux lignes d'album.
+Le symptôme, tel qu'il se présente : la Console montre une partie seulement de la
+bibliothèque, des fichiers sont sur le disque sans aucune ligne, et si
+`--rename-to-template` était actif, la moitié des fichiers porte les nouveaux noms et l'autre
+moitié les anciens. Un `mm migrate runs` montre la course en `failed`.
 
-La cause tient en une phrase : une piste dont la sortie n'a pas pu être résolue gardait le
-**numéro de piste de la v1**, c'est-à-dire celui du dossier où la v1 l'avait rangée. La v1
-rangeait une même sortie dans plusieurs dossiers, chacun numéroté à partir de 1 ; une fois les
-dossiers réunis en un seul album, deux pistes réclamaient donc la position 1.
-`library_tracks_album_position_idx` est unique : la seconde écriture était refusée, la piste
-comptée en échec, et elle restait dans la ligne d'album que le regroupement était en train de
-dissoudre — son fichier, lui, ayant déjà rejoint le nouveau dossier.
+La cause, une seule, en deux temps :
 
-Cette version corrige les deux côtés : la position vient de la sortie choisie quand elle a pu
-être résolue, et sinon la piste est placée **après la fin de l'album** plutôt que sur une
-position déjà prise ; et une ligne est retrouvée par ce que le passage précédent a écrit
-(`migration_v1.library_track_id`) et non plus par son seul chemin.
+1. **Deux sorties d'un même disque rendaient le même dossier.** La règle du §4 quinquies fait
+   une ligne `library_albums` par MBID de sortie v1, mais le dossier est rendu depuis
+   (artiste d'album, titre, année) — donc deux sorties de _Imagine Dragons — Smoke + Mirrors_
+   visaient toutes les deux `Imagine Dragons/Smoke + Mirrors (2015)`. `library_albums_folder_idx`
+   est **unique** : la seconde insertion était refusée.
+2. **Cette exception sortait de toute la course.** `migrateAlbum` isolait déjà une _piste_ en
+   échec, mais rien n'isolait l'album, et l'insertion du dossier a lieu avant la première
+   piste. Sur une bibliothèque de 5288 chansons, la course est morte au bout de 80 minutes
+   avec **2885 chansons jamais atteintes**.
 
-Pour réparer une installation déjà abîmée, dans cet ordre :
+Cette version corrige les deux. Quand tous les dossiers candidats sont pris, le dossier reçoit
+un suffixe tiré de la sortie elle-même — `Imagine Dragons/Smoke + Mirrors (2015) [6ace8918]` —
+stable d'une course à l'autre et sans réseau. Et un album qui échoue est désormais une unité
+d'échec et non d'abandon : ses pistes passent en `failed` dans `migration_v1` avec la raison,
+un item Inbox `album_incomplete` est ouvert, et la course continue à l'album suivant.
+
+La même famille de collision existait un niveau plus bas, sur
+`library_tracks_album_position_idx` : une piste dont la sortie n'a pas pu être résolue gardait
+le numéro de piste de la v1, c'est-à-dire celui du dossier où la v1 l'avait rangée, et deux
+pistes réunies dans un album réclamaient la position 1. Elle est réglée de la même façon : la
+position vient de la sortie quand elle a pu être résolue, et sinon la piste est placée **après
+la fin de l'album** plutôt que sur une position déjà prise.
+
+Pour reprendre une installation restée à moitié :
 
 ```bash
-# 1. l'état des lieux : quels fichiers n'ont plus de ligne ?
-bun run mm -- scan
+# 1. où en est-on ? la course morte, et ce qu'elle avait fait.
+bun run mm -- migrate runs
 
-# 2. l'aperçu de la réparation. Rien n'est écrit.
-bun run mm -- library repair-orphans
-
-# 3. la réparation, une fois l'aperçu lu.
-bun run mm -- library repair-orphans --apply
-
-# 4. et le regroupement, de nouveau, avec la version corrigée.
+# 2. la reprise. `--resume` est le comportement par défaut : tout ce que `migration_v1`
+#    connaît déjà est sauté, et seul le reste est migré.
 bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT" --dry-run
 bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT"
+
+# 3. ce qui reste sans ligne après ça : des fichiers qu'aucune ligne v1 ne réclame.
+bun run mm -- scan
+bun run mm -- library repair-orphans            # aperçu, rien n'est écrit
+bun run mm -- library repair-orphans --apply
 ```
 
-`repair-orphans` marche sur les tags du fichier lui-même, sans réseau ni empreinte : tout
-fichier écrit par la v1 ou la v2 porte `MUSICBRAINZ_ALBUMID` et `MUSICBRAINZ_TRACKID`, donc il
-dit à quel album il appartient. Trois échelons, dans l'ordre : une ligne de même enregistrement
-dont le fichier a disparu est **repointée** plutôt que dupliquée ; sinon l'album est celui qui
-porte la sortie, puis celui qui tient le dossier, puis une ligne neuve construite sur
-`ALBUM`/`ALBUMARTIST`. Le document est reconstruit depuis les tags à la source `app`, la plus
-basse de la précédence, donc le prochain re-tag le remplace au lieu d'en hériter ; et quand le
-fichier porte encore son commentaire `Source: <url>`, l'import qui le justifie est recréé, sans
-quoi `mm retag` refuserait de le reconstruire.
+Le point important de l'étape 2 : **une reprise n'est pas une nouvelle migration**. L'état vit
+dans `migration_v1`, ligne par ligne, chacune validée au moment où elle est finie ; une chanson
+déjà migrée est sautée quel que soit le chemin qu'elle a pris depuis — renommée par le gabarit
+ou non. Le `--rename-to-template` de la première moitié n'a donc pas à être répété ni défait :
+relancez avec le même réglage qu'à l'origine et la seconde moitié rejoint la première.
+
+`repair-orphans` est le filet, pour les fichiers qu'aucune ligne v1 ne réclame — une copie faite
+à la main, ou une ligne v1 effacée depuis. Il travaille sur les tags du fichier lui-même, sans
+réseau ni empreinte : tout fichier écrit par la v1 ou la v2 porte `MUSICBRAINZ_ALBUMID` et
+`MUSICBRAINZ_TRACKID`, donc il dit à quel album il appartient. Trois échelons, dans l'ordre :
+une ligne de même enregistrement dont le fichier a disparu est **repointée** plutôt que
+dupliquée ; sinon l'album est celui qui porte la sortie, puis celui qui tient le dossier, puis
+une ligne neuve construite sur `ALBUM`/`ALBUMARTIST`. Le document est reconstruit depuis les
+tags à la source `app`, la plus basse de la précédence, donc le prochain re-tag le remplace au
+lieu d'en hériter ; et quand le fichier porte encore son commentaire `Source: <url>`, l'import
+qui le justifie est recréé, sans quoi `mm retag` refuserait de le reconstruire.
 
 `--limit N` borne la passe, `--json` sort le rapport complet.
+
+### Un album à une seule piste, pour une édition bonus
+
+Ce n'est pas une perte de données et ce n'est pas un bug de regroupement : c'est la règle du §4
+quinquies appliquée honnêtement. Quand la v1 a apparié une piste bonus — une version
+instrumentale, un titre caché — à une **autre sortie** que celle du reste du disque, cette piste
+est, pour la v2, un album d'une piste. _Crooked Still — Shaken by a Low Sound_ sort ainsi en deux
+lignes : onze pistes sur une sortie, et « Ecstasy (instrumental edit) » seule sur une autre.
+
+Deux remèdes, tous les deux à la main et tous les deux sûrs :
+
+- forcer la sortie sur la ligne v1 (`MusicBrainzReleaseIdForce`) avant de relancer, ce qui range
+  la piste avec les autres ;
+- ou accepter les deux lignes : Navidrome regroupe par tags et par MBID, pas par dossier, donc
+  l'album reste entier à la lecture.
 
 ### Si une migration antérieure a écrit dans `_archive/v1-playlists/`
 
@@ -512,7 +547,8 @@ donc pas être surchargée ; le message le dit plutôt que d'échouer en silence
 | `must be the v2 library root, or a directory inside it`                                         | `MM_LIBRARY_ROOT` ne désigne pas la bibliothèque v1. Voir §1.                                                                                                                                                |
 | `Confirm you have a backup`                                                                     | `--i-have-a-backup`, ou la case dans Tools. C'est la seule barrière avant une réécriture de tous les fichiers.                                                                                               |
 | Beaucoup de `orphan_file`                                                                       | Des fichiers que la v1 n'a jamais écrits (copies manuelles). Ils ne sont pas adoptés ; un item Inbox les liste. Si ce sont des fichiers que la v2 a écrits puis oubliés, `mm library repair-orphans`.        |
-| Une piste disparue de la Console, le fichier toujours sur le disque                             | Un regroupement d'une version antérieure. Voir « Si un regroupement a perdu des pistes » au §5.                                                                                                              |
+| Une course en `failed`, la moitié de la bibliothèque migrée                                     | Une collision de dossier d'une version antérieure. Relancer suffit : voir « Si une migration s'est arrêtée en route » au §5.                                                                                 |
+| Une piste disparue de la Console, le fichier toujours sur le disque                             | Même cause : la course ne l'a jamais atteinte. `mm migrate v1` de nouveau, puis `mm library repair-orphans`.                                                                                                 |
 | Beaucoup de `missing_file`                                                                      | Des lignes `Present` dont le fichier a disparu. Elles deviennent des imports ; rien n'est perdu.                                                                                                             |
 | Documents à ~90 % au lieu de 100 %                                                              | Voir « ce qui reste » ci-dessous.                                                                                                                                                                            |
 | Le bouton de Tools ne fait rien                                                                 | Le worker ne tourne pas. `bun run worker`.                                                                                                                                                                   |
