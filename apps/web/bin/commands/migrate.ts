@@ -52,7 +52,7 @@ const flagBoolean = (args: CliArgs, name: string): boolean =>
 export const MIGRATE_USAGE = `usage:
   mm migrate v1 --db <postgres url> --library <dir> [--dry-run] [--rename-to-template]
                 [--group-by release|tags] [--keep-folders]
-                [--limit N] [--resume] [--i-have-a-backup] [--verify] [--json]
+                [--limit N] [--no-resume] [--i-have-a-backup] [--verify] [--json]
   mm migrate runs
   mm migrate show <run id> [--json]`;
 
@@ -130,7 +130,9 @@ export async function cmdMigrate(args: CliArgs): Promise<number> {
     groupBy,
     keepFolders,
     ...(limit === undefined ? {} : { limit }),
-    resume: flagBoolean(args, "resume"),
+    // On by default: a run that died is a run somebody restarts, and the report should say
+    // so. `--resume` is still accepted and means the default; `--no-resume` opts out.
+    resume: !flagBoolean(args, "no-resume"),
     acknowledgeBackup: flagBoolean(args, "i-have-a-backup"),
     verify: flagBoolean(args, "verify"),
     // Fixtures mode never reaches the network; a real migration may, because the v1 MBIDs are

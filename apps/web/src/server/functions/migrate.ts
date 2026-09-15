@@ -121,7 +121,7 @@ const startInput = z.object({
   groupBy: z.enum(["release", "tags"]).default("release"),
   keepFolders: z.boolean().default(false),
   limit: z.number().int().min(1).max(1_000_000).optional(),
-  resume: z.boolean().default(false),
+  resume: z.boolean().default(true),
   verify: z.boolean().default(false),
 });
 

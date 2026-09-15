@@ -22,9 +22,10 @@
  * So the v1 row becomes what it always was: the record of where a file came from. The import
  * carries the v1 URL, rests at `done`, and never touches the download slot.
  */
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { and, eq, gte, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
   merge,
@@ -149,7 +150,7 @@ export interface ImportGroupOutcome {
 export async function migrateAlbum(
   ctx: ExecuteContext,
   album: PlannedAlbum,
-  existing: { importId?: string | null } = {},
+  existing: { importId?: string | null; libraryTrackIds?: ReadonlyMap<number, string> } = {},
 ): Promise<AlbumOutcome> {
   const importId = await upsertImport(ctx, {
     id: existing.importId ?? null,
@@ -195,6 +196,7 @@ export async function migrateAlbum(
           planned,
           index,
           moveTo: moveBySong.get(planned.song.id) ?? null,
+          knownLibraryTrackId: existing.libraryTrackIds?.get(planned.song.id) ?? null,
         }),
       );
     } catch (error) {
@@ -395,6 +397,8 @@ interface TrackInput {
   readonly index: number;
   /** Where the consolidation wants this file, or `null` to leave it alone. */
   readonly moveTo: string | null;
+  /** The `library_tracks` row a previous run wrote for this v1 song (`migration_v1`). */
+  readonly knownLibraryTrackId: string | null;
 }
 
 async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<TrackOutcome> {
@@ -552,15 +556,25 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
 
   /* ---- 6 · the sidecars of §3 ---- */
   let sidecars = writeSidecars(ctx, { path, lrc });
+  /*
+   * The sidecars go where the *file* is, which is not always `input.folder`.
+   *
+   * `library_albums.folder` is an identity as well as a location: it is unique, so two releases
+   * of one record get one of them a `[6ace8918]` suffix (`freeFolder`). With
+   * `--rename-to-template` the files do not follow that suffix — the template has no release
+   * component — so writing `cover.jpg` into the album's folder would create a directory holding
+   * a cover and nothing else. The track's own directory is where its album's artwork belongs.
+   */
+  const sidecarFolder = folderOfPath(path);
   // `cover.jpg` is per album, so the first track of the folder writes it and the rest find it
   // already there. v1 wrote no sidecars at all, which is why this runs on every migrated album.
-  if (input.index === 0 && (await writeCover(ctx, input.folder, document))) sidecars += 1;
+  if (input.index === 0 && (await writeCover(ctx, sidecarFolder, document))) sidecars += 1;
   // `artist.jpg`, same "first track of the folder" rule as `cover.jpg` above. v1 never wrote
   // it either, and `artists_cache.imageUrl` is only ever filled by `documents.build`'s own
   // `rememberArtist` (`services/documents.ts`) — whatever this migration already looked up
   // while building the document, not a second network trip of its own.
   if (input.index === 0) {
-    const artistFolder = input.folder.split("/")[0] ?? "";
+    const artistFolder = sidecarFolder.split("/")[0] ?? "";
     const image = await writeArtistImageSidecar({
       db: ctx.db,
       toolbox: ctx.toolbox,
@@ -587,6 +601,7 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
     planned,
     importId,
     importTrackId,
+    knownLibraryTrackId: input.knownLibraryTrackId,
     sizeBytes: file.sizeBytes ?? null,
     duration: file.durationSeconds ?? null,
     projectionHash: hashProjection(projectDocument(document, format)),
@@ -1028,20 +1043,55 @@ export async function resolveAlbum(db: Database, album: PlannedAlbum): Promise<R
 }
 
 /**
- * The first of an album's folders that no *other* album row holds.
+ * What tells two albums apart when their folders would be the same word.
  *
- * `library_albums.folder` is unique, so two albums cannot share a directory even when the v1
- * tags put them there. Preferring the album's own folders in majority order means the answer is
- * the majority folder in every ordinary case, and a defensible second choice in the one case
- * where it is taken — rather than a unique-violation that fails the album.
+ * The release MBID's first eight characters, because that is what the two albums actually
+ * *differ by* and it is stable for ever: the same release gets the same suffix on every run,
+ * on every machine, with or without a network. Eight hex characters is 4 billion, which is
+ * more than enough to separate two releases of one record and short enough to read.
+ *
+ * A `tags` album has no release to name, so it is keyed on the grouping key it was built from
+ * — which already contains its v1 folder and is therefore unique among the plan's albums.
+ */
+export function folderSuffixOf(album: PlannedAlbum): string {
+  if (album.groupedBy === "release_mbid" && album.releaseMbid !== null) {
+    return album.releaseMbid.replace(/-/g, "").slice(0, 8);
+  }
+  return createHash("sha1").update(album.key).digest("hex").slice(0, 8);
+}
+
+/** `Imagine Dragons/Smoke + Mirrors (2015)` → `… (2015) [6ace8918]`. */
+export function disambiguatedFolder(album: PlannedAlbum, folder: string): string {
+  return `${folder} [${folderSuffixOf(album)}]`;
+}
+
+/**
+ * A folder no *other* album row holds.
+ *
+ * `library_albums.folder` is **unique**, and that is not a detail: the rule of P11.1 is one
+ * album row per v1 release MBID, while the folder is rendered from (album artist, title,
+ * year) — so two releases of one record render the *same* path and the second insert is
+ * rejected by `library_albums_folder_idx`. On a real library that killed a five-thousand-song
+ * migration eighty minutes in, with `Imagine Dragons — Smoke + Mirrors` as the pair that did
+ * it (releases `6ace8918…` and `1c801841…`).
+ *
+ * So the candidates are the album's own v1 folders in majority order — the answer in every
+ * ordinary case — and then the same folders **disambiguated by the release**. The last resort
+ * is the disambiguated majority folder rather than the bare one: a suffix nobody else can
+ * produce is always a better answer than a collision.
+ *
+ * Idempotent by construction. `resolveAlbum` binds the row by its release MBID before this
+ * runs, so a second migration finds the album already sitting in `… [6ace8918]`, recognises it
+ * as its own (`row.id === selfId`) and returns it unchanged — no second suffix, no move.
  */
 async function freeFolder(
   db: Database,
   album: PlannedAlbum,
   selfId: string | null,
 ): Promise<string> {
-  const candidates =
+  const own =
     album.folders.length === 0 ? [album.folder] : album.folders.map((entry) => entry.folder);
+  const candidates = [...own, ...own.map((folder) => disambiguatedFolder(album, folder))];
   for (const folder of candidates) {
     const [row] = await db
       .select({ id: libraryAlbums.id })
@@ -1050,7 +1100,7 @@ async function freeFolder(
       .limit(1);
     if (row === undefined || row.id === selfId) return folder;
   }
-  return candidates[0] ?? album.folder;
+  return disambiguatedFolder(album, own[0] ?? album.folder);
 }
 
 async function upsertAlbum(
@@ -1146,6 +1196,108 @@ interface UpsertLibraryTrackInput {
   readonly sizeBytes: number | null;
   readonly duration: number | null;
   readonly projectionHash: string;
+  /** What `migration_v1` remembers this v1 song's `library_tracks` row to be. */
+  readonly knownLibraryTrackId: string | null;
+}
+
+/**
+ * Whether a document's `tracknumber` is a fact about **this album** or a leftover of v1's.
+ *
+ * `documents.build` sets it from `track.position` on the release it resolved
+ * (`resolvers/musicbrainz.ts`), and that is the only value that describes the album the
+ * regrouping just built. The v1 seed sets the same field from `Songs.TrackNumber`
+ * (`seed.ts`), which describes *the folder v1 filed the row in* — and v1 filed one release
+ * into several folders, each numbered from 1. Carrying that number into the regrouped album
+ * is what made two tracks claim position 1.
+ */
+function positionIsFromRelease(document: TrackDocument): boolean {
+  const source = document.fields["tracknumber"]?.source;
+  return source !== undefined && source !== "v1";
+}
+
+/**
+ * The position a track takes inside its `library_albums` row, and never a collision.
+ *
+ * `library_tracks_album_position_idx` is unique over
+ * `(album_id, coalesce(disc_number, 1), track_number)`, so two tracks claiming one position
+ * is not a cosmetic problem: the second write is *rejected*, `migrateAlbum` catches it as a
+ * track failure, and the track is left behind in the album row the regrouping is dissolving —
+ * with its file already moved into the new folder. That is the incident this function exists
+ * to stop, so the rule is decided here rather than hoped for:
+ *
+ *  1. **the release's own position wins**, whenever the rebuild found the track on it;
+ *  2. a row that already sits in this album keeps the position it has, which is what makes a
+ *     second run a no-op rather than a renumbering;
+ *  3. a free v1 position is taken as-is — an album nothing could be looked up for keeps v1's
+ *     numbering, which is the only numbering anybody has;
+ *  4. and a **taken** one is refused: the track goes past the end of the album instead, at
+ *     the first free position above the highest one the album currently holds.
+ *
+ * Deterministic in all four cases: the album's tracks are processed in `byPosition` order,
+ * which is stable, so the same library regrouped twice produces the same numbering.
+ */
+async function albumPosition(
+  ctx: ExecuteContext,
+  input: {
+    readonly albumId: string;
+    readonly trackId: string | null;
+    readonly discNumber: number | null;
+    readonly candidate: number | null;
+    readonly fromRelease: boolean;
+  },
+): Promise<number | null> {
+  const disc = input.discNumber ?? 1;
+  const onDisc = and(
+    eq(libraryTracks.albumId, input.albumId),
+    sql`coalesce(${libraryTracks.discNumber}, 1) = ${disc}`,
+  );
+
+  /** Free means: nobody holds it, or the only holder is the row we are about to write. */
+  const free = async (position: number): Promise<boolean> => {
+    const rows = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(and(onDisc, eq(libraryTracks.trackNumber, position)));
+    return rows.every((row) => row.id === input.trackId);
+  };
+
+  if (input.fromRelease && input.candidate !== null && (await free(input.candidate))) {
+    return input.candidate;
+  }
+
+  if (input.trackId !== null) {
+    const [held] = await ctx.db
+      .select({ albumId: libraryTracks.albumId, trackNumber: libraryTracks.trackNumber })
+      .from(libraryTracks)
+      .where(eq(libraryTracks.id, input.trackId))
+      .limit(1);
+    if (
+      held !== undefined &&
+      held.albumId === input.albumId &&
+      held.trackNumber !== null &&
+      (await free(held.trackNumber))
+    ) {
+      return held.trackNumber;
+    }
+  }
+
+  if (input.candidate !== null && (await free(input.candidate))) return input.candidate;
+
+  const [highest] = await ctx.db
+    .select({ max: sql<number | null>`max(${libraryTracks.trackNumber})` })
+    .from(libraryTracks)
+    .where(onDisc);
+  let next = Math.max(highest?.max ?? 0, input.candidate ?? 0) + 1;
+  // A loop rather than `max + 1` alone, because `max` is read before this write and two
+  // tracks of one album are written one after the other.
+  while (!(await free(next))) next += 1;
+  // Said out loud, because a track quietly renumbered is a track somebody cannot find again.
+  await ctx.say(
+    `position ${String(input.candidate ?? "—")} on disc ${String(disc)} was taken; ` +
+      `this track goes to ${String(next)} instead`,
+    { album: input.albumId, disc, wanted: input.candidate, given: next },
+  );
+  return next;
 }
 
 async function upsertLibraryTrack(
@@ -1153,14 +1305,51 @@ async function upsertLibraryTrack(
   input: UpsertLibraryTrackInput,
 ): Promise<string> {
   const { document, planned } = input;
+
+  /*
+   * Which row this is, in two rungs.
+   *
+   * The path is the first, and it used to be the only one — which made the migration insert a
+   * *second* row whenever the file had moved behind the app's back: the row kept its stale
+   * path in the old album, the insert made a new one in the new album, and one song came out
+   * under two albums with one of the two pointing at nothing. `migration_v1.library_track_id`
+   * is what the previous run wrote for this very v1 song, so it is the identity the path
+   * cannot be; it is only trusted when the row is still there and nothing else holds the path
+   * we are about to write.
+   */
+  const [byPath] = await ctx.db
+    .select({ id: libraryTracks.id })
+    .from(libraryTracks)
+    .where(eq(libraryTracks.path, input.path))
+    .limit(1);
+
+  let existing = byPath;
+  if (existing === undefined && input.knownLibraryTrackId !== null) {
+    const [known] = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(eq(libraryTracks.id, input.knownLibraryTrackId))
+      .limit(1);
+    existing = known;
+  }
+
+  const discNumber = numberField(document, "discnumber") ?? planned.song.discNumber;
+  const trackNumber = await albumPosition(ctx, {
+    albumId: input.albumId,
+    trackId: existing?.id ?? null,
+    discNumber,
+    candidate: numberField(document, "tracknumber") ?? planned.song.trackNumber,
+    fromRelease: positionIsFromRelease(document),
+  });
+
   const values = {
     albumId: input.albumId,
     recordingMbid: stringField(document, "musicbrainz_recordingid"),
     trackMbid: stringField(document, "musicbrainz_releasetrackid"),
     title: stringField(document, "title") ?? planned.song.title ?? "Unknown",
     artist: stringField(document, "artist") ?? planned.song.artist,
-    discNumber: numberField(document, "discnumber") ?? planned.song.discNumber,
-    trackNumber: numberField(document, "tracknumber") ?? planned.song.trackNumber,
+    discNumber,
+    trackNumber,
     path: input.path,
     format: input.path.split(".").pop() ?? null,
     size: input.sizeBytes,
@@ -1171,12 +1360,6 @@ async function upsertLibraryTrack(
     importTrackId: input.importTrackId,
     updatedAt: ctx.now,
   } as const;
-
-  const [existing] = await ctx.db
-    .select({ id: libraryTracks.id })
-    .from(libraryTracks)
-    .where(eq(libraryTracks.path, input.path))
-    .limit(1);
 
   if (existing !== undefined) {
     await ctx.db.update(libraryTracks).set(values).where(eq(libraryTracks.id, existing.id));

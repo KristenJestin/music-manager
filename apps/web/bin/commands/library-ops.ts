@@ -21,6 +21,7 @@ import {
   trashFile,
   type ScanReport,
 } from "#/server/services/scan.ts";
+import { repairOrphans } from "#/server/services/repair.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import {
@@ -220,6 +221,88 @@ function printReport(report: ScanReport): void {
       for (const file of group.files) out(`      ${file.path}`);
     }
   }
+  if (report.merged.length > 0) {
+    out("");
+    out("merged rows (deleted — the detail below is what it takes to put one back)");
+    for (const row of report.merged.slice(0, 20)) {
+      out(`  ${row.removedTitle}  ${row.removedPath}`);
+      out(`      into ${row.keptTitle}  ${row.keptPath}`);
+      out(
+        `      ${row.why} · album ${row.removedAlbumId ?? "—"} · ` +
+          `disc ${String(row.removedDiscNumber ?? "—")} track ${String(row.removedTrackNumber ?? "—")} · ` +
+          `recording ${row.removedRecordingMbid ?? "—"} · id ${row.removedId}`,
+      );
+    }
+  }
+  if ((report.mergeConflicts ?? []).length > 0) {
+    out("");
+    out("shared identities left alone (the files are different songs)");
+    for (const conflict of (report.mergeConflicts ?? []).slice(0, 20)) {
+      out(`  ${conflict.why}`);
+      for (const row of conflict.rows) {
+        out(`      ${row.onDisk ? " " : "?"} ${row.title}  ${row.path}`);
+      }
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* mm library repair-orphans                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `mm library repair-orphans [--apply] [--limit n] [--json]`.
+ *
+ * The other half of the scan's orphan report: instead of identifying a file by fingerprint or
+ * moving it to the trash, put its `library_tracks` row back from the file's own tags. A dry
+ * run by default — `--apply` is the second ask, and the only thing that writes.
+ */
+export async function cmdRepairOrphans(args: CliArgs): Promise<number> {
+  const json = flagBoolean(args, "json");
+  const apply = flagBoolean(args, "apply");
+  const limit = flagString(args, "limit");
+
+  const report = await repairOrphans({
+    dryRun: !apply,
+    ...(limit === undefined ? {} : { limit: Number(limit) }),
+    say: async (message) => {
+      if (!json) out(`  … ${message}`);
+    },
+  });
+
+  if (json) {
+    out(JSON.stringify(report, null, 2));
+    return 0;
+  }
+
+  out("");
+  out(
+    `${String(report.filesSeen)} file(s) on disk · ${String(report.orphans)} with no library row`,
+  );
+  out(
+    `  ${report.dryRun ? "would reattach" : "reattached"} ${String(report.reattached)} · ` +
+      `${report.dryRun ? "would recreate" : "recreated"} ${String(report.created)} · ` +
+      `skipped ${String(report.skipped)} · album rows ${report.dryRun ? "needed" : "created"} ${String(report.albumsCreated)}`,
+  );
+  for (const note of report.notes) out(`  note: ${note}`);
+
+  if (report.items.length > 0) {
+    out("");
+    out("OUTCOME     TRACK                                 ALBUM");
+    for (const item of report.items.slice(0, 200)) {
+      out(
+        `${item.outcome.padEnd(11)} ${truncate(item.title, 37).padEnd(37)} ` +
+          `${item.album ?? item.reason ?? "—"}`,
+      );
+      out(`            ${item.path}`);
+    }
+  }
+
+  if (report.dryRun && report.reattached + report.created > 0) {
+    out("");
+    out("Nothing was written. Run it again with --apply to do it.");
+  }
+  return 0;
 }
 
 export async function cmdScan(args: CliArgs): Promise<number> {

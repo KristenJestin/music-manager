@@ -77,7 +77,14 @@ export interface ReportAlbum {
   /** 0…1, the mean track completeness. `null` before any document is built. */
   readonly completeness: number | null;
   readonly replaygain: boolean;
-  readonly verified: "ok" | "mismatch" | "not_indexed" | "skipped";
+  /**
+   * The Navidrome read-back, or `failed` when the album never got as far as one.
+   *
+   * `failed` is the album-level isolation of `run.ts`: the album threw before or during its
+   * tracks, every one of them is written down as `failed` in `migration_v1`, and the run went
+   * on to the next album rather than stopping. It is the state a re-run retries.
+   */
+  readonly verified: "ok" | "mismatch" | "not_indexed" | "skipped" | "failed";
 }
 
 export interface ReportImport {
@@ -287,7 +294,11 @@ export function formatReport(report: MigrationReport): string {
         album.completeness === null ? "  ·  " : `${String(Math.round(album.completeness * 100))}%`;
       lines.push(
         `    ${score.padStart(5)}  ${String(album.tracks).padStart(3)} tr  ${album.artist} — ${album.title}` +
-          `${album.replaygain ? "  [rg]" : ""}`,
+          `${album.replaygain ? "  [rg]" : ""}` +
+          // An album the run could not migrate is listed with the others rather than only in
+          // `errors`, because "which albums came out of this" is the question this block
+          // answers and an answer that silently omits one is worse than no answer.
+          `${album.verified === "failed" ? "  [FAILED — run it again]" : ""}`,
       );
     }
   }

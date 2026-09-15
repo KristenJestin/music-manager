@@ -7,7 +7,9 @@
  * different remedy:
  *
  *  - **orphan** — a file the database has never heard of. Somebody copied it in, or a rename
- *    happened outside the app. It can be identified by fingerprint, or moved to the trash.
+ *    happened outside the app. It can be identified by fingerprint, moved to the trash, or —
+ *    when it is a file this installation wrote and then lost the row for — re-attached from
+ *    its own tags by `repair.service` (`mm library repair-orphans`).
  *  - **missing** — a row whose file is gone. The import that produced it is still known, so
  *    the fix is a re-download that keeps the existing mapping rather than a new import.
  *  - **drift** — the tags in the file are not the ones the document projects. Somebody edited
@@ -159,13 +161,52 @@ export interface DuplicateGroup {
   readonly files: readonly { readonly trackId: string; readonly path: string }[];
 }
 
-/** One row merged away because another row was the same track under another name. */
+/**
+ * One row merged away because another row was the same track under another name.
+ *
+ * Journalled in full, and the word is meant: a merge is a `delete`, the only one in this file,
+ * and the scan report is the only place the row survives. Everything `library_tracks` held is
+ * written down — id, album, recording, position, title, path, provenance — so that a merge
+ * taken in error can be put back by hand from the report alone, without a database backup.
+ */
 export interface MergedTrack {
   readonly keptId: string;
   readonly keptPath: string;
+  readonly keptTitle: string;
   readonly removedId: string;
   readonly removedPath: string;
+  readonly removedTitle: string;
+  readonly removedAlbumId: string | null;
+  readonly removedRecordingMbid: string | null;
+  readonly removedDiscNumber: number | null;
+  readonly removedTrackNumber: number | null;
+  readonly removedImportId: string | null;
+  readonly removedImportTrackId: string | null;
+  /** Whether the removed row's file was on disk when the scan looked. */
+  readonly removedOnDisk: boolean;
   readonly on: "recording" | "position";
+  /** In one clause: what made these two rows the same track. */
+  readonly why: string;
+}
+
+/**
+ * Two rows the scan *would* have merged and refused to.
+ *
+ * Reported rather than resolved, exactly like `duplicates`: the evidence says they share an
+ * identity and the files say they are two different songs, and a scan that guesses which of
+ * those to believe is a scan that deletes music. See `mergeReason`.
+ */
+export interface MergeConflict {
+  readonly albumId: string;
+  readonly on: "recording" | "position";
+  readonly key: string;
+  readonly rows: readonly {
+    readonly trackId: string;
+    readonly path: string;
+    readonly title: string;
+    readonly onDisk: boolean;
+  }[];
+  readonly why: string;
 }
 
 export interface ScanReport {
@@ -185,6 +226,13 @@ export interface ScanReport {
    * never touched. This is one file and two rows — a bookkeeping error, not a decision.
    */
   readonly merged: readonly MergedTrack[];
+  /**
+   * Groups that shared an identity and were **not** merged, because the files disagreed.
+   *
+   * The counterpart of `merged`: the same evidence, read the other way. A group lands here
+   * rather than in `merged` whenever deleting one of its rows would have deleted a song.
+   */
+  readonly mergeConflicts: readonly MergeConflict[];
   /** True when the drift pass stopped at its cap rather than at the end of the library. */
   readonly driftTruncated: boolean;
   readonly probed: number;
@@ -325,11 +373,26 @@ const SKIP_DRIFT = new Set([
  * Two identities, in the order of how much they prove: the recording MBID inside the album,
  * then the position inside it. Nothing outside an album is touched: a row with no `album_id`
  * has no identity to be duplicated *against*.
+ *
+ * ## Why an identity is not enough on its own
+ *
+ * The position key is only as good as the numbering, and the numbering is only a fact about
+ * the album when something authoritative produced it. A migrated library is the case where it
+ * is not: `mm migrate v1` assembles an album out of rows v1 numbered per *folder*, so two
+ * genuinely different songs can end up on one position — and "keep one, delete the rest" then
+ * deletes a song whose file is sitting right there on disk. So a shared identity opens the
+ * question and `mergeReason` answers it: the two rows must also agree on something a person
+ * would accept — the file name, the title and the duration — or one of the two files must be
+ * gone. Anything else is reported as a `MergeConflict` and left alone.
+ *
+ * The hard floor, under all of that: **a row whose file exists and whose title differs from
+ * the survivor's is never deleted.** There is no evidence that can outweigh two files with two
+ * names, and that rule is what makes this function safe to run on a library it did not build.
  */
 export async function mergeDuplicateTracks(
   db: Database,
   onDisk: ReadonlySet<string>,
-): Promise<MergedTrack[]> {
+): Promise<{ merged: MergedTrack[]; conflicts: MergeConflict[] }> {
   const rows = await db
     .select({
       id: libraryTracks.id,
@@ -337,7 +400,10 @@ export async function mergeDuplicateTracks(
       recordingMbid: libraryTracks.recordingMbid,
       discNumber: libraryTracks.discNumber,
       trackNumber: libraryTracks.trackNumber,
+      title: libraryTracks.title,
       path: libraryTracks.path,
+      duration: libraryTracks.duration,
+      importId: libraryTracks.importId,
       importTrackId: libraryTracks.importTrackId,
       updatedAt: libraryTracks.updatedAt,
     })
@@ -390,11 +456,19 @@ export async function mergeDuplicateTracks(
   }
 
   const merged: MergedTrack[] = [];
-  for (const group of groups.values()) {
+  const conflicts: MergeConflict[] = [];
+  for (const [key, group] of groups) {
     if (group.rows.length < 2) continue;
     const keep = group.rows.reduce(better);
+    const refused: typeof group.rows = [];
+
     for (const row of group.rows) {
       if (row.id === keep.id) continue;
+      const why = mergeReason(keep, row, onDisk);
+      if (why === null) {
+        refused.push(row);
+        continue;
+      }
       // The document follows the row that survives, so a re-tag still has something to project
       // — the alternative is a `metadata_documents` row pointing at nothing.
       if (!documented.has(keep.id)) {
@@ -408,14 +482,91 @@ export async function mergeDuplicateTracks(
       merged.push({
         keptId: keep.id,
         keptPath: keep.path,
+        keptTitle: keep.title,
         removedId: row.id,
         removedPath: row.path,
+        removedTitle: row.title,
+        removedAlbumId: row.albumId,
+        removedRecordingMbid: row.recordingMbid,
+        removedDiscNumber: row.discNumber,
+        removedTrackNumber: row.trackNumber,
+        removedImportId: row.importId,
+        removedImportTrackId: row.importTrackId,
+        removedOnDisk: onDisk.has(row.path),
         on: group.on,
+        why,
+      });
+    }
+
+    if (refused.length > 0 && keep.albumId !== null) {
+      conflicts.push({
+        albumId: keep.albumId,
+        on: group.on,
+        key,
+        rows: [keep, ...refused].map((row) => ({
+          trackId: row.id,
+          path: row.path,
+          title: row.title,
+          onDisk: onDisk.has(row.path),
+        })),
+        why:
+          group.on === "position"
+            ? "two rows claim one position on this album and the files are different songs"
+            : "two rows carry one recording MBID on this album and the files are different songs",
       });
     }
   }
 
-  return merged;
+  return { merged, conflicts };
+}
+
+export interface MergeCandidate {
+  readonly title: string;
+  readonly path: string;
+  readonly duration: number | null;
+}
+
+/**
+ * What makes two rows of one identity the *same track under two paths*, in one clause.
+ *
+ * `null` means "not proven", and not proven means not deleted. The rungs, strongest first:
+ *
+ *  1. **neither file is there** — nothing is being lost, and the two rows are both ghosts of a
+ *     path template that changed. This is the case the merge was written for;
+ *  2. **the removed row's file is gone and the survivor's is not** — the ghost and the file it
+ *     is a ghost of, which is the other half of that same case;
+ *  3. **both files are there and they have the same name** — a copy under two directories, the
+ *     shape a consolidation that half-finished leaves;
+ *  4. **both files are there, the titles match and the durations agree** to within a second,
+ *     which is as close to a fingerprint as a scan gets without running one.
+ *
+ * And before any of it, the floor: two files on disk under two different titles are two songs,
+ * whatever the numbering says.
+ */
+export function mergeReason(
+  keep: MergeCandidate,
+  row: MergeCandidate,
+  onDisk: ReadonlySet<string>,
+): string | null {
+  const keepOnDisk = onDisk.has(keep.path);
+  const rowOnDisk = onDisk.has(row.path);
+  const sameTitle = row.title.trim().toLowerCase() === keep.title.trim().toLowerCase();
+
+  if (rowOnDisk && !sameTitle) return null;
+  if (!keepOnDisk && !rowOnDisk) return "neither row's file is on disk";
+  if (!rowOnDisk) return "the removed row's file is not on disk, the kept row's is";
+  if (baseName(row.path) === baseName(keep.path)) return "both files carry the same name";
+
+  const gap =
+    row.duration === null || keep.duration === null ? null : Math.abs(row.duration - keep.duration);
+  if (gap !== null && gap <= 1) return "same title, and the durations agree";
+
+  return null;
+}
+
+function baseName(path: string): string {
+  const index = path.lastIndexOf("/");
+  return (index === -1 ? path : path.slice(index + 1)).toLowerCase();
 }
 
 /**
@@ -488,10 +639,27 @@ export async function runScan(options: ScanOptions = {}): Promise<{
      * rows that are about to disappear, and the report would describe a library that no longer
      * exists by the time it is read.
      */
-    const merged = await mergeDuplicateTracks(db, new Set(onDisk.keys()));
+    const { merged, conflicts: mergeConflicts } = await mergeDuplicateTracks(
+      db,
+      new Set(onDisk.keys()),
+    );
     if (merged.length > 0) {
       await refreshAlbumCounts(db, onDisk);
       await say(`Merged ${String(merged.length)} duplicate library row(s).`);
+      // Every deletion, named, in the journal as well as in the report — the report is a row
+      // in one table and the journal is what somebody reads the morning after.
+      for (const row of merged) {
+        await say(
+          `merged “${row.removedTitle}” (${row.removedPath}) into “${row.keptTitle}” ` +
+            `(${row.keptPath}): ${row.why}`,
+        );
+      }
+    }
+    if (mergeConflicts.length > 0) {
+      await say(
+        `${String(mergeConflicts.length)} group(s) share an identity and were left alone: ` +
+          "the files are different songs.",
+      );
     }
 
     const rows = await db
@@ -622,6 +790,7 @@ export async function runScan(options: ScanOptions = {}): Promise<{
       drift,
       duplicates,
       merged,
+      mergeConflicts,
       driftTruncated,
       probed,
       notes,
@@ -778,6 +947,30 @@ async function raiseScanItems(db: Database, report: ScanReport): Promise<void> {
       db,
     );
   }
+
+  /*
+   * A refused merge is a question, and it goes where the questions go.
+   *
+   * It reuses `duplicate_recording` rather than inventing a type: the shape is the same one
+   * the Inbox already renders — n rows that claim to be one track — and the answer is the same
+   * "keep them all, or pick one". Subjecting it on the *group key* keeps one item per
+   * collision rather than one per scan.
+   */
+  for (const conflict of report.mergeConflicts ?? []) {
+    await openLibraryItem(
+      {
+        type: "duplicate_recording",
+        subject: `merge:${conflict.key}`,
+        title:
+          `${String(conflict.rows.length)} library rows share one ` +
+          `${conflict.on === "position" ? "position" : "recording"} on this album`,
+        summary: conflict.rows.map((row) => `${row.title} — ${row.path}`).join(" · "),
+        payload: { ...conflict },
+        preselected: { action: "keep_all" },
+      },
+      db,
+    );
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -889,6 +1082,7 @@ export interface ScanSummary {
     readonly drift: number;
     readonly duplicates: number;
     readonly merged: number;
+    readonly mergeConflicts: number;
     readonly probed: number;
   };
   readonly orphans: { readonly items: readonly OrphanFile[]; readonly more: number };
@@ -896,6 +1090,7 @@ export interface ScanSummary {
   readonly drift: { readonly items: readonly DriftedTrack[]; readonly more: number };
   readonly duplicates: { readonly items: readonly DuplicateGroup[]; readonly more: number };
   readonly merged: { readonly items: readonly MergedTrack[]; readonly more: number };
+  readonly mergeConflicts: { readonly items: readonly MergeConflict[]; readonly more: number };
   readonly driftTruncated: boolean;
   readonly notes: readonly string[];
 }
@@ -931,6 +1126,7 @@ export function summariseScan(scan: LibraryScan, limit = 10): ScanSummary {
       drift: report?.drift.length ?? scan.drift,
       duplicates: report?.duplicates.length ?? scan.duplicates,
       merged: report?.merged?.length ?? 0,
+      mergeConflicts: report?.mergeConflicts?.length ?? 0,
       probed: report?.probed ?? 0,
     },
     orphans: cut(report?.orphans),
@@ -938,6 +1134,7 @@ export function summariseScan(scan: LibraryScan, limit = 10): ScanSummary {
     drift: cut(report?.drift),
     duplicates: cut(report?.duplicates),
     merged: cut(report?.merged),
+    mergeConflicts: cut(report?.mergeConflicts),
     driftTruncated: report?.driftTruncated ?? false,
     notes:
       report?.notes ??

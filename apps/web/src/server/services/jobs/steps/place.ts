@@ -208,6 +208,14 @@ async function upsertAlbum(
  * every track was inserted a second time. An album of thirteen tracks became twenty-five rows
  * — twelve real and thirteen pointing at files that no longer existed — and four separate
  * features started answering with the wrong number.
+ *
+ * The third lookup is fenced, because a position is only an identity when nothing better
+ * disagrees. A row that already carries a recording MBID **is** identified, by rung 2, and it
+ * is not this track unless the two recordings are the same one; matching it on its number
+ * anyway would have `place` overwrite one song's row with another song's file, path, title and
+ * provenance — and the overwritten file, still on disk, would come back as an orphan. That is
+ * a real risk on an album the v1 migration assembled, where the numbering came from v1's
+ * folders rather than from a release.
  */
 export async function findLibraryTrack(
   ctx: Pick<StepContext, "db">,
@@ -242,7 +250,7 @@ export async function findLibraryTrack(
 
   if (identity.trackNumber !== null) {
     const [byPosition] = await ctx.db
-      .select({ id: libraryTracks.id })
+      .select({ id: libraryTracks.id, recordingMbid: libraryTracks.recordingMbid })
       .from(libraryTracks)
       .where(
         and(
@@ -254,7 +262,21 @@ export async function findLibraryTrack(
         ),
       )
       .limit(1);
-    if (byPosition !== undefined) return byPosition;
+    /*
+     * A row that names a *different* recording is a different song on the same number.
+     *
+     * Only when **both** sides name one, though. A track with no recording MBID is an untagged
+     * import, and a position is the only identity it has — refusing the row there would not
+     * make a second row, it would make a *rejected* one, because the position index is unique.
+     * So the fence is narrow on purpose: two known recordings that disagree.
+     */
+    const named = (value: string | null): boolean => value !== null && value !== "";
+    const claimed =
+      byPosition !== undefined &&
+      named(byPosition.recordingMbid) &&
+      named(identity.recordingMbid) &&
+      byPosition.recordingMbid !== identity.recordingMbid;
+    if (byPosition !== undefined && !claimed) return { id: byPosition.id };
   }
 
   return null;

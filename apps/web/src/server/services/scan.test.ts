@@ -11,7 +11,14 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { emptyDocument, field, type TrackDocument } from "@mm/domain";
 import { pathMap } from "#/server/paths.ts";
-import { AUDIO_EXTENSIONS, compareTags, isAudio, trashFile, walkLibrary } from "./scan.ts";
+import {
+  AUDIO_EXTENSIONS,
+  compareTags,
+  isAudio,
+  mergeReason,
+  trashFile,
+  walkLibrary,
+} from "./scan.ts";
 
 let root = "";
 let trash = "";
@@ -225,5 +232,69 @@ describe("trashFile", () => {
   it("refuses a path that is not there rather than pretending it worked", () => {
     const map = pathMap({ host: root, container: "/library", workDir: ".mm-work" });
     expect(() => trashFile(map, "nope/nothing.opus", trash)).toThrowError(/not on disk/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* what makes two rows one track                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The evidence the merge needs before it deletes a `library_tracks` row.
+ *
+ * A shared identity — one recording, or one position — used to be the whole argument, and on a
+ * library `mm migrate v1` assembled that is not enough: the album is built out of rows v1
+ * numbered per folder, so two genuinely different songs can end up claiming position 1 and the
+ * merge would have deleted one of them with its file sitting right there.
+ */
+describe("mergeReason", () => {
+  const track = (
+    title: string,
+    path: string,
+    duration: number | null = null,
+  ): { title: string; path: string; duration: number | null } => ({ title, path, duration });
+
+  const KEPT = track("Through the Valley", "A/01 - Through the Valley.opus", 180);
+
+  it("merges the ghost of a path template change: the removed row has no file", () => {
+    const ghost = track("Through the Valley", "B/01 - Through the Valley.opus", 180);
+    expect(mergeReason(KEPT, ghost, new Set([KEPT.path]))).toMatch(/not on disk/);
+  });
+
+  it("merges two rows when neither file is there, because nothing is being lost", () => {
+    const ghost = track("Anything At All", "B/01 - Anything At All.opus");
+    expect(mergeReason(KEPT, ghost, new Set())).toMatch(/neither/);
+  });
+
+  it("merges two copies of one file under two directories", () => {
+    const copy = track("Through the Valley", "B/01 - Through the Valley.opus", 999);
+    expect(mergeReason(KEPT, copy, new Set([KEPT.path, copy.path]))).toMatch(/same name/);
+  });
+
+  it("merges the same title at the same duration under two file names", () => {
+    const same = track("through the valley", "B/07 - tv.opus", 180.4);
+    expect(mergeReason(KEPT, same, new Set([KEPT.path, same.path]))).toMatch(/durations agree/);
+  });
+
+  it("refuses two different songs on one position, whatever the numbering says", () => {
+    const other = track("American Venom", "B/03 - American Venom.opus", 180);
+    expect(mergeReason(KEPT, other, new Set([KEPT.path, other.path]))).toBeNull();
+  });
+
+  it("refuses even when the file that would be deleted is the only copy of that song", () => {
+    // The survivor is missing and the candidate is on disk: deleting it would take the last
+    // file with it. The old rule kept the *survivor* and deleted this one.
+    const other = track("American Venom", "B/03 - American Venom.opus", 180);
+    expect(mergeReason(KEPT, other, new Set([other.path]))).toBeNull();
+  });
+
+  it("refuses two same-titled files whose durations are nothing alike", () => {
+    const live = track("Through the Valley", "B/09 - Through the Valley (live).opus", 420);
+    expect(mergeReason(KEPT, live, new Set([KEPT.path, live.path]))).toBeNull();
+  });
+
+  it("refuses when a duration is unknown on either side rather than guessing", () => {
+    const unknown = track("Through the Valley", "B/09 - tv.opus", null);
+    expect(mergeReason(KEPT, unknown, new Set([KEPT.path, unknown.path]))).toBeNull();
   });
 });

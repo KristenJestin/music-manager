@@ -48,6 +48,7 @@ import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 import {
   CLEARED_RECORDING,
   FIXTURE_FORCED_COVER_JPEG,
+  FIXTURE_ORPHANS,
   LAST_OF_US,
 } from "../fixtures/v1/dataset.ts";
 
@@ -1711,6 +1712,40 @@ async function main(): Promise<void> {
       .map((row) => row.path)
       .filter((path) => !regroupOnDisk.has(path))
       .join(", ") || `${String(regroupDangling.length)} row(s)`,
+  );
+
+  /*
+   * Nothing was lost on the way, and nothing collided.
+   *
+   * The two halves of the regrouping incident, asserted on the regrouped library rather than
+   * inferred from the counters. A track that could not take a free position on its new album
+   * used to be *failed* and left behind, with its file already moved into the new folder — so
+   * the file became an orphan, or the row stayed in an album row being dissolved. Both show up
+   * here: one row per file, and one track per position.
+   */
+  const regroupTracked = new Set(regroupDangling.map((row) => row.path));
+  // Except the one file the fixture plants for exactly this: no v1 row claims it, so no v2
+  // row should either. It is the control that keeps the assertion from being vacuous.
+  const known = new Set(FIXTURE_ORPHANS.map((orphan) => orphan.path));
+  const regroupOrphans = regroupFiles.filter(
+    (path) => !regroupTracked.has(path) && !known.has(path),
+  );
+  check(
+    regroupOrphans.length === 0,
+    "and every file a v1 row claims still has a library row: the regrouping lost nothing",
+    regroupOrphans.join(", ") ||
+      `${String(regroupFiles.length - known.size)} file(s), plus the planted orphan`,
+  );
+  const regroupPositions = await regroupSql<{ album_id: string; count: number }[]>`
+    select album_id, count(*)::int as count
+      from library_tracks
+     where album_id is not null and track_number is not null
+  group by album_id, coalesce(disc_number, 1), track_number
+    having count(*) > 1`;
+  check(
+    regroupPositions.length === 0,
+    "and no two tracks of one album claim the same position",
+    regroupPositions.map((row) => row.album_id).join(", ") || "none",
   );
 
   /* ---- and the pass after that does nothing ------------------------- */
