@@ -48,6 +48,7 @@ import { describeStack, e2eStack, RUN_TAG } from "./e2e-checkout.ts";
 import {
   CLEARED_RECORDING,
   FIXTURE_FORCED_COVER_JPEG,
+  FIXTURE_ORPHANS,
   LAST_OF_US,
 } from "../fixtures/v1/dataset.ts";
 
@@ -1723,11 +1724,17 @@ async function main(): Promise<void> {
    * here: one row per file, and one track per position.
    */
   const regroupTracked = new Set(regroupDangling.map((row) => row.path));
-  const regroupOrphans = regroupFiles.filter((path) => !regroupTracked.has(path));
+  // Except the one file the fixture plants for exactly this: no v1 row claims it, so no v2
+  // row should either. It is the control that keeps the assertion from being vacuous.
+  const known = new Set(FIXTURE_ORPHANS.map((orphan) => orphan.path));
+  const regroupOrphans = regroupFiles.filter(
+    (path) => !regroupTracked.has(path) && !known.has(path),
+  );
   check(
     regroupOrphans.length === 0,
-    "and every file on disk still has a library row: the regrouping lost nothing",
-    regroupOrphans.join(", ") || `${String(regroupFiles.length)} file(s)`,
+    "and every file a v1 row claims still has a library row: the regrouping lost nothing",
+    regroupOrphans.join(", ") ||
+      `${String(regroupFiles.length - known.size)} file(s), plus the planted orphan`,
   );
   const regroupPositions = await regroupSql<{ album_id: string; count: number }[]>`
     select album_id, count(*)::int as count
