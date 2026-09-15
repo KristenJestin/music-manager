@@ -40,6 +40,7 @@ import { hostPath } from "#/server/paths.ts";
 import { emit } from "#/server/services/events.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
+import { openLibraryItem } from "#/server/services/library-inbox.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { verifyAlbum } from "#/server/services/verify.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
@@ -59,7 +60,7 @@ import {
   type MigrationPlan,
 } from "./inventory.ts";
 import { defaultPlaylistDir, exportPlaylists } from "./playlists.ts";
-import { openV1Reader, redactUrl } from "./reader.ts";
+import { openV1Reader, redactUrl, type V1Reader } from "./reader.ts";
 import {
   emptyCounts,
   type MigrationCounts,
@@ -126,12 +127,38 @@ export interface MigrationOptions {
   /** `--keep-folders`: do not move the minority files into the album's folder. */
   readonly keepFolders?: boolean;
   readonly limit?: number;
-  /** Continue the last unfinished run instead of starting a new one. */
+  /**
+   * Continue the last unfinished run instead of opening a new one. **On by default.**
+   *
+   * Two different things are called "resuming" and only one of them is this flag. What makes a
+   * migration restartable at all is `migration_v1`: every row is committed as it is finished
+   * and `isDone` skips it next time, so a second `mm migrate v1` finishes the songs the first
+   * one never reached whether or not this is set. What the flag adds is *continuity of the run
+   * row* — the same `migration_v1_runs` id, so the counters and the report describe one
+   * operation rather than two halves of one.
+   *
+   * It defaults to `true` because the case it serves is the one that actually happens: a run
+   * that died is a run somebody restarts, and asking them to remember a flag for it is asking
+   * them to split their own history in two. `startRun` only adopts a run of the *same shape*
+   * (same library, same dry-run, same template setting), so a stale `running` row from another
+   * command is never hijacked.
+   */
   readonly resume?: boolean;
   /** `--i-have-a-backup`. Also settable once, from the Tools card. */
   readonly acknowledgeBackup?: boolean;
   readonly trigger?: string;
   readonly db?: Database;
+  /**
+   * The v1 side, when it is not a Postgres connection string.
+   *
+   * The same injection point `db`, `toolbox` and `settings` already are, and for the same
+   * reason: the properties that have to hold of a *run* — an album that fails does not stop
+   * it, a second run finishes what the first never reached — are properties of this file, and
+   * standing up a second Postgres with v1's schema to observe them tests the reader instead.
+   * Production never passes it and `dbUrl` is still required, because it is what the run row
+   * records and what the report prints.
+   */
+  readonly reader?: V1Reader;
   readonly toolbox?: ToolboxClient;
   readonly settings?: Settings;
   readonly signal?: AbortSignal;
@@ -207,7 +234,7 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
     libraryPath: options.libraryPath,
     dbLabel: redactUrl(options.dbUrl),
     limit: options.limit ?? null,
-    resume: options.resume ?? false,
+    resume: options.resume ?? true,
     now,
   });
 
@@ -233,10 +260,12 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
     const knownPaths = await loadKnownPaths(db);
 
     await say(`reading the v1 database at ${redactUrl(options.dbUrl)}`);
-    const reader = openV1Reader({
-      url: options.dbUrl,
-      ...(options.limit === undefined ? {} : { limit: options.limit }),
-    });
+    const reader =
+      options.reader ??
+      openV1Reader({
+        url: options.dbUrl,
+        ...(options.limit === undefined ? {} : { limit: options.limit }),
+      });
     let plan: MigrationPlan;
     try {
       const dataset = await reader.read();
@@ -429,10 +458,74 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         }),
       );
 
-      const outcome = await migrateAlbum(ctx, album, {
-        importId: previousImport ?? null,
-        libraryTrackIds,
-      });
+      /*
+       * One album may not take the run down with it.
+       *
+       * `migrateAlbum` already isolates a *track* — a failed track is counted and the album
+       * goes on — but nothing isolated the album itself, and everything it does before the
+       * first track throws outside that guard: the import, the folder resolution, the
+       * `library_albums` insert. On a real library one of those threw eighty minutes in
+       * (`library_albums_folder_idx`, two releases of one record rendering one folder) and
+       * **2885 of 5288 songs were never reached**, half of them already renamed by
+       * `--rename-to-template` and half not.
+       *
+       * So the album is a unit of failure, not of abandonment: its tracks are written down as
+       * `failed` with the reason, the error goes in the report, and the loop moves on. A
+       * re-run then retries exactly those albums, because `migration_v1` says the rest is
+       * done.
+       */
+      let outcome: Awaited<ReturnType<typeof migrateAlbum>>;
+      try {
+        outcome = await migrateAlbum(ctx, album, {
+          importId: previousImport ?? null,
+          libraryTrackIds,
+        });
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        const failure = MMError.from(error);
+        const message = `the album could not be migrated: ${failure.message}`;
+        const perTrack = album.tracks.map((planned) => ({
+          songId: planned.song.id,
+          path: planned.file?.path ?? null,
+          message,
+        }));
+        counts.failed += perTrack.length;
+        for (const entry of perTrack) errors.push(entry);
+        await recordFailures(db, run.id, album.tracks, perTrack);
+        albums.push({ ...dryAlbum(album), verified: "failed" });
+        await say(`failed: ${album.artist} — ${album.title}: ${failure.message}`, {
+          album: album.key,
+          release: album.releaseMbid,
+          folder: album.folder,
+          tracks: album.tracks.length,
+        });
+        /*
+         * `album_incomplete` rather than `job_failed`: the item belongs to the *library*, not
+         * to an import, and `job_failed`'s two actions both act on an import id this item has
+         * none of. "This album is not whole, and here is why" is exactly what happened, and
+         * its two answers — accept it, or come back to it — are the two that make sense.
+         */
+        await openLibraryItem(
+          {
+            type: "album_incomplete",
+            subject: `migration-album:${album.key}`,
+            title: `“${album.artist} — ${album.title}” could not be migrated`,
+            summary: `${String(album.tracks.length)} track(s) were left behind: ${failure.message}`,
+            payload: {
+              runId: run.id,
+              albumKey: album.key,
+              release: album.releaseMbid,
+              folder: album.folder,
+              tracks: album.tracks.length,
+              error: failure.message,
+              hint: "Re-run `mm migrate v1`: everything already migrated is skipped, and this album is tried again.",
+            },
+            preselected: { action: "snooze" },
+          },
+          db,
+        );
+        continue;
+      }
 
       counts.migrated += outcome.tracks.length;
       counts.documentsComplete += outcome.tracks.filter((track) => track.complete).length;
@@ -651,12 +744,29 @@ interface StartRunInput {
   readonly now: Date;
 }
 
+/**
+ * The run row this migration belongs to: the unfinished one, or a new one.
+ *
+ * Adoption is **the same shape or nothing**. A `running` row is only ever left behind by a run
+ * that died, and continuing it is what makes the report describe one operation instead of two
+ * halves — but only when the two are the same operation. A dry run must never adopt the real
+ * run it was previewing, and a run over another library must never inherit its counters; both
+ * would be a report that lies about what happened. So the three fields that define the shape
+ * are compared, and anything else opens a row of its own.
+ */
 async function startRun(db: Database, input: StartRunInput): Promise<MigrationRun> {
   if (input.resume) {
     const [unfinished] = await db
       .select()
       .from(migrationV1Runs)
-      .where(eq(migrationV1Runs.status, "running"))
+      .where(
+        and(
+          eq(migrationV1Runs.status, "running"),
+          eq(migrationV1Runs.dryRun, input.dryRun),
+          eq(migrationV1Runs.libraryPath, input.libraryPath),
+          eq(migrationV1Runs.renameToTemplate, input.renameToTemplate),
+        ),
+      )
       .orderBy(desc(migrationV1Runs.createdAt))
       .limit(1);
     if (unfinished !== undefined) return unfinished;

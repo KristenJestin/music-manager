@@ -22,6 +22,7 @@
  * So the v1 row becomes what it always was: the record of where a file came from. The import
  * carries the v1 URL, rests at `done`, and never touches the download slot.
  */
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
@@ -1032,20 +1033,55 @@ export async function resolveAlbum(db: Database, album: PlannedAlbum): Promise<R
 }
 
 /**
- * The first of an album's folders that no *other* album row holds.
+ * What tells two albums apart when their folders would be the same word.
  *
- * `library_albums.folder` is unique, so two albums cannot share a directory even when the v1
- * tags put them there. Preferring the album's own folders in majority order means the answer is
- * the majority folder in every ordinary case, and a defensible second choice in the one case
- * where it is taken — rather than a unique-violation that fails the album.
+ * The release MBID's first eight characters, because that is what the two albums actually
+ * *differ by* and it is stable for ever: the same release gets the same suffix on every run,
+ * on every machine, with or without a network. Eight hex characters is 4 billion, which is
+ * more than enough to separate two releases of one record and short enough to read.
+ *
+ * A `tags` album has no release to name, so it is keyed on the grouping key it was built from
+ * — which already contains its v1 folder and is therefore unique among the plan's albums.
+ */
+export function folderSuffixOf(album: PlannedAlbum): string {
+  if (album.groupedBy === "release_mbid" && album.releaseMbid !== null) {
+    return album.releaseMbid.replace(/-/g, "").slice(0, 8);
+  }
+  return createHash("sha1").update(album.key).digest("hex").slice(0, 8);
+}
+
+/** `Imagine Dragons/Smoke + Mirrors (2015)` → `… (2015) [6ace8918]`. */
+export function disambiguatedFolder(album: PlannedAlbum, folder: string): string {
+  return `${folder} [${folderSuffixOf(album)}]`;
+}
+
+/**
+ * A folder no *other* album row holds.
+ *
+ * `library_albums.folder` is **unique**, and that is not a detail: the rule of P11.1 is one
+ * album row per v1 release MBID, while the folder is rendered from (album artist, title,
+ * year) — so two releases of one record render the *same* path and the second insert is
+ * rejected by `library_albums_folder_idx`. On a real library that killed a five-thousand-song
+ * migration eighty minutes in, with `Imagine Dragons — Smoke + Mirrors` as the pair that did
+ * it (releases `6ace8918…` and `1c801841…`).
+ *
+ * So the candidates are the album's own v1 folders in majority order — the answer in every
+ * ordinary case — and then the same folders **disambiguated by the release**. The last resort
+ * is the disambiguated majority folder rather than the bare one: a suffix nobody else can
+ * produce is always a better answer than a collision.
+ *
+ * Idempotent by construction. `resolveAlbum` binds the row by its release MBID before this
+ * runs, so a second migration finds the album already sitting in `… [6ace8918]`, recognises it
+ * as its own (`row.id === selfId`) and returns it unchanged — no second suffix, no move.
  */
 async function freeFolder(
   db: Database,
   album: PlannedAlbum,
   selfId: string | null,
 ): Promise<string> {
-  const candidates =
+  const own =
     album.folders.length === 0 ? [album.folder] : album.folders.map((entry) => entry.folder);
+  const candidates = [...own, ...own.map((folder) => disambiguatedFolder(album, folder))];
   for (const folder of candidates) {
     const [row] = await db
       .select({ id: libraryAlbums.id })
@@ -1054,7 +1090,7 @@ async function freeFolder(
       .limit(1);
     if (row === undefined || row.id === selfId) return folder;
   }
-  return candidates[0] ?? album.folder;
+  return disambiguatedFolder(album, own[0] ?? album.folder);
 }
 
 async function upsertAlbum(

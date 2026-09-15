@@ -77,7 +77,7 @@ export async function handleMigrate(
       groupBy: data.groupBy ?? "release",
       keepFolders: data.keepFolders ?? false,
       ...(data.limit === undefined ? {} : { limit: data.limit }),
-      resume: data.resume ?? false,
+      resume: data.resume ?? true,
       acknowledgeBackup: data.acknowledgeBackup ?? false,
       verify: data.verify ?? false,
       trigger: data.trigger ?? "console",

@@ -260,6 +260,7 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
   await say(`Walking ${root}.`);
   const files = walkLibrary(root);
 
+  const onDisk = new Set(files.map((file) => file.path));
   const tracked = new Set(
     (await db.select({ path: libraryTracks.path }).from(libraryTracks)).map((row) => row.path),
   );
@@ -271,6 +272,14 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
 
   const items: RepairedOrphan[] = [];
   const notes: string[] = [];
+  /**
+   * Rows already spoken for by an earlier orphan in this pass.
+   *
+   * A real run makes the row's path point at the file it took, so the `onDisk` filter alone
+   * would do — but a *dry run* writes nothing, and two files of one recording would both be
+   * reported as re-attaching to the same row. The preview has to be the plan.
+   */
+  const claimed = new Set<string>();
   let albumsCreated = 0;
 
   for (const file of orphans) {
@@ -285,7 +294,9 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
     } catch (error) {
       const failure = MMError.from(error);
       notes.push(`Could not read ${file.path}: ${failure.message}`);
-      items.push(skipped(file.path, file.path, `the file could not be read: ${failure.message}`));
+      items.push(
+        skipped(file.path, baseName(file.path), `the file could not be read: ${failure.message}`),
+      );
       continue;
     }
 
@@ -297,6 +308,14 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
 
     /* ---- rung 1: a row that lost its file ---- */
 
+    /*
+     * Candidates are filtered on `onDisk` rather than on `missing_at`.
+     *
+     * `missing_at` is a fact the *scan* writes, and somebody running the repair has very
+     * probably not run a scan first — which would make this rung silently never fire and turn
+     * every re-attach into a second row beside the stale one. The walk this function just did
+     * knows the same thing first-hand and without a prerequisite.
+     */
     const stray =
       recordingMbid === null
         ? undefined
@@ -314,7 +333,6 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
               .where(
                 and(
                   eq(libraryTracks.recordingMbid, recordingMbid),
-                  isNotNull(libraryTracks.missingAt),
                   releaseMbid === null
                     ? eq(libraryAlbums.folder, folderOf(file.path))
                     : or(
@@ -323,10 +341,10 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
                       ),
                 ),
               )
-              .limit(1)
-          )[0];
+          ).find((row) => !onDisk.has(row.path) && !claimed.has(row.id));
 
     if (stray !== undefined) {
+      claimed.add(stray.id);
       const album = await albumLabel(db, stray.albumId);
       const entry: RepairedOrphan = {
         path: file.path,

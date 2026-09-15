@@ -77,7 +77,14 @@ export interface ReportAlbum {
   /** 0…1, the mean track completeness. `null` before any document is built. */
   readonly completeness: number | null;
   readonly replaygain: boolean;
-  readonly verified: "ok" | "mismatch" | "not_indexed" | "skipped";
+  /**
+   * The Navidrome read-back, or `failed` when the album never got as far as one.
+   *
+   * `failed` is the album-level isolation of `run.ts`: the album threw before or during its
+   * tracks, every one of them is written down as `failed` in `migration_v1`, and the run went
+   * on to the next album rather than stopping. It is the state a re-run retries.
+   */
+  readonly verified: "ok" | "mismatch" | "not_indexed" | "skipped" | "failed";
 }
 
 export interface ReportImport {

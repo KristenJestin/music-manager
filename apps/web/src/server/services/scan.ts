@@ -7,7 +7,9 @@
  * different remedy:
  *
  *  - **orphan** — a file the database has never heard of. Somebody copied it in, or a rename
- *    happened outside the app. It can be identified by fingerprint, or moved to the trash.
+ *    happened outside the app. It can be identified by fingerprint, moved to the trash, or —
+ *    when it is a file this installation wrote and then lost the row for — re-attached from
+ *    its own tags by `repair.service` (`mm library repair-orphans`).
  *  - **missing** — a row whose file is gone. The import that produced it is still known, so
  *    the fix is a re-download that keeps the existing mapping rather than a new import.
  *  - **drift** — the tags in the file are not the ones the document projects. Somebody edited

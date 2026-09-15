@@ -1325,7 +1325,7 @@ const USAGE = `mm — Music Manager
   mm relocate [--album <id>] [--apply] [--json]               re-file against pathTemplate; dry by default
 
   mm migrate v1 --db <postgres url> --library <dir> [--dry-run] [--rename-to-template]
-                [--limit N] [--resume] [--i-have-a-backup] [--verify] [--json]
+                [--limit N] [--no-resume] [--i-have-a-backup] [--verify] [--json]
                                           take over a v1 library and database (P11)
   mm migrate runs | show <run id>          past migrations, and their reports
 

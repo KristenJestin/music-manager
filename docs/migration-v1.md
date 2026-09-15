@@ -383,6 +383,54 @@ album row`, `0 file(s) moved into their album's folder` et toutes les lignes en
 - Depuis la Console, Tools › **Migrate from v1** propose les deux réglages (le mode de
   regroupement et « garder les dossiers ») ; le job part sur la file `migrate` du worker.
 
+### Si un regroupement a perdu des pistes (versions antérieures à celle-ci)
+
+Un regroupement fait par une version antérieure pouvait **échouer piste par piste, en
+silence**, et le symptôme est double : une piste disparue de la Console alors que son fichier
+est toujours sur le disque, et une même sortie v1 restée coupée en deux lignes d'album.
+
+La cause tient en une phrase : une piste dont la sortie n'a pas pu être résolue gardait le
+**numéro de piste de la v1**, c'est-à-dire celui du dossier où la v1 l'avait rangée. La v1
+rangeait une même sortie dans plusieurs dossiers, chacun numéroté à partir de 1 ; une fois les
+dossiers réunis en un seul album, deux pistes réclamaient donc la position 1.
+`library_tracks_album_position_idx` est unique : la seconde écriture était refusée, la piste
+comptée en échec, et elle restait dans la ligne d'album que le regroupement était en train de
+dissoudre — son fichier, lui, ayant déjà rejoint le nouveau dossier.
+
+Cette version corrige les deux côtés : la position vient de la sortie choisie quand elle a pu
+être résolue, et sinon la piste est placée **après la fin de l'album** plutôt que sur une
+position déjà prise ; et une ligne est retrouvée par ce que le passage précédent a écrit
+(`migration_v1.library_track_id`) et non plus par son seul chemin.
+
+Pour réparer une installation déjà abîmée, dans cet ordre :
+
+```bash
+# 1. l'état des lieux : quels fichiers n'ont plus de ligne ?
+bun run mm -- scan
+
+# 2. l'aperçu de la réparation. Rien n'est écrit.
+bun run mm -- library repair-orphans
+
+# 3. la réparation, une fois l'aperçu lu.
+bun run mm -- library repair-orphans --apply
+
+# 4. et le regroupement, de nouveau, avec la version corrigée.
+bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT" --dry-run
+bun run mm -- migrate v1 --db "$V1_DATABASE_URL" --library "$MM_LIBRARY_ROOT"
+```
+
+`repair-orphans` marche sur les tags du fichier lui-même, sans réseau ni empreinte : tout
+fichier écrit par la v1 ou la v2 porte `MUSICBRAINZ_ALBUMID` et `MUSICBRAINZ_TRACKID`, donc il
+dit à quel album il appartient. Trois échelons, dans l'ordre : une ligne de même enregistrement
+dont le fichier a disparu est **repointée** plutôt que dupliquée ; sinon l'album est celui qui
+porte la sortie, puis celui qui tient le dossier, puis une ligne neuve construite sur
+`ALBUM`/`ALBUMARTIST`. Le document est reconstruit depuis les tags à la source `app`, la plus
+basse de la précédence, donc le prochain re-tag le remplace au lieu d'en hériter ; et quand le
+fichier porte encore son commentaire `Source: <url>`, l'import qui le justifie est recréé, sans
+quoi `mm retag` refuserait de le reconstruire.
+
+`--limit N` borne la passe, `--json` sort le rapport complet.
+
 ### Si une migration antérieure a écrit dans `_archive/v1-playlists/`
 
 Jusqu'à cette version, l'export atterrissait dans `<bibliothèque>/_archive/v1-playlists/`. Ce
@@ -463,7 +511,8 @@ donc pas être surchargée ; le message le dit plutôt que d'échouer en silence
 | `does not look like a v1 database`                                                              | La chaîne pointe sur la base v2, ou sur une base vide. La v1 a une table `"Songs"` en PascalCase quoté.                                                                                                      |
 | `must be the v2 library root, or a directory inside it`                                         | `MM_LIBRARY_ROOT` ne désigne pas la bibliothèque v1. Voir §1.                                                                                                                                                |
 | `Confirm you have a backup`                                                                     | `--i-have-a-backup`, ou la case dans Tools. C'est la seule barrière avant une réécriture de tous les fichiers.                                                                                               |
-| Beaucoup de `orphan_file`                                                                       | Des fichiers que la v1 n'a jamais écrits (copies manuelles). Ils ne sont pas adoptés ; un item Inbox les liste.                                                                                              |
+| Beaucoup de `orphan_file`                                                                       | Des fichiers que la v1 n'a jamais écrits (copies manuelles). Ils ne sont pas adoptés ; un item Inbox les liste. Si ce sont des fichiers que la v2 a écrits puis oubliés, `mm library repair-orphans`.        |
+| Une piste disparue de la Console, le fichier toujours sur le disque                             | Un regroupement d'une version antérieure. Voir « Si un regroupement a perdu des pistes » au §5.                                                                                                              |
 | Beaucoup de `missing_file`                                                                      | Des lignes `Present` dont le fichier a disparu. Elles deviennent des imports ; rien n'est perdu.                                                                                                             |
 | Documents à ~90 % au lieu de 100 %                                                              | Voir « ce qui reste » ci-dessous.                                                                                                                                                                            |
 | Le bouton de Tools ne fait rien                                                                 | Le worker ne tourne pas. `bun run worker`.                                                                                                                                                                   |
