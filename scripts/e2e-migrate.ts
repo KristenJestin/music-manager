@@ -705,6 +705,68 @@ async function main(): Promise<void> {
     releases.join(", "),
   );
 
+  /* ---- how much of each record is actually there ---------------------- */
+  //
+  // The counters, which were the same expression twice until `services/album-counters.ts`:
+  // `track_count` and `present_count` were both the number of files migrated, so every album
+  // came out `n/n`, green, and "incomplete" matched nothing in a library of six hundred. The
+  // fixture has two deliberately partial albums and they are the assertion:
+  //
+  //  - **Daft Punk — Discovery**: thirteen v1 rows against a release the seeded cache says has
+  //    fourteen tracks. `13/14`, counted from the release;
+  //  - **Birdy — Birdy**: nine v1 rows of which three have a file — one `Present` whose file
+  //    was deleted outside v1, two `Needed`, one review, two failures, which is the shape
+  //    `present_missing_file` takes in the real data. No release anywhere, so the total comes
+  //    from what the files’ own `TRACKTOTAL` says: `3/9`.
+  //
+  // And the control: Justice, whose two discs of four are eight tracks and genuinely whole.
+  const counted = await v2<
+    {
+      folder: string;
+      trackCount: number;
+      presentCount: number;
+      source: string;
+    }[]
+  >`select folder, track_count as "trackCount", present_count as "presentCount",
+            track_count_source as "source"
+       from library_albums order by folder`;
+  const countersOf = (fragment: string) => counted.find((row) => row.folder.includes(fragment));
+
+  const discoveryCounts = countersOf("Discovery");
+  check(
+    discoveryCounts?.presentCount === 13 &&
+      discoveryCounts?.trackCount === 14 &&
+      discoveryCounts?.source === "release",
+    "the thirteen migrated tracks of a fourteen-track release report 13/14, from the release",
+    `${String(discoveryCounts?.presentCount ?? 0)}/${String(discoveryCounts?.trackCount ?? 0)} via ${discoveryCounts?.source ?? "(none)"}`,
+  );
+
+  const birdyCounts = countersOf("Birdy");
+  check(
+    birdyCounts?.presentCount === 3 &&
+      birdyCounts?.trackCount === 9 &&
+      birdyCounts?.source === "tags",
+    "the album whose v1 rows were mostly never downloaded reports 3/9, from its own tags",
+    `${String(birdyCounts?.presentCount ?? 0)}/${String(birdyCounts?.trackCount ?? 0)} via ${birdyCounts?.source ?? "(none)"}`,
+  );
+
+  const justiceCounts = countersOf("Woman Worldwide");
+  check(
+    justiceCounts?.presentCount === 8 &&
+      justiceCounts?.trackCount === 8 &&
+      justiceCounts?.source === "tags",
+    "and the two-disc album that is genuinely whole reports 8/8, summing the discs",
+    `${String(justiceCounts?.presentCount ?? 0)}/${String(justiceCounts?.trackCount ?? 0)} via ${justiceCounts?.source ?? "(none)"}`,
+  );
+
+  check(
+    counted.filter((row) => row.presentCount < row.trackCount).length >= 2,
+    "so the library has albums the incomplete filter can actually find",
+    counted
+      .map((row) => `${row.folder}: ${String(row.presentCount)}/${String(row.trackCount)}`)
+      .join(" · "),
+  );
+
   /* ---- the split soundtrack came out as one album -------------------- */
   const soundtrack = albumRows.find((row) => row.release === LAST_OF_US.release);
   const soundtrackTracks = await v2<{ path: string; songId: string }[]>`
