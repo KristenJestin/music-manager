@@ -25,7 +25,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { and, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, eq, gte, inArray } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
   merge,
@@ -53,6 +53,12 @@ import { getOrFetch, put as cachePut } from "#/server/services/cache.ts";
 import { build as buildDocument, rsgainKey, RSGAIN_SOURCE } from "#/server/services/documents.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
+import {
+  allocatePosition,
+  discBucket,
+  insertLibraryTrack,
+  positionsTaken,
+} from "#/server/services/positions.ts";
 import { hashProjection, formatOf } from "#/server/services/retag.ts";
 import type { Settings } from "#/server/services/settings.ts";
 import type { Picture, ReplayGainResult, Tag, ToolboxClient } from "#/server/toolbox/client.ts";
@@ -1235,6 +1241,10 @@ function positionIsFromRelease(document: TrackDocument): boolean {
  *
  * Deterministic in all four cases: the album's tracks are processed in `byPosition` order,
  * which is stable, so the same library regrouped twice produces the same numbering.
+ *
+ * Rungs 3 and 4 are **not decided here**. They are `allocatePosition` over `positionsTaken`,
+ * in `services/positions.ts`, which is the same rule `mm library repair-orphans` applies —
+ * there is one implementation of "which position is free", and this is a caller of it.
  */
 async function albumPosition(
   ctx: ExecuteContext,
@@ -1245,23 +1255,23 @@ async function albumPosition(
     readonly candidate: number | null;
     readonly fromRelease: boolean;
   },
-): Promise<number | null> {
-  const disc = input.discNumber ?? 1;
-  const onDisc = and(
-    eq(libraryTracks.albumId, input.albumId),
-    sql`coalesce(${libraryTracks.discNumber}, 1) = ${disc}`,
-  );
+): Promise<number> {
+  const disc = discBucket(input.discNumber);
+  /*
+   * Read once, here, immediately before the row is built — and read *now* rather than from
+   * anything an earlier track of this album computed. Every row written earlier in this run is
+   * in it, which is the whole point: the album grows under the allocator as it walks it.
+   *
+   * The row being written is excluded from its own album, because a row does not collide with
+   * itself: an update that leaves a track exactly where it was must be a no-op, not a clash.
+   */
+  const taken = await positionsTaken(ctx.db, {
+    albumId: input.albumId,
+    discNumber: input.discNumber,
+    exceptTrackId: input.trackId,
+  });
 
-  /** Free means: nobody holds it, or the only holder is the row we are about to write. */
-  const free = async (position: number): Promise<boolean> => {
-    const rows = await ctx.db
-      .select({ id: libraryTracks.id })
-      .from(libraryTracks)
-      .where(and(onDisc, eq(libraryTracks.trackNumber, position)));
-    return rows.every((row) => row.id === input.trackId);
-  };
-
-  if (input.fromRelease && input.candidate !== null && (await free(input.candidate))) {
+  if (input.fromRelease && input.candidate !== null && !taken.has(input.candidate)) {
     return input.candidate;
   }
 
@@ -1275,29 +1285,21 @@ async function albumPosition(
       held !== undefined &&
       held.albumId === input.albumId &&
       held.trackNumber !== null &&
-      (await free(held.trackNumber))
+      !taken.has(held.trackNumber)
     ) {
       return held.trackNumber;
     }
   }
 
-  if (input.candidate !== null && (await free(input.candidate))) return input.candidate;
-
-  const [highest] = await ctx.db
-    .select({ max: sql<number | null>`max(${libraryTracks.trackNumber})` })
-    .from(libraryTracks)
-    .where(onDisc);
-  let next = Math.max(highest?.max ?? 0, input.candidate ?? 0) + 1;
-  // A loop rather than `max + 1` alone, because `max` is read before this write and two
-  // tracks of one album are written one after the other.
-  while (!(await free(next))) next += 1;
+  const given = allocatePosition(taken, input.candidate);
+  if (given === input.candidate) return given;
   // Said out loud, because a track quietly renumbered is a track somebody cannot find again.
   await ctx.say(
     `position ${String(input.candidate ?? "—")} on disc ${String(disc)} was taken; ` +
-      `this track goes to ${String(next)} instead`,
-    { album: input.albumId, disc, wanted: input.candidate, given: next },
+      `this track goes to ${String(given)} instead`,
+    { album: input.albumId, disc, wanted: input.candidate, given },
   );
-  return next;
+  return given;
 }
 
 async function upsertLibraryTrack(
@@ -1368,7 +1370,14 @@ async function upsertLibraryTrack(
   }
 
   const id = newId("libraryTrack");
-  await ctx.db.insert(libraryTracks).values({ id, ...values });
+  // Not `db.insert` directly: the allocator above read the album one statement ago, and a
+  // position that was free then can be held by the time this runs. A refusal on the position
+  // index is retried past the end of the album rather than allowed to fail the track.
+  await insertLibraryTrack(
+    ctx.db,
+    { id, ...values },
+    { say: (message) => ctx.say(message, { album: input.albumId, track: id }) },
+  );
   ctx.count();
   return id;
 }
