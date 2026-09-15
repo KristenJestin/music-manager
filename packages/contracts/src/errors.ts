@@ -38,6 +38,15 @@ export const MM_ERROR_CODES = [
   "AWAITING_CONFIRM",
   "AWAITING_REVIEW",
   "CANCELLED",
+  /**
+   * A `library_tracks` row could not be given a position no other row on its disc holds.
+   *
+   * `library_tracks_album_position_idx` is unique over `(album_id, coalesce(disc_number, 1),
+   * track_number)`, and the allocator reads the album a statement before it writes to it. When
+   * a concurrent writer keeps winning that race, the insert gives up on *that track* under
+   * this code rather than taking the run down with it.
+   */
+  "POSITION_TAKEN",
   /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
   "UNAUTHORIZED",
   /* --- the public API (P08) --- */
