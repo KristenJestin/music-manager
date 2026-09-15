@@ -1291,6 +1291,12 @@ async function albumPosition(
   // A loop rather than `max + 1` alone, because `max` is read before this write and two
   // tracks of one album are written one after the other.
   while (!(await free(next))) next += 1;
+  // Said out loud, because a track quietly renumbered is a track somebody cannot find again.
+  await ctx.say(
+    `position ${String(input.candidate ?? "—")} on disc ${String(disc)} was taken; ` +
+      `this track goes to ${String(next)} instead`,
+    { album: input.albumId, disc, wanted: input.candidate, given: next },
+  );
   return next;
 }
 
