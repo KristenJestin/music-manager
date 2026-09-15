@@ -1713,6 +1713,34 @@ async function main(): Promise<void> {
       .join(", ") || `${String(regroupDangling.length)} row(s)`,
   );
 
+  /*
+   * Nothing was lost on the way, and nothing collided.
+   *
+   * The two halves of the regrouping incident, asserted on the regrouped library rather than
+   * inferred from the counters. A track that could not take a free position on its new album
+   * used to be *failed* and left behind, with its file already moved into the new folder — so
+   * the file became an orphan, or the row stayed in an album row being dissolved. Both show up
+   * here: one row per file, and one track per position.
+   */
+  const regroupTracked = new Set(regroupDangling.map((row) => row.path));
+  const regroupOrphans = regroupFiles.filter((path) => !regroupTracked.has(path));
+  check(
+    regroupOrphans.length === 0,
+    "and every file on disk still has a library row: the regrouping lost nothing",
+    regroupOrphans.join(", ") || `${String(regroupFiles.length)} file(s)`,
+  );
+  const regroupPositions = await regroupSql<{ album_id: string; count: number }[]>`
+    select album_id, count(*)::int as count
+      from library_tracks
+     where album_id is not null and track_number is not null
+  group by album_id, coalesce(disc_number, 1), track_number
+    having count(*) > 1`;
+  check(
+    regroupPositions.length === 0,
+    "and no two tracks of one album claim the same position",
+    regroupPositions.map((row) => row.album_id).join(", ") || "none",
+  );
+
   /* ---- and the pass after that does nothing ------------------------- */
   const settled = await mm([
     "migrate",

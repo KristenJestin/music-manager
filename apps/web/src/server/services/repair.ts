@@ -206,7 +206,9 @@ export function documentFromTags(tags: ReadonlyMap<string, string>, now: Date): 
         .filter((part) => part !== "");
       if (parts.length === 0) continue;
       value = parts;
-    } else if (["tracknumber", "totaltracks", "discnumber", "totaldiscs"].includes(canonical.field)) {
+    } else if (
+      ["tracknumber", "totaltracks", "discnumber", "totaldiscs"].includes(canonical.field)
+    ) {
       const parsed = Number.parseInt(raw.split("/")[0]?.trim() ?? "", 10);
       if (!Number.isFinite(parsed)) continue;
       value = parsed;
@@ -342,7 +344,9 @@ export async function repairOrphans(options: RepairOptions = {}): Promise<Repair
         reason: null,
       };
       items.push(entry);
-      await say(`${dryRun ? "would reattach" : "reattached"} ${file.path} → “${title}” (${album ?? "—"})`);
+      await say(
+        `${dryRun ? "would reattach" : "reattached"} ${file.path} → “${title}” (${album ?? "—"})`,
+      );
       if (!dryRun) {
         await db
           .update(libraryTracks)
@@ -575,7 +579,8 @@ async function chooseAlbum(
   }
 
   const artist = input.albumArtist ?? "Unknown Artist";
-  const title = input.albumTitle ?? (input.folder === "" ? "Unknown Album" : baseName(input.folder));
+  const title =
+    input.albumTitle ?? (input.folder === "" ? "Unknown Album" : baseName(input.folder));
   const id = newId("libraryAlbum");
   if (!input.dryRun) {
     await db.insert(libraryAlbums).values({
@@ -738,4 +743,3 @@ async function refreshCounts(db: Database): Promise<void> {
       ),
     );
 }
-

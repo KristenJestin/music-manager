@@ -556,9 +556,7 @@ export function mergeReason(
   if (baseName(row.path) === baseName(keep.path)) return "both files carry the same name";
 
   const gap =
-    row.duration === null || keep.duration === null
-      ? null
-      : Math.abs(row.duration - keep.duration);
+    row.duration === null || keep.duration === null ? null : Math.abs(row.duration - keep.duration);
   if (gap !== null && gap <= 1) return "same title, and the durations agree";
 
   return null;

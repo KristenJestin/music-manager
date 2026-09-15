@@ -419,7 +419,20 @@ export async function runMigration(options: MigrationOptions): Promise<Migration
         .find((value): value is string => value !== null && !claimedImports.has(value));
       if (previousImport !== undefined) claimedImports.add(previousImport);
 
-      const outcome = await migrateAlbum(ctx, album, { importId: previousImport ?? null });
+      // What the previous run wrote for each of these v1 songs. `upsertLibraryTrack` falls
+      // back to it when the path lookup misses, so a file that moved behind the app's back is
+      // *the same row* again rather than a second one under a second album.
+      const libraryTrackIds = new Map(
+        album.tracks.flatMap((planned) => {
+          const known = stateBySong.get(planned.song.id)?.libraryTrackId ?? null;
+          return known === null ? [] : [[planned.song.id, known] as const];
+        }),
+      );
+
+      const outcome = await migrateAlbum(ctx, album, {
+        importId: previousImport ?? null,
+        libraryTrackIds,
+      });
 
       counts.migrated += outcome.tracks.length;
       counts.documentsComplete += outcome.tracks.filter((track) => track.complete).length;

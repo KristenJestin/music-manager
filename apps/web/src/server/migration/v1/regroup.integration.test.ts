@@ -21,7 +21,7 @@
  *
  *   docker compose -f docker-compose.dev.yml -f docker-compose.fixtures.yml up -d postgres
  */
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
@@ -112,13 +112,62 @@ interface Row {
  * folder — which is precisely what collides once the release becomes one album.
  */
 const ROWS: readonly Row[] = [
-  { id: 1, folder: MAJORITY, albumArtist: "Various Artists", year: 2020, track: 1, title: "Beyond Desolation" },
-  { id: 2, folder: MAJORITY, albumArtist: "Various Artists", year: 2020, track: 2, title: "The Cycle of Violence" },
-  { id: 3, folder: MAJORITY, albumArtist: "Various Artists", year: 2020, track: 3, title: "Eye for an Eye" },
-  { id: 4, folder: MAJORITY, albumArtist: "Various Artists", year: 2020, track: 4, title: "Unbroken" },
-  { id: 5, folder: MINORITY, albumArtist: "Gustavo Santaolalla", year: 2021, track: 1, title: "Through the Valley" },
-  { id: 6, folder: MINORITY, albumArtist: "Gustavo Santaolalla", year: 2021, track: 2, title: "Longing" },
-  { id: 7, folder: MINORITY, albumArtist: "Gustavo Santaolalla", year: 2021, track: 3, title: "American Venom" },
+  {
+    id: 1,
+    folder: MAJORITY,
+    albumArtist: "Various Artists",
+    year: 2020,
+    track: 1,
+    title: "Beyond Desolation",
+  },
+  {
+    id: 2,
+    folder: MAJORITY,
+    albumArtist: "Various Artists",
+    year: 2020,
+    track: 2,
+    title: "The Cycle of Violence",
+  },
+  {
+    id: 3,
+    folder: MAJORITY,
+    albumArtist: "Various Artists",
+    year: 2020,
+    track: 3,
+    title: "Eye for an Eye",
+  },
+  {
+    id: 4,
+    folder: MAJORITY,
+    albumArtist: "Various Artists",
+    year: 2020,
+    track: 4,
+    title: "Unbroken",
+  },
+  {
+    id: 5,
+    folder: MINORITY,
+    albumArtist: "Gustavo Santaolalla",
+    year: 2021,
+    track: 1,
+    title: "Through the Valley",
+  },
+  {
+    id: 6,
+    folder: MINORITY,
+    albumArtist: "Gustavo Santaolalla",
+    year: 2021,
+    track: 2,
+    title: "Longing",
+  },
+  {
+    id: 7,
+    folder: MINORITY,
+    albumArtist: "Gustavo Santaolalla",
+    year: 2021,
+    track: 3,
+    title: "American Venom",
+  },
 ];
 
 function pathOf(row: Row): string {
@@ -266,11 +315,20 @@ function context(): ExecuteContext {
 }
 
 /** Migrate every album of a plan, the way `run.ts` does, and report what failed. */
-async function migrateAll(groupBy: "tags" | "release"): Promise<string[]> {
-  const plan = planFrom(DATASET, FILES, { groupBy });
+async function migrateAll(
+  groupBy: "tags" | "release",
+  over: {
+    readonly files?: typeof FILES;
+    /** What `run.ts` reads out of `migration_v1` and hands to `migrateAlbum`. */
+    readonly libraryTrackIds?: ReadonlyMap<number, string>;
+  } = {},
+): Promise<string[]> {
+  const plan = planFrom(DATASET, over.files ?? FILES, { groupBy });
   const failures: string[] = [];
   for (const album of plan.albums) {
-    const outcome = await migrateAlbum(context(), album);
+    const outcome = await migrateAlbum(context(), album, {
+      ...(over.libraryTrackIds === undefined ? {} : { libraryTrackIds: over.libraryTrackIds }),
+    });
     for (const failure of outcome.failures) failures.push(failure.message);
   }
   return failures;
@@ -744,4 +802,48 @@ describe("documentFromTags", () => {
     const document = documentFromTags(new Map([["SOMEBODYS_OWN_TAG", "whatever"]]), AT);
     expect(Object.keys(document.fields)).toEqual([]);
   });
+});
+
+/* ------------------------------------------------------------------ */
+/* one song, one row                                                   */
+/* ------------------------------------------------------------------ */
+
+describe.skipIf(unavailable !== null)("which row a v1 song is", () => {
+  /**
+   * The second half of the incident: one song showing up under two albums.
+   *
+   * `upsertLibraryTrack` used to identify its row by path and nothing else, so a file that had
+   * been moved or renamed behind the app's back made it insert a *second* row — the stale one
+   * left in the old album pointing at nothing, the new one in the album the regrouping built.
+   * `migration_v1.library_track_id` is what the previous run wrote for this very v1 song, and
+   * it is the identity a path cannot be.
+   */
+  it("re-points the row a previous run wrote, rather than inserting a second one", async () => {
+    await migrateAll("tags");
+    const [venom] = await db()
+      .select({ id: schema.libraryTracks.id, path: schema.libraryTracks.path })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.title, "American Venom"));
+    if (venom === undefined) throw new Error("the fixture did not migrate American Venom");
+
+    // Somebody renames the file in a file manager. The row still points at the old name.
+    const moved = `${MINORITY}/99 - American Venom (renamed).opus`;
+    renameSync(join(LIBRARY_HOST, venom.path), join(LIBRARY_HOST, moved));
+    const files = FILES.map((file) => (file.path === venom.path ? { ...file, path: moved } : file));
+
+    await migrateAll("release", {
+      files,
+      libraryTrackIds: new Map([[7, venom.id]]),
+    });
+
+    const rows = await libraryRows();
+    expect(rows.filter((row) => row.title === "American Venom")).toHaveLength(1);
+    expect(rows).toHaveLength(ROWS.length);
+    // And it is the same row, carried over rather than replaced.
+    const [same] = await db()
+      .select({ path: schema.libraryTracks.path })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.id, venom.id));
+    expect(same).toBeDefined();
+  }, 60_000);
 });

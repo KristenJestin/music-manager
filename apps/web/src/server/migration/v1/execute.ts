@@ -149,7 +149,7 @@ export interface ImportGroupOutcome {
 export async function migrateAlbum(
   ctx: ExecuteContext,
   album: PlannedAlbum,
-  existing: { importId?: string | null } = {},
+  existing: { importId?: string | null; libraryTrackIds?: ReadonlyMap<number, string> } = {},
 ): Promise<AlbumOutcome> {
   const importId = await upsertImport(ctx, {
     id: existing.importId ?? null,
@@ -195,6 +195,7 @@ export async function migrateAlbum(
           planned,
           index,
           moveTo: moveBySong.get(planned.song.id) ?? null,
+          knownLibraryTrackId: existing.libraryTrackIds?.get(planned.song.id) ?? null,
         }),
       );
     } catch (error) {
@@ -395,6 +396,8 @@ interface TrackInput {
   readonly index: number;
   /** Where the consolidation wants this file, or `null` to leave it alone. */
   readonly moveTo: string | null;
+  /** The `library_tracks` row a previous run wrote for this v1 song (`migration_v1`). */
+  readonly knownLibraryTrackId: string | null;
 }
 
 async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<TrackOutcome> {
@@ -587,6 +590,7 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
     planned,
     importId,
     importTrackId,
+    knownLibraryTrackId: input.knownLibraryTrackId,
     sizeBytes: file.sizeBytes ?? null,
     duration: file.durationSeconds ?? null,
     projectionHash: hashProjection(projectDocument(document, format)),
@@ -1146,6 +1150,8 @@ interface UpsertLibraryTrackInput {
   readonly sizeBytes: number | null;
   readonly duration: number | null;
   readonly projectionHash: string;
+  /** What `migration_v1` remembers this v1 song's `library_tracks` row to be. */
+  readonly knownLibraryTrackId: string | null;
 }
 
 /**
@@ -1248,11 +1254,32 @@ async function upsertLibraryTrack(
 ): Promise<string> {
   const { document, planned } = input;
 
-  const [existing] = await ctx.db
+  /*
+   * Which row this is, in two rungs.
+   *
+   * The path is the first, and it used to be the only one — which made the migration insert a
+   * *second* row whenever the file had moved behind the app's back: the row kept its stale
+   * path in the old album, the insert made a new one in the new album, and one song came out
+   * under two albums with one of the two pointing at nothing. `migration_v1.library_track_id`
+   * is what the previous run wrote for this very v1 song, so it is the identity the path
+   * cannot be; it is only trusted when the row is still there and nothing else holds the path
+   * we are about to write.
+   */
+  const [byPath] = await ctx.db
     .select({ id: libraryTracks.id })
     .from(libraryTracks)
     .where(eq(libraryTracks.path, input.path))
     .limit(1);
+
+  let existing = byPath;
+  if (existing === undefined && input.knownLibraryTrackId !== null) {
+    const [known] = await ctx.db
+      .select({ id: libraryTracks.id })
+      .from(libraryTracks)
+      .where(eq(libraryTracks.id, input.knownLibraryTrackId))
+      .limit(1);
+    existing = known;
+  }
 
   const discNumber = numberField(document, "discnumber") ?? planned.song.discNumber;
   const trackNumber = await albumPosition(ctx, {
