@@ -294,7 +294,11 @@ export function formatReport(report: MigrationReport): string {
         album.completeness === null ? "  ·  " : `${String(Math.round(album.completeness * 100))}%`;
       lines.push(
         `    ${score.padStart(5)}  ${String(album.tracks).padStart(3)} tr  ${album.artist} — ${album.title}` +
-          `${album.replaygain ? "  [rg]" : ""}`,
+          `${album.replaygain ? "  [rg]" : ""}` +
+          // An album the run could not migrate is listed with the others rather than only in
+          // `errors`, because "which albums came out of this" is the question this block
+          // answers and an answer that silently omits one is worse than no answer.
+          `${album.verified === "failed" ? "  [FAILED — run it again]" : ""}`,
       );
     }
   }

@@ -409,8 +409,21 @@ function groupAlbums(songs: readonly PlannedSong[], options: PlanOptions): Plann
     });
   }
 
+  /*
+   * Folder first, then **the fuller album**, then the key.
+   *
+   * The middle term is what decides who keeps the plain folder name when two releases of one
+   * record render the same one: `execute.freeFolder` gives the first comer
+   * `Imagine Dragons/Smoke + Mirrors (2015)` and the next one
+   * `… (2015) [6ace8918]`, so processing the twenty-track release before the two-track bonus
+   * edition is the difference between a suffix nobody sees and a suffix on the album everybody
+   * opens. The key still breaks the tie, so the order is total and the same on every run.
+   */
   return albums.sort(
-    (left, right) => left.folder.localeCompare(right.folder) || left.key.localeCompare(right.key),
+    (left, right) =>
+      left.folder.localeCompare(right.folder) ||
+      right.tracks.length - left.tracks.length ||
+      left.key.localeCompare(right.key),
   );
 }
 

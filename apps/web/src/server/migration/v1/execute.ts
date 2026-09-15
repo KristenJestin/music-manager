@@ -556,15 +556,25 @@ async function migrateTrack(ctx: ExecuteContext, input: TrackInput): Promise<Tra
 
   /* ---- 6 · the sidecars of §3 ---- */
   let sidecars = writeSidecars(ctx, { path, lrc });
+  /*
+   * The sidecars go where the *file* is, which is not always `input.folder`.
+   *
+   * `library_albums.folder` is an identity as well as a location: it is unique, so two releases
+   * of one record get one of them a `[6ace8918]` suffix (`freeFolder`). With
+   * `--rename-to-template` the files do not follow that suffix — the template has no release
+   * component — so writing `cover.jpg` into the album's folder would create a directory holding
+   * a cover and nothing else. The track's own directory is where its album's artwork belongs.
+   */
+  const sidecarFolder = folderOfPath(path);
   // `cover.jpg` is per album, so the first track of the folder writes it and the rest find it
   // already there. v1 wrote no sidecars at all, which is why this runs on every migrated album.
-  if (input.index === 0 && (await writeCover(ctx, input.folder, document))) sidecars += 1;
+  if (input.index === 0 && (await writeCover(ctx, sidecarFolder, document))) sidecars += 1;
   // `artist.jpg`, same "first track of the folder" rule as `cover.jpg` above. v1 never wrote
   // it either, and `artists_cache.imageUrl` is only ever filled by `documents.build`'s own
   // `rememberArtist` (`services/documents.ts`) — whatever this migration already looked up
   // while building the document, not a second network trip of its own.
   if (input.index === 0) {
-    const artistFolder = input.folder.split("/")[0] ?? "";
+    const artistFolder = sidecarFolder.split("/")[0] ?? "";
     const image = await writeArtistImageSidecar({
       db: ctx.db,
       toolbox: ctx.toolbox,

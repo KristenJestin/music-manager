@@ -262,12 +262,19 @@ export async function findLibraryTrack(
         ),
       )
       .limit(1);
-    // A row that names a *different* recording is a different song that happens to sit on this
-    // number. Leave it alone and let the insert make a row of its own.
+    /*
+     * A row that names a *different* recording is a different song on the same number.
+     *
+     * Only when **both** sides name one, though. A track with no recording MBID is an untagged
+     * import, and a position is the only identity it has — refusing the row there would not
+     * make a second row, it would make a *rejected* one, because the position index is unique.
+     * So the fence is narrow on purpose: two known recordings that disagree.
+     */
+    const named = (value: string | null): boolean => value !== null && value !== "";
     const claimed =
       byPosition !== undefined &&
-      byPosition.recordingMbid !== null &&
-      byPosition.recordingMbid !== "" &&
+      named(byPosition.recordingMbid) &&
+      named(identity.recordingMbid) &&
       byPosition.recordingMbid !== identity.recordingMbid;
     if (byPosition !== undefined && !claimed) return { id: byPosition.id };
   }

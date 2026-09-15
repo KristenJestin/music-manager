@@ -5,9 +5,15 @@
  * of, and `runScan` counts them, lists them in its report and raises an Inbox item about them.
  * What it offers to do with one is identify it by fingerprint or move it to the trash, and
  * neither is the answer when the file is one this installation wrote itself and then lost the
- * row for. This module is that third answer, and it is the repair for the regrouping incident:
- * a v1 migration that could not give a track a free position on its new album failed the
- * track, and the file went on living in the library with nothing pointing at it.
+ * row for. This module is that third answer.
+ *
+ * It is the net under the v1 migration rather than its main remedy, and the difference matters.
+ * A migration that died halfway leaves thousands of files with no row, and the right fix for
+ * those is to **run the migration again**: `migration_v1` remembers what is done, so a second
+ * pass finishes the rest with all of v1's own knowledge — the forced MBIDs, the playlists, the
+ * provenance. What is left after that is what v1 never knew about: a file copied in by hand, a
+ * `Songs` row deleted since, a track whose album could not be built. Those have nothing but
+ * their own tags, and this is what reads them.
  *
  * The evidence it works from is the file's own tags, which is the whole point. Every file this
  * project or its predecessor ever wrote carries `MUSICBRAINZ_ALBUMID` and `MUSICBRAINZ_TRACKID`

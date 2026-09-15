@@ -82,7 +82,7 @@ const RELEASE_B = "1c801841-4486-4968-95df-5853eed1ea12";
 
 /**
  * One v1 folder, because v1 files by `AlbumArtist/Album (Year)` and both releases agree on all
- * three. Four rows: two on each release, at positions v1 gave them.
+ * three. Five rows over the two releases, at the positions v1 gave them.
  */
 const FOLDER = "Imagine Dragons/Smoke + Mirrors (2015)";
 
@@ -93,12 +93,23 @@ interface Row {
   readonly title: string;
 }
 
+/**
+ * Three rows on the first release and two on the second, on purpose.
+ *
+ * The uneven split is what makes "who keeps the plain folder name" a question with a right
+ * answer: the release most of the record is on. `groupAlbums` sorts the fuller album first
+ * within one folder for exactly this.
+ */
 const ROWS: readonly Row[] = [
   { id: 1, release: RELEASE_A, track: 1, title: "Shots" },
   { id: 2, release: RELEASE_A, track: 2, title: "Gold" },
-  { id: 3, release: RELEASE_B, track: 1, title: "Smoke and Mirrors" },
-  { id: 4, release: RELEASE_B, track: 2, title: "I Bet My Life" },
+  { id: 3, release: RELEASE_A, track: 3, title: "I'm So Sorry" },
+  { id: 4, release: RELEASE_B, track: 1, title: "Smoke and Mirrors" },
+  { id: 5, release: RELEASE_B, track: 2, title: "I Bet My Life" },
 ];
+
+/** Every title, sorted — the "nothing was lost" assertion, spelled once. */
+const ALL_TITLES = [...ROWS.map((row) => row.title)].sort();
 
 function pathOf(row: Row): string {
   return `${FOLDER}/${String(row.track).padStart(2, "0")} - ${row.title}.opus`;
@@ -282,7 +293,7 @@ describe.skipIf(unavailable !== null)("two releases of one record", () => {
     expect(report.errors).toEqual([]);
     expect(report.counts.failed).toBe(0);
     expect(run.status).toBe("done");
-    expect(await trackTitles()).toEqual(["Gold", "I Bet My Life", "Shots", "Smoke and Mirrors"]);
+    expect(await trackTitles()).toEqual(ALL_TITLES);
 
     const rows = await albums();
     expect(rows).toHaveLength(2);
@@ -291,6 +302,20 @@ describe.skipIf(unavailable !== null)("two releases of one record", () => {
     expect(rows.some((row) => row.folder === FOLDER)).toBe(true);
     const other = rows.find((row) => row.folder !== FOLDER);
     expect(other?.folder).toMatch(/^Imagine Dragons\/Smoke \+ Mirrors \(2015\) \[[0-9a-f]{8}\]$/);
+  }, 120_000);
+
+  it("leaves the plain folder to the release most of the record is on", async () => {
+    await migrateWith();
+
+    const rows = await albums();
+    const plain = rows.find((row) => row.folder === FOLDER);
+    // Three of the five rows are on the first release; the two-track edition takes the suffix.
+    expect(plain?.releaseMbid).toBe(RELEASE_A);
+    const counted = await db()
+      .select({ id: schema.libraryTracks.id })
+      .from(schema.libraryTracks)
+      .where(eq(schema.libraryTracks.albumId, plain?.id ?? ""));
+    expect(counted).toHaveLength(3);
   }, 120_000);
 
   it("names the disambiguated folder after the release, so it is the same on every run", async () => {
@@ -363,8 +388,8 @@ describe.skipIf(unavailable !== null)("when one album cannot be migrated", () =>
 
     // The run finished. That is the whole point.
     expect(run.status).toBe("done");
-    expect(report.counts.failed).toBe(2);
-    expect(report.errors).toHaveLength(2);
+    expect(report.counts.failed).toBe(3);
+    expect(report.errors).toHaveLength(3);
     expect(report.errors[0]?.message).toMatch(/the album could not be migrated/);
 
     // And the other release went through untouched.
@@ -383,7 +408,7 @@ describe.skipIf(unavailable !== null)("when one album cannot be migrated", () =>
       })
       .from(schema.migrationV1)
       .where(eq(schema.migrationV1.outcome, "failed"));
-    expect(rows.map((row) => row.songId).sort()).toEqual(["1", "2"]);
+    expect(rows.map((row) => row.songId).sort()).toEqual(["1", "2", "3"]);
     expect(JSON.stringify(rows[0]?.error)).toMatch(/could not be migrated/);
   }, 120_000);
 
@@ -411,8 +436,8 @@ describe.skipIf(unavailable !== null)("when one album cannot be migrated", () =>
     const { report } = await migrateWith();
 
     expect(report.counts.failed).toBe(0);
-    expect(report.counts.migrated).toBe(2);
-    expect(await trackTitles()).toEqual(["Gold", "I Bet My Life", "Shots", "Smoke and Mirrors"]);
+    expect(report.counts.migrated).toBe(3);
+    expect(await trackTitles()).toEqual(ALL_TITLES);
   }, 120_000);
 });
 
@@ -424,15 +449,15 @@ describe.skipIf(unavailable !== null)("resuming a half-finished migration", () =
   it("finishes the songs the first run never reached, and re-does none of them", async () => {
     // A run that only ever saw half the library — which is what a run that died looks like
     // from the next one's point of view.
-    const half = await migrateWith({ reader: reader([1, 2]) });
-    expect(half.report.counts.migrated).toBe(2);
+    const half = await migrateWith({ reader: reader([1, 2, 3]) });
+    expect(half.report.counts.migrated).toBe(3);
 
     const rest = await migrateWith();
 
-    expect(rest.report.counts.alreadyDone).toBe(2);
+    expect(rest.report.counts.alreadyDone).toBe(3);
     expect(rest.report.counts.migrated).toBe(2);
     expect(rest.report.counts.failed).toBe(0);
-    expect(await trackTitles()).toEqual(["Gold", "I Bet My Life", "Shots", "Smoke and Mirrors"]);
+    expect(await trackTitles()).toEqual(ALL_TITLES);
   }, 120_000);
 
   it("continues the run row a dead run left behind rather than opening a second one", async () => {
