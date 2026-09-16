@@ -11,15 +11,22 @@
  * transcription of the wizard's step 4 rather than an invention — same `SuppliedMapping`, same
  * synchronous `match`, same hand-off to the worker. The comments there say which lines are
  * load-bearing.
+ *
+ * `POST /batch` and `POST /{id}/confirm-best` deliberately have none of their own: they are
+ * `services/imports.bulk.ts`, which the MCP tools and the CLI call too. The mapping
+ * `confirm-best` confirms has to be the same mapping however it was asked for, and three
+ * transcriptions of one algorithm is how that stops being true.
  */
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import type { Import, ImportStatus, StepName } from "#/server/db/schema/index.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import {
   bumpImport,
   cancelImport,
+  countImports,
   listImports,
   pauseImport,
   rewindTo,
@@ -34,7 +41,11 @@ import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
+  batchImportSchema,
+  batchResultSchema,
   candidatesSchema,
+  confirmBestResultSchema,
+  confirmBestSchema,
   confirmMappingSchema,
   createImportSchema,
   errorSchema,
@@ -43,6 +54,8 @@ import {
   type importOptionsSchema,
   importSchema,
   listImportsQuery,
+  pageFields,
+  pageInfo,
   retryStepSchema,
 } from "#/server/api/schemas.ts";
 
@@ -88,32 +101,39 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       path: "/",
       tags: [TAG],
       summary: "List imports, newest first",
+      description:
+        "**Paged.** `limit` (1–200, default 50) and `offset` (default 0) are how you reach " +
+        "anything older than the first page — this route is not a feed of the fifty most " +
+        "recent imports, it only looks like one when they are left out. `total` is the number " +
+        "of imports matching `status` and `q` *before* paging, and `hasMore` is true while " +
+        "another page exists, so walking the whole list is `offset += limit` until `hasMore` " +
+        "is false.",
       middleware: [requireScope("imports:read")] as const,
       request: { query: listImportsQuery },
       responses: {
         200: {
-          content: { "application/json": { schema: z.object({ imports: z.array(importSchema) }) } },
-          description: "The imports",
+          content: {
+            "application/json": {
+              schema: z.object({ imports: z.array(importSchema), ...pageFields }),
+            },
+          },
+          description: "The imports, and how many there are in total",
         },
         ...FAILURES,
       },
     }),
     async (c) => {
       const { limit, offset, status, q } = c.req.valid("query");
-      const rows = await listImports(
-        {
-          limit: limit + offset,
-          ...(status === undefined || status === "all" ? {} : { status: status as ImportStatus }),
-        },
-        db(),
-      );
-      const filtered =
-        q === undefined
-          ? rows
-          : rows.filter((row) =>
-              `${row.title ?? ""} ${row.url}`.toLowerCase().includes(q.toLowerCase()),
-            );
-      return c.json({ imports: filtered.slice(offset, offset + limit).map(toImport) }, 200);
+      // `status` and `q` both narrow in SQL now, so the page and the total describe one set.
+      const filter = {
+        ...(status === undefined || status === "all" ? {} : { status: status as ImportStatus }),
+        ...(q === undefined ? {} : { q }),
+      };
+      const [rows, total] = await Promise.all([
+        listImports({ ...filter, limit, offset }, db()),
+        countImports(filter, db()),
+      ]);
+      return c.json({ imports: rows.map(toImport), ...pageInfo(total, offset, limit) }, 200);
     },
   );
 
@@ -127,7 +147,14 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       description:
         "Resolves the source in-process so the answer is immediate, then hands the job to the " +
         "worker. It does **not** run the pipeline in this request: the download slot is global " +
-        "and one worker owns it.",
+        "and one worker owns it.\n\n" +
+        "**Breaking change.** The import's fields are now at the top level of the answer, next " +
+        "to `duplicates`, where they used to be wrapped in an `import` object. Every other " +
+        "route returning a single object was already flat; this one was the exception, and a " +
+        "client that had to remember which was which got it wrong. Read `id`, not " +
+        "`import.id`.\n\n" +
+        "Creating many at once is `POST /imports/batch` — a hundred of these is a hundred " +
+        "round trips.",
       middleware: [requireScope("imports:write")] as const,
       request: {
         body: { content: { "application/json": { schema: createImportSchema } }, required: true },
@@ -136,10 +163,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         201: {
           content: {
             "application/json": {
-              schema: z.object({
-                import: importSchema,
-                duplicates: z.array(z.string()),
-              }),
+              schema: importSchema.extend({ duplicates: z.array(z.string()) }),
             },
           },
           description: "Created and queued",
@@ -171,9 +195,62 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       await enqueue(created.job.id, "api");
       const fresh = (await getImport(created.job.id, db())) ?? created.job;
       return c.json(
-        { import: toImport(fresh), duplicates: created.duplicates.map((row) => row.id) },
+        { ...toImport(fresh), duplicates: created.duplicates.map((row) => row.id) },
         201,
       );
+    },
+  );
+
+  /* ---- batch create ---- */
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/batch",
+      tags: [TAG],
+      summary: "Create many imports in one call",
+      description:
+        `Takes up to **${String(MAX_BATCH_URLS)} URLs** and creates one import per URL, in ` +
+        "order. Over that limit the call is a 400 naming the cap; split the list.\n\n" +
+        "**One bad URL loses only itself.** Each entry of `results` carries either an `id` or " +
+        "an `error` in the app's usual `{code, message, hint}` shape, at the `index` it was " +
+        "sent — a scheme this app cannot import does not cost you the other ninety-nine. " +
+        "`ids` is the created ids in request order, which is the list to hand to " +
+        "`POST /imports/{id}/confirm-best` afterwards.\n\n" +
+        "**Unlike `POST /imports`, a batch does not resolve in-process.** A hundred " +
+        "extractions would be minutes of a held connection; the rows come back `pending` at " +
+        "step `resolve` and the worker resolves them. Poll `GET /imports?status=awaiting_review` " +
+        "to find the ones that need a decision.",
+      middleware: [requireScope("imports:write")] as const,
+      request: {
+        body: { content: { "application/json": { schema: batchImportSchema } }, required: true },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: batchResultSchema } },
+          description: "Every URL's outcome, in the order they were sent",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const body = c.req.valid("json");
+      const options: Partial<z.infer<typeof importOptionsSchema>> = body.options ?? {};
+      const outcome = await createImportsBatch({
+        urls: body.urls,
+        db: db(),
+        source: "api batch",
+        options: {
+          ...(options.fingerprint === undefined ? {} : { fingerprint: options.fingerprint }),
+          ...(options.lyrics === undefined ? {} : { lyrics: options.lyrics }),
+          ...(options.replaygain === undefined ? {} : { replaygain: options.replaygain }),
+          ...(options.force === undefined ? {} : { force: options.force }),
+          ...(options.autoConfirm === undefined ? {} : { autoConfirm: options.autoConfirm }),
+          // Same rule as the single route: whoever opens the confirmation gate signs it.
+          ...(options.autoConfirm === true ? { confirmedBy: "api" } : {}),
+          ...(body.priority === "normal" ? {} : { priority: PRIORITY[body.priority] }),
+        },
+      });
+      return c.json(outcome as z.infer<typeof batchResultSchema>, 200);
     },
   );
 
@@ -371,6 +448,87 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
           mapped: info.mapped ?? body.bindings.length,
           extras: info.extras ?? 0,
           uncovered: open.filter((item) => item.type === "uncovered_tracks").length,
+        },
+        200,
+      );
+    },
+  );
+
+  /* ---- confirm-best ---- */
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/{id}/confirm-best",
+      tags: [TAG],
+      summary: "Confirm the candidate that maps the most videos, without building a mapping",
+      description:
+        "`confirm-mapping` for a caller that has nothing to add. It reads the same ranked " +
+        "candidates `GET /imports/{id}/candidates` returns, picks the release that binds the " +
+        "most of this import's videos, and builds the video → recording mapping from that " +
+        "candidate's own `fitLines` — the assignment the matching engine computed in order to " +
+        "score it. Nothing is recomputed here, so the mapping cannot disagree with the score " +
+        "it was chosen on, and there is no `recordingMbid` for a client to omit.\n\n" +
+        "**`minCoverage` is a real gate.** Coverage is mapped videos ÷ videos in the import. " +
+        "Below the bar the answer is a **409** naming the best candidate, its release, its " +
+        "type and the coverage it reached — and the import is left exactly where it was, " +
+        "waiting for a human. That is what makes this safe to run over three hundred imports " +
+        "in a loop.\n\n" +
+        '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single ' +
+        "that maps the same number of videos. It is a tie-break, not a weight: it never " +
+        "promotes a candidate that maps fewer.\n\n" +
+        "The confirmation is automatic but **signed**: `confirmedBy` is written to " +
+        "`decisions.decidedBy`, exactly as `autoConfirm` is on the other routes, so the audit " +
+        'trail can still answer "which of my albums did nobody look at?".\n\n' +
+        "A single (one video, ranked against recordings rather than releases) is refused with " +
+        "a 400: there is no tracklist to cover, so the bar would mean nothing.",
+      middleware: [requireScope("imports:write")] as const,
+      request: {
+        params: z.object({ id: idParam }),
+        body: { content: { "application/json": { schema: confirmBestSchema } }, required: true },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: confirmBestResultSchema } },
+          description: "Confirmed and queued",
+        },
+        409: {
+          content: { "application/json": { schema: errorSchema } },
+          description:
+            "Nothing cleared `minCoverage`. `error.details` names the best candidate and its " +
+            "coverage; the import is untouched.",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const id = c.req.valid("param").id;
+      const body = c.req.valid("json");
+      const outcome = await confirmBest({
+        importId: id,
+        minCoverage: body.minCoverage,
+        preferType: body.preferType,
+        confirmedBy: body.confirmedBy,
+        db: db(),
+        source: "api confirm-best",
+      });
+      const fresh = await getImport(id, db());
+      return c.json(
+        {
+          ...toImport(fresh as Import),
+          chosenTitle: outcome.chosen.title,
+          chosenArtist: outcome.chosen.artist,
+          chosenType: outcome.chosen.primaryType,
+          chosenScore: outcome.chosen.score,
+          coverage: outcome.chosen.coverage,
+          minCoverage: outcome.minCoverage,
+          preferType: outcome.preferType,
+          candidatesConsidered: outcome.candidatesConsidered,
+          videos: outcome.chosen.videos,
+          mapped: outcome.mapped,
+          extras: outcome.extras,
+          uncovered: outcome.uncovered,
+          queued: outcome.queued,
+          confirmedBy: outcome.confirmedBy,
         },
         200,
       );

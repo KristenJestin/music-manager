@@ -135,8 +135,47 @@ test.describe("the REST API", () => {
       data: { url: "fixture://nothing-like-this" },
     });
     expect(created.status()).toBe(201);
-    const payload = (await created.json()) as { import: { id: string; status: string } };
-    expect(payload.import.id).toMatch(/^imp_/);
+    // Flat, since `feat-api-bulk`: the import's own fields are at the top level of the answer,
+    // next to `duplicates`. It used to be `{import: {…}}`, alone among the routes that return
+    // one object, and that is the inconsistency this asserts is gone.
+    const payload = (await created.json()) as {
+      id: string;
+      status: string;
+      duplicates: string[];
+    };
+    expect(payload.id).toMatch(/^imp_/);
+    expect(payload).not.toHaveProperty("import");
+    expect(Array.isArray(payload.duplicates)).toBe(true);
+
+    /* ---- and the batch form, over the wire -------------------------------- */
+
+    /*
+     * Mixed on purpose: a URL this app cannot import next to one it can.
+     *
+     * The claim is that the bad one loses only itself. Both are URLs that download nothing —
+     * `not-a-url` never becomes a row at all, and `fixture://nothing-like-this` fails at
+     * `resolve` on the worker — for the same reason the single create above uses it: nothing
+     * to race and nothing to clean up.
+     */
+    const batch = await request.post("/api/v1/imports/batch", {
+      headers: { "x-api-key": writer },
+      data: { urls: ["fixture://nothing-like-this", "not-a-url", "fixture://nor-this"] },
+    });
+    expect(batch.status()).toBe(200);
+    const batched = (await batch.json()) as {
+      requested: number;
+      created: number;
+      failed: number;
+      ids: string[];
+      results: { index: number; url: string; ok: boolean; id: string | null; error: unknown }[];
+    };
+    expect(batched.requested).toBe(3);
+    expect(batched.created).toBe(2);
+    expect(batched.failed).toBe(1);
+    expect(batched.ids).toHaveLength(2);
+    // In request order, at the index it was sent — that is what a client diffs against.
+    expect(batched.results.map((row) => row.ok)).toEqual([true, false, true]);
+    expect(batched.results[1]?.error).toMatchObject({ code: "INVALID_INPUT" });
 
     /* ---- an unknown key is 401, which is a different problem -------------- */
 
@@ -178,6 +217,27 @@ test.describe("the REST API", () => {
     expect(document.paths).toHaveProperty("/api/v1/discover");
     expect(document.paths).toHaveProperty("/api/v1/imports/{id}/confirm-mapping");
     expect(document.paths).toHaveProperty("/api/v1/events");
+    // The two bulk-import doors, and the pagination that made the lists usable with them.
+    expect(document.paths).toHaveProperty("/api/v1/imports/batch");
+    expect(document.paths).toHaveProperty("/api/v1/imports/{id}/confirm-best");
+
+    /*
+     * A parameter nobody documents is a parameter nobody uses.
+     *
+     * `limit` and `offset` were on `GET /imports` from the start and described nowhere, which
+     * is how a bulk-import session spent a whole pass believing the fifty most recent imports
+     * were all of them. The document is what an agent reads, so the sentence is the fix and
+     * this is what keeps it there.
+     */
+    const listImports = (
+      document.paths["/api/v1/imports"] as {
+        get: { description?: string; parameters?: { name: string }[] };
+      }
+    ).get;
+    expect(listImports.parameters?.map((parameter) => parameter.name)).toEqual(
+      expect.arrayContaining(["limit", "offset"]),
+    );
+    expect(listImports.description ?? "").toContain("hasMore");
 
     const docs = await request.get("/api/docs", { headers: { "x-api-key": key } });
     expect(docs.status()).toBe(200);
@@ -289,6 +349,8 @@ test.describe("the MCP server", () => {
       "create_import",
       "get_candidates",
       "confirm_mapping",
+      "confirm_best",
+      "create_imports",
       "list_inbox",
       "resolve_inbox",
       "search_library",

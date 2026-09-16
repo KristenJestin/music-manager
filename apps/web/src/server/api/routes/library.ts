@@ -29,6 +29,8 @@ import {
   idParam,
   listAlbumsQuery,
   listTracksQuery,
+  pageFields,
+  pageInfo,
   relocateSchema,
   retagSchema,
   searchQuery,
@@ -54,6 +56,10 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       path: "/albums",
       tags: [TAG],
       summary: "The album grid, with quality scores and the library-wide numbers",
+      description:
+        "**Paged.** `limit` (1–200, default 50) and `offset` (default 0). `total` is every " +
+        "album matching `filter`, `profile` and `q` before paging, and `hasMore` says whether " +
+        "another page exists — page with `offset += limit` until it is false.",
       middleware: [requireScope("library:read")] as const,
       request: { query: listAlbumsQuery },
       responses: {
@@ -62,12 +68,12 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
             "application/json": {
               schema: z.object({
                 albums: z.array(albumSchema),
-                total: z.number(),
+                ...pageFields,
                 stats: z.record(z.string(), z.unknown()),
               }),
             },
           },
-          description: "The albums",
+          description: "The albums, and how many there are in total",
         },
         ...FAILURES,
       },
@@ -96,7 +102,7 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
             totalKnown: album.quality.totalKnown,
             score: album.quality.score,
           })),
-          total: payload.albums.length,
+          ...pageInfo(payload.albums.length, offset, limit),
           stats: payload.stats as unknown as Record<string, unknown>,
         },
         200,
@@ -175,6 +181,10 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       path: "/tracks",
       tags: [TAG],
       summary: "Every file, one row each",
+      description:
+        "**Paged.** `limit` (1–200, default 50) and `offset` (default 0). `total` counts every " +
+        "track matching `search`, `filter` and `albumId` before paging, and `hasMore` says " +
+        "whether another page exists.",
       middleware: [requireScope("library:read")] as const,
       request: { query: listTracksQuery },
       responses: {
@@ -183,32 +193,34 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
             "application/json": {
               schema: z.object({
                 tracks: z.array(z.record(z.string(), z.unknown())),
-                total: z.number(),
+                ...pageFields,
               }),
             },
           },
-          description: "The tracks",
+          description: "The tracks, and how many there are in total",
         },
         ...FAILURES,
       },
     }),
     async (c) => {
       const { limit, offset, search, filter, albumId } = c.req.valid("query");
+      // `albumId` narrows in the service, before the page is cut. It used to narrow the page
+      // itself, which left `total` counting the library and the rows counting one album.
       const payload = await trackList(
         {
           ...(search === undefined ? {} : { search }),
           ...(filter === undefined ? {} : { filter: filter as never }),
+          ...(albumId === undefined ? {} : { albumId }),
           limit,
           offset,
         },
         db(),
       );
-      const rows =
-        albumId === undefined
-          ? payload.tracks
-          : payload.tracks.filter((track) => track.albumId === albumId);
       return c.json(
-        { tracks: rows as unknown as Record<string, unknown>[], total: payload.total },
+        {
+          tracks: payload.tracks as unknown as Record<string, unknown>[],
+          ...pageInfo(payload.total, offset, limit),
+        },
         200,
       );
     },
@@ -249,6 +261,12 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
       path: "/search",
       tags: [TAG],
       summary: "Search albums, tracks and artists at once",
+      description:
+        "`limit` (1–100, default 20) caps **each** of the three lists, not their sum. There is " +
+        'no `offset` here on purpose: this answers "do I already have this?", and a second ' +
+        "page of a question like that means the query was the wrong one. Page the full lists " +
+        "with `GET /library/albums` and `GET /library/tracks`, which take `limit`/`offset` and " +
+        "answer `total`.",
       middleware: [requireScope("library:read")] as const,
       request: { query: searchQuery },
       responses: {

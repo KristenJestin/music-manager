@@ -17,6 +17,9 @@ import { NOTIFIABLE_EVENTS, STEP_NAMES } from "@mm/contracts";
 // The import-status vocabulary, from the import-free module the `pgEnum` is built from — so
 // the query filter and the column can never name different sets.
 import { IMPORT_STATUSES, INBOX_TYPES } from "#/server/db/schema/enums.vocab.ts";
+// The batch cap and the coverage bar belong to the service that enforces them; restating them
+// here would be a second copy to keep in step with the OpenAPI text that quotes them.
+import { DEFAULT_MIN_COVERAGE, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import type {
   ApiKeyView,
   ApiPrincipal,
@@ -112,10 +115,63 @@ export const errorSchema = z.object({ error: mmErrorBodySchema }).openapi("Error
 /** The id in a path. Named so the document says `imp_…` rather than `string`. */
 export const idParam = z.string().min(1).openapi({ example: "imp_01K4XQ7N8ZC3RB2VMD9T6HFPGA" });
 
+/**
+ * The two query parameters every list route in this API takes.
+ *
+ * They existed before and said so nowhere: neither the OpenAPI document nor the MCP tool
+ * descriptions mentioned them, so the owner's bulk-import session was spent reading the fifty
+ * most recent imports over and over, believing that was all there were. A parameter a client
+ * cannot discover is a parameter that does not exist, which is why the `.describe()` text here
+ * is part of the fix rather than decoration.
+ *
+ * Every list route that takes these also answers `total` and `hasMore` — see `pageFields`.
+ */
 export const paginationQuery = z.object({
-  limit: z.coerce.number().int().min(1).max(200).default(50).openapi({ example: 50 }),
-  offset: z.coerce.number().int().min(0).default(0).openapi({ example: 0 }),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(200)
+    .default(50)
+    .openapi({ example: 50, description: "Page size. 1–200, default 50." }),
+  offset: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .openapi({
+      example: 0,
+      description:
+        "How many rows to skip. Page 2 of a 50-row page is `offset=50`. " +
+        "Read `total` and `hasMore` on the answer to know when to stop.",
+    }),
 });
+
+/**
+ * The two fields that make a paged answer usable.
+ *
+ * `total` is the number of rows the filter matches, *before* `limit` and `offset`; `hasMore`
+ * says whether another page exists, so a client never has to work it out from three numbers and
+ * an off-by-one. Both are spelled once here so every list route answers the same shape.
+ */
+export const pageFields = {
+  total: z
+    .number()
+    .int()
+    .openapi({ description: "Rows matching the filter, ignoring `limit` and `offset`." }),
+  hasMore: z
+    .boolean()
+    .openapi({ description: "True when `offset + limit < total` — ask for the next page." }),
+} as const;
+
+/** `{total, hasMore}` for a page that has already been cut to `limit`. */
+export function pageInfo(
+  total: number,
+  offset: number,
+  limit: number,
+): { total: number; hasMore: boolean } {
+  return { total, hasMore: offset + limit < total };
+}
 
 export const principalSchema = apiPrincipalSchema.openapi("Principal", {
   description: "Who the server thinks you are, and what your credential may do.",
@@ -158,6 +214,94 @@ export const createImportSchema = z
   })
   .openapi("CreateImport");
 
+/**
+ * `POST /imports/batch` — the same options, applied to a list of URLs.
+ *
+ * `urls` is capped at `MAX_BATCH_URLS`, and the cap is in the route's description because a
+ * limit a caller discovers by hitting it is a limit that costs a failed request to learn.
+ */
+export const batchImportSchema = z
+  .object({
+    urls: z
+      .array(z.string().min(1))
+      .min(1)
+      .max(MAX_BATCH_URLS)
+      .openapi({
+        example: ["https://www.youtube.com/playlist?list=OLAK5uy_a", "fixture://discovery"],
+        description: `The URLs, in order. At most ${String(MAX_BATCH_URLS)} per call.`,
+      }),
+    options: importOptionsSchema.optional(),
+    priority: z.enum(["low", "normal", "next"]).default("normal"),
+  })
+  .openapi("BatchImport");
+
+/** One URL's outcome inside a batch, in the position it was sent. */
+export const batchLineSchema = z
+  .object({
+    index: z.number().int().openapi({ description: "Position of this URL in the request." }),
+    url: z.string(),
+    ok: z.boolean(),
+    id: z.string().nullable(),
+    status: z.string().nullable(),
+    step: z.string().nullable(),
+    duplicates: z.array(z.string()),
+    error: mmErrorBodySchema.nullable(),
+  })
+  .openapi("BatchImportLine");
+
+export const batchResultSchema = z
+  .object({
+    requested: z.number().int(),
+    created: z.number().int(),
+    failed: z.number().int(),
+    ids: z
+      .array(z.string())
+      .openapi({ description: "The created ids, in request order. Feed them to `confirm-best`." }),
+    results: z.array(batchLineSchema),
+  })
+  .openapi("BatchImportResult");
+
+/**
+ * `POST /imports/{id}/confirm-best`.
+ *
+ * Three fields, because the server already has everything else. The mapping is built from the
+ * chosen candidate's own `fitLines`, which is the assignment the matching engine computed to
+ * score it — so there is nothing here for a caller to get wrong.
+ */
+export const confirmBestSchema = z
+  .object({
+    minCoverage: z
+      .number()
+      .min(0)
+      .max(1)
+      .default(DEFAULT_MIN_COVERAGE)
+      .openapi({
+        example: DEFAULT_MIN_COVERAGE,
+        description:
+          "Mapped videos ÷ videos in the import. Below it the call is a 409 and the import is " +
+          "left waiting, untouched.",
+      }),
+    preferType: z
+      .enum(["album", "any"])
+      .default("album")
+      .openapi({
+        description:
+          "`album` breaks a tie in favour of a release whose release-group `primary-type` is " +
+          "Album, over an EP or a Single that maps the same number of videos. It changes " +
+          "nothing else: the ranking is the matcher's own.",
+      }),
+    confirmedBy: z
+      .string()
+      .min(1)
+      .openapi({
+        example: "claude-desktop",
+        description:
+          "Who is confirming. Written to `decisions.decidedBy`, so an automatic confirmation is " +
+          "never mistaken for a human one.",
+      }),
+  })
+  .openapi("ConfirmBest");
+
 export const importSchema = z
   .object({
     id: z.string(),
@@ -175,6 +319,33 @@ export const importSchema = z
     updatedAt: z.string(),
   })
   .openapi("Import");
+
+/**
+ * What `confirm-best` chose, flat next to the import it chose it for.
+ *
+ * Flat, like `POST /imports` is since this change: an envelope on one route and none on the
+ * next is the inconsistency that made a client write `payload.import.id` in one place and
+ * `payload.id` in another.
+ */
+export const confirmBestResultSchema = importSchema
+  .extend({
+    chosenTitle: z.string(),
+    chosenArtist: z.string(),
+    /** `Album`, `EP`, `Single`… — what `preferType` breaks ties on. */
+    chosenType: z.string().nullable(),
+    chosenScore: z.number(),
+    coverage: z.number().openapi({ description: "Mapped videos ÷ videos in the import." }),
+    minCoverage: z.number(),
+    preferType: z.enum(["album", "any"]),
+    candidatesConsidered: z.number().int(),
+    videos: z.number().int(),
+    mapped: z.number().int().nullable(),
+    extras: z.number().int().nullable(),
+    uncovered: z.number().int(),
+    queued: z.boolean(),
+    confirmedBy: z.string(),
+  })
+  .openapi("ConfirmBestResult");
 
 export const importDetailSchema = importSchema
   .extend({
@@ -349,7 +520,13 @@ export const listTracksQuery = paginationQuery.extend({
 
 export const searchQuery = z.object({
   q: z.string().min(1).openapi({ example: "discovery" }),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(20)
+    .openapi({ description: "Caps each of the three lists. 1–100, default 20." }),
 });
 
 export const retagSchema = z
@@ -450,8 +627,23 @@ export const eventSchema = jobEventSchema.openapi("JobEvent");
 
 export const listEventsQuery = z.object({
   importId: z.string().optional(),
-  since: z.coerce.number().int().min(0).optional(),
-  limit: z.coerce.number().int().min(1).max(500).default(100),
+  since: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .openapi({
+      description:
+        "Only events with a higher `id`. This is the journal's pagination: set it to the highest " +
+        "`id` of the previous page.",
+    }),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(500)
+    .default(100)
+    .openapi({ description: "1–500, default 100. A full page means there is more." }),
 });
 
 /* ------------------------------------------------------------------ */

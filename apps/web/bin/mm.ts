@@ -55,6 +55,7 @@ import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import {
   bumpImport,
   cancelImport,
@@ -194,9 +195,120 @@ async function followImport(importId: string): Promise<number> {
 /* commands                                                            */
 /* ------------------------------------------------------------------ */
 
+/**
+ * `mm import --from-file <path>` — one line per URL, `#` comments and blank lines dropped.
+ *
+ * The bulk form of the paste box. Nothing is resolved in this process: `createImportsBatch`
+ * queues the rows and the worker resolves them, which is what makes three hundred URLs a
+ * second's work here instead of an hour of extractions.
+ */
+async function cmdImportBatch(args: Args, path: string): Promise<number> {
+  const urls = readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .map((row) => row.trim())
+    .filter((row) => row !== "" && !row.startsWith("#"));
+  if (urls.length === 0) {
+    throw new MMError("INVALID_INPUT", `${path} holds no URLs.`, {
+      hint: "One URL per line; `#` starts a comment.",
+    });
+  }
+
+  const signed = flagBoolean(args, "yes");
+  let created = 0;
+  const failures: { index: number; url: string; code: string; message: string }[] = [];
+
+  // The service caps a batch; chunk here so a file of four hundred is four calls rather than a
+  // refusal the person reading the file did not ask for.
+  for (let start = 0; start < urls.length; start += MAX_BATCH_URLS) {
+    const outcome = await createImportsBatch({
+      urls: urls.slice(start, start + MAX_BATCH_URLS),
+      db: db(),
+      source: "cli batch",
+      options: {
+        autoConfirm: signed,
+        ...(signed ? { confirmedBy: "cli --yes" } : {}),
+        force: flagBoolean(args, "force"),
+        ...(flagBoolean(args, "no-fingerprint") ? { fingerprint: false } : {}),
+      },
+    });
+    created += outcome.created;
+    for (const row of outcome.results) {
+      if (row.ok || row.error === null) continue;
+      failures.push({
+        index: row.index + start,
+        url: row.url,
+        code: row.error.code,
+        message: row.error.message,
+      });
+    }
+  }
+
+  line(`${String(created)} of ${String(urls.length)} import(s) created and queued`);
+  for (const failure of failures) {
+    line(`  ! ${String(failure.index + 1).padStart(4)}  ${failure.url}`);
+    line(`         ${failure.code}: ${failure.message}`);
+  }
+  line(`  run \`bun run worker\` if nothing moves`);
+  return failures.length === 0 ? 0 : 1;
+}
+
+/**
+ * `mm confirm-best <id>` — confirm the candidate that maps the most videos.
+ *
+ * The same service the REST route and the MCP tool call, so the three cannot drift; the only
+ * thing that differs is `confirmedBy`, which is the door the decision came through.
+ */
+async function cmdConfirmBest(args: Args): Promise<number> {
+  const id = args.positional[1];
+  if (id === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "usage: mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]",
+    );
+  }
+  const coverage = flagString(args, "min-coverage");
+  const prefer = flagString(args, "prefer");
+  if (prefer !== undefined && prefer !== "album" && prefer !== "any") {
+    throw new MMError("INVALID_INPUT", "--prefer takes `album` or `any`.");
+  }
+
+  const outcome = await confirmBest({
+    importId: id,
+    ...(coverage === undefined ? {} : { minCoverage: Number(coverage) }),
+    ...(prefer === undefined ? {} : { preferType: prefer }),
+    confirmedBy: "cli confirm-best",
+    db: db(),
+    source: "cli confirm-best",
+  });
+
+  line(`confirmed ${outcome.importId}`);
+  line(
+    `  release  ${outcome.chosen.artist} — ${outcome.chosen.title}` +
+      ` (${outcome.chosen.primaryType ?? "?"})  ${outcome.chosen.releaseMbid}`,
+  );
+  line(
+    `  coverage ${String(Math.round(outcome.chosen.coverage * 100))} %` +
+      ` of ${String(outcome.chosen.videos)} video(s), over ${String(outcome.candidatesConsidered)} candidate(s)`,
+  );
+  line(
+    `  mapped   ${String(outcome.mapped ?? 0)} track(s), ` +
+      `${String(outcome.extras ?? 0)} extra, ${String(outcome.uncovered)} uncovered`,
+  );
+  line(`  status   ${outcome.status} (step ${outcome.step})`);
+  return 0;
+}
+
 async function cmdImport(args: Args): Promise<number> {
+  const fromFile = flagString(args, "from-file");
+  if (fromFile !== undefined) return await cmdImportBatch(args, fromFile);
+
   const url = args.positional[1];
-  if (url === undefined) throw new MMError("INVALID_INPUT", "usage: mm import <url|fixture://…>");
+  if (url === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "usage: mm import <url|fixture://…> | mm import --from-file <path>",
+    );
+  }
 
   const mappingFile = flagString(args, "mapping");
   const mapping =
@@ -1275,6 +1387,9 @@ async function cmdRelocate(args: Args): Promise<number> {
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
+  mm import --from-file <path> [--yes] [--force]   one URL per line, '#' comments; queued, not resolved
+  mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]
+                                          confirm the candidate that maps the most videos
   mm match <url|fixture://…> [--kind album|single] [--json]   score candidates without importing
   mm jobs
   mm job <id> [--follow]
@@ -1344,6 +1459,8 @@ async function main(): Promise<number> {
   switch (command) {
     case "import":
       return await cmdImport(args);
+    case "confirm-best":
+      return await cmdConfirmBest(args);
     case "match":
       return await cmdMatch(args);
     case "jobs":

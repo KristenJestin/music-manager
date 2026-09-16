@@ -142,3 +142,28 @@ export async function enqueue(importId: string, reason: string, step?: StepName)
     await stopBoss(boss);
   }
 }
+
+/**
+ * Queue many imports through **one** producer.
+ *
+ * `enqueue` opens a pg-boss client, starts it, declares the queues and closes it again, which
+ * is the right trade for the Console's handful of enqueues an hour. `POST /imports/batch` sends
+ * a hundred at once, and paying that ceremony a hundred times was a measurable part of what
+ * made the owner's bulk import slow — the sends themselves are one `insert` each.
+ *
+ * An empty list opens nothing at all: a batch whose every URL was refused must not cost a
+ * connection to say so.
+ */
+export async function enqueueMany(importIds: readonly string[], reason: string): Promise<void> {
+  if (importIds.length === 0) return;
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    for (const importId of importIds) {
+      await enqueueImportStep(boss, { importId, reason });
+    }
+  } finally {
+    await stopBoss(boss);
+  }
+}

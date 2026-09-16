@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-six tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-eight tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-six, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-eight, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-six of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-eight of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -40,12 +40,18 @@ import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
 import {
+  confirmBest,
+  createImportsBatch,
+  DEFAULT_MIN_COVERAGE,
+  MAX_BATCH_URLS,
+} from "#/server/services/imports.bulk.ts";
+import {
   createWatchedSource,
   getWatchedSource,
   listWatchedSources,
 } from "#/server/services/watched-sources.ts";
 import { jobDetail, queueStanding, setImportOptions } from "#/server/services/console.queries.ts";
-import { listImports, runStep } from "#/server/services/jobs/index.ts";
+import { countImports, listImports, runStep } from "#/server/services/jobs/index.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
 import { listInbox, resolveInboxBatch } from "#/server/services/inbox.ts";
 import { albumDetail, albumGrid, artistList, trackList } from "#/server/services/library.ts";
@@ -357,9 +363,10 @@ interface ToolSpec {
 /**
  * The tools of the spec, as data — P08's fourteen, P09's `list_discover`, the four the first
  * external MCP test report asked for (`get_status`, `discover_sync`, `scan`, `relocate`),
- * `get_scan_report` from the second, and `refresh_album` from the third.
+ * `get_scan_report` from the second, `refresh_album` from the third, and `create_imports` and
+ * `confirm_best` from the bulk-import session that drove 375 playlists through here by hand.
  *
- * A table rather than twenty-six `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-eight `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -378,13 +385,23 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "library for artists you actually play), ListenBrainz recommendations, and similar " +
         "artists. Every item carries a score, a plain-English reason and its MusicBrainz ids — " +
         "so a suggestion can be checked against the library with `search_library` before " +
-        "anything is queued. Read-only; it never recomputes.",
+        "anything is queued. Read-only; it never recomputes.\n\n" +
+        "`limit` is 1–200 and defaults to 25; it caps **each** of the three blocks rather than " +
+        "their sum. There is no `offset`: Discover is a ranked shortlist rather than a table, " +
+        "so a second page of it would be the items it has already decided are worse. Raise " +
+        "`limit` instead.",
       inputSchema: {
         kind: z
           .enum(["discography", "recommendation", "similar_artist"])
           .optional()
           .describe("Only one of the three blocks."),
-        limit: z.number().int().min(1).max(200).default(25),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .default(25)
+          .describe("Caps each of the three blocks. 1–200, default 25."),
       },
       run: async (args: {
         kind?: "discography" | "recommendation" | "similar_artist";
@@ -456,35 +473,50 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       title: "List imports",
       description:
         "Recent import jobs, newest first, with their status and current step. Start here to " +
-        "find the id of something already in flight.",
+        "find the id of something already in flight.\n\n" +
+        "**This is a page, not the list.** `limit` is 1–100 and defaults to 20; `offset` skips " +
+        "that many rows. The answer carries `total` — every import matching `status`, before " +
+        "paging — and `hasMore`, so reading everything is `offset += limit` until `hasMore` is " +
+        "false. Neither was said anywhere before, and a bulk session spent a whole pass " +
+        "believing the twenty most recent imports were all of them.",
       inputSchema: {
         status: z
           .enum(IMPORT_STATUSES)
           .optional()
           .describe("Filter on one status, e.g. `awaiting_review`, `running`, `done`."),
-        limit: z.number().int().min(1).max(100).default(20),
+        limit: z.number().int().min(1).max(100).default(20).describe("Page size. 1–100."),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .default(0)
+          .describe("Rows to skip. Read `total`/`hasMore` on the answer to know when to stop."),
       },
       // `z.string()` here, cast to `never` on the way into the query, sent an unknown status
       // straight to Postgres — which answered with the failed statement, so the *schema of the
       // `imports` table* travelled back to the caller inside an error message. The enum is the
       // same one the column is, so a bad value is refused by the SDK before any query exists.
-      run: async (args: { status?: ImportStatus; limit: number }) => {
-        const rows = await listImports(
-          {
-            limit: args.limit,
-            ...(args.status === undefined ? {} : { status: args.status }),
-          },
-          db(),
-        );
-        return rows.map((row) => ({
-          id: row.id,
-          url: row.url,
-          status: row.status,
-          step: row.step,
-          title: row.title,
-          releaseMbid: row.releaseMbid,
-          createdAt: row.createdAt.toISOString(),
-        }));
+      run: async (args: { status?: ImportStatus; limit: number; offset: number }) => {
+        const filter = args.status === undefined ? {} : { status: args.status };
+        const [rows, total] = await Promise.all([
+          listImports({ ...filter, limit: args.limit, offset: args.offset }, db()),
+          countImports(filter, db()),
+        ]);
+        return {
+          total,
+          limit: args.limit,
+          offset: args.offset,
+          hasMore: args.offset + args.limit < total,
+          imports: rows.map((row) => ({
+            id: row.id,
+            url: row.url,
+            status: row.status,
+            step: row.step,
+            title: row.title,
+            releaseMbid: row.releaseMbid,
+            createdAt: row.createdAt.toISOString(),
+          })),
+        };
       },
     },
     {
@@ -628,6 +660,95 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             : {}),
         };
       },
+    },
+    {
+      name: "create_imports",
+      scope: "imports:write",
+      title: "Create many imports at once",
+      description:
+        `Queue up to **${String(MAX_BATCH_URLS)} URLs** in one call. Over that limit the call ` +
+        "is refused naming the cap; split the list.\n\n" +
+        "**One bad URL loses only itself.** `results` has one entry per URL, at the `index` it " +
+        "was sent, carrying either an `id` or an `error` — a scheme this app cannot import " +
+        "does not cost you the other ninety-nine. `ids` is the created ids in request order, " +
+        "which is the list to loop `confirm_best` over.\n\n" +
+        "**Unlike `create_import`, a batch does not resolve in-process.** A hundred " +
+        "extractions would not fit in one call; the imports come back `pending` at step " +
+        "`resolve` and the worker resolves them. Poll `list_imports` with " +
+        '`status: "awaiting_review"` to find the ones that then need a decision.\n\n' +
+        "The same `fixture://` caveat as `create_import` applies to every URL in the list.",
+      inputSchema: {
+        urls: z
+          .array(z.string().min(1))
+          .min(1)
+          .max(MAX_BATCH_URLS)
+          .describe(`The URLs, in order. At most ${String(MAX_BATCH_URLS)} per call.`),
+        autoConfirm: z
+          .boolean()
+          .default(false)
+          .describe("Applies to every URL. Logged with `decidedBy: mcp`."),
+        force: z.boolean().default(false).describe("Re-import even if the tracks are present."),
+      },
+      run: async (args: { urls: string[]; autoConfirm: boolean; force: boolean }) =>
+        await createImportsBatch({
+          urls: args.urls,
+          db: db(),
+          source: "mcp batch",
+          options: {
+            autoConfirm: args.autoConfirm,
+            // Same rule as `create_import`: whoever opens the gate names itself, or
+            // `assertSigned` refuses. See `services/imports.ts`.
+            ...(args.autoConfirm ? { confirmedBy: "mcp" } : {}),
+            force: args.force,
+          },
+        }),
+    },
+    {
+      name: "confirm_best",
+      scope: "imports:write",
+      title: "Confirm the candidate that maps the most videos",
+      description:
+        "`confirm_mapping` for a caller that has nothing to add. It reads the same ranked " +
+        "candidates `get_candidates` returns, picks the release that binds the most of this " +
+        "import's videos, and builds the mapping from that candidate's own `fitLines` — the " +
+        "assignment the matching engine computed in order to score it. **There is nothing here " +
+        "for you to get wrong:** no `bindings` to rebuild, no `position` to line up, no " +
+        "`recordingMbid` to omit and have `fingerprint` disagree with thirteen times.\n\n" +
+        "**`minCoverage` is a real gate.** Coverage is mapped videos ÷ videos in the import, " +
+        "and it defaults to 0.8. Below the bar nothing is confirmed: the tool fails naming the " +
+        "best candidate, its release, its type and the coverage it reached, and the import is " +
+        "left exactly where it was, waiting for a human. That is what makes this safe to run " +
+        "over three hundred imports in a loop — the ones it will not decide are still there " +
+        "afterwards.\n\n" +
+        '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single that ' +
+        "maps the same number of videos. It is a tie-break and never promotes a candidate that " +
+        "maps fewer.\n\n" +
+        "The confirmation is automatic but **signed**: the decision is logged with " +
+        "`decidedBy: mcp`, like every other gate this server opens.\n\n" +
+        "A single — one video, ranked against recordings rather than releases — is refused: " +
+        "there is no tracklist to cover, so use `get_candidates` and `confirm_mapping`.",
+      inputSchema: {
+        importId: z.string().min(1),
+        minCoverage: z
+          .number()
+          .min(0)
+          .max(1)
+          .default(DEFAULT_MIN_COVERAGE)
+          .describe("Mapped videos ÷ videos in the import. Below it, nothing is confirmed."),
+        preferType: z
+          .enum(["album", "any"])
+          .default("album")
+          .describe("`album` prefers an Album over an EP or Single of equal coverage."),
+      },
+      run: async (args: { importId: string; minCoverage: number; preferType: "album" | "any" }) =>
+        await confirmBest({
+          importId: args.importId,
+          minCoverage: args.minCoverage,
+          preferType: args.preferType,
+          confirmedBy: "mcp",
+          db: db(),
+          source: "mcp confirm_best",
+        }),
     },
     {
       name: "get_candidates",
@@ -885,7 +1006,10 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       title: "List Inbox items",
       description:
         "The questions the pipeline could not answer alone. Each carries a preselected answer; " +
-        "`resolve_inbox` with `accept: true` takes it.",
+        "`resolve_inbox` with `accept: true` takes it.\n\n" +
+        "Not paged, and deliberately: the Inbox is what is *open*, so it is bounded by how much " +
+        "the pipeline is waiting on rather than by the size of the library. Narrow it with " +
+        "`importId`, or with `status` when you want the ones already answered.",
       inputSchema: {
         status: z.enum(["open", "resolved", "dismissed", "all"]).default("open"),
         importId: z.string().optional(),
@@ -988,10 +1112,19 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       title: "Search the library",
       description:
         "Search albums, tracks and artists at once. Use it to answer 'do I already have this?' " +
-        "before creating an import.",
+        "before creating an import.\n\n" +
+        "`limit` is 1–50, defaults to 10, and caps **each** of the three lists. No `offset` on " +
+        "purpose: a second page of “do I already have this?” means the query was the wrong " +
+        "one. `get_album` reads one album whole.",
       inputSchema: {
         query: z.string().min(1),
-        limit: z.number().int().min(1).max(50).default(10),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .default(10)
+          .describe("Caps each of the three lists. 1–50, default 10."),
       },
       run: async (args: { query: string; limit: number }) => {
         const [grid, tracks, artists] = await Promise.all([
@@ -1394,7 +1527,10 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "human**, whenever the match is safe and unambiguous; every other source parks each " +
         "new video in `awaiting_confirm` behind a `source_new_video` Inbox item.\n\n" +
         "Pass `sourceId` for one source and the videos it has seen, each with why it was " +
-        "skipped or which import it opened.",
+        "skipped or which import it opened.\n\n" +
+        "Not paged: the list is every source you have added by hand, so it is short by " +
+        "construction. One source's item history is capped by the service, and `total` next to " +
+        "`items` says how many that source has seen in all.",
       inputSchema: {
         sourceId: z.string().min(1).optional().describe("One source, with its item history."),
       },

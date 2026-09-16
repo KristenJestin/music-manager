@@ -15,7 +15,7 @@
  *     once. `retryStep` is therefore nothing more than "start again from this step".
  */
 import { rmSync } from "node:fs";
-import { and, asc, desc, eq, inArray, isNotNull, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { hostPath } from "#/server/paths.ts";
@@ -627,17 +627,64 @@ export async function stepsOf(importId: string, db: Database = defaultDb()) {
   return STEP_ORDER.map((step) => ({ step, row: byName.get(step) ?? null }));
 }
 
+/** What `listImports` and `countImports` both narrow on, so a page and its total agree. */
+export interface ImportFilter {
+  readonly status?: ImportStatus;
+  /** Substring of the title or the URL, case-insensitive. */
+  readonly q?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/**
+ * The `where` of a filtered list, written once.
+ *
+ * `q` used to be applied in TypeScript over whatever window had been fetched, which meant the
+ * filter only saw the page and a client could not be told how many rows really matched. It is
+ * SQL now, so `countImports` counts the same set `listImports` returns.
+ */
+function importsWhere(filter: ImportFilter) {
+  const text = filter.q?.trim() ?? "";
+  const clauses = [
+    filter.status === undefined ? isNotNull(imports.id) : eq(imports.status, filter.status),
+    ...(text === ""
+      ? []
+      : [
+          or(ilike(imports.title, `%${text}%`), ilike(imports.url, `%${text}%`)) ??
+            isNotNull(imports.id),
+        ]),
+  ];
+  return and(...clauses);
+}
+
 /** The job list, newest first. */
 export async function listImports(
-  filter: { status?: ImportStatus; limit?: number } = {},
+  filter: ImportFilter = {},
   db: Database = defaultDb(),
 ): Promise<Import[]> {
   return await db
     .select()
     .from(imports)
-    .where(filter.status === undefined ? isNotNull(imports.id) : eq(imports.status, filter.status))
+    .where(importsWhere(filter))
     .orderBy(desc(imports.createdAt))
-    .limit(filter.limit ?? 50);
+    .limit(filter.limit ?? 50)
+    .offset(filter.offset ?? 0);
+}
+
+/**
+ * How many imports match, ignoring `limit` and `offset`.
+ *
+ * A client cannot page without it: `GET /api/v1/imports` answered fifty rows and no total, so
+ * the owner's bulk session read the fifty most recent imports and concluded that was all of
+ * them. Counted in SQL rather than by fetching and measuring, because the whole point is to
+ * know the size of a set too large to fetch.
+ */
+export async function countImports(
+  filter: ImportFilter = {},
+  db: Database = defaultDb(),
+): Promise<number> {
+  const [row] = await db.select({ total: count() }).from(imports).where(importsWhere(filter));
+  return row?.total ?? 0;
 }
 
 export { loadSettings, type Settings };
