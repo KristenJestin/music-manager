@@ -266,7 +266,7 @@ function Albums() {
                     size="full"
                     seed={album.id}
                     label={album.title}
-                    src={albumCoverSources(album)}
+                    src={albumCoverSources(album, "full")}
                   />
                   {incomplete ? (
                     <ToneBadge tone="warn" className="absolute top-1.5 left-1.5">

@@ -228,7 +228,7 @@ function Dashboard() {
                   >
                     <Cover
                       size="sm"
-                      src={albumCoverSources(album)}
+                      src={albumCoverSources(album, "sm")}
                       seed={album.id}
                       label={album.title}
                     />

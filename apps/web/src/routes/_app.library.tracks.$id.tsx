@@ -17,6 +17,7 @@ import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
+import { primaryCoverUrl } from "#/lib/cover-sources.ts";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { usePlayer, libraryTrack } from "#/components/shell/player-context.tsx";
@@ -138,7 +139,7 @@ function TrackPage() {
           size="lg"
           seed={album?.id ?? track.id}
           label={track.title}
-          src={albumCoverSources(album, 500)}
+          src={albumCoverSources(album, "lg")}
         />
         <div className="min-w-0 grow">
           <div className="text-2xs tracking-wider text-fg-2 uppercase">
@@ -171,7 +172,7 @@ function TrackPage() {
                   title: track.title,
                   artist: track.artist,
                   album: album?.title ?? null,
-                  coverUrl: albumCoverSources(album)[0] ?? null,
+                  coverUrl: primaryCoverUrl(albumCoverSources(album, "sm")),
                   durationSeconds: track.duration,
                 }),
               ]);

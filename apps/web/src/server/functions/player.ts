@@ -17,6 +17,7 @@
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
+import { libraryCover, SLOT_SIZES } from "#/lib/cover-sources.ts";
 import { previewExpired } from "#/lib/playback.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { getItemBySubject } from "#/server/services/discover.ts";
@@ -80,10 +81,9 @@ export const resolvePreview = createServerFn({ method: "POST", strict: STRICT })
                 src: `/api/stream?track=${encodeURIComponent(owned.id)}`,
                 source: "library",
                 subject: data.subject,
-                coverUrl:
-                  owned.albumId === null
-                    ? null
-                    : `/api/cover?album=${encodeURIComponent(owned.albumId)}`,
+                // The player bar draws its tile at `sm`, so ask for that variant and not the
+                // 1200 px file on disk.
+                coverUrl: libraryCover(owned.albumId, SLOT_SIZES.sm.local),
                 durationSeconds: owned.durationSeconds,
               },
             ],

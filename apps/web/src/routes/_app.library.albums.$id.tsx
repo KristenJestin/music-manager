@@ -31,6 +31,7 @@ import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
+import { primaryCoverUrl } from "#/lib/cover-sources.ts";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
@@ -211,7 +212,7 @@ function Album() {
             size="xl"
             seed={album.album.id}
             label={album.album.title}
-            src={albumCoverSources(album.album, 500)}
+            src={albumCoverSources(album.album, "xl")}
           />
           {/*
            * Where this picture came from (decision 168).
@@ -566,7 +567,8 @@ function queueOf(album: AlbumData): {
   readonly rows: readonly AlbumTrackRow[];
   readonly queue: readonly ReturnType<typeof libraryTrack>[];
 } {
-  const cover = albumCoverSources(album.album);
+  // The player bar draws its tile at `sm`, so the queue carries the 160 px variant.
+  const cover = primaryCoverUrl(albumCoverSources(album.album, "sm"));
   const rows = album.tracks.filter((track) => track.present);
   return {
     rows,
@@ -576,7 +578,7 @@ function queueOf(album: AlbumData): {
         title: track.title,
         artist: track.artist ?? album.album.albumArtist,
         album: album.album.title,
-        coverUrl: cover[0] ?? null,
+        coverUrl: cover,
         durationSeconds: track.duration,
       }),
     ),
