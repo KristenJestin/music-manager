@@ -1,10 +1,17 @@
 /**
- * The library's filter bar: a row of chips, each one a field, an operator and a value.
+ * The library's filter conditions: chips, each one a field, an operator and a value.
  *
  * A chip is a *condition*, not a preset. `Year at least 2000`, `Completion is Unknown total`,
  * `Format is one of Opus, FLAC` — composable, each removable on its own, the whole lot encoded
  * into `?f=` so the view is a link. `filter-chips.tsx` next door stays what it always was: the
- * five fixed presets, which are links and not state.
+ * fixed presets, which are links and not state.
+ *
+ * This file no longer draws a *bar*. It used to own a row of its own — a filter icon, the
+ * chips, the builder trigger, and a `Callout` underneath — sitting between the search box and
+ * the presets, which is how the filter area came to take three lines for one idea. What it
+ * exports now are the two pieces that row was made of, `FilterConditions` and `FilterNotice`,
+ * so that `components/library/filter-toolbar.tsx` can place them in one row with everything
+ * else that filters.
  *
  * ## Why it is written here rather than installed
  *
@@ -29,7 +36,7 @@
  * distinguishable by colour alone, because the chip says in words what it is.
  */
 import { useMemo, useState } from "react";
-import { Filter, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import { Checkbox } from "#/components/ui/checkbox.tsx";
@@ -56,26 +63,19 @@ import {
   type FilterOperator,
 } from "#/lib/filters/index.ts";
 
-export interface FilterBarProps {
+export interface FilterConditionsProps {
   readonly fields: FilterFieldSet;
   /** The `?f=` value, exactly as the URL holds it. */
   readonly value: string;
   readonly onChange: (next: string) => void;
-  /**
-   * What the *server* made of the same string.
-   *
-   * The bar decodes it too, for the chips, and would reach the same verdict — but the notice
-   * has to be the one the query acted on, or a reader could be told the filter applied while
-   * the list in front of them says otherwise.
-   */
-  readonly error?: string | null;
-  /** The free-text box, drawn as one more chip so it can be taken off like any other. */
-  readonly search?: {
-    readonly value: string;
-    readonly label: string;
-    readonly onClear: () => void;
-  };
   readonly testId?: string;
+}
+
+export interface FilterNoticeProps {
+  readonly fields: FilterFieldSet;
+  readonly value: string;
+  /** What the *server* made of the same string. Wins over what this side decodes. */
+  readonly error?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -83,7 +83,7 @@ export interface FilterBarProps {
 /* ------------------------------------------------------------------ */
 
 const CHIP =
-  "inline-flex h-6 items-center gap-1 rounded-xl border border-line-strong bg-surface-2 pl-2.5 text-xs text-fg-1";
+  "inline-flex h-7 items-center gap-1 rounded-lg border border-line-strong bg-surface-2 pl-2.5 text-xs text-fg-1";
 
 function conditionLabel(fields: FilterFieldSet, condition: FilterCondition): string {
   const def = findField(fields, condition.field);
@@ -119,7 +119,7 @@ function Chip({
         <button
           type="button"
           onClick={onOpen}
-          className="rounded-l-xl py-0.5 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="rounded-l-lg py-0.5 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           {label}
         </button>
@@ -128,7 +128,7 @@ function Chip({
         type="button"
         aria-label={`Remove the filter ${label}`}
         onClick={onRemove}
-        className="grid size-5 shrink-0 place-items-center rounded-r-xl text-fg-3 hover:text-danger focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        className="grid size-6 shrink-0 place-items-center rounded-r-lg text-fg-3 hover:text-danger focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
         <X className="size-3" aria-hidden="true" />
       </button>
@@ -435,7 +435,16 @@ function ConditionBuilder({
 /* the bar                                                             */
 /* ------------------------------------------------------------------ */
 
-export function FilterBar({ fields, value, onChange, error, search, testId }: FilterBarProps) {
+/**
+ * The conditions and the builder, inline — no row of its own, no margin, no notice.
+ *
+ * It used to be a strip on its own line under the search box, with the search echoed into it
+ * as one more chip. Both of those are gone: it is one item in
+ * `components/library/filter-toolbar.tsx`'s single row now, and the free-text search sits two
+ * items to its left with its own clear button, so repeating it here was a second copy of one
+ * fact rather than a way to remove it.
+ */
+export function FilterConditions({ fields, value, onChange, testId }: FilterConditionsProps) {
   const decoded = useMemo(() => decodeFilter(value, fields), [value, fields]);
   const tree = decoded.tree;
 
@@ -456,140 +465,138 @@ export function FilterBar({ fields, value, onChange, error, search, testId }: Fi
   const editingChild: FilterNode | null =
     typeof editing === "number" ? (tree.children[editing] ?? null) : null;
 
-  const notice = error ?? decoded.error;
-
   return (
-    <div className="mb-3 flex flex-col gap-2" data-testid={testId}>
-      <div
-        role="group"
-        aria-label="Filters"
-        className="flex flex-wrap items-center gap-1.5"
-        data-testid={testId === undefined ? undefined : `${testId}-chips`}
-      >
-        <Filter className="size-3.5 text-fg-3" aria-hidden="true" />
+    <div
+      role="group"
+      aria-label="Filters"
+      className="flex min-w-0 flex-wrap items-center gap-1.5"
+      data-testid={testId}
+    >
+      {tree.children.map((child, index) => (
+        <Chip
+          key={index}
+          testId={`filter-chip-${String(index)}`}
+          label={
+            child.kind === "condition" ? conditionLabel(fields, child) : groupLabel(fields, child)
+          }
+          onOpen={
+            child.kind === "condition"
+              ? () => {
+                  setEditing(index);
+                }
+              : undefined
+          }
+          onRemove={() => {
+            commit(replaceChild(tree, index, null));
+          }}
+        />
+      ))}
 
-        {search !== undefined && search.value !== "" ? (
-          <Chip
-            testId="filter-chip-search"
-            label={`${search.label} ${search.value}`}
-            onRemove={search.onClear}
-          />
-        ) : null}
-
-        {tree.children.map((child, index) => (
-          <Chip
-            key={index}
-            testId={`filter-chip-${String(index)}`}
-            label={
-              child.kind === "condition" ? conditionLabel(fields, child) : groupLabel(fields, child)
-            }
-            onOpen={
-              child.kind === "condition"
-                ? () => {
-                    setEditing(index);
-                  }
-                : undefined
-            }
-            onRemove={() => {
-              commit(replaceChild(tree, index, null));
-            }}
-          />
-        ))}
-
-        {/*
+      {/*
           One popover for "add" and for "edit this chip", anchored to the trigger either way.
           Its open state *is* `editing`, rather than a second boolean beside it: two sources of
           truth for one panel is how a trigger click ends up closing and reopening it in the
           same tick.
         */}
-        <Popover
-          open={editing !== null}
-          onOpenChange={(open: boolean) => {
-            setEditing(open ? (editing === null ? "new" : editing) : null);
+      <Popover
+        open={editing !== null}
+        onOpenChange={(open: boolean) => {
+          setEditing(open ? (editing === null ? "new" : editing) : null);
+        }}
+      >
+        <PopoverTrigger
+          data-testid="filter-add"
+          render={
+            <button
+              type="button"
+              className={cn(
+                CHIP,
+                "cursor-pointer gap-1 pr-2.5 text-fg-2 hover:bg-surface-3 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+              )}
+            >
+              <Plus className="size-3" aria-hidden="true" />
+              Filter
+            </button>
+          }
+        />
+        <PopoverContent align="start" className="w-64">
+          <ConditionBuilder
+            // Remounts between "add" and "edit this one", so the draft never leaks across.
+            key={typeof editing === "number" ? `edit-${String(editing)}` : "new"}
+            fields={fields}
+            initial={editingChild?.kind === "condition" ? editingChild : null}
+            onCancel={() => {
+              setEditing(null);
+            }}
+            onCommit={(condition) => {
+              commit(
+                typeof editing === "number"
+                  ? replaceChild(tree, editing, condition)
+                  : addCondition(tree, condition),
+              );
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {tree.children.length > 1 ? (
+        <Select
+          value={tree.join}
+          onValueChange={(next: string | null) => {
+            if (next === "and" || next === "or") commit(withJoin(tree, next));
           }}
         >
-          <PopoverTrigger
-            data-testid="filter-add"
-            render={
-              <button
-                type="button"
-                className={cn(
-                  CHIP,
-                  "cursor-pointer gap-1 pr-2.5 text-fg-2 hover:bg-surface-3 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-                )}
-              >
-                <Plus className="size-3" aria-hidden="true" />
-                Filter
-              </button>
-            }
-          />
-          <PopoverContent align="start" className="w-64">
-            <ConditionBuilder
-              // Remounts between "add" and "edit this one", so the draft never leaks across.
-              key={typeof editing === "number" ? `edit-${String(editing)}` : "new"}
-              fields={fields}
-              initial={editingChild?.kind === "condition" ? editingChild : null}
-              onCancel={() => {
-                setEditing(null);
-              }}
-              onCommit={(condition) => {
-                commit(
-                  typeof editing === "number"
-                    ? replaceChild(tree, editing, condition)
-                    : addCondition(tree, condition),
-                );
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-
-        {tree.children.length > 1 ? (
-          <Select
-            value={tree.join}
-            onValueChange={(next: string | null) => {
-              if (next === "and" || next === "or") commit(withJoin(tree, next));
-            }}
+          <SelectTrigger
+            size="sm"
+            data-testid="filter-join"
+            aria-label="Match all or any of the filters"
+            className="h-7 border-line bg-surface-1 text-2xs"
           >
-            <SelectTrigger
-              size="sm"
-              data-testid="filter-join"
-              aria-label="Match all or any of the filters"
-              className="h-6 border-line bg-surface-1 text-2xs"
-            >
-              <span data-slot="select-value">
-                {tree.join === "and" ? "Match all" : "Match any"}
-              </span>
-            </SelectTrigger>
-            <SelectContent className="text-xs">
-              <SelectItem value="and" className="text-xs">
-                Match all
-              </SelectItem>
-              <SelectItem value="or" className="text-xs">
-                Match any
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        ) : null}
+            <span data-slot="select-value">{tree.join === "and" ? "Match all" : "Match any"}</span>
+          </SelectTrigger>
+          <SelectContent className="text-xs">
+            <SelectItem value="and" className="text-xs">
+              Match all
+            </SelectItem>
+            <SelectItem value="or" className="text-xs">
+              Match any
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      ) : null}
 
-        {tree.children.length > 0 ? (
-          <button
-            type="button"
-            data-testid="filter-clear"
-            onClick={() => {
-              commit({ ...tree, join: "and", children: [] });
-            }}
-            className="text-2xs text-fg-3 underline-offset-2 hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            Clear filters
-          </button>
-        ) : null}
-      </div>
-
-      {notice === null || notice === undefined ? null : (
-        <Callout tone="warn" role="status" data-testid="filter-error">
-          {notice} Everything is shown.
-        </Callout>
-      )}
+      {tree.children.length > 0 ? (
+        <button
+          type="button"
+          data-testid="filter-clear"
+          onClick={() => {
+            commit({ ...tree, join: "and", children: [] });
+          }}
+          className="text-2xs text-fg-3 underline-offset-2 hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          Clear filters
+        </button>
+      ) : null}
     </div>
+  );
+}
+
+/**
+ * What the *server* made of `?f=`, said under the toolbar rather than inside it.
+ *
+ * Its own component because the conditions are now one item in a single row and a warning
+ * banner is not: a notice that widened the row would be a notice that moved every control
+ * beside it. The bar decodes the string too, and would reach the same verdict — but the one
+ * shown has to be the verdict the query acted on, or a reader could be told the filter applied
+ * while the list in front of them says otherwise.
+ */
+export function FilterNotice({ fields, value, error }: FilterNoticeProps) {
+  const decoded = useMemo(() => decodeFilter(value, fields), [value, fields]);
+  const notice = error ?? decoded.error;
+  if (notice === null || notice === undefined) return null;
+  return (
+    <Callout tone="warn" role="status" data-testid="filter-error" className="mb-3">
+      {notice} Everything is shown.
+    </Callout>
   );
 }

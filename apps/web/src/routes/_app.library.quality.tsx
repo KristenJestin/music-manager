@@ -13,7 +13,7 @@
  * Progress on a running re-tag arrives over the existing SSE journal rather than by polling:
  * the worker writes `retag.progress` lines as it goes, and this page listens for them.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { PROFILE_IDS } from "@mm/domain";
@@ -30,11 +30,10 @@ import { ScoreBar } from "#/components/score-bar.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
-import { FilterChips } from "#/components/library/filter-chips.tsx";
+import { FilterToolbar } from "#/components/library/filter-toolbar.tsx";
 import { RetagProgressBar, SchemaBadge, SchemaHeading } from "#/components/library/schema.tsx";
 import {
   Skeleton,
-  SkeletonChips,
   SkeletonPage,
   SkeletonPageHeader,
   SkeletonTable,
@@ -82,18 +81,115 @@ function QualityPending() {
     <SkeletonPage name="library-quality" label="Loading the metadata quality report…">
       <SkeletonPageHeader actions={2} />
       <SkeletonTiles count={7} className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-7" />
-      <Skeleton className="mb-3 h-16 w-full rounded-lg" />
-      <div className="mb-3 flex items-center gap-2">
-        <Skeleton className="h-3 w-12" />
-        <Skeleton className="h-7 w-44 rounded-lg" />
-        <Skeleton className="h-3 w-64" />
-      </div>
-      <SkeletonChips count={7} />
+      <Skeleton tone="plate" className="mb-3 h-16 w-full rounded-lg" />
+      {/*
+        The presets and the profile selector, for real and from the URL. Only their counts and
+        the one-line summary of what the chosen profile reads back are the loader's to say, so
+        those are the only things missing while it runs.
+      */}
+      <QualityToolbar counts={null} profiles={null} />
       <SkeletonTable
         rows={12}
-        columns={["w-4", "w-9", "w-1/4", "w-scorebar", "w-12", "w-16", "w-1/6", "w-12", "w-16"]}
+        columns={[
+          "w-4",
+          { cover: "sm" },
+          "w-1/4",
+          "w-scorebar",
+          "w-12",
+          "w-16",
+          "w-1/6",
+          "w-12",
+          "w-16",
+        ]}
       />
     </SkeletonPage>
+  );
+}
+
+/** One scoring profile, as much of it as the toolbar needs. */
+interface ProfileOption {
+  readonly id: string;
+  readonly name: string;
+  readonly status: string;
+}
+
+/**
+ * The presets and the profile selector of `/library/quality`, in one row.
+ *
+ * `profiles` is `null` while the loader runs, and the selector falls back to `PROFILE_IDS` —
+ * the static list from `@mm/domain`, which is where the enum in `validateSearch` comes from
+ * anyway. What the loader adds is the display name, the `(verified)` suffix and the sentence
+ * about how many tags that profile reads back; none of those change the control's box.
+ */
+function QualityToolbar({
+  counts,
+  profiles,
+  children,
+}: {
+  readonly counts: Record<(typeof QUALITY_FILTERS)[number], number> | null;
+  readonly profiles: readonly ProfileOption[] | null;
+  /** What only the loader can add: the profile's read-back sentence, the bulk action. */
+  readonly children?: ReactNode;
+}): ReactNode {
+  const params = Route.useSearch();
+  const navigate = useNavigate();
+
+  const options: readonly ProfileOption[] =
+    profiles ?? PROFILE_IDS.map((id) => ({ id, name: id, status: "" }));
+  const entry = options.find((item) => item.id === params.profile);
+  const profileLabel =
+    entry === undefined
+      ? "Global (superset)"
+      : `${entry.name}${entry.status === "verified" ? " (verified)" : ""}`;
+
+  return (
+    <FilterToolbar
+      presets={{
+        chips: QUALITY_FILTERS.map((filter) => ({
+          value: filter,
+          label: QUALITY_FILTER_LABELS[filter],
+          count: counts?.[filter] ?? null,
+        })),
+        active: params.filter,
+        testId: "quality-filters",
+        link: (filter) => ({ to: "/library/quality", search: { ...params, filter, page: 0 } }),
+      }}
+    >
+      <Select
+        value={params.profile}
+        onValueChange={(next: string | null) => {
+          if (next === null) return;
+          void navigate({
+            to: "/library/quality",
+            // A new profile re-scores and re-orders everything, so the page starts again.
+            search: { ...params, profile: next as typeof params.profile, page: 0 },
+          });
+        }}
+      >
+        <SelectTrigger
+          size="sm"
+          data-testid="quality-profile"
+          aria-label="Scoring profile"
+          className="max-w-36 border-line bg-surface-1 text-xs"
+        >
+          <span data-slot="select-value" className="truncate">
+            {profileLabel}
+          </span>
+        </SelectTrigger>
+        <SelectContent className="text-xs">
+          <SelectItem value="global" className="text-xs">
+            Global (superset)
+          </SelectItem>
+          {options.map((profile) => (
+            <SelectItem key={profile.id} value={profile.id} className="text-xs">
+              {profile.name}
+              {profile.status === "verified" ? " (verified)" : ""}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {children}
+    </FilterToolbar>
   );
 }
 
@@ -120,13 +216,6 @@ function Quality() {
   const profiled = params.profile !== "global";
   const scoreOf = (quality: (typeof payload.rows)[number]["quality"]): number | null =>
     profiled ? quality.byProfile[params.profile as never] : quality.score;
-
-  /** What the closed profile selector reads. `Select` shows a label, not the search value. */
-  const profileLabel = ((): string => {
-    const entry = payload.profiles.find((item) => item.id === params.profile);
-    if (entry === undefined) return "Global (superset)";
-    return `${entry.name}${entry.status === "verified" ? " (verified)" : ""}`;
-  })();
 
   const act = (label: string, run: () => Promise<string>): void => {
     setBusy(label);
@@ -435,43 +524,9 @@ function Quality() {
         </div>
       </Callout>
 
-      {/* ---- profile ---- */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="text-2xs text-fg-2">Profile</span>
-        <Select
-          value={params.profile}
-          onValueChange={(next: string | null) => {
-            if (next === null) return;
-            void navigate({
-              to: "/library/quality",
-              // A new profile re-scores and re-orders everything, so the page starts again.
-              search: { ...params, profile: next as typeof params.profile, page: 0 },
-            });
-          }}
-        >
-          <SelectTrigger
-            size="sm"
-            data-testid="quality-profile"
-            aria-label="Scoring profile"
-            className="border-line bg-surface-1 text-xs"
-          >
-            <span data-slot="select-value" className="truncate">
-              {profileLabel}
-            </span>
-          </SelectTrigger>
-          <SelectContent className="text-xs">
-            <SelectItem value="global" className="text-xs">
-              Global (superset)
-            </SelectItem>
-            {payload.profiles.map((profile) => (
-              <SelectItem key={profile.id} value={profile.id} className="text-xs">
-                {profile.name}
-                {profile.status === "verified" ? " (verified)" : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="text-2xs text-fg-3">
+      {/* ---- the presets, the profile, and what is selected: one row ---- */}
+      <QualityToolbar counts={payload.counts} profiles={payload.profiles}>
+        <span className="min-w-0 truncate text-2xs text-fg-3">
           {profiled
             ? (() => {
                 const entry = payload.profiles.find((item) => item.id === params.profile);
@@ -481,22 +536,11 @@ function Quality() {
               })()
             : `${payload.tagMap.length} tags written per track when every source has data`}
         </span>
-      </div>
-
-      <FilterChips
-        testId="quality-filters"
-        chips={QUALITY_FILTERS.map((filter) => ({
-          value: filter,
-          label: QUALITY_FILTER_LABELS[filter],
-          count: payload.counts[filter],
-        }))}
-        active={params.filter}
-        link={(filter) => ({ to: "/library/quality", search: { ...params, filter, page: 0 } })}
-      >
-        <span className="text-2xs text-fg-3">{selected.length} selected</span>
+        <span className="shrink-0 text-2xs text-fg-3">{selected.length} selected</span>
         <Button
           size="xs"
           variant="outline"
+          className="shrink-0"
           disabled={busy !== null || selected.length === 0}
           data-testid="retag-selection"
           onClick={() => {
@@ -514,7 +558,7 @@ function Quality() {
         >
           Re-tag selection
         </Button>
-      </FilterChips>
+      </QualityToolbar>
 
       {/* ---- the table ---- */}
       <div className="overflow-x-auto rounded-xl border border-line bg-surface-1">

@@ -5,7 +5,7 @@ import { Plus, RotateCcw } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
-import { FilterChips } from "#/components/library/filter-chips.tsx";
+import { FilterToolbar } from "#/components/library/filter-toolbar.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { Pager } from "#/components/pager.tsx";
 import { PipelineDots } from "#/components/pipeline-dots.tsx";
@@ -14,12 +14,7 @@ import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { cn } from "cn";
 import { TimeAgo } from "#/components/time-ago.tsx";
-import {
-  SkeletonChips,
-  SkeletonPage,
-  SkeletonPageHeader,
-  SkeletonTable,
-} from "#/components/skeleton.tsx";
+import { SkeletonPage, SkeletonPageHeader, SkeletonTable } from "#/components/skeleton.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useJobsProgress, type StreamState } from "#/hooks/use-jobs-progress.ts";
 import { timeAgo } from "#/lib/format.ts";
@@ -84,11 +79,13 @@ function JobsPending() {
   return (
     <SkeletonPage name="jobs" label="Loading the jobs table…">
       <SkeletonPageHeader actions={2} />
-      <SkeletonChips count={7} />
+      {/* The chips are links built from `?status=`, so they render for real; only the totals
+          on them are the loader's, and those come in as a dash. */}
+      <JobsToolbar counts={null} />
       <SkeletonTable
         pager
         rows={10}
-        columns={["w-9", "w-1/3", "w-12", "w-24", "w-48", "w-20", "w-16"]}
+        columns={[{ cover: "sm" }, "w-1/3", "w-12", "w-24", "w-48", "w-20", "w-16"]}
       />
     </SkeletonPage>
   );
@@ -108,6 +105,33 @@ const FILTERS = [
   // 275 rows had no chip of their own and could only be reached by scrolling past them.
   ["cancelled", "Cancelled"],
 ] as const;
+
+type JobFilter = (typeof FILTERS)[number][0];
+
+/**
+ * The seven status presets, from `?status=` alone.
+ *
+ * The counts are the *unfiltered* totals — 388 imports, 70 of them active — so the chips
+ * describe the whole table and not the page being looked at. Every chip resets the page:
+ * "Failed, page 6" of a set with two pages is an empty table and a puzzled owner.
+ */
+function JobsToolbar({ counts }: { readonly counts: Record<JobFilter, number> | null }) {
+  const { status } = Route.useSearch();
+  return (
+    <FilterToolbar
+      presets={{
+        chips: FILTERS.map(([value, label]) => ({
+          value,
+          label,
+          count: counts?.[value] ?? null,
+        })),
+        active: status,
+        testId: "job-filters",
+        link: (value) => ({ to: "/imports", search: { status: value, page: 0 } }),
+      }}
+    />
+  );
+}
 
 function Jobs() {
   const { jobs, counts, total, page, pageSize } = Route.useLoaderData();
@@ -345,17 +369,7 @@ function Jobs() {
         }
       />
 
-      {/*
-       * The counts are the *unfiltered* totals — 388 imports, 70 of them active — so the chips
-       * describe the whole table and not the page being looked at. Every chip resets the page:
-       * "Failed, page 6" of a set with two pages is an empty table and a puzzled owner.
-       */}
-      <FilterChips
-        testId="job-filters"
-        chips={FILTERS.map(([value, label]) => ({ value, label, count: counts[value] }))}
-        active={status}
-        link={(value) => ({ to: "/imports", search: { status: value, page: 0 } })}
-      />
+      <JobsToolbar counts={counts} />
 
       <div className="overflow-hidden rounded-xl border border-line bg-surface-1">
         <DataTable

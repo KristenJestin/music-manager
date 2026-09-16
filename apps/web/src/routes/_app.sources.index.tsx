@@ -22,12 +22,7 @@ import { ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { Toggle } from "#/components/settings/controls.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
-import {
-  Skeleton,
-  SkeletonPage,
-  SkeletonPageHeader,
-  SkeletonTable,
-} from "#/components/skeleton.tsx";
+import { SkeletonPage, SkeletonPageHeader, SkeletonTable } from "#/components/skeleton.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import {
   addWatchedSource,
@@ -45,19 +40,18 @@ export const Route = createFileRoute("/_app/sources/")({
   pendingComponent: WatchedSourcesPending,
 });
 
-/** The "watch a URL" card, then the seven-column table of what is already watched. */
+/**
+ * The "watch a URL" card for real, then the seven-column table of what is already watched.
+ *
+ * The card is three inputs over local state and owes the loader nothing, so it stays put and
+ * stays usable: you can paste a URL and press Watch before the table below has finished
+ * arriving.
+ */
 function WatchedSourcesPending() {
   return (
     <SkeletonPage name="sources" label="Loading the watched sources…">
       <SkeletonPageHeader actions={3} />
-      <div className="mb-3.5 rounded-lg border border-line bg-surface-1 p-3.5">
-        <div className="flex flex-wrap items-end gap-2">
-          <Skeleton className="h-8 min-w-0 flex-1 rounded-lg" />
-          <Skeleton className="h-8 w-48 rounded-lg" />
-          <Skeleton className="h-8 w-24 rounded-lg" />
-        </div>
-        <Skeleton className="mt-2.5 h-5 w-64" />
-      </div>
+      <AddSourceCard />
       <SkeletonTable
         rows={6}
         columns={["w-1/3", "w-16", "w-20", "w-24", "w-1/6", "w-16", "w-20"]}
@@ -73,15 +67,106 @@ const SCAN_TONE = {
   failed: "danger",
 } as const;
 
+/**
+ * The "watch a URL" card — the one control this page has, and not one byte of it is loaded.
+ *
+ * URL, label, auto-accept: three pieces of local state and a server function. It used to be
+ * three grey rectangles for as long as `fetchWatchedSources` took, for no reason at all, so it
+ * is lifted out here and rendered by `WatchedSourcesPending` as well as by the page. Only the
+ * table below it waits.
+ */
+function AddSourceCard() {
+  const router = useRouter();
+  const toast = useToast();
+
+  const [url, setUrl] = useState("");
+  const [label, setLabel] = useState("");
+  const [autoAccept, setAutoAccept] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const add = (): void => {
+    if (url.trim() === "") return;
+    setBusy(true);
+    void addWatchedSource({
+      data: {
+        url: url.trim(),
+        ...(label.trim() === "" ? {} : { label: label.trim() }),
+        autoAccept,
+      },
+    }).then(
+      () => {
+        setBusy(false);
+        setUrl("");
+        setLabel("");
+        toast("Watching it. Scan it now, or wait for the schedule.", "ok");
+        void router.invalidate();
+      },
+      (error: unknown) => {
+        setBusy(false);
+        toast(error instanceof Error ? error.message : "That did not work.", "danger");
+      },
+    );
+  };
+
+  return (
+    <div
+      className="mb-3.5 rounded-lg border border-line bg-surface-1 p-3.5"
+      data-testid="source-add"
+    >
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex min-w-0 flex-1 flex-col gap-1 text-2xs text-fg-2">
+          Playlist or channel URL
+          <Input
+            data-testid="source-url"
+            className="h-8 text-xs"
+            placeholder="https://www.youtube.com/@artist"
+            value={url}
+            onChange={(event) => {
+              setUrl(event.target.value);
+            }}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-2xs text-fg-2">
+          Label (optional)
+          <Input
+            data-testid="source-label"
+            className="h-8 w-48 text-xs"
+            placeholder="taken from the listing"
+            value={label}
+            onChange={(event) => {
+              setLabel(event.target.value);
+            }}
+          />
+        </label>
+        <Button data-testid="source-add-submit" disabled={busy} onClick={add}>
+          <Plus className="size-4" aria-hidden="true" /> Watch
+        </Button>
+      </div>
+      <div className="mt-2.5 flex items-center gap-2">
+        <Toggle
+          testId="source-auto-accept"
+          label="Auto-accept unambiguous matches"
+          checked={autoAccept}
+          onChange={setAutoAccept}
+        />
+      </div>
+      {autoAccept ? (
+        <Callout tone="warn" className="mt-2.5">
+          This source will <strong>confirm imports without you</strong> whenever the match is safe
+          and unambiguous — no review step, no wizard. Everything below that bar still waits in the
+          Inbox, and every automatic confirmation is logged against <code>watched-source</code>.
+        </Callout>
+      ) : null}
+    </div>
+  );
+}
+
 function WatchedSources() {
   const { sources } = Route.useLoaderData();
   const router = useRouter();
   const toast = useToast();
   const now = new Date();
 
-  const [url, setUrl] = useState("");
-  const [label, setLabel] = useState("");
-  const [autoAccept, setAutoAccept] = useState(false);
   const [busy, setBusy] = useState(false);
   const [doomed, setDoomed] = useState<WatchedSourceSummary | null>(null);
 
@@ -98,21 +183,6 @@ function WatchedSources() {
         toast(error instanceof Error ? error.message : "That did not work.", "danger");
       },
     );
-  };
-
-  const add = (): void => {
-    if (url.trim() === "") return;
-    act(async () => {
-      await addWatchedSource({
-        data: {
-          url: url.trim(),
-          ...(label.trim() === "" ? {} : { label: label.trim() }),
-          autoAccept,
-        },
-      });
-      setUrl("");
-      setLabel("");
-    }, "Watching it. Scan it now, or wait for the schedule.");
   };
 
   const columns: Column<WatchedSourceSummary>[] = [
@@ -263,56 +333,7 @@ function WatchedSources() {
         }
       />
 
-      <div
-        className="mb-3.5 rounded-lg border border-line bg-surface-1 p-3.5"
-        data-testid="source-add"
-      >
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-2xs text-fg-2">
-            Playlist or channel URL
-            <Input
-              data-testid="source-url"
-              className="h-8 text-xs"
-              placeholder="https://www.youtube.com/@artist"
-              value={url}
-              onChange={(event) => {
-                setUrl(event.target.value);
-              }}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-2xs text-fg-2">
-            Label (optional)
-            <Input
-              data-testid="source-label"
-              className="h-8 w-48 text-xs"
-              placeholder="taken from the listing"
-              value={label}
-              onChange={(event) => {
-                setLabel(event.target.value);
-              }}
-            />
-          </label>
-          <Button data-testid="source-add-submit" disabled={busy} onClick={add}>
-            <Plus className="size-4" aria-hidden="true" /> Watch
-          </Button>
-        </div>
-        <div className="mt-2.5 flex items-center gap-2">
-          <Toggle
-            testId="source-auto-accept"
-            label="Auto-accept unambiguous matches"
-            checked={autoAccept}
-            onChange={setAutoAccept}
-          />
-        </div>
-        {autoAccept ? (
-          <Callout tone="warn" className="mt-2.5">
-            This source will <strong>confirm imports without you</strong> whenever the match is safe
-            and unambiguous — no review step, no wizard. Everything below that bar still waits in
-            the Inbox, and every automatic confirmation is logged against{" "}
-            <code>watched-source</code>.
-          </Callout>
-        ) : null}
-      </div>
+      <AddSourceCard />
 
       <DataTable
         data-testid="sources-table"
