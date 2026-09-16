@@ -74,7 +74,12 @@ export function eventRoutes(): OpenAPIHono<ApiEnv> {
       path: "/history",
       tags: [TAG],
       summary: "Past job events, as one JSON page",
-      description: "For a client that would rather poll than hold a connection open.",
+      description:
+        "For a client that would rather poll than hold a connection open.\n\n" +
+        "**Paged by `since`, not by `offset`.** `limit` is 1–500, default 100. The journal only " +
+        "grows, so the next page is `since` set to the highest `id` you have already read — " +
+        "which never re-reads a row and never misses one written while you were away. A full " +
+        "page (`events.length === limit`) is the sign that there is more.",
       middleware: [requireScope("imports:read")] as const,
       request: { query: listEventsQuery },
       responses: {
