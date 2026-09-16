@@ -72,6 +72,8 @@ test.describe("the MCP server, through the official SDK client", () => {
       "create_import",
       "get_candidates",
       "confirm_mapping",
+      "confirm_best",
+      "create_imports",
       "list_inbox",
       "resolve_inbox",
       "search_library",
@@ -94,7 +96,10 @@ test.describe("the MCP server, through the official SDK client", () => {
 
     for (const [tool, args, key] of [
       ["search_library", { query: "discovery", limit: 3 }, "albums"],
-      ["list_imports", { limit: 5 }, null],
+      // `list_imports` answers `{total, hasMore, imports}` since `feat-api-bulk`. It used to
+      // answer a bare array, which is precisely why nothing could tell a client there were
+      // more rows than the twenty it had just been given.
+      ["list_imports", { limit: 5 }, "hasMore"],
       ["get_settings", {}, "pathTemplate"],
       // `get_status` is the tool an agent is told to reach for first; it must answer.
       ["get_status", {}, "problems"],
@@ -104,8 +109,7 @@ test.describe("the MCP server, through the official SDK client", () => {
       const content = called.content as { type: string; text: string }[];
       expect(content[0]?.type).toBe("text");
       const answer: unknown = JSON.parse(content[0]?.text ?? "null");
-      if (key === null) expect(Array.isArray(answer), "list_imports answers a list").toBe(true);
-      else expect(answer).toHaveProperty(key);
+      expect(answer).toHaveProperty(key);
     }
 
     /* ---- the resources -------------------------------------------------- */
