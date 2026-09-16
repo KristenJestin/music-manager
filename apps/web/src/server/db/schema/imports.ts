@@ -134,6 +134,10 @@ export const imports = pgTable(
     index("imports_status_idx").on(table.status),
     index("imports_next_attempt_at_idx").on(table.nextAttemptAt),
     index("imports_created_at_idx").on(table.createdAt),
+    // The Jobs list sorts on "what moved last", and the worker card asks for the single most
+    // recently moved running import. Both are `order by updated_at desc limit n` and neither
+    // may degrade into a full scan once the table holds thousands of imports.
+    index("imports_updated_at_idx").on(table.updatedAt),
     index("imports_release_mbid_idx").on(table.releaseMbid),
     index("imports_url_idx").on(table.url),
   ],

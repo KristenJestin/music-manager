@@ -203,16 +203,29 @@ export function fileOnDisk(paths: PathMap, relative: string | null): string | nu
   return stat.isFile() && stat.size > 0 ? relative : null;
 }
 
-/** Patch one import track and stamp `updated_at`. */
+/**
+ * Patch one import track and stamp `updated_at` — on the track **and on its import**.
+ *
+ * The second stamp is the point. `imports.updated_at` used to move only when a *step* row
+ * changed state, so an album on its thirteenth file looked, to anything reading the import
+ * row, exactly as still as one cancelled an hour earlier — and the Console cannot sort "what
+ * is moving" to the top of a list of four hundred jobs using a column that does not move.
+ * A track reaching a new state *is* the import moving, so the row now says so.
+ *
+ * One extra `update` per track *state* change, not per progress tick: the byte-by-byte
+ * progress goes to the journal (`track.progress`) and never through here.
+ */
 export async function updateTrack(
   ctx: StepContext,
   trackId: string,
   patch: Partial<Omit<ImportTrack, "id" | "importId" | "createdAt">>,
 ): Promise<void> {
+  const now = new Date();
   await ctx.db
     .update(importTracks)
-    .set({ ...patch, updatedAt: new Date() })
+    .set({ ...patch, updatedAt: now })
     .where(eq(importTracks.id, trackId));
+  await ctx.db.update(imports).set({ updatedAt: now }).where(eq(imports.id, ctx.job.id));
 }
 
 /** Move a track to a new state, with an optional note the Console can show. */
