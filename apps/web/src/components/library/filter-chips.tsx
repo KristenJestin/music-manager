@@ -130,7 +130,7 @@ export function PresetGroup<T extends string>({
           // reader, which cannot see that one position is amber.
           aria-current={chip.value === active ? "page" : undefined}
           className={cn(
-            "inline-flex h-7 shrink-0 items-center gap-1.5 border-r border-line px-2.5 text-xs whitespace-nowrap last:border-r-0 hover:bg-surface-2 focus-visible:z-1 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+            "inline-flex h-7 shrink-0 items-center gap-1 border-r border-line px-2 text-xs whitespace-nowrap last:border-r-0 hover:bg-surface-2 focus-visible:z-1 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
             chip.value === active
               ? "bg-primary-soft text-primary"
               : chip.count === 0

@@ -170,7 +170,7 @@ function QualityToolbar({
           size="sm"
           data-testid="quality-profile"
           aria-label="Scoring profile"
-          className="border-line bg-surface-1 text-xs"
+          className="max-w-36 border-line bg-surface-1 text-xs"
         >
           <span data-slot="select-value" className="truncate">
             {profileLabel}

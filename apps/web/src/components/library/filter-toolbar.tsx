@@ -111,7 +111,7 @@ function ToolbarSearch({
   return (
     <SearchInput
       data-testid={search.testId}
-      className="min-w-56 grow basis-64"
+      className="min-w-56 grow basis-56"
       label={search.label}
       placeholder={search.placeholder}
       value={draft}

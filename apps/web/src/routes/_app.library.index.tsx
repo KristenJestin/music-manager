@@ -167,7 +167,7 @@ function AlbumsToolbar({
           size="sm"
           data-testid="library-sort"
           aria-label="Sort albums"
-          className="border-line bg-surface-1 text-xs"
+          className="max-w-36 border-line bg-surface-1 text-xs"
         >
           <span data-slot="select-value" className="truncate">
             {SORT_LABELS[params.sort]}
@@ -195,7 +195,7 @@ function AlbumsToolbar({
           size="sm"
           data-testid="library-profile"
           aria-label="Scoring profile"
-          className="border-line bg-surface-1 text-xs"
+          className="max-w-36 border-line bg-surface-1 text-xs"
         >
           <span data-slot="select-value" className="truncate">
             {params.profile === "global" ? "Global (superset)" : params.profile}
