@@ -6,7 +6,8 @@
  * reaches the network. Four scenarios, in one pass over one library:
  *
  *  1. **resume**       — the worker is killed mid-download and restarted. The job carries on
- *                        and nothing already on disk is fetched twice.
+ *                        and nothing already on disk is fetched twice; an import the *worker*
+ *                        had paused is picked back up, and one the *owner* paused is not.
  *  2. **the album**    — fourteen `.opus` files with the right names, a `.lrc` sidecar, a
  *                        `cover.jpg`, and one file probed through the toolbox to prove the
  *                        tags really are in it.
@@ -380,9 +381,83 @@ async function main(): Promise<void> {
   info(`${String(before)} track(s) downloaded; killing the worker`);
   await stopChild(worker, 9);
 
+  /*
+   * Two pauses the restart has to tell apart.
+   *
+   * Both are created now, with no worker running, so nothing can move them before the sweep
+   * does. `mm pause` is the owner's Pause, through the real CLI, and it must survive the
+   * restart untouched — a deploy is not permission to restart a job somebody stopped.
+   *
+   * The worker's own pause is written here rather than elicited, and that is deliberate: a
+   * clean shutdown produces it (`runImport` pauses on the abort signal, as `SIGTERM` makes it
+   * do), but a child process spawned from this script cannot be sent a *catchable* `SIGTERM`
+   * on Windows — the platform terminates it instead — so eliciting it would make this test
+   * pass on one operating system and hang on another. The row is the whole of what a shutdown
+   * leaves behind, and it is the row the restarted worker is being asked about.
+   */
+  await mm("import", "fixture://skinny-love", "--yes");
+  const shutdownPaused = await latestImport();
+  await sql`update imports
+               set status = 'paused', paused_by = 'worker', updated_at = now()
+             where id = ${shutdownPaused}`;
+
+  await mm("import", "fixture://skinny-love", "--yes");
+  const ownerPaused = await latestImport();
+  await mm("pause", ownerPaused);
+
+  const pauses = await sql<{ id: string; paused_by: string | null }[]>`
+    select id, paused_by::text as paused_by from imports
+     where id in (${shutdownPaused}, ${ownerPaused})`;
+  const pausedBy = (id: string): string => pauses.find((row) => row.id === id)?.paused_by ?? "null";
+  check(
+    pausedBy(ownerPaused) === "user",
+    "`mm pause` records the owner as the one who stopped it",
+    pausedBy(ownerPaused),
+  );
+
   await recreateToolbox(FAST_MS);
   worker = spawnChild([bun, "run", "apps/web/src/worker/index.ts"], "worker");
   info("worker restarted");
+
+  const wokenUp = await waitFor(
+    shutdownPaused,
+    (row) => row.status === "done" || row.status === "failed",
+    "the shutdown-paused import to be picked back up",
+  );
+  check(
+    wokenUp.status === "done",
+    "an import paused by a worker shutting down is resumed by the next worker",
+    wokenUp.status,
+  );
+
+  const leftAlone = await job(ownerPaused);
+  check(
+    leftAlone.status === "paused",
+    "an import the owner paused is still paused after a restart",
+    leftAlone.status,
+  );
+  const messages = await sql<{ n: string }[]>`
+    select count(*)::text as n from pgboss.job
+     where data->>'importId' = ${ownerPaused} and state < 'completed'`;
+  check(
+    Number(messages[0]?.n ?? "0") === 0,
+    "…and nothing was queued for it either",
+    `${messages[0]?.n ?? "?"} message(s)`,
+  );
+
+  // The owner has to be able to read, after a deploy, what was picked back up and why.
+  const bootLog = await Bun.file(join(repoRoot, ".local", "e2e-worker.log")).text();
+  // The last one: both workers write to this file, and it is the *restarted* one being asked.
+  const sweep = bootLog
+    .split(/\r?\n/)
+    .findLast(
+      (row) => row.includes('"message":"resume sweep"') && row.includes('"trigger":"boot"'),
+    );
+  check(
+    sweep !== undefined && sweep.includes("paused-by-shutdown") && sweep.includes("running-orphan"),
+    "the boot log breaks the sweep down by reason",
+    sweep ?? "no `resume sweep` line in the worker log",
+  );
 
   const finished = await waitFor(
     first,
