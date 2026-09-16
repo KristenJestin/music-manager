@@ -31,7 +31,7 @@ export const fetchWatchedSourcesSettings = createServerFn({ method: "GET", stric
     try {
       const settings = await loadSettings(db());
       const values = settings as unknown as Record<string, unknown>;
-      const { listWatchedSources } = await import("#/server/services/watched-sources.ts");
+      const { countWatchedSources } = await import("#/server/services/watched-sources.ts");
       return {
         fields: WATCHED_SOURCES_KEYS.map((key) => ({
           key,
@@ -39,7 +39,7 @@ export const fetchWatchedSourcesSettings = createServerFn({ method: "GET", stric
           doc: SETTING_DEFINITIONS[key].doc,
         })),
         safeThreshold: settings.safeThreshold,
-        sourceCount: (await listWatchedSources(db())).length,
+        sourceCount: await countWatchedSources(db()),
       };
     } catch (error) {
       return toFailure(error);

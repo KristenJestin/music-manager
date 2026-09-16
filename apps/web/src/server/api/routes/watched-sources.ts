@@ -23,6 +23,7 @@ import {
   createWatchedSource,
   deleteWatchedSource,
   getWatchedSource,
+  requireWatchedSource,
   listWatchedSources,
   updateWatchedSource,
 } from "#/server/services/watched-sources.ts";
@@ -291,8 +292,8 @@ export function watchedSourceRoutes(): OpenAPIHono<ApiEnv> {
     }),
     async (c) => {
       const { id } = c.req.valid("param");
-      const detail = await getWatchedSource(id, db());
-      if (detail === null) throw new MMError("NOT_FOUND", `No watched source with id ${id}.`);
+      // Only "does this source exist?", and that is one row — not its whole history.
+      await requireWatchedSource(id, db());
       const jobId = await enqueueWatchedSourceScan({ sourceId: id, trigger: "api" });
       return c.json({ queued: jobId !== null, sourceId: id }, 202);
     },

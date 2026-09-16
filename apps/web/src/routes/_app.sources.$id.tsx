@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
+import { z } from "zod";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
@@ -14,6 +15,7 @@ import { Callout } from "#/components/callout.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { Pager } from "#/components/pager.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
@@ -32,8 +34,18 @@ import {
 } from "#/server/functions/watched-sources.ts";
 import type { WatchedSourceDetail } from "#/server/services/watched-sources.ts";
 
+/*
+ * The page is in the URL, never in component state, for the same reason it is on `/imports`
+ * and `/library/tracks`: a page you can link to is a page you can come back to, and a `useState`
+ * page resets itself every time the loader revalidates.
+ */
+const search = z.object({ page: z.number().int().min(0).default(0) });
+
 export const Route = createFileRoute("/_app/sources/$id")({
-  loader: async ({ params }) => await fetchWatchedSource({ data: { id: params.id } }),
+  validateSearch: search,
+  loaderDeps: ({ search: params }) => params,
+  loader: async ({ params, deps }) =>
+    await fetchWatchedSource({ data: { id: params.id, page: deps.page } }),
   staticData: { crumbs: [{ label: "Watched sources", to: "/sources" }, { label: "Source" }] },
   component: WatchedSourceDetailPage,
   pendingComponent: WatchedSourcePending,
@@ -65,7 +77,8 @@ const ITEM_TONE = {
 type Item = WatchedSourceDetail["items"][number];
 
 function WatchedSourceDetailPage() {
-  const { detail } = Route.useLoaderData();
+  const { detail, total, page, pageSize } = Route.useLoaderData();
+  const params = Route.useParams();
   const router = useRouter();
   const toast = useToast();
   const now = new Date();
@@ -283,6 +296,21 @@ function WatchedSourceDetailPage() {
         rows={detail.items}
         rowKey={(item) => item.id}
         empty="Nothing seen yet. Scan it, or wait for the schedule."
+      />
+      <Pager
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        shown={detail.items.length}
+        onPage={(next) => {
+          void router.navigate({
+            to: "/sources/$id",
+            params: { id: params.id },
+            search: { page: next },
+          });
+        }}
+        noun="videos"
+        data-testid="source-items-pager"
       />
     </>
   );

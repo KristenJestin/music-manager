@@ -39,7 +39,7 @@ import {
   imports,
   watchedSourceItems,
   watchedSources,
-  type Import,
+  type ImportStatus,
   type StoredError,
   type WatchedItemStatus,
   type WatchedSource,
@@ -118,6 +118,18 @@ export interface WatchedSourceSummary {
   readonly skipped: number;
 }
 
+/**
+ * How many sources are watched. One `count(*)`.
+ *
+ * Settings' "watched sources" line was `(await listWatchedSources()).length`, which is two
+ * queries — every source row, and a grouped tally of every item of every source — thrown away
+ * except for the array's length.
+ */
+export async function countWatchedSources(db: Database = defaultDb()): Promise<number> {
+  const [row] = await db.select({ total: sql<number>`count(*)::int` }).from(watchedSources);
+  return row?.total ?? 0;
+}
+
 export async function listWatchedSources(
   db: Database = defaultDb(),
 ): Promise<WatchedSourceSummary[]> {
@@ -153,32 +165,71 @@ export async function listWatchedSources(
   });
 }
 
-export interface WatchedSourceDetail extends WatchedSourceSummary {
-  readonly items: readonly (WatchedSourceItem & { readonly job: Import | null })[];
+/**
+ * The import a reported video turned into, as the two things anyone reads off it.
+ *
+ * The join used to drag the whole `imports` row per item — `options` and `error` jsonb
+ * included — and the page, `/api/v1` and MCP between them read `id` and `status`.
+ */
+export interface WatchedItemJob {
+  readonly id: string;
+  readonly status: ImportStatus;
 }
 
+export interface WatchedSourceDetail extends WatchedSourceSummary {
+  /** One page of what this source has reported, newest first. */
+  readonly items: readonly (WatchedSourceItem & { readonly job: WatchedItemJob | null })[];
+}
+
+export interface WatchedSourcePage {
+  /** Cap the items. Omitted means every one of them — `/api/v1` and MCP are not paged. */
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/**
+ * One watched source, with a page of its history.
+ *
+ * `total`, `imported`, `pending` and `skipped` describe the **whole** history and come out of
+ * one grouped aggregate, so they stay right whatever page is asked for. They used to be
+ * `items.filter(...).length` over every row the source had ever reported — a channel watched
+ * for a year is thousands of rows read to print one sentence, and the page rendered all of
+ * them into a table nobody scrolls to the end of.
+ */
 export async function getWatchedSource(
   id: string,
   db: Database = defaultDb(),
+  page: WatchedSourcePage = {},
 ): Promise<WatchedSourceDetail | null> {
   const [source] = await db.select().from(watchedSources).where(eq(watchedSources.id, id)).limit(1);
   if (source === undefined) return null;
 
-  const rows = await db
-    .select({ item: watchedSourceItems, job: imports })
+  const rowsQuery = db
+    .select({
+      item: watchedSourceItems,
+      job: { id: imports.id, status: imports.status },
+    })
     .from(watchedSourceItems)
     .leftJoin(imports, eq(watchedSourceItems.importId, imports.id))
     .where(eq(watchedSourceItems.sourceId, id))
     .orderBy(desc(watchedSourceItems.firstSeenAt));
 
-  const items = rows.map((row) => ({ ...row.item, job: row.job }));
+  const [rows, counts] = await Promise.all([
+    page.limit === undefined ? rowsQuery : rowsQuery.limit(page.limit).offset(page.offset ?? 0),
+    db
+      .select({ status: watchedSourceItems.status, count: sql<number>`count(*)::int` })
+      .from(watchedSourceItems)
+      .where(eq(watchedSourceItems.sourceId, id))
+      .groupBy(watchedSourceItems.status),
+  ]);
+
   const of = (status: WatchedItemStatus): number =>
-    items.filter((item) => item.status === status).length;
+    counts.find((row) => row.status === status)?.count ?? 0;
 
   return {
     source,
-    items,
-    total: items.length,
+    items: rows.map((row) => ({ ...row.item, job: row.job })),
+    total: counts.reduce((sum, row) => sum + row.count, 0),
     imported: of("imported"),
     pending: of("new"),
     skipped: of("skipped") + of("ignored"),

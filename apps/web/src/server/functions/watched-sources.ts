@@ -10,6 +10,7 @@ import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
+import { pageInfo } from "#/server/api/paging.ts";
 import { enqueueWatchedSourceScan } from "#/server/services/queue.ts";
 import {
   createWatchedSource,
@@ -33,16 +34,40 @@ export const fetchWatchedSources = createServerFn({ method: "GET", strict: STRIC
     }
   });
 
+/** How many reported videos one page of `/sources/:id` draws. */
+const SOURCE_ITEMS_PAGE = 100;
+
 export const fetchWatchedSource = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ id: z.string().min(1) }))
-  .handler(async ({ data }): Promise<{ detail: WatchedSourceDetail | null }> => {
-    try {
-      return { detail: await getWatchedSource(data.id, db()) };
-    } catch (error) {
-      return toFailure(error);
-    }
-  });
+  .inputValidator(z.object({ id: z.string().min(1), page: z.number().int().min(0).default(0) }))
+  .handler(
+    async ({
+      data,
+    }): Promise<{
+      detail: WatchedSourceDetail | null;
+      /** The whole history, which is what the pager counts down. */
+      total: number;
+      page: number;
+      pageSize: number;
+      hasMore: boolean;
+    }> => {
+      try {
+        const offset = data.page * SOURCE_ITEMS_PAGE;
+        const detail = await getWatchedSource(data.id, db(), {
+          limit: SOURCE_ITEMS_PAGE,
+          offset,
+        });
+        return {
+          detail,
+          page: data.page,
+          pageSize: SOURCE_ITEMS_PAGE,
+          ...pageInfo(detail?.total ?? 0, offset, SOURCE_ITEMS_PAGE),
+        };
+      } catch (error) {
+        return toFailure(error);
+      }
+    },
+  );
 
 export const addWatchedSource = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])

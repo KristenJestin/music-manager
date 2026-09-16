@@ -169,8 +169,12 @@ async function documentsOf(
 }
 
 /**
- * What a relocate *would* do. Pure reads plus one `existsSync` per row — no toolbox call, so
- * the Quality page can afford to run it for its counter.
+ * What a relocate *would* do.
+ *
+ * Every document in the library, and up to two synchronous `existsSync` calls per track. No
+ * toolbox call, which is what makes it safe to run before moving anything — and not what makes
+ * it cheap. `/library/quality` used to run it in its loader for a counter; ten thousand
+ * blocking stats on the SSR event loop is not a counter, it is the page.
  */
 export async function planRelocate(options: RelocateOptions = {}): Promise<RelocatePlan> {
   const db = options.db ?? defaultDb();
@@ -250,10 +254,21 @@ export async function planRelocate(options: RelocateOptions = {}): Promise<Reloc
   };
 }
 
-/** How many files sit off-template. The number the Quality page's button carries. */
-export async function countOffTemplate(options: RelocateOptions = {}): Promise<number> {
-  const plan = await planRelocate(options);
+/** A plan's off-template files: the ones that would move, plus the ones that cannot. */
+function offTemplateOf(plan: RelocatePlan): number {
   return plan.moves.length + plan.blocked.filter((entry) => entry.blocked !== "no-document").length;
+}
+
+/**
+ * How many files sit off-template.
+ *
+ * **Never call this from a loader.** It is `planRelocate`, which reads every document in the
+ * library and makes up to two synchronous `existsSync` calls per track; on a five-thousand
+ * track library that is ten thousand blocking stats on whatever event loop asked. It is a
+ * deliberate operation — the dry run — and the Console reaches it through `RelocateReport`.
+ */
+export async function countOffTemplate(options: RelocateOptions = {}): Promise<number> {
+  return offTemplateOf(await planRelocate(options));
 }
 
 /* ------------------------------------------------------------------ */
@@ -272,6 +287,16 @@ export interface RelocateReport {
   readonly scanned: number;
   readonly inPlace: number;
   readonly planned: number;
+  /**
+   * Files that sit off-template — `planned`, plus the ones something prevents moving.
+   *
+   * The same number `countOffTemplate` answers, carried here because the dry run has already
+   * paid for it. `/library/quality` used to call `countOffTemplate` **in its loader**, which
+   * read every document a second time and stat'ed the disk twice per track to put an integer
+   * on a button; the number now comes from the dry run the operator asks for before moving
+   * anything, which is the only moment it is worth knowing.
+   */
+  readonly offTemplate: number;
   readonly moved: number;
   readonly skipped: number;
   readonly failed: number;
@@ -302,6 +327,7 @@ export async function relocate(
     scanned: plan.scanned,
     inPlace: plan.inPlace,
     planned: plan.moves.length,
+    offTemplate: offTemplateOf(plan),
     blocked: plan.blocked.map((entry) => ({
       path: entry.from,
       reason: entry.blocked ?? ("no-document" as const),

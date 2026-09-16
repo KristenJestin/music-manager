@@ -41,7 +41,7 @@ import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { cn } from "cn";
 import { dateTime, mmss, pct, short, timeUntil } from "#/lib/format.ts";
 import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
-import type { ImportTrack } from "#/server/db/schema/index.ts";
+import type { JobDetailTrack } from "#/server/services/console.queries.ts";
 import {
   bumpJob,
   cancelJob,
@@ -213,7 +213,7 @@ function JobPage() {
 
   const release = (match ?? {}) as { releaseMbid?: string; mapped?: number; extras?: number };
 
-  const columns: Column<ImportTrack>[] = [
+  const columns: Column<JobDetailTrack>[] = [
     {
       key: "n",
       header: "#",

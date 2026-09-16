@@ -8,7 +8,7 @@
  * the one the wizard performs on `imports.options`, and it is here rather than in
  * `imports.service` because it belongs to the wizard, not to the pipeline.
  */
-import { and, count, desc, eq, gt, inArray, lt, ne, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, gt, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -429,9 +429,30 @@ export async function workerSnapshot(db: Database = defaultDb()): Promise<Worker
 /* one job                                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * An import track **without** `raw`, which is the whole point of the type.
+ *
+ * `raw` is the verbatim yt-dlp entry — description, every thumbnail size, every format — and
+ * `select()` brought back one per track: several megabytes on a hundred-track playlist, none
+ * of which the page, `/api/v1` or MCP ever read. Only the first entry's is wanted, for the
+ * thumbnail, and `jobDetail` fetches that one row on its own.
+ */
+export type JobDetailTrack = Omit<ImportTrack, "raw">;
+
+/**
+ * Every column of `import_tracks` except `raw`, derived from the table rather than typed out.
+ *
+ * Built from the Drizzle column map so a column added to the schema is selected here without
+ * anybody remembering to come back — the failure mode of a hand-written projection is a field
+ * that silently becomes `undefined` on the page.
+ */
+const withoutRaw = Object.fromEntries(
+  Object.entries(getTableColumns(importTracks)).filter(([name]) => name !== "raw"),
+) as Omit<typeof importTracks._.columns, "raw">;
+
 export interface JobDetail {
   readonly job: Import;
-  readonly tracks: readonly ImportTrack[];
+  readonly tracks: readonly JobDetailTrack[];
   /** One entry per step of the machine, in execution order; `row` is null if never run. */
   readonly steps: readonly { step: StepName; row: JobStep | null }[];
   readonly inbox: readonly InboxItem[];
@@ -447,9 +468,9 @@ export async function jobDetail(
   const [job] = await db.select().from(imports).where(eq(imports.id, importId)).limit(1);
   if (job === undefined) return null;
 
-  const [tracks, stepRows, items] = await Promise.all([
+  const [tracks, stepRows, items, [first]] = await Promise.all([
     db
-      .select()
+      .select(withoutRaw)
       .from(importTracks)
       .where(eq(importTracks.importId, importId))
       .orderBy(importTracks.position),
@@ -459,6 +480,13 @@ export async function jobDetail(
       .from(inboxItems)
       .where(and(eq(inboxItems.importId, importId), eq(inboxItems.status, "open")))
       .orderBy(desc(inboxItems.createdAt)),
+    /* The thumbnail comes from the first entry's `raw`, and from that one alone. */
+    db
+      .select({ raw: importTracks.raw })
+      .from(importTracks)
+      .where(eq(importTracks.importId, importId))
+      .orderBy(importTracks.position)
+      .limit(1),
   ]);
 
   const byName = new Map(stepRows.map((row) => [row.step, row]));
@@ -471,7 +499,7 @@ export async function jobDetail(
     inbox: items,
     tracksDone: tracks.filter((track) => ["placed", "done", "skipped"].includes(track.state))
       .length,
-    thumbnail: tracks[0] === undefined ? null : youtubeThumbnail(tracks[0].raw as never),
+    thumbnail: first === undefined ? null : youtubeThumbnail(first.raw as never),
   };
 }
 

@@ -6,8 +6,9 @@ import { expect, test, signIn } from "./helpers.ts";
  * 074 changed the default `pathTemplate` and said the files already placed keep their names.
  * That leaves a library permanently disagreeing with its own setting, and the MCP test report
  * (§11) found exactly that with no way out. This spec proves the way out exists in the
- * Console: a counter that says how many files are off-template, a dry run that shows the plan
- * without moving anything, and an apply that is only reachable *after* the dry run.
+ * Console: a dry run that shows the plan without moving anything and says how many files are
+ * off-template, and an apply that is only reachable *after* it. The count is on the dry run
+ * rather than on the page load because producing it reads every document in the library.
  *
  * Like `scan.spec.ts`, what it proves is the shape of the feature rather than one finding: the
  * E2E library holds whatever the specs before it imported, so both "everything is in place"
@@ -22,11 +23,22 @@ test.describe("re-filing the library against the path template", () => {
     await expect(page.getByTestId("relocate-callout")).toBeVisible({ timeout: 60_000 });
   });
 
-  test("the callout carries the template and a count of off-template files", async ({ page }) => {
+  test("the callout carries the template, and counts on request", async ({ page }) => {
     const callout = page.getByTestId("relocate-callout");
     await expect(callout).toContainText("Library layout");
     // The effective template, verbatim — the button acts on this and on nothing else.
     await expect(callout).toContainText("{title}");
+
+    /*
+     * The count is **not** on arrival, and that is the point of this assertion: producing it
+     * reads every document in the library and asks the disk about every track, which the
+     * loader used to do on every render of this page.
+     */
+    await expect(page.getByTestId("off-template")).toHaveCount(0);
+    await expect(callout).toContainText("Run the dry run");
+
+    await page.getByTestId("relocate-dry-run").click();
+    await expect(page.getByText(/would move|already in place/)).toBeVisible({ timeout: 60_000 });
 
     const counter = page.getByTestId("off-template");
     if ((await counter.count()) > 0) {
@@ -56,18 +68,17 @@ test.describe("re-filing the library against the path template", () => {
   });
 
   test("the dry run reports a plan and still moves nothing", async ({ page }) => {
-    const dry = page.getByTestId("relocate-dry-run");
-    if (await dry.isDisabled()) {
-      // Nothing is off-template; the dry run is correctly not on offer either.
-      await expect(page.getByTestId("relocate-apply")).toBeDisabled();
-      return;
-    }
-
-    await dry.click();
+    await page.getByTestId("relocate-dry-run").click();
     await expect(page.getByText(/would move|already in place/)).toBeVisible({ timeout: 60_000 });
-    // The plan is shown, file by file, before anything is offered.
-    await expect(page.getByTestId("relocate-plan")).toBeVisible();
-    await expect(page.getByTestId("relocate-apply")).toBeEnabled();
+
+    /*
+     * Apply is on offer only when the plan has moves in it — a library whose off-template
+     * files are all blocked has a count and still nothing to do.
+     */
+    if (await page.getByTestId("relocate-apply").isEnabled()) {
+      // The plan is shown, file by file, before anything is offered.
+      await expect(page.getByTestId("relocate-plan")).toBeVisible();
+    }
   });
 
   test("nothing on the page offers to delete or overwrite a file", async ({ page }) => {

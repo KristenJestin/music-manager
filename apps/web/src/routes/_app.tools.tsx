@@ -983,21 +983,21 @@ function ScanPanel({
       }
     >
       <div className="grid grid-cols-2 gap-2 p-3.5 sm:grid-cols-4">
-        <StatTile label="Files" value={report?.filesSeen ?? data.library.tracks} />
+        <StatTile label="Files" value={report?.counts.filesSeen ?? data.library.tracks} />
         <StatTile
           label="Orphans"
-          value={report?.orphans.length ?? 0}
-          tone={(report?.orphans.length ?? 0) > 0 ? "warn" : "muted"}
+          value={report?.counts.orphans ?? 0}
+          tone={(report?.counts.orphans ?? 0) > 0 ? "warn" : "muted"}
         />
         <StatTile
           label="Missing"
-          value={report?.missing.length ?? 0}
-          tone={(report?.missing.length ?? 0) > 0 ? "danger" : "muted"}
+          value={report?.counts.missing ?? 0}
+          tone={(report?.counts.missing ?? 0) > 0 ? "danger" : "muted"}
         />
         <StatTile
           label="Tag drift"
-          value={report?.drift.length ?? 0}
-          tone={(report?.drift.length ?? 0) > 0 ? "warn" : "muted"}
+          value={report?.counts.drift ?? 0}
+          tone={(report?.counts.drift ?? 0) > 0 ? "warn" : "muted"}
         />
       </div>
 
@@ -1022,41 +1022,41 @@ function ScanPanel({
               </div>
             </Callout>
           )}
-          <ScanSection title="Orphan files (not in the database)" count={report.orphans.length}>
+          <ScanSection title="Orphan files (not in the database)" count={report.counts.orphans}>
             <DataTable
               data-testid="scan-orphans"
               columns={orphanColumns}
-              rows={report.orphans.slice(0, 25)}
+              rows={report.orphans.items}
               rowKey={(row) => row.path}
               empty="None; every file on disk has a row."
             />
           </ScanSection>
           <ScanSection
             title="Missing files (in the database, not on disk)"
-            count={report.missing.length}
+            count={report.counts.missing}
           >
             <DataTable
               data-testid="scan-missing"
               columns={missingColumns}
-              rows={report.missing.slice(0, 25)}
+              rows={report.missing.items}
               rowKey={(row) => row.trackId}
               empty="None; every row points at a file."
             />
           </ScanSection>
-          <ScanSection title="Tag drift" count={report.drift.length}>
+          <ScanSection title="Tag drift" count={report.counts.drift}>
             <DataTable
               data-testid="scan-drift"
               columns={driftColumns}
-              rows={report.drift.slice(0, 25)}
+              rows={report.drift.items}
               rowKey={(row) => row.trackId}
-              empty={`None; ${String(report.probed)} file(s) probed and every tag matched its document.`}
+              empty={`None; ${String(report.counts.probed)} file(s) probed and every tag matched its document.`}
             />
           </ScanSection>
-          <ScanSection title="Duplicates (same recording)" count={report.duplicates.length}>
+          <ScanSection title="Duplicates (same recording)" count={report.counts.duplicates}>
             <DataTable
               data-testid="scan-duplicates"
               columns={duplicateColumns}
-              rows={report.duplicates.slice(0, 25)}
+              rows={report.duplicates.items}
               rowKey={(row) => row.recordingMbid}
               empty="None; no recording appears twice."
             />

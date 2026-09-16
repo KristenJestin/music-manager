@@ -12,7 +12,7 @@
  * Resolving an item writes a `decisions` row. That log is what P05 learns country, format and
  * explicit preferences from — visibly, in Settings, never opaquely.
  */
-import { and, desc, eq, isNull, type SQL } from "drizzle-orm";
+import { and, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -108,21 +108,55 @@ export async function openInboxItem(
   return created;
 }
 
-/** List items, newest first. */
-export async function listInbox(
-  filter: { status?: InboxStatus; importId?: string; type?: InboxType } = {},
-  db: Database = defaultDb(),
-): Promise<InboxItem[]> {
+export interface InboxFilter {
+  readonly status?: InboxStatus;
+  readonly importId?: string;
+  readonly type?: InboxType;
+  /** Cap the rows. `countInbox` ignores it — a count is a count of the whole set. */
+  readonly limit?: number;
+}
+
+/** The one `where` the list and the count both take, so the two cannot describe two sets. */
+function inboxWhere(filter: InboxFilter): SQL | undefined {
   const filters: SQL[] = [
     ...(filter.status === undefined ? [] : [eq(inboxItems.status, filter.status)]),
     ...(filter.importId === undefined ? [] : [eq(inboxItems.importId, filter.importId)]),
     ...(filter.type === undefined ? [] : [eq(inboxItems.type, filter.type)]),
   ];
-  return await db
+  return filters.length === 0 ? undefined : and(...filters);
+}
+
+/** List items, newest first. */
+export async function listInbox(
+  filter: InboxFilter = {},
+  db: Database = defaultDb(),
+): Promise<InboxItem[]> {
+  const query = db
     .select()
     .from(inboxItems)
-    .where(filters.length === 0 ? undefined : and(...filters))
+    .where(inboxWhere(filter))
     .orderBy(desc(inboxItems.createdAt));
+  return filter.limit === undefined ? await query : await query.limit(filter.limit);
+}
+
+/**
+ * How many items match, as a `count(*)`.
+ *
+ * The shell's "needs review" badge used to be `listInbox({status:"open"}).length`, which reads
+ * every open item **with its `payload`** — the whole candidate set of every unresolved match —
+ * to produce one integer. With `defaultPreload: "intent"` and `defaultPreloadStaleTime: 0`
+ * (`src/router.tsx`) the shell loader runs again on every link hover, so that was a few
+ * hundred jsonb documents per mouse movement across the sidebar.
+ */
+export async function countInbox(
+  filter: InboxFilter = {},
+  db: Database = defaultDb(),
+): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(inboxItems)
+    .where(inboxWhere(filter));
+  return row?.total ?? 0;
 }
 
 export async function getInboxItem(
@@ -135,8 +169,7 @@ export async function getInboxItem(
 
 /** True when this import still has something blocking it. */
 export async function hasOpenItems(importId: string, db: Database = defaultDb()): Promise<boolean> {
-  const open = await listInbox({ importId, status: "open" }, db);
-  return open.length > 0;
+  return (await countInbox({ importId, status: "open" }, db)) > 0;
 }
 
 export interface ResolveOptions {

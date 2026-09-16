@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/u
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { Pager } from "#/components/pager.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
@@ -51,13 +52,19 @@ import type { RelocateReport } from "#/server/services/relocate.ts";
 const search = z.object({
   filter: z.enum(QUALITY_FILTERS).default("all"),
   profile: z.enum(["global", ...PROFILE_IDS]).default("global"),
+  /*
+   * The page, in the URL like every other one in this Console. The table is paged because
+   * six hundred rows of it is twenty megabytes of loader payload; the chips and the tiles
+   * above it are not, because they are statements about the whole library.
+   */
+  page: z.number().int().min(0).default(0),
 });
 
 export const Route = createFileRoute("/_app/library/quality")({
   validateSearch: search,
   loaderDeps: ({ search: params }) => params,
   loader: async ({ deps }) =>
-    await fetchQuality({ data: { filter: deps.filter, profile: deps.profile } }),
+    await fetchQuality({ data: { filter: deps.filter, profile: deps.profile, page: deps.page } }),
   staticData: { crumbs: [{ label: "Library", to: "/library" }, { label: "Quality" }] },
   component: Quality,
   pendingComponent: QualityPending,
@@ -66,9 +73,9 @@ export const Route = createFileRoute("/_app/library/quality")({
 /**
  * Seven tiles, the relocate callout, the profile row, the chips, and the nine-column table.
  *
- * This is the page whose loader is genuinely slow — it scores the whole library, unpaged — so
- * it is the one most likely to be seen. Seven tiles at `lg:grid-cols-7` rather than a generic
- * four, because a row of tiles that changes count is a full-width reflow.
+ * This is the page whose loader is genuinely slow — it scores every album in the library, even
+ * though only a page of them travels — so it is the one most likely to be seen. Seven tiles at
+ * `lg:grid-cols-7` rather than a generic four: a row of tiles that changes count is a reflow.
  */
 function QualityPending() {
   return (
@@ -141,6 +148,16 @@ function Quality() {
       current.includes(albumId) ? current.filter((id) => id !== albumId) : [...current, albumId],
     );
   };
+
+  /*
+   * How many files sit off-template — `null` until a dry run has been asked for.
+   *
+   * It used to come with the loader, which meant every render of this page re-read every
+   * document in the library and stat'ed the disk twice per track for one integer. It is the
+   * dry run's own number now (`RelocateReport.offTemplate`), and the dry run is what the
+   * operator presses before moving anything anyway.
+   */
+  const offTemplate = relocatePlan?.offTemplate ?? null;
 
   const stats = payload.stats;
   const averageForProfile = profiled
@@ -217,8 +234,8 @@ function Quality() {
         />
         <StatTile
           label="Drift"
-          value={stats.driftTracks}
-          tone={stats.driftTracks === 0 ? "ok" : "warn"}
+          value={stats.driftTracks ?? "—"}
+          tone={(stats.driftTracks ?? 0) === 0 ? "ok" : "warn"}
           sub="tracks · the file differs from the database"
           to="/library/quality"
           search={{ filter: "drift", profile: params.profile }}
@@ -234,9 +251,13 @@ function Quality() {
         />
         <StatTile
           label="Off template"
-          value={payload.offTemplate}
-          tone={payload.offTemplate === 0 ? "ok" : "warn"}
-          sub="files · filed under an older layout"
+          value={offTemplate === null ? "—" : offTemplate}
+          tone={offTemplate === null ? "muted" : offTemplate === 0 ? "ok" : "warn"}
+          sub={
+            offTemplate === null
+              ? "run the dry run below to count them"
+              : "files · filed under an older layout"
+          }
           icon={<FolderTree className="size-3.5" aria-hidden="true" />}
         />
       </div>
@@ -333,7 +354,7 @@ function Quality() {
 
       {/* ---- the path template (decision 074, and its other half) ---- */}
       <Callout
-        tone={payload.offTemplate === 0 ? "ok" : "warn"}
+        tone={offTemplate === null ? "info" : offTemplate === 0 ? "ok" : "warn"}
         className="mb-3"
         icon={<FolderTree className="size-4" aria-hidden="true" />}
         data-testid="relocate-callout"
@@ -342,12 +363,18 @@ function Quality() {
           <div className="min-w-0">
             <span className="font-medium">Library layout</span>{" "}
             <code className="font-mono text-2xs">{payload.pathTemplate}</code>{" "}
-            {payload.offTemplate === 0 ? (
+            {offTemplate === null ? (
+              <>
+                Counting the files that sit off-template means rendering the template for every
+                track and asking the disk about each one, so it happens when you ask rather than
+                every time this page is drawn. Run the dry run.
+              </>
+            ) : offTemplate === 0 ? (
               <>Every file is filed where the template says it belongs.</>
             ) : (
               <>
                 <span data-testid="off-template" className="font-mono">
-                  {payload.offTemplate}
+                  {offTemplate}
                 </span>{" "}
                 file(s) are filed under an older layout. Re-tagging fixes the tags, never the paths,
                 so they stay this way until they are moved. Navidrome identifies a file by its path,
@@ -377,7 +404,7 @@ function Quality() {
             <Button
               size="sm"
               variant="outline"
-              disabled={busy !== null || payload.offTemplate === 0}
+              disabled={busy !== null}
               data-testid="relocate-dry-run"
               onClick={() => {
                 act("relocate-dry", async () => {
@@ -401,8 +428,8 @@ function Quality() {
                 });
               }}
             >
-              <FolderTree className="size-3.5" aria-hidden="true" /> Re-file {payload.offTemplate}{" "}
-              file(s)
+              <FolderTree className="size-3.5" aria-hidden="true" /> Re-file{" "}
+              {relocatePlan === null ? "" : `${String(relocatePlan.planned)} `}file(s)
             </Button>
           </div>
         </div>
@@ -417,7 +444,8 @@ function Quality() {
             if (next === null) return;
             void navigate({
               to: "/library/quality",
-              search: { ...params, profile: next as typeof params.profile },
+              // A new profile re-scores and re-orders everything, so the page starts again.
+              search: { ...params, profile: next as typeof params.profile, page: 0 },
             });
           }}
         >
@@ -463,7 +491,7 @@ function Quality() {
           count: payload.counts[filter],
         }))}
         active={params.filter}
-        link={(filter) => ({ to: "/library/quality", search: { ...params, filter } })}
+        link={(filter) => ({ to: "/library/quality", search: { ...params, filter, page: 0 } })}
       >
         <span className="text-2xs text-fg-3">{selected.length} selected</span>
         <Button
@@ -602,7 +630,7 @@ function Quality() {
                     </span>
                   </td>
                   <td className="px-2.5 py-1.5">
-                    {row.quality.driftCount === 0 ? (
+                    {(row.quality.driftCount ?? 0) === 0 ? (
                       <span className="text-fg-3">none</span>
                     ) : (
                       <ToneBadge tone="warn">{row.quality.driftCount}</ToneBadge>
@@ -631,6 +659,18 @@ function Quality() {
           </tbody>
         </table>
       </div>
+
+      <Pager
+        page={payload.page}
+        pageSize={payload.pageSize}
+        total={payload.total}
+        shown={payload.rows.length}
+        onPage={(next) => {
+          void navigate({ to: "/library/quality", search: { ...params, page: next } });
+        }}
+        noun="albums"
+        data-testid="quality-pager"
+      />
 
       <Callout tone="info" className="mt-3">
         Score = the share of applicable tags actually written, weighted by level (required counts

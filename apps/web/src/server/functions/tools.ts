@@ -25,9 +25,9 @@ import {
   lastScan,
   libraryCounts,
   recentScans,
-  reportOf,
+  summariseScan,
   trashFile,
-  type ScanReport,
+  type ScanSummary,
 } from "#/server/services/scan.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import {
@@ -48,6 +48,13 @@ import {
 } from "#/server/services/tools.ts";
 import type { ErrorCatalogEntry, SelfTestResult } from "#/server/toolbox/client.ts";
 
+/**
+ * How many rows of each scan finding the page draws — and therefore how many travel.
+ *
+ * The number is the table's own `.slice(0, 25)`, moved to the side that decides what to send.
+ */
+const SCAN_ITEMS_SHOWN = 25;
+
 export interface ToolsPayload {
   readonly downloader: DownloaderHealth;
   readonly cookies: CookiesStatus;
@@ -58,7 +65,17 @@ export interface ToolsPayload {
   readonly scan: {
     readonly at: string | null;
     readonly durationMs: number | null;
-    readonly report: ScanReport | null;
+    /**
+     * The last scan, **capped**: every finding counted in full, the first
+     * `SCAN_ITEMS_SHOWN` of each list carried, and `more` for the rest.
+     *
+     * This used to be the stored `ScanReport`, whose `orphans`, `missing`, `drift`,
+     * `duplicates`, `merged` and `mergeConflicts` arrays are uncapped — a scan of a library
+     * with a thousand orphans shipped a thousand of them so the page could render
+     * `.slice(0, 25)`. `merged` and `mergeConflicts` were never rendered at all.
+     * `summariseScan` was already here, already tested, and already used by `/api/v1` and MCP.
+     */
+    readonly report: ScanSummary | null;
     readonly running: boolean;
   };
   readonly library: { readonly albums: number; readonly tracks: number };
@@ -112,7 +129,15 @@ export const fetchTools = createServerFn({ method: "GET", strict: STRICT })
         scan: {
           at: scanRow?.finishedAt?.toISOString() ?? null,
           durationMs: scanRow?.durationMs ?? null,
-          report: scanRow === null ? null : reportOf(scanRow),
+          /*
+           * `null` for a run that stored no report at all, exactly as before: that is what
+           * makes the page say "the library has never been scanned" rather than draw four
+           * empty tables. `summariseScan` would happily summarise nothing.
+           */
+          report:
+            scanRow === null || scanRow.report === null
+              ? null
+              : summariseScan(scanRow, SCAN_ITEMS_SHOWN),
           running: false,
         },
         library,
