@@ -49,6 +49,7 @@ import {
   planUpstreamRetry,
   sourceOf,
   UPSTREAM_EXHAUSTED_CODE,
+  wasKilledByASource,
   type UpstreamHold,
   type UpstreamPolicy,
 } from "./upstream.ts";
@@ -601,6 +602,91 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 
   const current = await requireImport(importId, db);
   return { importId, status: current.status, step: current.step, ran, handOff: null, hold: null };
+}
+
+/* ------------------------------------------------------------------ */
+/* the imports a source killed                                         */
+/* ------------------------------------------------------------------ */
+
+/** One import that failed on a source, and where a retry of it would restart. */
+export interface UpstreamFailure {
+  readonly id: string;
+  readonly url: string;
+  readonly title: string | null;
+  readonly step: StepName;
+  readonly source: string | null;
+  readonly code: string;
+  readonly attempts: number;
+  readonly failedAt: Date | null;
+}
+
+/**
+ * Every `failed` import whose failure was the source's fault.
+ *
+ * The filter is **`wasKilledByASource`, not a code list**, and that is the point: the forty-five
+ * albums this exists for died before `UPSTREAM_UNAVAILABLE` was a code at all. Their rows say
+ * `SOURCE_UNAVAILABLE` with `status: 503`, which is exactly what the rule was written to
+ * recognise — so the same function that decides the live case also identifies the historical
+ * one, and there is no second definition of "upstream" to keep in step with the first.
+ *
+ * SQL narrows to `failed` with an error; the rule does the rest in one pass. A coarse filter
+ * and one predicate beats a clever `jsonb` query that would be a second implementation.
+ */
+export async function upstreamFailures(
+  db: Database = defaultDb(),
+  options: { limit?: number } = {},
+): Promise<UpstreamFailure[]> {
+  const rows = await db
+    .select()
+    .from(imports)
+    .where(and(eq(imports.status, "failed"), isNotNull(imports.error)))
+    .orderBy(asc(imports.createdAt));
+
+  const matched: UpstreamFailure[] = [];
+  for (const row of rows) {
+    if (!wasKilledByASource(row.error)) continue;
+    matched.push({
+      id: row.id,
+      url: row.url,
+      title: row.title,
+      step: row.step,
+      source: sourceOf(row.error),
+      code: row.error?.code ?? "UNKNOWN",
+      attempts: row.upstreamAttempts,
+      failedAt: row.finishedAt,
+    });
+    if (options.limit !== undefined && matched.length >= options.limit) break;
+  }
+  return matched;
+}
+
+/**
+ * Put every import a source killed back on the line. **Nothing is executed here.**
+ *
+ * Rewind only, exactly like `rewindTo` and for the same reason (owner review C3): the caller
+ * puts the ids on a queue, with one producer for all of them rather than one each — forty-five
+ * short-lived pg-boss connections to retry forty-five albums would be its own small incident.
+ *
+ * **Idempotent by construction.** `rewindTo` moves the row out of `failed` and into `running`,
+ * so a second call selects nothing: the answer to "did that work, let me run it again" is an
+ * empty list, not forty-five duplicate jobs. It also resets `upstream_attempts`, so a requeued
+ * import gets a fresh ladder rather than inheriting an exhausted one.
+ */
+export async function requeueUpstreamFailures(
+  options: { limit?: number; dryRun?: boolean } = {},
+  db: Database = defaultDb(),
+): Promise<(UpstreamFailure & { restartAt: StepName })[]> {
+  const found = await upstreamFailures(db, options);
+  const planned: (UpstreamFailure & { restartAt: StepName })[] = [];
+  for (const failure of found) {
+    // From where the job actually stopped, not from `resolve`: the files that came down before
+    // MusicBrainz refused are still on disk, and re-fetching them would be the expensive way
+    // of being wrong.
+    const restartAt = await resumeStepOf(failure.id, db);
+    planned.push({ ...failure, restartAt });
+    if (options.dryRun !== true) await rewindTo(failure.id, restartAt, db);
+  }
+  return planned;
 }
 
 /* ------------------------------------------------------------------ */

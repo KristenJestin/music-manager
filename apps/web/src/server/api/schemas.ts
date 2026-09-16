@@ -219,6 +219,46 @@ export const retryStepSchema = z
   .openapi("RetryStep");
 
 /**
+ * `POST /imports/retry-failed-upstream` — the whole outage in one call.
+ *
+ * A body with two optional knobs and no required field, so the common case is an empty POST.
+ * `dryRun` exists because "which ones?" is a fair question to ask before answering it, and
+ * `limit` because the first requeue after a long outage may be worth doing in batches.
+ */
+export const bulkRetrySchema = z
+  .object({
+    dryRun: z.boolean().default(false).openapi({ description: "List them and change nothing." }),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .openapi({ description: "Requeue at most this many, oldest first." }),
+  })
+  .default({ dryRun: false })
+  .openapi("BulkRetry");
+
+export const bulkRetryResultSchema = z
+  .object({
+    requeued: z.number().int(),
+    dryRun: z.boolean(),
+    imports: z.array(
+      z.object({
+        id: z.string(),
+        url: z.string(),
+        title: z.string().nullable(),
+        /** Where the retry restarts — where the job actually stopped, not `resolve`. */
+        step: z.string(),
+        /** Which source refused, when the stored error named one. */
+        source: z.string().nullable(),
+        code: z.string(),
+        upstreamAttempts: z.number().int(),
+      }),
+    ),
+  })
+  .openapi("BulkRetryResult");
+
+/**
  * `POST /imports/{id}/confirm-mapping`.
  *
  * Field-for-field the wizard's `startInput` minus `importId`, which is in the path. The

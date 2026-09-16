@@ -30,7 +30,7 @@ import { useToast } from "#/components/shell/shell-context.tsx";
 import { liveTracks, TrackProgress } from "#/components/track-progress.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { cn } from "cn";
-import { dateTime, mmss, pct, short } from "#/lib/format.ts";
+import { dateTime, mmss, pct, short, timeUntil } from "#/lib/format.ts";
 import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import {
@@ -71,6 +71,19 @@ export const Route = createFileRoute("/_app/imports/$id")({
 });
 
 const ACTIVE: readonly ImportStatus[] = ["pending", "running"];
+
+/**
+ * Which source refused, read straight off the stored error body.
+ *
+ * Two lines rather than an import of `services/jobs/upstream.ts`: this file reaches the
+ * browser, and `client-boundary.guard.test.ts` only lets it value-import `server/**` through a
+ * server function. The shape is `integrations/http.ts`'s own `details.source`, which every
+ * source error carries.
+ */
+function refusedBy(error: { details?: Record<string, unknown> } | null): string {
+  const named = error?.details?.["source"];
+  return typeof named === "string" && named !== "" ? named : "the source";
+}
 
 /** The three tones `scoreTone` returns, as text colour — the discreet confidence figure next
  *  to the recording title (owner review F1) reads the same three colours `ScoreBar` used to. */
@@ -429,7 +442,25 @@ function JobPage() {
         </div>
       </div>
 
-      {job.error === null ? null : (
+      {/*
+       * A job that is waiting on a source keeps its error — it is the sentence saying who
+       * refused — but it must not be painted red, and it must say when it will try again.
+       * "Waiting on musicbrainz, attempt 3 of 6, next try in about 4 minutes" is an answer;
+       * a red banner over a job that is going to fix itself is the thing that made an outage
+       * look like forty-five broken imports.
+       */}
+      {job.status === "waiting_upstream" ? (
+        <Callout tone="warn" className="mb-3.5" data-testid="waiting-upstream">
+          <span suppressHydrationWarning>
+            <b>Waiting on {refusedBy(job.error)}</b> — attempt {job.upstreamAttempts}, next try{" "}
+            {timeUntil(job.nextAttemptAt)}. Nothing is wrong with the files; nobody has to press
+            anything.
+          </span>
+          {job.error === null ? null : (
+            <div className="mt-1.5 font-mono text-2xs opacity-80">{job.error.message}</div>
+          )}
+        </Callout>
+      ) : job.error === null ? null : (
         <Callout tone="danger" className="mb-3.5">
           <b>{job.error.code}</b>: {job.error.hint ?? job.error.message}
           <div className="mt-1.5 font-mono text-2xs opacity-80">{job.error.message}</div>

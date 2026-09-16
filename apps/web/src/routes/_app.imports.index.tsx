@@ -11,7 +11,7 @@ import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { cn } from "cn";
 import { TimeAgo } from "#/components/time-ago.tsx";
-import { bumpJob, fetchJobs, retryJob } from "#/server/functions/jobs.ts";
+import { bumpJob, fetchJobs, retryFailedUpstream, retryJob } from "#/server/functions/jobs.ts";
 import type { JobSummary } from "#/server/services/console.queries.ts";
 
 const search = z.object({
@@ -50,6 +50,10 @@ const FILTERS = [
   ["all", "All"],
   ["active", "Active"],
   ["awaiting_review", "Needs review"],
+  // A source refusing us is a state of its own, and it gets a chip of its own: during an
+  // outage the owner's question is "how many are waiting", and the answer used to be
+  // indistinguishable from "how many are broken".
+  ["waiting_upstream", "Waiting on source"],
   ["failed", "Failed"],
   ["done", "Done"],
 ] as const;
@@ -212,6 +216,26 @@ function Jobs() {
         description="Every import is a job; one track downloads at a time."
         actions={
           <>
+            {counts.failed > 0 ? (
+              // Shown only when there is something to sweep. One press answers an outage that
+              // would otherwise be forty-five presses of the per-row Retry beside it, and the
+              // rule behind it refuses to pick up a 404 on the way past.
+              <Button
+                variant="outline"
+                data-testid="retry-failed-upstream"
+                onClick={() => {
+                  act(async () => {
+                    const done = await retryFailedUpstream();
+                    if (done.requeued === 0) {
+                      throw new Error("No import failed on a source; nothing to requeue.");
+                    }
+                    return done;
+                  }, "Requeued the imports a source had refused.");
+                }}
+              >
+                <RotateCcw className="size-4" aria-hidden="true" /> Retry source failures
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               onClick={() => {

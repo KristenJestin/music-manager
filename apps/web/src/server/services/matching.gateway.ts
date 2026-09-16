@@ -187,6 +187,40 @@ export function resetOutages(): void {
  * the status are byte-for-byte the ones a real 503 produces; there is nothing here for the
  * error screen to accidentally special-case.
  */
+/**
+ * `fixture://<name>?mb=503[&mbtimes=2]` — the recorded scenario, with MusicBrainz refusing.
+ *
+ * The same convention as the toolbox's `fixture://discovery?fp=mismatch`: the fault travels in
+ * the fixture URL, so the situation it reproduces is offline, deterministic and drivable from
+ * a browser test *and* from the pipeline. Only `fixture://` URLs are read for it — every caller
+ * looks the cassette up first — so nothing a user can paste reaches it.
+ *
+ * `mbtimes` defaults to 1, which is the interesting default for the wizard: one refusal is
+ * what its cache fallback is meant to survive. The step machine uses larger numbers, because
+ * what it is proving is a *ladder* of retries rather than a single fallback.
+ *
+ * It lives here rather than in `matching.queries.ts`, where it started, because the `match`
+ * step needs it too: the wizard honoured `?mb=503` and the pipeline did not, so the one
+ * recorded outage this repository owns could not be driven through the thing it is about.
+ */
+export function outageOf(url: string): { status: number; times: number } | null {
+  const query = url.split("?")[1];
+  if (query === undefined) return null;
+  const params = new URLSearchParams(query.split("#")[0] ?? "");
+  const value = params.get("mb");
+  if (value === null) return null;
+  const status = Number(value);
+  if (!Number.isInteger(status) || status < 400 || status > 599) return null;
+  const times = Number(params.get("mbtimes") ?? "1");
+  return { status, times: Number.isInteger(times) && times > 0 ? times : 1 };
+}
+
+/** `outageGateway` when the URL asks for one, the gateway untouched when it does not. */
+export function withOutage(gateway: MbGateway, url: string): MbGateway {
+  const outage = outageOf(url);
+  return outage === null ? gateway : outageGateway(gateway, url, outage.status, outage.times);
+}
+
 export function outageGateway(
   inner: MbGateway,
   key: string,

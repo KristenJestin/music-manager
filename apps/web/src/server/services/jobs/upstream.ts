@@ -133,6 +133,25 @@ export function isUpstreamFailure(error: MMErrorBody | null | undefined): boolea
   return classifyFailure(error) === "upstream";
 }
 
+/**
+ * Was this failure the source's fault? — a **different question** from "should we wait?".
+ *
+ * `classifyFailure` answers the second, and it deliberately calls `UPSTREAM_UNAVAILABLE` a
+ * defect so that a job which already exhausted its ladder does not silently start another one.
+ * But that code is precisely the mark of a job a source killed, so a bulk requeue built on
+ * `classifyFailure` alone excluded the very rows it exists for — which is what the integration
+ * test caught, and what would have made `mm retry --failed-upstream` answer "nothing to do"
+ * during the next outage.
+ *
+ * So: a row was killed by a source if it is upstream *now*, or if it carries the code we
+ * ourselves stamp on it when the waiting ran out. Stated once, here, rather than as an `||` at
+ * each of the three call sites.
+ */
+export function wasKilledByASource(error: MMErrorBody | null | undefined): boolean {
+  if (error === null || error === undefined) return false;
+  return error.code === UPSTREAM_EXHAUSTED_CODE || classifyFailure(error) === "upstream";
+}
+
 /** Which source refused, when it said so. What makes the row read "waiting on musicbrainz". */
 export function sourceOf(error: MMErrorBody | null | undefined): string | null {
   const named = error?.details?.["source"];

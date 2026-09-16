@@ -15,6 +15,7 @@ import {
   planUpstreamRetry,
   sourceOf,
   UPSTREAM_EXHAUSTED_CODE,
+  wasKilledByASource,
 } from "./upstream.ts";
 
 const POLICY = { maxAttempts: 6, baseMs: 30_000, maxMs: 3_600_000 };
@@ -122,6 +123,33 @@ describe("classifyFailure — the import is broken", () => {
 
   it("calls a missing MusicBrainz contact a settings error, not a busy server", () => {
     expect(classifyFailure(body(new MMError("MB_CONTACT_MISSING", "no contact")))).toBe("defect");
+  });
+});
+
+describe("wasKilledByASource — a different question from 'should we wait?'", () => {
+  it("claims the job whose ladder ran out, which `classifyFailure` deliberately does not", () => {
+    // These two disagreeing is the design, and getting it wrong once already made the bulk
+    // requeue answer "nothing to do" about the very rows it exists for.
+    const exhausted = body(
+      new MMError(UPSTREAM_EXHAUSTED_CODE, "musicbrainz refused 6 times.", {
+        details: { source: "musicbrainz" },
+      }),
+    );
+    expect(classifyFailure(exhausted)).toBe("defect");
+    expect(wasKilledByASource(exhausted)).toBe(true);
+  });
+
+  it("claims the rows the forty-five actually carry, written before that code existed", () => {
+    // A 503 stored in September reads `SOURCE_UNAVAILABLE` with `status: 503`. No migration,
+    // no back-fill: the rule recognises them as they are.
+    expect(wasKilledByASource(body(sourceHttpError("musicbrainz", "https://x", 503)))).toBe(true);
+  });
+
+  it("never claims a broken import", () => {
+    expect(wasKilledByASource(body(sourceHttpError("musicbrainz", "https://x", 404)))).toBe(false);
+    expect(wasKilledByASource(body(new MMError("INVALID_INPUT", "bad mbid")))).toBe(false);
+    expect(wasKilledByASource(body(MMError.from(new TypeError("our bug"))))).toBe(false);
+    expect(wasKilledByASource(null)).toBe(false);
   });
 });
 

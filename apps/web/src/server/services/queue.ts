@@ -123,6 +123,32 @@ export async function enqueueWebhook(deliveryId: string): Promise<string | null>
   }
 }
 
+/**
+ * Put several imports back on the queue with **one** producer.
+ *
+ * `enqueue` opens a pg-boss client per call, which is right for the Console pressing Retry on
+ * one job and wrong for the bulk requeue of an outage: forty-five imports would mean forty-five
+ * connections opened and closed in a loop, inside one HTTP request. One client, one pass.
+ */
+export async function enqueueAll(
+  jobs: readonly { importId: string; step: StepName }[],
+  reason: string,
+): Promise<number> {
+  if (jobs.length === 0) return 0;
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    for (const job of jobs) {
+      if (job.step === "download") await enqueueDownload(boss, { importId: job.importId });
+      else await enqueueImportStep(boss, { importId: job.importId, reason, step: job.step });
+    }
+    return jobs.length;
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
 export async function enqueue(importId: string, reason: string, step?: StepName): Promise<void> {
   const boss = createBoss({ producer: true });
   try {

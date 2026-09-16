@@ -60,9 +60,11 @@ import {
   cancelImport,
   listImports,
   pauseImport,
+  requeueUpstreamFailures,
   rewindTo,
   stepsOf,
 } from "#/server/services/jobs/index.ts";
+import { enqueueAll } from "#/server/services/queue.ts";
 import {
   isSecretSetting,
   isSettingKey,
@@ -294,11 +296,74 @@ async function cmdJob(args: Args): Promise<number> {
   return 0;
 }
 
+/**
+ * `mm retry --failed-upstream` — the forty-five, in one command.
+ *
+ * The whole point of the flag is that the answer to a source outage is not forty-five
+ * invocations of `mm retry <id> --step match`, typed out of a list read off a screen. The
+ * selection is `classifyFailure`'s, so it is the same rule that decides the live case, and it
+ * catches rows written long before this branch existed: a 503 stored as `SOURCE_UNAVAILABLE`
+ * with `status: 503` is what the rule was written to recognise.
+ *
+ * `--dry-run` prints the selection and touches nothing, because "which forty-five?" is a fair
+ * question to ask before answering it.
+ */
+async function cmdRetryFailedUpstream(args: Args): Promise<number> {
+  const dryRun = flagBoolean(args, "dry-run");
+  const limitFlag = flagString(args, "limit");
+  const limit = limitFlag === undefined ? undefined : Number(limitFlag);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+    throw new MMError("INVALID_INPUT", `--limit wants a positive integer, got "${limitFlag}".`);
+  }
+
+  const planned = await requeueUpstreamFailures(
+    { dryRun, ...(limit === undefined ? {} : { limit }) },
+    db(),
+  );
+  if (planned.length === 0) {
+    line("no import failed on a source; nothing to requeue");
+    return 0;
+  }
+
+  line("ID                               STEP          SOURCE        CODE");
+  for (const job of planned) {
+    line(
+      job.id.padEnd(32),
+      job.restartAt.padEnd(13),
+      (job.source ?? "-").padEnd(13),
+      job.code,
+      "  ",
+      job.title ?? job.url,
+    );
+  }
+
+  if (dryRun) {
+    line("");
+    line(`${String(planned.length)} import(s) would be requeued (--dry-run: nothing was touched)`);
+    return 0;
+  }
+
+  const queued = await enqueueAll(
+    planned.map((job) => ({ importId: job.id, step: job.restartAt })),
+    "retry --failed-upstream",
+  );
+  line("");
+  line(`${String(queued)} import(s) rewound and queued for the worker`);
+  // Idempotent on purpose: they are no longer `failed`, so running this again selects nothing.
+  return 0;
+}
+
 async function cmdRetry(args: Args): Promise<number> {
+  if (flagBoolean(args, "failed-upstream")) return await cmdRetryFailedUpstream(args);
+
   const id = args.positional[1];
   const step = flagString(args, "step");
   if (id === undefined || step === undefined) {
-    throw new MMError("INVALID_INPUT", `usage: mm retry <id> --step <${STEP_ORDER.join("|")}>`);
+    throw new MMError(
+      "INVALID_INPUT",
+      `usage: mm retry <id> --step <${STEP_ORDER.join("|")}>\n` +
+        "       mm retry --failed-upstream [--dry-run] [--limit N]",
+    );
   }
   if (!(STEP_ORDER as readonly string[]).includes(step)) {
     throw new MMError("INVALID_INPUT", `Unknown step "${step}". One of: ${STEP_ORDER.join(", ")}.`);
@@ -1279,6 +1344,7 @@ const USAGE = `mm — Music Manager
   mm jobs
   mm job <id> [--follow]
   mm retry <id> --step <${STEP_ORDER.join("|")}>
+  mm retry --failed-upstream [--dry-run] [--limit N]   every import a source killed, at once
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
   mm inbox resolve --all --accept [--import <id>]

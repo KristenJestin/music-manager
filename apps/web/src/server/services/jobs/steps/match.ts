@@ -45,6 +45,7 @@ import { openInboxItem } from "#/server/services/inbox.ts";
 import {
   cassetteGateway,
   liveGateway,
+  withOutage,
   type MbGateway,
 } from "#/server/services/matching.gateway.ts";
 import { cassetteNameOf, loadCassette } from "#/server/services/matching.cassettes.ts";
@@ -297,7 +298,11 @@ async function raiseNotices(
 async function gatewayFor(ctx: StepContext): Promise<MbGateway | null> {
   const name = cassetteNameOf(ctx.job.url);
   const cassette = name === null ? null : loadCassette(name);
-  if (cassette !== null) return cassetteGateway(cassette);
+  // `withOutage` so that `fixture://…?mb=503&mbtimes=3` refuses here too. The wizard has
+  // honoured that switch since decision 165 and the *step* did not, which meant the one
+  // recorded MusicBrainz outage this repository owns could not be driven through the machine
+  // it is really about — the one that used to turn a 503 into a terminal `failed`.
+  if (cassette !== null) return withOutage(cassetteGateway(cassette), ctx.job.url);
   if (ctx.fixtures) return null;
   return liveGateway(await sourceContextFor(ctx.db, ctx.signal));
 }

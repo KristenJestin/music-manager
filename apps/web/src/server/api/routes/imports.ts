@@ -22,6 +22,7 @@ import {
   cancelImport,
   listImports,
   pauseImport,
+  requeueUpstreamFailures,
   rewindTo,
   runStep,
 } from "#/server/services/jobs/index.ts";
@@ -29,7 +30,7 @@ import { jobDetail, setImportOptions } from "#/server/services/console.queries.t
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
 import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings } from "#/server/services/settings.ts";
-import { enqueue } from "#/server/services/queue.ts";
+import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
@@ -43,6 +44,8 @@ import {
   type importOptionsSchema,
   importSchema,
   listImportsQuery,
+  bulkRetrySchema,
+  bulkRetryResultSchema,
   retryStepSchema,
 } from "#/server/api/schemas.ts";
 
@@ -371,6 +374,63 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
           mapped: info.mapped ?? body.bindings.length,
           extras: info.extras ?? 0,
           uncovered: open.filter((item) => item.type === "uncovered_tracks").length,
+        },
+        200,
+      );
+    },
+  );
+
+  /* ---- the bulk requeue after a source outage ---- */
+  //
+  // Declared **before** `/{id}/retry`, and that is not cosmetic: `retry-failed-upstream` would
+  // otherwise be read as an `{id}`, and the route that matched first would answer 404 for an
+  // import nobody ever created.
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/retry-failed-upstream",
+      tags: [TAG],
+      summary: "Requeue every import that failed because a source refused it",
+      description:
+        "Selects the `failed` imports whose stored error is a source refusal — a 429, a 5xx, a " +
+        "timeout, a transport failure — rewinds each to where it stopped and puts it back on " +
+        "the queue. A 404 or a parse error is never selected. Idempotent: a requeued import is " +
+        "no longer `failed`, so calling this twice requeues nothing the second time.",
+      middleware: [requireScope("imports:write")] as const,
+      request: { body: { content: { "application/json": { schema: bulkRetrySchema } } } },
+      responses: {
+        200: {
+          content: { "application/json": { schema: bulkRetryResultSchema } },
+          description: "Requeued",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const body = c.req.valid("json");
+      const planned = await requeueUpstreamFailures(
+        { dryRun: body.dryRun, ...(body.limit === undefined ? {} : { limit: body.limit }) },
+        db(),
+      );
+      if (!body.dryRun) {
+        await enqueueAll(
+          planned.map((job) => ({ importId: job.id, step: job.restartAt })),
+          "api retry-failed-upstream",
+        );
+      }
+      return c.json(
+        {
+          requeued: body.dryRun ? 0 : planned.length,
+          dryRun: body.dryRun,
+          imports: planned.map((job) => ({
+            id: job.id,
+            url: job.url,
+            title: job.title,
+            step: job.restartAt,
+            source: job.source,
+            code: job.code,
+            upstreamAttempts: job.attempts,
+          })),
         },
         200,
       );

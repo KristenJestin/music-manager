@@ -21,6 +21,7 @@ import {
   bumpImport,
   cancelImport,
   pauseImport,
+  requeueUpstreamFailures,
   resetTrack,
   resumeStepOf,
   rewindTo,
@@ -34,7 +35,7 @@ import {
   type JobDetail,
   type JobSummary,
 } from "#/server/services/console.queries.ts";
-import { enqueue } from "#/server/services/queue.ts";
+import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 
 const statusFilter = z.enum([
   "all",
@@ -159,6 +160,37 @@ export const retryLastFailed = createServerFn({ method: "POST", strict: STRICT }
       await rewindTo(id, from, db());
       await enqueue(id, "palette retry", from);
       return { importId: id, step: from };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Requeue every import a source killed — the outage, in one button.
+ *
+ * The Console's other retries are all "this one, now". After a source outage that shape is
+ * wrong: the failures are not related to each other except in *why*, and there may be forty-
+ * five of them. The selection is `classifyFailure`'s, so what this button does is exactly what
+ * the machine would have done on its own had the rule existed at the time — and a 404 or a
+ * parse error is never swept up with them.
+ *
+ * Idempotent: a requeued import is no longer `failed`, so pressing it twice requeues nothing.
+ */
+export const retryFailedUpstream = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .handler(async (): Promise<{ requeued: number; sources: readonly string[] }> => {
+    try {
+      const planned = await requeueUpstreamFailures({}, db());
+      await enqueueAll(
+        planned.map((job) => ({ importId: job.id, step: job.restartAt })),
+        "console retry failed-upstream",
+      );
+      const sources = [
+        ...new Set(
+          planned.map((job) => job.source).filter((name): name is string => name !== null),
+        ),
+      ];
+      return { requeued: planned.length, sources };
     } catch (error) {
       return toFailure(error);
     }
