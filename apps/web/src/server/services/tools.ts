@@ -27,7 +27,8 @@ import { DEEZER_BASE } from "#/server/integrations/deezer.ts";
 import { LASTFM_BASE } from "#/server/integrations/lastfm.ts";
 import { LISTENBRAINZ_BASE } from "#/server/integrations/listenbrainz.ts";
 import { LRCLIB_BASE } from "#/server/integrations/lrclib.ts";
-import { MUSICBRAINZ_BASE } from "#/server/integrations/musicbrainz.ts";
+import { MB_MIN_INTERVAL_MS, MUSICBRAINZ_BASE } from "#/server/integrations/musicbrainz.ts";
+import { gateFor } from "#/server/integrations/rate-gate.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
 import {
   cookieJar,
@@ -413,11 +414,21 @@ export interface ServiceLatency {
  * nothing, Last.fm and AcoustID a request their API answers even without a key — the point is
  * "is the host up and are we allowed to speak to it", not "does this data exist". Nothing here
  * is cached, because a cached latency is not a latency.
+ *
+ * **These calls do not go through `getJson`**, on purpose: a probe wants the raw status, not a
+ * retry ladder and not an `MMError`. What they must not skip is the *budget*. Both MusicBrainz
+ * probes are served by MusicBrainz, and `Promise.all` fired them in the same instant from the
+ * shared User-Agent — two requests in one second, every time somebody opened the Tools page,
+ * invisible to the installation-wide gate of decision 164. `gated` puts them back inside it.
  */
 export async function serviceLatencies(deps: ToolsDeps = {}): Promise<ServiceLatency[]> {
   const { settings } = await resolve(deps);
   const config = sourcesConfig(settings);
   const doFetch = deps.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
+  // One gate for both MusicBrainz probes, and it is the same row every other caller reserves
+  // from — so opening this page while an import is matching costs the import one second, which
+  // is the honest price rather than a hidden 503.
+  const mb = gateFor(deps.db, "musicbrainz", MB_MIN_INTERVAL_MS);
 
   const probes: {
     name: string;
@@ -426,19 +437,25 @@ export async function serviceLatencies(deps: ToolsDeps = {}): Promise<ServiceLat
     note: string;
     /** A 4xx that still proves the service answered — an unauthenticated ping, typically. */
     acceptClientError?: boolean;
+    /** Reserve a departure slot before measuring. MusicBrainz's two probes share one. */
+    gated?: boolean;
   }[] = [
     {
       name: "musicbrainz",
       label: "MusicBrainz",
       url: `${MUSICBRAINZ_BASE}/release?query=%2A&limit=1&fmt=json`,
       note: "1 req/s, User-Agent required",
+      gated: true,
     },
     {
       name: "coverartarchive",
       label: "Cover Art Archive",
       url: `${CAA_BASE}/release/00000000-0000-0000-0000-000000000000`,
-      note: "404 on a bogus MBID means the index answered",
+      note:
+        "404 on a bogus MBID means the index answered — MusicBrainz serves it, so it " +
+        "shares the same 1 req/s budget",
       acceptClientError: true,
+      gated: true,
     },
     {
       name: "acoustid",
@@ -473,6 +490,9 @@ export async function serviceLatencies(deps: ToolsDeps = {}): Promise<ServiceLat
   return await Promise.all(
     probes.map(async (probe) => {
       const enabled = config.enabled[probe.name as keyof typeof config.enabled] ?? true;
+      if (enabled && probe.gated === true) await mb.acquire();
+      // After the gate, never before: a latency that included a second of waiting for our own
+      // budget would say the service is slow when it is us being polite.
       const started = Date.now();
       if (!enabled) {
         return {

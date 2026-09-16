@@ -21,7 +21,7 @@
  */
 import type { MbArtist, MbRecording, MbRelease, MbReleaseGroup, MbWork } from "@mm/domain";
 import { cached, optionsFor, type CachedValue } from "./cached.ts";
-import type { SourceContext } from "./config.ts";
+import { requireContact, type SourceContext } from "./config.ts";
 import { getJson, type RateGateLike } from "./http.ts";
 import { gateFor } from "./rate-gate.ts";
 
@@ -136,6 +136,7 @@ async function lookup<T>(
     "musicbrainz",
     key,
     async () => {
+      requireContact(ctx.config);
       const answer = await getJson<T>({
         source: "musicbrainz",
         url: url(`${entity}/${mbid}`, { inc: incOf(preset) }),
@@ -210,6 +211,7 @@ export async function browseReleaseGroupsByArtist(
     "musicbrainz",
     key,
     async () => {
+      requireContact(ctx.config);
       const answer = await getJson<BrowseReleaseGroups>({
         source: "musicbrainz",
         url: url("release-group", {
@@ -256,6 +258,7 @@ export async function search(
     "musicbrainz",
     key,
     async () => {
+      requireContact(ctx.config);
       const answer = await getJson<MbSearchResult>({
         source: "musicbrainz",
         url: url(entity, {
