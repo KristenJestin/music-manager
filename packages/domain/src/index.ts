@@ -143,7 +143,7 @@ export {
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./normalize/title.ts";
-export { parseYouTubeDescription } from "./normalize/youtube-description.ts";
+export { hasProvidedToYouTube, parseYouTubeDescription } from "./normalize/youtube-description.ts";
 export type { YouTubeCredit, YouTubeDescription } from "./normalize/youtube-description.ts";
 
 /* ---- matching (docs 04, §Algorithme de présélection) ---- */

@@ -213,6 +213,38 @@ export function coverArtScore(info: CoverArtInfo | null): number | null {
   return info.available ? 0.5 : 0;
 }
 
+/* ------------------------------------------------------------------ */
+/* primary type                                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How much the release group's **primary type** looks like a record worth importing.
+ *
+ * A weight, never a veto, and that distinction is the whole specification of it: a Single that
+ * is genuinely the only thing the release group holds still wins, because there is nothing for
+ * this signal to prefer it *over*. What it fixes is the other case — an album and an EP or a
+ * single of the same name, scoring within a hair of each other, where the engine used to
+ * settle on whichever happened to sort first.
+ *
+ * `null` for a release group that declares no type at all, and `null` is dropped from the
+ * blend rather than counted as a zero — the same rule `coverArtScore` follows, for the same
+ * reason: MusicBrainz not saying is not MusicBrainz saying "none".
+ *
+ * Deliberately *not* `releaseGroups.primaryTypeScore`, which is a different question asked at
+ * a different moment: that one leans on how many videos are on the table, to decide which
+ * groups are worth a release search at all, and it reverses for a lone video. This one ranks
+ * releases that are already candidates, and the preference it encodes does not reverse.
+ */
+export function typeScore(primary: string | null | undefined): number | null {
+  const type = (primary ?? "").trim().toLowerCase();
+  if (type === "") return null;
+  if (type === "album") return 1;
+  if (type === "ep") return 0.7;
+  if (type === "single") return 0.4;
+  if (type === "broadcast" || type === "other") return 0.3;
+  return 0.5;
+}
+
 /** Official releases only, really: v1 refused anything else outright (`return -1000`). */
 export function statusScore(status: string | null): number {
   const value = (status ?? "").trim().toLowerCase();

@@ -1,9 +1,10 @@
 /**
  * Settings › Watched sources.
  *
- * Two sections, in the order somebody configures them: when the scan runs, and what a scan is
- * allowed to confirm without being asked. The second one carries a warning rather than a help
- * string, because it is the single place in this app where the algorithm may act on its own —
+ * Three sections, in the order somebody configures them: what may be imported at all, when the
+ * scan runs, and what a scan is allowed to confirm without being asked. The last one carries a
+ * warning rather than a help string, because it is the single place in this app where the
+ * algorithm may act on its own —
  * `docs/04-pipeline-et-matching.md` § Ce que l'algo ne fait jamais — and a knob like that
  * should read as an exception, not as one more toggle.
  *
@@ -62,6 +63,37 @@ function WatchedSourcesSettings() {
 
   return (
     <SettingsForm hydrated={hydrated} testId="settings-sources">
+      <Section
+        id="import-rules"
+        title="Import rules"
+        description="What a source has to look like before it is allowed to become an import. Both are off by default, and both apply to every import — the paste box, the API and a scan alike."
+      >
+        <FormRow
+          label="Official uploads only"
+          help="Refuse a video whose description has no “Provided to YouTube by” line — the marker a distributor writes on an official upload. Read from the description, never from the channel name: the channel is empty on more than half of real sources. A pasted link is refused with the reason; inside a playlist or a scan, the video is skipped and the reason recorded."
+        >
+          <Toggle
+            testId="setting-officialUploadsOnly"
+            checked={value("officialUploadsOnly", false)}
+            onChange={(next) => {
+              set("officialUploadsOnly", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Require an album"
+          help="Refuse an isolated video with no album attached — neither a YouTube Music album tag nor an album line in its description. An entry inside a playlist is never affected: the playlist is the album."
+        >
+          <Toggle
+            testId="setting-requireAlbum"
+            checked={value("requireAlbum", false)}
+            onChange={(next) => {
+              set("requireAlbum", next);
+            }}
+          />
+        </FormRow>
+      </Section>
+
       <Section
         title="Scanning"
         description="Each source is listed without downloading anything, and only videos it has never seen become imports."

@@ -51,7 +51,7 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     id: "sources",
     label: "Watched sources",
     to: "/settings/sources",
-    hint: "When the scan runs, and what it is allowed to confirm without you.",
+    hint: "What may be imported at all, when the scan runs, and what it may confirm without you.",
   },
   {
     id: "api",

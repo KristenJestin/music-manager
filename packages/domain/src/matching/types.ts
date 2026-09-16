@@ -111,6 +111,15 @@ export interface ReleaseSignals {
    * never looked up has no answer at all and is dropped from the blend instead.
    */
   readonly coverArt: number;
+  /**
+   * The release group's primary type, preferring `Album` to an EP and an EP to a Single.
+   *
+   * A weight rather than a veto: a Single its release group holds nothing else than still
+   * wins, because there is no album for this signal to prefer. `0` here means the type is one
+   * a playlist rip is unlikely to have come from; a group that declares no type at all has no
+   * answer and is dropped from the blend, exactly like `coverArt`.
+   */
+  readonly type: number;
   readonly year: number;
   readonly label: number;
   readonly format: number;

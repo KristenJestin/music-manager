@@ -113,6 +113,10 @@ test.describe("tools", () => {
     await expect(result).toBeVisible({ timeout: 60_000 });
     await expect(result).toContainText("entries");
     await expect(result).toContainText("One More Time");
+    // "Is this an official upload?", answered here because `/extract` has already read the
+    // descriptions — the question `officialUploadsOnly` asks, asked before anything is imported.
+    await expect(page.getByTestId("url-official")).toContainText("Provided to YouTube by");
+    await expect(page.getByTestId("url-official")).toContainText("Official upload");
   });
 
   test("an unknown URL comes back decoded, not as a stack trace", async ({ page }) => {

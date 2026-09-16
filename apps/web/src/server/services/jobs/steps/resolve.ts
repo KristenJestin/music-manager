@@ -14,6 +14,7 @@ import { stripReleaseTypePrefix } from "@mm/domain";
 import { imports, importTracks, type ImportKind } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
+import { admit, refusalOf, sourceRulesOf } from "#/server/services/source-rules.ts";
 import type { ExtractEntry, ExtractResult } from "#/server/toolbox/client.ts";
 import type { StepResult } from "../machine.ts";
 import type { StepContext } from "../context.ts";
@@ -85,16 +86,79 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
   }
 
   const kind = classify(ctx.job.url, extract);
+
+  /*
+   * The admission rules, applied here because this is the first and only place that has seen
+   * the descriptions — and applied *after* `classify`, because `requireAlbum` is a rule about
+   * an isolated video and "isolated" is precisely what `classify` just decided.
+   *
+   * Two behaviours from one verdict, which is the whole reason `admit` returns a reason and a
+   * code rather than a boolean:
+   *
+   *  - a **lone video** is refused outright. Somebody pasted one link and is watching; an
+   *    import that quietly resolved to nothing would leave them guessing, so the step fails
+   *    with the typed error that names the rule.
+   *  - an **entry inside a playlist** is skipped, with a journal line saying which video and
+   *    why. The row is not written at all rather than written as `state: "skipped"`: `match`
+   *    re-roles whatever rows exist and `download` filters on role rather than on state, so a
+   *    refused video kept as a row would be scored, mapped, and eventually downloaded — the
+   *    opposite of what the rule asked for.
+   */
+  const rules = sourceRulesOf(ctx.settings);
+  const isolated = kind === "single";
+  const skipped: { videoId: string; title: string; reason: string; code: string }[] = [];
+  const admitted: ExtractEntry[] = [];
+  for (const entry of extract.entries) {
+    const verdict = admit(entry, rules, { isolated });
+    if (verdict.accept) {
+      admitted.push(entry);
+      continue;
+    }
+    if (isolated) throw refusalOf(verdict, ctx.job.url);
+    skipped.push({
+      videoId: entry.id,
+      title: entry.title,
+      reason: verdict.reason,
+      code: verdict.code ?? "INVALID_INPUT",
+    });
+  }
+
+  for (const entry of skipped) {
+    await ctx.say("resolve.skipped", `${entry.title}: ${entry.reason}`, {
+      level: "warn",
+      data: { videoId: entry.videoId, reason: entry.reason },
+    });
+  }
+
+  if (admitted.length === 0) {
+    return {
+      status: "failed",
+      message: `Every one of the ${String(extract.entries.length)} video(s) was refused by the import rules.`,
+      error: {
+        // The code of the first refusal rather than a fixed one: every entry of a listing is
+        // refused by the same rule today, and a hard-coded code would start lying the day
+        // that stops being true.
+        code: skipped[0]?.code ?? "INVALID_INPUT",
+        message: `None of the ${String(extract.entries.length)} video(s) behind this URL passed the import rules.`,
+        hint:
+          "The journal above names each one and why. “Official uploads only” and “Require an " +
+          "album” are in Settings › Watched sources.",
+        action: "Change the rule",
+        details: { url: ctx.job.url, refused: skipped.length },
+      },
+    };
+  }
+
   /*
    * `OLAK5uy_…` playlists come back titled "Album - Love Is Dead": YouTube names the *kind* of
    * release in front of the release. Stored as-is it is what the wizard shows, what the album
    * hint falls back to and what the folder would be named, so it is dropped on the way in.
    */
-  const rawTitle = extract.title ?? extract.entries[0]?.title ?? null;
+  const rawTitle = extract.title ?? admitted[0]?.title ?? null;
   const title = rawTitle === null ? null : stripReleaseTypePrefix(rawTitle);
   const known = new Map(existing.map((row) => [row.videoId, row]));
 
-  for (const entry of extract.entries) {
+  for (const entry of admitted) {
     const raw = entry as unknown as Record<string, unknown>;
     const found = known.get(entry.id);
     if (found === undefined) {
@@ -129,14 +193,20 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     .set({
       kind,
       title,
-      artist: extract.uploader ?? extract.entries[0]?.uploader ?? null,
+      artist: extract.uploader ?? admitted[0]?.uploader ?? null,
       updatedAt: new Date(),
     })
     .where(eq(imports.id, ctx.job.id));
 
+  const refused = skipped.length === 0 ? "" : `, ${String(skipped.length)} refused by the rules`;
   return {
     status: "done",
-    message: `${String(extract.entries.length)} video(s), kind ${kind}`,
-    data: { videos: extract.entries.length, kind, title },
+    message: `${String(admitted.length)} video(s), kind ${kind}${refused}`,
+    data: {
+      videos: admitted.length,
+      kind,
+      title,
+      ...(skipped.length === 0 ? {} : { refused: skipped }),
+    },
   };
 }

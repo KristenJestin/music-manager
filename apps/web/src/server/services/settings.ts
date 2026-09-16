@@ -203,9 +203,11 @@ export const SETTING_DEFINITIONS = {
       country: z.number().min(0),
       // Added by decision 167, hence a default, for the same reason `coverage` has one.
       coverArt: z.number().min(0).default(DEFAULT_WEIGHTS.release.coverArt),
+      // The release-type preference, hence a default, for the same reason the two above have one.
+      type: z.number().min(0).default(DEFAULT_WEIGHTS.release.type),
     }),
     DEFAULT_WEIGHTS.release,
-    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it.",
+    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it. `type` is the release-type preference: raise it to insist harder on an Album over an EP or a Single, set it to 0 to stop caring. It is a weight and never a veto, so a Single whose release group holds nothing else still wins.",
   ),
   matchRecordingWeights: define(
     z.object({
@@ -616,6 +618,30 @@ export const SETTING_DEFINITIONS = {
     z.string().min(1),
     "Recommended",
     "Name of that playlist. It is replaced wholesale on each sync, never appended to.",
+  ),
+
+  /* ---- admission rules: what a source has to look like to be importable at all ---- */
+  officialUploadsOnly: define(
+    z.boolean(),
+    false,
+    "Refuse a video whose description does not carry the “Provided to YouTube by” line — the " +
+      "marker a distributor writes on an official upload. Read from the description and never " +
+      "from the channel name, because the channel is the unreliable one: on 9766 real sources " +
+      "it is empty on 5306 and carries the `- Topic` suffix on only 580, while the line is " +
+      "present on 9544 and absent on 222. A single URL is refused outright with " +
+      "`SOURCE_NOT_OFFICIAL`; an entry inside a playlist, and a video a watched source found, " +
+      "is skipped with the reason recorded. Off by default: it changes nothing until you ask.",
+  ),
+  requireAlbum: define(
+    z.boolean(),
+    false,
+    "Refuse an isolated video that no album is attached to. “Isolated” is what `resolve` " +
+      "classifies as kind `single` — a lone video, not an entry inside a playlist, which is " +
+      "already an album by construction. “No album attached” means both of the sources " +
+      "`resolve` itself reads are empty: the YouTube Music `album` tag on the entry (the field " +
+      "it counts to tell an album from a playlist) and the album line of the auto-generated " +
+      "description. Either one, non-blank, is an album. Refused with `SOURCE_NO_ALBUM`. Off by " +
+      "default.",
   ),
 
   /* ---- watched sources: a playlist or channel scanned on a schedule ---- */

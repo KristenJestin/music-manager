@@ -107,8 +107,18 @@ export const DISCOVER_KEYS = [
   "discoverPlaylistName",
 ] as const satisfies readonly SettingKey[];
 
-/** Settings › Watched sources. When the scan runs, and what it may confirm alone. */
+/**
+ * Settings › Watched sources. What may be imported at all, when the scan runs, and what a
+ * scan may confirm alone.
+ *
+ * The two admission rules lead, and they belong on this tab rather than on Metadata & matching
+ * even though they apply to every import path: they decide whether a URL becomes a job, not
+ * what a tag ends up saying. `officialUploadsOnly` is also the installation-wide form of the
+ * per-source `requireProvidedToYouTube` switch on `/sources`, so the two are one search apart.
+ */
 export const WATCHED_SOURCES_KEYS = [
+  "officialUploadsOnly",
+  "requireAlbum",
   "watchedSourcesEnabled",
   "watchedSourcesCron",
   "watchedSourcesAutoAcceptDefault",

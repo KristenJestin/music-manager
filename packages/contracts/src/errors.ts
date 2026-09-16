@@ -47,6 +47,17 @@ export const MM_ERROR_CODES = [
    * this code rather than taking the run down with it.
    */
   "POSITION_TAKEN",
+  /**
+   * The source is a video, but not one a distributor uploaded — its description carries no
+   * "Provided to YouTube by" line — and `officialUploadsOnly` is on.
+   *
+   * Distinct from `INVALID_INPUT` on purpose: the URL is perfectly valid and the video is
+   * perfectly real. What refused it is a rule the operator switched on, so the fix is either
+   * "turn the rule off" or "import something else", never "check the link".
+   */
+  "SOURCE_NOT_OFFICIAL",
+  /** The source is an isolated video with no album attached, and `requireAlbum` is on. */
+  "SOURCE_NO_ALBUM",
   /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
   "UNAUTHORIZED",
   /* --- the public API (P08) --- */

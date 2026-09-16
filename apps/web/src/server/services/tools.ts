@@ -38,6 +38,12 @@ import { emit, readLatestEvents } from "#/server/services/events.ts";
 import { openLibraryItem, closeLibraryItem } from "#/server/services/library-inbox.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
+  admit,
+  attachedAlbum,
+  isOfficialUpload,
+  sourceRulesOf,
+} from "#/server/services/source-rules.ts";
+import {
   toolbox as defaultToolbox,
   type CookiesTestResult,
   type ErrorCatalogEntry,
@@ -532,7 +538,33 @@ export interface UrlTest {
   readonly title: string;
   readonly entries: number;
   readonly durationMs: number;
-  readonly sample: readonly { readonly title: string; readonly duration: number | null }[];
+  readonly sample: readonly {
+    readonly title: string;
+    readonly duration: number | null;
+    /** This entry's description carries the "Provided to YouTube by" line. */
+    readonly official: boolean;
+    /** The album this entry says it belongs to — the YT Music tag, else the description. */
+    readonly album: string | null;
+  }[];
+  /**
+   * Is this source an official, distributor-uploaded one?
+   *
+   * True when **every** entry carries the "Provided to YouTube by" line, which is the question
+   * `officialUploadsOnly` asks — a playlist with one rip in it is not a source that rule would
+   * let through whole. `officialEntries` is the count behind it, so a caller can tell "none of
+   * them" from "eleven of twelve" without reading the sample.
+   */
+  readonly official: boolean;
+  readonly officialEntries: number;
+  /**
+   * Would the rules currently switched on let this URL in?
+   *
+   * Evaluated against the installation's own settings, so a client can ask **before** importing
+   * and get the same answer `resolve` would give it. `reason` is empty when nothing refuses it.
+   */
+  readonly admissible: boolean;
+  readonly refusedReason: string;
+  readonly rules: { readonly officialUploadsOnly: boolean; readonly requireAlbum: boolean };
   readonly error: {
     readonly code: string;
     readonly message: string;
@@ -547,15 +579,30 @@ export interface UrlTest {
  * A failure comes back **decoded**: the toolbox's own `{code, hint, action}`, which is the
  * same shape the error decoder table below renders. That is the whole point of the box: not
  * "it failed", but "it failed because YouTube wants a session, and here is the button".
+ *
+ * It is also where "is this source official?" is answered **before** anything is imported.
+ * That question goes here rather than on a new endpoint of its own for one reason: this route
+ * already makes the only call that can answer it. `/extract` is what reads the descriptions,
+ * it is already a dry run, it already authenticates with the installation's session, and it is
+ * already the thing a client calls to ask "what would this URL import?". A second endpoint
+ * would be the same round-trip under a second name, and the first caller to use both would pay
+ * for two extractions to learn one thing.
  */
 export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTest> {
   const { box, settings } = await resolve(deps);
   const started = Date.now();
+  const rules = sourceRulesOf(settings);
   try {
     // With the installation's own session: a dry run that authenticates differently from
     // the pipeline would answer a question nobody asked.
     const result = await box().extract(url, cookieJar(settings));
     const entries = result.entries;
+    const officialEntries = entries.filter((entry) => isOfficialUpload(entry)).length;
+    // The same "isolated" the `resolve` step decides, from the same fact: one entry is a video.
+    const isolated = result.kind === "video" || entries.length <= 1;
+    const refused = entries
+      .map((entry) => admit(entry, rules, { isolated }))
+      .find((verdict) => !verdict.accept);
     return {
       url,
       ok: true,
@@ -566,7 +613,14 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
       sample: entries.slice(0, 5).map((entry) => ({
         title: entry.title,
         duration: entry.duration ?? null,
+        official: isOfficialUpload(entry),
+        album: attachedAlbum(entry),
       })),
+      official: entries.length > 0 && officialEntries === entries.length,
+      officialEntries,
+      admissible: refused === undefined,
+      refusedReason: refused?.reason ?? "",
+      rules,
       error: null,
     };
   } catch (error) {
@@ -579,6 +633,11 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
       entries: 0,
       durationMs: Date.now() - started,
       sample: [],
+      official: false,
+      officialEntries: 0,
+      admissible: false,
+      refusedReason: "",
+      rules,
       error: {
         code: failure.code,
         message: failure.message,

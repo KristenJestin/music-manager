@@ -325,6 +325,51 @@ Une vidéo privée, supprimée ou géobloquée n'interrompt pas le scan : elle e
 plus passe `last_scan_status = 'failed'` avec l'erreur, et les autres sources sont quand même
 scannées.
 
+### Les règles d'admission
+
+Deux interrupteurs, dans Settings → Watched sources, section « Import rules ». **Les deux sont
+désactivés par défaut** : une mise à jour ne change rien pour personne. Ils s'appliquent à
+_tous_ les chemins d'import — la boîte de collage, l'API, le CLI et un scan — parce qu'ils
+décident si une URL devient un job, pas ce qu'un tag finira par dire.
+
+| Réglage               | Ce qu'il refuse                                                                |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `officialUploadsOnly` | une vidéo dont la description ne porte pas la ligne « Provided to YouTube by » |
+| `requireAlbum`        | une vidéo **isolée** à laquelle aucun album n'est rattaché                     |
+
+`officialUploadsOnly` lit la **description**, jamais le nom de la chaîne. Sur 9766 sources
+réelles la ligne est présente sur 9544 et absente sur 222, tandis que le nom de chaîne est
+_vide_ sur 5306 d'entre elles et ne porte le suffixe `- Topic` que sur 580 : une règle écrite
+contre la chaîne refuserait plus de la moitié de la bibliothèque. La détection est celle du
+parseur de description (`hasProvidedToYouTube`), insensible à la casse.
+
+« Aucun album rattaché » est défini contre ce que l'étape `resolve` calcule déjà : ni le tag
+YouTube Music `album` de l'entrée — le champ même que `resolve` compte pour distinguer un album
+d'une playlist — ni la ligne d'album de la description auto-générée. « Isolée » est le `kind`
+`single` de `resolve` : une entrée _dans_ une playlist n'est jamais concernée, la playlist
+étant l'album.
+
+Le refus prend trois formes selon le chemin :
+
+- **une URL collée** est refusée, avec l'erreur typée `SOURCE_NOT_OFFICIAL` ou
+  `SOURCE_NO_ALBUM` (HTTP 422). La ligne `imports` est quand même écrite, en `failed`, avec la
+  même erreur : c'est la trace de ce qui a été demandé ;
+- **une entrée dans une playlist** est ignorée — aucune ligne `import_tracks`, une ligne
+  `resolve.skipped` dans le journal nommant la vidéo et la raison, et le reste de la playlist
+  s'importe normalement. Si _toutes_ les entrées sont refusées, l'étape échoue ;
+- **une vidéo trouvée par une source surveillée** est ignorée comme n'importe quel autre
+  filtre : `watched_source_items.status = 'skipped'` avec la raison sur la ligne, et aucun
+  import ouvert. Cela coûte une extraction complète par vidéo nouvelle (une liste à plat ne
+  porte pas de description), ce qui est exactement la raison d'être de l'interrupteur par
+  source `requireProvidedToYouTube` — lequel _ajoute_ à la règle globale sans jamais la lever.
+
+Pour poser la question **avant** d'importer, sans rien créer :
+
+```bash
+curl -s -H "Authorization: Bearer $MM_API_KEY" \
+  "https://<hôte>/api/v1/tools/url?url=<url>" | jq '{official, officialEntries, admissible, refusedReason, rules}'
+```
+
 ---
 
 ## 5 ter. Cookies YouTube (vidéos avec restriction d'âge)
