@@ -10,6 +10,7 @@
  * column layout is copied deliberately rather than reinvented. `--json` prints the server's
  * payload verbatim — an agent should get what the API said, not this file's opinion of it.
  */
+import { readFileSync } from "node:fs";
 import type { ApiClient } from "./remote.ts";
 
 export interface RemoteArgs {
@@ -124,11 +125,32 @@ async function printJob(api: ApiClient, id: string): Promise<void> {
 /* commands                                                            */
 /* ------------------------------------------------------------------ */
 
-async function cmdImport(api: ApiClient, args: RemoteArgs): Promise<number> {
-  const url = args.positional[1];
-  if (url === undefined) throw new Error("usage: mm import <url|fixture://…>");
+/**
+ * One URL per line, `#` comments and blank lines dropped.
+ *
+ * The file is the interface a bulk import actually has: three hundred and seventy-five
+ * playlists arrive as a list somebody already has in a text file, not as three hundred and
+ * seventy-five arguments a shell would refuse to expand anyway.
+ */
+function urlsFromFile(path: string): string[] {
+  return readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .map((row) => row.trim())
+    .filter((row) => row !== "" && !row.startsWith("#"));
+}
 
-  const created = await api.post<{ import: ImportRow; duplicates: string[] }>("/imports", {
+async function cmdImport(api: ApiClient, args: RemoteArgs): Promise<number> {
+  const fromFile = flagString(args, "from-file");
+  if (fromFile !== undefined) return await importBatch(api, args, urlsFromFile(fromFile));
+
+  const url = args.positional[1];
+  if (url === undefined) {
+    throw new Error("usage: mm import <url|fixture://…> | mm import --from-file <path>");
+  }
+
+  // Flat since the breaking change of `feat-api-bulk`: the import's own fields are at the top
+  // level of the answer, next to `duplicates`. `created.import.id` is what this used to read.
+  const created = await api.post<ImportRow & { duplicates: string[] }>("/imports", {
     url,
     ...(flagString(args, "release") === undefined
       ? {}
@@ -143,10 +165,10 @@ async function cmdImport(api: ApiClient, args: RemoteArgs): Promise<number> {
 
   if (asJson(args) && !flagBool(args, "follow")) return dump(created);
 
-  line(`import ${created.import.id}`);
-  line(`  url    ${created.import.url}`);
-  line(`  kind   ${created.import.kind}`);
-  line(`  title  ${created.import.title ?? "-"}`);
+  line(`import ${created.id}`);
+  line(`  url    ${created.url}`);
+  line(`  kind   ${created.kind}`);
+  line(`  title  ${created.title ?? "-"}`);
   if (created.duplicates.length > 0) {
     line(`  note   ${String(created.duplicates.length)} earlier import(s) of the same URL`);
   }
@@ -154,15 +176,110 @@ async function cmdImport(api: ApiClient, args: RemoteArgs): Promise<number> {
 
   if (!flagBool(args, "follow")) return 0;
   line("");
-  const code = await followImport(api, created.import.id);
-  if (asJson(args)) return dump(await api.get(`/imports/${created.import.id}`));
-  await printJob(api, created.import.id);
+  const code = await followImport(api, created.id);
+  if (asJson(args)) return dump(await api.get(`/imports/${created.id}`));
+  await printJob(api, created.id);
   return code;
 }
 
+interface BatchLine {
+  index: number;
+  url: string;
+  ok: boolean;
+  id: string | null;
+  error: { code: string; message: string } | null;
+}
+
+/**
+ * `mm import --from-file <path>` — one HTTP call per hundred URLs instead of one per URL.
+ *
+ * The server refuses more than a hundred in a batch, so the list is chunked here rather than
+ * handed over whole and bounced back: a person with four hundred URLs in a file wants them
+ * imported, not a lecture about a limit they did not choose.
+ */
+async function importBatch(api: ApiClient, args: RemoteArgs, urls: string[]): Promise<number> {
+  if (urls.length === 0) throw new Error("that file holds no URLs");
+  const chunkSize = 100;
+  const results: BatchLine[] = [];
+  let created = 0;
+
+  for (let start = 0; start < urls.length; start += chunkSize) {
+    const payload = await api.post<{ created: number; results: BatchLine[] }>("/imports/batch", {
+      urls: urls.slice(start, start + chunkSize),
+      options: {
+        autoConfirm: flagBool(args, "yes"),
+        force: flagBool(args, "force"),
+        fingerprint: !flagBool(args, "no-fingerprint"),
+      },
+      priority: flagBool(args, "next") ? "next" : "normal",
+    });
+    created += payload.created;
+    // The server numbers each line inside its own chunk; renumber against the whole file so
+    // "line 214 was refused" points at line 214 of what the user typed.
+    for (const row of payload.results) results.push({ ...row, index: row.index + start });
+  }
+
+  if (asJson(args)) return dump({ requested: urls.length, created, results });
+
+  line(`${String(created)} of ${String(urls.length)} import(s) created and queued`);
+  for (const row of results) {
+    if (row.ok) continue;
+    line(`  ! ${String(row.index + 1).padStart(4)}  ${row.url}`);
+    line(`         ${row.error?.code ?? "UNKNOWN"}: ${row.error?.message ?? ""}`);
+  }
+  // A batch that lost nothing still exits 0; one that lost a URL says so in its exit code, so
+  // a script looping over files can tell.
+  return created === urls.length ? 0 : 1;
+}
+
+/** `mm confirm-best <id>` — the automatic confirmation, as the API does it. */
+async function cmdConfirmBest(api: ApiClient, args: RemoteArgs): Promise<number> {
+  const id = args.positional[1];
+  if (id === undefined) {
+    throw new Error("usage: mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]");
+  }
+  const coverage = flagString(args, "min-coverage");
+  const prefer = flagString(args, "prefer");
+  const payload = await api.post<
+    ImportRow & {
+      chosenTitle: string;
+      chosenArtist: string;
+      chosenType: string | null;
+      coverage: number;
+      mapped: number | null;
+      extras: number | null;
+      uncovered: number;
+    }
+  >(`/imports/${id}/confirm-best`, {
+    ...(coverage === undefined ? {} : { minCoverage: Number(coverage) }),
+    ...(prefer === undefined ? {} : { preferType: prefer }),
+    confirmedBy: "cli confirm-best",
+  });
+
+  if (asJson(args)) return dump(payload);
+  line(`confirmed ${payload.id}`);
+  line(
+    `  release  ${payload.chosenArtist} — ${payload.chosenTitle}` +
+      ` (${payload.chosenType ?? "?"})  ${payload.releaseMbid ?? "-"}`,
+  );
+  line(`  coverage ${String(Math.round(payload.coverage * 100))} %`);
+  line(
+    `  mapped   ${String(payload.mapped ?? 0)} track(s), ` +
+      `${String(payload.extras ?? 0)} extra, ${String(payload.uncovered)} uncovered`,
+  );
+  return 0;
+}
+
 async function cmdJobs(api: ApiClient, args: RemoteArgs): Promise<number> {
-  const payload = await api.get<{ imports: ImportRow[] }>("/imports", {
-    limit: Number(flagString(args, "limit") ?? "50"),
+  const limit = Number(flagString(args, "limit") ?? "50");
+  const offset = Number(flagString(args, "offset") ?? "0");
+  const payload = await api.get<{
+    imports: ImportRow[];
+    total: number;
+    hasMore: boolean;
+  }>("/imports", {
+    limit,
+    offset,
     ...(flagString(args, "status") === undefined ? {} : { status: flagString(args, "status") }),
   });
   if (asJson(args)) return dump(payload);
@@ -180,6 +297,13 @@ async function cmdJobs(api: ApiClient, args: RemoteArgs): Promise<number> {
       row.title ?? row.url,
     );
   }
+  // The number the list used not to carry, and the reason a bulk session read the same fifty
+  // rows three times.
+  line("");
+  line(
+    `${String(payload.imports.length)} of ${String(payload.total)} shown` +
+      (payload.hasMore ? ` — next page: --offset ${String(offset + limit)}` : ""),
+  );
   return 0;
 }
 
@@ -489,7 +613,9 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
 
   mm whoami                          which key this is, and what it may do
   mm import <url> [--release <mbid>] [--yes] [--force] [--follow] [--next]
-  mm jobs [--status <s>] [--limit n]
+  mm import --from-file <path>       one URL per line, '#' comments; 100 per HTTP call
+  mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]
+  mm jobs [--status <s>] [--limit n] [--offset n]
   mm job <id> [--follow]
   mm retry <id> --step <step>
   mm cancel|pause|bump <id>
@@ -509,6 +635,8 @@ export async function runRemote(api: ApiClient, args: RemoteArgs): Promise<numbe
       return await cmdWhoami(api, args);
     case "import":
       return await cmdImport(api, args);
+    case "confirm-best":
+      return await cmdConfirmBest(api, args);
     case "jobs":
       return await cmdJobs(api, args);
     case "job":
