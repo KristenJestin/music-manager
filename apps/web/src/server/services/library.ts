@@ -79,12 +79,14 @@ import { retryStep } from "#/server/services/jobs/index.ts";
 import { ALBUM_EDITABLE_FIELDS } from "#/server/services/overrides.ts";
 import { diffProjection, formatOf, type ProjectionDiff } from "#/server/services/retag.ts";
 import {
+  cardQuality,
   documentsOfTracks,
   scoreAlbum,
   scoreLibrary,
   scoreLoadedTracks,
   summarise,
   tagMapRows,
+  type AlbumCardQuality,
   type AlbumQuality,
   type LibraryQualityStats,
   type TagMapRow,
@@ -116,7 +118,7 @@ export interface AlbumCard {
   readonly trackCount: number;
   readonly presentCount: number;
   readonly addedAt: string;
-  readonly quality: AlbumQuality;
+  readonly quality: AlbumCardQuality;
 }
 
 export interface AlbumGridPayload {
@@ -191,7 +193,12 @@ export async function albumGrid(
   db: Database = defaultDb(),
 ): Promise<AlbumGridPayload> {
   const settings = await loadSettings(db);
-  const { rows, currentSchema } = await scoreLibrary({ db, settings });
+  /*
+   * `drift: false` — the grid has no drift column, and answering the drift question means
+   * re-projecting every document in the library and hashing the result. It was a fifth of this
+   * loader's time and no card carried the answer.
+   */
+  const { rows, currentSchema } = await scoreLibrary({ db, settings, drift: false });
   const profile = options.profile ?? "global";
   const filter = options.filter ?? "all";
   const sort = options.sort ?? "recent";
@@ -223,7 +230,7 @@ export async function albumGrid(
     trackCount: album.trackCount,
     presentCount: album.presentCount,
     addedAt: album.createdAt.toISOString(),
-    quality,
+    quality: cardQuality(quality),
   }));
 
   const shown = cards
@@ -1135,6 +1142,8 @@ export async function artistDetail(
     db,
     settings,
     albumIds: owned.map((row) => row.id),
+    // Same cards as `/library`, same absent drift column.
+    drift: false,
   });
 
   const albums: AlbumCard[] = rows
@@ -1149,7 +1158,7 @@ export async function artistDetail(
       trackCount: album.trackCount,
       presentCount: album.presentCount,
       addedAt: album.createdAt.toISOString(),
-      quality,
+      quality: cardQuality(quality),
     }))
     // Oldest first: a discography reads as a chronology, and an album whose year is unknown
     // goes last rather than pretending to be from year zero.

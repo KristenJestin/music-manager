@@ -166,7 +166,15 @@ export interface AlbumQuality {
   /** Lowest schema version any of its files carries — the album is only as fresh as that. */
   readonly schemaVersion: number | null;
   readonly filesBehind: number;
-  readonly driftCount: number;
+  /**
+   * How many of this album's files have drifted — or `null` when nobody asked.
+   *
+   * Answering it means re-projecting every document and hashing the result, which is the
+   * single most expensive thing in this file. `/library` renders six hundred cards and no
+   * drift on any of them, so it asks for `drift: false` and gets `null` here rather than a
+   * zero that would read as "nothing has drifted".
+   */
+  readonly driftCount: number | null;
   readonly lyricsCount: number;
   readonly replayGainCount: number;
   /** No MusicBrainz release: imported from the YouTube tags alone (§ "import without MB"). */
@@ -420,6 +428,15 @@ function describeDivergences(
 export function scoreLoadedTracks(
   loaded: readonly LoadedTrack[],
   currentSchema: number,
+  /**
+   * Whether to answer the drift question — the one that costs a projection and a hash.
+   *
+   * `false` means "this caller does not show drift", and `drift` then reads `false` on every
+   * track and `driftCount` reads `null` on the album. That is not a saving to reach for
+   * lightly: it is a whole re-projection of every document, and the album grid renders six
+   * hundred cards with no drift column on any of them.
+   */
+  drift = true,
 ): TrackQuality[] {
   return loaded.map((entry) => {
     const document = entry.document;
@@ -447,7 +464,7 @@ export function scoreLoadedTracks(
       PROFILE_IDS.map((id) => [id, report.byProfile[id].score]),
     ) as Record<ProfileId, number | null>;
     // What the document projects to *now*, against what was last written into the file.
-    const current = projectionHash(projectDocument(document, "vorbis"));
+    const current = drift ? projectionHash(projectDocument(document, "vorbis")) : null;
     return {
       libraryTrackId: entry.track.id,
       path: entry.track.path,
@@ -460,7 +477,7 @@ export function scoreLoadedTracks(
       na: report.na,
       schemaVersion: entry.track.tagSchemaVersion,
       behind: isBehindSchema(entry.track.tagSchemaVersion, currentSchema),
-      drift: entry.storedHash !== null && entry.storedHash !== current,
+      drift: current !== null && entry.storedHash !== null && entry.storedHash !== current,
       hasLyrics: hasLyrics(document),
       hasReplayGain: hasReplayGain(document),
       hasDocument: true,
@@ -488,12 +505,14 @@ export function scoreAlbum(
    * to stop — an agent read it, concluded the library was healthy, and it was not there at all.
    */
   onDisk?: ReadonlySet<string>,
+  /** Whether to answer the drift question. See `scoreLoadedTracks`. */
+  drift = true,
 ): AlbumQuality {
   const documents = loaded
     .map((entry) => entry.document)
     .filter((document): document is TrackDocument => document !== null);
 
-  const tracks = scoreLoadedTracks(loaded, currentSchema);
+  const tracks = scoreLoadedTracks(loaded, currentSchema, drift);
 
   const overall = albumCompleteness(documents);
 
@@ -566,7 +585,7 @@ export function scoreAlbum(
     missingCount: loaded.filter((entry) => entry.track.missingAt !== null).length,
     schemaVersion: schemaVersions.length === 0 ? null : Math.min(...schemaVersions),
     filesBehind: tracks.filter((track) => track.behind).length,
-    driftCount: tracks.filter((track) => track.drift).length,
+    driftCount: drift ? tracks.filter((track) => track.drift).length : null,
     lyricsCount: tracks.filter((track) => track.hasLyrics).length,
     replayGainCount: tracks.filter((track) => track.hasReplayGain).length,
     untagged: album.releaseMbid === null || album.releaseMbid === "",
@@ -585,15 +604,58 @@ export interface QualityRow {
   readonly quality: AlbumQuality;
 }
 
+/**
+ * The quality a **list row** carries: everything except the divergence detail.
+ *
+ * `divergences` names every album-scope field whose tracks disagree, with each value in
+ * presence and the track numbers that carry it — the album page's "why does this album score
+ * below its own tracks" panel, and nothing a list draws. On a six-hundred-album library it was
+ * fourteen of the twenty megabytes `/library` shipped. `scoreOneAlbum` still returns it whole.
+ */
+export type AlbumListQuality = Omit<AlbumQuality, "divergences" | "divergentFields">;
+
+/**
+ * The same, minus `missing`: a cover and a percentage need neither.
+ *
+ * `missing` names every tag-map field the album lacks and what would fetch it. The quality
+ * table draws its first six entries; a card in the grid draws none of them.
+ */
+export type AlbumCardQuality = Omit<AlbumListQuality, "missing">;
+
+/**
+ * Drop the divergence detail. `/library/quality`'s rows keep `missing` — they draw its first
+ * six entries and its length — and draw nothing of `divergences`, which is the album page's.
+ */
+export function listQuality(quality: AlbumQuality): AlbumListQuality {
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars -- the point is to drop them */
+  const { divergences, divergentFields, ...row } = quality;
+  return row;
+}
+
+/** Drop what a card does not draw. Named, because two pages build the same cards. */
+export function cardQuality(quality: AlbumQuality): AlbumCardQuality {
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars -- the point is to drop them */
+  const { missing, ...card } = listQuality(quality);
+  return card;
+}
+
 /** Score every album. One query for the albums, one for the tracks, one for the documents. */
 export async function scoreLibrary(options: {
   db?: Database;
   settings?: Settings;
   albumIds?: readonly string[];
+  /**
+   * Whether to answer the drift question. `false` leaves `driftCount` `null`.
+   *
+   * The album grid asks for `false`: it draws no drift, and computing it is a re-projection
+   * and a hash of every document in the library.
+   */
+  drift?: boolean;
 }): Promise<{ rows: QualityRow[]; currentSchema: number }> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const currentSchema = effectiveSchemaVersion(settings);
+  const drift = options.drift ?? true;
 
   const albums =
     options.albumIds === undefined
@@ -627,7 +689,7 @@ export async function scoreLibrary(options: {
   return {
     rows: albums.map((album) => ({
       album,
-      quality: scoreAlbum(album, byAlbum.get(album.id) ?? [], currentSchema),
+      quality: scoreAlbum(album, byAlbum.get(album.id) ?? [], currentSchema, undefined, drift),
     })),
     currentSchema,
   };
@@ -659,7 +721,8 @@ export interface LibraryQualityStats {
   readonly noLyrics: number;
   readonly noReplayGain: number;
   readonly youtubeCover: number;
-  readonly driftTracks: number;
+  /** Drifted files across the library, or `null` when the caller did not ask for drift. */
+  readonly driftTracks: number | null;
   readonly filesBehind: number;
   readonly filesCurrent: number;
   readonly albumsBehind: number;
@@ -708,7 +771,10 @@ export function summarise(
     noLyrics: sum((row) => row.quality.documentCount - row.quality.lyricsCount),
     noReplayGain: sum((row) => row.quality.documentCount - row.quality.replayGainCount),
     youtubeCover: rows.filter((row) => row.quality.youtubeCover).length,
-    driftTracks: sum((row) => row.quality.driftCount),
+    // `null` as soon as one album went unasked: a partial total would read as a whole one.
+    driftTracks: rows.some((row) => row.quality.driftCount === null)
+      ? null
+      : sum((row) => row.quality.driftCount ?? 0),
     filesBehind: sum((row) => row.quality.filesBehind),
     filesCurrent: sum((row) => row.quality.scoredCount - row.quality.filesBehind),
     albumsBehind: rows.filter((row) => row.quality.filesBehind > 0).length,
@@ -751,8 +817,9 @@ export function matchesFilter(
       return quality.untagged;
     case "schema":
       return quality.filesBehind > 0;
+    // A row scored without drift cannot match the drift chip; `/library/quality` always asks.
     case "drift":
-      return quality.driftCount > 0;
+      return quality.driftCount !== null && quality.driftCount > 0;
     // "At least one track has a document and no lyrics" — `lyricsCount` counts the ones that
     // do, over the same set `documentCount` counts, so the comparison is the old `.some`.
     case "lyrics":
