@@ -1203,6 +1203,12 @@ export interface PlacedCover {
   readonly file: string;
   readonly contentType: string;
   readonly bytes: number;
+  /**
+   * The original's modification time. Part of an image variant's cache key
+   * (`services/image-variants.ts`), so a re-tag that rewrites the file retires every thumbnail
+   * derived from it without anything having to delete one.
+   */
+  readonly mtimeMs: number;
   /** `mtime` and size, as a weak ETag, so a re-render is a 304 rather than a re-send. */
   readonly etag: string;
 }
@@ -1252,6 +1258,7 @@ export async function placedCover(
       file,
       contentType: COVER_TYPES[extension] ?? "application/octet-stream",
       bytes: stats.size,
+      mtimeMs: stats.mtimeMs,
       etag: `W/"${stats.size.toString(16)}-${stats.mtimeMs.toString(16)}"`,
     };
   }
@@ -1297,6 +1304,7 @@ export async function placedArtistImage(
     file,
     contentType: COVER_TYPES["jpg"] ?? "image/jpeg",
     bytes: stats.size,
+    mtimeMs: stats.mtimeMs,
     etag: `W/"${stats.size.toString(16)}-${stats.mtimeMs.toString(16)}"`,
   };
 }
