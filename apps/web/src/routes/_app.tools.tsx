@@ -625,9 +625,38 @@ function UrlTestPanel({
               <b>{result.kind}</b> · {result.entries} entr{result.entries === 1 ? "y" : "ies"} ·{" "}
               {result.durationMs} ms
               {result.title === "" ? null : <> · {result.title}</>}
+              {/*
+               * "Is this an official upload?", answered before anything is imported.
+               *
+               * The same `/extract` call already read the descriptions, so the answer costs
+               * nothing extra here — and this box is where somebody checks a link they are
+               * unsure about, which is exactly when the question is asked.
+               */}
+              <div data-testid="url-official" className="mt-0.5">
+                {result.official ? (
+                  <span className="text-ok">
+                    Official upload{result.entries === 1 ? "" : "s"} — every entry carries “Provided
+                    to YouTube by”
+                  </span>
+                ) : (
+                  <span className="text-warn">
+                    {result.officialEntries} of {result.entries} entr
+                    {result.entries === 1 ? "y" : "ies"} carry “Provided to YouTube by”
+                  </span>
+                )}
+                {result.admissible ? null : (
+                  <div className="text-warn">
+                    The import rules would refuse it: {result.refusedReason}
+                  </div>
+                )}
+              </div>
               <ul className="mt-1 list-disc pl-4 font-mono text-2xs">
                 {result.sample.map((entry) => (
-                  <li key={entry.title}>{entry.title}</li>
+                  <li key={entry.title}>
+                    {entry.title}
+                    {entry.official ? "" : " · no distributor line"}
+                    {entry.album === null ? " · no album" : ` · ${entry.album}`}
+                  </li>
                 ))}
               </ul>
             </div>
