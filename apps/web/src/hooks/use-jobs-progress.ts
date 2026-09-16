@@ -123,25 +123,39 @@ export function useJobsProgress({
   const checkedAt = current?.at ?? null;
 
   const inFlight = useRef(false);
+  const again = useRef(false);
 
-  const read = useCallback(() => {
+  /*
+   * One read at a time, and never a lost one.
+   *
+   * A second request while one is in flight is remembered rather than dropped: the answer
+   * already on its way was computed before whatever just happened, so returning it and
+   * stopping would leave the row a track behind until the next event — which, for the last
+   * track of the last import, never comes. The same drain-once-more rule `subscribe()` uses.
+   */
+  const read = useCallback(function run(): void {
     const wanted = idsOf(keyRef.current);
-    if (wanted.length === 0 || inFlight.current) return;
+    if (wanted.length === 0) return;
+    if (inFlight.current) {
+      again.current = true;
+      return;
+    }
     inFlight.current = true;
-    void fetchJobProgress({ data: { ids: wanted } }).then(
-      (fresh) => {
-        inFlight.current = false;
-        setStore({
-          key: keyRef.current,
-          rows: new Map(fresh.map((row) => [row.id, row])),
-          at: Date.now(),
-        });
-      },
-      () => {
-        // The next tick tries again; a failed read is not worth a toast on a list page.
-        inFlight.current = false;
-      },
-    );
+    const done = (): void => {
+      inFlight.current = false;
+      if (!again.current) return;
+      again.current = false;
+      run();
+    };
+    void fetchJobProgress({ data: { ids: wanted } }).then((fresh) => {
+      setStore({
+        key: keyRef.current,
+        rows: new Map(fresh.map((row) => [row.id, row])),
+        at: Date.now(),
+      });
+      done();
+      // A failed read is not worth a toast on a list page; the next tick tries again.
+    }, done);
   }, []);
 
   /* ---- the stream ---- */
