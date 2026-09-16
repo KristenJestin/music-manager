@@ -26,6 +26,15 @@
   --color-surface-1: #101318;
   --color-surface-2: #151920;
   --color-surface-3: #1b2028;
+  /*
+   * The two skeleton fills. `skeleton` is `surface-3`, the tint the small bars have always
+   * used; `skeleton-plate` is a step quieter, for the large placeholders (covers, cards,
+   * table frames) that cover most of a waiting page. It is its own token rather than
+   * `surface-2` because it has to stay legible on `surface-1` cards *and* on the page
+   * background, and the surface scale is not free to move for a skeleton's sake.
+   */
+  --color-skeleton: #1b2028;
+  --color-skeleton-plate: #171c24;
 
   --color-card: #101318;
   --color-card-foreground: #e6e8eb;
@@ -150,6 +159,21 @@
   /* ---- motion ------------------------------------------------------------- */
   --animate-pulse-ring: pulse-ring 1.6s infinite;
   --animate-blink: blink 1s infinite;
+  /*
+   * The skeleton's breath, deliberately shallower than Tailwind's own `animate-pulse`
+   * (opacity 1 → 0.5 over 2 s). A whole page of placeholders pulsing that hard reads as an
+   * alarm rather than as waiting — the owner's word for it was "violent". This one moves
+   * between 1 and 0.75 over three seconds, and only the small bars wear it: the large plates
+   * (covers, cards, the table's own frame) get the tint and stay still, so the area that
+   * actually moves is a fraction of what it was.
+   */
+  --animate-skeleton: skeleton-breath 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes skeleton-breath {
+  50% {
+    opacity: 0.75;
+  }
 }
 
 @keyframes pulse-ring {
