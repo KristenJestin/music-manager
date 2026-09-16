@@ -59,13 +59,25 @@ export const SLOT_SIZES: Readonly<Record<CoverSlot, SlotSizes>> = {
 /**
  * What one grid cell is worth, per breakpoint.
  *
- * `/library`'s grid is `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6` inside the
- * shell, which keeps a fixed sidebar, so a column is a little narrower than `100vw / columns`.
- * Rounding *up* is the safe direction — an over-wide guess costs a few kilobytes, an
- * under-wide one is a blurry tile — so these are the plain fractions of the viewport.
+ * `/library`'s grid is `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6` with
+ * `gap-3`, inside a shell that spends 232 px on the sidebar and 24 px of padding either side
+ * of `main`. A plain `16vw` was a third too wide at 1280, which is enough to make the browser
+ * climb a whole rung of the ladder for nothing, so the chrome is subtracted instead:
+ *
+ * ```
+ * cell = (100vw − sidebar − padding − gaps) / columns
+ * ```
+ *
+ * `100vw` counts the scrollbar where the layout does not, so the answer still errs a few
+ * pixels wide — which is the safe direction. An over-wide guess costs kilobytes; an under-wide
+ * one is a blurry tile.
  */
-export const ALBUM_GRID_SIZES =
-  "(min-width: 1280px) 16vw, (min-width: 1024px) 19vw, (min-width: 640px) 32vw, 48vw";
+export const ALBUM_GRID_SIZES = [
+  "(min-width: 1280px) calc((100vw - 340px) / 6)",
+  "(min-width: 1024px) calc((100vw - 328px) / 5)",
+  "(min-width: 640px) calc((100vw - 304px) / 3)",
+  "calc((100vw - 292px) / 2)",
+].join(", ");
 
 /** The widths `/api/cover` is offered for a grid cell. */
 export const GRID_LOCAL_WIDTHS: readonly LibraryImageSize[] = [160, 320, 640];

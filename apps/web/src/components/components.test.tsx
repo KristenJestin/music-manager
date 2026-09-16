@@ -717,7 +717,11 @@ describe("the small ones", () => {
     expect(placed?.srcSet).toBe(
       "/api/cover?album=alb_1&size=160 160w, /api/cover?album=alb_1&size=320 320w, /api/cover?album=alb_1&size=640 640w",
     );
-    expect(placed?.sizes).toContain("vw");
+    // The chrome the shell keeps is subtracted, so the browser is not told a cell is a
+    // third wider than it is and made to climb a rung of the ladder for nothing.
+    expect(placed?.sizes).toBe(
+      "(min-width: 1280px) calc((100vw - 340px) / 6), (min-width: 1024px) calc((100vw - 328px) / 5), (min-width: 640px) calc((100vw - 304px) / 3), calc((100vw - 292px) / 2)",
+    );
     expect(remote?.srcSet).toContain("front-250 250w");
     expect(remote?.srcSet).toContain("front-1200 1200w");
   });
@@ -736,7 +740,7 @@ describe("the small ones", () => {
     );
     const image = screen.getByTestId("cover-image");
     expect(image.getAttribute("srcset")).toContain("size=160 160w");
-    expect(image.getAttribute("sizes")).toContain("vw");
+    expect(image.getAttribute("sizes")).toContain("calc((100vw - 340px) / 6)");
   });
 
   it("remoteImageAtWidth resizes a Wikimedia URL and leaves everything else alone", () => {
