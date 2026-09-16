@@ -9,6 +9,13 @@ import { StatTile } from "#/components/stat-tile.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { Button } from "#/components/ui/button.tsx";
+import {
+  SkeletonCard,
+  SkeletonMediaRows,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTiles,
+} from "#/components/skeleton.tsx";
 import { bytes, humanise, pct, timeAgo } from "#/lib/format.ts";
 import { fetchDashboard } from "#/server/functions/dashboard.ts";
 
@@ -24,7 +31,48 @@ export const Route = createFileRoute("/_app/")({
   loader: async () => await fetchDashboard({ data: {} }),
   staticData: { crumbs: [{ label: "Dashboard" }] },
   component: Dashboard,
+  pendingComponent: DashboardPending,
 });
+
+/**
+ * The dashboard's own shape while `fetchDashboard` runs.
+ *
+ * Six tiles over the two columns of `split-grid`, three cards on the left and two on the
+ * right, at the gaps the page itself uses — so the real tiles land where the grey ones were
+ * instead of shoving the journal down as they arrive.
+ */
+function DashboardPending() {
+  return (
+    <SkeletonPage name="dashboard" label="Loading the dashboard…">
+      <SkeletonPageHeader />
+      <SkeletonTiles
+        count={6}
+        className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6"
+      />
+      <div className="split-grid">
+        <div className="flex flex-col gap-4">
+          <SkeletonCard action bodyClassName="p-0">
+            <SkeletonMediaRows rows={3} />
+          </SkeletonCard>
+          <SkeletonCard action bodyClassName="p-0">
+            <SkeletonMediaRows rows={2} />
+          </SkeletonCard>
+          <SkeletonCard action bodyClassName="p-0">
+            <SkeletonMediaRows rows={4} />
+          </SkeletonCard>
+        </div>
+        <div className="flex flex-col gap-4">
+          <SkeletonCard bodyClassName="p-0">
+            <SkeletonMediaRows rows={4} />
+          </SkeletonCard>
+          <SkeletonCard bodyClassName="p-0">
+            <SkeletonMediaRows rows={5} />
+          </SkeletonCard>
+        </div>
+      </div>
+    </SkeletonPage>
+  );
+}
 
 function Dashboard() {
   const { stats, active, review, system, activity, recent } = Route.useLoaderData();

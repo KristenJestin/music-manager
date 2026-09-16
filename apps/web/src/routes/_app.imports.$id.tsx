@@ -29,6 +29,14 @@ import {
 } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { liveTracks, TrackProgress } from "#/components/track-progress.tsx";
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonDetailHeader,
+  SkeletonKeyValues,
+  SkeletonPage,
+  SkeletonTable,
+} from "#/components/skeleton.tsx";
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { cn } from "cn";
 import { dateTime, mmss, pct, short, timeUntil } from "#/lib/format.ts";
@@ -69,7 +77,44 @@ export const Route = createFileRoute("/_app/imports/$id")({
    * sidebar still there to walk away through.
    */
   notFoundComponent: NotFoundScreen,
+  /*
+   * A job page is re-read on every burst of journal lines (`router.invalidate()` behind a
+   * 700 ms collapse), and an invalidation of a match that already has data reloads it in the
+   * background — the rows stay on screen and refresh under you. So this renders on arrival at
+   * a job, not while one is running, which is the only time it would be wrong to blank the
+   * table somebody is watching.
+   */
+  pendingComponent: JobPending,
 });
+
+/**
+ * The job page: the 96 px cover and the stepper, then the full-width Tracks table, the three
+ * cards of Release / Options / Steps, and the log.
+ */
+function JobPending() {
+  return (
+    <SkeletonPage name="job" label="Loading the import…">
+      <SkeletonDetailHeader cover="lg" actions={2} badges={3} />
+      <SkeletonTable rows={8} columns={["w-6", "w-36", "w-1/4", "w-1/5", "w-20", "w-1/6"]} />
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <SkeletonCard action>
+          <SkeletonKeyValues rows={5} />
+        </SkeletonCard>
+        <SkeletonCard>
+          <SkeletonKeyValues rows={7} />
+        </SkeletonCard>
+        <SkeletonCard>
+          <SkeletonKeyValues rows={6} />
+        </SkeletonCard>
+      </div>
+      <SkeletonCard action className="mt-4" bodyClassName="flex flex-col gap-1.5 p-3">
+        {Array.from({ length: 6 }, (_, index) => (
+          <Skeleton key={index} className="h-3 w-full" />
+        ))}
+      </SkeletonCard>
+    </SkeletonPage>
+  );
+}
 
 const ACTIVE: readonly ImportStatus[] = ["pending", "running"];
 

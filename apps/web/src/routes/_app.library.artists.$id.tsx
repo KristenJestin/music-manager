@@ -25,6 +25,13 @@ import { PageHeader } from "#/components/page-header.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { AlbumCard } from "#/components/library/album-card.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import {
+  SkeletonAlbumGrid,
+  SkeletonCard,
+  SkeletonDetailHeader,
+  SkeletonPage,
+  Skeleton,
+} from "#/components/skeleton.tsx";
 import { dateTime } from "#/lib/format.ts";
 import { readFailure } from "#/lib/errors.ts";
 import type { ArtistShelf } from "#/server/services/discography.ts";
@@ -41,7 +48,32 @@ export const Route = createFileRoute("/_app/library/artists/$id")({
     ],
   },
   component: ArtistPage,
+  pendingComponent: ArtistPending,
 });
+
+/**
+ * The artist page's two halves: the portrait header, then the album grid, then the
+ * MusicBrainz discography card. The grid uses the same six-column track as `/library`, because
+ * it renders the very same `AlbumCard`.
+ */
+function ArtistPending() {
+  return (
+    <SkeletonPage name="library-artist" label="Loading the artist…">
+      <SkeletonDetailHeader actions={0} badges={3} className="mb-5" />
+      <Skeleton className="mb-2 h-3 w-24" />
+      <SkeletonAlbumGrid count={6} />
+      <div className="mt-6 mb-2 flex items-center justify-between gap-2">
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="h-7 w-48 rounded-lg" />
+      </div>
+      <SkeletonCard bodyClassName="flex flex-col gap-2">
+        <Skeleton className="h-3.5 w-full" />
+        <Skeleton className="h-3.5 w-full" />
+        <Skeleton className="h-3.5 w-2/3" />
+      </SkeletonCard>
+    </SkeletonPage>
+  );
+}
 
 function ArtistPage() {
   const artist = Route.useLoaderData();

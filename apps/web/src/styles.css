@@ -228,6 +228,41 @@
   grid-template-columns: 3.5rem minmax(0, 1fr);
 }
 
+/**
+ * The Settings page: the tab rail, then the form column.
+ *
+ * A named utility rather than the `lg:grid-cols-[13.5rem_1fr]` this used to be written as,
+ * because the tab strip is now drawn twice — once by the page and once by its skeleton — and
+ * two copies of an arbitrary value are two chances for the form to shift sideways the moment
+ * the real one lands. Same reason as every other grid in this block.
+ */
+@utility settings-grid {
+  display: grid;
+  gap: --spacing(3.5);
+  @media (width >= 64rem) {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+  }
+}
+
+/** One Settings row: the label and its help text, then the control. */
+@utility form-row-grid {
+  display: grid;
+  gap: --spacing(1.5);
+  @media (width >= 40rem) {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: --spacing(4);
+  }
+}
+
+/** A track detail page: the document table, then the rail of fact cards. */
+@utility track-grid {
+  display: grid;
+  gap: --spacing(3);
+  @media (width >= 64rem) {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
 /** A definition list: label column sized to its content. */
 @utility kv-grid {
   display: grid;

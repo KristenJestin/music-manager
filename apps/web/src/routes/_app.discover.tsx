@@ -36,6 +36,12 @@ import { ScoreBar } from "#/components/score-bar.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { usePlayer } from "#/components/shell/player-context.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonPage,
+  SkeletonPageHeader,
+} from "#/components/skeleton.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { dateTime, short, timeAgo } from "#/lib/format.ts";
 import type { DiscoverItemView, DiscoverView } from "#/server/services/discover.ts";
@@ -67,7 +73,108 @@ export const Route = createFileRoute("/_app/discover")({
   loader: async (): Promise<DiscoverView> => await fetchDiscover(),
   staticData: { crumbs: [{ label: "Discover" }] },
   component: Discover,
+  pendingComponent: DiscoverPending,
 });
+
+/**
+ * Discover's four blocks in their real order: listening signals, then the discography gaps at
+ * `xl:grid-cols-2`, the recommendation list, and the similar-artist cards at
+ * `sm:grid-cols-2 xl:grid-cols-4`. Each section keeps its own heading line, because the three
+ * headings are what tell you *which* block is still loading.
+ */
+function DiscoverPending() {
+  return (
+    <SkeletonPage name="discover" label="Loading recommendations…">
+      <SkeletonPageHeader actions={2} />
+
+      <SkeletonCard className="mb-4" bodyClassName="flex flex-col gap-3 px-4 py-3">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="h-12 w-full rounded-md" />
+          ))}
+        </div>
+        <Skeleton className="h-6 w-full rounded-md" />
+      </SkeletonCard>
+
+      <section className="mb-6">
+        <SkeletonSectionHeading />
+        <div className="grid gap-3 xl:grid-cols-2">
+          {Array.from({ length: 2 }, (_, index) => (
+            <SkeletonCard key={index} bodyClassName="p-0">
+              <SkeletonDiscoverRows rows={3} />
+            </SkeletonCard>
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <SkeletonSectionHeading />
+        <div className="mb-3 flex gap-1.5">
+          <Skeleton className="h-6 w-28 rounded-xl" />
+          <Skeleton className="h-6 w-32 rounded-xl" />
+        </div>
+        <div className="rounded-xl border border-line bg-surface-1">
+          <SkeletonDiscoverRows rows={5} />
+        </div>
+      </section>
+
+      <section>
+        <SkeletonSectionHeading />
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div
+              key={index}
+              className="flex flex-col gap-2 rounded-xl border border-line bg-surface-1 p-3"
+            >
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-9 shrink-0 rounded-sm" />
+                <div className="flex min-w-0 grow flex-col gap-1.5">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-2.5 w-1/2" />
+                </div>
+              </div>
+              <Skeleton className="h-1 w-scorebar rounded-sm" />
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-5 w-20 rounded-xl" />
+                <Skeleton className="h-6 w-32 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </SkeletonPage>
+  );
+}
+
+/** `SectionHeading`: the icon, the title, and the sentence explaining where the block comes from. */
+function SkeletonSectionHeading() {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <Skeleton className="size-4 rounded-sm" />
+      <Skeleton className="h-3.5 w-48" />
+      <Skeleton className="h-2.5 w-64" />
+    </div>
+  );
+}
+
+/** `ItemRow`: the title and reason on the left, the play button and three actions on the right. */
+function SkeletonDiscoverRows({ rows }: { readonly rows: number }) {
+  return (
+    <div className="divide-y divide-line">
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="flex items-center gap-3 px-4 py-2.5">
+          <div className="flex min-w-0 grow flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-1/2" />
+            <Skeleton className="h-2.5 w-1/3" />
+          </div>
+          <Skeleton className="size-6 shrink-0 rounded-md" />
+          <Skeleton className="h-6 w-20 shrink-0 rounded-lg" />
+          <Skeleton className="h-6 w-16 shrink-0 rounded-lg" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const SOURCE_TONE = {
   ok: "ok",

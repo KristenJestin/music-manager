@@ -20,6 +20,14 @@ import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { FilterBar } from "#/components/library/filter-bar.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
+import {
+  SkeletonChips,
+  SkeletonFilterBar,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+  SkeletonToolbar,
+} from "#/components/skeleton.tsx";
 import { bytes, mmss, pct } from "#/lib/format.ts";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { TRACK_FILTER_FIELDS } from "#/lib/filters/index.ts";
@@ -44,7 +52,43 @@ export const Route = createFileRoute("/_app/library/tracks/")({
     }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Tracks" }] },
   component: Tracks,
+  pendingComponent: TracksPending,
 });
+
+/**
+ * Eleven columns and the pager, as `Tracks` draws them.
+ *
+ * The widths below are the column list of the table under it, in order — number, cover, title,
+ * artist, album, length, size, extras, metadata, schema, added — because a skeleton table with
+ * evenly spaced columns is a page that visibly re-flows the moment the rows land.
+ */
+function TracksPending() {
+  return (
+    <SkeletonPage name="library-tracks" label="Loading the tracks table…">
+      <SkeletonPageHeader actions={0} />
+      <SkeletonToolbar />
+      <SkeletonFilterBar />
+      <SkeletonChips count={5} />
+      <SkeletonTable
+        pager
+        rows={12}
+        columns={[
+          "w-6",
+          "w-6",
+          "w-1/5",
+          "w-1/6",
+          "w-1/6",
+          "w-10",
+          "w-12",
+          "w-12",
+          "w-12",
+          "w-12",
+          "w-14",
+        ]}
+      />
+    </SkeletonPage>
+  );
+}
 
 const LABELS: Record<(typeof TRACK_FILTERS)[number], string> = {
   all: "All",

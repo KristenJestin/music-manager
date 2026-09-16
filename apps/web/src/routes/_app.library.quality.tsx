@@ -31,6 +31,14 @@ import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { RetagProgressBar, SchemaBadge, SchemaHeading } from "#/components/library/schema.tsx";
+import {
+  Skeleton,
+  SkeletonChips,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+  SkeletonTiles,
+} from "#/components/skeleton.tsx";
 import { useRetagProgress } from "#/hooks/use-retag-progress.ts";
 import { pct } from "#/lib/format.ts";
 import { QUALITY_FILTERS, QUALITY_FILTER_LABELS } from "#/lib/library-filters.ts";
@@ -52,7 +60,35 @@ export const Route = createFileRoute("/_app/library/quality")({
     await fetchQuality({ data: { filter: deps.filter, profile: deps.profile } }),
   staticData: { crumbs: [{ label: "Library", to: "/library" }, { label: "Quality" }] },
   component: Quality,
+  pendingComponent: QualityPending,
 });
+
+/**
+ * Seven tiles, the relocate callout, the profile row, the chips, and the nine-column table.
+ *
+ * This is the page whose loader is genuinely slow — it scores the whole library, unpaged — so
+ * it is the one most likely to be seen. Seven tiles at `lg:grid-cols-7` rather than a generic
+ * four, because a row of tiles that changes count is a full-width reflow.
+ */
+function QualityPending() {
+  return (
+    <SkeletonPage name="library-quality" label="Loading the metadata quality report…">
+      <SkeletonPageHeader actions={2} />
+      <SkeletonTiles count={7} className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-7" />
+      <Skeleton className="mb-3 h-16 w-full rounded-lg" />
+      <div className="mb-3 flex items-center gap-2">
+        <Skeleton className="h-3 w-12" />
+        <Skeleton className="h-7 w-44 rounded-lg" />
+        <Skeleton className="h-3 w-64" />
+      </div>
+      <SkeletonChips count={7} />
+      <SkeletonTable
+        rows={12}
+        columns={["w-4", "w-9", "w-1/4", "w-scorebar", "w-12", "w-16", "w-1/6", "w-12", "w-16"]}
+      />
+    </SkeletonPage>
+  );
+}
 
 function Quality() {
   const payload = Route.useLoaderData();

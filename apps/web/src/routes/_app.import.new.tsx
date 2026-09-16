@@ -279,7 +279,12 @@ function WizardPending() {
   const planned = Math.max(1, (progress?.searchesPlanned ?? 4) + (progress?.lookupsPlanned ?? 6));
 
   return (
-    <div data-testid="wizard-pending" className="flex flex-col gap-3.5">
+    <div
+      role="status"
+      aria-busy="true"
+      data-testid="wizard-pending"
+      className="flex flex-col gap-3.5"
+    >
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-1 px-4 py-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">New import</h1>

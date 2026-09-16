@@ -29,7 +29,7 @@ export function FormRow({
   readonly htmlFor?: string;
 }) {
   return (
-    <div className="grid gap-1.5 border-b border-line py-3 last:border-b-0 sm:grid-cols-[minmax(0,15rem)_1fr] sm:gap-4">
+    <div className="form-row-grid border-b border-line py-3 last:border-b-0">
       <div>
         <label htmlFor={htmlFor} className="text-xs font-medium">
           {label}

@@ -16,6 +16,7 @@ import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { ChipGroup, ChipMulti, FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import {
@@ -34,7 +35,25 @@ export const Route = createFileRoute("/_app/settings/integrations")({
   loader: async () => await fetchIntegrationSettings(),
   staticData: { crumbs: [{ label: "Integrations" }] },
   component: Integrations,
+  pendingComponent: IntegrationsPending,
 });
+
+/**
+ * Navidrome, notifications, the backup and the playlist.
+ *
+ * This loader asks Navidrome whether it is answering, so on an unreachable server it is one of
+ * the slower tabs — and the one where waiting on the previous tab's form was most confusing,
+ * because the previous tab's Save button was still there to press.
+ */
+function IntegrationsPending() {
+  return (
+    <SkeletonSettingsTab
+      name="integrations"
+      label="Loading the integration settings…"
+      rows={[7, 5, 6, 2]}
+    />
+  );
+}
 
 function Integrations() {
   const loaded = Route.useLoaderData();

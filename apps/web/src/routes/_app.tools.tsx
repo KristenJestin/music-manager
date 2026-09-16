@@ -21,6 +21,12 @@ import { PageHeader } from "#/components/page-header.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { ToneBadge, type Tone } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonPage,
+  SkeletonPageHeader,
+} from "#/components/skeleton.tsx";
 import { bytes, timeAgo } from "#/lib/format.ts";
 import {
   fetchTools,
@@ -54,7 +60,44 @@ export const Route = createFileRoute("/_app/tools")({
   loader: async () => await fetchTools(),
   staticData: { crumbs: [{ label: "System" }, { label: "Tools" }] },
   component: Tools,
+  pendingComponent: ToolsPending,
 });
+
+/**
+ * Tools' two columns of panels.
+ *
+ * This loader probes yt-dlp, Navidrome, the cookie jar and four remote services — one of them
+ * behind MusicBrainz's one-request-per-second limiter — so it is reliably the slowest page in
+ * the Console and the one this whole change exists for. Four panels on the left, three on the
+ * right, at `xl:grid-cols-2`, which is what lands.
+ */
+function ToolsPending() {
+  return (
+    <SkeletonPage name="tools" label="Loading the diagnostics…">
+      <SkeletonPageHeader />
+      <div className="grid gap-3.5 xl:grid-cols-2">
+        <div className="flex flex-col gap-3.5">
+          {[5, 4, 3, 4].map((rows, index) => (
+            <SkeletonCard key={index} action bodyClassName="flex flex-col gap-2 p-3">
+              {Array.from({ length: rows }, (_, row) => (
+                <Skeleton key={row} className="h-8 w-full rounded-md" />
+              ))}
+            </SkeletonCard>
+          ))}
+        </div>
+        <div className="flex flex-col gap-3.5">
+          {[6, 3, 8].map((rows, index) => (
+            <SkeletonCard key={index} action bodyClassName="flex flex-col gap-2 p-3">
+              {Array.from({ length: rows }, (_, row) => (
+                <Skeleton key={row} className="h-8 w-full rounded-md" />
+              ))}
+            </SkeletonCard>
+          ))}
+        </div>
+      </div>
+    </SkeletonPage>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* one diagnostic row                                                  */

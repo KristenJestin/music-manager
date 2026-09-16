@@ -16,6 +16,7 @@ import { Input } from "#/components/ui/input.tsx";
 import { Textarea } from "#/components/ui/textarea.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { ChipGroup, FormRow, ReadOnly, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import {
   fetchDownloaderSettings,
@@ -28,7 +29,23 @@ export const Route = createFileRoute("/_app/settings/downloader")({
   loader: async () => await fetchDownloaderSettings(),
   staticData: { crumbs: [{ label: "Downloader" }] },
   component: DownloaderSettings,
+  pendingComponent: DownloaderSettingsPending,
 });
+
+/**
+ * The yt-dlp banner comes first on this tab — it is a `Callout`, not a `Section` — then
+ * Updates, Cookies, Anti-ban and Binaries.
+ */
+function DownloaderSettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      callout
+      name="downloader"
+      label="Loading the downloader settings…"
+      rows={[5, 5, 6, 3]}
+    />
+  );
+}
 
 function DownloaderSettings() {
   const loaded = Route.useLoaderData();

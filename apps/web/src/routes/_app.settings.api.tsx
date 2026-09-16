@@ -21,6 +21,7 @@ import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { ChipMulti, FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import type { ApiKeyView, WebhookView } from "@mm/contracts";
@@ -38,7 +39,25 @@ export const Route = createFileRoute("/_app/settings/api")({
   loader: async () => await fetchApiSettings(),
   staticData: { crumbs: [{ label: "API & agents" }] },
   component: ApiSettings,
+  pendingComponent: ApiSettingsPending,
 });
+
+/**
+ * Tokens, the MCP endpoint and the webhooks. `save={false}`: this is the one tab with no Save
+ * button — every action here applies at once — so drawing a grey one would promise a control
+ * that never arrives.
+ */
+function ApiSettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      callout
+      save={false}
+      name="api"
+      label="Loading the API and agent settings…"
+      rows={[2, 2, 2]}
+    />
+  );
+}
 
 /** "3 days ago", or "never". A timestamp column that reads as prose. */
 function ago(iso: string | null): string {

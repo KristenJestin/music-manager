@@ -47,6 +47,12 @@ import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/fi
 import { SchemaBadge, SchemaHeading, TagDiff } from "#/components/library/schema.tsx";
 import { TagMapTable, type FormatColumns } from "#/components/library/tag-map-table.tsx";
 import { VerifyTab } from "#/components/library/verify-tab.tsx";
+import {
+  SkeletonDetailHeader,
+  SkeletonPage,
+  SkeletonTable,
+  SkeletonTabs,
+} from "#/components/skeleton.tsx";
 import { artistKey } from "#/lib/artist-links.ts";
 import { bytes, clockTime, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import {
@@ -100,7 +106,30 @@ export const Route = createFileRoute("/_app/library/albums/$id")({
   },
   staticData: { crumbs: [{ label: "Library", to: "/library" }, { label: "Album" }] },
   component: Album,
+  pendingComponent: AlbumPending,
 });
+
+/**
+ * The album header — 160 px cover, the credit, the badge row, the six actions — then the tab
+ * strip, then the tracklist.
+ *
+ * The loader also runs on a *tab* change (`loaderDeps` carries `tab`), so this is what the
+ * DB-vs-files and Navidrome tabs show while their extra query runs, not only what a cold
+ * arrival shows. The body is drawn as the Tracks tab because that is the default and the
+ * widest of the six; the header and the strip above it are identical whichever lands.
+ */
+function AlbumPending() {
+  return (
+    <SkeletonPage name="library-album" label="Loading the album…">
+      <SkeletonDetailHeader actions={5} badges={6} />
+      <SkeletonTabs count={TABS.length} />
+      <SkeletonTable
+        rows={10}
+        columns={["w-6", "w-1/3", "w-1/5", "w-12", "w-16", "w-16", "w-1/4"]}
+      />
+    </SkeletonPage>
+  );
+}
 
 function Album() {
   const { album, comparison, history, verify } = Route.useLoaderData();
