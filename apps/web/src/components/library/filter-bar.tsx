@@ -172,7 +172,12 @@ function ValueEditor({
           if (next !== null) put(0, next);
         }}
       >
-        <SelectTrigger size="sm" aria-label={`${def.label} value`} className="w-full text-xs">
+        <SelectTrigger
+          size="sm"
+          data-testid="filter-value-select"
+          aria-label={`${def.label} value`}
+          className="w-full text-xs"
+        >
           <span data-slot="select-value">{at(0) === "false" ? "No" : "Yes"}</span>
         </SelectTrigger>
         <SelectContent className="text-xs">
@@ -231,7 +236,12 @@ function ValueEditor({
           if (next !== null) put(0, next);
         }}
       >
-        <SelectTrigger size="sm" aria-label={`${def.label} value`} className="w-full text-xs">
+        <SelectTrigger
+          size="sm"
+          data-testid="filter-value-select"
+          aria-label={`${def.label} value`}
+          className="w-full text-xs"
+        >
           <span data-slot="select-value" className="truncate">
             {options.find((option) => option.value === at(0))?.label ?? "Choose…"}
           </span>
