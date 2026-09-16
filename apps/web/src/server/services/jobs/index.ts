@@ -876,6 +876,12 @@ export async function stepsOf(importId: string, db: Database = defaultDb()) {
 /** What `listImports` and `countImports` both narrow on, so a page and its total agree. */
 export interface ImportFilter {
   readonly status?: ImportStatus;
+  /**
+   * Several statuses at once, for a named group rather than one value — the Console's
+   * "Active" chip is `pending | running | awaiting_* | waiting_upstream`. Ignored when it is
+   * empty, so `{statuses: []}` is "no filter" and never "match nothing".
+   */
+  readonly statuses?: readonly ImportStatus[];
   /** Substring of the title or the URL, case-insensitive. */
   readonly q?: string;
   readonly limit?: number;
@@ -888,11 +894,21 @@ export interface ImportFilter {
  * `q` used to be applied in TypeScript over whatever window had been fetched, which meant the
  * filter only saw the page and a client could not be told how many rows really matched. It is
  * SQL now, so `countImports` counts the same set `listImports` returns.
+ *
+ * Exported because the Console's job list needs the same guarantee with a different ordering:
+ * `console.queries` builds its page from this `where` and takes its total from `countImports`,
+ * so the chip counts, the total and the rows on screen can never describe three different
+ * sets.
  */
-function importsWhere(filter: ImportFilter) {
+export function importsWhere(filter: ImportFilter) {
   const text = filter.q?.trim() ?? "";
+  const group = filter.statuses ?? [];
   const clauses = [
-    filter.status === undefined ? isNotNull(imports.id) : eq(imports.status, filter.status),
+    filter.status !== undefined
+      ? eq(imports.status, filter.status)
+      : group.length > 0
+        ? inArray(imports.status, [...group])
+        : isNotNull(imports.id),
     ...(text === ""
       ? []
       : [
