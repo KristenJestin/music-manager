@@ -15,11 +15,34 @@
  *
  * The gradient is one of the eleven of `styles.css`, chosen from the seed so it is stable, and
  * the letter in the middle is what makes two adjacent rows tellable apart at 36 px.
+ *
+ * **Which size is fetched is decided in `#/lib/cover-sources.ts`**, by the same `slot` name as
+ * this component's `size` prop — `albumCoverSources(album, "sm")` under `<Cover size="sm">`.
+ * That module is pure and has no React in it, so the server's player queue uses it too. The
+ * builders are re-exported here because every screen already imports them from this path.
  */
 import { useCallback, useState } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
+import { coverCandidate, type CoverSource } from "#/lib/cover-sources.ts";
 import { coverIndex } from "#/lib/format.ts";
+
+export {
+  albumCoverSources,
+  artistImageSources,
+  coverArtFront,
+  libraryArtistImage,
+  libraryCover,
+  remoteImageAtWidth,
+  SLOT_SIZES,
+  type AlbumCoverSource,
+  type ArtistImageSource,
+  type CoverArtSize,
+  type CoverCandidate,
+  type CoverSlot,
+  type CoverSource,
+  type LibraryImageSize,
+} from "#/lib/cover-sources.ts";
 
 const coverVariants = cva(
   "relative grid aspect-square shrink-0 place-items-center overflow-hidden rounded-sm",
@@ -56,117 +79,18 @@ const GRADIENTS = [
   "bg-cover-11",
 ] as const;
 
-/** The sizes the Cover Art Archive publishes for a release front. */
-export type CoverArtSize = 250 | 500 | 1200;
-
-/**
- * The Cover Art Archive's front for a release, as a URL.
- *
- * It answers a redirect to archive.org for a release that has one and a 404 for a release that
- * does not, which is exactly the signal `<Cover>` needs: no probe request, no server round
- * trip, the browser's own load either works or falls back to the gradient.
- */
-export function coverArtFront(
-  mbid: string | null | undefined,
-  size: CoverArtSize = 250,
-): string | null {
-  if (mbid === null || mbid === undefined) return null;
-  const trimmed = mbid.trim();
-  if (trimmed === "") return null;
-  return `https://coverartarchive.org/release/${trimmed}/front-${String(size)}`;
-}
-
-/**
- * The library's own `cover.jpg` for an album, as a URL.
- *
- * The path is never in the URL: the endpoint takes an album id and resolves the file from the
- * row, so a library path can neither leak into a link nor be walked out of. It answers a 404
- * when the album has no cover file, which is the same signal a missing Cover Art Archive front
- * gives — the tile simply moves to the next candidate.
- */
-export function libraryCover(albumId: string | null | undefined): string | null {
-  if (albumId === null || albumId === undefined) return null;
-  const trimmed = albumId.trim();
-  if (trimmed === "") return null;
-  return `/api/cover?album=${encodeURIComponent(trimmed)}`;
-}
-
-/** Just enough of an album row to say where its picture could come from. */
-export interface AlbumCoverSource {
-  readonly id?: string | null;
-  readonly releaseMbid?: string | null;
-  /**
-   * `library_albums.cover_path`. Only its *presence* is used — the endpoint resolves the real
-   * path — but gating on it keeps a list of sixty rows from asking for sixty covers that are
-   * known not to exist.
-   */
-  readonly coverPath?: string | null;
-}
-
-/**
- * Where an album's picture may be found, best first: the file on disk, then the Cover Art
- * Archive. Hand the result straight to `<Cover src={…}>`; the gradient is the last resort.
- *
- * One function, used by every screen that shows an album or one of its tracks, so "which cover
- * does a track show" has a single answer rather than one per page.
- */
-export function albumCoverSources(
-  album: AlbumCoverSource | null | undefined,
-  size: CoverArtSize = 250,
-): readonly string[] {
-  if (album === null || album === undefined) return [];
-  const placed =
-    album.coverPath === null || album.coverPath === undefined || album.coverPath.trim() === ""
-      ? null
-      : libraryCover(album.id);
-  return [placed, coverArtFront(album.releaseMbid, size)].filter(
-    (entry): entry is string => entry !== null,
-  );
-}
-
-/**
- * The library's own `artist.jpg` for an artist, as a URL.
- *
- * The path is never in the URL: the endpoint takes an artist name and resolves the file from
- * the row that folder belongs to, exactly like `libraryCover` does for an album id. A 404
- * means the artist has no local image, which is the same signal `<Cover>` already knows how
- * to fall through on.
- */
-export function libraryArtistImage(name: string | null | undefined): string | null {
-  if (name === null || name === undefined) return null;
-  const trimmed = name.trim();
-  if (trimmed === "") return null;
-  return `/api/artist-image?artist=${encodeURIComponent(trimmed)}`;
-}
-
-/** Just enough of an artist row to say where its picture could come from. */
-export interface ArtistImageSource {
-  readonly name?: string | null;
-  /** `artists_cache.image_url` — a remote URL, Wikimedia or fanart.tv, used verbatim. */
-  readonly imageUrl?: string | null;
-}
-
-/**
- * Where an artist's picture may be found, best first: the `artist.jpg` placed beside their
- * folder, then the remote URL `artists_cache` recorded (§3). Hand the result straight to
- * `<Cover src={…}>`, the same way `albumCoverSources` feeds an album tile.
- */
-export function artistImageSources(
-  artist: ArtistImageSource | null | undefined,
-): readonly string[] {
-  if (artist === null || artist === undefined) return [];
-  return [libraryArtistImage(artist.name), artist.imageUrl ?? null].filter(
-    (entry): entry is string => entry !== null,
-  );
-}
-
 export interface CoverProps extends VariantProps<typeof coverVariants> {
   /**
    * The real image, or several to try in order: the placed `cover.jpg`, a Cover Art Archive
    * front, a YouTube thumbnail — anything the browser can load. Each URL that fails hands over
    * to the next; `null`, an empty list, or a list that is exhausted leaves the gradient showing.
+   *
+   * An entry may be a `CoverCandidate` instead of a string when the same picture exists at
+   * several widths, and then its `srcSet`/`sizes` go on the `<img>` and the browser chooses —
+   * which is how the album grid gets a tile sized for the breakpoint *and* the pixel ratio it
+   * is actually being drawn at.
    */
-  readonly src?: string | null | readonly (string | null | undefined)[];
+  readonly src?: string | null | readonly (CoverSource | null | undefined)[];
   /** What the gradient is derived from — an import id, an MBID, a title. */
   readonly seed?: string | null;
   /** Shown as a tooltip, as the image's alt text, and as the initial in the middle. */
@@ -184,13 +108,14 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
   const gradient = GRADIENTS[coverIndex(seed ?? label ?? "") - 1] ?? GRADIENTS[7];
   const title = label ?? "";
 
-  const given: readonly (string | null | undefined)[] =
+  const given: readonly (CoverSource | null | undefined)[] =
     typeof src === "string" ? [src] : (src ?? []);
-  const url =
-    given.find(
-      (entry): entry is string =>
-        typeof entry === "string" && entry !== "" && !broken.includes(entry),
-    ) ?? null;
+  const candidate =
+    given
+      .filter((entry): entry is CoverSource => entry !== null && entry !== undefined)
+      .map(coverCandidate)
+      .find((entry) => entry.url !== "" && !broken.includes(entry.url)) ?? null;
+  const url = candidate?.url ?? null;
 
   /**
    * React never replays a `load` or an `error` that fired before hydration (owner review
@@ -227,7 +152,7 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
       <span className="font-bold text-white/55 mix-blend-overlay">
         {title.slice(0, 1).toUpperCase()}
       </span>
-      {url === null ? null : (
+      {candidate === null || url === null ? null : (
         /*
          * No `alt`, and no opacity that depends on a React state.
          *
@@ -246,6 +171,8 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
           key={url}
           ref={settle}
           src={url}
+          srcSet={candidate.srcSet}
+          sizes={candidate.sizes}
           alt=""
           aria-hidden="true"
           loading="lazy"
