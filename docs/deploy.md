@@ -209,6 +209,15 @@ nommé hérite de la bonne propriété tout seul ; un bind mount, non.
 **La bibliothèque n'est pas dans les sauvegardes** (§6) : elle se compte en centaines de
 gigaoctets et les fichiers sont une projection régénérable de la base.
 
+**`<bibliothèque>/.mm-cache/images/`** contient les vignettes que la Console demande à
+`/api/cover` et `/api/artist-image` (64, 160, 320, 640 px). Elles sont fabriquées à la
+première demande par `POST /artwork/prepare` du toolbox et relues sur disque ensuite ; le nom
+de chaque fichier contient le `mtime` de l'original, donc un re-tag en fabrique de nouvelles
+sans que rien n'ait à supprimer les anciennes. Le point devant le nom garde le scanner de
+Navidrome dehors, comme pour `.mm-work` et `.mm-archive`. Le répertoire est **jetable** :
+le supprimer ne coûte qu'une régénération, et il n'a pas besoin d'être sauvegardé. Comptez
+quelques dizaines de kilooctets par album et par taille effectivement demandée.
+
 ---
 
 ## 4. Mise à jour
