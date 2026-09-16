@@ -67,6 +67,11 @@ const NAMES = [
 /** One shared empty overlay, so "nothing known yet" is a stable reference between renders. */
 const EMPTY: ReadonlyMap<string, JobProgress> = new Map();
 
+/** The ids back out of the key. An import id has no comma in it, so this is exact. */
+function idsOf(key: string): string[] {
+  return key === "" ? [] : key.split(",");
+}
+
 /** Long enough to collapse a burst of frames into one query, short enough to feel immediate. */
 const SETTLE_MS = 500;
 /** The fallback cadence while the stream is down. Slow on purpose: it is a safety net. */
@@ -86,17 +91,18 @@ export function useJobsProgress({
   const [stream, setStream] = useState<StreamState>("connecting");
 
   /*
-   * The ids are read by the stream's handler, which must not be rebuilt on every render, so
-   * they live in a ref keyed on a stable string. `key` is also how a *new page* of rows is
-   * recognised — a new array with the same contents is not a new page.
+   * The page of rows, as one sorted string.
+   *
+   * Every caller builds `ids` with a `.map()`, so the array is a new object on every render
+   * and useless as an identity; the string is not. It is what tells a *new page* from the same
+   * page re-rendered, and the ids are recovered from it wherever they are needed — so the
+   * stream's handler, which must not be rebuilt every render, holds one ref and not two.
    */
   const key = useMemo(() => [...ids].sort().join(","), [ids]);
-  const idsRef = useRef<readonly string[]>(ids);
   const keyRef = useRef(key);
   useEffect(() => {
-    idsRef.current = ids;
     keyRef.current = key;
-  }, [ids, key]);
+  }, [key]);
 
   /*
    * What the last read learned, *and which page it was about*.
@@ -119,10 +125,10 @@ export function useJobsProgress({
   const inFlight = useRef(false);
 
   const read = useCallback(() => {
-    const wanted = idsRef.current;
+    const wanted = idsOf(keyRef.current);
     if (wanted.length === 0 || inFlight.current) return;
     inFlight.current = true;
-    void fetchJobProgress({ data: { ids: [...wanted] } }).then(
+    void fetchJobProgress({ data: { ids: wanted } }).then(
       (fresh) => {
         inFlight.current = false;
         setStore({
@@ -152,7 +158,7 @@ export function useJobsProgress({
         importId = null;
       }
       // A frame about a job that is not on this page changes nothing on this page.
-      if (importId !== null && !idsRef.current.includes(importId)) return;
+      if (importId !== null && !idsOf(keyRef.current).includes(importId)) return;
       if (settle !== null) return;
       settle = setTimeout(() => {
         settle = null;

@@ -694,6 +694,25 @@ docker compose -f docker-compose.prod.yml exec web \
 Cela ne concerne que le mode démonstration hors ligne (`MM_FIXTURES=1` **et**
 `MM_TOOLBOX_FIXTURES=1`, les deux) ; une installation réelle n'en a pas besoin.
 
+**La page Jobs n'affiche pas tous mes imports.** Elle s'ouvre sur « Active » et non sur
+« All » : sur une instance qui a quelques centaines d'imports, les annulés sont la majorité des
+lignes et enterrent celles qui avancent. Les puces comptent la table entière, pas la page — « All
+388 · Active 70 · Cancelled 275 » — et « All » comme « Cancelled » sont à un clic. La liste est
+paginée par cinquante ; le filtre et la page sont dans l'URL, donc `/imports?status=cancelled&
+page=1` est un lien qu'on peut envoyer et qui survit à un rechargement. L'ordre est « ce qui
+bouge d'abord » : les jobs en cours, puis ceux qui attendent une décision, puis la file, et les
+annulés en dernier ; à statut égal, le plus récemment avancé passe devant.
+
+**La carte Worker montre toujours le même import.** Elle nomme désormais l'import qui détient
+réellement l'unique créneau de téléchargement (la ligne `job_steps` `download`/`running`), pas
+un job « running » pris au hasard dans la file — un import déjà pris en charge reste `running`
+tant qu'il attend son tour, et ils sont parfois quarante-cinq dans ce cas. Le compteur
+« N queued » compte tout ce qui attend le worker, moins celui qui l'occupe. Quand rien ne
+télécharge, la carte le dit ; si le worker est en train de finir un album (fingerprint, tag,
+place), elle nomme le dernier import qui a bougé, avec la mention « finishing up ». La ligne
+« moved … » donne l'âge du dernier mouvement : figée, c'est le worker qui est bloqué, pas la
+page.
+
 **Des imports restent en « Waiting on source ».** Ce n'est pas une panne : une source a refusé
 (429, 5xx, délai dépassé) et l'import est retourné dans la file avec une attente qui double à
 chaque essai. La ligne dit qui a refusé, le numéro de l'essai et l'heure du suivant ; personne
