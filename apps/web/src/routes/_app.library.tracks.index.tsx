@@ -7,7 +7,6 @@
  *
  * Paged at sixty rows. The filter and the page are in the URL like everywhere else.
  */
-import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
@@ -15,19 +14,11 @@ import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { Pager } from "#/components/pager.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
-import { SearchInput } from "#/components/search-input.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
-import { FilterBar } from "#/components/library/filter-bar.tsx";
-import { FilterChips } from "#/components/library/filter-chips.tsx";
+import { FilterNotice } from "#/components/library/filter-bar.tsx";
+import { FilterToolbar } from "#/components/library/filter-toolbar.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
-import {
-  SkeletonChips,
-  SkeletonFilterBar,
-  SkeletonPage,
-  SkeletonPageHeader,
-  SkeletonTable,
-  SkeletonToolbar,
-} from "#/components/skeleton.tsx";
+import { SkeletonPage, SkeletonPageHeader, SkeletonTable } from "#/components/skeleton.tsx";
 import { bytes, mmss, pct } from "#/lib/format.ts";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { TRACK_FILTER_FIELDS } from "#/lib/filters/index.ts";
@@ -56,25 +47,25 @@ export const Route = createFileRoute("/_app/library/tracks/")({
 });
 
 /**
- * Eleven columns and the pager, as `Tracks` draws them.
+ * The real toolbar, then eleven columns and the pager as `Tracks` draws them.
  *
  * The widths below are the column list of the table under it, in order — number, cover, title,
  * artist, album, length, size, extras, metadata, schema, added — because a skeleton table with
- * evenly spaced columns is a page that visibly re-flows the moment the rows land.
+ * evenly spaced columns is a page that visibly re-flows the moment the rows land. The second
+ * entry says `{ cover: "xs" }` rather than a width, because that 24 px square is what makes a
+ * track row 37 px tall and not 30.
  */
 function TracksPending() {
   return (
     <SkeletonPage name="library-tracks" label="Loading the tracks table…">
       <SkeletonPageHeader actions={0} />
-      <SkeletonToolbar />
-      <SkeletonFilterBar />
-      <SkeletonChips count={5} />
+      <TracksToolbar counts={null} />
       <SkeletonTable
         pager
         rows={12}
         columns={[
           "w-6",
-          "w-6",
+          { cover: "xs" },
           "w-1/5",
           "w-1/6",
           "w-1/6",
@@ -100,11 +91,55 @@ const LABELS: Record<(typeof TRACK_FILTERS)[number], string> = {
 
 const PAGE_SIZE = 60;
 
+/** The search box, the conditions and the presets of `/library/tracks`, from the URL alone. */
+function TracksToolbar({
+  counts,
+}: {
+  readonly counts: Record<(typeof TRACK_FILTERS)[number], number> | null;
+}) {
+  const params = Route.useSearch();
+  const navigate = useNavigate();
+
+  return (
+    <FilterToolbar
+      search={{
+        value: params.q,
+        label: "Search tracks",
+        placeholder: "Title, artist, album, MBID, path…",
+        testId: "tracks-search",
+        onSubmit: (q) => {
+          void navigate({ to: "/library/tracks", search: { ...params, q, page: 0 } });
+        },
+      }}
+      conditions={{
+        fields: TRACK_FILTER_FIELDS,
+        value: params.f,
+        testId: "track-filter-bar",
+        onChange: (f) => {
+          void navigate({ to: "/library/tracks", search: { ...params, f, page: 0 } });
+        },
+      }}
+      presets={{
+        chips: TRACK_FILTERS.map((filter) => ({
+          value: filter,
+          label: LABELS[filter],
+          count: counts?.[filter] ?? null,
+        })),
+        active: params.filter,
+        testId: "track-filters",
+        // Every preset resets the page: "Behind schema, page 6" of a two-page set is an
+        // empty table and a puzzled owner.
+        link: (filter) => ({ to: "/library/tracks", search: { ...params, filter, page: 0 } }),
+      }}
+    />
+  );
+}
+
 function Tracks() {
   const { tracks, total, counts, currentSchema, filterError } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
-  const [query, setQuery] = useState(params.q);
+
   const now = new Date();
 
   const go = (page: number): void => {
@@ -211,48 +246,8 @@ function Tracks() {
         description={`${counts.all} track(s) in the library · projection v${currentSchema}`}
       />
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <SearchInput
-          data-testid="tracks-search"
-          className="min-w-64 flex-1"
-          label="Search tracks"
-          placeholder="Title, artist, album, MBID, path…"
-          value={query}
-          onValueChange={setQuery}
-          onSubmit={(q) => {
-            void navigate({ to: "/library/tracks", search: { ...params, q, page: 0 } });
-          }}
-        />
-      </div>
-
-      <FilterBar
-        testId="track-filter-bar"
-        fields={TRACK_FILTER_FIELDS}
-        value={params.f}
-        error={filterError}
-        search={{
-          value: params.q,
-          label: "Search:",
-          onClear: () => {
-            setQuery("");
-            void navigate({ to: "/library/tracks", search: { ...params, q: "", page: 0 } });
-          },
-        }}
-        onChange={(f) => {
-          void navigate({ to: "/library/tracks", search: { ...params, f, page: 0 } });
-        }}
-      />
-
-      <FilterChips
-        testId="track-filters"
-        chips={TRACK_FILTERS.map((filter) => ({
-          value: filter,
-          label: LABELS[filter],
-          count: counts[filter],
-        }))}
-        active={params.filter}
-        link={(filter) => ({ to: "/library/tracks", search: { ...params, filter, page: 0 } })}
-      />
+      <TracksToolbar counts={counts} />
+      <FilterNotice fields={TRACK_FILTER_FIELDS} value={params.f} error={filterError} />
 
       <div className="overflow-hidden rounded-xl border border-line bg-surface-1">
         <DataTable

@@ -10,7 +10,6 @@
  * every badge with "as Navidrome reads it" and changes nothing about the files, which is said
  * in the toolbar rather than left to be inferred.
  */
-import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { PROFILE_IDS } from "@mm/domain";
@@ -20,20 +19,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/u
 
 import { Callout } from "#/components/callout.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
-import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { scoreTone } from "#/components/status-badge.tsx";
 import { AlbumCard } from "#/components/library/album-card.tsx";
-import { FilterBar } from "#/components/library/filter-bar.tsx";
-import { FilterChips } from "#/components/library/filter-chips.tsx";
+import { FilterNotice } from "#/components/library/filter-bar.tsx";
+import { FilterToolbar } from "#/components/library/filter-toolbar.tsx";
 import {
   SkeletonAlbumGrid,
-  SkeletonChips,
-  SkeletonFilterBar,
   SkeletonPage,
   SkeletonPageHeader,
   SkeletonTiles,
-  SkeletonToolbar,
 } from "#/components/skeleton.tsx";
 import { pct } from "#/lib/format.ts";
 import { ALBUM_FILTER_FIELDS } from "#/lib/filters/index.ts";
@@ -73,7 +68,14 @@ export const Route = createFileRoute("/_app/library/")({
 });
 
 /**
- * The grid, as covers that are not there yet.
+ * The grid, as covers that are not there yet — and the toolbar, for real.
+ *
+ * The toolbar is the point. Everything in it comes out of `Route.useSearch()`, so there is no
+ * reason for a navigation to take the search box, the filter builder, the presets and the two
+ * selects away and give them back a moment later; doing that was what made every click feel
+ * like the page had been thrown out and rebuilt. The one thing this cannot know is the
+ * per-preset counts, which is why they go in as `null` and draw a dash in a slot the right
+ * width. Only the header, the tiles and the grid are still grey.
  *
  * Twelve cards rather than the six hundred that will land: the skeleton's job is to fill the
  * first screen, and a placeholder below the fold costs layout work nobody sees. The grid
@@ -85,9 +87,7 @@ function AlbumsPending() {
     <SkeletonPage name="library-albums" label="Loading the album grid…">
       <SkeletonPageHeader actions={2} />
       <SkeletonTiles count={4} className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" />
-      <SkeletonToolbar selects={2} />
-      <SkeletonFilterBar />
-      <SkeletonChips count={6} />
+      <AlbumsToolbar counts={null} />
       <SkeletonAlbumGrid count={12} />
     </SkeletonPage>
   );
@@ -109,21 +109,120 @@ const SORT_LABELS: Record<(typeof ALBUM_SORTS)[number], string> = {
   score: "Worst metadata first",
 };
 
+/**
+ * Everything on this page that filters, sorts or re-scores — in one row, from the URL alone.
+ *
+ * Rendered by `Albums` and by `AlbumsPending` alike, which is the whole trick: the two differ
+ * only in whether `counts` is a number per preset or `null`.
+ */
+function AlbumsToolbar({
+  counts,
+}: {
+  readonly counts: Record<(typeof ALBUM_FILTERS)[number], number> | null;
+}) {
+  const params = Route.useSearch();
+  const navigate = useNavigate();
+
+  return (
+    <FilterToolbar
+      search={{
+        value: params.q,
+        label: "Search albums",
+        placeholder: "Search albums, artists, MBID…",
+        testId: "library-search",
+        onSubmit: (q) => {
+          void navigate({ to: "/library", search: { ...params, q } });
+        },
+      }}
+      conditions={{
+        fields: ALBUM_FILTER_FIELDS,
+        value: params.f,
+        testId: "album-filter-bar",
+        onChange: (f) => {
+          void navigate({ to: "/library", search: { ...params, f } });
+        },
+      }}
+      presets={{
+        chips: ALBUM_FILTERS.map((filter) => ({
+          value: filter,
+          label: FILTER_LABELS[filter],
+          count: counts?.[filter] ?? null,
+        })),
+        active: params.filter,
+        testId: "library-filters",
+        link: (filter) => ({ to: "/library", search: { ...params, filter } }),
+      }}
+    >
+      <Select
+        value={params.sort}
+        onValueChange={(next: string | null) => {
+          if (next === null) return;
+          void navigate({
+            to: "/library",
+            search: { ...params, sort: next as typeof params.sort },
+          });
+        }}
+      >
+        <SelectTrigger
+          size="sm"
+          data-testid="library-sort"
+          aria-label="Sort albums"
+          className="border-line bg-surface-1 text-xs"
+        >
+          <span data-slot="select-value" className="truncate">
+            {SORT_LABELS[params.sort]}
+          </span>
+        </SelectTrigger>
+        <SelectContent className="text-xs">
+          {ALBUM_SORTS.map((sort) => (
+            <SelectItem key={sort} value={sort} className="text-xs">
+              {SORT_LABELS[sort]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={params.profile}
+        onValueChange={(next: string | null) => {
+          if (next === null) return;
+          void navigate({
+            to: "/library",
+            search: { ...params, profile: next as typeof params.profile },
+          });
+        }}
+      >
+        <SelectTrigger
+          size="sm"
+          data-testid="library-profile"
+          aria-label="Scoring profile"
+          className="border-line bg-surface-1 text-xs"
+        >
+          <span data-slot="select-value" className="truncate">
+            {params.profile === "global" ? "Global (superset)" : params.profile}
+          </span>
+        </SelectTrigger>
+        <SelectContent className="text-xs">
+          <SelectItem value="global" className="text-xs">
+            Global (superset)
+          </SelectItem>
+          {PROFILE_IDS.map((id) => (
+            <SelectItem key={id} value={id} className="text-xs">
+              {id}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FilterToolbar>
+  );
+}
+
 function Albums() {
   const { albums, counts, stats, total, filterError } = Route.useLoaderData();
   const params = Route.useSearch();
-  const navigate = useNavigate();
-  const [query, setQuery] = useState(params.q);
 
   const profiled = params.profile !== "global";
   const scoreOf = (quality: (typeof albums)[number]["quality"]): number | null =>
     profiled ? quality.byProfile[params.profile as never] : quality.score;
-
-  // Takes the value rather than reading `query`: the clear button changes the state and
-  // submits in the same tick, so the state it would read is still the old one.
-  const submit = (q: string): void => {
-    void navigate({ to: "/library", search: { ...params, q } });
-  };
 
   return (
     <>
@@ -191,105 +290,8 @@ function Albums() {
         />
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <SearchInput
-          data-testid="library-search"
-          className="min-w-56 flex-1"
-          label="Search albums"
-          placeholder="Search albums, artists, MBID…"
-          value={query}
-          onValueChange={setQuery}
-          onSubmit={submit}
-        />
-        <Select
-          value={params.sort}
-          onValueChange={(next: string | null) => {
-            if (next === null) return;
-            void navigate({
-              to: "/library",
-              search: { ...params, sort: next as typeof params.sort },
-            });
-          }}
-        >
-          <SelectTrigger
-            size="sm"
-            data-testid="library-sort"
-            aria-label="Sort albums"
-            className="border-line bg-surface-1 text-xs"
-          >
-            <span data-slot="select-value" className="truncate">
-              {SORT_LABELS[params.sort]}
-            </span>
-          </SelectTrigger>
-          <SelectContent className="text-xs">
-            {ALBUM_SORTS.map((sort) => (
-              <SelectItem key={sort} value={sort} className="text-xs">
-                {SORT_LABELS[sort]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={params.profile}
-          onValueChange={(next: string | null) => {
-            if (next === null) return;
-            void navigate({
-              to: "/library",
-              search: { ...params, profile: next as typeof params.profile },
-            });
-          }}
-        >
-          <SelectTrigger
-            size="sm"
-            data-testid="library-profile"
-            aria-label="Scoring profile"
-            className="border-line bg-surface-1 text-xs"
-          >
-            <span data-slot="select-value" className="truncate">
-              {params.profile === "global" ? "Global (superset)" : params.profile}
-            </span>
-          </SelectTrigger>
-          <SelectContent className="text-xs">
-            <SelectItem value="global" className="text-xs">
-              Global (superset)
-            </SelectItem>
-            {PROFILE_IDS.map((id) => (
-              <SelectItem key={id} value={id} className="text-xs">
-                {id}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <FilterBar
-        testId="album-filter-bar"
-        fields={ALBUM_FILTER_FIELDS}
-        value={params.f}
-        error={filterError}
-        search={{
-          value: params.q,
-          label: "Search:",
-          onClear: () => {
-            setQuery("");
-            submit("");
-          },
-        }}
-        onChange={(f) => {
-          void navigate({ to: "/library", search: { ...params, f } });
-        }}
-      />
-
-      <FilterChips
-        testId="library-filters"
-        chips={ALBUM_FILTERS.map((filter) => ({
-          value: filter,
-          label: FILTER_LABELS[filter],
-          count: counts[filter],
-        }))}
-        active={params.filter}
-        link={(filter) => ({ to: "/library", search: { ...params, filter } })}
-      />
+      <AlbumsToolbar counts={counts} />
+      <FilterNotice fields={ALBUM_FILTER_FIELDS} value={params.f} error={filterError} />
 
       {albums.length === 0 ? (
         <Callout tone="info" data-testid="library-empty">
