@@ -343,6 +343,17 @@ function ConditionBuilder({
   }
 
   const def = draft.field;
+  /*
+   * Enough operands to be a condition at all.
+   *
+   * The same arity the schema enforces, checked here so that "Add filter" is simply not
+   * available on a half-written chip. Letting it through would write a filter the URL cannot
+   * carry, and the reader would meet it as a notice saying the link was ignored — a reproach
+   * for a mistake the button could have declined to make.
+   */
+  const operands = draft.values.filter((value) => value.trim() !== "").length;
+  const ready = operands >= FILTER_OPERATOR_ARITY[draft.op][0];
+
   return (
     <div className="flex flex-col gap-2" data-testid="filter-builder">
       <div className="flex items-baseline justify-between gap-2">
@@ -403,6 +414,7 @@ function ConditionBuilder({
         <Button
           size="xs"
           data-testid="filter-apply"
+          disabled={!ready}
           onClick={() => {
             onCommit({
               kind: "condition",

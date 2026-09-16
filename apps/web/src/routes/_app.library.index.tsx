@@ -263,11 +263,25 @@ function Albums() {
 
       {albums.length === 0 ? (
         <Callout tone="info" data-testid="library-empty">
-          Nothing here yet. An album appears once its files have been placed.{" "}
-          <Link to="/import/new" className="text-primary">
-            start an import
-          </Link>
-          .
+          {/*
+            "Nothing matches" and "nothing is here" are different facts and used to share one
+            sentence, so a filter that excluded everything read as an empty library. `counts.all`
+            is the library; `total` is what the filter left of it.
+          */}
+          {counts.all === 0 ? (
+            <>
+              Nothing here yet. An album appears once its files have been placed.{" "}
+              <Link to="/import/new" className="text-primary">
+                start an import
+              </Link>
+              .
+            </>
+          ) : (
+            <>
+              No album matches. {counts.all} album(s) are in the library — take a condition off the
+              bar above to see them.
+            </>
+          )}
         </Callout>
       ) : (
         <div
