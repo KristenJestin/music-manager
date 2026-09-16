@@ -21,6 +21,7 @@ import { useToast } from "#/components/shell/shell-context.tsx";
 import { SettingsForm } from "#/components/settings/settings-form.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { ChipGroup, FormRow, ReadOnly, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import {
   fetchGeneralSettings,
   previewTemplate,
@@ -31,7 +32,19 @@ export const Route = createFileRoute("/_app/settings/library")({
   loader: async () => await fetchGeneralSettings(),
   staticData: { crumbs: [{ label: "Library & files" }] },
   component: LibrarySettings,
+  pendingComponent: LibrarySettingsPending,
 });
+
+/** Roots, Layout, Sidecars, Scan — two, five, five and three rows. */
+function LibrarySettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      name="library"
+      label="Loading the library and file settings…"
+      rows={[2, 5, 5, 3]}
+    />
+  );
+}
 
 function LibrarySettings() {
   const payload = Route.useLoaderData();

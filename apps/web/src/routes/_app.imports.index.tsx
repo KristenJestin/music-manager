@@ -14,6 +14,12 @@ import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { cn } from "cn";
 import { TimeAgo } from "#/components/time-ago.tsx";
+import {
+  SkeletonChips,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+} from "#/components/skeleton.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useJobsProgress, type StreamState } from "#/hooks/use-jobs-progress.ts";
 import { timeAgo } from "#/lib/format.ts";
@@ -66,7 +72,27 @@ export const Route = createFileRoute("/_app/imports/")({
   loader: async ({ deps }) => await fetchJobs({ data: { status: deps.status, page: deps.page } }),
   staticData: { crumbs: [{ label: "Jobs" }] },
   component: Jobs,
+  pendingComponent: JobsPending,
 });
+
+/**
+ * The Jobs table while `fetchJobs` runs: seven chips, then cover, import, kind, pipeline,
+ * progress, status, updated — and the pager, which is part of the bordered card and would
+ * otherwise appear from nowhere under the last row.
+ */
+function JobsPending() {
+  return (
+    <SkeletonPage name="jobs" label="Loading the jobs table…">
+      <SkeletonPageHeader actions={2} />
+      <SkeletonChips count={7} />
+      <SkeletonTable
+        pager
+        rows={10}
+        columns={["w-9", "w-1/3", "w-12", "w-24", "w-48", "w-20", "w-16"]}
+      />
+    </SkeletonPage>
+  );
+}
 
 const FILTERS = [
   // Active first, because it is the default and because it is the question being asked.

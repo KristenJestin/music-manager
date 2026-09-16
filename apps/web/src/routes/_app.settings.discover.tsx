@@ -22,6 +22,7 @@ import {
   SecretInput,
   Toggle,
 } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import {
   fetchDiscoverSettings,
@@ -32,7 +33,20 @@ export const Route = createFileRoute("/_app/settings/discover")({
   loader: async () => await fetchDiscoverSettings(),
   staticData: { crumbs: [{ label: "Discover" }] },
   component: DiscoverSettings,
+  pendingComponent: DiscoverSettingsPending,
 });
+
+/** The dependency callout, then signals, window, gaps and the optional write-back. */
+function DiscoverSettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      callout
+      name="discover"
+      label="Loading the Discover settings…"
+      rows={[4, 4, 3, 2]}
+    />
+  );
+}
 
 const RELEASE_TYPES = [
   { value: "Album" as const, label: "Album" },

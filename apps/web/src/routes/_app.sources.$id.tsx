@@ -17,6 +17,13 @@ import { PageHeader } from "#/components/page-header.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import {
+  SkeletonFormSection,
+  SkeletonKeyValues,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+} from "#/components/skeleton.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import {
   fetchWatchedSource,
@@ -29,7 +36,24 @@ export const Route = createFileRoute("/_app/sources/$id")({
   loader: async ({ params }) => await fetchWatchedSource({ data: { id: params.id } }),
   staticData: { crumbs: [{ label: "Watched sources", to: "/sources" }, { label: "Source" }] },
   component: WatchedSourceDetailPage,
+  pendingComponent: WatchedSourcePending,
 });
+
+/** The facts card beside the Policy form, then every video this source has ever reported. */
+function WatchedSourcePending() {
+  return (
+    <SkeletonPage name="source" label="Loading the watched source…">
+      <SkeletonPageHeader actions={2} />
+      <div className="mb-3.5 grid gap-3.5 lg:grid-cols-2">
+        <div className="rounded-lg border border-line bg-surface-1 p-3.5">
+          <SkeletonKeyValues rows={6} />
+        </div>
+        <SkeletonFormSection rows={3} />
+      </div>
+      <SkeletonTable rows={8} columns={["w-1/3", "w-20", "w-1/4", "w-20"]} />
+    </SkeletonPage>
+  );
+}
 
 const ITEM_TONE = {
   new: "info",

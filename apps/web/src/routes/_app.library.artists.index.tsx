@@ -21,6 +21,13 @@ import { DataTable, type Column } from "#/components/data-table.tsx";
 import { MbLink } from "#/components/mb-link.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
+import {
+  SkeletonFilterBar,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+  SkeletonToolbar,
+} from "#/components/skeleton.tsx";
 import { artistKey } from "#/lib/artist-links.ts";
 import { FilterBar } from "#/components/library/filter-bar.tsx";
 import { ARTIST_FILTER_FIELDS } from "#/lib/filters/index.ts";
@@ -39,7 +46,23 @@ export const Route = createFileRoute("/_app/library/artists/")({
   loader: async ({ deps }) => await fetchArtists({ data: { search: deps.q, f: deps.f } }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Artists" }] },
   component: Artists,
+  pendingComponent: ArtistsPending,
 });
+
+/** The seven columns of the artists table: cover, name, albums, tracks, country, sort, MBID. */
+function ArtistsPending() {
+  return (
+    <SkeletonPage name="library-artists" label="Loading the artists table…">
+      <SkeletonPageHeader actions={0} />
+      <SkeletonToolbar />
+      <SkeletonFilterBar />
+      <SkeletonTable
+        rows={10}
+        columns={["w-9", "w-1/4", "w-12", "w-12", "w-16", "w-1/6", "w-1/6"]}
+      />
+    </SkeletonPage>
+  );
+}
 
 function Artists() {
   const { artists, filterError } = Route.useLoaderData();

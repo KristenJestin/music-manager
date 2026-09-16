@@ -26,6 +26,13 @@ import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/field-editor.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { MbLink } from "#/components/mb-link.tsx";
+import {
+  Skeleton,
+  SkeletonDetailHeader,
+  SkeletonKeyValues,
+  SkeletonPage,
+  SkeletonTable,
+} from "#/components/skeleton.tsx";
 import { artistKey } from "#/lib/artist-links.ts";
 import { bytes, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import { fetchTrack, redownload, removeTrack } from "#/server/functions/library.ts";
@@ -51,7 +58,32 @@ export const Route = createFileRoute("/_app/library/tracks/$id")({
   loader: async ({ params }) => await fetchTrack({ data: { id: params.id } }),
   staticData: { crumbs: [{ label: "Library", to: "/library" }, { label: "Track" }] },
   component: TrackPage,
+  pendingComponent: TrackPending,
 });
+
+/**
+ * The track page: a header with no cover of its own (a file has no picture — the page prints
+ * the album's link instead), the document table on the left, and the Source / Identifiers /
+ * file cards down the `track-grid` rail on the right.
+ */
+function TrackPending() {
+  return (
+    <SkeletonPage name="library-track" label="Loading the track…">
+      <SkeletonDetailHeader cover="none" actions={4} badges={3} />
+      <div className="track-grid">
+        <SkeletonTable rows={12} columns={["w-1/4", "w-1/3", "w-1/5", "w-16"]} />
+        <div className="flex flex-col gap-3">
+          {[6, 3, 5].map((rows, index) => (
+            <section key={index} className="rounded-xl border border-line bg-surface-1 p-3.5">
+              <Skeleton className="mb-2 h-3 w-24" />
+              <SkeletonKeyValues rows={rows} />
+            </section>
+          ))}
+        </div>
+      </div>
+    </SkeletonPage>
+  );
+}
 
 /** Render one document value as text, whatever shape it has. */
 function render(value: unknown): string {
@@ -269,7 +301,7 @@ function TrackPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1.6fr_1fr]">
+      <div className="track-grid">
         <div className="flex flex-col gap-3">
           <section className="overflow-hidden rounded-xl border border-line bg-surface-1">
             <header className="flex items-center justify-between border-b border-line px-3.5 py-2">

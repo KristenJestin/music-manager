@@ -3,6 +3,7 @@ import { AppShell } from "#/components/shell/app-shell.tsx";
 import { ShellProvider } from "#/components/shell/shell-context.tsx";
 import type { Crumb } from "#/components/shell/topbar.tsx";
 import { ErrorScreen } from "#/components/error-screen.tsx";
+import { SkeletonFallback } from "#/components/skeleton.tsx";
 import { fetchShell } from "#/server/functions/dashboard.ts";
 import { currentSession, setupState } from "#/server/functions/session.ts";
 
@@ -36,6 +37,20 @@ export const Route = createFileRoute("/_app")({
   component: AppLayout,
   errorComponent: AppError,
   /*
+   * The shell's own waiting state, and the one case the per-page skeletons cannot cover.
+   *
+   * In practice this almost never renders. A client-side navigation finds `_app`'s match
+   * already `success`, so `fetchShell` re-runs in the background and the chrome never leaves
+   * the screen — what goes pending is the leaf, and the leaf draws its own shape in the
+   * `<Outlet />` below. This is for the first entry into the app, where there is no shell data
+   * yet: the chrome with empty counters, as `AppError` already proves `ShellProvider` accepts.
+   *
+   * Declared rather than left to `router.tsx`'s `defaultPendingComponent`, which would paint a
+   * bare page with no sidebar to walk away through — the same mistake decision 165 removed
+   * from the error path.
+   */
+  pendingComponent: AppPending,
+  /*
    * No `notFoundComponent` here, and that is the result of trying it both ways.
    *
    * `notFound()` does not behave like an error. An error is caught by the failing route's own
@@ -62,6 +77,17 @@ function AppError({ error }: { readonly error: unknown }) {
     <ShellProvider initial={null}>
       <AppShell crumbs={[{ label: "Music Manager" }]}>
         <ErrorScreen error={error} />
+      </AppShell>
+    </ShellProvider>
+  );
+}
+
+/** The chrome, with the page inside it still being fetched. */
+function AppPending() {
+  return (
+    <ShellProvider initial={null}>
+      <AppShell crumbs={[{ label: "Music Manager" }]}>
+        <SkeletonFallback />
       </AppShell>
     </ShellProvider>
   );

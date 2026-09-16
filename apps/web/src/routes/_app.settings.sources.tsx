@@ -19,6 +19,7 @@ import { Callout } from "#/components/callout.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { SettingsForm } from "#/components/settings/settings-form.tsx";
 import { FormRow, Section, Toggle } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import {
   fetchWatchedSourcesSettings,
@@ -29,7 +30,19 @@ export const Route = createFileRoute("/_app/settings/sources")({
   loader: async () => await fetchWatchedSourcesSettings(),
   staticData: { crumbs: [{ label: "Watched sources" }] },
   component: WatchedSourcesSettings,
+  pendingComponent: WatchedSourcesSettingsPending,
 });
+
+/** Three short blocks: what may be imported, when the scan runs, what it may confirm alone. */
+function WatchedSourcesSettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      name="sources"
+      label="Loading the watched-source settings…"
+      rows={[2, 2, 2]}
+    />
+  );
+}
 
 function WatchedSourcesSettings() {
   const payload = Route.useLoaderData();

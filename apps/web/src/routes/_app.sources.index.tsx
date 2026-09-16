@@ -22,6 +22,12 @@ import { ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { Toggle } from "#/components/settings/controls.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
+import {
+  Skeleton,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTable,
+} from "#/components/skeleton.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import {
   addWatchedSource,
@@ -36,7 +42,29 @@ export const Route = createFileRoute("/_app/sources/")({
   loader: async () => await fetchWatchedSources(),
   staticData: { crumbs: [{ label: "Watched sources" }] },
   component: WatchedSources,
+  pendingComponent: WatchedSourcesPending,
 });
+
+/** The "watch a URL" card, then the seven-column table of what is already watched. */
+function WatchedSourcesPending() {
+  return (
+    <SkeletonPage name="sources" label="Loading the watched sources…">
+      <SkeletonPageHeader actions={3} />
+      <div className="mb-3.5 rounded-lg border border-line bg-surface-1 p-3.5">
+        <div className="flex flex-wrap items-end gap-2">
+          <Skeleton className="h-8 min-w-0 flex-1 rounded-lg" />
+          <Skeleton className="h-8 w-48 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+        </div>
+        <Skeleton className="mt-2.5 h-5 w-64" />
+      </div>
+      <SkeletonTable
+        rows={6}
+        columns={["w-1/3", "w-16", "w-20", "w-24", "w-1/6", "w-16", "w-20"]}
+      />
+    </SkeletonPage>
+  );
+}
 
 const SCAN_TONE = {
   never: "muted",

@@ -37,6 +37,7 @@ import {
   SecretInput,
   Toggle,
 } from "#/components/settings/controls.tsx";
+import { SkeletonSettingsTab } from "#/components/skeleton.tsx";
 import { SettingsForm } from "#/components/settings/settings-form.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { SchemaHeading } from "#/components/library/schema.tsx";
@@ -54,7 +55,22 @@ export const Route = createFileRoute("/_app/settings/metadata")({
   loader: async () => await fetchMetadataSettings(),
   staticData: { crumbs: [{ label: "Metadata & matching" }] },
   component: MetadataSettings,
+  pendingComponent: MetadataSettingsPending,
 });
+
+/**
+ * The longest tab in the Console: sources and credentials, the matching weights, the tag
+ * schema, enrichment, the tag map, the retag runner and the profiles.
+ */
+function MetadataSettingsPending() {
+  return (
+    <SkeletonSettingsTab
+      name="metadata"
+      label="Loading the metadata and matching settings…"
+      rows={[9, 12, 3, 5, 4, 3, 2]}
+    />
+  );
+}
 
 const COUNTRIES = ["XW", "FR", "GB", "US", "DE", "JP", "NL", "SE"];
 

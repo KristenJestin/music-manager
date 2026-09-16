@@ -26,6 +26,15 @@ import { scoreTone } from "#/components/status-badge.tsx";
 import { AlbumCard } from "#/components/library/album-card.tsx";
 import { FilterBar } from "#/components/library/filter-bar.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
+import {
+  SkeletonAlbumGrid,
+  SkeletonChips,
+  SkeletonFilterBar,
+  SkeletonPage,
+  SkeletonPageHeader,
+  SkeletonTiles,
+  SkeletonToolbar,
+} from "#/components/skeleton.tsx";
 import { pct } from "#/lib/format.ts";
 import { ALBUM_FILTER_FIELDS } from "#/lib/filters/index.ts";
 import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";
@@ -60,7 +69,29 @@ export const Route = createFileRoute("/_app/library/")({
     }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Albums" }] },
   component: Albums,
+  pendingComponent: AlbumsPending,
 });
+
+/**
+ * The grid, as covers that are not there yet.
+ *
+ * Twelve cards rather than the six hundred that will land: the skeleton's job is to fill the
+ * first screen, and a placeholder below the fold costs layout work nobody sees. The grid
+ * itself is the page's own `grid-cols-2 … xl:grid-cols-6`, so the columns do not change count
+ * when the real covers arrive — which is the one way an album grid can still jump.
+ */
+function AlbumsPending() {
+  return (
+    <SkeletonPage name="library-albums" label="Loading the album grid…">
+      <SkeletonPageHeader actions={2} />
+      <SkeletonTiles count={4} className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" />
+      <SkeletonToolbar selects={2} />
+      <SkeletonFilterBar />
+      <SkeletonChips count={6} />
+      <SkeletonAlbumGrid count={12} />
+    </SkeletonPage>
+  );
+}
 
 const FILTER_LABELS: Record<(typeof ALBUM_FILTERS)[number], string> = {
   all: "All",
