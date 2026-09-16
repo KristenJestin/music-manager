@@ -66,6 +66,10 @@ export const ACTIVE_STATUSES: readonly ImportStatus[] = [
   "running",
   "awaiting_confirm",
   "awaiting_review",
+  // A job waiting on a busy source is still an import in progress. Leaving it out of `active`
+  // would have made the Console's headline count drop by forty-five during an outage, which
+  // reads as "they finished" and is the opposite of what happened.
+  "waiting_upstream",
 ];
 
 export interface JobListFilter {
@@ -180,6 +184,7 @@ export async function jobCounts(
     awaiting_confirm: 0,
     awaiting_review: 0,
     paused: 0,
+    waiting_upstream: 0,
     done: 0,
     failed: 0,
     cancelled: 0,

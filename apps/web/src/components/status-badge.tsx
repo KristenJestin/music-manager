@@ -67,6 +67,9 @@ export const IMPORT_STATUS_META: Record<ImportStatus, { label: string; tone: Ton
   awaiting_confirm: { label: "Needs confirm", tone: "warn" },
   awaiting_review: { label: "Needs review", tone: "warn" },
   paused: { label: "Paused", tone: "muted" },
+  // `warn`, never `danger`: the point of this status is that the owner stops reading a busy
+  // MusicBrainz as a broken import. The row says who and until when next to the badge.
+  waiting_upstream: { label: "Waiting on source", tone: "warn" },
   done: { label: "Done", tone: "ok" },
   failed: { label: "Failed", tone: "danger" },
   cancelled: { label: "Cancelled", tone: "muted" },

@@ -44,6 +44,7 @@ const statusFilter = z.enum([
   "awaiting_confirm",
   "awaiting_review",
   "paused",
+  "waiting_upstream",
   "done",
   "failed",
   "cancelled",

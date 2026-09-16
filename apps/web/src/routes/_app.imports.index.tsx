@@ -24,6 +24,7 @@ const search = z.object({
       "awaiting_confirm",
       "awaiting_review",
       "paused",
+      "waiting_upstream",
       "done",
       "failed",
       "cancelled",

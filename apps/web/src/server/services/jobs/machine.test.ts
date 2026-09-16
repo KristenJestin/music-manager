@@ -107,10 +107,17 @@ describe("terminal and resumable statuses", () => {
       expect(isTerminal(status)).toBe(true);
       expect(isResumable(status)).toBe(false);
     }
-    for (const status of ["pending", "running", "paused"] as const) {
+    for (const status of ["pending", "running", "paused", "waiting_upstream"] as const) {
       expect(isTerminal(status)).toBe(false);
       expect(isResumable(status)).toBe(true);
     }
+  });
+
+  it("resumes a job that is waiting out a busy source", () => {
+    // The whole point: nobody has to press anything for a 503 to be retried, including after
+    // a worker restart, and the job is never terminal while it waits.
+    expect(isTerminal("waiting_upstream")).toBe(false);
+    expect(isResumable("waiting_upstream")).toBe(true);
   });
 
   it("does not resume a job waiting for a human", () => {

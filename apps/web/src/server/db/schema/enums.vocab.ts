@@ -30,10 +30,17 @@ export type StepName = (typeof STEPS)[number];
 /**
  * Where an import currently rests.
  *
- *  - `awaiting_confirm` — the `confirm` step is blocking on a human (no `--yes`);
- *  - `awaiting_review`  — an Inbox item must be resolved before the job can go on;
- *  - `paused`           — stopped on purpose, resumable;
- *  - `failed`           — a step gave up; `mm retry` re-runs it.
+ *  - `awaiting_confirm`  — the `confirm` step is blocking on a human (no `--yes`);
+ *  - `awaiting_review`   — an Inbox item must be resolved before the job can go on;
+ *  - `paused`            — stopped on purpose, resumable;
+ *  - `waiting_upstream`  — a source refused (429, 5xx, a timeout) and the job is on the queue
+ *                          again with a growing delay. **Not** a failure and not a pause: it
+ *                          is running, slowly, and `imports.next_attempt_at` says until when.
+ *                          It exists because a busy MusicBrainz used to land in `failed`,
+ *                          which is terminal, and forty-five albums were abandoned for it;
+ *  - `failed`            — a step gave up; `mm retry` re-runs it. A job that exhausted its
+ *                          upstream attempts ends here too, carrying `UPSTREAM_UNAVAILABLE`
+ *                          so the row still says *the source*, not *the file*.
  */
 export const IMPORT_STATUSES = [
   "pending",
@@ -41,6 +48,7 @@ export const IMPORT_STATUSES = [
   "awaiting_confirm",
   "awaiting_review",
   "paused",
+  "waiting_upstream",
   "done",
   "failed",
   "cancelled",
