@@ -10,7 +10,7 @@ import { db } from "#/server/db/client.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { readLatestEvents } from "#/server/services/events.ts";
-import { listInbox } from "#/server/services/inbox.ts";
+import { countInbox, listInbox } from "#/server/services/inbox.ts";
 import {
   dashboardStats,
   jobCounts,
@@ -32,6 +32,9 @@ import { APP_VERSION } from "#/server/version.ts";
 /* the shell                                                           */
 /* ------------------------------------------------------------------ */
 
+/** How many open Inbox items the dashboard's review card shows. */
+const DASHBOARD_REVIEW = 5;
+
 export interface ShellPayload {
   readonly version: string;
   readonly fixtures: boolean;
@@ -50,19 +53,25 @@ export const fetchShell = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
   .handler(async (): Promise<ShellPayload> => {
     try {
-      // The worker card asks the database which import holds the download slot rather than
-      // picking one out of a page of active jobs; `workerSnapshot` explains why.
-      const [counts, worker, activity] = await Promise.all([
+      /*
+       * The worker card asks the database which import holds the download slot rather than
+       * picking one out of a page of active jobs; `workerSnapshot` explains why.
+       *
+       * Four queries, all at once, and the Inbox one is a `count(*)`. This loader runs again
+       * on every link hover — `defaultPreload: "intent"` with `defaultPreloadStaleTime: 0`,
+       * `src/router.tsx` — so nothing in it may be proportional to the size of anything.
+       */
+      const [counts, worker, activity, needsReview] = await Promise.all([
         jobCounts(db()),
         workerSnapshot(db()),
         recentActivity(),
+        countInbox({ status: "open" }, db()),
       ]);
-      const open = await listInbox({ status: "open" }, db());
 
       return {
         version: APP_VERSION,
         fixtures: serverEnv().MM_FIXTURES,
-        needsReview: open.length,
+        needsReview,
         inProgress: counts.active,
         failed: counts.failed,
         current: worker.current,
@@ -154,12 +163,13 @@ export const fetchDashboard = createServerFn({ method: "GET", strict: STRICT })
       const [stats, active, review, system, activity, recent] = await Promise.all([
         dashboardStats(db()),
         listJobs({ status: "active", limit: 6 }, db()),
-        listInbox({ status: "open" }, db()),
+        // The dashboard card shows five. Ask for five rather than for every open item.
+        listInbox({ status: "open", limit: DASHBOARD_REVIEW }, db()),
         systemChecks(),
         recentActivity(8),
         recentAlbums(10, db()),
       ]);
-      return { stats, active, review: review.slice(0, 5), system, activity, recent };
+      return { stats, active, review, system, activity, recent };
     } catch (error) {
       return toFailure(error);
     }
