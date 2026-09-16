@@ -52,8 +52,10 @@ scripts/               root scripts, run by Bun, cross-platform
 - Docker must be running before `bun run dev`, before `bun run check`'s integration parts, and
   before any `docker compose` command. `bun run dev` fails with a clear message when the daemon is
   down.
-- `.local/` holds mutable state (Navidrome's database, the music library bind mount). It is
-  gitignored and safe to delete. Postgres uses a named volume.
+- `.local/` holds mutable state (Navidrome's database, the music library bind mount, a
+  `cookies/cookies.txt` for `cookiesMode: file`). It is gitignored and safe to delete. Postgres
+  uses a named volume — that is also where a _pasted_ cookie jar (`cookiesMode: paste`) lives,
+  so it survives a container recreate without anything under `.local/`.
 - Media binaries (`ffmpeg`, `fpcalc`, `rsgain`, `yt-dlp`) are not required on the host. They live in
   the toolbox image. `GET <toolbox>/health` reports their versions, and a `null` there means the
   image is broken.
