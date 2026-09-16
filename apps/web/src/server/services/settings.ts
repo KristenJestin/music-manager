@@ -203,9 +203,11 @@ export const SETTING_DEFINITIONS = {
       country: z.number().min(0),
       // Added by decision 167, hence a default, for the same reason `coverage` has one.
       coverArt: z.number().min(0).default(DEFAULT_WEIGHTS.release.coverArt),
+      // The release-type preference, hence a default, for the same reason the two above have one.
+      type: z.number().min(0).default(DEFAULT_WEIGHTS.release.type),
     }),
     DEFAULT_WEIGHTS.release,
-    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it.",
+    "Weight of each release signal. The tracklist fit (`durations`) is the decisive one, and `coverage` — the share of your videos a release would actually import — is right behind it. `type` is the release-type preference: raise it to insist harder on an Album over an EP or a Single, set it to 0 to stop caring. It is a weight and never a veto, so a Single whose release group holds nothing else still wins.",
   ),
   matchRecordingWeights: define(
     z.object({

@@ -539,3 +539,148 @@ describe("the 1:1 assignment", () => {
     expect(result.fit).toBe(1); // only Alpha is inside ±2 s
   });
 });
+
+/* ------------------------------------------------------------------ */
+/* the release-type preference                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * "Prefer Album over EP or Single, but never as a veto."
+ *
+ * The real-world case is the one `bad-ideas` already carries, where a 2020 single of the same
+ * name sits next to the 2019 album. What that fixture cannot show is the *clean* comparison —
+ * two releases that agree on every other signal — because MusicBrainz has no such pair. So the
+ * releases here are built: same title, same artist, same year, same country, same format, same
+ * tracklist, same cover. The primary type is the only thing that differs, which is exactly the
+ * situation the weight exists for and the only one in which its size can be read.
+ */
+describe("the release-type preference", () => {
+  const VIDEOS: readonly MatchVideo[] = [
+    { id: "v1", index: 0, title: "First", durationSeconds: 200 },
+    { id: "v2", index: 1, title: "Second", durationSeconds: 210 },
+    { id: "v3", index: 2, title: "Third", durationSeconds: 220 },
+  ];
+  const HINTS: AlbumHints = { album: "Twin", artist: "Someone", year: 2020 };
+
+  /** The same record twice over, differing in nothing but what MusicBrainz filed it as. */
+  const twin = (id: string, primaryType: string): ReleaseCandidateInput => ({
+    detailed: true,
+    release: {
+      id,
+      title: "Twin",
+      date: "2020-01-01",
+      country: "XW",
+      status: "Official",
+      "cover-art-archive": { artwork: true, front: true, count: 1 },
+      "artist-credit": [{ name: "Someone" }],
+      "release-group": { id: `rg-${id}`, title: "Twin", "primary-type": primaryType },
+      media: [
+        {
+          position: 1,
+          format: "Digital Media",
+          "track-count": 3,
+          tracks: VIDEOS.map((video, index) => ({
+            id: `${id}-t${String(index + 1)}`,
+            position: index + 1,
+            title: video.title,
+            length: (video.durationSeconds ?? 0) * 1000,
+          })),
+        },
+      ],
+    },
+  });
+
+  it("puts the Album in front of an EP that agrees with it on everything else", () => {
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [twin("ep", "EP"), twin("album", "Album")],
+    });
+    expect(ranking.preselected?.id).toBe("album");
+    const ep = ranking.candidates.find((candidate) => candidate.id === "ep");
+    expect(ep?.fit).toBe(ranking.preselected?.fit);
+    expect(ep?.signals.type).toBeLessThan(ranking.preselected?.signals.type ?? 0);
+    expect(ep?.score).toBeLessThan(ranking.preselected?.score ?? 0);
+    expect(ep?.why.join(" | ")).toMatch(/Filed as a EP rather than an Album/);
+  });
+
+  it("puts it in front of a Single too, and an EP in front of that Single", () => {
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [twin("single", "Single"), twin("ep", "EP"), twin("album", "Album")],
+    });
+    expect(ranking.candidates.map((candidate) => candidate.id)).toEqual(["album", "ep", "single"]);
+  });
+
+  it("still lets a lone Single win — it is a weight, not a veto", () => {
+    // The case the owner named. There is no album in the release group to lose to, so the
+    // Single is the record, and nothing here is allowed to refuse it.
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [twin("single", "Single")],
+    });
+    expect(ranking.preselected?.id).toBe("single");
+    expect(ranking.preselected?.score).toBeGreaterThan(DEFAULT_CONFIG.thresholds.safe);
+  });
+
+  it("cannot outweigh a real tracklist fit", () => {
+    // A Single that covers the videos beats an Album that does not. The type preference is
+    // worth 0.05; `durations` and `coverage` are worth 0.46 between them, and they win.
+    const thin: ReleaseCandidateInput = {
+      detailed: true,
+      release: {
+        ...twin("thin-album", "Album").release,
+        media: [
+          {
+            position: 1,
+            format: "Digital Media",
+            "track-count": 1,
+            tracks: [{ id: "x", position: 1, title: "Something Else", length: 90_000 }],
+          },
+        ],
+      },
+    };
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [thin, twin("single", "Single")],
+    });
+    expect(ranking.preselected?.id).toBe("single");
+  });
+
+  it("drops the signal rather than scoring zero when the group declares no type", () => {
+    const untyped = twin("untyped", "");
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [untyped, twin("album", "Album")],
+    });
+    const typeless = ranking.candidates.find((candidate) => candidate.id === "untyped");
+    // Dropped from the denominator, exactly like an un-looked-up cover: "MusicBrainz did not
+    // say" is not "MusicBrainz said none". So it trails the Album, but only just — it is not
+    // pushed down to where a Single sits.
+    const single = releaseCandidates
+      .score({ videos: VIDEOS, hints: HINTS, candidates: [twin("single", "Single")] })
+      .candidates.at(0);
+    expect(typeless?.score).toBeGreaterThan(single?.score ?? 1);
+  });
+
+  it("weighs no more than its own weight, so it reorders pressings and not records", () => {
+    const candidates = [twin("single", "Single"), twin("album", "Album")];
+    const on = releaseCandidates.score({ videos: VIDEOS, hints: HINTS, candidates });
+    const off = releaseCandidates.score(
+      { videos: VIDEOS, hints: HINTS, candidates },
+      { weights: { release: { type: 0 } } },
+    );
+    const scoreOf = (ranking: typeof on, id: string): number =>
+      ranking.candidates.find((candidate) => candidate.id === id)?.score ?? 0;
+    expect(Math.abs(scoreOf(on, "single") - scoreOf(off, "single"))).toBeLessThanOrEqual(
+      DEFAULT_WEIGHTS.release.type + 0.001,
+    );
+    // With the weight at zero the two are indistinguishable, which is what "only the type
+    // differs" means and what makes the assertions above about the weight and nothing else.
+    expect(scoreOf(off, "single")).toBe(scoreOf(off, "album"));
+  });
+});

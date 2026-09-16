@@ -2,7 +2,7 @@
  * `releaseCandidates.score` — rank the MusicBrainz releases that could be the album behind a
  * playlist (`docs/04-pipeline-et-matching.md` § Release (album)).
  *
- * Eleven signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
+ * Twelve signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
  * penalties. The one that decides between two pressings of the same record is the **tracklist
  * fit**: how many of the release's tracks a video actually lands on, and by how much on
  * average. Title and artist put a candidate in the list; the fit is what tells a fourteen-track
@@ -48,6 +48,7 @@ import {
   titleScore,
   totalPenalty,
   trackTotal,
+  typeScore,
   unit,
   yearOf,
   yearScore,
@@ -188,12 +189,13 @@ function coveragePenalties(coverage: number | null, config: MatchingConfig): Pen
   ];
 }
 
-/** Blend the eleven signals, dropping the ones that do not exist for this candidate. */
+/** Blend the twelve signals, dropping the ones that do not exist for this candidate. */
 function blendRelease(
   signals: ReleaseSignals,
   fitSignal: number | null,
   coverageSignal: number | null,
   coverArtSignal: number | null,
+  typeSignal: number | null,
   config: MatchingConfig,
 ): number {
   const w = config.weights.release;
@@ -209,6 +211,7 @@ function blendRelease(
     [w.status, signals.status],
     [w.country, signals.country],
     [w.coverArt, coverArtSignal],
+    [w.type, typeSignal],
   ];
   let weighted = 0;
   let total = 0;
@@ -301,6 +304,18 @@ function explain(
   }
 
   /*
+   * The primary type, in words, and only when it is *not* an album.
+   *
+   * An Album is the expected shape and saying so on every card would be noise; an EP or a
+   * Single winning is the thing a reader has to be able to question, so that is the case the
+   * sentence exists for. It says "weighed against", never "refused", because that is what the
+   * signal does — see `typeScore`.
+   */
+  if (candidate.type !== null && candidate.type !== "" && candidate.signals.type < 1) {
+    why.push(`Filed as a ${candidate.type} rather than an Album, which weighs against it`);
+  }
+
+  /*
    * The cover, in words (fifth owner review, G1).
    *
    * The owner's case was two pressings of *Pure Heroine* a point apart, the one in front
@@ -379,6 +394,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
 
     const coverArt = coverArtOf(release);
     const coverArtSignal = coverArtScore(coverArt);
+    const typeSignal = typeScore(group?.["primary-type"]);
 
     const signals: ReleaseSignals = {
       title: round3(sourceAlbum === "" ? 0.5 : titleScore(sourceAlbum, release.title ?? "")),
@@ -394,6 +410,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       status: round3(statusScore(release.status ?? null)),
       country: round3(countryScore(country, config.preferences)),
       coverArt: round3(coverArtSignal ?? 0),
+      type: round3(typeSignal ?? 0),
     };
 
     const penalties: Penalty[] = [
@@ -407,7 +424,14 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       ),
     ];
 
-    const blended = blendRelease(signals, fitSignal, coverageSignal, coverArtSignal, config);
+    const blended = blendRelease(
+      signals,
+      fitSignal,
+      coverageSignal,
+      coverArtSignal,
+      typeSignal,
+      config,
+    );
     const finalScore = unit(blended - totalPenalty(penalties));
 
     const candidateOut: ReleaseCandidate = {

@@ -49,19 +49,37 @@ import type {
  * the title and the artist by the time two pressings of one release group are being compared,
  * so those two signals are the ones with the least left to say at exactly the moment this one
  * speaks. The total is still 1.
+ *
+ * `type`'s 0.05 was paid for the same way and by the same three (0.15/0.15/0.05 →
+ * 0.13/0.13/0.04), and here the argument is sharper than it was for the cover: title and
+ * artist are exactly the two signals on which an album and an EP or a single *of the same
+ * name* are indistinguishable. "Bad Ideas" the 2019 album and "Bad Ideas" the 2020 single both
+ * score 1.0 on both of them, which is how the single came to be in front at all — so they are
+ * the right pocket to pay from for the signal that tells the two apart.
+ *
+ * It is a weight and never a veto, deliberately. A Single whose release group holds nothing
+ * else still wins, because there is no album for the signal to prefer; what it settles is the
+ * case where both exist and everything else agrees. It is worth more than `format` or
+ * `country` (a type is a fact about the record, not about the pressing) and much less than the
+ * fit, which must always be able to overrule it.
+ *
+ * `trackCount` is deliberately *not* where the 0.05 came from: it is the one signal already
+ * pushing a one-track release away from an eleven-video playlist, and paying for `type` out of
+ * it would have handed back with one hand what the other was taking.
  */
 const RELEASE_WEIGHTS = {
-  title: 0.15,
-  artist: 0.15,
+  title: 0.13,
+  artist: 0.13,
   durations: 0.26,
   coverage: 0.2,
   trackCount: 0.09,
-  year: 0.05,
+  year: 0.04,
   label: 0.01,
   format: 0.03,
   status: 0.01,
   country: 0.02,
   coverArt: 0.03,
+  type: 0.05,
 } as const satisfies MatchingWeights["release"];
 
 /**

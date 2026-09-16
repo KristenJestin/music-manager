@@ -67,6 +67,7 @@ const candidate: ReleaseCandidate = {
     status: 1,
     country: 1,
     coverArt: 1,
+    type: 1,
   },
   fitLines: [
     {
