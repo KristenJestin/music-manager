@@ -133,10 +133,14 @@ export function FilterToolbar<T extends string>({
   const trailing = presets !== undefined || children !== undefined;
   return (
     <div
-      // `role="search"` names the whole thing once, so a screen reader can jump to "the
-      // filters" instead of meeting a search box, a group of chips, a group of links and two
-      // selects as four unrelated things in a row.
-      role="search"
+      /*
+       * Named once, so a screen reader can jump to "the filters" rather than meeting a search
+       * box, a group of chips, a group of links and two selects as four unrelated things in a
+       * row. `search` is a landmark and means *search functionality*, so it is only honest
+       * when there is a box to type in; `/imports` and `/library/quality` have presets and a
+       * select and no free text, and they get a plain group.
+       */
+      role={search === undefined ? "group" : "search"}
       aria-label="Filter and sort"
       data-slot="filter-toolbar"
       className={cn("mb-3 flex flex-wrap items-center gap-2", className)}

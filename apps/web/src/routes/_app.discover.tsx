@@ -567,6 +567,9 @@ function Discover() {
               active={tab}
               link={(value) => ({ to: "/discover", search: { recommended: value } })}
               testId="discover-recommended-tab"
+              // These two are not filter presets, they are the two halves of one list, and the
+              // group says so rather than borrowing the default name.
+              label="Which recommendations to show"
             />
             {shown.length === 0 ? (
               <Empty

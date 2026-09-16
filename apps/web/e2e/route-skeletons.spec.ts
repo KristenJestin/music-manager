@@ -197,7 +197,10 @@ test.describe("what the skeleton says, and to whom", () => {
         const style = getComputedStyle(grid);
         const box = first.getBoundingClientRect();
         return {
-          columns: style.gridTemplateColumns,
+          // Rounded, because Chromium resolves one track of six to 183.344px in the skeleton
+          // and 183.328px in the grid — sixteen thousandths of a pixel of its own arithmetic,
+          // which is not a layout difference and must not read as one.
+          columns: style.gridTemplateColumns.split(" ").map((w) => Math.round(parseFloat(w))),
           gap: style.gap,
           width: Math.round(box.width),
           height: Math.round(box.height),
