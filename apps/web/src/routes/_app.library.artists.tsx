@@ -16,22 +16,28 @@ import { artistImageSources, Cover } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
+import { FilterBar } from "#/components/library/filter-bar.tsx";
+import { ARTIST_FILTER_FIELDS } from "#/lib/filters/index.ts";
 import { short } from "#/lib/format.ts";
 import type { ArtistRow } from "#/server/services/library.ts";
 import { fetchArtists } from "#/server/functions/library.ts";
 
-const search = z.object({ q: z.string().default("") });
+const search = z.object({
+  q: z.string().default(""),
+  /** The filter builder's tree, as the expression `lib/filters/schema.ts` reads. */
+  f: z.string().max(2_000).default(""),
+});
 
 export const Route = createFileRoute("/_app/library/artists")({
   validateSearch: search,
   loaderDeps: ({ search: params }) => params,
-  loader: async ({ deps }) => await fetchArtists({ data: { search: deps.q } }),
+  loader: async ({ deps }) => await fetchArtists({ data: { search: deps.q, f: deps.f } }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Artists" }] },
   component: Artists,
 });
 
 function Artists() {
-  const artists = Route.useLoaderData();
+  const { artists, filterError } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const [query, setQuery] = useState(params.q);
@@ -106,10 +112,28 @@ function Artists() {
           value={query}
           onValueChange={setQuery}
           onSubmit={(q) => {
-            void navigate({ to: "/library/artists", search: { q } });
+            void navigate({ to: "/library/artists", search: { ...params, q } });
           }}
         />
       </div>
+
+      <FilterBar
+        testId="artist-filter-bar"
+        fields={ARTIST_FILTER_FIELDS}
+        value={params.f}
+        error={filterError}
+        search={{
+          value: params.q,
+          label: "Search:",
+          onClear: () => {
+            setQuery("");
+            void navigate({ to: "/library/artists", search: { ...params, q: "" } });
+          },
+        }}
+        onChange={(f) => {
+          void navigate({ to: "/library/artists", search: { ...params, f } });
+        }}
+      />
 
       <div className="overflow-hidden rounded-xl border border-line bg-surface-1">
         <DataTable
