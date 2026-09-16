@@ -1,0 +1,1332 @@
+$ bun run scripts/e2e-web.ts
+
+=== checking the stack ===
+  checkout D:\Projects\music-manager\v2 (primary)
+  compose project mm-dev
+  toolbox http://localhost:8100
+  postgres postgres://mm:***@localhost:5432/mm
+toolbox ok on http://localhost:8100 (fixtures)
+postgres ok on postgres://mm:***@localhost:5432/mm
+
+=== recreating mm_web_e2e_30232_0wu8gc ===
+migrations applied from D:\Projects\music-manager\v2\apps\web\drizzle
+seeded 75 source_cache row(s): musicbrainz 8 · wikimedia 1 · lrclib 56 · coverartarchive 2 · deezer 1 · discover 7
+
+=== library D:\Projects\music-manager\v2\.local\library\.mm-e2e-30232_0wu8gc ===
+
+=== starting the web app on http://localhost:62449 and the worker ===
+{"at":"2026-09-16T16:41:21.049Z","source":"worker","message":"worker ready","fixtures":true,"toolbox":"http://localhost:8100","library":"D:\\Projects\\music-manager\\v2\\.local\\library\\.mm-e2e-30232_0wu8gc","resumed":0}
+
+  [32m[1mVITE[22m v8.2.2[39m  [2mready in [0m[1m12343[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m62449[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m18:41:35[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts:147:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts[39m
+[2m18:41:37[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts:54:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:63:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:75:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:106:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:172:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:244:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:148:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:169:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:190:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:230:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:278:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:295:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:317:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:38[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:364:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:185:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:315:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:422:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:497:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:571:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:676:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:80:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:128:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:147:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:169:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:186:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:272:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:286:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:299:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:311:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:323:24 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:60:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:83:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:97:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:115:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:135:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:154:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:174:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:185:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:218:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:233:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:244:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:261:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:276:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:287:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:304:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/quality.ts:122:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/quality.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts:485:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts:530:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:77:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:107:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:119:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:140:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:152:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:163:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-discover.ts:80:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-discover.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-downloader.ts:87:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-downloader.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:105:40 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:136:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:167:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:214:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:276:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts:98:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts:134:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts:177:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-sources.ts:49:43 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:36:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:47:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:59:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:71:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:90:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:33:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:59:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:74:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:40:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:55:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+[2m18:41:39[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:75:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+{"at":"2026-09-16T16:41:39.922Z","source":"web","level":"info","msg":"request","method":"GET","path":"/health","status":200,"ms":4591}
+the web app is up
+
+=== playwright ===
+{"at":"2026-09-16T16:41:39.923Z","source":"web","level":"info","msg":"request","method":"GET","path":"/health","status":200,"ms":3495}
+{"at":"2026-09-16T16:41:39.923Z","source":"web","level":"info","msg":"request","method":"GET","path":"/health","status":200,"ms":129}
+
+Running 104 tests using 1 worker
+
+{"at":"2026-09-16T16:41:44.156Z","source":"web","level":"info","msg":"request","method":"GET","path":"/login","status":307,"ms":5}
+[2m18:41:44[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts?tss-serverfn-split:54:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts?tss-serverfn-split[39m
+auth: created the administrator account e2e@music-manager.test.
+{"at":"2026-09-16T16:41:44.553Z","source":"web","level":"info","msg":"request","method":"GET","path":"/login","status":200,"ms":383}
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-discover.ts:80:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-discover.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts:147:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:148:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:169:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:190:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:230:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:278:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:295:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:317:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts:364:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/tools.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:77:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:107:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:119:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:140:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:152:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts:163:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts:98:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts:134:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-general.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-sources.ts:49:43 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-sources.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts:177:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-metadata.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:36:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:47:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:59:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:71:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:47[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts:90:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/watched-sources.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:63:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:75:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:106:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:172:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts:244:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/discover.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/quality.ts:122:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/quality.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:33:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:59:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts:74:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/verify.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:185:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:315:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:422:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:497:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:571:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts:676:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/wizard.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts:485:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts:530:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/inbox.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:105:40 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:136:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:167:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:214:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts:276:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-integrations.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:80:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:128:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:147:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:169:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:186:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:272:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:286:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:299:25 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:311:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts:323:24 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/jobs.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts:54:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/session.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:40:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:55:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts:75:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/overrides.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:60:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:83:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:97:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:115:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:135:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:154:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:174:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:185:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:200:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:218:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:233:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:244:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:261:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:276:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:287:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:304:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:48[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-downloader.ts:87:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-downloader.ts[39m
+{"at":"2026-09-16T16:41:49.342Z","source":"web","level":"info","msg":"request","method":"POST","path":"/api/auth/sign-in/email","status":200,"ms":82}
+[2m18:41:49[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts?tss-serverfn-split:147:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/dashboard.ts?tss-serverfn-split[39m
+[2m18:41:49[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/player.ts:46:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/player.ts[39m
+{"at":"2026-09-16T16:41:51.088Z","source":"web","level":"info","msg":"request","method":"GET","path":"/","status":200,"ms":1727}
+[2m18:41:51[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/player.ts:46:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/player.ts[39m
+{"at":"2026-09-16T16:41:51.835Z","source":"web","level":"info","msg":"request","method":"GET","path":"/api/events","status":200,"ms":1}
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:77:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:107:26 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:119:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:140:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:152:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+[2m18:41:52[22m [33m[1m[vite][22m[39m [33m[2m(ssr)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split:163:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:ssr[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/settings-api.ts?tss-serverfn-split[39m
+{"at":"2026-09-16T16:41:52.522Z","source":"web","level":"info","msg":"request","method":"GET","path":"/settings/api","status":200,"ms":203}
+{"at":"2026-09-16T16:41:53.100Z","source":"web","level":"info","msg":"request","method":"GET","path":"/api/events","status":200,"ms":1}
+{"at":"2026-09-16T16:41:53.699Z","source":"web","level":"info","msg":"request","method":"POST","path":"/_serverFn/eyJmaWxlIjoiL3NyYy9zZXJ2ZXIvZnVuY3Rpb25zL3NldHRpbmdzLWFwaS50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJjcmVhdGVLZXlfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9","status":200,"ms":39}
+{"at":"2026-09-16T16:41:53.763Z","source":"web","level":"info","msg":"request","method":"GET","path":"/_serverFn/eyJmaWxlIjoiL3NyYy9zZXJ2ZXIvZnVuY3Rpb25zL3Nlc3Npb24udHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoiY3VycmVudFNlc3Npb25fY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9","status":200,"ms":11}
+{"at":"2026-09-16T16:41:53.809Z","source":"web","level":"info","msg":"request","method":"GET","path":"/_serverFn/eyJmaWxlIjoiL3NyYy9zZXJ2ZXIvZnVuY3Rpb25zL3NldHRpbmdzLWFwaS50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJmZXRjaEFwaVNldHRpbmdzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ","status":200,"ms":17}
+{"at":"2026-09-16T16:41:53.817Z","source":"web","level":"info","msg":"request","method":"GET","path":"/_serverFn/eyJmaWxlIjoiL3NyYy9zZXJ2ZXIvZnVuY3Rpb25zL2Rhc2hib2FyZC50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJmZXRjaFNoZWxsX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ","status":200,"ms":27}
+{"at":"2026-09-16T16:41:54.007Z","source":"web","level":"info","msg":"request","method":"GET","path":"/settings/api","status":200,"ms":56}
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.artists.$id.tsx, /src/routes/_app.library.artists.index.tsx, /src/routes/_app.library.tracks.$id.tsx, /src/routes/_app.library.tracks.index.tsx, /src/routes/_app.library.index.tsx, /src/routes/_app.library.albums.$id.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/server/functions/library.ts[22m
+Error: Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx: SyntaxError: Unexpected token (25:1),Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.artists.index.tsx: SyntaxError: Unexpected token (24:1)
+    at file:///D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+router-generator@1.167.33/node_modules/@tanstack/router-generator/dist/esm/generator.js:143:13
+Error: Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx: SyntaxError: Unexpected token (25:1),Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.artists.index.tsx: SyntaxError: Unexpected token (24:1)
+    at file:///D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+router-generator@1.167.33/node_modules/@tanstack/router-generator/dist/esm/generator.js:143:13
+Error: Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx: SyntaxError: Unexpected token (25:1),Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.artists.index.tsx: SyntaxError: Unexpected token (24:1)
+    at file:///D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+router-generator@1.167.33/node_modules/@tanstack/router-generator/dist/esm/generator.js:143:13
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.artists.index.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.artists.index.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.index.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.index.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.tracks.index.tsx[22m
+[2m18:41:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.tracks.index.tsx[22m
+[2m18:41:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Unexpected token (24:1)
+  Plugin: [35mtanstack-router:code-splitter:compile-reference-file[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/routes/_app.library.artists.index.tsx[39m:24:1
+[33m  22 |  import { PageHeader } from "#/components/page-header.tsx";
+  23 |  import { SearchInput } from "#/components/search-input.tsx";
+  24 |  <<<<<<< HEAD:apps/web/src/routes/_app.library.artists.index.tsx
+     |   ^
+  25 |  import { artistKey } from "#/lib/artist-links.ts";
+  26 |  =======[39m
+[2m18:41:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Unexpected token (25:1)
+  Plugin: [35mtanstack-router:code-splitter:compile-reference-file[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx[39m:25:1
+[33m  23 |  import { SearchInput } from "#/components/search-input.tsx";
+  24 |  import { StatTile } from "#/components/stat-tile.tsx";
+  25 |  <<<<<<< HEAD
+     |   ^
+  26 |  import { scoreTone } from "#/components/status-badge.tsx";
+  27 |  import { AlbumCard } from "#/components/library/album-card.tsx";[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:81:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:106:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:120:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:138:36 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:158:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:177:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:206:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:223:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:240:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:258:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:273:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:284:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:301:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:316:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:327:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: D:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts:344:27 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+  Plugin: [35mtanstack-start-core::server-fn:client[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/server/functions/library.ts[39m
+[2m18:41:54[22m [31m[1m[vite][22m[39m [31mInternal server error: Unexpected token (25:1)[39m
+  Plugin: [35mtanstack-router:code-splitter:compile-reference-file[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx[39m:25:1
+[33m  23 |  import { SearchInput } from "#/components/search-input.tsx";
+  24 |  import { StatTile } from "#/components/stat-tile.tsx";
+  25 |  <<<<<<< HEAD
+     |   ^
+  26 |  import { scoreTone } from "#/components/status-badge.tsx";
+  27 |  import { AlbumCard } from "#/components/library/album-card.tsx";[39m
+      at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6620:19)
+      at TypeScriptParserMixin.unexpected (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6640:16)
+      at TypeScriptParserMixin.jsxParseIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4585:12)
+      at TypeScriptParserMixin.jsxParseNamespacedName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4592:23)
+      at TypeScriptParserMixin.jsxParseElementName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4601:21)
+      at TypeScriptParserMixin.jsxParseOpeningElementAt (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4677:22)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4702:33)
+      at TypeScriptParserMixin.jsxParseElement (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4765:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4775:19)
+[2m18:41:54[22m [31m[1m[vite][22m[39m [31mInternal server error: Unexpected token (24:1)[39m
+  Plugin: [35mtanstack-router:code-splitter:compile-reference-file[39m
+  File: [36mD:/Projects/music-manager/v2/apps/web/src/routes/_app.library.artists.index.tsx[39m:24:1
+[33m  22 |  import { PageHeader } from "#/components/page-header.tsx";
+  23 |  import { SearchInput } from "#/components/search-input.tsx";
+  24 |  <<<<<<< HEAD:apps/web/src/routes/_app.library.artists.index.tsx
+     |   ^
+  25 |  import { artistKey } from "#/lib/artist-links.ts";
+  26 |  =======[39m
+      at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6620:19)
+      at TypeScriptParserMixin.unexpected (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6640:16)
+      at TypeScriptParserMixin.jsxParseIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4585:12)
+      at TypeScriptParserMixin.jsxParseNamespacedName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4592:23)
+      at TypeScriptParserMixin.jsxParseElementName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4601:21)
+      at TypeScriptParserMixin.jsxParseOpeningElementAt (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4677:22)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4702:33)
+      at TypeScriptParserMixin.jsxParseElement (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4765:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4775:19)
+[2m18:41:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled error] [1mTypeError[22m: Failed to fetch dynamically imported module: http://localhost:62449/@fs/D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+react-start@1.168.49+9571c294c6169ab6/node_modules/@tanstack/react-start/dist/plugin/default-entry/client.tsx
+[39m
+[2m18:42:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Error: Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx: SyntaxError: Identifier 'scoreTone' has already been declared. (27:20)
+    at file:///D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+router-generator@1.167.33/node_modules/@tanstack/router-generator/dist/esm/generator.js:143:13
+Error: Error transforming route file D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx: SyntaxError: Identifier 'scoreTone' has already been declared. (27:20)
+    at file:///D:/Projects/music-manager/v2/node_modules/.bun/@tanstack+router-generator@1.167.33/node_modules/@tanstack/router-generator/dist/esm/generator.js:143:13
+[2m18:42:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.artists.index.tsx[22m
+[2m18:42:10[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.artists.index.tsx[22m
+[2m18:42:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.index.tsx[22m
+[2m18:42:10[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.index.tsx[22m
+SyntaxError: Identifier 'scoreTone' has already been declared. (27:20)
+    at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+    ... 8 lines matching cause stack trace ...
+    at TypeScriptParserMixin.parseNamedImportSpecifiers (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14427:36) {
+  cause: Error [SyntaxError]: Identifier 'scoreTone' has already been declared. (27:20)
+      at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6620:19)
+      at TypeScriptScopeHandler.declareName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4882:21)
+      at TypeScriptParserMixin.declareNameFromIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7588:16)
+      at TypeScriptParserMixin.checkIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7584:12)
+      at TypeScriptParserMixin.checkLVal (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7521:12)
+      at TypeScriptParserMixin.finishImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14295:10)
+      at TypeScriptParserMixin.parseImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14448:17)
+      at TypeScriptParserMixin.parseImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:10169:18)
+      at TypeScriptParserMixin.parseNamedImportSpecifiers (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14427:36) {
+    code: 'BABEL_PARSER_SYNTAX_ERROR',
+    reasonCode: 'VarRedeclaration',
+    loc: { line: 27, column: 20, index: 1401 },
+    pos: 1401,
+    syntaxPlugin: undefined,
+    plugin: 'tanstack-router:code-splitter:compile-reference-file',
+    id: 'D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx',
+    pluginCode: '/**\n' +
+      ' * `/library` — the album grid.\n' +
+      ' *\n' +
+      ' * The one screen that answers "what do I actually have?", so it is a grid of covers with the\n' +
+      ' * two facts that matter written on them: how many tracks are present, and how complete the\n' +
+      ' * metadata is. Everything else — the filters, the sort, the profile — is in the URL, so a\n' +
+      " * filtered view is a link and the dashboard's tiles can point straight at one.\n" +
+      ' *\n' +
+      ' * The completeness badge is the *global* score by default. Switching the profile re-labels\n' +
+      ' * every badge with "as Navidrome reads it" and changes nothing about the files, which is said\n' +
+      ' * in the toolbar rather than left to be inferred.\n' +
+      ' */\n' +
+      'import { useState } from "react";\n' +
+      'import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";\n' +
+      'import { z } from "zod";\n' +
+      'import { PROFILE_IDS } from "@mm/domain";\n' +
+      'import { LayoutGrid, Plus, ShieldCheck } from "lucide-react";\n' +
+      'import { Button } from "#/components/ui/button.tsx";\n' +
+      'import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";\n' +
+      '\n' +
+      'import { Callout } from "#/components/callout.tsx";\n' +
+      'import { PageHeader } from "#/components/page-header.tsx";\n' +
+      'import { SearchInput } from "#/components/search-input.tsx";\n' +
+      'import { StatTile } from "#/components/stat-tile.tsx";\n' +
+      'import { scoreTone } from "#/components/status-badge.tsx";\n' +
+      'import { AlbumCard } from "#/components/library/album-card.tsx";\n' +
+      'import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";\n' +
+      'import { FilterBar } from "#/components/library/filter-bar.tsx";\n' +
+      'import { FilterChips } from "#/components/library/filter-chips.tsx";\n' +
+      'import { pct } from "#/lib/format.ts";\n' +
+      'import { ALBUM_FILTER_FIELDS } from "#/lib/filters/index.ts";\n' +
+      'import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";\n' +
+      'import { fetchAlbums } from "#/server/functions/library.ts";\n' +
+      '\n' +
+      'const search = z.object({\n' +
+      '  q: z.string().default(""),\n' +
+      '  filter: z.enum(ALBUM_FILTERS).default("all"),\n' +
+      '  sort: z.enum(ALBUM_SORTS).default("recent"),\n' +
+      '  profile: z.enum(["global", ...PROFILE_IDS]).default("global"),\n' +
+      '  /*\n' +
+      "   * The filter builder's tree, as the expression `lib/filters/schema.ts` reads. A string\n" +
+      '   * here rather than a parsed object: `validateSearch` runs in the browser on every\n' +
+      '   * navigation, and what has to survive is the *link* — the tree is validated against this\n' +
+      "   * page's whitelist on the server, which is the only side that can refuse it usefully.\n" +
+      '   */\n' +
+      '  f: z.string().max(2_000).default(""),\n' +
+      '});\n' +
+      '\n' +
+      'export const Route = createFileRoute("/_app/library/")({\n' +
+      '  validateSearch: search,\n' +
+      '  loaderDeps: ({ search: params }) => params,\n' +
+      '  loader: async ({ deps }) =>\n' +
+      '    await fetchAlbums({\n' +
+      '      data: {\n' +
+      '        search: deps.q,\n' +
+      '        filter: deps.filter,\n' +
+      '        sort: deps.sort,\n' +
+      '        profile: deps.profile,\n' +
+      '        f: deps.f,\n' +
+      '      },\n' +
+      '    }),\n' +
+      '  staticData: { crumbs: [{ label: "Library" }, { label: "Albums" }] },\n' +
+      '  component: Albums,\n' +
+      '});\n' +
+      '\n' +
+      'const FILTER_LABELS: Record<(typeof ALBUM_FILTERS)[number], string> = {\n' +
+      '  all: "All",\n' +
+      '  incomplete: "Incomplete",\n' +
+      '  untagged: "Untagged",\n' +
+      '  nocover: "No cover",\n' +
+      '  ytcover: "YouTube cover",\n' +
+      '  schema: "Behind schema",\n' +
+      '};\n' +
+      '\n' +
+      'const SORT_LABELS: Record<(typeof ALBUM_SORTS)[number], string> = {\n' +
+      '  recent: "Recently added",\n' +
+      '  artist: "Artist A–Z",\n' +
+      '  year: "Year",\n' +
+      '  score: "Worst metadata first",\n' +
+      '};\n' +
+      '\n' +
+      'function Albums() {\n' +
+      '  const { albums, counts, stats, total, filterError } = Route.useLoaderData();\n' +
+      '  const params = Route.useSearch();\n' +
+      '  const navigate = useNavigate();\n' +
+      '  const [query, setQuery] = useState(params.q);\n' +
+      '\n' +
+      '  const profiled = params.profile !== "global";\n' +
+      '  const scoreOf = (quality: (typeof albums)[number]["quality"]): number | null =>\n' +
+      '    profiled ? quality.byProfile[params.profile as never] : quality.score;\n' +
+      '\n' +
+      '  // Takes the value rather than reading `query`: the clear button changes the state and\n' +
+      '  // submits in the same tick, so the state it would read is still the old one.\n' +
+      '  const submit = (q: string): void => {\n' +
+      '    void navigate({ to: "/library", search: { ...params, q } });\n' +
+      '  };\n' +
+      '\n' +
+      '  return (\n' +
+      '    <>\n' +
+      '      <PageHeader\n' +
+      '        title="Albums"\n' +
+      '        description={\n' +
+      '          <>\n' +
+      '            {stats.albums} albums · {stats.tracks} tracks · metadata{" "}\n' +
+      '            <span className="font-mono">{pct(stats.averageScore)}</span> on average\n' +
+      '            {stats.filesBehind > 0 ? (\n' +
+      '              <>\n' +
+      '                {" "}\n' +
+      '                ·{" "}\n' +
+      '                <Link\n' +
+      '                  to="/library/quality"\n' +
+      '                  search={{ filter: "schema", profile: "global" }}\n' +
+      '                  className="text-warn"\n' +
+      '                >\n' +
+      '                  {stats.filesBehind} file(s) behind the tag schema\n' +
+      '                </Link>\n' +
+      '              </>\n' +
+      '            ) : null}\n' +
+      '          </>\n' +
+      '        }\n' +
+      '        actions={\n' +
+      '          <>\n' +
+      '            <Button variant="outline" nativeButton={false} render={<Link to="/library/quality" />}>\n' +
+      '              <ShieldCheck className="size-4" aria-hidden="true" /> Quality\n' +
+      '            </Button>\n' +
+      '            <Button nativeButton={false} render={<Link to="/import/new" />}>\n' +
+      '              <Plus className="size-4" aria-hidden="true" /> Import\n' +
+      '            </Button>\n' +
+      '          </>\n' +
+      '        }\n' +
+      '      />\n' +
+      '\n' +
+      '      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">\n' +
+      '        <StatTile label="Albums" value={stats.albums} sub={`${stats.artists} artists`} />\n' +
+      '        <StatTile\n' +
+      '          label="Metadata"\n' +
+      '          value={pct(\n' +
+      '            profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,\n' +
+      '          )}\n' +
+      '          tone={scoreTone(\n' +
+      '            profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,\n' +
+      '          )}\n' +
+      '          sub={profiled ? `as ${params.profile} reads it` : "against the superset"}\n' +
+      '          icon={<ShieldCheck className="size-3.5" aria-hidden="true" />}\n' +
+      '        />\n' +
+      '        <StatTile\n' +
+      '          label="Below 80%"\n' +
+      '          value={stats.below80}\n' +
+      '          tone={stats.below80 === 0 ? "ok" : "warn"}\n' +
+      '          sub="needs attention first"\n' +
+      '          to="/library/quality"\n' +
+      '          search={{ filter: "below80", profile: params.profile }}\n' +
+      '        />\n' +
+      '        <StatTile\n' +
+      '          label="Behind schema"\n' +
+      '          value={stats.filesBehind}\n' +
+      '          tone={stats.filesBehind === 0 ? "ok" : "warn"}\n' +
+      '          sub={`files · projection v${stats.currentSchema}`}\n' +
+      '          to="/library/quality"\n' +
+      '          search={{ filter: "schema", profile: params.profile }}\n' +
+      '        />\n' +
+      '      </div>\n' +
+      '\n' +
+      '      <div className="mb-3 flex flex-wrap items-center gap-2">\n' +
+      '        <SearchInput\n' +
+      '          data-testid="library-search"\n' +
+      '          className="min-w-56 flex-1"\n' +
+      '          label="Search albums"\n' +
+      '          placeholder="Search albums, artists, MBID…"\n' +
+      '          value={query}\n' +
+      '          onValueChange={setQuery}\n' +
+      '          onSubmit={submit}\n' +
+      '        />\n' +
+      '        <Select\n' +
+      '          value={params.sort}\n' +
+      '          onValueChange={(next: string | null) => {\n' +
+      '            if (next === null) return;\n' +
+      '            void navigate({\n' +
+      '              to: "/library",\n' +
+      '              search: { ...params, sort: next as typeof params.sort },\n' +
+      '            });\n' +
+      '          }}\n' +
+      '        >\n' +
+      '          <SelectTrigger\n' +
+      '            size="sm"\n' +
+      '            data-testid="library-sort"\n' +
+      '            aria-label="Sort albums"\n' +
+      '            className="border-line bg-surface-1 text-xs"\n' +
+      '          >\n' +
+      '            <span data-slot="select-value" className="truncate">\n' +
+      '              {SORT_LABELS[params.sort]}\n' +
+      '            </span>\n' +
+      '          </SelectTrigger>\n' +
+      '          <SelectContent className="text-xs">\n' +
+      '            {ALBUM_SORTS.map((sort) => (\n' +
+      '              <SelectItem key={sort} value={sort} className="text-xs">\n' +
+      '                {SORT_LABELS[sort]}\n' +
+      '              </SelectItem>\n' +
+      '            ))}\n' +
+      '          </SelectContent>\n' +
+      '        </Select>\n' +
+      '        <Select\n' +
+      '          value={params.profile}\n' +
+      '          onValueChange={(next: string | null) => {\n' +
+      '            if (next === null) return;\n' +
+      '            void navigate({\n' +
+      '              to: "/library",\n' +
+      '              search: { ...params, profile: next as typeof params.profile },\n' +
+      '            });\n' +
+      '          }}\n' +
+      '        >\n' +
+      '          <SelectTrigger\n' +
+      '            size="sm"\n' +
+      '            data-testid="library-profile"\n' +
+      '            aria-label="Scoring profile"\n' +
+      '            className="border-line bg-surface-1 text-xs"\n' +
+      '          >\n' +
+      '            <span data-slot="select-value" className="truncate">\n' +
+      '              {params.profile === "global" ? "Global (superset)" : params.profile}\n' +
+      '            </span>\n' +
+      '          </SelectTrigger>\n' +
+      '          <SelectContent className="text-xs">\n' +
+      '            <SelectItem value="global" className="text-xs">\n' +
+      '              Global (superset)\n' +
+      '            </SelectItem>\n' +
+      '            {PROFILE_IDS.map((id) => (\n' +
+      '              <SelectItem key={id} value={id} className="text-xs">\n' +
+      '                {id}\n' +
+      '              </SelectItem>\n' +
+      '            ))}\n' +
+      '          </SelectContent>\n' +
+      '        </Select>\n' +
+      '      </div>\n' +
+      '\n' +
+      '      <FilterBar\n' +
+      '        testId="album-filter-bar"\n' +
+      '        fields={ALBUM_FILTER_FIELDS}\n' +
+      '        value={params.f}\n' +
+      '        error={filterError}\n' +
+      '        search={{\n' +
+      '          value: params.q,\n' +
+      '          label: "Search:",\n' +
+      '          onClear: () => {\n' +
+      '            setQuery("");\n' +
+      '            submit("");\n' +
+      '          },\n' +
+      '        }}\n' +
+      '        onChange={(f) => {\n' +
+      '          void navigate({ to: "/library", search: { ...params, f } });\n' +
+      '        }}\n' +
+      '      />\n' +
+      '\n' +
+      '      <FilterChips\n' +
+      '        testId="library-filters"\n' +
+      '        chips={ALBUM_FILTERS.map((filter) => ({\n' +
+      '          value: filter,\n' +
+      '          label: FILTER_LABELS[filter],\n' +
+      '          count: counts[filter],\n' +
+      '        }))}\n' +
+      '        active={params.filter}\n' +
+      '        link={(filter) => ({ to: "/library", search: { ...params, filter } })}\n' +
+      '      />\n' +
+      '\n' +
+      '      {albums.length === 0 ? (\n' +
+      '        <Callout tone="info" data-testid="library-empty">\n' +
+      '          {/*\n' +
+      '            "Nothing matches" and "nothing is here" are different facts and used to share one\n' +
+      '            sentence, so a filter that excluded everything read as an empty library. `counts.all`\n' +
+      '            is the library; `total` is what the filter left of it.\n' +
+      '          */}\n' +
+      '          {counts.all === 0 ? (\n' +
+      '            <>\n' +
+      '              Nothing here yet. An album appears once its files have been placed.{" "}'... 1197 more characters,
+    frame: '25 |  import { scoreTone } from "#/components/status-badge.tsx";\n' +
+      '26 |  import { AlbumCard } from "#/components/library/album-card.tsx";\n' +
+      '27 |  import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";\n' +
+      '   |                      ^\n' +
+      '28 |  import { FilterBar } from "#/components/library/filter-bar.tsx";\n' +
+      '29 |  import { FilterChips } from "#/components/library/filter-chips.tsx";',
+    runnerError: Error: RunnerError
+        at reviveInvokeError (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:557:64)
+        at Object.invoke (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:630:11)
+        at ModuleRunner.getModuleInformation (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1213:7)
+        at request (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1230:83)
+        at D:/Projects/music-manager/v2/apps/web/src/routeTree.gen.ts:31:1
+        at ESModulesEvaluator.runInlinedModule (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1021:3)
+        at ModuleRunner.directRequest (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1273:59)
+        at ModuleRunner.cachedRequest (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1180:73)
+        at D:/Projects/music-manager/v2/apps/web/src/router.tsx:3:1
+        at ESModulesEvaluator.runInlinedModule (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1021:3)
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+{"at":"2026-09-16T16:42:11.237Z","source":"web","level":"error","msg":"request","method":"GET","path":"/settings/api","status":500,"ms":247}
+SyntaxError: Identifier 'scoreTone' has already been declared. (27:20)
+    at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+    ... 8 lines matching cause stack trace ...
+    at TypeScriptParserMixin.parseNamedImportSpecifiers (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14427:36) {
+  cause: Error [SyntaxError]: Identifier 'scoreTone' has already been declared. (27:20)
+      at constructor (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:6620:19)
+      at TypeScriptScopeHandler.declareName (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:4882:21)
+      at TypeScriptParserMixin.declareNameFromIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7588:16)
+      at TypeScriptParserMixin.checkIdentifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7584:12)
+      at TypeScriptParserMixin.checkLVal (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:7521:12)
+      at TypeScriptParserMixin.finishImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14295:10)
+      at TypeScriptParserMixin.parseImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14448:17)
+      at TypeScriptParserMixin.parseImportSpecifier (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:10169:18)
+      at TypeScriptParserMixin.parseNamedImportSpecifiers (D:\Projects\music-manager\v2\node_modules\.bun\@babel+parser@7.29.8\node_modules\@babel\parser\lib\index.js:14427:36) {
+    code: 'BABEL_PARSER_SYNTAX_ERROR',
+    reasonCode: 'VarRedeclaration',
+    loc: { line: 27, column: 20, index: 1401 },
+    pos: 1401,
+    syntaxPlugin: undefined,
+    plugin: 'tanstack-router:code-splitter:compile-reference-file',
+    id: 'D:/Projects/music-manager/v2/apps/web/src/routes/_app.library.index.tsx',
+    pluginCode: '/**\n' +
+      ' * `/library` — the album grid.\n' +
+      ' *\n' +
+      ' * The one screen that answers "what do I actually have?", so it is a grid of covers with the\n' +
+      ' * two facts that matter written on them: how many tracks are present, and how complete the\n' +
+      ' * metadata is. Everything else — the filters, the sort, the profile — is in the URL, so a\n' +
+      " * filtered view is a link and the dashboard's tiles can point straight at one.\n" +
+      ' *\n' +
+      ' * The completeness badge is the *global* score by default. Switching the profile re-labels\n' +
+      ' * every badge with "as Navidrome reads it" and changes nothing about the files, which is said\n' +
+      ' * in the toolbar rather than left to be inferred.\n' +
+      ' */\n' +
+      'import { useState } from "react";\n' +
+      'import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";\n' +
+      'import { z } from "zod";\n' +
+      'import { PROFILE_IDS } from "@mm/domain";\n' +
+      'import { LayoutGrid, Plus, ShieldCheck } from "lucide-react";\n' +
+      'import { Button } from "#/components/ui/button.tsx";\n' +
+      'import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";\n' +
+      '\n' +
+      'import { Callout } from "#/components/callout.tsx";\n' +
+      'import { PageHeader } from "#/components/page-header.tsx";\n' +
+      'import { SearchInput } from "#/components/search-input.tsx";\n' +
+      'import { StatTile } from "#/components/stat-tile.tsx";\n' +
+      'import { scoreTone } from "#/components/status-badge.tsx";\n' +
+      'import { AlbumCard } from "#/components/library/album-card.tsx";\n' +
+      'import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";\n' +
+      'import { FilterBar } from "#/components/library/filter-bar.tsx";\n' +
+      'import { FilterChips } from "#/components/library/filter-chips.tsx";\n' +
+      'import { pct } from "#/lib/format.ts";\n' +
+      'import { ALBUM_FILTER_FIELDS } from "#/lib/filters/index.ts";\n' +
+      'import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";\n' +
+      'import { fetchAlbums } from "#/server/functions/library.ts";\n' +
+      '\n' +
+      'const search = z.object({\n' +
+      '  q: z.string().default(""),\n' +
+      '  filter: z.enum(ALBUM_FILTERS).default("all"),\n' +
+      '  sort: z.enum(ALBUM_SORTS).default("recent"),\n' +
+      '  profile: z.enum(["global", ...PROFILE_IDS]).default("global"),\n' +
+      '  /*\n' +
+      "   * The filter builder's tree, as the expression `lib/filters/schema.ts` reads. A string\n" +
+      '   * here rather than a parsed object: `validateSearch` runs in the browser on every\n' +
+      '   * navigation, and what has to survive is the *link* — the tree is validated against this\n' +
+      "   * page's whitelist on the server, which is the only side that can refuse it usefully.\n" +
+      '   */\n' +
+      '  f: z.string().max(2_000).default(""),\n' +
+      '});\n' +
+      '\n' +
+      'export const Route = createFileRoute("/_app/library/")({\n' +
+      '  validateSearch: search,\n' +
+      '  loaderDeps: ({ search: params }) => params,\n' +
+      '  loader: async ({ deps }) =>\n' +
+      '    await fetchAlbums({\n' +
+      '      data: {\n' +
+      '        search: deps.q,\n' +
+      '        filter: deps.filter,\n' +
+      '        sort: deps.sort,\n' +
+      '        profile: deps.profile,\n' +
+      '        f: deps.f,\n' +
+      '      },\n' +
+      '    }),\n' +
+      '  staticData: { crumbs: [{ label: "Library" }, { label: "Albums" }] },\n' +
+      '  component: Albums,\n' +
+      '});\n' +
+      '\n' +
+      'const FILTER_LABELS: Record<(typeof ALBUM_FILTERS)[number], string> = {\n' +
+      '  all: "All",\n' +
+      '  incomplete: "Incomplete",\n' +
+      '  untagged: "Untagged",\n' +
+      '  nocover: "No cover",\n' +
+      '  ytcover: "YouTube cover",\n' +
+      '  schema: "Behind schema",\n' +
+      '};\n' +
+      '\n' +
+      'const SORT_LABELS: Record<(typeof ALBUM_SORTS)[number], string> = {\n' +
+      '  recent: "Recently added",\n' +
+      '  artist: "Artist A–Z",\n' +
+      '  year: "Year",\n' +
+      '  score: "Worst metadata first",\n' +
+      '};\n' +
+      '\n' +
+      'function Albums() {\n' +
+      '  const { albums, counts, stats, total, filterError } = Route.useLoaderData();\n' +
+      '  const params = Route.useSearch();\n' +
+      '  const navigate = useNavigate();\n' +
+      '  const [query, setQuery] = useState(params.q);\n' +
+      '\n' +
+      '  const profiled = params.profile !== "global";\n' +
+      '  const scoreOf = (quality: (typeof albums)[number]["quality"]): number | null =>\n' +
+      '    profiled ? quality.byProfile[params.profile as never] : quality.score;\n' +
+      '\n' +
+      '  // Takes the value rather than reading `query`: the clear button changes the state and\n' +
+      '  // submits in the same tick, so the state it would read is still the old one.\n' +
+      '  const submit = (q: string): void => {\n' +
+      '    void navigate({ to: "/library", search: { ...params, q } });\n' +
+      '  };\n' +
+      '\n' +
+      '  return (\n' +
+      '    <>\n' +
+      '      <PageHeader\n' +
+      '        title="Albums"\n' +
+      '        description={\n' +
+      '          <>\n' +
+      '            {stats.albums} albums · {stats.tracks} tracks · metadata{" "}\n' +
+      '            <span className="font-mono">{pct(stats.averageScore)}</span> on average\n' +
+      '            {stats.filesBehind > 0 ? (\n' +
+      '              <>\n' +
+      '                {" "}\n' +
+      '                ·{" "}\n' +
+      '                <Link\n' +
+      '                  to="/library/quality"\n' +
+      '                  search={{ filter: "schema", profile: "global" }}\n' +
+      '                  className="text-warn"\n' +
+      '                >\n' +
+      '                  {stats.filesBehind} file(s) behind the tag schema\n' +
+      '                </Link>\n' +
+      '              </>\n' +
+      '            ) : null}\n' +
+      '          </>\n' +
+      '        }\n' +
+      '        actions={\n' +
+      '          <>\n' +
+      '            <Button variant="outline" nativeButton={false} render={<Link to="/library/quality" />}>\n' +
+      '              <ShieldCheck className="size-4" aria-hidden="true" /> Quality\n' +
+      '            </Button>\n' +
+      '            <Button nativeButton={false} render={<Link to="/import/new" />}>\n' +
+      '              <Plus className="size-4" aria-hidden="true" /> Import\n' +
+      '            </Button>\n' +
+      '          </>\n' +
+      '        }\n' +
+      '      />\n' +
+      '\n' +
+      '      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">\n' +
+      '        <StatTile label="Albums" value={stats.albums} sub={`${stats.artists} artists`} />\n' +
+      '        <StatTile\n' +
+      '          label="Metadata"\n' +
+      '          value={pct(\n' +
+      '            profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,\n' +
+      '          )}\n' +
+      '          tone={scoreTone(\n' +
+      '            profiled ? stats.averageByProfile[params.profile as never] : stats.averageScore,\n' +
+      '          )}\n' +
+      '          sub={profiled ? `as ${params.profile} reads it` : "against the superset"}\n' +
+      '          icon={<ShieldCheck className="size-3.5" aria-hidden="true" />}\n' +
+      '        />\n' +
+      '        <StatTile\n' +
+      '          label="Below 80%"\n' +
+      '          value={stats.below80}\n' +
+      '          tone={stats.below80 === 0 ? "ok" : "warn"}\n' +
+      '          sub="needs attention first"\n' +
+      '          to="/library/quality"\n' +
+      '          search={{ filter: "below80", profile: params.profile }}\n' +
+      '        />\n' +
+      '        <StatTile\n' +
+      '          label="Behind schema"\n' +
+      '          value={stats.filesBehind}\n' +
+      '          tone={stats.filesBehind === 0 ? "ok" : "warn"}\n' +
+      '          sub={`files · projection v${stats.currentSchema}`}\n' +
+      '          to="/library/quality"\n' +
+      '          search={{ filter: "schema", profile: params.profile }}\n' +
+      '        />\n' +
+      '      </div>\n' +
+      '\n' +
+      '      <div className="mb-3 flex flex-wrap items-center gap-2">\n' +
+      '        <SearchInput\n' +
+      '          data-testid="library-search"\n' +
+      '          className="min-w-56 flex-1"\n' +
+      '          label="Search albums"\n' +
+      '          placeholder="Search albums, artists, MBID…"\n' +
+      '          value={query}\n' +
+      '          onValueChange={setQuery}\n' +
+      '          onSubmit={submit}\n' +
+      '        />\n' +
+      '        <Select\n' +
+      '          value={params.sort}\n' +
+      '          onValueChange={(next: string | null) => {\n' +
+      '            if (next === null) return;\n' +
+      '            void navigate({\n' +
+      '              to: "/library",\n' +
+      '              search: { ...params, sort: next as typeof params.sort },\n' +
+      '            });\n' +
+      '          }}\n' +
+      '        >\n' +
+      '          <SelectTrigger\n' +
+      '            size="sm"\n' +
+      '            data-testid="library-sort"\n' +
+      '            aria-label="Sort albums"\n' +
+      '            className="border-line bg-surface-1 text-xs"\n' +
+      '          >\n' +
+      '            <span data-slot="select-value" className="truncate">\n' +
+      '              {SORT_LABELS[params.sort]}\n' +
+      '            </span>\n' +
+      '          </SelectTrigger>\n' +
+      '          <SelectContent className="text-xs">\n' +
+      '            {ALBUM_SORTS.map((sort) => (\n' +
+      '              <SelectItem key={sort} value={sort} className="text-xs">\n' +
+      '                {SORT_LABELS[sort]}\n' +
+      '              </SelectItem>\n' +
+      '            ))}\n' +
+      '          </SelectContent>\n' +
+      '        </Select>\n' +
+      '        <Select\n' +
+      '          value={params.profile}\n' +
+      '          onValueChange={(next: string | null) => {\n' +
+      '            if (next === null) return;\n' +
+      '            void navigate({\n' +
+      '              to: "/library",\n' +
+      '              search: { ...params, profile: next as typeof params.profile },\n' +
+      '            });\n' +
+      '          }}\n' +
+      '        >\n' +
+      '          <SelectTrigger\n' +
+      '            size="sm"\n' +
+      '            data-testid="library-profile"\n' +
+      '            aria-label="Scoring profile"\n' +
+      '            className="border-line bg-surface-1 text-xs"\n' +
+      '          >\n' +
+      '            <span data-slot="select-value" className="truncate">\n' +
+      '              {params.profile === "global" ? "Global (superset)" : params.profile}\n' +
+      '            </span>\n' +
+      '          </SelectTrigger>\n' +
+      '          <SelectContent className="text-xs">\n' +
+      '            <SelectItem value="global" className="text-xs">\n' +
+      '              Global (superset)\n' +
+      '            </SelectItem>\n' +
+      '            {PROFILE_IDS.map((id) => (\n' +
+      '              <SelectItem key={id} value={id} className="text-xs">\n' +
+      '                {id}\n' +
+      '              </SelectItem>\n' +
+      '            ))}\n' +
+      '          </SelectContent>\n' +
+      '        </Select>\n' +
+      '      </div>\n' +
+      '\n' +
+      '      <FilterBar\n' +
+      '        testId="album-filter-bar"\n' +
+      '        fields={ALBUM_FILTER_FIELDS}\n' +
+      '        value={params.f}\n' +
+      '        error={filterError}\n' +
+      '        search={{\n' +
+      '          value: params.q,\n' +
+      '          label: "Search:",\n' +
+      '          onClear: () => {\n' +
+      '            setQuery("");\n' +
+      '            submit("");\n' +
+      '          },\n' +
+      '        }}\n' +
+      '        onChange={(f) => {\n' +
+      '          void navigate({ to: "/library", search: { ...params, f } });\n' +
+      '        }}\n' +
+      '      />\n' +
+      '\n' +
+      '      <FilterChips\n' +
+      '        testId="library-filters"\n' +
+      '        chips={ALBUM_FILTERS.map((filter) => ({\n' +
+      '          value: filter,\n' +
+      '          label: FILTER_LABELS[filter],\n' +
+      '          count: counts[filter],\n' +
+      '        }))}\n' +
+      '        active={params.filter}\n' +
+      '        link={(filter) => ({ to: "/library", search: { ...params, filter } })}\n' +
+      '      />\n' +
+      '\n' +
+      '      {albums.length === 0 ? (\n' +
+      '        <Callout tone="info" data-testid="library-empty">\n' +
+      '          {/*\n' +
+      '            "Nothing matches" and "nothing is here" are different facts and used to share one\n' +
+      '            sentence, so a filter that excluded everything read as an empty library. `counts.all`\n' +
+      '            is the library; `total` is what the filter left of it.\n' +
+      '          */}\n' +
+      '          {counts.all === 0 ? (\n' +
+      '            <>\n' +
+      '              Nothing here yet. An album appears once its files have been placed.{" "}'... 1197 more characters,
+    frame: '25 |  import { scoreTone } from "#/components/status-badge.tsx";\n' +
+      '26 |  import { AlbumCard } from "#/components/library/album-card.tsx";\n' +
+      '27 |  import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";\n' +
+      '   |                      ^\n' +
+      '28 |  import { FilterBar } from "#/components/library/filter-bar.tsx";\n' +
+      '29 |  import { FilterChips } from "#/components/library/filter-chips.tsx";',
+    runnerError: Error: RunnerError
+        at reviveInvokeError (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:557:64)
+        at Object.invoke (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:630:11)
+        at ModuleRunner.getModuleInformation (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1213:7)
+        at request (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1230:83)
+        at D:/Projects/music-manager/v2/apps/web/src/routeTree.gen.ts:31:1
+        at ESModulesEvaluator.runInlinedModule (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1021:3)
+        at ModuleRunner.directRequest (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1273:59)
+        at ModuleRunner.cachedRequest (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1180:73)
+        at D:/Projects/music-manager/v2/apps/web/src/router.tsx:3:1
+        at ESModulesEvaluator.runInlinedModule (file:///D:/Projects/music-manager/v2/node_modules/.bun/vite@8.2.2+b8f39464af8a11bd/node_modules/vite/dist/node/module-runner.js:1021:3)
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+{"at":"2026-09-16T16:42:11.237Z","source":"web","level":"error","msg":"request","method":"GET","path":"/settings/api","status":500,"ms":242}
+[2m18:42:33[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.index.tsx[22m
+[2m18:42:33[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.index.tsx[22m
+[2m18:42:33[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/_app.library.artists.index.tsx[22m
+[2m18:42:33[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/_app.library.artists.index.tsx[22m

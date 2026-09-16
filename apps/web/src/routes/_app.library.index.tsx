@@ -24,8 +24,10 @@ import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { scoreTone } from "#/components/status-badge.tsx";
 import { AlbumCard } from "#/components/library/album-card.tsx";
+import { FilterBar } from "#/components/library/filter-bar.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { pct } from "#/lib/format.ts";
+import { ALBUM_FILTER_FIELDS } from "#/lib/filters/index.ts";
 import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";
 import { fetchAlbums } from "#/server/functions/library.ts";
 
@@ -34,6 +36,13 @@ const search = z.object({
   filter: z.enum(ALBUM_FILTERS).default("all"),
   sort: z.enum(ALBUM_SORTS).default("recent"),
   profile: z.enum(["global", ...PROFILE_IDS]).default("global"),
+  /*
+   * The filter builder's tree, as the expression `lib/filters/schema.ts` reads. A string
+   * here rather than a parsed object: `validateSearch` runs in the browser on every
+   * navigation, and what has to survive is the *link* — the tree is validated against this
+   * page's whitelist on the server, which is the only side that can refuse it usefully.
+   */
+  f: z.string().max(2_000).default(""),
 });
 
 export const Route = createFileRoute("/_app/library/")({
@@ -41,7 +50,13 @@ export const Route = createFileRoute("/_app/library/")({
   loaderDeps: ({ search: params }) => params,
   loader: async ({ deps }) =>
     await fetchAlbums({
-      data: { search: deps.q, filter: deps.filter, sort: deps.sort, profile: deps.profile },
+      data: {
+        search: deps.q,
+        filter: deps.filter,
+        sort: deps.sort,
+        profile: deps.profile,
+        f: deps.f,
+      },
     }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Albums" }] },
   component: Albums,
@@ -64,7 +79,7 @@ const SORT_LABELS: Record<(typeof ALBUM_SORTS)[number], string> = {
 };
 
 function Albums() {
-  const { albums, counts, stats } = Route.useLoaderData();
+  const { albums, counts, stats, total, filterError } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const [query, setQuery] = useState(params.q);
@@ -216,6 +231,24 @@ function Albums() {
         </Select>
       </div>
 
+      <FilterBar
+        testId="album-filter-bar"
+        fields={ALBUM_FILTER_FIELDS}
+        value={params.f}
+        error={filterError}
+        search={{
+          value: params.q,
+          label: "Search:",
+          onClear: () => {
+            setQuery("");
+            submit("");
+          },
+        }}
+        onChange={(f) => {
+          void navigate({ to: "/library", search: { ...params, f } });
+        }}
+      />
+
       <FilterChips
         testId="library-filters"
         chips={ALBUM_FILTERS.map((filter) => ({
@@ -229,11 +262,25 @@ function Albums() {
 
       {albums.length === 0 ? (
         <Callout tone="info" data-testid="library-empty">
-          Nothing here yet. An album appears once its files have been placed.{" "}
-          <Link to="/import/new" className="text-primary">
-            start an import
-          </Link>
-          .
+          {/*
+            "Nothing matches" and "nothing is here" are different facts and used to share one
+            sentence, so a filter that excluded everything read as an empty library. `counts.all`
+            is the library; `total` is what the filter left of it.
+          */}
+          {counts.all === 0 ? (
+            <>
+              Nothing here yet. An album appears once its files have been placed.{" "}
+              <Link to="/import/new" className="text-primary">
+                start an import
+              </Link>
+              .
+            </>
+          ) : (
+            <>
+              No album matches. {counts.all} album(s) are in the library — take a condition off the
+              bar above to see them.
+            </>
+          )}
         </Callout>
       ) : (
         <div
@@ -253,7 +300,7 @@ function Albums() {
 
       <p className="mt-4 flex items-center gap-1.5 text-2xs text-fg-3">
         <LayoutGrid className="size-3" aria-hidden="true" />
-        {albums.length} of {counts.all} albums shown
+        {albums.length} of {total} matching, {counts.all} in the library
         {profiled ? ` · scored as ${params.profile} reads them` : ""}. A profile changes the view,
         never the files: the superset is written whatever is selected here.
       </p>

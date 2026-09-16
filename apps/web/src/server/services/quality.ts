@@ -392,31 +392,21 @@ function describeDivergences(
 }
 
 /**
- * Score one album from its tracks' documents.
+ * One track's quality, from its document and its row. Pure, and the same arithmetic wherever
+ * a track is scored.
  *
- * Pure: everything it needs has already been read. That is what lets `/library` score twenty
- * albums without twenty round trips, and what lets the unit tests check the arithmetic of §6
- * against hand-written documents.
+ * Lifted out of `scoreAlbum` unchanged so that `/library/tracks` can score **a page** of
+ * tracks. The list used to load every track in the library, group the lot by album and call
+ * `scoreAlbum` on each group, which was the only way to reach this loop — so the filter had
+ * to run in memory too, and the count and the rows came from two different pieces of
+ * TypeScript. Nothing album-wide is read here, so a page of sixty rows from sixty albums costs
+ * sixty documents rather than the whole library.
  */
-export function scoreAlbum(
-  album: LibraryAlbum,
+export function scoreLoadedTracks(
   loaded: readonly LoadedTrack[],
   currentSchema: number,
-  /**
-   * The ids whose file is really on disk, when the caller has checked.
-   *
-   * Omit it and `presentCount` counts *rows*, which is what the grid wants: it renders
-   * hundreds of albums and must not stat the whole library to do it. `albumDetail` passes the
-   * set, because "13/13 present" over an empty directory is the failure this parameter exists
-   * to stop — an agent read it, concluded the library was healthy, and it was not there at all.
-   */
-  onDisk?: ReadonlySet<string>,
-): AlbumQuality {
-  const documents = loaded
-    .map((entry) => entry.document)
-    .filter((document): document is TrackDocument => document !== null);
-
-  const tracks: TrackQuality[] = loaded.map((entry) => {
+): TrackQuality[] {
+  return loaded.map((entry) => {
     const document = entry.document;
     if (document === null) {
       return {
@@ -461,6 +451,34 @@ export function scoreAlbum(
       hasDocument: true,
     };
   });
+}
+
+/**
+ * Score one album from its tracks' documents.
+ *
+ * Pure: everything it needs has already been read. That is what lets `/library` score twenty
+ * albums without twenty round trips, and what lets the unit tests check the arithmetic of §6
+ * against hand-written documents.
+ */
+export function scoreAlbum(
+  album: LibraryAlbum,
+  loaded: readonly LoadedTrack[],
+  currentSchema: number,
+  /**
+   * The ids whose file is really on disk, when the caller has checked.
+   *
+   * Omit it and `presentCount` counts *rows*, which is what the grid wants: it renders
+   * hundreds of albums and must not stat the whole library to do it. `albumDetail` passes the
+   * set, because "13/13 present" over an empty directory is the failure this parameter exists
+   * to stop — an agent read it, concluded the library was healthy, and it was not there at all.
+   */
+  onDisk?: ReadonlySet<string>,
+): AlbumQuality {
+  const documents = loaded
+    .map((entry) => entry.document)
+    .filter((document): document is TrackDocument => document !== null);
+
+  const tracks = scoreLoadedTracks(loaded, currentSchema);
 
   const overall = albumCompleteness(documents);
 

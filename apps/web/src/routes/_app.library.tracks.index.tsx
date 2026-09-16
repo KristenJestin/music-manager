@@ -17,10 +17,12 @@ import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
+import { FilterBar } from "#/components/library/filter-bar.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { bytes, mmss, pct } from "#/lib/format.ts";
 import { TimeAgo } from "#/components/time-ago.tsx";
+import { TRACK_FILTER_FIELDS } from "#/lib/filters/index.ts";
 import { TRACK_FILTERS } from "#/lib/library-filters.ts";
 import type { TrackRow } from "#/server/services/library.ts";
 import { fetchTracks } from "#/server/functions/library.ts";
@@ -29,13 +31,17 @@ const search = z.object({
   q: z.string().default(""),
   filter: z.enum(TRACK_FILTERS).default("all"),
   page: z.number().int().min(0).default(0),
+  /** The filter builder's tree, as the expression `lib/filters/schema.ts` reads. */
+  f: z.string().max(2_000).default(""),
 });
 
 export const Route = createFileRoute("/_app/library/tracks/")({
   validateSearch: search,
   loaderDeps: ({ search: params }) => params,
   loader: async ({ deps }) =>
-    await fetchTracks({ data: { search: deps.q, filter: deps.filter, page: deps.page } }),
+    await fetchTracks({
+      data: { search: deps.q, filter: deps.filter, page: deps.page, f: deps.f },
+    }),
   staticData: { crumbs: [{ label: "Library" }, { label: "Tracks" }] },
   component: Tracks,
 });
@@ -51,7 +57,7 @@ const LABELS: Record<(typeof TRACK_FILTERS)[number], string> = {
 const PAGE_SIZE = 60;
 
 function Tracks() {
-  const { tracks, total, counts, currentSchema } = Route.useLoaderData();
+  const { tracks, total, counts, currentSchema, filterError } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const [query, setQuery] = useState(params.q);
@@ -174,6 +180,24 @@ function Tracks() {
           }}
         />
       </div>
+
+      <FilterBar
+        testId="track-filter-bar"
+        fields={TRACK_FILTER_FIELDS}
+        value={params.f}
+        error={filterError}
+        search={{
+          value: params.q,
+          label: "Search:",
+          onClear: () => {
+            setQuery("");
+            void navigate({ to: "/library/tracks", search: { ...params, q: "", page: 0 } });
+          },
+        }}
+        onChange={(f) => {
+          void navigate({ to: "/library/tracks", search: { ...params, f, page: 0 } });
+        }}
+      />
 
       <FilterChips
         testId="track-filters"

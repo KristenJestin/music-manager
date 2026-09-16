@@ -17,7 +17,7 @@
  */
 import { existsSync, rmSync, readdirSync, rmdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
-import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import {
   canonicalValue,
@@ -57,6 +57,20 @@ import {
 } from "#/lib/library-filters.ts";
 import { albumSourceLink, webpageUrlOf, type AlbumSourceLink } from "#/lib/source-url.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
+import { EMPTY_FILTER, type FilterGroup } from "#/lib/filters/index.ts";
+import {
+  albumChipCondition,
+  albumFilterBindings,
+  albumSearchCondition,
+  allOf,
+  artistFilterBindings,
+  artistSearchCondition,
+  compileFilter,
+  trackChipCondition,
+  trackFilterBindings,
+  trackSearchCondition,
+  type ArtistFilterColumns,
+} from "#/server/services/library-filter.sql.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { artistShelf, type ArtistShelf } from "#/server/services/discography.ts";
 import { recountAlbum } from "#/server/services/album-counters.ts";
@@ -68,6 +82,7 @@ import {
   documentsOfTracks,
   scoreAlbum,
   scoreLibrary,
+  scoreLoadedTracks,
   summarise,
   tagMapRows,
   type AlbumQuality,
@@ -109,52 +124,93 @@ export interface AlbumGridPayload {
   readonly counts: Readonly<Record<AlbumFilter, number>>;
   readonly stats: LibraryQualityStats;
   readonly profile: ProfileId | "global";
+  /**
+   * How many albums the filter matches, from a `count(*)` over the **same** `where` the rows
+   * came out of. It is `albums.length` as long as the grid draws everything it matched, and
+   * it stops being that the day somebody pages this list — which is exactly when a total
+   * counted in TypeScript would begin to lie.
+   */
+  readonly total: number;
 }
 
-function passesAlbumFilter(card: AlbumCard, filter: AlbumFilter): boolean {
-  switch (filter) {
-    case "all":
-      return true;
-    case "incomplete":
-      // `totalKnown` is not redundant. Where the total is only the row count, a gap between
-      // the two columns means "a file went missing", which is the `missing` question and has
-      // its own badge and its own remedy. "Incomplete" is "the release has tracks we never
-      // imported", and that can only be said when something actually counted the release.
-      return card.quality.totalKnown && card.presentCount < card.trackCount;
-    case "untagged":
-      return card.quality.untagged;
-    case "nocover":
-      return card.coverPath === null;
-    case "ytcover":
-      return card.quality.youtubeCover;
-    case "schema":
-      return card.quality.filesBehind > 0;
-  }
-}
-
-function matchesSearch(card: AlbumCard, search: string): boolean {
-  if (search === "") return true;
-  const needle = search.toLowerCase();
+/**
+ * The five chips, counted over the whole library in one query.
+ *
+ * Over the whole library, deliberately: a chip says "there are nine untagged albums", and it
+ * has always said that regardless of what is typed in the search box. What changed is *where*
+ * it is computed — the same `albumChipCondition` the grid filters with, so the chip's number
+ * and the chip's rows cannot drift apart.
+ */
+async function albumChipCounts(
+  currentSchema: number,
+  db: Database,
+): Promise<Record<AlbumFilter, number>> {
+  const chip = (filter: AlbumFilter): SQL<number> => {
+    const condition = albumChipCondition(filter, { currentSchema });
+    return condition === undefined
+      ? sql<number>`count(*)::int`
+      : sql<number>`(count(*) filter (where ${condition}))::int`;
+  };
+  const [row] = await db
+    .select({
+      all: chip("all"),
+      incomplete: chip("incomplete"),
+      untagged: chip("untagged"),
+      nocover: chip("nocover"),
+      ytcover: chip("ytcover"),
+      schema: chip("schema"),
+    })
+    .from(libraryAlbums);
   return (
-    card.title.toLowerCase().includes(needle) ||
-    card.albumArtist.toLowerCase().includes(needle) ||
-    (card.releaseMbid ?? "").toLowerCase().includes(needle)
+    row ?? (Object.fromEntries(ALBUM_FILTERS.map((f) => [f, 0])) as Record<AlbumFilter, number>)
   );
 }
 
-/** `/library` — the grid, its filter counts and the library-wide numbers above it. */
+/**
+ * `/library` — the grid, its filter counts and the library-wide numbers above it.
+ *
+ * **Which albums** is decided in SQL: the filter builder's tree, the search box and the chip
+ * all compile to one `where`, and the row query and the `count(*)` take that same object. The
+ * *scoring* stays in memory, because the score of an album is a function of its documents and
+ * teaching the database the tag map is not on the table — so the query answers "which", and
+ * `scoreLibrary` answers "how good", and neither one is asked the other's question.
+ *
+ * The sort is still in memory too, and that is on purpose: "worst metadata first" orders by
+ * the album score, which subtracts a divergence penalty no column holds. Ordering by an SQL
+ * approximation of it would put the cards in an order the badges on them contradict.
+ */
 export async function albumGrid(
   options: {
     search?: string;
     filter?: AlbumFilter;
     sort?: AlbumSort;
     profile?: ProfileId | "global";
+    /** The filter builder's tree. The empty one compiles to no clause at all. */
+    filters?: FilterGroup;
   } = {},
   db: Database = defaultDb(),
 ): Promise<AlbumGridPayload> {
   const settings = await loadSettings(db);
   const { rows, currentSchema } = await scoreLibrary({ db, settings });
   const profile = options.profile ?? "global";
+  const filter = options.filter ?? "all";
+  const sort = options.sort ?? "recent";
+
+  const where = allOf(
+    compileFilter(options.filters ?? EMPTY_FILTER, albumFilterBindings({ currentSchema })),
+    albumSearchCondition(options.search ?? ""),
+    albumChipCondition(filter, { currentSchema }),
+  );
+
+  const [counts, matching, counted] = await Promise.all([
+    albumChipCounts(currentSchema, db),
+    db.select({ id: libraryAlbums.id }).from(libraryAlbums).where(where),
+    db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(libraryAlbums)
+      .where(where),
+  ]);
+  const matched = new Set(matching.map((row) => row.id));
 
   const cards: AlbumCard[] = rows.map(({ album, quality }) => ({
     id: album.id,
@@ -170,19 +226,8 @@ export async function albumGrid(
     quality,
   }));
 
-  const counts = Object.fromEntries(
-    ALBUM_FILTERS.map((filter) => [
-      filter,
-      cards.filter((card) => passesAlbumFilter(card, filter)).length,
-    ]),
-  ) as Record<AlbumFilter, number>;
-
-  const filter = options.filter ?? "all";
-  const sort = options.sort ?? "recent";
-  const search = (options.search ?? "").trim();
-
   const shown = cards
-    .filter((card) => passesAlbumFilter(card, filter) && matchesSearch(card, search))
+    .filter((card) => matched.has(card.id))
     .sort((a, b) => {
       switch (sort) {
         case "artist":
@@ -201,6 +246,7 @@ export async function albumGrid(
     counts,
     stats: summarise(rows, currentSchema, isSchemaOverridden(settings)),
     profile,
+    total: counted[0]?.total ?? shown.length,
   };
 }
 
@@ -664,12 +710,43 @@ export interface TrackListPayload {
   readonly currentSchema: number;
 }
 
+/** The four chips plus "all", counted over the whole library in one query. */
+async function trackChipCounts(
+  currentSchema: number,
+  db: Database,
+): Promise<Record<TrackFilter, number>> {
+  const chip = (filter: TrackFilter): SQL<number> => {
+    const condition = trackChipCondition(filter, { currentSchema });
+    return condition === undefined
+      ? sql<number>`count(*)::int`
+      : sql<number>`(count(*) filter (where ${condition}))::int`;
+  };
+  const [row] = await db
+    .select({
+      all: chip("all"),
+      nolyrics: chip("nolyrics"),
+      noreplaygain: chip("noreplaygain"),
+      schema: chip("schema"),
+      untagged: chip("untagged"),
+    })
+    .from(libraryTracks);
+  return (
+    row ?? (Object.fromEntries(TRACK_FILTERS.map((f) => [f, 0])) as Record<TrackFilter, number>)
+  );
+}
+
 /**
- * `/library/tracks`.
+ * `/library/tracks`, paged.
  *
- * Scored in memory like the album grid, for the same reason: the score of a track is a pure
- * function of its document, and asking the database to compute it would mean teaching the
- * database the tag map.
+ * This is the page the whole design constraint is about. It prints `1–60 of 214` and it hands
+ * out a `limit`/`offset`, so **every** condition — the builder's tree, the search box, the
+ * chip and `albumId` — is compiled into one `where` that the `count(*)` and the `select …
+ * limit` both take. It used to read every track in the library, score the lot, filter the
+ * array and slice it; that was correct and unaffordable, and the moment a filter arrived from
+ * a URL it would have stopped being correct too.
+ *
+ * Only the page's own documents are read, and only the page's own tracks are scored. The
+ * arithmetic is unchanged: `scoreLoadedTracks` is the loop that was inside `scoreAlbum`.
  */
 export async function trackList(
   options: {
@@ -684,6 +761,8 @@ export async function trackList(
      * end of a list that was never that long.
      */
     albumId?: string;
+    /** The filter builder's tree. The empty one compiles to no clause at all. */
+    filters?: FilterGroup;
     limit?: number;
     offset?: number;
   } = {},
@@ -691,24 +770,44 @@ export async function trackList(
 ): Promise<TrackListPayload> {
   const settings = await loadSettings(db);
   const currentSchema = effectiveSchemaVersion(settings);
+  const offset = options.offset ?? 0;
+  const limit = options.limit ?? 60;
 
-  const tracks = await db.select().from(libraryTracks).orderBy(desc(libraryTracks.createdAt));
-  const albums = await db.select().from(libraryAlbums);
+  const where = allOf(
+    compileFilter(options.filters ?? EMPTY_FILTER, trackFilterBindings({ currentSchema })),
+    trackSearchCondition(options.search ?? ""),
+    trackChipCondition(options.filter ?? "all", { currentSchema }),
+    options.albumId === undefined ? undefined : eq(libraryTracks.albumId, options.albumId),
+  );
+
+  const [counts, counted, tracks] = await Promise.all([
+    trackChipCounts(currentSchema, db),
+    db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(libraryTracks)
+      .where(where),
+    db
+      .select()
+      .from(libraryTracks)
+      .where(where)
+      .orderBy(desc(libraryTracks.createdAt))
+      .limit(limit)
+      .offset(offset),
+  ]);
+
+  const albumIds = [
+    ...new Set(tracks.map((track) => track.albumId).filter((id): id is string => id !== null)),
+  ];
+  const albums =
+    albumIds.length === 0
+      ? []
+      : await db.select().from(libraryAlbums).where(inArray(libraryAlbums.id, albumIds));
   const albumById = new Map(albums.map((album) => [album.id, album]));
-  const loaded = await documentsOfTracks(tracks, db);
 
-  const scored = new Map<string, { score: number | null; lyrics: boolean; rg: boolean }>();
-  for (const album of albums) {
-    const own = loaded.filter((entry) => entry.track.albumId === album.id);
-    if (own.length === 0) continue;
-    for (const track of scoreAlbum(album, own, currentSchema).tracks) {
-      scored.set(track.libraryTrackId, {
-        score: track.score,
-        lyrics: track.hasLyrics,
-        rg: track.hasReplayGain,
-      });
-    }
-  }
+  const loaded = await documentsOfTracks(tracks, db);
+  const scored = new Map(
+    scoreLoadedTracks(loaded, currentSchema).map((track) => [track.libraryTrackId, track]),
+  );
 
   const rows: TrackRow[] = tracks.map((track) => {
     const album = track.albumId === null ? undefined : albumById.get(track.albumId);
@@ -729,52 +828,14 @@ export async function trackList(
       recordingMbid: track.recordingMbid,
       tagSchemaVersion: track.tagSchemaVersion,
       behind: track.tagSchemaVersion === null || track.tagSchemaVersion < currentSchema,
-      hasLyrics: detail?.lyrics ?? false,
-      hasReplayGain: detail?.rg ?? false,
+      hasLyrics: detail?.hasLyrics ?? false,
+      hasReplayGain: detail?.hasReplayGain ?? false,
       score: detail?.score ?? null,
       addedAt: track.createdAt.toISOString(),
     };
   });
 
-  const passes = (row: TrackRow, filter: TrackFilter): boolean => {
-    switch (filter) {
-      case "all":
-        return true;
-      case "nolyrics":
-        return !row.hasLyrics;
-      case "noreplaygain":
-        return !row.hasReplayGain;
-      case "schema":
-        return row.behind;
-      case "untagged":
-        return row.recordingMbid === null;
-    }
-  };
-
-  const search = (options.search ?? "").trim().toLowerCase();
-  const filtered = rows.filter(
-    (row) =>
-      passes(row, options.filter ?? "all") &&
-      (options.albumId === undefined || row.albumId === options.albumId) &&
-      (search === "" ||
-        row.title.toLowerCase().includes(search) ||
-        (row.artist ?? "").toLowerCase().includes(search) ||
-        (row.albumTitle ?? "").toLowerCase().includes(search) ||
-        (row.recordingMbid ?? "").toLowerCase().includes(search) ||
-        row.path.toLowerCase().includes(search)),
-  );
-
-  const offset = options.offset ?? 0;
-  const limit = options.limit ?? 60;
-
-  return {
-    tracks: filtered.slice(offset, offset + limit),
-    total: filtered.length,
-    counts: Object.fromEntries(
-      TRACK_FILTERS.map((filter) => [filter, rows.filter((row) => passes(row, filter)).length]),
-    ) as Record<TrackFilter, number>,
-    currentSchema,
-  };
+  return { tracks: rows, total: counted[0]?.total ?? rows.length, counts, currentSchema };
 }
 
 /* ------------------------------------------------------------------ */
@@ -888,47 +949,78 @@ export interface ArtistRow {
  * be describing a different library. The MBID and the image come from `artists_cache` when a
  * document knew one.
  */
+/**
+ * One column of `artists_cache`, for the artist this group is about.
+ *
+ * A correlated scalar subquery rather than a join: the cache is keyed by MBID and matched by
+ * *name*, so two rows can spell the same artist and a join would then double the group. The
+ * old code read the whole table into a `Map` and let the last row win, which is the same
+ * arbitrary choice made non-deterministically; `order by artist_mbid` makes it a choice the
+ * page will make the same way twice.
+ */
+function cachedArtistColumn(column: SQL): SQL {
+  return sql`(select ${column} from ${artistsCache}
+    where lower(${artistsCache.name}) = lower(${libraryAlbums.albumArtist})
+    order by ${artistsCache.artistMbid} limit 1)`;
+}
+
+/** The subquery's columns, by the names `ARTIST_FILTER_FIELDS` binds against. */
+const ARTIST_COLUMNS: ArtistFilterColumns = {
+  name: sql`"artist_rows"."name"`,
+  albums: sql`"artist_rows"."albums"`,
+  tracks: sql`"artist_rows"."tracks"`,
+  imageUrl: sql`"artist_rows"."image_url"`,
+  country: sql`"artist_rows"."country"`,
+};
+
 export async function artistList(
-  options: { search?: string } = {},
+  options: { search?: string; filters?: FilterGroup } = {},
   db: Database = defaultDb(),
 ): Promise<ArtistRow[]> {
-  const grouped = await db
+  /*
+   * The artist "row" is an aggregate, so its filterable columns only exist once the grouping
+   * has happened. Naming the grouped select and filtering the outside of it is what lets the
+   * same compiler serve this page: `albums >= 3` is a predicate on `artist_rows.albums`, and
+   * it can sit in an `or` beside `name contains …` without one of them being a `having` and
+   * the other a `where`.
+   */
+  const grouped = db
     .select({
-      name: libraryAlbums.albumArtist,
-      albums: sql<number>`count(distinct ${libraryAlbums.id})::int`,
-    })
-    .from(libraryAlbums)
-    .groupBy(libraryAlbums.albumArtist)
-    .orderBy(libraryAlbums.albumArtist);
-
-  const trackCounts = await db
-    .select({
-      name: libraryAlbums.albumArtist,
-      tracks: sql<number>`count(${libraryTracks.id})::int`,
+      name: sql<string>`${libraryAlbums.albumArtist}`.as("name"),
+      albums: sql<number>`count(distinct ${libraryAlbums.id})::int`.as("albums"),
+      tracks: sql<number>`count(${libraryTracks.id})::int`.as("tracks"),
+      mbid: sql<string | null>`${cachedArtistColumn(sql`${artistsCache.artistMbid}`)}`.as("mbid"),
+      country: sql<string | null>`${cachedArtistColumn(sql`${artistsCache.country}`)}`.as(
+        "country",
+      ),
+      imageUrl: sql<string | null>`${cachedArtistColumn(sql`${artistsCache.imageUrl}`)}`.as(
+        "image_url",
+      ),
+      sortName: sql<string | null>`${cachedArtistColumn(sql`${artistsCache.sortName}`)}`.as(
+        "sort_name",
+      ),
     })
     .from(libraryAlbums)
     .leftJoin(libraryTracks, eq(libraryTracks.albumId, libraryAlbums.id))
-    .groupBy(libraryAlbums.albumArtist);
-  const byName = new Map(trackCounts.map((row) => [row.name, row.tracks]));
+    .groupBy(libraryAlbums.albumArtist)
+    .as("artist_rows");
 
-  const cached = await db.select().from(artistsCache);
-  const cacheByName = new Map(cached.map((row) => [row.name.toLowerCase(), row]));
+  const where = allOf(
+    compileFilter(options.filters ?? EMPTY_FILTER, artistFilterBindings(ARTIST_COLUMNS)),
+    artistSearchCondition(ARTIST_COLUMNS, options.search ?? ""),
+  );
 
-  const search = (options.search ?? "").trim().toLowerCase();
-  return grouped
-    .filter((row) => search === "" || row.name.toLowerCase().includes(search))
-    .map((row) => {
-      const entry = cacheByName.get(row.name.toLowerCase());
-      return {
-        name: row.name,
-        mbid: entry?.artistMbid ?? null,
-        country: entry?.country ?? null,
-        imageUrl: entry?.imageUrl ?? null,
-        sortName: entry?.sortName ?? null,
-        albums: row.albums,
-        tracks: byName.get(row.name) ?? 0,
-      };
-    });
+  const rows = await db.select().from(grouped).where(where).orderBy(grouped.name);
+
+  return rows.map((row) => ({
+    name: row.name,
+    mbid: row.mbid,
+    country: row.country,
+    imageUrl: row.imageUrl,
+    sortName: row.sortName,
+    albums: row.albums,
+    tracks: row.tracks,
+  }));
 }
 
 /* ------------------------------------------------------------------ */
