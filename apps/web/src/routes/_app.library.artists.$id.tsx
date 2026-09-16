@@ -252,8 +252,8 @@ function ArtistPage() {
             </ToneBadge>
             <span className="text-2xs text-fg-3">
               from MusicBrainz, {dateTime(known.fetchedAt)}
-              {known.stale ? " · stale" : ""} · albums, EPs and singles as Settings › Discover
-              filters them
+              {known.stale ? " · stale" : ""} · counting the release types Settings › Discover
+              includes
             </span>
           </header>
           {known.missing.length === 0 ? (
@@ -276,12 +276,7 @@ function ArtistPage() {
                       ? ""
                       : ` · ${group.secondaryTypes.join(", ")}`}
                   </span>
-                  <MbLink
-                    kind="release-group"
-                    mbid={group.rgMbid}
-                    label="MusicBrainz"
-                    truncate={false}
-                  />
+                  <MbLink kind="release-group" mbid={group.rgMbid} label="MusicBrainz" />
                   <Button
                     size="sm"
                     variant="outline"

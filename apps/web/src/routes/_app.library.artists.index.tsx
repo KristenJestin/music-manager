@@ -6,6 +6,11 @@
  * describing a different library. The MBID, the country and the image come from
  * `artists_cache` when a document knew one, and are simply blank when it did not — the page
  * says what it knows and does not guess.
+ *
+ * Every row leads to `/library/artists/$id`, addressed by `artistKey`: the MBID when the row
+ * has one, the credited name when it does not. The rows are grouped by name and addressed by
+ * id, and those are not in tension — see `artistDetail` (`server/services/library.ts`), which
+ * resolves either and gathers the albums by name regardless.
  */
 import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
