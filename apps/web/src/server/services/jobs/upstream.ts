@@ -164,13 +164,64 @@ export interface UpstreamDecision {
  * refusal produces `attempt: 1` and waits `baseMs` — the same 1-based convention `backoffMs`
  * documents, kept identical on purpose so that the two can be read together.
  */
-export function planUpstreamRetry(
-  attemptsSoFar: number,
-  policy: UpstreamPolicy,
-): UpstreamDecision {
+export function planUpstreamRetry(attemptsSoFar: number, policy: UpstreamPolicy): UpstreamDecision {
   const attempt = Math.max(0, attemptsSoFar) + 1;
   if (attempt > policy.maxAttempts) return { action: "giveUp", attempt, delayMs: 0 };
   return { action: "hold", attempt, delayMs: backoffMs(attempt, policy.baseMs, policy.maxMs) };
+}
+
+/**
+ * What `runStep` puts on the step's `result` when it holds an import instead of failing it.
+ *
+ * It travels in `StepResult.data` rather than in a field of its own because that object is
+ * already written verbatim to `job_steps.result` and already reaches the journal, the SSE
+ * stream and `mm job`. One value, four readers, no extra plumbing — and the worker, which is
+ * the only caller that has a pg-boss handle, reads it back with `holdOf` to decide *when* to
+ * put the message on the queue again.
+ */
+export interface UpstreamHold {
+  /** Which upstream attempt this was: 1 for the first refusal. */
+  readonly attempt: number;
+  readonly maxAttempts: number;
+  /** How long the queue should sit on the message. */
+  readonly delayMs: number;
+  /** Absolute instant, so a worker restart can re-derive the remaining wait. */
+  readonly nextAttemptAt: string;
+  /** Who refused, when the error said. */
+  readonly source: string | null;
+}
+
+/** The key `UpstreamHold` travels under. Spelled once. */
+export const HOLD_KEY = "upstreamHold";
+
+/** Read a hold back out of a step's `data`, or `null` when the step did not hold. */
+export function holdOf(data: Record<string, unknown> | undefined | null): UpstreamHold | null {
+  const held = data?.[HOLD_KEY];
+  if (held === null || held === undefined || typeof held !== "object") return null;
+  const candidate = held as Partial<UpstreamHold>;
+  if (typeof candidate.delayMs !== "number" || typeof candidate.nextAttemptAt !== "string") {
+    return null;
+  }
+  return {
+    attempt: typeof candidate.attempt === "number" ? candidate.attempt : 1,
+    maxAttempts: typeof candidate.maxAttempts === "number" ? candidate.maxAttempts : 0,
+    delayMs: candidate.delayMs,
+    nextAttemptAt: candidate.nextAttemptAt,
+    source: typeof candidate.source === "string" ? candidate.source : null,
+  };
+}
+
+/**
+ * Milliseconds still to wait before `at`, floored at zero and capped at `ceiling`.
+ *
+ * A worker that comes back up an hour after it died must not honour an hour-old reservation
+ * as if it were fresh; it must not depart immediately either, because the source may still be
+ * refusing. Zero is the right answer for a wait that has already elapsed, and the cap keeps a
+ * clock skew from parking a job for a week.
+ */
+export function remainingMs(at: Date | null, now: Date, ceiling: number): number {
+  if (at === null) return 0;
+  return Math.min(Math.max(0, at.getTime() - now.getTime()), ceiling);
 }
 
 /** A duration a person reads without converting it. */

@@ -138,12 +138,23 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
 export async function enqueueImportStep(
   boss: PgBoss,
   job: ImportStepJob,
-  options: { priority?: number } = {},
+  options: { priority?: number; startAfterSeconds?: number } = {},
 ): Promise<string | null> {
+  const delay = Math.max(0, Math.round(options.startAfterSeconds ?? 0));
   return await boss.send(QUEUES.importStep, job, {
     singletonKey: job.importId,
     priority: options.priority ?? 0,
     retryLimit: 0,
+    /*
+     * The wait after a source refused us (`services/jobs/upstream.ts`).
+     *
+     * pg-boss holds the message until then, so the growing backoff costs no process and no
+     * timer: the delay is a column in the same database everything else already lives in, and
+     * a worker that dies during it loses nothing — `imports.next_attempt_at` still says when.
+     * `singletonKey` keeps its meaning: a Retry pressed while a job is waiting replaces the
+     * delayed message rather than queueing a second run of the same import.
+     */
+    ...(delay > 0 ? { startAfter: delay } : {}),
   });
 }
 

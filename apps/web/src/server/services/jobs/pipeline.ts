@@ -50,6 +50,7 @@ import { emit } from "#/server/services/events.ts";
 import {
   aggregateStatus,
   hasPassed,
+  isLocalStep,
   isTerminal,
   isTrackTerminal,
   LOCAL_STEPS,
@@ -58,6 +59,14 @@ import {
   type LocalStep,
   type StepResult,
 } from "./machine.ts";
+import {
+  classifyFailure,
+  describeHold,
+  planUpstreamRetry,
+  sourceOf,
+  type UpstreamHold,
+  type UpstreamPolicy,
+} from "./upstream.ts";
 import { makeContext, requireImport, type ContextOptions, type StepContext } from "./context.ts";
 import { fingerprintStep } from "./steps/fingerprint.ts";
 import { tagStep } from "./steps/tag.ts";
@@ -412,12 +421,34 @@ export async function pauseForReview(db: Database, importId: string, count: numb
   );
 }
 
-/** The transition a failed track deserves once every other track has finished. */
+/**
+ * The state a track was in *before* a local step, so that step can be handed to it again.
+ *
+ * The mirror of `REACHED`, and the whole of "undo one step" for the pipelined half: a track
+ * put back to `fingerprinted` is a track `nextTrackStep` will offer `tag` to. Used only when
+ * a source refused the step — a defect leaves the track `failed`, which is the truth.
+ */
+const BEFORE: Record<LocalStep, TrackState> = {
+  fingerprint: "downloaded",
+  tag: "fingerprinted",
+  place: "tagged",
+};
+
+/**
+ * The transition a failed track deserves once every other track has finished.
+ *
+ * `policy` is optional and `null` means "do not consider waiting" — which is what the tests
+ * and any caller without settings in hand get. When it is given and the representative
+ * failure is an upstream refusal, the import is held instead of failed: the tracks that broke
+ * on the source are put back to the state before the step, so re-running the album-wide
+ * version of that step picks them up again, and everything that succeeded keeps its file.
+ */
 export async function failSettled(
   db: Database,
   importId: string,
   count: number,
-): Promise<{ step: StepName; result: StepResult }> {
+  policy: UpstreamPolicy | null = null,
+): Promise<{ step: StepName; result: StepResult; hold: UpstreamHold | null }> {
   const tracks = await mappedTracksOf(db, importId);
   const broken = tracks.find((track) => track.state === "failed");
   const error = broken?.error ?? null;
@@ -436,6 +467,76 @@ export async function failSettled(
     .orderBy(desc(jobEvents.id))
     .limit(1);
   const step: StepName = failure?.step ?? "place";
+
+  /* ---- the source refused, and there is budget left: wait instead of failing ---- */
+  // Named rather than narrowed in place: the `BEFORE` lookup happens two blocks down, past an
+  // `await`, and a predicate's narrowing is not worth relying on across that distance.
+  const local = isLocalStep(step) ? step : null;
+  if (policy !== null && local !== null && classifyFailure(error) === "upstream") {
+    const job = await requireImport(importId, db);
+    const decision = planUpstreamRetry(job.upstreamAttempts, policy);
+    if (decision.action === "hold") {
+      const source = sourceOf(error);
+      const held = describeHold(decision, policy, source);
+      const hold: UpstreamHold = {
+        attempt: decision.attempt,
+        maxAttempts: policy.maxAttempts,
+        delayMs: decision.delayMs,
+        nextAttemptAt: new Date(Date.now() + decision.delayMs).toISOString(),
+        source,
+      };
+      /*
+       * Only the tracks the *source* broke go back on the line.
+       *
+       * A track that failed for its own reason — a container no tagger can write, a file that
+       * vanished — must stay `failed`, or the wait would quietly resurrect a genuine defect
+       * every time MusicBrainz sneezed, and the album would loop until the cap.
+       */
+      let rewound = 0;
+      for (const track of tracks) {
+        if (track.state !== "failed") continue;
+        if (classifyFailure(track.error) !== "upstream") continue;
+        await db
+          .update(importTracks)
+          .set({ state: BEFORE[local], error: null, updatedAt: new Date() })
+          .where(eq(importTracks.id, track.id));
+        rewound += 1;
+      }
+      const message = `${String(rewound)} track(s) ${held}`;
+      await upsertStepRow(db, importId, step, { status: "pending", message });
+      await db
+        .update(imports)
+        .set({
+          step,
+          status: "waiting_upstream",
+          error,
+          upstreamAttempts: decision.attempt,
+          nextAttemptAt: new Date(hold.nextAttemptAt),
+          // Explicitly cleared: a previous give-up may have stamped it, and a job that is
+          // waiting has not finished.
+          finishedAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(imports.id, importId));
+      await emit(
+        {
+          importId,
+          step,
+          level: "warn",
+          type: "import.waiting_upstream",
+          message,
+          data: { ...hold, tracks: rewound },
+        },
+        db,
+      );
+      return {
+        step,
+        result: { status: "failed", message, ...(error === null ? {} : { error }) },
+        hold,
+      };
+    }
+  }
+
   const message = `${String(count)} track(s) failed: ${error?.message ?? "no reason recorded"}`;
   const result: StepResult = {
     status: "failed",
@@ -453,7 +554,7 @@ export async function failSettled(
       updatedAt: new Date(),
     })
     .where(eq(imports.id, importId));
-  return { step, result };
+  return { step, result, hold: null };
 }
 
 /**
