@@ -3,7 +3,16 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MappingLine, ReleaseCandidate, ReleaseGroupCandidate } from "@mm/domain";
 import { Callout } from "./callout.tsx";
-import { artistImageSources, Cover, coverArtFront, libraryArtistImage } from "./cover.tsx";
+import {
+  albumCoverSources,
+  artistImageSources,
+  Cover,
+  coverArtFront,
+  libraryArtistImage,
+  remoteImageAtWidth,
+  SLOT_SIZES,
+  type CoverCandidate,
+} from "./cover.tsx";
 import { DataTable } from "./data-table.tsx";
 import { KeyValueList } from "./key-value.tsx";
 import { LogViewer } from "./log-viewer.tsx";
@@ -652,18 +661,115 @@ describe("the small ones", () => {
 
   it("libraryArtistImage builds the endpoint URL, or nothing for a blank name", () => {
     expect(libraryArtistImage("Daft Punk")).toBe("/api/artist-image?artist=Daft%20Punk");
+    expect(libraryArtistImage("Daft Punk", 160)).toBe(
+      "/api/artist-image?artist=Daft%20Punk&size=160",
+    );
     expect(libraryArtistImage(null)).toBeNull();
     expect(libraryArtistImage(undefined)).toBeNull();
     expect(libraryArtistImage("  ")).toBeNull();
   });
 
   it("artistImageSources tries the local artist.jpg before the cached remote URL", () => {
+    // Both at the slot's size: 36 CSS pixels doubled, rounded up to the closed set.
     expect(
-      artistImageSources({ name: "Daft Punk", imageUrl: "https://commons.wikimedia.org/x.jpg" }),
-    ).toEqual(["/api/artist-image?artist=Daft%20Punk", "https://commons.wikimedia.org/x.jpg"]);
+      artistImageSources({
+        name: "Daft Punk",
+        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Daft.jpg?width=1000",
+      }),
+    ).toEqual([
+      "/api/artist-image?artist=Daft%20Punk&size=160",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Daft.jpg?width=160",
+    ]);
     // No name and no cached image: nothing to try, the gradient stays.
     expect(artistImageSources({ name: "", imageUrl: null })).toEqual([]);
     expect(artistImageSources(null)).toEqual([]);
+  });
+
+  it("the slot decides what every tile asks its two sources for", () => {
+    // Doubled for a 2x display, then rounded up to what each provider publishes.
+    expect(SLOT_SIZES.xs).toEqual({ css: 24, local: 64, remote: 250 });
+    expect(SLOT_SIZES.sm).toEqual({ css: 36, local: 160, remote: 250 });
+    expect(SLOT_SIZES.md).toEqual({ css: 56, local: 160, remote: 250 });
+    expect(SLOT_SIZES.lg).toEqual({ css: 96, local: 320, remote: 250 });
+    expect(SLOT_SIZES.xl).toEqual({ css: 160, local: 320, remote: 500 });
+
+    const album = { id: "alb_1", releaseMbid: "mb-1", coverPath: "A/B/cover.jpg" };
+    expect(albumCoverSources(album, "xs")).toEqual([
+      "/api/cover?album=alb_1&size=64",
+      "https://coverartarchive.org/release/mb-1/front-250",
+    ]);
+    expect(albumCoverSources(album, "xl")).toEqual([
+      "/api/cover?album=alb_1&size=320",
+      "https://coverartarchive.org/release/mb-1/front-500",
+    ]);
+    // An album with no file on disk never asks for one.
+    expect(albumCoverSources({ ...album, coverPath: null }, "sm")).toEqual([
+      "https://coverartarchive.org/release/mb-1/front-250",
+    ]);
+  });
+
+  it("the album grid hands the browser a srcset instead of one guessed width", () => {
+    const [placed, remote] = albumCoverSources(
+      { id: "alb_1", releaseMbid: "mb-1", coverPath: "A/B/cover.jpg" },
+      "full",
+    ) as readonly CoverCandidate[];
+
+    expect(placed?.srcSet).toBe(
+      "/api/cover?album=alb_1&size=160 160w, /api/cover?album=alb_1&size=320 320w, /api/cover?album=alb_1&size=640 640w",
+    );
+    // The chrome the shell keeps is subtracted, so the browser is not told a cell is a
+    // third wider than it is and made to climb a rung of the ladder for nothing.
+    expect(placed?.sizes).toBe(
+      "(min-width: 1280px) calc((100vw - 340px) / 6), (min-width: 1024px) calc((100vw - 328px) / 5), (min-width: 640px) calc((100vw - 304px) / 3), calc((100vw - 292px) / 2)",
+    );
+    expect(remote?.srcSet).toContain("front-250 250w");
+    expect(remote?.srcSet).toContain("front-1200 1200w");
+  });
+
+  it("Cover puts a candidate's srcset and sizes on the img", () => {
+    render(
+      <Cover
+        size="full"
+        seed="alb_1"
+        label="Discovery"
+        src={albumCoverSources(
+          { id: "alb_1", releaseMbid: "mb-1", coverPath: "A/B/cover.jpg" },
+          "full",
+        )}
+      />,
+    );
+    const image = screen.getByTestId("cover-image");
+    expect(image.getAttribute("srcset")).toContain("size=160 160w");
+    expect(image.getAttribute("sizes")).toContain("calc((100vw - 340px) / 6)");
+  });
+
+  it("remoteImageAtWidth resizes a Wikimedia URL and leaves everything else alone", () => {
+    // Special:FilePath takes a width, so the artists page asks for 160 rather than 1000.
+    expect(
+      remoteImageAtWidth(
+        "https://commons.wikimedia.org/wiki/Special:FilePath/Daft%20Punk.jpg?width=1000",
+        160,
+      ),
+    ).toBe("https://commons.wikimedia.org/wiki/Special:FilePath/Daft%20Punk.jpg?width=160");
+    expect(
+      remoteImageAtWidth("https://commons.wikimedia.org/wiki/Special:FilePath/Daft.jpg", 64),
+    ).toBe("https://commons.wikimedia.org/wiki/Special:FilePath/Daft.jpg?width=64");
+
+    // The direct file becomes the thumbnailer's own URL for it.
+    expect(
+      remoteImageAtWidth("https://upload.wikimedia.org/wikipedia/commons/a/ab/Daft.jpg", 320),
+    ).toBe("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Daft.jpg/320px-Daft.jpg");
+    // An existing thumb just changes width.
+    expect(
+      remoteImageAtWidth(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Daft.jpg/800px-Daft.jpg",
+        160,
+      ),
+    ).toBe("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Daft.jpg/160px-Daft.jpg");
+
+    // fanart.tv publishes no width parameter: guessing one would 404 a working picture.
+    const fanart = "https://assets.fanart.tv/fanart/music/mb-1/artistthumb/daft-punk.jpg";
+    expect(remoteImageAtWidth(fanart, 160)).toBe(fanart);
   });
 
   it("Cover falls from an artist's local image to its cached remote one", () => {
@@ -678,7 +784,7 @@ describe("the small ones", () => {
       />,
     );
     const image = screen.getByTestId("cover-image");
-    expect(image.getAttribute("src")).toBe("/api/artist-image?artist=Daft%20Punk");
+    expect(image.getAttribute("src")).toBe("/api/artist-image?artist=Daft%20Punk&size=160");
     fireEvent.error(image);
     expect(screen.getByTestId("cover-image").getAttribute("src")).toBe(
       "https://example.invalid/remote.jpg",

@@ -49,7 +49,7 @@ function Artists() {
       cell: (row) => (
         <Cover
           size="sm"
-          src={artistImageSources(row)}
+          src={artistImageSources(row, "sm")}
           seed={row.mbid ?? row.name}
           label={row.name}
         />

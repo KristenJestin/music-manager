@@ -45,7 +45,12 @@ export function AlbumCard({ album, score, currentSchema, showArtist = true }: Al
       <div className="relative">
         {/* The `cover.jpg` this library actually holds, then the Cover Art Archive, then the
             gradient — the same order everywhere an album is drawn (owner review C10). */}
-        <Cover size="full" seed={album.id} label={album.title} src={albumCoverSources(album)} />
+        <Cover
+          size="full"
+          seed={album.id}
+          label={album.title}
+          src={albumCoverSources(album, "full")}
+        />
         {incomplete ? (
           <ToneBadge tone="warn" className="absolute top-1.5 left-1.5">
             {album.presentCount}/{album.trackCount}

@@ -261,6 +261,73 @@ test.describe("the library", () => {
   });
 
   /**
+   * What the grid actually pulls down.
+   *
+   * The placed `cover.jpg` is 1200 px square, and a grid cell is between 100 and 200 CSS
+   * pixels wide, so the whole page used to cost a megabyte a tile for pixels no screen ever
+   * showed. `<Cover size="full">` now hands the browser a `srcset` of `/api/cover` variants
+   * and lets it choose; this asserts that it chose one of them and not the original, because
+   * the difference is invisible on screen and that is exactly how it would rot.
+   *
+   * The 400 at the end is the other half: `size` is a closed set, so a number outside it is
+   * refused rather than rounded. An endpoint that resized to any integer asked for would be a
+   * cache anyone with a session could fill.
+   */
+  test("the album grid asks for a thumbnail, never the 1200 px cover", async ({ page }) => {
+    await signIn(page);
+    await ensureLibrary(page);
+
+    const asked: URL[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.pathname === "/api/cover") asked.push(url);
+    });
+
+    await page.goto("/library");
+    await expect(page.getByTestId("album-card").first()).toBeVisible();
+    await expect
+      .poll(() => asked.length, {
+        timeout: 15_000,
+        message:
+          "the grid never requested /api/cover: the fixture album should have a placed cover.jpg",
+      })
+      .toBeGreaterThan(0);
+
+    // Every request names a size, and it is one of the grid's three — never the whole file.
+    for (const url of asked) {
+      expect(url.searchParams.get("size"), url.toString()).not.toBeNull();
+      expect(["160", "320", "640"]).toContain(url.searchParams.get("size"));
+    }
+
+    // The srcset is what let the browser make that choice at its own pixel ratio.
+    const srcset = await page.getByTestId("cover-image").first().getAttribute("srcset");
+    expect(srcset).toContain("/api/cover?album=");
+    expect(srcset).toContain("size=160 160w");
+
+    // And the bytes, measured on the same album, which is the whole point of the change.
+    const albumId = asked[0]?.searchParams.get("album") ?? "";
+    expect(albumId).not.toBe("");
+    const whole = await page.request.get(`/api/cover?album=${encodeURIComponent(albumId)}`);
+    const thumb = await page.request.get(
+      `/api/cover?album=${encodeURIComponent(albumId)}&size=160`,
+    );
+    expect(whole.status()).toBe(200);
+    expect(thumb.status()).toBe(200);
+    expect(thumb.headers()["content-type"]).toBe("image/jpeg");
+    // The header says which one came back, so a silent fallback to the original cannot pass.
+    expect(thumb.headers()["x-mm-image-size"]).toBe("160");
+
+    const before = (await whole.body()).length;
+    const after = (await thumb.body()).length;
+    console.log(`/api/cover: ${String(before)} B original, ${String(after)} B at 160`);
+    expect(after).toBeLessThan(before / 2);
+
+    // A size outside the set is a 400, not a rounding.
+    const bad = await page.request.get(`/api/cover?album=${encodeURIComponent(albumId)}&size=161`);
+    expect(bad.status()).toBe(400);
+  });
+
+  /**
    * `artist.jpg`, placed beside "Daft Punk"'s folder once `import-album.spec.ts`'s import
    * reaches `place` (`jobs/steps/place.ts`). `seed-fixtures.ts` seeds the MusicBrainz artist
    * and the Wikidata entity Daft Punk's url-rels point at, offline, so `artists_cache.imageUrl`
@@ -274,6 +341,15 @@ test.describe("the library", () => {
     );
     expect(answer.status()).toBe(200);
     expect(answer.headers()["content-type"]).toBe("image/jpeg");
+
+    // The artists page draws a 36 px avatar, so it asks for 160 and gets a fraction of the
+    // bytes — the same closed set /api/cover uses, resized by the same toolbox call.
+    const small = await page.request.get(
+      `/api/artist-image?artist=${encodeURIComponent("Daft Punk")}&size=160`,
+    );
+    expect(small.status()).toBe(200);
+    expect(small.headers()["x-mm-image-size"]).toBe("160");
+    expect((await small.body()).length).toBeLessThan((await answer.body()).length);
 
     // The same guard `api.cover.ts`'s C10 test proves: an unknown artist is a clean 404, not a
     // page Vite's static asset pipeline swallowed.

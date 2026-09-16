@@ -86,11 +86,14 @@ function Tracks() {
           size="xs"
           seed={row.albumId ?? row.id}
           label={row.albumTitle ?? row.title}
-          src={albumCoverSources({
-            id: row.albumId,
-            releaseMbid: row.albumReleaseMbid,
-            coverPath: row.albumCoverPath,
-          })}
+          src={albumCoverSources(
+            {
+              id: row.albumId,
+              releaseMbid: row.albumReleaseMbid,
+              coverPath: row.albumCoverPath,
+            },
+            "xs",
+          )}
         />
       ),
     },

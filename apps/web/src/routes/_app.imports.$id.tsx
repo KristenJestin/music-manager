@@ -13,7 +13,7 @@ import {
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { ConfigureLink } from "#/components/configure-link.tsx";
-import { Cover, coverArtFront } from "#/components/cover.tsx";
+import { Cover, coverArtFront, SLOT_SIZES } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { NotFoundScreen } from "#/components/error-screen.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
@@ -345,7 +345,9 @@ function JobPage() {
             that, the gradient only if neither loads (owner review B10). */}
         <Cover
           size="lg"
-          src={coverArtFront(job.releaseMbid, 500) ?? detail.thumbnail}
+          // `lg` is 96 CSS pixels, so `front-250` already covers a 2× display;
+          // `front-500` was four times the bytes for the same square.
+          src={coverArtFront(job.releaseMbid, SLOT_SIZES.lg.remote) ?? detail.thumbnail}
           seed={job.id}
           label={job.title ?? job.url}
         />
