@@ -345,6 +345,45 @@ function MetadataSettings() {
           />
         </FormRow>
         <FormRow
+          label="Tracklist lookups"
+          help="How many release candidates get their tracklist fetched, which is what the fit is computed from. More costs one MusicBrainz request each, at one request per second."
+        >
+          <NumberField
+            testId="setting-matchLookupLimit"
+            value={value("matchLookupLimit", 6)}
+            step={1}
+            onChange={(next) => {
+              set("matchLookupLimit", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Search results"
+          help="How many results one MusicBrainz search asks for. A match makes one search per release group plus the group search itself."
+        >
+          <NumberField
+            testId="setting-matchSearchLimit"
+            value={value("matchSearchLimit", 25)}
+            step={1}
+            onChange={(next) => {
+              set("matchSearchLimit", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Release groups searched"
+          help="How many release groups get a release search of their own — the first level of the match."
+        >
+          <NumberField
+            testId="setting-matchGroupLimit"
+            value={value("matchGroupLimit", 3)}
+            step={1}
+            onChange={(next) => {
+              set("matchGroupLimit", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
           label="Release signal weights"
           help="The tracklist fit (`durations`) is the decisive one; that is the whole design of docs/04."
         >

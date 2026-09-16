@@ -49,6 +49,7 @@ export const METADATA_KEYS = [
   "matchDurationTolerance",
   "matchLookupLimit",
   "matchSearchLimit",
+  "matchGroupLimit",
   "matchReleaseWeights",
   "matchRecordingWeights",
   "matchMappingWeights",
