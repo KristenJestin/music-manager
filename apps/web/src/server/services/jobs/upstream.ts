@@ -31,7 +31,7 @@
  *     as "the source is busy" and been retried until the cap. So `retryable` is never
  *     sufficient on its own here: the failure must *also* name a source.
  */
-import type { MMErrorBody } from "@mm/contracts";
+import { MMError, type MMErrorBody } from "@mm/contracts";
 import { backoffMs } from "./machine.ts";
 
 /** The two answers. */
@@ -241,6 +241,46 @@ export function holdOf(data: Record<string, unknown> | undefined | null): Upstre
 export function remainingMs(at: Date | null, now: Date, ceiling: number): number {
   if (at === null) return 0;
   return Math.min(Math.max(0, at.getTime() - now.getTime()), ceiling);
+}
+
+/**
+ * The error a job carries once the waiting has run out.
+ *
+ * Built here, not at each call site, because there are two of them — the serial path in
+ * `runStep` and the per-track one in `failSettled` — and a job that gave up on `tag` must read
+ * exactly like a job that gave up on `match`. The first draft had only the serial path
+ * stamping this code, which left the per-track failures saying `SOURCE_UNAVAILABLE`: true, but
+ * indistinguishable from a job that has only just started waiting.
+ *
+ * `details.lastError` keeps the refusal that ended it, whole. `retryable: true` because it
+ * genuinely is — by hand, tomorrow — while `classifyFailure` calls the code a defect so that a
+ * requeued job starts a fresh ladder instead of inheriting an exhausted one, and
+ * `wasKilledByASource` claims it back for the bulk retry.
+ */
+export function exhaustedError(
+  source: string | null,
+  step: string,
+  attempts: number,
+  lastError: MMErrorBody | null,
+): MMError {
+  return new MMError(
+    UPSTREAM_EXHAUSTED_CODE,
+    `${source ?? "The source"} refused this import ${String(attempts)} times; giving up. ` +
+      `Nothing is wrong with the files.`,
+    {
+      hint:
+        lastError?.message ??
+        "The last attempt was refused for a reason that was about the source, not the import.",
+      action: "Retry when the source is healthy (`mm retry --failed-upstream`)",
+      details: {
+        ...(source === null ? {} : { source }),
+        step,
+        attempts,
+        lastError,
+      },
+      retryable: true,
+    },
+  );
 }
 
 /** A duration a person reads without converting it. */

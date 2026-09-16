@@ -62,6 +62,7 @@ import {
 import {
   classifyFailure,
   describeHold,
+  exhaustedError,
   planUpstreamRetry,
   sourceOf,
   type UpstreamHold,
@@ -475,7 +476,45 @@ export async function failSettled(
   if (policy !== null && local !== null && classifyFailure(error) === "upstream") {
     const job = await requireImport(importId, db);
     const decision = planUpstreamRetry(job.upstreamAttempts, policy);
-    if (decision.action === "hold") {
+    if (decision.action === "giveUp") {
+      /*
+       * Out of budget on the pipelined half. The row still has to say *the source*.
+       *
+       * Without this the per-track give-up kept the raw `SOURCE_UNAVAILABLE` — true, but
+       * indistinguishable from a job that has only just started waiting, and a reader landing
+       * on it a day later has no way to tell "it is coming back" from "it gave up".
+       */
+      const exhausted = exhaustedError(sourceOf(error), step, policy.maxAttempts, error);
+      const summary = exhausted.message;
+      await upsertStepRow(db, importId, step, { status: "failed", message: summary });
+      await db
+        .update(imports)
+        .set({
+          step,
+          status: "failed",
+          error: exhausted.toBody(),
+          finishedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(imports.id, importId));
+      await emit(
+        {
+          importId,
+          step,
+          level: "error",
+          type: "import.upstream_exhausted",
+          message: summary,
+          data: { source: sourceOf(error), attempts: policy.maxAttempts, tracks: count },
+        },
+        db,
+      );
+      return {
+        step,
+        result: { status: "failed", message: summary, error: exhausted.toBody() },
+        hold: null,
+      };
+    }
+    {
       const source = sourceOf(error);
       const held = describeHold(decision, policy, source);
       const hold: UpstreamHold = {

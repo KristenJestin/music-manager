@@ -44,11 +44,11 @@ import {
 import {
   classifyFailure,
   describeHold,
+  exhaustedError,
   HOLD_KEY,
   holdOf,
   planUpstreamRetry,
   sourceOf,
-  UPSTREAM_EXHAUSTED_CODE,
   wasKilledByASource,
   type UpstreamHold,
   type UpstreamPolicy,
@@ -358,33 +358,9 @@ async function considerUpstream(
   const source = sourceOf(result.error);
 
   if (decision.action === "giveUp") {
-    /*
-     * The terminal answer, and it must not read like a broken file.
-     *
-     * The original error is kept whole in `details.lastError`: the operator needs to see the
-     * 503 that ended it, and the bulk requeue needs a code it can select on without parsing
-     * a sentence. `retryable: true` because it genuinely is — by hand, tomorrow — while
-     * `classifyFailure` lists the code as a defect so that a requeued job starts a fresh
-     * ladder instead of inheriting an exhausted one.
-     */
-    const failure = new MMError(
-      UPSTREAM_EXHAUSTED_CODE,
-      `${source ?? "The source"} refused this import ${String(policy.maxAttempts)} times; ` +
-        `giving up. Nothing is wrong with the files.`,
-      {
-        hint:
-          result.error?.message ??
-          "The last attempt was refused for a reason that was about the source, not the import.",
-        action: "Retry when the source is healthy (`mm retry --failed-upstream`)",
-        details: {
-          ...(source === null ? {} : { source }),
-          step,
-          attempts: policy.maxAttempts,
-          lastError: result.error ?? null,
-        },
-        retryable: true,
-      },
-    );
+    // The terminal answer, and it must not read like a broken file. Built in `upstream.ts`
+    // because `failSettled` says exactly the same thing about the per-track half.
+    const failure = exhaustedError(source, step, policy.maxAttempts, result.error ?? null);
     await emit(
       {
         importId,
