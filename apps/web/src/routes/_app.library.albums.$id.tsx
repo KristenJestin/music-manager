@@ -21,6 +21,7 @@ import {
   Download,
   ExternalLink,
   Image as ImageIcon,
+  ListVideo,
   Lock,
   Play,
   Sparkles,
@@ -313,6 +314,33 @@ function Album() {
             <ToneBadge outline>{bytes(album.sizeBytes)}</ToneBadge>
             <span className="font-mono text-2xs text-fg-3">{album.album.folder}</span>
           </div>
+          {/*
+            Back to where the audio came from.
+            The provenance was already in the rows — `imports.url` is what was submitted, and
+            each `import_tracks.raw` is the yt-dlp entry — and neither was ever shown, so an
+            album's own YouTube playlist was three clicks and a copy-paste away. The playlist
+            wins when the submitted URL is one (`list=` / `OLAK5uy_…`), and the first track's
+            video is the fallback, which is also the answer for a single and for anything
+            migrated from v1. Nothing at all when the provenance names no web address.
+          */}
+          {album.source === null ? null : (
+            <a
+              href={album.source.url}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="album-source-link"
+              data-source-kind={album.source.kind}
+              aria-label={album.source.label}
+              title={album.source.url}
+              className="mt-2 inline-flex items-center gap-1.5 text-2xs text-fg-2 hover:text-primary"
+            >
+              <ListVideo className="size-3.5" aria-hidden="true" />
+              {album.source.kind === "playlist"
+                ? "Source: the YouTube playlist this album was imported from"
+                : "Source: the YouTube video this album was imported from"}
+              <ExternalLink className="size-3" aria-hidden="true" />
+            </a>
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button

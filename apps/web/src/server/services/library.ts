@@ -55,6 +55,7 @@ import {
   type AlbumSort,
   type TrackFilter,
 } from "#/lib/library-filters.ts";
+import { albumSourceLink, webpageUrlOf, type AlbumSourceLink } from "#/lib/source-url.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
 import { artistShelf, type ArtistShelf } from "#/server/services/discography.ts";
@@ -258,6 +259,13 @@ export interface AlbumDetail {
   /** The album-scope fields the Metadata tab lets you type into, with their provenance. */
   readonly albumFields: readonly AlbumFieldRow[];
   readonly imports: readonly { id: string; url: string; status: string; createdAt: string }[];
+  /**
+   * Where the audio came from on YouTube: the submitted playlist, or the first video.
+   *
+   * `null` when the provenance names nothing openable — a library scanned off disk, or an
+   * import whose URL was a `fixture://` one. See `lib/source-url.ts` for the rule.
+   */
+  readonly source: AlbumSourceLink | null;
   readonly decision: MatchingDecision | null;
   readonly currentSchema: number;
   readonly schemaOverridden: boolean;
@@ -386,6 +394,27 @@ export async function albumDetail(
     };
   });
 
+  /*
+   * The YouTube link this album came from.
+   *
+   * No extra query: the import rows and the `import_tracks` behind these files are already
+   * read above, for the imports list and for the video ids the file column links to. The
+   * submitted URL is the *newest* import's — `importBehindAlbum` picks the same one — because
+   * that is the job whose release the rest of this page describes. The videos are taken in
+   * track order, so the fallback is the album's first track and not an arbitrary row.
+   */
+  const newestImport = [...jobs].sort((a, b) => a.id.localeCompare(b.id)).at(-1) ?? null;
+  const source = albumSourceLink(
+    newestImport?.url ?? null,
+    rows.map((row) =>
+      row.importTrackId === null
+        ? null
+        : (webpageUrlOf(bySource.get(row.importTrackId)?.raw) ??
+          bySource.get(row.importTrackId)?.url ??
+          null),
+    ),
+  );
+
   /* The matching decision that chose this release, if one was recorded. */
   const decision =
     importIds.length === 0
@@ -423,6 +452,7 @@ export async function albumDetail(
       status: job.status,
       createdAt: job.createdAt.toISOString(),
     })),
+    source,
     decision:
       decision === null
         ? null
