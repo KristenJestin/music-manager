@@ -100,34 +100,39 @@ beforeAll(async () => {
   const database = counted?.db;
   if (database === undefined) return;
 
+  const albums: (typeof schema.libraryAlbums.$inferInsert)[] = [];
+  const tracks: (typeof schema.libraryTracks.$inferInsert)[] = [];
+  const documents: (typeof schema.metadataDocuments.$inferInsert)[] = [];
+
   for (let a = 0; a < ALBUMS; a += 1) {
     const albumId = `alb_${String(a)}`;
-    await database.insert(schema.libraryAlbums).values({
+    const artist = `Artist ${String(a % 7)}`;
+    albums.push({
       id: albumId,
       title: `Album ${String(a)}`,
-      albumArtist: `Artist ${String(a % 7)}`,
+      albumArtist: artist,
       year: 2001,
       releaseMbid: `rel-${String(a)}`,
-      folder: `Artist ${String(a % 7)}/Album ${String(a)}`,
+      folder: `${artist}/Album ${String(a)}`,
       trackCount: TRACKS_PER_ALBUM,
       presentCount: TRACKS_PER_ALBUM,
       trackCountSource: "release",
     });
     for (let t = 1; t <= TRACKS_PER_ALBUM; t += 1) {
       const trackId = `${albumId}_t${String(t)}`;
-      await database.insert(schema.libraryTracks).values({
+      tracks.push({
         id: trackId,
         albumId,
         title: `Track ${String(t)}`,
-        artist: `Artist ${String(a % 7)}`,
+        artist,
         trackNumber: t,
         discNumber: 1,
-        path: `Artist ${String(a % 7)}/Album ${String(a)}/${String(t)}.opus`,
+        path: `${artist}/Album ${String(a)}/${String(t)}.opus`,
         format: "opus",
         tagSchemaVersion: TAG_SCHEMA_VERSION,
       });
       const held = document(t);
-      await database.insert(schema.metadataDocuments).values({
+      documents.push({
         id: `doc_${trackId}`,
         libraryTrackId: trackId,
         document: held as unknown as Record<string, unknown>,
@@ -137,12 +142,16 @@ beforeAll(async () => {
     }
   }
 
+  await database.insert(schema.libraryAlbums).values(albums);
+  await database.insert(schema.libraryTracks).values(tracks);
+  await database.insert(schema.metadataDocuments).values(documents);
+
   /* Open Inbox items with a payload worth not reading. */
-  for (let i = 0; i < OPEN_ITEMS; i += 1) {
-    await database.insert(schema.inboxItems).values({
+  await database.insert(schema.inboxItems).values(
+    Array.from({ length: OPEN_ITEMS }, (_, i) => ({
       id: `inb_${String(i)}`,
-      type: "ambiguous_recording",
-      status: "open",
+      type: "ambiguous_recording" as const,
+      status: "open" as const,
       title: `Which recording is ${String(i)}?`,
       payload: {
         alternatives: Array.from({ length: 20 }, (_, k) => ({
@@ -150,8 +159,8 @@ beforeAll(async () => {
           title: `Candidate ${String(k)}`,
         })),
       } as Record<string, unknown>,
-    });
-  }
+    })),
+  );
 }, 120_000);
 
 describe.skipIf(unavailable !== null)("what a loader is allowed to read", () => {
