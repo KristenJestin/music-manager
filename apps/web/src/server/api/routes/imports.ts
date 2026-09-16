@@ -29,6 +29,7 @@ import {
   countImports,
   listImports,
   pauseImport,
+  requeueUpstreamFailures,
   rewindTo,
   runStep,
 } from "#/server/services/jobs/index.ts";
@@ -36,7 +37,7 @@ import { jobDetail, setImportOptions } from "#/server/services/console.queries.t
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
 import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings } from "#/server/services/settings.ts";
-import { enqueue } from "#/server/services/queue.ts";
+import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
