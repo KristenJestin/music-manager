@@ -694,6 +694,31 @@ docker compose -f docker-compose.prod.yml exec web \
 Cela ne concerne que le mode démonstration hors ligne (`MM_FIXTURES=1` **et**
 `MM_TOOLBOX_FIXTURES=1`, les deux) ; une installation réelle n'en a pas besoin.
 
+**Des imports restent en « Waiting on source ».** Ce n'est pas une panne : une source a refusé
+(429, 5xx, délai dépassé) et l'import est retourné dans la file avec une attente qui double à
+chaque essai. La ligne dit qui a refusé, le numéro de l'essai et l'heure du suivant ; personne
+n'a rien à faire. Au-delà de `upstreamMaxAttempts` essais (six par défaut) le job se termine en
+`failed` sous le code `UPSTREAM_UNAVAILABLE`, qui signifie « la source », jamais « le fichier ».
+Les trois réglages : `upstreamMaxAttempts`, `upstreamBackoffBaseMs`, `upstreamBackoffMaxMs`.
+
+**Relancer d'un coup tous les imports tués par une source.** Après une panne longue :
+
+```bash
+docker compose -f docker-compose.prod.yml exec web mm retry --failed-upstream --dry-run
+docker compose -f docker-compose.prod.yml exec web mm retry --failed-upstream
+```
+
+La sélection ne retient que les échecs dus à une source — un 404 ou une réponse illisible n'est
+jamais repris, il attend un humain. L'opération est idempotente : les jobs relancés ne sont plus
+`failed`, donc un second appel ne reprend rien. Équivalents : `POST
+/api/v1/imports/retry-failed-upstream` et le bouton « Retry source failures » de la page Jobs.
+
+**`MB_CONTACT_MISSING` sur un import.** `MM_MB_CONTACT` (ou le réglage `mbContact`) est vide.
+MusicBrainz compte les requêtes par User-Agent ; sans contact, toutes les installations de cette
+application partagent le même, et c'est celui qui est le plus durement limité — donc une requête
+sortante est refusée plutôt qu'envoyée anonymement. Mettez-y une adresse e-mail ou une URL. Le
+cache et le mode fixtures ne sont pas concernés : le refus a lieu au moment où une requête part.
+
 **La page Tools met huit secondes à s'afficher.** Elle sonde les sources externes
 (MusicBrainz, Deezer, LRCLIB…) pendant le rendu serveur, avec un délai de garde de huit
 secondes chacune. Sans réseau sortant, elles expirent toutes. Les autres pages ne font rien de

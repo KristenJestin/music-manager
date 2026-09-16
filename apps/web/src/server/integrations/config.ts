@@ -8,6 +8,7 @@
  * the toolbox already reads (`services/toolbox/src/toolbox/config.py`), so it is the name
  * used here too: one key, one spelling, on both sides of the bridge.
  */
+import { MMError } from "@mm/contracts";
 import type { ArtistNameSource, LocalePreference } from "@mm/domain";
 import type { Database } from "#/server/db/client.ts";
 import type { CacheStore } from "./cached.ts";
@@ -74,15 +75,63 @@ export interface SourcesConfig {
 }
 
 /**
- * MusicBrainz refuses anonymous clients and rate-limits per client string, so a contact is
- * not decoration. Without one we still send a usable agent naming the project, which is what
- * their guidance asks for when no operator address exists.
+ * MusicBrainz rate-limits per client string, so a contact is not decoration.
+ *
+ * Without one this used to send `MusicManager/<version> ( https://github.com/music-manager )`,
+ * which is the *same* string for every installation of this application on earth. MusicBrainz
+ * counts a User-Agent, not an IP: an anonymous agent shared by every deployment is one bucket
+ * that everyone draws from, and the ones drawing from it are throttled hardest. It is a
+ * plausible contributor to the session in which forty-five albums were refused with 503 while
+ * this installation's own gate was spacing its requests perfectly at one a second.
+ *
+ * The fallback is kept, because the string still has to exist — a `SourcesConfig` is built on
+ * every offline path, every fixtures run and every settings page render, and throwing here
+ * would turn a missing setting into a process that cannot start. The refusal happens one layer
+ * out, at the moment a request is actually about to leave (`requireContact`), where it can say
+ * something useful and where being offline costs nothing.
  */
 export function userAgentFor(contact: string): string {
   const trimmed = contact.trim();
   return trimmed === ""
     ? `MusicManager/${APP_VERSION} ( https://github.com/music-manager )`
     : `MusicManager/${APP_VERSION} ( ${trimmed} )`;
+}
+
+/** True when this configuration would send the shared, anonymous User-Agent. */
+export function isAnonymous(config: SourcesConfig): boolean {
+  return config.contact.trim() === "";
+}
+
+/**
+ * Refuse to make a MusicBrainz request with nobody's name on it.
+ *
+ * Called by the MusicBrainz and Cover Art Archive clients immediately before an outgoing
+ * request — never before a cache read, never in fixtures mode, never while building the
+ * configuration — so an offline installation with no contact goes on working exactly as it
+ * did. What changes is that a *live* lookup now fails with a sentence naming the setting and
+ * the environment variable, instead of leaving anonymously and being throttled for it.
+ *
+ * `MB_CONTACT_MISSING` is deliberately outside the upstream family: `classifyFailure` lists it
+ * as a defect, so an import blocked on it fails fast and asks for a human rather than retrying
+ * six times against a wall that only a settings change can move.
+ */
+export function requireContact(config: SourcesConfig): void {
+  if (!isAnonymous(config)) return;
+  throw new MMError(
+    "MB_CONTACT_MISSING",
+    "MusicBrainz requires a contact in the User-Agent, and none is configured.",
+    {
+      hint:
+        "Set it in Settings › Metadata (`mbContact`), or in the environment as " +
+        "`MM_MB_CONTACT` — an email address or a URL you answer at. Without one every " +
+        "installation of this application shares a single anonymous User-Agent, which is the " +
+        "one MusicBrainz throttles hardest.",
+      action: "Set mbContact",
+      details: { setting: "mbContact", env: CREDENTIAL_ENV_KEY.contact },
+      // A wait will not produce a contact. Only a person will.
+      retryable: false,
+    },
+  );
 }
 
 /** Settings first, environment second, for one credential — and which of the two won. */

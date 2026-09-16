@@ -127,6 +127,30 @@ export const SETTING_DEFINITIONS = {
       "slot stays at one whatever this says; these steps are local and cheap.",
   ),
 
+  /* ---- upstream resilience: a busy source is a wait, not a failure ---- */
+  //
+  // Separate from the three `download*` knobs above, which govern retries *inside* one step
+  // against yt-dlp. These govern how many times the whole import goes back on the queue when
+  // a metadata source refuses it, and the two must be tunable apart: an operator who raises
+  // their patience with MusicBrainz is not asking to hammer YouTube harder.
+  upstreamMaxAttempts: define(
+    z.number().int().min(0).max(20),
+    6,
+    "How many times an import is re-queued after a source refuses it (429, 5xx, timeout) " +
+      "before it is given up on as `UPSTREAM_UNAVAILABLE`. 0 disables the wait entirely.",
+  ),
+  upstreamBackoffBaseMs: define(
+    z.number().int().min(0),
+    30_000,
+    "Pause after the first upstream refusal; doubles on each further attempt.",
+  ),
+  upstreamBackoffMaxMs: define(
+    z.number().int().min(0),
+    3_600_000,
+    "Ceiling of the upstream backoff. Six attempts from the default base reach it at the " +
+      "seventh doubling, so an outage costs about an hour of waiting, not a day.",
+  ),
+
   /* ---- matching and confirmation (docs/04 § Algorithme) ---- */
   safeThreshold: define(
     z.number().min(0).max(1),

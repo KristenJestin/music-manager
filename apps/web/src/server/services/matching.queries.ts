@@ -42,7 +42,7 @@ import { toMatchVideo } from "#/server/services/jobs/steps/match.ts";
 import {
   cassetteGateway,
   liveGateway,
-  outageGateway,
+  withOutage,
   reportingGateway,
   type MbGateway,
 } from "#/server/services/matching.gateway.ts";
@@ -86,36 +86,8 @@ export async function gatewayForUrl(
 ): Promise<MbGateway> {
   const name = cassetteNameOf(url);
   const cassette = name === null ? null : loadCassette(name);
-  if (cassette !== null) {
-    const outage = outageOf(url);
-    const gateway = cassetteGateway(cassette);
-    return outage === null ? gateway : outageGateway(gateway, url, outage.status, outage.times);
-  }
+  if (cassette !== null) return withOutage(cassetteGateway(cassette), url);
   return liveGateway(await sourceContextFor(db ?? defaultDb(), signal, offline));
-}
-
-/**
- * `fixture://<name>?mb=503[&mbtimes=2]` — the recorded scenario, with MusicBrainz refusing.
- *
- * The same convention as the toolbox's `fixture://discovery?fp=mismatch`: the fault travels in
- * the fixture URL, so the situation it reproduces is offline, deterministic and drivable from
- * a browser test. Only `fixture://` URLs are read for it — this is called *after* the cassette
- * has been found — so nothing a user can paste reaches it.
- *
- * `mbtimes` defaults to 1, which is the interesting default: one refusal is what the wizard's
- * cache fallback is meant to survive. Two is what it cannot, and is how the "MusicBrainz is
- * unavailable — retry" screen is reached.
- */
-function outageOf(url: string): { status: number; times: number } | null {
-  const query = url.split("?")[1];
-  if (query === undefined) return null;
-  const params = new URLSearchParams(query.split("#")[0] ?? "");
-  const value = params.get("mb");
-  if (value === null) return null;
-  const status = Number(value);
-  if (!Number.isInteger(status) || status < 400 || status > 599) return null;
-  const times = Number(params.get("mbtimes") ?? "1");
-  return { status, times: Number.isInteger(times) && times > 0 ? times : 1 };
 }
 
 /** The videos of an import, in source order, as the matcher wants them. */

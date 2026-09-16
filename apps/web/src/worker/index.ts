@@ -27,8 +27,15 @@ import {
   runTrackStep,
   settleImport,
   syncLocalSteps,
+  upstreamPolicyOf,
   type RunOutcome,
 } from "#/server/services/jobs/index.ts";
+import {
+  holdOf,
+  humanDelay,
+  remainingMs,
+  type UpstreamHold,
+} from "#/server/services/jobs/upstream.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { beatWorker } from "#/server/services/status.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
@@ -43,6 +50,15 @@ const WORKER_BEAT_MS = 30_000;
  * by more than the smallest interval it is able to express.
  */
 const SCHEDULE_POLL_MS = 60_000;
+
+/**
+ * The longest wait a resume will honour from `imports.next_attempt_at`.
+ *
+ * A row written by a process whose clock was hours ahead must not park an import for a day.
+ * Two hours is comfortably past the largest backoff the default policy can produce, so the
+ * cap only ever bites on a clock that is wrong.
+ */
+const MAX_RESUME_WAIT_MS = 2 * 60 * 60 * 1000;
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
@@ -119,8 +135,40 @@ export interface Worker {
   stop(): Promise<void>;
 }
 
+/**
+ * Put one import back on the queue after a source refused it.
+ *
+ * The delay is pg-boss's, not a timer in this process: the worker may be restarted or
+ * replaced during the wait, and `imports.next_attempt_at` is what makes that survivable. The
+ * `singletonKey` is the import, so a Retry pressed meanwhile replaces this message rather
+ * than racing it.
+ */
+async function holdOn(
+  boss: PgBoss,
+  importId: string,
+  hold: UpstreamHold,
+  priority = 0,
+): Promise<void> {
+  log("waiting on a source", {
+    importId,
+    source: hold.source,
+    attempt: hold.attempt,
+    of: hold.maxAttempts,
+    inSeconds: Math.round(hold.delayMs / 1000),
+  });
+  await enqueueImportStep(
+    boss,
+    { importId, reason: `upstream backoff (attempt ${String(hold.attempt)})` },
+    { priority, startAfterSeconds: hold.delayMs / 1000 },
+  );
+}
+
 /** Hand an import over to the download queue, or ask for it to be advanced again. */
 async function follow(boss: PgBoss, outcome: RunOutcome, priority: number): Promise<void> {
+  if (outcome.hold !== null) {
+    await holdOn(boss, outcome.importId, outcome.hold, priority);
+    return;
+  }
   if (outcome.handOff === QUEUES.download) {
     await enqueueDownload(boss, { importId: outcome.importId }, { priority });
   }
@@ -205,7 +253,15 @@ export async function startWorker(): Promise<Worker> {
         await pauseForReview(db(), importId, settlement.tracks);
         return;
       case "failed": {
-        const { step, result } = await failSettled(db(), importId, settlement.tracks);
+        // The same rule as on the serial path, applied where a *track* is what broke: a `tag`
+        // that could not reach MusicBrainz is a wait, and the tracks it broke go back on the
+        // line. `failSettled` does the classifying; the queue handle lives here.
+        const policy = upstreamPolicyOf(await loadSettings(db()));
+        const { step, result, hold } = await failSettled(db(), importId, settlement.tracks, policy);
+        if (hold !== null) {
+          await holdOn(boss, importId, hold);
+          return;
+        }
         log("import failed", { importId, step, tracks: settlement.tracks });
         await announce(db(), importId, step, "failed", result);
         return;
@@ -249,6 +305,13 @@ export async function startWorker(): Promise<Worker> {
         });
         const refused = (result.data as { refused?: string } | undefined)?.refused !== undefined;
         if (refused) continue;
+        // A download refused by the toolbox or by a source that is busy: `runStep` has already
+        // parked the job, and this queue's job is only to ask for it again at the right time.
+        const held = holdOf(result.data);
+        if (held !== null) {
+          await holdOn(boss, importId, held);
+          continue;
+        }
         if (result.status === "done" || result.status === "skipped") {
           // The tracks are already on the `track.step` queue; `advance` only concludes the
           // import when the last of them has finished, and answers `wait` until then.
@@ -297,6 +360,11 @@ export async function startWorker(): Promise<Worker> {
               signal: shutdown.signal,
               skipIfStopped: true,
             });
+            const tailHold = holdOf(tail.data);
+            if (tailHold !== null) {
+              await holdOn(boss, importId, tailHold);
+              continue;
+            }
             // A failure is already on `job_steps` and in the journal; nothing to verify.
             if (tail.status !== "done" && tail.status !== "skipped") continue;
             if ((tail.data as { refused?: string } | undefined)?.refused !== undefined) continue;
@@ -426,24 +494,42 @@ export async function startWorker(): Promise<Worker> {
   // The queues were emptied above, before the first consumer was registered. What is left to
   // do is put the *imports* back on them, which is the whole of "resume".
   const orphans = await resumableImports(db());
+  const now = new Date();
   for (const orphan of orphans) {
-    log("resuming import", { importId: orphan.id, status: orphan.status, step: orphan.step });
+    /*
+     * A job that was waiting out a busy source keeps waiting.
+     *
+     * Its delayed message was deleted with the rest of the queue above, so without this the
+     * restart would depart immediately — straight back into the 503 the job was sitting out,
+     * and one attempt closer to the cap for nothing. `next_attempt_at` is on the row for
+     * exactly this, and the remaining wait is derived from it rather than restarted.
+     */
+    const waitMs = remainingMs(orphan.nextAttemptAt, now, MAX_RESUME_WAIT_MS);
+    log("resuming import", {
+      importId: orphan.id,
+      status: orphan.status,
+      step: orphan.step,
+      ...(waitMs > 0 ? { inSeconds: Math.round(waitMs / 1000) } : {}),
+    });
     await emit(
       {
         importId: orphan.id,
         type: "import.status",
-        message: `Resuming at ${orphan.step} after a worker restart.`,
+        message:
+          waitMs > 0
+            ? `Still waiting on a source; next try in ${humanDelay(waitMs)}.`
+            : `Resuming at ${orphan.step} after a worker restart.`,
         data: { step: orphan.step },
       },
       db(),
     );
-    if (orphan.step === QUEUES.download) {
+    if (orphan.step === QUEUES.download && waitMs === 0) {
       await enqueueDownload(boss, { importId: orphan.id }, { priority: orphan.priority });
     } else {
       await enqueueImportStep(
         boss,
         { importId: orphan.id, reason: "resume" },
-        { priority: orphan.priority },
+        { priority: orphan.priority, startAfterSeconds: waitMs / 1000 },
       );
     }
   }

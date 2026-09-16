@@ -224,9 +224,22 @@ export function isTerminal(status: ImportStatus): boolean {
   return (TERMINAL_STATUSES as readonly string[]).includes(status);
 }
 
-/** Statuses a `resume` may pick up again. */
+/**
+ * Statuses a `resume` may pick up again.
+ *
+ * `waiting_upstream` is one of them, and it is the only one with a clock attached: the job is
+ * on the queue with a `startAfter`, and a worker restart deletes that message with the rest of
+ * the queue. Whoever resumes it must therefore read `imports.next_attempt_at` and re-queue the
+ * *remaining* wait rather than departing at once — walking straight back into the 503 the job
+ * is waiting out is the one thing this whole mechanism exists to stop.
+ */
 export function isResumable(status: ImportStatus): boolean {
-  return status === "pending" || status === "running" || status === "paused";
+  return (
+    status === "pending" ||
+    status === "running" ||
+    status === "paused" ||
+    status === "waiting_upstream"
+  );
 }
 
 /**

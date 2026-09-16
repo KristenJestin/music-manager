@@ -470,7 +470,10 @@ export async function cmdTools(args: CliArgs): Promise<number> {
   const [health, cookies, services, navidrome] = await Promise.all([
     downloaderHealth({ settings }),
     cookiesStatus({ settings }),
-    serviceLatencies({ settings }),
+    // `db` so the two MusicBrainz probes reserve from the installation-wide gate rather than
+    // from this short-lived process's own — the CLI is one of the three clients decision 164
+    // is about, and `mm tools status` during an import must not be the request that tips it.
+    serviceLatencies({ settings, db: db() }),
     navidromeStatus({ settings }),
   ]);
 

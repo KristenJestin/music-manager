@@ -19,7 +19,39 @@ describe("MMError.toBody", () => {
   });
 
   it("omits what is absent rather than writing nulls", () => {
-    expect(new MMError("UNKNOWN", "nope").toBody()).toEqual({ code: "UNKNOWN", message: "nope" });
+    // `retryable` is always present, and deliberately so: it is a boolean with a meaning for
+    // both values, and a reader that has to distinguish "false" from "the writer was old"
+    // cannot. The optional fields below are absences, which is a different thing.
+    expect(new MMError("UNKNOWN", "nope").toBody()).toEqual({
+      code: "UNKNOWN",
+      message: "nope",
+      retryable: true,
+    });
+    expect(new MMError("NOT_FOUND", "gone").toBody()).toEqual({
+      code: "NOT_FOUND",
+      message: "gone",
+      retryable: false,
+    });
+  });
+
+  it("carries the retryable judgement to the row, which is where it is read back", () => {
+    // It used to live on the instance only, so `job_steps.error` and `imports.error` — the two
+    // rows the step machine consults when it decides whether a failure is worth waiting out —
+    // could not see it at all.
+    const busy = new MMError("SOURCE_UNAVAILABLE", "musicbrainz answered HTTP 503.", {
+      status: 503,
+      retryable: true,
+    });
+    const stored = JSON.parse(JSON.stringify(busy.toBody())) as unknown;
+    expect(mmErrorBodySchema.parse(stored).retryable).toBe(true);
+    expect(MMError.fromBody(stored).retryable).toBe(true);
+  });
+
+  it("falls back to the code's own default when a stored body predates the flag", () => {
+    // Rows written before the column existed have no `retryable`. They must keep meaning what
+    // they meant, not become `false` because a key is missing.
+    expect(MMError.fromBody({ code: "TIMEOUT", message: "slow" }).retryable).toBe(true);
+    expect(MMError.fromBody({ code: "INVALID_INPUT", message: "bad" }).retryable).toBe(false);
   });
 
   it("round-trips through fromBody without losing status or details", () => {

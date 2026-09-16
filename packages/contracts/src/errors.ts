@@ -98,6 +98,16 @@ export const mmErrorBodySchema = z.object({
    * `UNKNOWN` and a reader had no way to tell a 409 from a 422 from a 500.
    */
   status: z.number().int().optional(),
+  /**
+   * The orchestrator's judgement: would the *same* request, later, work?
+   *
+   * It lived on `MMError` and was dropped by `toBody()`, so it existed only inside the process
+   * that raised it. `job_steps.error` and `imports.error` hold bodies, and the step machine
+   * reads those rows to decide whether a failure is a busy server or a broken import — a
+   * decision it could not make on a flag that never reached the row. Optional, because rows
+   * written before this existed have none and the classifier has to cope with that.
+   */
+  retryable: z.boolean().optional(),
 });
 
 export type MMErrorBody = z.infer<typeof mmErrorBodySchema>;
@@ -215,6 +225,7 @@ export class MMError extends Error {
       ...(this.action === undefined ? {} : { action: this.action }),
       ...(this.details === undefined ? {} : { details: this.details }),
       ...(this.status === undefined ? {} : { status: this.status }),
+      retryable: this.retryable,
     };
   }
 
@@ -233,8 +244,16 @@ export class MMError extends Error {
   static fromBody(body: unknown, fallback = "Unknown error."): MMError {
     const parsed = mmErrorBodySchema.safeParse(body);
     if (parsed.success) {
-      const { code, message, hint, action, details, status } = parsed.data;
-      return new MMError(code, message, { hint, action, details, status });
+      const { code, message, hint, action, details, status, retryable } = parsed.data;
+      return new MMError(code, message, {
+        hint,
+        action,
+        details,
+        status,
+        // `undefined` falls back to the code's own default, which is what a body written
+        // before the flag existed must go on getting.
+        ...(retryable === undefined ? {} : { retryable }),
+      });
     }
 
     const fastapi = fastApiDetailSchema.safeParse(body);

@@ -106,6 +106,25 @@ export const imports = pgTable(
     /** Priority for the queue; `mm bump` raises it. Higher runs first. */
     priority: integer("priority").notNull().default(0),
     error: jsonb("error").$type<StoredError>(),
+    /**
+     * How many times a source has refused this import for a reason that was about the source.
+     *
+     * On the import row and not on `job_steps.attempt`, because it counts something else:
+     * `attempt` is "how many times this step has been run", which a `mm retry --step` also
+     * raises, and the cap here must not be spent by a person pressing Retry. Reset to zero by
+     * every rewind and by every step that finishes, so a job that waits twice a week for
+     * years never accumulates its way into a terminal state.
+     */
+    upstreamAttempts: integer("upstream_attempts").notNull().default(0),
+    /**
+     * When the queue should look at this job again, while it is `waiting_upstream`.
+     *
+     * Published so that the Console and `/api/v1` can say "next try in 4 minutes" rather than
+     * showing a job that appears to be doing nothing. It is also what a worker restart reads:
+     * the delayed pg-boss message is deleted on boot with the rest of the queue, so the
+     * remaining wait has to be recoverable from the row.
+     */
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
@@ -113,6 +132,7 @@ export const imports = pgTable(
   },
   (table) => [
     index("imports_status_idx").on(table.status),
+    index("imports_next_attempt_at_idx").on(table.nextAttemptAt),
     index("imports_created_at_idx").on(table.createdAt),
     index("imports_release_mbid_idx").on(table.releaseMbid),
     index("imports_url_idx").on(table.url),

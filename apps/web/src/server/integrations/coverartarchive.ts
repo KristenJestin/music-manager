@@ -10,16 +10,40 @@
  * the image, crops it to a square and re-encodes it — it owns Pillow, we own the URLs — and
  * the prepared JPEG is cached under `artwork` so fourteen tracks embedding one cover cost one
  * download, which is exactly what P03 already did for the fixture.
+ *
+ * **The index is MusicBrainz, not a separate service.** `coverartarchive.org/release/<mbid>`
+ * is answered by MusicBrainz's own front end — only the image bytes it points at live on
+ * archive.org — so it is governed by the same one-request-per-second budget and blocks the
+ * same User-Agent when that budget is exceeded. These two lookups went out with **no limiter
+ * of any kind**: no `gate`, no `minIntervalMs`. An album whose cover was not cached therefore
+ * spent a MusicBrainz request that the installation-wide gate of decision 164 had never heard
+ * of, right beside the release lookup it was already spacing at one a second. That is a second
+ * request in the same second, from one User-Agent, which is exactly the shape of the 503 storm
+ * the gate exists to prevent — and it is why a `match` that respected the budget perfectly
+ * could still be refused.
  */
 import { MMError } from "@mm/contracts";
 import type { CaaImage, CaaIndex } from "@mm/domain";
 
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { cached, optionsFor, type CachedValue } from "./cached.ts";
-import type { SourceContext } from "./config.ts";
-import { getJson } from "./http.ts";
+import { requireContact, type SourceContext } from "./config.ts";
+import { getJson, type RateGateLike } from "./http.ts";
+import { MB_MIN_INTERVAL_MS } from "./musicbrainz.ts";
+import { gateFor } from "./rate-gate.ts";
 
 export const CAA_BASE = "https://coverartarchive.org";
+
+/**
+ * The gate, keyed `"musicbrainz"` on purpose.
+ *
+ * A gate of its own would be a second budget for one server, which is not a budget. The two
+ * clients share `source_rate_limit`'s single row, so a cover lookup and a release lookup queue
+ * behind each other however many processes ask for them.
+ */
+function gate(ctx: SourceContext): RateGateLike {
+  return gateFor(ctx.db, "musicbrainz", MB_MIN_INTERVAL_MS);
+}
 
 /** The sizes the archive publishes as thumbnails. */
 export type CoverSize = 250 | 500 | 1200 | "original";
@@ -33,10 +57,13 @@ export async function index(
     "coverartarchive",
     `release/${releaseMbid}`,
     async () => {
+      requireContact(ctx.config);
       const answer = await getJson<CaaIndex>({
         source: "coverartarchive",
         url: `${CAA_BASE}/release/${releaseMbid}`,
         headers: { "user-agent": ctx.config.userAgent },
+        minIntervalMs: MB_MIN_INTERVAL_MS,
+        gate: gate(ctx),
         nullOn404: true,
         ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         ...(ctx.wait === undefined ? {} : { wait: ctx.wait }),
@@ -56,10 +83,13 @@ export async function releaseGroupIndex(
     "coverartarchive",
     `release-group/${releaseGroupMbid}`,
     async () => {
+      requireContact(ctx.config);
       const answer = await getJson<CaaIndex>({
         source: "coverartarchive",
         url: `${CAA_BASE}/release-group/${releaseGroupMbid}`,
         headers: { "user-agent": ctx.config.userAgent },
+        minIntervalMs: MB_MIN_INTERVAL_MS,
+        gate: gate(ctx),
         nullOn404: true,
         ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         ...(ctx.wait === undefined ? {} : { wait: ctx.wait }),

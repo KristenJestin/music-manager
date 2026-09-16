@@ -42,6 +42,18 @@ import {
   type StepResult,
 } from "./machine.ts";
 import {
+  classifyFailure,
+  describeHold,
+  exhaustedError,
+  HOLD_KEY,
+  holdOf,
+  planUpstreamRetry,
+  sourceOf,
+  wasKilledByASource,
+  type UpstreamHold,
+  type UpstreamPolicy,
+} from "./upstream.ts";
+import {
   makeContext,
   requireImport,
   resolvePaths,
@@ -100,6 +112,23 @@ export interface RunOutcome {
   readonly ran: readonly { step: StepName; result: StepResult }[];
   /** Set when the runner stopped because `stopBefore` was reached. */
   readonly handOff: StepName | null;
+  /**
+   * Set when the run stopped because a source refused us and the job is waiting it out.
+   *
+   * The caller that owns a queue handle — the worker — puts the message back with this delay.
+   * The runner cannot do it itself: it has no pg-boss, on purpose, since the same code runs
+   * inside `mm import`, where the answer is simply to stop.
+   */
+  readonly hold: UpstreamHold | null;
+}
+
+/** The ladder's shape, as the settings describe it. */
+export function upstreamPolicyOf(settings: Settings): UpstreamPolicy {
+  return {
+    maxAttempts: settings.upstreamMaxAttempts,
+    baseMs: settings.upstreamBackoffBaseMs,
+    maxMs: settings.upstreamBackoffMaxMs,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -217,49 +246,165 @@ export async function runStep(
   }
 
   const moved = transition(step, result);
+
+  /*
+   * The one place a busy source stops being a dead import.
+   *
+   * `transition` is pure and says `failed`, which is correct as a statement about the *step*.
+   * What the *job* should do about it depends on why the step failed, and that is a question
+   * about an error body, not about the machine — so it is asked here, between the transition
+   * and the write, and answered by `classifyFailure`. `moved.continues` is respected: a step
+   * that already named an earlier step to rewind to (`verify` losing a file) is repairing
+   * itself and must not be turned into a wait on MusicBrainz.
+   */
+  const upstream =
+    result.status === "failed" && !moved.continues
+      ? await considerUpstream(db, importId, step, result, ctx.settings)
+      : null;
+  result = upstream?.result ?? result;
+
   await endStep(db, importId, step, result, moved.stepStatus);
 
   // A failure the machine is going to repair by itself (`restartAt`) is a warning, not an
-  // error: it does not stop the job, so a red line in the journal would be a lie.
+  // error: it does not stop the job, so a red line in the journal would be a lie. A failure
+  // the machine is going to *wait out* is the same argument, one source further away.
   const repaired = result.status === "failed" && moved.continues;
+  const waiting = upstream?.hold ?? null;
 
   await emit(
     {
       importId,
       step,
-      level: repaired
-        ? "warn"
-        : result.status === "failed"
-          ? "error"
-          : result.status === "blocked"
-            ? "warn"
-            : "info",
-      type: repaired ? "step.restarting" : `step.${result.status}`,
+      level: repaired || waiting !== null ? "warn" : result.status === "failed" ? "error" : "info",
+      type:
+        waiting !== null
+          ? "step.waiting_upstream"
+          : repaired
+            ? "step.restarting"
+            : `step.${result.status}`,
       message: result.message ?? `${step} ${result.status}`,
       data: { attempt, restartAt: moved.step, ...(result.data ?? {}) },
     },
     db,
   );
 
+  // A hold is not a transition: the job stays on the step it failed, because that is the step
+  // that has to run again once the source is answering. Everything else follows the machine.
+  const status: ImportStatus = waiting === null ? moved.status : "waiting_upstream";
+
   await db
     .update(imports)
     .set({
       step: moved.step,
-      status: moved.status,
+      status,
       // The row's `error` is "why this job is stopped". A job the machine is rewinding is not
-      // stopped, so it must not carry one — the Console paints it as a red banner.
+      // stopped, so it must not carry one — the Console paints it as a red banner. A job that
+      // is waiting *does* keep it: it is the sentence that says which source refused, and the
+      // status beside it is what stops the Console painting it red.
       error: moved.continues ? null : (result.error ?? null),
+      ...(waiting !== null
+        ? { upstreamAttempts: waiting.attempt, nextAttemptAt: new Date(waiting.nextAttemptAt) }
+        : result.status === "failed"
+          ? // Freeze the counter where it got to. The row is terminal and the number is part
+            // of the explanation: "six attempts" is why it stopped.
+            { nextAttemptAt: null }
+          : // **Progress clears the budget.** A step that finished means the source answered,
+            // so an import that waits twice a week for a year never accumulates its way into a
+            // terminal state. This is the reason the counter is on the import and not on the
+            // step: it measures a run of bad luck, and a success ends the run.
+            { upstreamAttempts: 0, nextAttemptAt: null }),
       updatedAt: new Date(),
-      ...(isTerminal(moved.status) ? { finishedAt: new Date() } : {}),
+      ...(isTerminal(status) ? { finishedAt: new Date() } : {}),
     })
     .where(eq(imports.id, importId));
 
   // The import-level line is emitted here rather than in the loop, because `download` runs on
   // its own queue and never goes through the loop at all: a failure there has to close the
-  // job for anyone following it just as clearly as a failure anywhere else.
-  if (!moved.continues) await announce(db, importId, step, moved.status, result);
+  // job for anyone following it just as clearly as a failure anywhere else. A hold has
+  // already said its piece — `announce` would repeat it in a second, vaguer sentence.
+  if (!moved.continues && waiting === null) await announce(db, importId, step, status, result);
 
   return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* upstream refusals                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A step failed. Is that the source's fault, and if so, how many times has it been already?
+ *
+ * Returns `null` when the failure is a defect and the job should fail now — which is the
+ * answer for a 404, a parse error, a bad MBID and everything else `classifyFailure` calls a
+ * defect. Otherwise it returns either a hold (the job goes back on the queue later) or a
+ * rewritten failure that says, in its code, that the *source* is what gave up.
+ *
+ * The counter lives on the row and is read here rather than passed in, because the same
+ * import can be refused on `match` today and on `tag` in an hour: the budget belongs to the
+ * import, not to one step of it.
+ */
+async function considerUpstream(
+  db: Database,
+  importId: string,
+  step: StepName,
+  result: StepResult,
+  settings: Settings,
+): Promise<{ result: StepResult; hold: UpstreamHold | null } | null> {
+  if (classifyFailure(result.error) !== "upstream") return null;
+
+  const policy = upstreamPolicyOf(settings);
+  const job = await requireImport(importId, db);
+  const decision = planUpstreamRetry(job.upstreamAttempts, policy);
+  const source = sourceOf(result.error);
+
+  if (decision.action === "giveUp") {
+    // The terminal answer, and it must not read like a broken file. Built in `upstream.ts`
+    // because `failSettled` says exactly the same thing about the per-track half.
+    const failure = exhaustedError(source, step, policy.maxAttempts, result.error ?? null);
+    await emit(
+      {
+        importId,
+        step,
+        level: "error",
+        type: "import.upstream_exhausted",
+        message: failure.message,
+        data: { source, attempts: policy.maxAttempts },
+      },
+      db,
+    );
+    return {
+      result: { ...result, message: failure.message, error: failure.toBody() },
+      hold: null,
+    };
+  }
+
+  const hold: UpstreamHold = {
+    attempt: decision.attempt,
+    maxAttempts: policy.maxAttempts,
+    delayMs: decision.delayMs,
+    nextAttemptAt: new Date(Date.now() + decision.delayMs).toISOString(),
+    source,
+  };
+  const message = describeHold(decision, policy, source);
+  await emit(
+    {
+      importId,
+      step,
+      level: "warn",
+      type: "import.waiting_upstream",
+      message: `${message} (${result.error?.code ?? "upstream"})`,
+      data: { ...hold },
+    },
+    db,
+  );
+  return {
+    result: {
+      ...result,
+      message: `${step}: ${message}`,
+      data: { ...(result.data ?? {}), [HOLD_KEY]: hold },
+    },
+    hold,
+  };
 }
 
 /**
@@ -384,7 +529,7 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 
   const job = await requireImport(importId, db);
   if (isTerminal(job.status)) {
-    return { importId, status: job.status, step: job.step, ran, handOff: null };
+    return { importId, status: job.status, step: job.step, ran, handOff: null, hold: null };
   }
 
   if (job.startedAt === null) {
@@ -404,7 +549,7 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
     if (step === options.stopBefore) {
       // Not an interruption: the job changes queue. `download` is global and single-file, so
       // it is executed by the one worker slot that owns that queue, not by this one.
-      return { importId, status: "running", step, ran, handOff: step };
+      return { importId, status: "running", step, ran, handOff: step, hold: null };
     }
 
     const result = await runStep(importId, step, { ...options, settings, db });
@@ -412,17 +557,112 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 
     const moved = transition(step, result);
     if (!moved.continues) {
-      return { importId, status: moved.status, step: moved.step, ran, handOff: null };
+      // `runStep` may have turned that failure into a wait. It wrote the row; the loop only
+      // has to stop and hand the reason up, so that whoever owns a queue can re-send later.
+      const hold = holdOf(result.data);
+      return {
+        importId,
+        status: hold === null ? moved.status : "waiting_upstream",
+        step: moved.step,
+        ran,
+        handOff: null,
+        hold,
+      };
     }
 
     step = moved.step;
     if (options.only === true) {
-      return { importId, status: "running", step, ran, handOff: null };
+      return { importId, status: "running", step, ran, handOff: null, hold: null };
     }
   }
 
   const current = await requireImport(importId, db);
-  return { importId, status: current.status, step: current.step, ran, handOff: null };
+  return { importId, status: current.status, step: current.step, ran, handOff: null, hold: null };
+}
+
+/* ------------------------------------------------------------------ */
+/* the imports a source killed                                         */
+/* ------------------------------------------------------------------ */
+
+/** One import that failed on a source, and where a retry of it would restart. */
+export interface UpstreamFailure {
+  readonly id: string;
+  readonly url: string;
+  readonly title: string | null;
+  readonly step: StepName;
+  readonly source: string | null;
+  readonly code: string;
+  readonly attempts: number;
+  readonly failedAt: Date | null;
+}
+
+/**
+ * Every `failed` import whose failure was the source's fault.
+ *
+ * The filter is **`wasKilledByASource`, not a code list**, and that is the point: the forty-five
+ * albums this exists for died before `UPSTREAM_UNAVAILABLE` was a code at all. Their rows say
+ * `SOURCE_UNAVAILABLE` with `status: 503`, which is exactly what the rule was written to
+ * recognise — so the same function that decides the live case also identifies the historical
+ * one, and there is no second definition of "upstream" to keep in step with the first.
+ *
+ * SQL narrows to `failed` with an error; the rule does the rest in one pass. A coarse filter
+ * and one predicate beats a clever `jsonb` query that would be a second implementation.
+ */
+export async function upstreamFailures(
+  db: Database = defaultDb(),
+  options: { limit?: number } = {},
+): Promise<UpstreamFailure[]> {
+  const rows = await db
+    .select()
+    .from(imports)
+    .where(and(eq(imports.status, "failed"), isNotNull(imports.error)))
+    .orderBy(asc(imports.createdAt));
+
+  const matched: UpstreamFailure[] = [];
+  for (const row of rows) {
+    if (!wasKilledByASource(row.error)) continue;
+    matched.push({
+      id: row.id,
+      url: row.url,
+      title: row.title,
+      step: row.step,
+      source: sourceOf(row.error),
+      code: row.error?.code ?? "UNKNOWN",
+      attempts: row.upstreamAttempts,
+      failedAt: row.finishedAt,
+    });
+    if (options.limit !== undefined && matched.length >= options.limit) break;
+  }
+  return matched;
+}
+
+/**
+ * Put every import a source killed back on the line. **Nothing is executed here.**
+ *
+ * Rewind only, exactly like `rewindTo` and for the same reason (owner review C3): the caller
+ * puts the ids on a queue, with one producer for all of them rather than one each — forty-five
+ * short-lived pg-boss connections to retry forty-five albums would be its own small incident.
+ *
+ * **Idempotent by construction.** `rewindTo` moves the row out of `failed` and into `running`,
+ * so a second call selects nothing: the answer to "did that work, let me run it again" is an
+ * empty list, not forty-five duplicate jobs. It also resets `upstream_attempts`, so a requeued
+ * import gets a fresh ladder rather than inheriting an exhausted one.
+ */
+export async function requeueUpstreamFailures(
+  options: { limit?: number; dryRun?: boolean } = {},
+  db: Database = defaultDb(),
+): Promise<(UpstreamFailure & { restartAt: StepName })[]> {
+  const found = await upstreamFailures(db, options);
+  const planned: (UpstreamFailure & { restartAt: StepName })[] = [];
+  for (const failure of found) {
+    // From where the job actually stopped, not from `resolve`: the files that came down before
+    // MusicBrainz refused are still on disk, and re-fetching them would be the expensive way
+    // of being wrong.
+    const restartAt = await resumeStepOf(failure.id, db);
+    planned.push({ ...failure, restartAt });
+    if (options.dryRun !== true) await rewindTo(failure.id, restartAt, db);
+  }
+  return planned;
 }
 
 /* ------------------------------------------------------------------ */
@@ -468,6 +708,12 @@ export async function rewindTo(
       status: "running",
       error: null,
       finishedAt: null,
+      // A retry is a fresh ladder. A job that used all six attempts during an outage and is
+      // requeued the next morning must get six more, or the requeue would be one attempt long
+      // and land back in `failed` on the first hiccup — which is exactly the shape of the
+      // incident this whole branch is about, one day later.
+      upstreamAttempts: 0,
+      nextAttemptAt: null,
       updatedAt: new Date(),
     })
     .where(eq(imports.id, importId));

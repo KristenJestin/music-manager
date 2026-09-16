@@ -68,6 +68,27 @@ export function timeAgo(at: Date | string | null | undefined, now: Date = new Da
   return then.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
+/**
+ * The other direction: `in 4 min`, for an instant that has not happened yet.
+ *
+ * `timeAgo` answers "just now" for anything in the future, which is right for a timestamp that
+ * drifted a second past the clock and useless for a scheduled one. An import waiting out a
+ * busy source has a real appointment — `imports.next_attempt_at` — and the owner's question is
+ * how long, not how long ago.
+ */
+export function timeUntil(at: Date | string | null | undefined, now: Date = new Date()): string {
+  if (at === null || at === undefined) return "soon";
+  const then = typeof at === "string" ? new Date(at) : at;
+  if (Number.isNaN(then.getTime())) return "soon";
+  const seconds = (then.getTime() - now.getTime()) / 1000;
+  // Past its slot but not yet picked up: the queue is about to take it, and "in -3 min" would
+  // read like a bug in the page rather than a job one poll away from running.
+  if (seconds <= 30) return "any moment";
+  if (seconds < 90) return "in about a minute";
+  if (seconds < 3600) return `in ${String(Math.round(seconds / 60))} min`;
+  return `in ${String(Math.round(seconds / 3600))} h`;
+}
+
 /** `05 Sep, 18:05`. */
 export function dateTime(at: Date | string | null | undefined): string {
   if (at === null || at === undefined) return "not yet";

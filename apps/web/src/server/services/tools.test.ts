@@ -6,9 +6,10 @@
  * with the failure they were meant to explain, so every function is asserted to come back
  * with a result even when the thing behind it is on fire.
  */
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MMError } from "@mm/contracts";
 import { TOOLBOX_CONTRACT_HASH, TOOLBOX_SCHEMA_VERSION } from "@mm/contracts/toolbox/contract";
+import { setLimiter } from "#/server/integrations/http.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { defaults, type Settings } from "./settings.ts";
 import {
@@ -18,6 +19,17 @@ import {
   serviceLatencies,
   testUrl,
 } from "./tools.ts";
+
+/*
+ * The two MusicBrainz probes now reserve a departure slot before they fire, which is the
+ * point — but with no database in a unit test that reservation falls back to the in-process
+ * limiter, and its real interval is one second. This is the same seam the cassette suite uses
+ * (`setLimiter(source, 0)`): the rule that a probe is gated is asserted below, and the
+ * *duration* of the gate is proven by the limiter's own test, not by spending it here.
+ */
+beforeAll(() => {
+  setLimiter("musicbrainz", 0);
+});
 
 const settings = (patch: Partial<Settings> = {}): Settings => ({ ...defaults(), ...patch });
 
