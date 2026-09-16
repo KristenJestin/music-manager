@@ -67,6 +67,7 @@ function Dashboard() {
           tone={stats.inProgress > 0 ? "info" : "muted"}
           icon={<Activity className="size-3.5" aria-hidden="true" />}
           to="/imports"
+          search={{ status: "active", page: 0 }}
         />
         <StatTile
           label="Failed"
@@ -75,6 +76,9 @@ function Dashboard() {
           tone={stats.failed > 0 ? "danger" : "muted"}
           icon={<AlertTriangle className="size-3.5" aria-hidden="true" />}
           to="/imports"
+          // The tile counts failures, so it must land on the failures: `/imports` defaults to
+          // Active now, and a Failed tile opening a page with no failed row on it is a lie.
+          search={{ status: "failed", page: 0 }}
         />
         <StatTile
           label="Library"
