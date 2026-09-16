@@ -505,7 +505,8 @@ export async function startWorker(): Promise<Worker> {
   const reconciler = setInterval(() => {
     void reconcileImports(boss, { db: db(), trigger: "periodic", log })
       .then((report) => {
-        if (report.resumed === 0 && report.skipped === 0) return;
+        // Silent when it found nothing to do, which is every run on a healthy installation.
+        if (report.resumed === 0) return;
         log("resume sweep", {
           trigger: report.trigger,
           resumed: report.resumed,

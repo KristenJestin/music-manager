@@ -133,7 +133,12 @@ export async function reconcileImports(
     const { job, reason } = candidate;
     if (live.has(job.id) || sent.has(job.id)) {
       skipped += 1;
-      options.log?.("import already queued, left alone", { importId: job.id, reason });
+      // Worth a line at boot, where the queues were just emptied and a survivor is a surprise.
+      // Not worth one every two minutes: a six-hour download is stale by every measure this
+      // sweep has and holds its message the whole time, which is exactly as it should be.
+      if (trigger === "boot") {
+        options.log?.("import already queued, left alone", { importId: job.id, reason });
+      }
       continue;
     }
     sent.add(job.id);
