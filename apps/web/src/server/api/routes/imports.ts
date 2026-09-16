@@ -11,6 +11,11 @@
  * transcription of the wizard's step 4 rather than an invention — same `SuppliedMapping`, same
  * synchronous `match`, same hand-off to the worker. The comments there say which lines are
  * load-bearing.
+ *
+ * `POST /batch` and `POST /{id}/confirm-best` deliberately have none of their own: they are
+ * `services/imports.bulk.ts`, which the MCP tools and the CLI call too. The mapping
+ * `confirm-best` confirms has to be the same mapping however it was asked for, and three
+ * transcriptions of one algorithm is how that stops being true.
  */
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { MMError } from "@mm/contracts";

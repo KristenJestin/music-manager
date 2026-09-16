@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-six tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-eight tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-six, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-eight, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-six of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-eight of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -363,9 +363,10 @@ interface ToolSpec {
 /**
  * The tools of the spec, as data — P08's fourteen, P09's `list_discover`, the four the first
  * external MCP test report asked for (`get_status`, `discover_sync`, `scan`, `relocate`),
- * `get_scan_report` from the second, and `refresh_album` from the third.
+ * `get_scan_report` from the second, `refresh_album` from the third, and `create_imports` and
+ * `confirm_best` from the bulk-import session that drove 375 playlists through here by hand.
  *
- * A table rather than twenty-six `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-eight `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *

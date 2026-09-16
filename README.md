@@ -43,10 +43,11 @@ Everything the Console does is reachable over HTTP.
 
 - REST API under `/api/v1`, with OpenAPI at `/api/openapi.json` and a browsable page at
   `/api/docs`. Tokens carry scopes.
-- An MCP server at `/mcp` with twenty-one tools, enough for an agent to run an import from URL to
+- An MCP server at `/mcp` with twenty-eight tools, enough for an agent to run an import from URL to
   filed album.
 - A CLI: `bun run mm -- import <url>`, plus `jobs`, `job`, `retry`, `inbox`, `match`, `library`,
-  `retag`, `scan`, `verify`, `discover`, `settings`.
+  `retag`, `scan`, `verify`, `discover`, `settings`. Bulk work has its own two verbs:
+  `mm import --from-file <list.txt>` and `mm confirm-best <id>`.
 
 ## Discover
 
