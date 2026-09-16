@@ -164,14 +164,10 @@ export const pageFields = {
     .openapi({ description: "True when `offset + limit < total` — ask for the next page." }),
 } as const;
 
-/** `{total, hasMore}` for a page that has already been cut to `limit`. */
-export function pageInfo(
-  total: number,
-  offset: number,
-  limit: number,
-): { total: number; hasMore: boolean } {
-  return { total, hasMore: offset + limit < total };
-}
+// The arithmetic itself is in `api/paging.ts` so that a caller who wants `{total, hasMore}`
+// and nothing else — the Console's job list — does not have to import an OpenAPI generator
+// to get it. Re-exported here because this is where every route already looks for it.
+export { pageInfo } from "#/server/api/paging.ts";
 
 export const principalSchema = apiPrincipalSchema.openapi("Principal", {
   description: "Who the server thinks you are, and what your credential may do.",

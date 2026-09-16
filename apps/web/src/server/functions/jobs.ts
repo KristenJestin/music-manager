@@ -26,9 +26,12 @@ import {
   resumeStepOf,
   rewindTo,
 } from "#/server/services/jobs/index.ts";
+import { pageInfo } from "#/server/api/paging.ts";
 import {
+  countJobs,
   jobCounts,
   jobDetail,
+  jobProgress,
   listJobs,
   stepResult,
   type DashboardStats,
@@ -53,21 +56,82 @@ const statusFilter = z.enum([
 
 export type JobStatusFilter = z.infer<typeof statusFilter>;
 
+/**
+ * Rows per page of `/imports`.
+ *
+ * Fifty, like `/api/v1`'s default and like the library's sixty: enough that the first page is
+ * the answer most of the time, few enough that the five follow-up queries `listJobs` runs are
+ * keyed on fifty ids and not on the whole table. The page never grows with the table, which is
+ * the whole of the performance requirement.
+ */
+export const JOBS_PAGE_SIZE = 50;
+
 export interface JobListPayload {
   readonly jobs: readonly JobSummary[];
+  /** Unfiltered totals, so the chips say how big each set is, not how big this page is. */
   readonly counts: Record<ImportStatus | "all" | "active", number>;
+  /** Imports matching the current chip, before paging. */
+  readonly total: number;
+  readonly hasMore: boolean;
+  readonly page: number;
+  readonly pageSize: number;
 }
 
 export const fetchJobs = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ status: statusFilter.default("all") }))
+  .inputValidator(
+    z.object({
+      // `active` and not `all`: see the route. The default lives here too so that a caller
+      // that omits the filter — the palette, a test — gets the same view the page shows.
+      status: statusFilter.default("active"),
+      page: z.number().int().min(0).default(0),
+    }),
+  )
   .handler(async ({ data }): Promise<JobListPayload> => {
     try {
-      const [jobs, counts] = await Promise.all([
-        listJobs({ status: data.status, limit: 100 }),
+      const offset = data.page * JOBS_PAGE_SIZE;
+      const [jobs, total, counts] = await Promise.all([
+        listJobs({ status: data.status, limit: JOBS_PAGE_SIZE, offset }),
+        countJobs(data.status),
         jobCounts(),
       ]);
-      return { jobs, counts };
+      return {
+        jobs,
+        counts,
+        ...pageInfo(total, offset, JOBS_PAGE_SIZE),
+        page: data.page,
+        pageSize: JOBS_PAGE_SIZE,
+      };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * The moving parts of the rows already on screen — status, step, tracks — and nothing else.
+ *
+ * The Jobs list keeps a live stream open (`/api/events`) and asks for this when the journal
+ * says one of its rows moved. It is deliberately *not* `fetchJobs`: re-running the loader
+ * would re-sort and re-page the table under the reader's cursor every time a track finished,
+ * which is the opposite of the calm the page is supposed to have. This reads one indexed
+ * lookup and one grouped tally over the fifty ids on screen, and the row keeps its place.
+ */
+export interface JobProgress {
+  readonly id: string;
+  readonly status: ImportStatus;
+  readonly step: StepName;
+  readonly tracksDone: number;
+  readonly tracksTotal: number;
+  readonly updatedAt: string;
+}
+
+export const fetchJobProgress = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ ids: z.array(z.string().min(1)).max(200) }))
+  .handler(async ({ data }): Promise<readonly JobProgress[]> => {
+    try {
+      if (data.ids.length === 0) return [];
+      return await jobProgress(data.ids, db());
     } catch (error) {
       return toFailure(error);
     }

@@ -16,9 +16,11 @@ import {
   jobCounts,
   listJobs,
   recentAlbums,
+  workerSnapshot,
   type DashboardStats,
   type JobSummary,
   type RecentAlbum,
+  type WorkerCurrent,
 } from "#/server/services/console.queries.ts";
 import { serverEnv } from "#/server/env.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
@@ -37,14 +39,8 @@ export interface ShellPayload {
   readonly inProgress: number;
   readonly failed: number;
   /** The job the worker is on, if any — the sidebar's live card. */
-  readonly current: {
-    readonly importId: string;
-    readonly title: string;
-    readonly artist: string | null;
-    readonly step: string;
-    readonly tracksDone: number;
-    readonly tracksTotal: number;
-  } | null;
+  readonly current: WorkerCurrent | null;
+  /** Imports waiting for the worker behind the download slot, not counting the one on it. */
   readonly queued: number;
   /** The last few journal lines, for the activity drawer. */
   readonly activity: readonly JobEventPayload[];
@@ -54,13 +50,14 @@ export const fetchShell = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
   .handler(async (): Promise<ShellPayload> => {
     try {
-      const [counts, running, activity] = await Promise.all([
+      // The worker card asks the database which import holds the download slot rather than
+      // picking one out of a page of active jobs; `workerSnapshot` explains why.
+      const [counts, worker, activity] = await Promise.all([
         jobCounts(db()),
-        listJobs({ status: "active", limit: 20 }, db()),
+        workerSnapshot(db()),
         recentActivity(),
       ]);
       const open = await listInbox({ status: "open" }, db());
-      const current = running.find((entry) => entry.job.status === "running") ?? null;
 
       return {
         version: APP_VERSION,
@@ -68,18 +65,8 @@ export const fetchShell = createServerFn({ method: "GET", strict: STRICT })
         needsReview: open.length,
         inProgress: counts.active,
         failed: counts.failed,
-        current:
-          current === null
-            ? null
-            : {
-                importId: current.job.id,
-                title: current.job.title ?? current.job.url,
-                artist: current.job.artist,
-                step: current.job.step,
-                tracksDone: current.tracksDone,
-                tracksTotal: current.tracksTotal,
-              },
-        queued: counts.pending,
+        current: worker.current,
+        queued: worker.queued,
         activity,
       };
     } catch (error) {

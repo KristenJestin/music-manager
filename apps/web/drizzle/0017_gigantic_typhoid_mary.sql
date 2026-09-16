@@ -1,0 +1,1 @@
+CREATE INDEX "imports_updated_at_idx" ON "imports" USING btree ("updated_at");

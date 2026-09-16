@@ -10,10 +10,9 @@
 import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "#/components/ui/button.tsx";
 
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
+import { Pager } from "#/components/pager.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
@@ -155,8 +154,6 @@ function Tracks() {
     },
   ];
 
-  const from = params.page * PAGE_SIZE;
-
   return (
     <>
       <PageHeader
@@ -200,33 +197,14 @@ function Tracks() {
           }}
           empty="No track matches."
         />
-        <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-2xs text-fg-2">
-          <span>
-            {total === 0 ? 0 : from + 1}–{Math.min(total, from + tracks.length)} of {total}
-          </span>
-          <span className="flex gap-1.5">
-            <Button
-              size="xs"
-              variant="outline"
-              disabled={params.page === 0}
-              onClick={() => {
-                go(params.page - 1);
-              }}
-            >
-              <ChevronLeft className="size-3" aria-hidden="true" />
-            </Button>
-            <Button
-              size="xs"
-              variant="outline"
-              disabled={from + tracks.length >= total}
-              onClick={() => {
-                go(params.page + 1);
-              }}
-            >
-              <ChevronRight className="size-3" aria-hidden="true" />
-            </Button>
-          </span>
-        </div>
+        <Pager
+          page={params.page}
+          pageSize={PAGE_SIZE}
+          total={total}
+          shown={tracks.length}
+          onPage={go}
+          noun="tracks"
+        />
       </div>
     </>
   );

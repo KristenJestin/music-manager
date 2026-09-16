@@ -8,7 +8,7 @@
  * the one the wizard performs on `imports.options`, and it is here rather than in
  * `imports.service` because it belongs to the wizard, not to the pipeline.
  */
-import { and, count, desc, eq, gt, inArray, isNotNull, lt, ne, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -31,6 +31,7 @@ import {
 import { totalIsKnown } from "#/server/services/album-counters.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
 import { assertSigned } from "#/server/services/imports.ts";
+import { countImports, importsWhere, type ImportFilter } from "#/server/services/jobs/index.ts";
 
 /* ------------------------------------------------------------------ */
 /* the job list                                                        */
@@ -72,36 +73,74 @@ export const ACTIVE_STATUSES: readonly ImportStatus[] = [
   "waiting_upstream",
 ];
 
+/** The chips of `/imports`: `all`, the `active` group, or one exact status. */
+export type JobStatusGroup = ImportStatus | "all" | "active";
+
 export interface JobListFilter {
   /** `all`, `active`, or one exact status. */
-  readonly status?: ImportStatus | "all" | "active";
+  readonly status?: JobStatusGroup;
   readonly limit?: number;
+  readonly offset?: number;
 }
 
 /**
- * The job list with its counts, in three queries rather than one per row.
+ * One chip, as a filter the import service understands.
+ *
+ * The Console and `/api/v1` narrow through the same `importsWhere`, so a chip's count, its
+ * page and its total are three readings of one set rather than three queries that agree by
+ * coincidence.
+ */
+export function importFilterOf(status: JobStatusGroup): ImportFilter {
+  if (status === "all") return {};
+  if (status === "active") return { statuses: ACTIVE_STATUSES };
+  return { status };
+}
+
+/**
+ * The order the Jobs list is read in: **what is moving, first**.
+ *
+ * Sorting by `created_at` put the newest paste on top, which at four hundred imports is a
+ * page of whatever was submitted last — usually a burst that was cancelled. Sorting by
+ * `updated_at` alone is not enough either: a job cancelled a minute ago would outrank one
+ * that has been downloading for ten. So liveness ranks first and recency breaks the tie, and
+ * `cancelled` sits at the bottom of every unfiltered view by construction.
+ *
+ * Written as one `case` rather than as a column: the rank is a statement about *this screen*,
+ * not a fact about an import, and a column would have to be maintained by the pipeline.
+ */
+const LIVENESS = sql`case ${imports.status}
+    when 'running' then 0
+    when 'awaiting_confirm' then 1
+    when 'awaiting_review' then 1
+    when 'pending' then 2
+    when 'waiting_upstream' then 3
+    when 'paused' then 4
+    when 'failed' then 5
+    when 'done' then 6
+    else 7
+  end`;
+
+/**
+ * The job list with its counts, in five queries rather than one per row.
  *
  * A per-row count would be fine at twenty jobs and quietly awful at two thousand; grouping the
- * tallies once is the same amount of code and does not have that cliff.
+ * tallies once is the same amount of code and does not have that cliff. Everything after the
+ * first query is keyed on the ids of *this page*, so the cost is the page size and not the
+ * table size.
  */
 export async function listJobs(
   filter: JobListFilter = {},
   db: Database = defaultDb(),
 ): Promise<JobSummary[]> {
-  const wanted = filter.status ?? "all";
-  const where =
-    wanted === "all"
-      ? isNotNull(imports.id)
-      : wanted === "active"
-        ? inArray(imports.status, [...ACTIVE_STATUSES])
-        : eq(imports.status, wanted);
+  const where = importsWhere(importFilterOf(filter.status ?? "all"));
 
   const jobs = await db
     .select()
     .from(imports)
     .where(where)
-    .orderBy(desc(imports.createdAt))
-    .limit(filter.limit ?? 100);
+    .orderBy(LIVENESS, desc(imports.updatedAt))
+    .limit(filter.limit ?? 100)
+    .offset(filter.offset ?? 0);
 
   if (jobs.length === 0) return [];
   const ids = jobs.map((job) => job.id);
@@ -167,6 +206,19 @@ export async function listJobs(
   });
 }
 
+/**
+ * How many jobs one chip matches, ignoring the page.
+ *
+ * `countImports`, not a second count of its own: the page and its total have to describe the
+ * same set, and the only way to guarantee that is for both to go through one `where`.
+ */
+export async function countJobs(
+  status: JobStatusGroup = "all",
+  db: Database = defaultDb(),
+): Promise<number> {
+  return await countImports(importFilterOf(status), db);
+}
+
 /** How many jobs sit in each status. The filter chips of `/imports` show these. */
 export async function jobCounts(
   db: Database = defaultDb(),
@@ -197,6 +249,180 @@ export async function jobCounts(
     if (ACTIVE_STATUSES.includes(row.status)) counts.active += total;
   }
   return counts;
+}
+
+/**
+ * Just the numbers that move, for rows already on screen.
+ *
+ * The Jobs list re-reads this when the journal says one of its imports did something. Two
+ * queries over the ids of one page: the import rows themselves, and one grouped tally. It
+ * exists so that live progress does not have to mean re-running the loader, which would
+ * re-sort and re-page the table under the reader every time a track finished.
+ */
+export interface JobProgressRow {
+  readonly id: string;
+  readonly status: ImportStatus;
+  readonly step: StepName;
+  readonly tracksDone: number;
+  readonly tracksTotal: number;
+  readonly updatedAt: string;
+}
+
+export async function jobProgress(
+  ids: readonly string[],
+  db: Database = defaultDb(),
+): Promise<readonly JobProgressRow[]> {
+  if (ids.length === 0) return [];
+  const wanted = [...ids];
+
+  const [rows, tallies] = await Promise.all([
+    db
+      .select({
+        id: imports.id,
+        status: imports.status,
+        step: imports.step,
+        updatedAt: imports.updatedAt,
+      })
+      .from(imports)
+      .where(inArray(imports.id, wanted)),
+    db
+      .select({
+        importId: importTracks.importId,
+        total: count(),
+        done: sql<number>`count(*) filter (where ${importTracks.state} in ('placed','done','skipped'))`,
+      })
+      .from(importTracks)
+      .where(inArray(importTracks.importId, wanted))
+      .groupBy(importTracks.importId),
+  ]);
+
+  const byId = new Map(tallies.map((row) => [row.importId, row]));
+  return rows.map((row) => ({
+    id: row.id,
+    status: row.status,
+    step: row.step,
+    tracksDone: Number(byId.get(row.id)?.done ?? 0),
+    tracksTotal: Number(byId.get(row.id)?.total ?? 0),
+    updatedAt: row.updatedAt.toISOString(),
+  }));
+}
+
+/* ------------------------------------------------------------------ */
+/* what the worker is actually on                                      */
+/* ------------------------------------------------------------------ */
+
+/** One import, as the sidebar's worker card shows it. */
+export interface WorkerCurrent {
+  readonly importId: string;
+  readonly title: string;
+  readonly artist: string | null;
+  readonly step: string;
+  readonly tracksDone: number;
+  readonly tracksTotal: number;
+  /** When this import last moved — a track changing state is a move. */
+  readonly movedAt: string;
+  /**
+   * True when this import holds the one download slot, false when it is merely the last thing
+   * seen moving. The card says which, because "downloading" and "still tidying up after the
+   * download" are different answers to "what is happening right now".
+   */
+  readonly holdsSlot: boolean;
+}
+
+export interface WorkerSnapshot {
+  readonly current: WorkerCurrent | null;
+  /** Imports waiting for the worker, not counting the one it is on. */
+  readonly queued: number;
+}
+
+/** How recently an import must have moved to be worth naming when no download is in flight. */
+const RECENTLY_MOVED_MS = 60_000;
+
+/** Imports that are waiting for the worker rather than for a person. */
+const WAITING_ON_WORKER: readonly ImportStatus[] = ["pending", "running"];
+
+/**
+ * What the worker is on, and how deep the line behind it is.
+ *
+ * The card used to take the first `running` import out of a page of twenty ordered by age,
+ * which is not "the one being worked" but "an arbitrary one of the forty-six queued": it
+ * showed the same import at `0/13 tracks` for an hour while the worker finished four others.
+ * The download slot is a row, not a guess — `job_steps(step: download, status: running)` is
+ * written by `beginStep` when the worker picks the job up and closed by `endStep` when it lets
+ * go — so that row *is* the holder, and there is at most one because there is one slot.
+ *
+ * When no download is in flight the worker may still be fingerprinting, tagging or filing, so
+ * the fallback is the most recently *moved* running import, and only if it moved within the
+ * last minute. Anything older is not "what is happening now", and the card says it is idle
+ * rather than pointing at a job that has not breathed since breakfast.
+ *
+ * `queued` is the real depth: every import waiting for the worker, less the one it is on.
+ * `pending` alone read `0 queued` while forty-five imports sat behind the slot, because an
+ * import that has been picked up once is `running` for as long as it waits.
+ */
+export async function workerSnapshot(db: Database = defaultDb()): Promise<WorkerSnapshot> {
+  const [holder] = await db
+    .select({ job: imports })
+    .from(jobSteps)
+    .innerJoin(imports, eq(imports.id, jobSteps.importId))
+    .where(
+      and(
+        eq(jobSteps.step, "download"),
+        eq(jobSteps.status, "running"),
+        eq(imports.status, "running"),
+      ),
+    )
+    // A worker killed mid-download leaves its row behind; the newest start is the live one.
+    .orderBy(desc(jobSteps.startedAt))
+    .limit(1);
+
+  let job: Import | null = holder?.job ?? null;
+  const holdsSlot = job !== null;
+
+  if (job === null) {
+    const [recent] = await db
+      .select()
+      .from(imports)
+      .where(
+        and(
+          eq(imports.status, "running"),
+          gt(imports.updatedAt, new Date(Date.now() - RECENTLY_MOVED_MS)),
+        ),
+      )
+      .orderBy(desc(imports.updatedAt))
+      .limit(1);
+    job = recent ?? null;
+  }
+
+  const [waiting] = await db
+    .select({ total: count() })
+    .from(imports)
+    .where(inArray(imports.status, [...WAITING_ON_WORKER]));
+  const queued = Math.max(0, Number(waiting?.total ?? 0) - (job === null ? 0 : 1));
+
+  if (job === null) return { current: null, queued };
+
+  const [tally] = await db
+    .select({
+      total: count(),
+      done: sql<number>`count(*) filter (where ${importTracks.state} in ('placed','done','skipped'))`,
+    })
+    .from(importTracks)
+    .where(eq(importTracks.importId, job.id));
+
+  return {
+    current: {
+      importId: job.id,
+      title: job.title ?? job.url,
+      artist: job.artist,
+      step: job.step,
+      tracksDone: Number(tally?.done ?? 0),
+      tracksTotal: Number(tally?.total ?? 0),
+      movedAt: job.updatedAt.toISOString(),
+      holdsSlot,
+    },
+    queued,
+  };
 }
 
 /* ------------------------------------------------------------------ */
