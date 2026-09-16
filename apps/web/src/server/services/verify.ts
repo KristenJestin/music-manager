@@ -21,7 +21,7 @@
  * actually handed. That keeps this file honest — it can only ever claim we wrote something we
  * really did write.
  */
-import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { projectDocument, tagByField, type TrackDocument } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -708,20 +708,31 @@ export async function verificationSummary(db: Database = defaultDb()): Promise<{
   withMismatch: number;
   lastAt: string | null;
 }> {
-  const rows = await db
-    .select({ verifiedAt: libraryAlbums.verifiedAt, verification: libraryAlbums.verification })
+  /*
+   * Three aggregates, one row. It used to select `verification` — a per-field verdict document
+   * with what was written and what came back, for *every* album ever verified — and count in
+   * TypeScript, so three integers on the Tools page cost the whole read-back history.
+   *
+   * `->>'mismatches'` is spelled with a literal key rather than a bound parameter on purpose:
+   * `->>` has both a `jsonb -> text` and a `jsonb -> integer` overload, and an untyped
+   * parameter there makes Postgres answer *"operator is not unique"*. Same reasoning, same
+   * expression, as `VERIFICATION_MISMATCHES` in `library-filter.sql.ts`.
+   */
+  const [row] = await db
+    .select({
+      albums: sql<number>`count(*)::int`,
+      withMismatch: sql<number>`(count(*) filter (
+        where coalesce((${libraryAlbums.verification}->>'mismatches')::int, 0) > 0))::int`,
+      lastAt: sql<Date | null>`max(${libraryAlbums.verifiedAt})`,
+    })
     .from(libraryAlbums)
     .where(isNotNull(libraryAlbums.verifiedAt));
 
-  let withMismatch = 0;
-  let lastAt: string | null = null;
-  for (const row of rows) {
-    const verification = row.verification as { mismatches?: number } | null;
-    if ((verification?.mismatches ?? 0) > 0) withMismatch += 1;
-    const at = row.verifiedAt?.toISOString() ?? null;
-    if (at !== null && (lastAt === null || at > lastAt)) lastAt = at;
-  }
-  return { albums: rows.length, withMismatch, lastAt };
+  return {
+    albums: row?.albums ?? 0,
+    withMismatch: row?.withMismatch ?? 0,
+    lastAt: row?.lastAt == null ? null : new Date(row.lastAt).toISOString(),
+  };
 }
 
 /** The stored verdicts, for the Console and for `mm verify --all`. */
