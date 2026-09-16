@@ -52,6 +52,12 @@ import type { ExtractEntry } from "#/server/toolbox/client.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { createFromUrl } from "#/server/services/imports.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
+import {
+  admit,
+  sourceRulesOf,
+  type AdmissionVerdict,
+  type SourceRules,
+} from "#/server/services/source-rules.ts";
 
 /* ------------------------------------------------------------------ */
 /* the shape of a source                                               */
@@ -390,14 +396,44 @@ export interface ScanOptions {
   readonly enqueue?: (importId: string) => Promise<void>;
 }
 
-/** True when a full extraction of this video shows a distributor's own upload block. */
-async function providedToYouTube(
+/**
+ * The admission rules, asked of one new video before an import is opened for it.
+ *
+ * It costs **one full extraction** — a flat listing carries no description and no album tag —
+ * which is why it only runs when a rule actually needs it, and why the per-source switch
+ * exists at all. `null` means "no rule applies here", and no extraction was made.
+ *
+ * The scan asks this itself rather than letting `resolve` refuse the import a moment later,
+ * even though `resolve` would refuse it correctly: a scan that found forty videos it is not
+ * allowed to import would leave forty failed jobs in the list. One skipped row with a sentence
+ * on it is the answer the Console already knows how to show.
+ *
+ * The detection underneath is `isOfficialUpload`, shared with the `officialUploadsOnly`
+ * setting and with the description parser under both. It used to be a second, case-*sensitive*
+ * `.includes` written here — the same question asked twice, with one of the two answers wrong
+ * the day YouTube changed its capitalisation.
+ */
+async function admitVideo(
   toolbox: ToolboxClient,
   url: string,
   settings: Settings,
-): Promise<boolean> {
+  source: WatchedSource,
+): Promise<AdmissionVerdict | null> {
+  const global = sourceRulesOf(settings);
+  const rules: SourceRules = {
+    // The per-source switch is an *addition* to the installation-wide one, never a way out of
+    // it: a source may demand more than the settings do, not less.
+    officialUploadsOnly: global.officialUploadsOnly || source.requireProvidedToYouTube,
+    requireAlbum: global.requireAlbum,
+  };
+  if (!rules.officialUploadsOnly && !rules.requireAlbum) return null;
+
   const full = await toolbox.extract(url, cookieJar(settings));
-  return full.entries.some((entry) => (entry.description ?? "").includes("Provided to YouTube by"));
+  const entry = full.entries[0];
+  if (entry === undefined) return null;
+  // A watched source opens one import per video (see the header), so every one of them is the
+  // isolated video `requireAlbum` is about.
+  return admit(entry, rules, { isolated: true });
 }
 
 /**
@@ -504,14 +540,11 @@ export async function scanSource(id: string, options: ScanOptions = {}): Promise
     }
 
     try {
-      if (source.requireProvidedToYouTube && !(await providedToYouTube(toolbox, url, settings))) {
+      const admission = await admitVideo(toolbox, url, settings, source);
+      if (admission !== null && !admission.accept) {
         await db
           .update(watchedSourceItems)
-          .set({
-            status: "skipped",
-            reason: "No “Provided to YouTube by” block — not a distributor's upload",
-            updatedAt: new Date(),
-          })
+          .set({ status: "skipped", reason: admission.reason, updatedAt: new Date() })
           .where(eq(watchedSourceItems.id, claimed.id));
         skipped += 1;
         continue;

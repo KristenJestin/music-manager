@@ -105,4 +105,43 @@ test.describe("settings", () => {
     await page.getByTestId("settings-save").click();
     await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
   });
+
+  /**
+   * The two admission rules, on the tab that owns them.
+   *
+   * They are switches rather than fields, so the round trip is the whole test: a rule that
+   * appears to save and comes back off would silently import everything the operator meant to
+   * refuse. Put back off at the end, because every other spec in the suite shares this stack
+   * and both rules are off by default for a reason.
+   */
+  test("Watched sources: the import rules are off by default and survive a reload", async ({
+    page,
+  }) => {
+    await signIn(page);
+    await page.goto("/settings/sources");
+    await expect(page.getByTestId("settings-sources")).toBeVisible({ timeout: 60_000 });
+
+    const official = page.getByTestId("setting-officialUploadsOnly");
+    const album = page.getByTestId("setting-requireAlbum");
+    await expect(official).toHaveAttribute("aria-checked", "false");
+    await expect(album).toHaveAttribute("aria-checked", "false");
+
+    await official.click();
+    await page.getByTestId("settings-save").click();
+    await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
+    await page.reload();
+    await expect(page.getByTestId("setting-officialUploadsOnly")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    await page.getByTestId("setting-officialUploadsOnly").click();
+    await page.getByTestId("settings-save").click();
+    await expect(page.getByText(/setting\(s\) saved/i)).toBeVisible({ timeout: 60_000 });
+    await page.reload();
+    await expect(page.getByTestId("setting-officialUploadsOnly")).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+  });
 });

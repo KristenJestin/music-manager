@@ -24,6 +24,7 @@ import {
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
 import { runStep } from "./jobs/index.ts";
+import type { StepResult } from "./jobs/machine.ts";
 import { loadSettings } from "./settings.ts";
 import type { SuppliedMapping } from "./jobs/steps/match.ts";
 
@@ -179,11 +180,33 @@ export async function createFromUrl(
   );
 
   if (resolveNow !== false) {
-    await runStep(id, "resolve", { db, settings: await loadSettings(db) });
+    const resolved = await runStep(id, "resolve", { db, settings: await loadSettings(db) });
+    refuseOnAdmissionRule(resolved);
   }
 
   const job = (await db.select().from(imports).where(eq(imports.id, id)).limit(1))[0] ?? created;
   return { job, duplicates, alreadyPresent: 0 };
+}
+
+/** The two codes `source-rules.ts` raises, i.e. "a rule you switched on said no". */
+const ADMISSION_CODES = new Set(["SOURCE_NOT_OFFICIAL", "SOURCE_NO_ALBUM"]);
+
+/**
+ * Re-raise an admission-rule refusal at the caller instead of leaving a failed job behind.
+ *
+ * Every other `resolve` failure is *reported*, not thrown: a bot check or a private video is
+ * something to retry, and the job row is where a retry lives. A rule the operator switched on
+ * is not that. Nothing about it will be different in ten minutes, there is nothing to retry,
+ * and whoever pasted the URL is still looking at the box — so they get the sentence, the hint
+ * naming the setting, and a 422, rather than a job in the list that says "failed".
+ *
+ * The row is still written and still carries the same typed error. It is the record of what
+ * was asked for and refused, which is the one thing a thrown error on its own would lose.
+ */
+function refuseOnAdmissionRule(result: StepResult): void {
+  if (result.status !== "failed" || result.error === undefined) return;
+  if (!ADMISSION_CODES.has(result.error.code)) return;
+  throw MMError.fromBody(result.error);
 }
 
 /** Read one import. */
