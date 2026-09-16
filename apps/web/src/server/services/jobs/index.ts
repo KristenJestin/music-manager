@@ -15,7 +15,7 @@
  *     once. `retryStep` is therefore nothing more than "start again from this step".
  */
 import { rmSync } from "node:fs";
-import { and, asc, count, desc, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { hostPath } from "#/server/paths.ts";
@@ -26,6 +26,7 @@ import {
   libraryTracks,
   type Import,
   type ImportStatus,
+  type PausedBy,
   type StepName,
   type StepStatus,
 } from "#/server/db/schema/index.ts";
@@ -292,11 +293,25 @@ export async function runStep(
   // that has to run again once the source is answering. Everything else follows the machine.
   const status: ImportStatus = waiting === null ? moved.status : "waiting_upstream";
 
+  /*
+   * The second door into `paused`, and the one that carries no reason.
+   *
+   * `pauseImport` is the explicit one. This is the other: a step that saw the abort signal
+   * returns `blocked` with `blockedAs: "paused"` (`download`, `fingerprint`, `tag`, `place`
+   * all do), and the machine writes the status here. Every such site in the tree today is an
+   * abort check, but the discriminator is derived from the signal rather than from that
+   * happy coincidence — a future `blocked` that pauses for some other reason will be called
+   * `user`, which is the answer that leaves it alone.
+   */
+  const pausedBy: PausedBy | null =
+    status !== "paused" ? null : options.signal?.aborted === true ? "worker" : "user";
+
   await db
     .update(imports)
     .set({
       step: moved.step,
       status,
+      pausedBy,
       // The row's `error` is "why this job is stopped". A job the machine is rewinding is not
       // stopped, so it must not carry one — the Console paints it as a red banner. A job that
       // is waiting *does* keep it: it is the sentence that says which source refused, and the
@@ -543,7 +558,7 @@ export async function runImport(importId: string, options: RunOptions = {}): Pro
 
   for (;;) {
     if (options.signal?.aborted === true) {
-      await pauseImport(importId, "the worker is shutting down", db);
+      await pauseImport(importId, "the worker is shutting down", db, "worker");
       break;
     }
     if (step === options.stopBefore) {
@@ -706,6 +721,8 @@ export async function rewindTo(
     .set({
       step,
       status: "running",
+      // The row is leaving `paused`; whoever had stopped it no longer has it stopped.
+      pausedBy: null,
       error: null,
       finishedAt: null,
       // A retry is a fresh ladder. A job that used all six attempts during an outage and is
@@ -813,17 +830,29 @@ export async function resumeStepOf(
   return resumePoint(completed, job.step);
 }
 
-/** Stop a job where it stands. It can be picked up again. */
+/**
+ * Stop a job where it stands. It can be picked up again.
+ *
+ * `by` is the durable half of `reason`. The sentence goes to the journal, which is where a
+ * person reads it; the word goes to `imports.paused_by`, which is where the next boot reads
+ * it. They were one argument until a restart had to tell "the owner pressed Pause" from "the
+ * worker was going down", and a journal line is not something a `where` clause can ask.
+ * It defaults to `user`: only the shutdown path claims to be the worker.
+ */
 export async function pauseImport(
   importId: string,
   reason = "paused",
   db: Database = defaultDb(),
+  by: PausedBy = "user",
 ): Promise<void> {
   await db
     .update(imports)
-    .set({ status: "paused", updatedAt: new Date() })
+    .set({ status: "paused", pausedBy: by, updatedAt: new Date() })
     .where(and(eq(imports.id, importId), ne(imports.status, "done")));
-  await emit({ importId, level: "warn", type: "import.status", message: reason }, db);
+  await emit(
+    { importId, level: "warn", type: "import.status", message: reason, data: { pausedBy: by } },
+    db,
+  );
 }
 
 /** Give up on a job. Open Inbox items are dismissed with it. */
@@ -853,17 +882,88 @@ export async function bumpImport(
 }
 
 /**
+ * Why an import is on the resume list. One word per way a restart can lose a job.
+ *
+ *  - **`paused-by-shutdown`** — the last worker paused it on its way out (`pauseImport(…,
+ *    "worker")`, or a step that returned `blocked` on the abort signal). The row is honest and
+ *    nothing is in flight; it needs a message, and nobody was ever going to send one.
+ *  - **`waiting-upstream-due`** — the job was sitting out a busy source. Its *delayed* pg-boss
+ *    message was deleted with the rest of the queue at boot, so the wait has to be re-sent
+ *    from `imports.next_attempt_at`. Due now departs now; still in the future departs late.
+ *  - **`running-orphan`** — `pending` or `running` with nobody working on it: the worker was
+ *    killed mid-job, and `retryLimit: 0` means pg-boss will never put it back by itself.
+ */
+export const RESUME_REASONS = [
+  "paused-by-shutdown",
+  "waiting-upstream-due",
+  "running-orphan",
+] as const;
+export type ResumeReason = (typeof RESUME_REASONS)[number];
+
+/** One import the sweep should re-queue, and the sentence that says why. */
+export interface ResumableImport {
+  readonly job: Import;
+  readonly reason: ResumeReason;
+}
+
+/**
  * Jobs a worker should pick up when it starts.
  *
  * A worker that dies mid-step leaves an import in `running` with nobody working on it. Since
  * the database is the memory, "resume" is simply: find those, and run them again.
+ *
+ * It used to select `pending | running` and only those, which lost the two other ways a
+ * restart eats a job. `waiting_upstream` was the loud one: the sweep already knew how to
+ * honour `next_attempt_at` — the code and its comment are still in `worker/index.ts` — and
+ * the query never handed it a single row to honour it for, so nine imports sat with an
+ * attempt time an hour in the past and no message to make it happen. `paused` was the quiet
+ * one: the worker pauses what it is running as it shuts down, which is the right row to
+ * write, and nothing ever read those pauses back.
+ *
+ * A pause the *owner* asked for is deliberately absent: `paused_by = 'user'` means leave it
+ * alone, and a deploy is not permission to restart it. The two human gates
+ * (`awaiting_confirm`, `awaiting_review`) are absent for the same reason, and the three
+ * terminal statuses because they are terminal.
  */
-export async function resumableImports(db: Database = defaultDb()): Promise<Import[]> {
-  return await db
+export async function resumableImports(
+  db: Database = defaultDb(),
+  options: { idleSince?: Date } = {},
+): Promise<ResumableImport[]> {
+  const resumable = or(
+    inArray(imports.status, ["pending", "running", "waiting_upstream"]),
+    and(eq(imports.status, "paused"), eq(imports.pausedBy, "worker")),
+  );
+  /*
+   * "…and has not moved since". Only the periodic reconciliation asks for it.
+   *
+   * At boot every row qualifies, because the queues have just been emptied and nothing can be
+   * in flight. In a *running* worker the same list is full of imports that are perfectly
+   * healthy, so the periodic pass narrows it to rows that have stopped moving — one more
+   * predicate on the same index, and in practice an empty result.
+   *
+   * `coalesce(next_attempt_at, updated_at)` rather than `updated_at`: a `waiting_upstream` row
+   * is *supposed* to sit still, and its due date is the only honest measure of lateness. The
+   * column is null on every other status, so the fallback is what applies there.
+   */
+  const idle =
+    options.idleSince === undefined
+      ? undefined
+      : // The cast is not decoration: the left-hand side is raw SQL, so Drizzle has no column
+        // to take the parameter type from and hands postgres-js a `Date` it cannot encode.
+        sql`coalesce(${imports.nextAttemptAt}, ${imports.updatedAt}) < ${options.idleSince.toISOString()}::timestamptz`;
+  const rows = await db
     .select()
     .from(imports)
-    .where(inArray(imports.status, ["pending", "running"]))
+    .where(idle === undefined ? resumable : and(resumable, idle))
     .orderBy(desc(imports.priority), asc(imports.createdAt));
+  return rows.map((job) => ({ job, reason: resumeReasonOf(job) }));
+}
+
+/** The reason that goes in the log and in the journal, read off the row. */
+function resumeReasonOf(job: Import): ResumeReason {
+  if (job.status === "paused") return "paused-by-shutdown";
+  if (job.status === "waiting_upstream") return "waiting-upstream-due";
+  return "running-orphan";
 }
 
 /** Every step row of an import, for `mm job`. */

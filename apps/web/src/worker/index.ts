@@ -3,8 +3,9 @@
  *
  * One process, one pg-boss instance, five queues. It owns no state of its own: everything it
  * needs is in Postgres, which is what lets it be killed at any moment and replaced. On start
- * it looks for imports left `running` by a worker that did not come back and picks them up —
- * that is the whole of "resume", and it is why the acceptance criteria can kill this process
+ * it empties its own queues and then puts every unfinished import back on them — the three
+ * ways a restart used to eat a job, and the rule that replaces them, are in `reconcile.ts`.
+ * That is the whole of "resume", and it is why the acceptance criteria can kill this process
  * mid-download and expect the job to carry on without re-downloading anything.
  *
  * The `download` queue is consumed with a single local worker, so this process downloads one
@@ -14,14 +15,12 @@ import type { Job, PgBoss } from "pg-boss";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { serverEnv } from "#/server/env.ts";
-import { emit } from "#/server/services/events.ts";
 import {
   announce,
   failSettled,
   handOverToVerify,
   nextStepOfTrack,
   pauseForReview,
-  resumableImports,
   runImport,
   runStep,
   runTrackStep,
@@ -30,12 +29,8 @@ import {
   upstreamPolicyOf,
   type RunOutcome,
 } from "#/server/services/jobs/index.ts";
-import {
-  holdOf,
-  humanDelay,
-  remainingMs,
-  type UpstreamHold,
-} from "#/server/services/jobs/upstream.ts";
+import { holdOf, type UpstreamHold } from "#/server/services/jobs/upstream.ts";
+import { nonZero, reconcileImports, RECONCILE_INTERVAL_MS } from "#/worker/reconcile.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { beatWorker } from "#/server/services/status.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
@@ -51,14 +46,6 @@ const WORKER_BEAT_MS = 30_000;
  */
 const SCHEDULE_POLL_MS = 60_000;
 
-/**
- * The longest wait a resume will honour from `imports.next_attempt_at`.
- *
- * A row written by a process whose clock was hours ahead must not park an import for a day.
- * Two hours is comfortably past the largest backoff the default policy can produce, so the
- * cap only ever bites on a clock that is wrong.
- */
-const MAX_RESUME_WAIT_MS = 2 * 60 * 60 * 1000;
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
@@ -492,47 +479,46 @@ export async function startWorker(): Promise<Worker> {
   /* ---- resume whatever the last worker left behind ---- */
   //
   // The queues were emptied above, before the first consumer was registered. What is left to
-  // do is put the *imports* back on them, which is the whole of "resume".
-  const orphans = await resumableImports(db());
-  const now = new Date();
-  for (const orphan of orphans) {
-    /*
-     * A job that was waiting out a busy source keeps waiting.
-     *
-     * Its delayed message was deleted with the rest of the queue above, so without this the
-     * restart would depart immediately — straight back into the 503 the job was sitting out,
-     * and one attempt closer to the cap for nothing. `next_attempt_at` is on the row for
-     * exactly this, and the remaining wait is derived from it rather than restarted.
-     */
-    const waitMs = remainingMs(orphan.nextAttemptAt, now, MAX_RESUME_WAIT_MS);
-    log("resuming import", {
-      importId: orphan.id,
-      status: orphan.status,
-      step: orphan.step,
-      ...(waitMs > 0 ? { inSeconds: Math.round(waitMs / 1000) } : {}),
-    });
-    await emit(
-      {
-        importId: orphan.id,
-        type: "import.status",
-        message:
-          waitMs > 0
-            ? `Still waiting on a source; next try in ${humanDelay(waitMs)}.`
-            : `Resuming at ${orphan.step} after a worker restart.`,
-        data: { step: orphan.step },
-      },
-      db(),
-    );
-    if (orphan.step === QUEUES.download && waitMs === 0) {
-      await enqueueDownload(boss, { importId: orphan.id }, { priority: orphan.priority });
-    } else {
-      await enqueueImportStep(
-        boss,
-        { importId: orphan.id, reason: "resume" },
-        { priority: orphan.priority, startAfterSeconds: waitMs / 1000 },
-      );
-    }
-  }
+  // do is put the *imports* back on them, which is the whole of "resume". `reconcile.ts` owns
+  // the rule and the three reasons; this is the boot occurrence of it.
+  const boot = await reconcileImports(boss, { db: db(), trigger: "boot", log });
+  log("resume sweep", {
+    trigger: boot.trigger,
+    resumed: boot.resumed,
+    skipped: boot.skipped,
+    ...nonZero(boot.byReason),
+  });
+
+  /*
+   * …and again every two minutes, because a boot is not the only way a message goes missing.
+   *
+   * `retryLimit: 0` is the right policy — a half-done download must not restart itself — but
+   * it also means that a handler which dies without completing its job leaves nothing behind
+   * to try again, and the import would wait for the next deploy. That is exactly what the
+   * owner's external poller was covering, and it belongs in here.
+   *
+   * Three things keep it from becoming the bug it is meant to fix. It only looks at rows that
+   * have not moved for ten minutes, so it never races the work this same process is doing. It
+   * reads pg-boss's ledger before sending, so an import that already holds a message is left
+   * alone. And it starts only after the boot sweep has returned, so the two cannot interleave.
+   */
+  const reconciler = setInterval(() => {
+    void reconcileImports(boss, { db: db(), trigger: "periodic", log })
+      .then((report) => {
+        // Silent when it found nothing to do, which is every run on a healthy installation.
+        if (report.resumed === 0) return;
+        log("resume sweep", {
+          trigger: report.trigger,
+          resumed: report.resumed,
+          skipped: report.skipped,
+          ...nonZero(report.byReason),
+        });
+      })
+      .catch((error: unknown) => {
+        log("reconciliation sweep failed", { error: MMError.from(error).message });
+      });
+  }, RECONCILE_INTERVAL_MS);
+  reconciler.unref?.();
 
   // A bump of the tag schema is noticed here rather than by a person: the version the process
   // projects to has just been read, the library says which files are behind it, and §8's whole
@@ -559,7 +545,8 @@ export async function startWorker(): Promise<Worker> {
     fixtures: env.MM_FIXTURES,
     toolbox: toolbox().baseUrl,
     library: settings.libraryRoot === "" ? env.MM_LIBRARY_ROOT : settings.libraryRoot,
-    resumed: orphans.length,
+    resumed: boot.resumed,
+    resumedBy: nonZero(boot.byReason),
   });
 
   return {
@@ -568,6 +555,7 @@ export async function startWorker(): Promise<Worker> {
       shutdown.abort();
       clearInterval(heartbeat);
       clearInterval(rescheduler);
+      clearInterval(reconciler);
       // `graceful` lets the step that is running finish its current write before the
       // connection goes away; anything it did not reach is still in the database.
       await stopBoss(boss);

@@ -55,6 +55,28 @@ export const IMPORT_STATUSES = [
 ] as const;
 export type ImportStatus = (typeof IMPORT_STATUSES)[number];
 
+/**
+ * Who stopped a paused import — and therefore whether a reboot may start it again.
+ *
+ * `paused` answers "is it stopped"; it has never answered "who stopped it", and the two have
+ * opposite consequences at boot. A worker shutting down pauses whatever it was running so that
+ * the row stops claiming to be `running` (`runImport`, and every `blockedAs: "paused"` an abort
+ * produces); the owner pressing Pause means the opposite — *leave it alone*. Both wrote the same
+ * word, so the boot sweep could only ever resume everything, restarting imports somebody had
+ * deliberately stopped, or resume nothing, which is what it did.
+ *
+ * A column rather than a ninth status: `paused` is already public vocabulary — the Console
+ * chips, `/api/v1`'s filters, `mm jobs --status`, the MCP tools — and a `paused_by_worker`
+ * status would make every `=== "paused"` in the product wrong by omission. This is additive,
+ * and a reader that does not ask about it keeps the behaviour it has today.
+ *
+ * **Only meaningful while `status = 'paused'`.** Every transition *into* `paused` writes it;
+ * nothing reads it otherwise. The default on an unexplained pause is `user`, because the
+ * expensive mistake is restarting an import the owner stopped, never the reverse.
+ */
+export const PAUSED_BY = ["user", "worker"] as const;
+export type PausedBy = (typeof PAUSED_BY)[number];
+
 /** What the submitted URL turned out to be. */
 export const IMPORT_KINDS = ["album", "single", "playlist", "channel"] as const;
 export type ImportKind = (typeof IMPORT_KINDS)[number];

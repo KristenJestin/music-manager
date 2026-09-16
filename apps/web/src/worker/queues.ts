@@ -16,6 +16,8 @@
  * that say so in the log rather than pretending to work.
  */
 import { PgBoss } from "pg-boss";
+import { sql } from "drizzle-orm";
+import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { serverEnv } from "#/server/env.ts";
 
 export const QUEUES = {
@@ -132,8 +134,12 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
 /**
  * Ask for an import to be advanced.
  *
- * The `singletonKey` is what makes this safe to call from anywhere — the CLI, an SSE
- * reconnect, the end of a download — without ever queueing the same import twice.
+ * The `singletonKey` is the import id, so a delayed message can be replaced by name and the
+ * ledger can be read per import. It is **not** a uniqueness guarantee: on pg-boss 12 a
+ * `standard` queue carries no unique index on `singleton_key`, so the insert's `ON CONFLICT
+ * DO NOTHING` has nothing to conflict with and two sends are two rows. Anything that must send
+ * exactly one message per import — the reconciliation sweep — checks `importsWithLiveJobs`
+ * first rather than trusting this key.
  */
 export async function enqueueImportStep(
   boss: PgBoss,
@@ -151,8 +157,8 @@ export async function enqueueImportStep(
      * pg-boss holds the message until then, so the growing backoff costs no process and no
      * timer: the delay is a column in the same database everything else already lives in, and
      * a worker that dies during it loses nothing — `imports.next_attempt_at` still says when.
-     * `singletonKey` keeps its meaning: a Retry pressed while a job is waiting replaces the
-     * delayed message rather than queueing a second run of the same import.
+     * `singletonKey` keeps its meaning as a *name* for that delayed message, so a Retry
+     * pressed while a job is waiting can address it.
      */
     ...(delay > 0 ? { startAfter: delay } : {}),
   });
@@ -215,6 +221,47 @@ export async function enqueueWebhookDelivery(
     retryBackoff: true,
     expireInSeconds: 120,
   });
+}
+
+/** The three queues whose payload names an import. `webhook`, `retag`, `scan` do not. */
+export const IMPORT_QUEUES = [QUEUES.importStep, QUEUES.download, QUEUES.trackStep] as const;
+
+/**
+ * Which imports already have a message on one of the three import queues.
+ *
+ * This is the guard the reconciliation sweep needs and could not get from pg-boss. The
+ * obvious answer — "`singletonKey` is the import id, so a second send collapses into the
+ * first" — is **not true on pg-boss 12** for a `standard` queue, and `import.step` and
+ * `track.step` are both `standard`. The insert ends in `ON CONFLICT DO NOTHING`, and the only
+ * unique indexes on `singleton_key` are the ones a policy creates: `short` (one `created` job
+ * per key), `singleton` (one *active* job per key), `stately`, `exclusive`. A `standard` queue
+ * has none, so two identical sends are two rows. Even `download`, which is `singleton`,
+ * deduplicates only against an *active* job — two `created` ones are allowed.
+ *
+ * So the sweep asks the ledger instead of trusting the send. It is read once per sweep and
+ * applied to every candidate, which also makes the pass safe against a queue the boot purge
+ * did not empty: an import that still holds its message is skipped and counted, not sent a
+ * second one.
+ *
+ * `state < 'completed'` is pg-boss's own way of saying "not finished": the `job_state` enum is
+ * ordered `created < retry < active < completed < cancelled < failed`.
+ */
+export async function importsWithLiveJobs(db: Database = defaultDb()): Promise<Set<string>> {
+  const rows = await db.execute<{ import_id: string | null }>(sql`
+    select distinct data->>'importId' as import_id
+      from ${sql.raw(BOSS_SCHEMA)}.job
+     where name in (${sql.join(
+       IMPORT_QUEUES.map((name) => sql`${name}`),
+       sql`, `,
+     )})
+       and state < 'completed'
+       and data->>'importId' is not null
+  `);
+  const live = new Set<string>();
+  for (const row of rows) {
+    if (row.import_id !== null) live.add(row.import_id);
+  }
+  return live;
 }
 
 /**

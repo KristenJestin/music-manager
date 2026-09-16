@@ -688,6 +688,32 @@ première chose qui tourne, donc une erreur de schéma apparaît avant la premi�
 `get_status`. `docker compose logs worker` doit montrer `worker ready` avec la bonne URL de
 toolbox.
 
+**Un déploiement a-t-il perdu le lot en cours ?** Non, et il ne faut plus de veilleur externe
+pour s'en assurer. Au démarrage le worker vide ses propres files — un `download` fantôme
+tiendrait sinon l'unique créneau six heures — puis remet en file **tout import non terminé qui
+n'attend pas une décision humaine**, exactement un message par import. Trois cas, et le journal
+de démarrage les compte séparément :
+
+```
+{"message":"resume sweep","trigger":"boot","resumed":12,"skipped":0,
+ "paused-by-shutdown":2,"waiting-upstream-due":9,"running-orphan":1}
+```
+
+- `paused-by-shutdown` — le worker précédent les avait mis en pause en s'arrêtant. Une pause
+  demandée par vous (bouton Pause, `mm pause`) porte `paused_by = 'user'` et **n'est jamais**
+  reprise par un redémarrage : c'est la seule différence entre les deux, et elle est en base.
+- `waiting-upstream-due` — ils attendaient une source occupée. Le message différé a disparu
+  avec la file ; l'attente restante est relue dans `imports.next_attempt_at`, donc une échéance
+  déjà passée repart tout de suite et une échéance future repart à l'heure dite.
+- `running-orphan` — le worker a été tué en plein travail. Rien ne les aurait relancés : tout
+  est mis en file avec `retryLimit: 0`, pour qu'un téléchargement à moitié fait ne reparte pas
+  en aveugle.
+
+Chaque import reprend aussi une ligne de journal qui dit laquelle des trois raisons le
+concerne, visible sur sa page. Le même balayage repasse toutes les deux minutes, pour le cas
+d'un message perdu par un handler mort en vol ; il ne regarde que les lignes qui n'ont pas bougé
+depuis dix minutes et ne remet jamais en file un import qui détient déjà un message.
+
 **Tout échoue en `422` sur le toolbox.** Les deux images ne viennent pas du même commit. Voir
 §4 ; Tools affiche la comparaison des hash de contrat.
 
