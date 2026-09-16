@@ -14,7 +14,13 @@ import { ReviewCard } from "#/components/review-card.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
-import { Skeleton, SkeletonPage, SkeletonPageHeader } from "#/components/skeleton.tsx";
+import {
+  Skeleton,
+  SkeletonBadge,
+  SkeletonLine,
+  SkeletonPage,
+  SkeletonPageHeader,
+} from "#/components/skeleton.tsx";
 import { humanise } from "#/lib/format.ts";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { resolveItem, type InboxListPayload, type InboxOption } from "#/server/functions/inbox.ts";
@@ -38,29 +44,29 @@ export function ReviewScreenSkeleton() {
               key={index}
               className="flex items-center gap-2.5 border-b border-line px-3 py-2.5 last:border-b-0"
             >
-              <Skeleton className="size-9 shrink-0 rounded-sm" />
-              <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Skeleton className="h-3.5 w-3/4" />
-                <Skeleton className="h-2.5 w-1/2" />
+              <Skeleton tone="plate" className="size-9 shrink-0 rounded-sm" />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <SkeletonLine text="xs" bar="h-3" width="w-3/4" />
+                <SkeletonLine text="2xs" bar="h-2.5" width="w-1/2" />
               </span>
-              <Skeleton className="h-5 w-16 shrink-0 rounded-xl" />
+              <SkeletonBadge width="w-16" />
             </div>
           ))}
         </nav>
         <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface-1 p-3.5">
           <div className="review-card-grid gap-3">
-            <Skeleton className="aspect-square w-14 rounded-sm" />
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-3 w-3/4" />
+            <Skeleton tone="plate" className="aspect-square w-14 rounded-sm" />
+            <div className="flex flex-col">
+              <SkeletonLine text="base" bar="h-3.5" width="w-1/2" />
+              <SkeletonLine text="sm" bar="h-3" width="w-3/4" />
             </div>
           </div>
           {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-16 w-full rounded-lg" />
+            <Skeleton key={index} tone="plate" className="h-16 w-full rounded-lg" />
           ))}
           <div className="flex justify-end gap-2">
-            <Skeleton className="h-8 w-24 rounded-lg" />
-            <Skeleton className="h-8 w-24 rounded-lg" />
+            <Skeleton tone="plate" className="h-8 w-24 rounded-lg" />
+            <Skeleton tone="plate" className="h-8 w-24 rounded-lg" />
           </div>
         </div>
       </div>
