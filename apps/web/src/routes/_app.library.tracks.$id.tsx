@@ -25,7 +25,8 @@ import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/field-editor.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
 import { MbLink } from "#/components/mb-link.tsx";
-import { bytes, dateTime, mmss, pct } from "#/lib/format.ts";
+import { artistKey } from "#/lib/artist-links.ts";
+import { bytes, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import { fetchTrack, redownload, removeTrack } from "#/server/functions/library.ts";
 import { setTrackField, unlockField } from "#/server/functions/overrides.ts";
 import { runRelocate } from "#/server/functions/relocate.ts";
@@ -66,6 +67,16 @@ function render(value: unknown): string {
   return JSON.stringify(value);
 }
 
+/** The first string of a document value — MBIDs are stored one-per-artist, in credit order. */
+function firstString(value: unknown): string | null {
+  if (typeof value === "string" && value !== "") return value;
+  if (Array.isArray(value)) {
+    const first = value.find((entry) => typeof entry === "string" && entry !== "");
+    return typeof first === "string" ? first : null;
+  }
+  return null;
+}
+
 function TrackPage() {
   const detail = Route.useLoaderData();
   const { id } = Route.useParams();
@@ -87,6 +98,17 @@ function TrackPage() {
 
   const { track, album, document, source, job } = detail;
   const fields = document === null ? [] : entriesOf(document);
+
+  /*
+   * The artist, as a link to their own page.
+   *
+   * This used to be plain text, because there was no artist page to point it at. There is one
+   * now, and it is addressed by the MusicBrainz artist id when we hold one — so the document's
+   * `musicbrainz_artistid` is preferred over the credited string, and a rename of the credit
+   * leaves the link pointing at the same person.
+   */
+  const artistName = track.artist ?? album?.albumArtist ?? null;
+  const artistMbid = firstString(document?.fields["musicbrainz_artistid"]?.value);
 
   const act = (label: string, run: () => Promise<string>): void => {
     setBusy(label);
@@ -164,21 +186,16 @@ function TrackPage() {
             {track.title}
           </h1>
           <div className="text-xs text-fg-1">
-            {/*
-             * The artist goes to the album grid filtered by name rather than to an artist page,
-             * because there is no artist page: `/library/artists` is a list and `/library` is
-             * the only view that answers "what else do I have by them".
-             */}
-            {track.artist === null ? (
+            {artistName === null ? (
               "unknown artist"
             ) : (
               <Link
-                to="/library"
-                search={{ q: track.artist }}
-                className="hover:text-primary"
+                to="/library/artists/$id"
+                params={{ id: artistKey({ name: artistName, mbid: artistMbid }) }}
                 data-testid="track-artist-link"
+                className="text-primary"
               >
-                {track.artist}
+                {artistName}
               </Link>
             )}{" "}
             · <span className="font-mono">{mmss(track.duration)}</span> · {track.format ?? "?"} ·{" "}
@@ -427,7 +444,8 @@ function TrackPage() {
                 },
                 {
                   label: "Track",
-                  value: <MbLink kind="track" mbid={track.trackMbid} />,
+                  // MusicBrainz has no page for a release-track id, so this one is text.
+                  value: <span className="font-mono text-2xs">{short(track.trackMbid, 36)}</span>,
                 },
                 {
                   label: "Album",

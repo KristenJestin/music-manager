@@ -43,13 +43,22 @@ import {
   type LibraryTrack,
 } from "#/server/db/schema/index.ts";
 import {
+  artistLinks,
+  artistProfile,
+  type ArtistLink,
+  type ArtistProfile,
+} from "#/lib/artist-links.ts";
+import {
   ALBUM_FILTERS,
   TRACK_FILTERS,
   type AlbumFilter,
   type AlbumSort,
   type TrackFilter,
 } from "#/lib/library-filters.ts";
+import { albumSourceLink, webpageUrlOf, type AlbumSourceLink } from "#/lib/source-url.ts";
+import { sourcesConfig } from "#/server/integrations/config.ts";
 import { containerPath, hostPath } from "#/server/paths.ts";
+import { artistShelf, type ArtistShelf } from "#/server/services/discography.ts";
 import { recountAlbum } from "#/server/services/album-counters.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { retryStep } from "#/server/services/jobs/index.ts";
@@ -250,6 +259,13 @@ export interface AlbumDetail {
   /** The album-scope fields the Metadata tab lets you type into, with their provenance. */
   readonly albumFields: readonly AlbumFieldRow[];
   readonly imports: readonly { id: string; url: string; status: string; createdAt: string }[];
+  /**
+   * Where the audio came from on YouTube: the submitted playlist, or the first video.
+   *
+   * `null` when the provenance names nothing openable — a library scanned off disk, or an
+   * import whose URL was a `fixture://` one. See `lib/source-url.ts` for the rule.
+   */
+  readonly source: AlbumSourceLink | null;
   readonly decision: MatchingDecision | null;
   readonly currentSchema: number;
   readonly schemaOverridden: boolean;
@@ -378,6 +394,27 @@ export async function albumDetail(
     };
   });
 
+  /*
+   * The YouTube link this album came from.
+   *
+   * No extra query: the import rows and the `import_tracks` behind these files are already
+   * read above, for the imports list and for the video ids the file column links to. The
+   * submitted URL is the *newest* import's — `importBehindAlbum` picks the same one — because
+   * that is the job whose release the rest of this page describes. The videos are taken in
+   * track order, so the fallback is the album's first track and not an arbitrary row.
+   */
+  const newestImport = [...jobs].sort((a, b) => a.id.localeCompare(b.id)).at(-1) ?? null;
+  const source = albumSourceLink(
+    newestImport?.url ?? null,
+    rows.map((row) =>
+      row.importTrackId === null
+        ? null
+        : (webpageUrlOf(bySource.get(row.importTrackId)?.raw) ??
+          bySource.get(row.importTrackId)?.url ??
+          null),
+    ),
+  );
+
   /* The matching decision that chose this release, if one was recorded. */
   const decision =
     importIds.length === 0
@@ -415,6 +452,7 @@ export async function albumDetail(
       status: job.status,
       createdAt: job.createdAt.toISOString(),
     })),
+    source,
     decision:
       decision === null
         ? null
@@ -891,6 +929,194 @@ export async function artistList(
         tracks: byName.get(row.name) ?? 0,
       };
     });
+}
+
+/* ------------------------------------------------------------------ */
+/* one artist                                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `/library/artists/:id` — everything the artist page draws, in one read.
+ *
+ * ## The addressing
+ *
+ * `:id` is **the MusicBrainz artist id when we have one, and the credited name when we do
+ * not**, and this function resolves either. Two facts force that pair rather than a single
+ * key:
+ *
+ *  - only the MBID survives a rename. Correct an `ALBUMARTIST` override and relocate, or let
+ *    MusicBrainz fix a credit and re-tag, and `library_albums.album_artist` — with the folder
+ *    under it — becomes a different string. A name in the URL is a bookmark that rots on the
+ *    day the library gets *better*, which is the wrong day to break a link on.
+ *  - but a large part of a real library has no MBID at all. An untagged YouTube import never
+ *    resolved an artist, so `artists_cache` has no row for it, and an MBID-only page would be
+ *    a dead click from precisely the rows the list already marks "not linked".
+ *
+ * So the id is preferred and the name is the fallback, which is exactly what the list writes
+ * into its links. A bookmark taken after the artist was linked keeps working through a
+ * rename; one taken before is no worse than the link it replaced.
+ *
+ * The albums are still gathered **by name**, because `library_albums` records a credit string
+ * and not an artist id — the folders are named after that string, and a page that disagreed
+ * with the directory tree would be describing a different library (the same reasoning as
+ * `artistList`). Resolving an MBID therefore means reading the current name out of
+ * `artists_cache` first, which is what makes the rename survivable at all.
+ */
+export interface ArtistDetail {
+  /** The credited name, as the library folders spell it. */
+  readonly name: string;
+  readonly mbid: string | null;
+  readonly sortName: string | null;
+  readonly country: string | null;
+  readonly imageUrl: string | null;
+  /** From `artists_cache.payload`: the type, the disambiguation, the life span. */
+  readonly profile: ArtistProfile;
+  /** The url-rels MusicBrainz already gave us, labelled. Empty when none were stored. */
+  readonly links: readonly ArtistLink[];
+  readonly albums: readonly AlbumCard[];
+  readonly trackCount: number;
+  readonly currentSchema: number;
+  /**
+   * The MusicBrainz discography against the library — **only when it was already cached**.
+   * `null` means "nobody has browsed this artist yet", and the page offers the button.
+   */
+  readonly shelf: ArtistShelf | null;
+}
+
+/** The canonical `album_artist` this key names, or `null` when the library has no such artist. */
+async function resolveArtistName(key: string, db: Database): Promise<string | null> {
+  const trimmed = key.trim();
+  if (trimmed === "") return null;
+
+  const credited = await db.selectDistinct({ name: libraryAlbums.albumArtist }).from(libraryAlbums);
+  const byLower = new Map(credited.map((row) => [row.name.toLowerCase(), row.name]));
+
+  // A name, spelled as the folders spell it (or in any case): that is the whole answer.
+  const direct = byLower.get(trimmed.toLowerCase());
+  if (direct !== undefined) return direct;
+
+  // An MBID: read the name the cache currently holds, and take the credit that matches it.
+  const [cached] = await db
+    .select({ name: artistsCache.name })
+    .from(artistsCache)
+    .where(eq(artistsCache.artistMbid, trimmed))
+    .limit(1);
+  if (cached === undefined) return null;
+  return byLower.get(cached.name.toLowerCase()) ?? cached.name;
+}
+
+export async function artistDetail(
+  key: string,
+  db: Database = defaultDb(),
+): Promise<ArtistDetail | null> {
+  const name = await resolveArtistName(key, db);
+  if (name === null) return null;
+
+  const settings = await loadSettings(db);
+
+  const [cached] = await db
+    .select()
+    .from(artistsCache)
+    .where(sql`lower(${artistsCache.name}) = lower(${name})`)
+    .limit(1);
+
+  const owned = await db
+    .select({ id: libraryAlbums.id })
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.albumArtist, name));
+  const { rows, currentSchema } = await scoreLibrary({
+    db,
+    settings,
+    albumIds: owned.map((row) => row.id),
+  });
+
+  const albums: AlbumCard[] = rows
+    .map(({ album, quality }) => ({
+      id: album.id,
+      title: album.title,
+      albumArtist: album.albumArtist,
+      year: album.year,
+      folder: album.folder,
+      coverPath: album.coverPath,
+      releaseMbid: album.releaseMbid,
+      trackCount: album.trackCount,
+      presentCount: album.presentCount,
+      addedAt: album.createdAt.toISOString(),
+      quality,
+    }))
+    // Oldest first: a discography reads as a chronology, and an album whose year is unknown
+    // goes last rather than pretending to be from year zero.
+    .sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999) || a.title.localeCompare(b.title));
+
+  /*
+   * The comparison with MusicBrainz, **from the raw cache only** (`offline: true`).
+   *
+   * Opening a page must never spend a MusicBrainz request: the rate limit is one request a
+   * second for the whole installation and it belongs to the import pipeline, not to a
+   * browser. An artist Discover has already synced — or that somebody pressed "Compare with
+   * MusicBrainz" for once — is a single indexed read of `source_cache`, and the section is
+   * free on every page view after that. Anyone else gets the button.
+   */
+  const mbid = cached?.artistMbid ?? null;
+  let shelf: ArtistShelf | null = null;
+  if (mbid !== null) {
+    shelf = await artistShelf({
+      ctx: { db, config: sourcesConfig(settings), offline: true, refresh: false },
+      name,
+      artistMbid: mbid,
+      settings,
+      db,
+    });
+  }
+
+  return {
+    name,
+    mbid,
+    sortName: cached?.sortName ?? null,
+    country: cached?.country ?? null,
+    imageUrl: cached?.imageUrl ?? null,
+    profile: artistProfile(cached?.payload ?? null),
+    links: artistLinks(cached?.payload ?? null),
+    albums,
+    trackCount: albums.reduce((total, album) => total + album.presentCount, 0),
+    currentSchema,
+    shelf,
+  };
+}
+
+/**
+ * The same shelf, **allowed to ask MusicBrainz** — what the button on the page calls.
+ *
+ * One browse request for the whole discography, cached under the key `discographyGaps` and
+ * `addArtistDiscography` already use, so the next page view and the next Discover sync are
+ * both free. Deliberate, opt-in, and paid for once: that is the trade this section is worth.
+ */
+export async function refreshArtistShelf(
+  key: string,
+  db: Database = defaultDb(),
+): Promise<ArtistShelf | null> {
+  const name = await resolveArtistName(key, db);
+  if (name === null) throw new MMError("NOT_FOUND", `No artist named ${key} in the library.`);
+
+  const [cached] = await db
+    .select()
+    .from(artistsCache)
+    .where(sql`lower(${artistsCache.name}) = lower(${name})`)
+    .limit(1);
+  if (cached === undefined) {
+    throw new MMError("NOT_FOUND", `${name} has no MusicBrainz artist id yet.`, {
+      hint: "An artist gets one when an import of theirs is matched against a MusicBrainz release.",
+    });
+  }
+
+  const settings = await loadSettings(db);
+  return await artistShelf({
+    ctx: { db, config: sourcesConfig(settings), offline: false, refresh: false },
+    name,
+    artistMbid: cached.artistMbid,
+    settings,
+    db,
+  });
 }
 
 /* ------------------------------------------------------------------ */

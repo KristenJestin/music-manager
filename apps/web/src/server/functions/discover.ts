@@ -160,6 +160,55 @@ export const discoverImport = createServerFn({ method: "POST", strict: STRICT })
   });
 
 /**
+ * "Import…" on the artist page, for a release group the library does not have.
+ *
+ * The same four moves as `discoverImport` and deliberately so — find a YouTube source for
+ * *artist + title*, create the import, park it, preselect the release the release-group names —
+ * but keyed off a MusicBrainz release group rather than off a `discover_items` row. The artist
+ * page computes its gaps live against the raw cache and never writes a Discover item, so there
+ * is no item id to hand over; inventing one to satisfy the existing function would put rows in
+ * a table nobody asked to sync.
+ */
+export const importReleaseGroup = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z.object({
+      artist: z.string().min(1),
+      title: z.string().min(1),
+      releaseGroupMbid: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data }): Promise<DiscoverImportTarget> => {
+    try {
+      const source = await resolveDiscoverSource({
+        kind: "album",
+        artist: data.artist,
+        album: data.title,
+      });
+      if (source.url === "") {
+        throw new MMError("NOT_FOUND", source.label, {
+          hint: "Paste a YouTube URL into the wizard instead.",
+          action: "Open the wizard",
+          status: 404,
+        });
+      }
+
+      const created = await createFromUrl(source.url, { db: db() });
+      await pauseImport(created.job.id, "Waiting for the import wizard (from an artist).", db());
+      const release = await preselectFor(created.job.id, data.releaseGroupMbid);
+      return {
+        importId: created.job.id,
+        step: 2,
+        release,
+        found: source.found,
+        label: source.label,
+      };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
  * Which release the wizard should open on.
  *
  * The matcher is run once here so the answer is a real candidate rather than a guess: a

@@ -19,13 +19,12 @@ import { Button } from "#/components/ui/button.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";
 
 import { Callout } from "#/components/callout.tsx";
-import { albumCoverSources, Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
-import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
+import { scoreTone } from "#/components/status-badge.tsx";
+import { AlbumCard } from "#/components/library/album-card.tsx";
 import { FilterChips } from "#/components/library/filter-chips.tsx";
-import { SchemaBadge } from "#/components/library/schema.tsx";
 import { pct } from "#/lib/format.ts";
 import { ALBUM_FILTERS, ALBUM_SORTS } from "#/lib/library-filters.ts";
 import { fetchAlbums } from "#/server/functions/library.ts";
@@ -241,94 +240,14 @@ function Albums() {
           data-testid="album-grid"
           className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6"
         >
-          {albums.map((album) => {
-            const score = scoreOf(album.quality);
-            // Three states, not two. An album whose total came from the release (or from
-            // tracks that agree on `totaltracks`) can be called incomplete; one whose
-            // `track_count` is just our own file count cannot be called anything, and saying
-            // `5/5` there is the lie this badge exists to stop.
-            const totalKnown = album.quality.totalKnown;
-            const incomplete = totalKnown && album.presentCount < album.trackCount;
-            return (
-              <Link
-                key={album.id}
-                to="/library/albums/$id"
-                params={{ id: album.id }}
-                data-testid="album-card"
-                data-album-title={album.title}
-                className="group/album flex flex-col gap-1.5"
-              >
-                <div className="relative">
-                  {/* The `cover.jpg` this library actually holds, then the Cover Art Archive,
-                      then the gradient — the same order everywhere an album is drawn
-                      (owner review C10). */}
-                  <Cover
-                    size="full"
-                    seed={album.id}
-                    label={album.title}
-                    src={albumCoverSources(album)}
-                  />
-                  {incomplete ? (
-                    <ToneBadge tone="warn" className="absolute top-1.5 left-1.5">
-                      {album.presentCount}/{album.trackCount}
-                    </ToneBadge>
-                  ) : null}
-                  {totalKnown ? null : (
-                    <ToneBadge
-                      tone="muted"
-                      data-testid="album-total-unknown"
-                      className="absolute top-1.5 left-1.5"
-                      title="No release and no track totals in the tags: how many tracks this album should have is unknown."
-                    >
-                      {album.presentCount}/?
-                    </ToneBadge>
-                  )}
-                  {/*
-                    A file that has gone, which is not the same as a track never imported
-                    (DRIVE-1 §B5): the scan writes `missing_at`, so the grid can say it
-                    without stat-ing hundreds of albums.
-                  */}
-                  {album.quality.missingCount > 0 ? (
-                    <ToneBadge
-                      tone="danger"
-                      data-testid="album-missing"
-                      className="absolute top-1.5 right-1.5"
-                      title="The last library scan could not find these files on disk."
-                    >
-                      {album.quality.missingCount} missing
-                    </ToneBadge>
-                  ) : null}
-                  {album.quality.untagged ? (
-                    <ToneBadge
-                      tone="info"
-                      className="absolute right-1.5 bottom-1.5"
-                      title="Imported from the YouTube tags alone, with no MusicBrainz release."
-                    >
-                      untagged
-                    </ToneBadge>
-                  ) : null}
-                </div>
-                <div className="truncate text-xs font-medium group-hover/album:text-primary">
-                  {album.title}
-                </div>
-                <div className="truncate text-2xs text-fg-2">
-                  {album.albumArtist}
-                  {album.year === null ? "" : ` · ${String(album.year)}`}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <ToneBadge tone={scoreTone(score)} title="Metadata completeness">
-                    {pct(score)}
-                  </ToneBadge>
-                  {album.quality.filesBehind > 0 ? (
-                    <SchemaBadge
-                      version={album.quality.schemaVersion}
-                      current={stats.currentSchema}
-                    />
-                  ) : null}
-                </div>
-              </Link>
-            );
-          })}
+          {albums.map((album) => (
+            <AlbumCard
+              key={album.id}
+              album={album}
+              score={scoreOf(album.quality)}
+              currentSchema={stats.currentSchema}
+            />
+          ))}
         </div>
       )}
 

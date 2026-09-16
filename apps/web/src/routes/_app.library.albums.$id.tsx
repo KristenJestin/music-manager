@@ -19,7 +19,9 @@ import { PROFILE_IDS } from "@mm/domain";
 import {
   Disc3,
   Download,
+  ExternalLink,
   Image as ImageIcon,
+  ListVideo,
   Lock,
   Play,
   Sparkles,
@@ -32,7 +34,7 @@ import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
-import { MbLink, type MbKind } from "#/components/mb-link.tsx";
+import { MbLink, type MbEntity } from "#/components/mb-link.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { PlayButton } from "#/components/play-button.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
@@ -44,6 +46,7 @@ import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/fi
 import { SchemaBadge, SchemaHeading, TagDiff } from "#/components/library/schema.tsx";
 import { TagMapTable, type FormatColumns } from "#/components/library/tag-map-table.tsx";
 import { VerifyTab } from "#/components/library/verify-tab.tsx";
+import { artistKey } from "#/lib/artist-links.ts";
 import { bytes, clockTime, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import {
   chooseCover,
@@ -239,9 +242,16 @@ function Album() {
             {album.album.title}
           </h1>
           <div className="text-xs text-fg-1">
+            {/* Their own page, keyed on the MBID the release credited when there is one. */}
             <Link
-              to="/library/artists"
-              search={{ q: album.album.albumArtist }}
+              to="/library/artists/$id"
+              params={{
+                id: artistKey({
+                  name: album.album.albumArtist,
+                  mbid: album.identifiers.artistMbid,
+                }),
+              }}
+              data-testid="album-artist-link"
               className="text-primary"
             >
               {album.album.albumArtist}
@@ -305,6 +315,33 @@ function Album() {
             <ToneBadge outline>{bytes(album.sizeBytes)}</ToneBadge>
             <span className="font-mono text-2xs text-fg-3">{album.album.folder}</span>
           </div>
+          {/*
+            Back to where the audio came from.
+            The provenance was already in the rows — `imports.url` is what was submitted, and
+            each `import_tracks.raw` is the yt-dlp entry — and neither was ever shown, so an
+            album's own YouTube playlist was three clicks and a copy-paste away. The playlist
+            wins when the submitted URL is one (`list=` / `OLAK5uy_…`), and the first track's
+            video is the fallback, which is also the answer for a single and for anything
+            migrated from v1. Nothing at all when the provenance names no web address.
+          */}
+          {album.source === null ? null : (
+            <a
+              href={album.source.url}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="album-source-link"
+              data-source-kind={album.source.kind}
+              aria-label={album.source.label}
+              title={album.source.url}
+              className="mt-2 inline-flex items-center gap-1.5 text-2xs text-fg-2 hover:text-primary"
+            >
+              <ListVideo className="size-3.5" aria-hidden="true" />
+              {album.source.kind === "playlist"
+                ? "Source: the YouTube playlist this album was imported from"
+                : "Source: the YouTube video this album was imported from"}
+              <ExternalLink className="size-3" aria-hidden="true" />
+            </a>
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button
@@ -1127,7 +1164,7 @@ function CompareTab({
 
 function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
   const ids = album.identifiers;
-  const mb = (kind: MbKind, id: string | null) => <MbLink kind={kind} mbid={id} />;
+  const mb = (kind: MbEntity, id: string | null) => <MbLink kind={kind} mbid={id} />;
 
   return (
     <div className="grid gap-3 lg:grid-cols-2">
