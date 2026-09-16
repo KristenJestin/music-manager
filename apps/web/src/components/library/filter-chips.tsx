@@ -23,7 +23,15 @@ export interface FilterChip<T extends string> {
 
 export interface FilterChipsProps<T extends string> {
   readonly chips: readonly FilterChip<T>[];
-  readonly active: T;
+  /**
+   * The value currently in the URL — `string`, not `T`.
+   *
+   * A page may legitimately be showing a filter that has no chip: `/imports?status=paused` is
+   * a valid link and lights none of them, which is the honest rendering of "you are looking at
+   * something narrower than any of these buttons offers". Requiring `T` here would make that
+   * URL a type error at the call site rather than a lit chip fewer on screen.
+   */
+  readonly active: string;
   /**
    * Where one chip points, as `<Link>` props.
    *
@@ -62,6 +70,8 @@ export function FilterChips<T extends string>({
            * query string is one of several encodings of it.
            */
           data-active={chip.value === active ? "true" : "false"}
+          // The same fact for a screen reader, which cannot see that one chip is amber.
+          aria-current={chip.value === active ? "page" : undefined}
           className={cn(
             "inline-flex h-6 items-center gap-1.5 rounded-xl border border-line-strong bg-surface-2 px-2.5 text-xs text-fg-1 hover:bg-surface-3",
             chip.value === active && "border-primary bg-primary-soft text-primary",

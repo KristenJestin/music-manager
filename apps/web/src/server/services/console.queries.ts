@@ -251,6 +251,62 @@ export async function jobCounts(
   return counts;
 }
 
+/**
+ * Just the numbers that move, for rows already on screen.
+ *
+ * The Jobs list re-reads this when the journal says one of its imports did something. Two
+ * queries over the ids of one page: the import rows themselves, and one grouped tally. It
+ * exists so that live progress does not have to mean re-running the loader, which would
+ * re-sort and re-page the table under the reader every time a track finished.
+ */
+export interface JobProgressRow {
+  readonly id: string;
+  readonly status: ImportStatus;
+  readonly step: StepName;
+  readonly tracksDone: number;
+  readonly tracksTotal: number;
+  readonly updatedAt: string;
+}
+
+export async function jobProgress(
+  ids: readonly string[],
+  db: Database = defaultDb(),
+): Promise<readonly JobProgressRow[]> {
+  if (ids.length === 0) return [];
+  const wanted = [...ids];
+
+  const [rows, tallies] = await Promise.all([
+    db
+      .select({
+        id: imports.id,
+        status: imports.status,
+        step: imports.step,
+        updatedAt: imports.updatedAt,
+      })
+      .from(imports)
+      .where(inArray(imports.id, wanted)),
+    db
+      .select({
+        importId: importTracks.importId,
+        total: count(),
+        done: sql<number>`count(*) filter (where ${importTracks.state} in ('placed','done','skipped'))`,
+      })
+      .from(importTracks)
+      .where(inArray(importTracks.importId, wanted))
+      .groupBy(importTracks.importId),
+  ]);
+
+  const byId = new Map(tallies.map((row) => [row.importId, row]));
+  return rows.map((row) => ({
+    id: row.id,
+    status: row.status,
+    step: row.step,
+    tracksDone: Number(byId.get(row.id)?.done ?? 0),
+    tracksTotal: Number(byId.get(row.id)?.total ?? 0),
+    updatedAt: row.updatedAt.toISOString(),
+  }));
+}
+
 /* ------------------------------------------------------------------ */
 /* what the worker is actually on                                      */
 /* ------------------------------------------------------------------ */
