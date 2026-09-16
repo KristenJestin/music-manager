@@ -634,7 +634,21 @@ export interface TrackListPayload {
  * database the tag map.
  */
 export async function trackList(
-  options: { search?: string; filter?: TrackFilter; limit?: number; offset?: number } = {},
+  options: {
+    search?: string;
+    filter?: TrackFilter;
+    /**
+     * One album's tracks only.
+     *
+     * Applied *before* `limit`/`offset`, which is the whole reason it lives here: `/api/v1`
+     * used to narrow the page it had already been given, so `total` described the library and
+     * the rows described one album, and a client paging on those two numbers walked off the
+     * end of a list that was never that long.
+     */
+    albumId?: string;
+    limit?: number;
+    offset?: number;
+  } = {},
   db: Database = defaultDb(),
 ): Promise<TrackListPayload> {
   const settings = await loadSettings(db);
@@ -703,6 +717,7 @@ export async function trackList(
   const filtered = rows.filter(
     (row) =>
       passes(row, options.filter ?? "all") &&
+      (options.albumId === undefined || row.albumId === options.albumId) &&
       (search === "" ||
         row.title.toLowerCase().includes(search) ||
         (row.artist ?? "").toLowerCase().includes(search) ||
