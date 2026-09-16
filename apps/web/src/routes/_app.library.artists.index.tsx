@@ -8,21 +8,21 @@
  * says what it knows and does not guess.
  */
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { ExternalLink } from "lucide-react";
 
 import { artistImageSources, Cover } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
+import { MbLink } from "#/components/mb-link.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { SearchInput } from "#/components/search-input.tsx";
-import { short } from "#/lib/format.ts";
+import { artistKey } from "#/lib/artist-links.ts";
 import type { ArtistRow } from "#/server/services/library.ts";
 import { fetchArtists } from "#/server/functions/library.ts";
 
 const search = z.object({ q: z.string().default("") });
 
-export const Route = createFileRoute("/_app/library/artists")({
+export const Route = createFileRoute("/_app/library/artists/")({
   validateSearch: search,
   loaderDeps: ({ search: params }) => params,
   loader: async ({ deps }) => await fetchArtists({ data: { search: deps.q } }),
@@ -53,7 +53,20 @@ function Artists() {
     {
       key: "name",
       header: "Artist",
-      cell: (row) => <span className="font-medium">{row.name}</span>,
+      cell: (row) => (
+        <Link
+          to="/library/artists/$id"
+          params={{ id: artistKey(row) }}
+          data-testid="artist-link"
+          className="font-medium hover:text-primary"
+          onClick={(event) => {
+            // The row navigates to the same place; letting both fire would push two entries.
+            event.stopPropagation();
+          }}
+        >
+          {row.name}
+        </Link>
+      ),
     },
     { key: "albums", header: "Albums", numeric: true, cell: (row) => row.albums },
     { key: "tracks", header: "Tracks", numeric: true, cell: (row) => row.tracks },
@@ -70,23 +83,7 @@ function Artists() {
     {
       key: "mbid",
       header: "MBID",
-      cell: (row) =>
-        row.mbid === null ? (
-          <span className="font-mono text-2xs text-fg-3">not linked</span>
-        ) : (
-          <a
-            href={`https://musicbrainz.org/artist/${row.mbid}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 font-mono text-2xs text-fg-3 hover:text-primary"
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
-          >
-            {short(row.mbid)}
-            <ExternalLink className="size-3" aria-hidden="true" />
-          </a>
-        ),
+      cell: (row) => <MbLink kind="artist" mbid={row.mbid} truncate stopPropagation />,
     },
   ];
 
@@ -118,10 +115,7 @@ function Artists() {
           rows={artists}
           rowKey={(row) => row.name}
           onRowClick={(row) => {
-            void navigate({
-              to: "/library",
-              search: { q: row.name, filter: "all", sort: "artist", profile: "global" },
-            });
+            void navigate({ to: "/library/artists/$id", params: { id: artistKey(row) } });
           }}
           empty="No artist yet: the library is empty."
         />

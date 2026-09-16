@@ -239,3 +239,68 @@ export function gapReason(gap: DiscographyGap, windowDays: number): string {
   const window = windowDays === 30 ? "this month" : `in the last ${String(windowDays)} days`;
   return `you have ${String(gap.have)} of ${String(gap.total)} — played ${String(gap.plays)}× ${window}`;
 }
+
+/* ------------------------------------------------------------------ */
+/* one artist, for their own page                                      */
+/* ------------------------------------------------------------------ */
+
+/** The same comparison as a Discover gap, for a single artist, said as a shelf. */
+export interface ArtistShelf {
+  readonly artistMbid: string;
+  /** Release-groups of the accepted types the library has. */
+  readonly have: number;
+  /** Release-groups of the accepted types MusicBrainz knows about. */
+  readonly total: number;
+  readonly missing: readonly MissingReleaseGroup[];
+  /** When MusicBrainz's answer was last fetched — the page says so, so nobody guesses. */
+  readonly fetchedAt: string;
+  /** The cached answer is past its TTL and could not be refreshed. */
+  readonly stale: boolean;
+}
+
+/**
+ * One artist's shelf against MusicBrainz, **from the cache when the caller says so**.
+ *
+ * This is `discographyGaps` for a single artist and without the play counts: the artist page
+ * knows who it is about, so there is nothing to rank and nothing to read from `signals`. The
+ * arithmetic is the same `computeGaps` the Discover page is proven on, so the two screens
+ * cannot disagree about what "you have 3 of 6" means.
+ *
+ * `ctx.offline` is the whole design of the section. Called with `offline: true` it is a single
+ * indexed read of `source_cache` and **cannot** make a request: an artist MusicBrainz has
+ * already been browsed for — every artist Discover has synced, and every artist somebody has
+ * pressed the button for once — renders the comparison for free on every later page view. An
+ * artist nobody has browsed is a cache miss, which `cached` reports as an error, and `null` is
+ * the honest answer: the page then offers the button rather than quietly spending a request
+ * because somebody opened a page.
+ */
+export async function artistShelf(options: {
+  readonly ctx: SourceContext;
+  readonly name: string;
+  readonly artistMbid: string;
+  readonly settings: Settings;
+  readonly db?: Database;
+}): Promise<ArtistShelf | null> {
+  const db = options.db ?? defaultDb();
+  let answer: Awaited<ReturnType<typeof browseReleaseGroupsByArtist>>;
+  try {
+    answer = await browseReleaseGroupsByArtist(options.ctx, options.artistMbid, { limit: 100 });
+  } catch {
+    // Offline and never browsed, or MusicBrainz refused. Neither is this page's failure.
+    return null;
+  }
+  const groups = answer.data?.["release-groups"] ?? [];
+  if (groups.length === 0) return null;
+
+  const shelf = await shelves(db);
+  const owned = shelf.get(options.name.toLowerCase()) ?? EMPTY_SHELF;
+  const gap = computeGaps(groups, owned, filtersOf(options.settings));
+  return {
+    artistMbid: options.artistMbid,
+    have: gap.have,
+    total: gap.total,
+    missing: gap.missing,
+    fetchedAt: answer.fetchedAt,
+    stale: answer.stale,
+  };
+}

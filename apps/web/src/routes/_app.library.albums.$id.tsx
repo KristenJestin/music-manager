@@ -44,6 +44,7 @@ import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/fi
 import { SchemaBadge, SchemaHeading, TagDiff } from "#/components/library/schema.tsx";
 import { TagMapTable, type FormatColumns } from "#/components/library/tag-map-table.tsx";
 import { VerifyTab } from "#/components/library/verify-tab.tsx";
+import { artistKey } from "#/lib/artist-links.ts";
 import { bytes, clockTime, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import {
   chooseCover,
@@ -239,9 +240,16 @@ function Album() {
             {album.album.title}
           </h1>
           <div className="text-xs text-fg-1">
+            {/* Their own page, keyed on the MBID the release credited when there is one. */}
             <Link
-              to="/library/artists"
-              search={{ q: album.album.albumArtist }}
+              to="/library/artists/$id"
+              params={{
+                id: artistKey({
+                  name: album.album.albumArtist,
+                  mbid: album.identifiers.artistMbid,
+                }),
+              }}
+              data-testid="album-artist-link"
               className="text-primary"
             >
               {album.album.albumArtist}

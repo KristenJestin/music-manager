@@ -22,6 +22,7 @@ import {
   albumDetail,
   albumGrid,
   albumHistory,
+  artistDetail,
   artistList,
   compareWithFiles,
   coverOptions,
@@ -31,11 +32,13 @@ import {
   fetchMissing,
   importBehindAlbum,
   planRedownload,
+  refreshArtistShelf,
   setCover,
   trackDetail,
   trackList,
   type AlbumDetail,
   type AlbumGridPayload,
+  type ArtistDetail,
   type ArtistRow,
   type CoverOption,
   type DeleteResult,
@@ -45,6 +48,7 @@ import {
   type TrackDetail,
   type TrackListPayload,
 } from "#/server/services/library.ts";
+import type { ArtistShelf } from "#/server/services/discography.ts";
 import { enqueue } from "#/server/services/queue.ts";
 
 const profile = z.enum(["global", ...PROFILE_IDS]);
@@ -184,6 +188,39 @@ export const fetchArtists = createServerFn({ method: "GET", strict: STRICT })
   .handler(async ({ data }): Promise<readonly ArtistRow[]> => {
     try {
       return await artistList({ search: data.search }, db());
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * One artist. `id` is their MusicBrainz id when the library knows one, their credited name
+ * otherwise — `artistDetail` resolves either, and never makes a network request.
+ */
+export const fetchArtist = createServerFn({ method: "GET", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<ArtistDetail | null> => {
+    try {
+      return await artistDetail(data.id, db());
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * "Compare with MusicBrainz" on the artist page: the one browse request the section costs.
+ *
+ * A POST, and reached only from a button, because it is the only thing on that page allowed
+ * to leave the machine. Its answer goes into the raw cache, so every later view of the page —
+ * and the next Discover sync — reads it for free.
+ */
+export const compareArtistDiscography = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<ArtistShelf | null> => {
+    try {
+      return await refreshArtistShelf(data.id, db());
     } catch (error) {
       return toFailure(error);
     }
