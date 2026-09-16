@@ -19,7 +19,6 @@ import { PROFILE_IDS } from "@mm/domain";
 import {
   Disc3,
   Download,
-  ExternalLink,
   Image as ImageIcon,
   Lock,
   Play,
@@ -33,6 +32,7 @@ import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
+import { MbLink, type MbKind } from "#/components/mb-link.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
 import { PlayButton } from "#/components/play-button.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
@@ -1127,20 +1127,7 @@ function CompareTab({
 
 function MusicBrainzTab({ album }: { readonly album: AlbumData }) {
   const ids = album.identifiers;
-  const mb = (kind: string, id: string | null) =>
-    id === null || id === "" ? (
-      <span className="text-fg-3">not set</span>
-    ) : (
-      <a
-        href={`https://musicbrainz.org/${kind}/${id}`}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-1 font-mono text-2xs hover:text-primary"
-      >
-        {id}
-        <ExternalLink className="size-3" aria-hidden="true" />
-      </a>
-    );
+  const mb = (kind: MbKind, id: string | null) => <MbLink kind={kind} mbid={id} />;
 
   return (
     <div className="grid gap-3 lg:grid-cols-2">

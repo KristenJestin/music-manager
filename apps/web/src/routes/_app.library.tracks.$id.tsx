@@ -24,7 +24,8 @@ import { useToast } from "#/components/shell/shell-context.tsx";
 import { ConfirmDialog } from "#/components/library/confirm-dialog.tsx";
 import { FieldEditor, FieldSource, RelocateOffer } from "#/components/library/field-editor.tsx";
 import { SchemaBadge } from "#/components/library/schema.tsx";
-import { bytes, dateTime, mmss, pct, short } from "#/lib/format.ts";
+import { MbLink } from "#/components/mb-link.tsx";
+import { bytes, dateTime, mmss, pct } from "#/lib/format.ts";
 import { fetchTrack, redownload, removeTrack } from "#/server/functions/library.ts";
 import { setTrackField, unlockField } from "#/server/functions/overrides.ts";
 import { runRelocate } from "#/server/functions/relocate.ts";
@@ -143,14 +144,44 @@ function TrackPage() {
         <div className="min-w-0 grow">
           <div className="text-2xs tracking-wider text-fg-2 uppercase">
             Track {String(track.trackNumber ?? 0).padStart(2, "0")}
-            {album === null ? "" : ` · ${album.title}`}
+            {album === null ? (
+              ""
+            ) : (
+              <>
+                {" · "}
+                <Link
+                  to="/library/albums/$id"
+                  params={{ id: album.id }}
+                  className="hover:text-primary"
+                  data-testid="track-album-link"
+                >
+                  {album.title}
+                </Link>
+              </>
+            )}
           </div>
           <h1 className="text-lg font-semibold" data-testid="track-title">
             {track.title}
           </h1>
           <div className="text-xs text-fg-1">
-            {track.artist ?? "unknown artist"} ·{" "}
-            <span className="font-mono">{mmss(track.duration)}</span> · {track.format ?? "?"} ·{" "}
+            {/*
+             * The artist goes to the album grid filtered by name rather than to an artist page,
+             * because there is no artist page: `/library/artists` is a list and `/library` is
+             * the only view that answers "what else do I have by them".
+             */}
+            {track.artist === null ? (
+              "unknown artist"
+            ) : (
+              <Link
+                to="/library"
+                search={{ q: track.artist }}
+                className="hover:text-primary"
+                data-testid="track-artist-link"
+              >
+                {track.artist}
+              </Link>
+            )}{" "}
+            · <span className="font-mono">{mmss(track.duration)}</span> · {track.format ?? "?"} ·{" "}
             {bytes(track.size)}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -392,13 +423,11 @@ function TrackPage() {
               items={[
                 {
                   label: "Recording",
-                  value: (
-                    <span className="font-mono text-2xs">{short(track.recordingMbid, 36)}</span>
-                  ),
+                  value: <MbLink kind="recording" mbid={track.recordingMbid} />,
                 },
                 {
                   label: "Track",
-                  value: <span className="font-mono text-2xs">{short(track.trackMbid, 36)}</span>,
+                  value: <MbLink kind="track" mbid={track.trackMbid} />,
                 },
                 {
                   label: "Album",
