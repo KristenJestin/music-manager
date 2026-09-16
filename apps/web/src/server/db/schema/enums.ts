@@ -18,6 +18,7 @@ import {
   IMPORT_STATUSES,
   INBOX_STATUSES,
   INBOX_TYPES,
+  PAUSED_BY,
   STEP_STATUSES,
   STEPS,
   TRACK_ROLES,
@@ -32,6 +33,7 @@ export * from "#/server/db/schema/enums.vocab.ts";
 export const stepEnum = pgEnum("step_name", STEPS);
 export const importStatusEnum = pgEnum("import_status", IMPORT_STATUSES);
 export const importKindEnum = pgEnum("import_kind", IMPORT_KINDS);
+export const pausedByEnum = pgEnum("paused_by", PAUSED_BY);
 export const stepStatusEnum = pgEnum("step_status", STEP_STATUSES);
 export const trackStateEnum = pgEnum("track_state", TRACK_STATES);
 export const trackRoleEnum = pgEnum("track_role", TRACK_ROLES);

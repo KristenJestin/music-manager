@@ -20,6 +20,7 @@ import {
 import {
   importKindEnum,
   importStatusEnum,
+  pausedByEnum,
   stepEnum,
   trackRoleEnum,
   trackStateEnum,
@@ -93,6 +94,14 @@ export const imports = pgTable(
     url: text("url").notNull(),
     kind: importKindEnum("kind").notNull(),
     status: importStatusEnum("status").notNull().default("pending"),
+    /**
+     * Who imposed the pause, while `status = 'paused'`. Meaningless otherwise.
+     *
+     * The boot sweep resumes `worker` and never `user`: see `PAUSED_BY` for why this is a
+     * column and not a ninth status. Nullable because rows written before this column existed
+     * have no answer, and "no answer" must read as `user` — the side that leaves them alone.
+     */
+    pausedBy: pausedByEnum("paused_by"),
     /** The step the job is on, or the one it stopped at. */
     step: stepEnum("step").notNull().default("resolve"),
     options: jsonb("options").$type<ImportOptions>().notNull().default({}),
