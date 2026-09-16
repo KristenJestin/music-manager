@@ -84,6 +84,12 @@ services:
       - "${MM_TOOLBOX_PORT:-8100}:8100"
     volumes:
       - ./.local/library:/library
+      # `cookiesMode: file` in Settings → Downloader points here (`/data/cookies.txt`), and
+      # only here: a bind mount survives `up --force-recreate`, which the toolbox's own
+      # writable layer does not. Drop the export at `./.local/cookies/cookies.txt` on the
+      # host. `cookiesMode: paste` needs none of this — that jar lives in the `settings`
+      # table, on the `postgres-data` volume below, already durable.
+      - ./.local/cookies:/data:ro
 
 volumes:
   postgres-data:

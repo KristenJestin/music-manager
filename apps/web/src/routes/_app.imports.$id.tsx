@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
+import { ConfigureLink } from "#/components/configure-link.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { NotFoundScreen } from "#/components/error-screen.tsx";
@@ -305,6 +306,18 @@ function JobPage() {
               <span className="min-w-0 truncate" title={track.error.message}>
                 {track.error.hint ?? track.error.message}
               </span>
+              {/* `YTDLP_AGE` and `YTDLP_BOT_CHECK` both carry this action: a code and a hint
+                  read as "it failed", not "go fix it here", and the fix for both is the same
+                  jar — a link straight to it beats sending someone to find Settings on their
+                  own for every age-restricted track that lands here. */}
+              {track.error.action === "Configure cookies" ? (
+                <ConfigureLink
+                  to="/settings/downloader"
+                  hash="cookies"
+                  label="Configure cookies"
+                  testId="track-error-configure-cookies"
+                />
+              ) : null}
             </div>
           )}
         </div>
@@ -433,6 +446,16 @@ function JobPage() {
         <Callout tone="danger" className="mb-3.5">
           <b>{job.error.code}</b>: {job.error.hint ?? job.error.message}
           <div className="mt-1.5 font-mono text-2xs opacity-80">{job.error.message}</div>
+          {job.error.action === "Configure cookies" ? (
+            <div className="mt-1.5">
+              <ConfigureLink
+                to="/settings/downloader"
+                hash="cookies"
+                label="Configure cookies"
+                testId="job-error-configure-cookies"
+              />
+            </div>
+          ) : null}
         </Callout>
       )}
       {inbox.map((item) => (

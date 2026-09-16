@@ -20,15 +20,23 @@
 # ---------------------------------------------------------------------------
 # Where the data is
 # ---------------------------------------------------------------------------
-# Three volumes, named by default so a fresh installation needs no host directories:
+# Four volumes, named by default so a fresh installation needs no host directories:
 #
 #   pgdata   PostgreSQL. The database is the source of truth; files are a projection of it.
 #   library  the music. Shared read-write with the toolbox, read-only with Navidrome.
 #   cache    the toolbox's scratch space (TMPDIR): artwork crops, fingerprint scans.
+#   cookies  the YouTube cookies.txt for `cookiesMode: file`, read-only.
 #
 # To put any of them on a host path instead, set the matching `MM_*_PATH` in `.env` to an
 # absolute path: compose reads a value starting with `/` as a bind mount and a bare word as the
 # named volume declared below. `docs/deploy.md` § « Où sont les données » covers both.
+#
+# `cookies` is the one operators reach for by hand: a *pasted* jar (`cookiesMode: paste`)
+# already lives in `pgdata` — the settings row survives a recreate for free, no volume needed.
+# A jar given as a *path* (`cookiesMode: file`, `/data/cookies.txt`) is only durable if `/data`
+# is itself backed by something outside the container's writable layer; without this volume a
+# file copied in by hand (`docker cp`) is gone the moment `--force-recreate` builds a fresh
+# layer. `docs/deploy.md` § « Cookies YouTube » walks through both modes.
 
 name: music-manager
 
@@ -81,6 +89,9 @@ services:
     volumes:
       - ${MM_LIBRARY_PATH:-library}:/library
       - ${MM_CACHE_PATH:-cache}:/cache
+      # `cookiesMode: file` reads its cookies.txt from here. Read-only: the toolbox never
+      # writes to it, only `yt-dlp`'s `cookiefile` option reads it per call.
+      - ${MM_COOKIES_PATH:-cookies}:/data:ro
     # Deliberately no `ports:`. The browser never talks to Python (`docs/06-stack.md`), and the
     # toolbox has no authentication of its own unless MM_TOOLBOX_TOKEN is set.
 
@@ -190,4 +201,5 @@ volumes:
   pgdata:
   library:
   cache:
+  cookies:
   # navidrome:

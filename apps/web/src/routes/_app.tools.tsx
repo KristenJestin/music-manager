@@ -10,19 +10,11 @@
  */
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import {
-  Download,
-  Play,
-  RefreshCw,
-  Scan,
-  ShieldCheck,
-  SlidersHorizontal,
-  Trash2,
-  Wrench,
-} from "lucide-react";
+import { Download, Play, RefreshCw, Scan, ShieldCheck, Trash2, Wrench } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
+import { ConfigureLink } from "#/components/configure-link.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
@@ -110,35 +102,6 @@ function Diag({
       </div>
       <div className="flex shrink-0 gap-1.5">{children}</div>
     </div>
-  );
-}
-
-/**
- * "X is not configured" with no way to configure it is half a diagnostic (owner review B5).
- * Every row that can say that now carries the link to the exact block that fixes it, which
- * is why `Section` in `components/settings/controls.tsx` grew an `id`.
- */
-function ConfigureLink({
-  to,
-  hash,
-  label = "Configure",
-  testId,
-}: {
-  readonly to: "/settings/integrations" | "/settings/downloader" | "/settings/metadata";
-  readonly hash: string;
-  readonly label?: string;
-  readonly testId?: string;
-}) {
-  return (
-    <Button
-      size="xs"
-      variant="outline"
-      nativeButton={false}
-      data-testid={testId}
-      render={<Link to={to} hash={hash} />}
-    >
-      <SlidersHorizontal className="size-3.5" aria-hidden="true" /> {label}
-    </Button>
   );
 }
 
@@ -639,6 +602,20 @@ function UrlTestPanel({
               {result.error?.hint === "" ? null : (
                 <div className="mt-0.5 text-fg-2">{result.error?.hint}</div>
               )}
+              {/* `YTDLP_AGE` and `YTDLP_BOT_CHECK` both carry this action, and a failed
+                  extraction is exactly the case this box exists to explain. The label was
+                  inert text before this link — an operator reading "Configure cookies" had
+                  to go find Settings → Downloader on their own. */}
+              {result.error?.action === "Configure cookies" ? (
+                <div className="mt-1.5">
+                  <ConfigureLink
+                    to="/settings/downloader"
+                    hash="cookies"
+                    label="Configure cookies"
+                    testId="url-result-configure-cookies"
+                  />
+                </div>
+              ) : null}
             </div>
           </Callout>
         )}
@@ -679,7 +656,19 @@ function ErrorDecoder({
       key: "action",
       header: "Fix",
       className: "w-40",
-      cell: (row) => (row.action === "" ? <span className="text-fg-3">none</span> : row.action),
+      cell: (row) =>
+        row.action === "" ? (
+          <span className="text-fg-3">none</span>
+        ) : row.action === "Configure cookies" ? (
+          <ConfigureLink
+            to="/settings/downloader"
+            hash="cookies"
+            label={row.action}
+            testId={`error-catalog-configure-cookies-${row.code}`}
+          />
+        ) : (
+          row.action
+        ),
     },
   ];
 

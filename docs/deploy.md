@@ -9,6 +9,8 @@ test de P10 (`orchestration/reports/P10-build-1.md`).
 - [3. Où sont les données](#3-où-sont-les-données)
 - [4. Mise à jour](#4-mise-à-jour)
 - [5. yt-dlp seul](#5-yt-dlp-seul)
+- [5 bis. Les sources surveillées](#5-bis-les-sources-surveillées)
+- [5 ter. Cookies YouTube (vidéos avec restriction d'âge)](#5-ter-cookies-youtube-vidéos-avec-restriction-dâge)
 - [6. Sauvegarde et restauration](#6-sauvegarde-et-restauration)
 - [7. Journaux](#7-journaux)
 - [8. Navidrome](#8-navidrome)
@@ -172,13 +174,14 @@ server {
 
 ## 3. Où sont les données
 
-Trois volumes, nommés par défaut — rien à créer à la main.
+Quatre volumes, nommés par défaut — rien à créer à la main.
 
-| Volume    | Contenu                                              | Perte = ?                                  |
-| --------- | ---------------------------------------------------- | ------------------------------------------ |
-| `pgdata`  | PostgreSQL : la **source de vérité** des métadonnées | catastrophique ; c'est ce qu'on sauvegarde |
-| `library` | la musique, partagée avec le toolbox (et Navidrome)  | grave, mais re-téléchargeable              |
-| `cache`   | le scratch du toolbox (`TMPDIR`) : recadrages, scans | aucune conséquence                         |
+| Volume    | Contenu                                                        | Perte = ?                                                                        |
+| --------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `pgdata`  | PostgreSQL : la **source de vérité** des métadonnées           | catastrophique ; c'est ce qu'on sauvegarde                                       |
+| `library` | la musique, partagée avec le toolbox (et Navidrome)            | grave, mais re-téléchargeable                                                    |
+| `cache`   | le scratch du toolbox (`TMPDIR`) : recadrages, scans           | aucune conséquence                                                               |
+| `cookies` | `cookies.txt` pour `cookiesMode: file` (§5 ter), lecture seule | aucune si un jar collé (`paste`) est aussi en usage — celui-là vit dans `pgdata` |
 
 ```bash
 docker volume inspect music-manager_pgdata     # où c'est réellement sur le disque
@@ -321,6 +324,125 @@ Une vidéo privée, supprimée ou géobloquée n'interrompt pas le scan : elle e
 `skipped` avec sa raison sur la ligne `watched_source_items`. Une source dont l'URL ne répond
 plus passe `last_scan_status = 'failed'` avec l'erreur, et les autres sources sont quand même
 scannées.
+
+---
+
+## 5 ter. Cookies YouTube (vidéos avec restriction d'âge)
+
+yt-dlp, anonyme, échoue sur trois cas : une vidéo avec restriction d'âge, un contrôle
+anti-robot (« Sign in to confirm you're not a bot »), et certaines vidéos réservées aux
+membres d'une chaîne. Le toolbox nomme les deux premiers `YTDLP_AGE` et `YTDLP_BOT_CHECK`
+(`services/toolbox/src/toolbox/errors.py`) ; les deux demandent la même chose : une session
+YouTube authentifiée, sous la forme d'un `cookies.txt` au format Netscape.
+
+### Exporter les cookies d'un navigateur
+
+Avec le navigateur **connecté au compte Google du propriétaire de l'installation** (le compte
+dont l'historique YouTube tolère ce qui va être téléchargé) :
+
+1. Installez une extension qui exporte au format Netscape — « Get cookies.txt LOCALLY »
+   (Chrome, Firefox) est celle utilisée pour écrire ce paragraphe. `yt-dlp --cookies-from-browser
+chrome` fonctionne aussi si `yt-dlp` tourne sur la machine qui a le navigateur, ce qui n'est
+   en général pas le cas du toolbox (il tourne dans un conteneur sans profil de navigateur).
+2. Ouvrez `youtube.com`, vérifiez que vous êtes connecté au bon compte.
+3. Exportez : l'extension produit un fichier texte commençant par
+   `# Netscape HTTP Cookie File`, une ligne par cookie, sept champs séparés par des
+   tabulations (`domaine, sous-domaines, chemin, sécurisé, expiration, nom, valeur`).
+4. Gardez ce fichier hors du dépôt. Ce n'est l'affaire de personne d'autre que de
+   l'installation elle-même — voir l'avertissement plus bas.
+
+### Le charger : Console ou API
+
+Deux modes, réglés par `cookiesMode` (Settings → Downloader → Authentication, ou
+`cookiesMode` dans l'API des réglages) :
+
+| Mode    | Où vit le jar                                          | Quand l'utiliser                                                                                                     |
+| ------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `paste` | Collé entier dans `cookiesText`, en base (`pgdata`)    | Le cas normal en production : personne n'a de chemin de fichier à l'intérieur du conteneur toolbox.                  |
+| `file`  | Un chemin (`cookiesFile`) que le conteneur toolbox lit | Pratique en local, si vous préférez déposer un fichier sur le disque plutôt que coller un secret dans un formulaire. |
+
+**Par la Console** — Settings → Downloader → Authentication :
+
+- `paste` : choisissez « Paste cookies.txt », collez l'export entier dans le champ, Save. Le
+  formulaire ne réaffiche jamais le contenu collé (il montre `set (…)`) ; cliquer dedans
+  l'efface pour un nouveau collage, ce qui est le seul moyen de le remplacer.
+- `file` : choisissez « cookies.txt file », déposez le fichier là où `cookiesFile` pointe.
+  `docker-compose.dev.yml` monte `./.local/cookies` sur `/data` (lecture seule) dans le
+  conteneur toolbox de développement — déposez-y `cookies.txt` et réglez `cookiesFile` sur
+  `/data/cookies.txt` (c'est déjà le texte indicatif du champ). En production,
+  `docker-compose.prod.yml` fait la même chose avec le volume `cookies`
+  (`MM_COOKIES_PATH` dans `.env` pour un chemin hôte plutôt que le volume nommé par
+  défaut) — voir §3.
+
+**Par l'API**, avec une clé portant `settings:write` :
+
+```bash
+# coller le jar (le corps entier du cookies.txt exporté, tel quel)
+curl -X PATCH https://music.example.com/api/v1/settings \
+  -H "x-api-key: mm_…" -H "content-type: application/json" \
+  -d "$(jq -n --arg text "$(cat cookies.txt)" \
+        '{cookiesMode: "paste", cookiesText: $text}')"
+
+# ou, en mode file, une fois le fichier déjà en place dans le volume `cookies`
+curl -X PATCH https://music.example.com/api/v1/settings \
+  -H "x-api-key: mm_…" -H "content-type: application/json" \
+  -d '{"cookiesMode": "file", "cookiesFile": "/data/cookies.txt"}'
+```
+
+`mm settings set cookiesMode paste` / `mm settings set cookiesText "$(cat cookies.txt)"`
+fait la même chose depuis `docker compose exec web sh`, pour qui préfère ne pas faire
+transiter le jar par une invite de commande qui log ses arguments.
+
+### Vérifier qu'il est chargé et valide
+
+Tools → « Cookies » (ou `GET /api/v1/tools/cookies`, ou le bouton **Test** à côté du champ
+dans Settings → Downloader) répond immédiatement, sans toucher YouTube — `/cookies/test` du
+toolbox ne fait que lire et parser le fichier :
+
+```json
+{
+  "ok": true,
+  "cookies": 23,
+  "domains": [".youtube.com"],
+  "authenticated": true,
+  "expiresAt": "2027-03-01T12:00:00Z",
+  "expired": 0,
+  "problems": []
+}
+```
+
+`ok` est vrai seulement si les trois tiennent à la fois : au moins un cookie a été compris,
+`authenticated` (une des six cookies de session YouTube — `SAPISID`, `__Secure-3PSID`,
+`__Secure-1PSID`, `SID`, `SSID`, `HSID` — est présente) et `expired = 0`. Un `problems`
+non vide donne la raison précise (« no YouTube session cookie present », « expected 7
+tab-separated fields »…) — c'est un jar copié à moitié ou exporté dans le mauvais format qui
+en dit le plus.
+
+### Durée de vie, et ce que dit l'expiration
+
+Les cookies de session Google portent en général une expiration à un ou deux ans, mais Google
+peut invalider la session bien avant cette date — changement de mot de passe, déconnexion « de
+partout », activité jugée suspecte. `expiresAt` est la plus proche des échéances déjà écrites
+dans le jar (`null` si tous les cookies sont des cookies de session, sans expiration propre) ;
+`expired` compte celles déjà passées. Rien ne prévient à l'avance : un jar qui fonctionnait
+hier échoue net le jour où Google referme la session, et le symptôme est le retour de
+`YTDLP_AGE` ou `YTDLP_BOT_CHECK` sur exactement les imports qui en avaient besoin. Depuis
+cette page, l'erreur d'un import (`/imports/:id`) et le décodeur d'erreurs de Tools portent
+tous les deux un bouton « Configure cookies » qui ramène ici — pas la peine d'aller chercher
+où se trouve le formulaire. Il n'y a rien d'autre à faire que ré-exporter et recoller un jar
+frais.
+
+> **Avertissement.** Ce jar authentifie l'installation **en tant que le compte Google du
+> propriétaire** — c'est un mot de passe, pas un identifiant technique. Ne le collez jamais
+> dans un ticket, un commit, un message de support ou les journaux de l'application (`AGENTS.md`
+> l'interdit déjà pour toute donnée sensible, et un cookie l'est autant qu'une clé d'API). Ne le
+> partagez avec personne : quiconque le détient peut se faire passer pour ce compte sur
+> YouTube. `.local/cookies/` est ignoré par git, et le volume `cookies` de production n'est pas
+> touché par `backup.sh` (§6) — mais **un jar collé (`cookiesMode: paste`) l'est**, indirectement :
+> `cookiesText` est une colonne de `settings`, et `postgres.dump` dans l'archive de sauvegarde
+> est un `pg_dump` de la base entière, pas seulement d'`export.json` qui, lui, exclut les
+> secrets. Traitez chaque archive de sauvegarde avec la même prudence que `.env` dès qu'un jar
+> collé est en usage.
 
 ---
 
