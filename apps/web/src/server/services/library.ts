@@ -412,7 +412,15 @@ export async function albumDetail(
       ? []
       : await db.select().from(imports).where(inArray(imports.id, importIds));
 
-  const scoreByTrack = new Map(quality.tracks.map((track) => [track.libraryTrackId, track]));
+  /*
+   * The per-track scores, from the documents already in hand. `scoreAlbum` used to hand them
+   * back on `quality.tracks`; it does not any more, because the two *list* pages shipped that
+   * array for every track in the library and nothing read it. This is the same loop, called
+   * where a track's own score is genuinely rendered.
+   */
+  const scoreByTrack = new Map(
+    scoreLoadedTracks(loaded, currentSchema).map((track) => [track.libraryTrackId, track]),
+  );
 
   const rows: AlbumTrackRow[] = tracks.map((track) => {
     const scored = scoreByTrack.get(track.id);
@@ -891,11 +899,18 @@ export async function trackDetail(
       ? []
       : await db.select().from(imports).where(eq(imports.id, track.importId)).limit(1);
 
+  /*
+   * One track, scored on its own. It used to go through `scoreAlbum` on a one-track synthetic
+   * album purely to reach `.tracks[0]`, which also cost an `albumScopeConsistency` pass over a
+   * single document that can never diverge from itself.
+   */
   const scored =
-    album === undefined || document === null
+    document === null
       ? null
-      : scoreAlbum(album, [{ track, document, storedHash: track.projectionHash }], currentSchema)
-          .tracks[0];
+      : (scoreLoadedTracks(
+          [{ track, document, storedHash: track.projectionHash }],
+          currentSchema,
+        )[0] ?? null);
 
   const held = document?.fields["lyrics"]?.value;
   const lyrics =

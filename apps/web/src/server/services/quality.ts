@@ -184,7 +184,22 @@ export interface AlbumQuality {
    * four rungs are the same source and were until now indistinguishable.
    */
   readonly coverProvenance: string | null;
-  readonly tracks: readonly TrackQuality[];
+  /**
+   * How many track rows were scored — the length of the array this object used to carry.
+   *
+   * `tracks: TrackQuality[]` lived here until it was measured: it is six profile scores and
+   * two field lists per track, and `/library` and `/library/quality` shipped one for every
+   * track in the library — twenty-three megabytes of loader payload on a six-hundred-album
+   * library — while no component, no MCP tool and no REST schema ever read it. Everything the
+   * aggregates need is already counted beside it (`documentCount`, `lyricsCount`,
+   * `replayGainCount`, `driftCount`, `filesBehind`), and the two pages that genuinely want a
+   * track's own score — the album page and the track page — call `scoreLoadedTracks`, which is
+   * the loop that produced the array in the first place.
+   *
+   * Distinct from `presentCount`, which counts the files the caller found on disk when it
+   * passed `onDisk`, and from `trackCount`, which is the *release*'s total.
+   */
+  readonly scoredCount: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -557,7 +572,7 @@ export function scoreAlbum(
     untagged: album.releaseMbid === null || album.releaseMbid === "",
     youtubeCover: documents.some(isYouTubeCover),
     coverProvenance: documents.map(coverProvenanceOf).find((clause) => clause !== null) ?? null,
-    tracks,
+    scoredCount: tracks.length,
   };
 }
 
@@ -657,19 +672,31 @@ function mean(values: readonly (number | null)[]): number | null {
   return known.length === 0 ? null : known.reduce((a, b) => a + b, 0) / known.length;
 }
 
+/**
+ * The library-wide tiles, from the album aggregates alone.
+ *
+ * Every line below used to walk `rows.flatMap((row) => row.quality.tracks)`. The per-track
+ * array is gone from the payload, and each of the six numbers that needed it has an exact
+ * counterpart already computed by `scoreAlbum`: `scoredCount` for the denominators,
+ * `documentCount - lyricsCount` and `documentCount - replayGainCount` for the two "without"
+ * counts — `scoreLoadedTracks` forces `hasLyrics`/`hasReplayGain` false on a track with no
+ * document, so "has a document and lacks it" is exactly that subtraction — and `driftCount`
+ * and `filesBehind`, which were already the same filters under the same names.
+ */
 export function summarise(
   rows: readonly QualityRow[],
   currentSchema: number,
   schemaOverridden: boolean,
 ): LibraryQualityStats {
-  const tracks = rows.flatMap((row) => row.quality.tracks);
+  const sum = (of: (row: QualityRow) => number): number =>
+    rows.reduce((total, row) => total + of(row), 0);
   const averageByProfile = Object.fromEntries(
     PROFILE_IDS.map((id) => [id, mean(rows.map((row) => row.quality.byProfile[id]))]),
   ) as Record<ProfileId, number | null>;
 
   return {
     albums: rows.length,
-    tracks: tracks.length,
+    tracks: sum((row) => row.quality.scoredCount),
     artists: new Set(rows.map((row) => row.album.albumArtist)).size,
     averageScore: mean(rows.map((row) => row.quality.score)),
     averageByProfile,
@@ -678,12 +705,12 @@ export function summarise(
     incomplete: rows.filter(
       (row) => row.quality.totalKnown && row.quality.presentCount < row.quality.trackCount,
     ).length,
-    noLyrics: tracks.filter((track) => track.hasDocument && !track.hasLyrics).length,
-    noReplayGain: tracks.filter((track) => track.hasDocument && !track.hasReplayGain).length,
+    noLyrics: sum((row) => row.quality.documentCount - row.quality.lyricsCount),
+    noReplayGain: sum((row) => row.quality.documentCount - row.quality.replayGainCount),
     youtubeCover: rows.filter((row) => row.quality.youtubeCover).length,
-    driftTracks: tracks.filter((track) => track.drift).length,
-    filesBehind: tracks.filter((track) => track.behind).length,
-    filesCurrent: tracks.filter((track) => !track.behind).length,
+    driftTracks: sum((row) => row.quality.driftCount),
+    filesBehind: sum((row) => row.quality.filesBehind),
+    filesCurrent: sum((row) => row.quality.scoredCount - row.quality.filesBehind),
     albumsBehind: rows.filter((row) => row.quality.filesBehind > 0).length,
     currentSchema,
     schemaOverridden,
@@ -726,12 +753,14 @@ export function matchesFilter(
       return quality.filesBehind > 0;
     case "drift":
       return quality.driftCount > 0;
+    // "At least one track has a document and no lyrics" — `lyricsCount` counts the ones that
+    // do, over the same set `documentCount` counts, so the comparison is the old `.some`.
     case "lyrics":
-      return quality.tracks.some((track) => track.hasDocument && !track.hasLyrics);
+      return quality.lyricsCount < quality.documentCount;
     case "ytcover":
       return quality.youtubeCover;
     case "replaygain":
-      return quality.tracks.some((track) => track.hasDocument && !track.hasReplayGain);
+      return quality.replayGainCount < quality.documentCount;
   }
 }
 

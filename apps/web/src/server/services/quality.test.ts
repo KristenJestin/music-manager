@@ -15,6 +15,7 @@ import {
   matchesFilter,
   RETAG_ACTION,
   scoreAlbum,
+  scoreLoadedTracks,
   summarise,
   tagMapRows,
   type LoadedTrack,
@@ -164,10 +165,12 @@ describe("scoreAlbum", () => {
   });
 
   it("survives a track with no document at all", () => {
-    const quality = scoreAlbum(album(), [{ track: track(), document: null, storedHash: null }], 1);
+    const entry = { track: track(), document: null, storedHash: null };
+    const quality = scoreAlbum(album(), [entry], 1);
     expect(quality.documentCount).toBe(0);
     expect(quality.score).toBeNull();
-    expect(quality.tracks[0]?.hasDocument).toBe(false);
+    expect(quality.scoredCount).toBe(1);
+    expect(scoreLoadedTracks([entry], 1)[0]?.hasDocument).toBe(false);
   });
 
   it("notices lyrics and ReplayGain, which are what the filters are about", () => {
