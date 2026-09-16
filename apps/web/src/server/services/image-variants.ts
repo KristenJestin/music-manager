@@ -17,14 +17,20 @@
  *
  * ## Where the variants live
  *
- * `<library>/.mm-cache/images/`, dot-prefixed for exactly the reason `.mm-work` is: Navidrome's
- * scanner skips a directory whose name starts with a dot, so the derived files are inside the
- * mount both sides already share and outside the tree Navidrome walks. The alternative — a
- * `cover-320.jpg` beside the original — survives a restart just as well and was rejected: it
- * puts files Navidrome *does* index into every album folder, where they land in the album's
- * image list, get re-stat'd on every scan, and are one custom `ND_COVERARTPRIORITY` away from
- * being served to Feishin as the album art. The library belongs to the owner and to the
- * players that read it; our cache does not belong in it.
+ * `<library>/.mm-cache/images/`, dot-prefixed for exactly the reason `.mm-work` and
+ * `.mm-archive` are: Navidrome's scanner skips a directory whose name starts with a dot, so
+ * the derived files are inside the mount both sides already share and outside the tree
+ * Navidrome walks.
+ *
+ * The alternative — a `cover-320.jpg` beside the original — survives a restart just as well
+ * and was rejected on what a real Navidrome does with it. Given a library of 8 artists and 24
+ * albums, one of which held a `cover-320.jpg` next to its `cover.jpg`, its scanner logged
+ * `imageCount=2` for that folder and wrote `folder.image_files = ["cover.jpg",
+ * "cover-320.jpg"]`, while `.mm-cache/` never appeared in its `folder` table at all. So a
+ * derived file beside the original is indexed, re-stat'd on every scan, and one custom
+ * `ND_COVERARTPRIORITY` away from being the album art Feishin is served — four times over,
+ * once per size. The library belongs to the owner and to the players that read it; our cache
+ * does not belong in it.
  *
  * A dedicated Docker volume would work too, and costs a volume, a mount and a second path to
  * translate. The library mount is already there and already shared with the toolbox, which is
