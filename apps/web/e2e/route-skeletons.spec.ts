@@ -121,18 +121,101 @@ test.describe("what the skeleton says, and to whom", () => {
     const region = skeleton(page);
     await expect(region).toBeVisible();
 
-    // One polite announcement for the whole region…
-    await expect(region).toHaveAttribute("role", "status");
+    // One polite announcement for the whole region, and it is the *sentence* that is the live
+    // region rather than the container. The container now holds real controls too, and a live
+    // region re-announces its whole subtree on every change inside it.
     await expect(region).toHaveAttribute("aria-busy", "true");
     await expect(region.locator(".sr-only")).toHaveCount(1);
+    await expect(region.locator(".sr-only")).toHaveAttribute("role", "status");
     await expect(region.locator(".sr-only")).toHaveText(/loading/i);
 
-    // …and not one word from the dozens of grey cells under it.
-    const placeholders = region.locator("> [aria-hidden='true'] [data-slot='skeleton']");
+    // …and not one word from the dozens of grey cells under it: each hides itself, so that
+    // the controls beside them can stay reachable.
+    const placeholders = region.locator("[data-slot='skeleton']");
     expect(await placeholders.count()).toBeGreaterThan(10);
+    await expect(region.locator("[data-slot='skeleton']:not([aria-hidden='true'])")).toHaveCount(0);
 
     await fast();
     await expect(page.getByTestId("jobs-table")).toBeVisible();
+  });
+
+  /**
+   * The owner's first complaint: a navigation used to blank the toolbar as well as the data.
+   *
+   * Everything in that row comes out of the URL, so there is nothing for it to wait for. It
+   * must be on screen, it must be usable, and the one thing it genuinely cannot know — the
+   * per-preset counts — must read as a quiet dash rather than as a grey pill where a control
+   * used to be.
+   */
+  test("the toolbar is real while the data is still coming", async ({ page }) => {
+    await signIn(page);
+    const fast = await slowLoaders(page);
+
+    await navLink(page, "Albums").click();
+    await expect(skeleton(page)).toHaveAttribute("data-skeleton", "library-albums");
+
+    // The controls, for real: focusable, typable, clickable — not placeholders.
+    const search = page.getByTestId("library-search");
+    await expect(search).toBeVisible();
+    await expect(search).toBeEditable();
+    await expect(page.getByTestId("filter-add")).toBeEnabled();
+    await expect(page.getByTestId("library-sort")).toBeVisible();
+    await expect(page.getByTestId("library-profile")).toBeVisible();
+
+    // The presets are still links, and still say which one the URL is on.
+    const all = page.getByTestId("library-filters-all");
+    await expect(all).toHaveAttribute("href", /\/library/);
+    await expect(all).toHaveAttribute("data-active", "true");
+    // The count is the only thing missing, and it says so with a dash.
+    await expect(all).toContainText("–");
+
+    // Nothing in the toolbar is hidden from a screen reader by the region around it.
+    await expect(search).not.toHaveAttribute("aria-hidden", "true");
+
+    await fast();
+    await expect(page.getByTestId("album-grid")).toBeVisible();
+    // And then the number lands in the slot the dash was holding.
+    await expect(all).toContainText(/\d/);
+  });
+
+  /**
+   * The owner's second complaint: the grey blocks were the wrong size, so the page jumped.
+   *
+   * Measured rather than eyeballed. The skeleton's grid must have the same columns, the same
+   * gap and the same cell box as the grid that replaces it — the old one drew a 272 px cell in
+   * front of a 280.78 px card, which is nine pixels of drift per row.
+   */
+  test("the placeholder boxes are the boxes that land", async ({ page }) => {
+    await signIn(page);
+    const cell = async () =>
+      await page.evaluate(() => {
+        const grid = document.querySelector<HTMLElement>(
+          "[data-testid=album-grid], [data-testid=page-skeleton] div.grid.grid-cols-2",
+        );
+        const first = grid?.firstElementChild;
+        if (!grid || !first) return null;
+        const style = getComputedStyle(grid);
+        const box = first.getBoundingClientRect();
+        return {
+          columns: style.gridTemplateColumns,
+          gap: style.gap,
+          width: Math.round(box.width),
+          height: Math.round(box.height),
+        };
+      });
+
+    const fast = await slowLoaders(page);
+    await navLink(page, "Albums").click();
+    await expect(skeleton(page)).toHaveAttribute("data-skeleton", "library-albums");
+    const pending = await cell();
+
+    await fast();
+    await expect(page.getByTestId("album-grid")).toBeVisible();
+    const loaded = await cell();
+
+    expect(pending, "the skeleton must draw a grid at all").not.toBeNull();
+    expect(loaded, "this test needs a library with at least one album").not.toBeNull();
+    expect(pending, "a card that changes size when it lands is a page that jumps").toEqual(loaded);
   });
 
   test("prefers-reduced-motion gets the tint without the shimmer", async ({ page }) => {
