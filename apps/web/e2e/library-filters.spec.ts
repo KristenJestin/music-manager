@@ -154,7 +154,12 @@ test.describe("the library filter builder", () => {
      * empty the table and leave that line describing the unfiltered library, which is the bug
      * the whole design exists to make impossible.
      */
-    await page.getByTestId("filter-chip-0").getByRole("button", { name: "Format is Opus" }).click();
+    // `exact`, because the chip's other button is named "Remove the filter Format is Opus" and
+    // a substring match owns both.
+    await page
+      .getByTestId("filter-chip-0")
+      .getByRole("button", { name: "Format is Opus", exact: true })
+      .click();
     await expect(page.getByTestId("filter-builder")).toBeVisible({ timeout: 30_000 });
     await page.getByTestId("filter-value-select").click();
     await page.getByRole("option", { name: "WAV", exact: true }).click();
