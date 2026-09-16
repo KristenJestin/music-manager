@@ -59,7 +59,80 @@ describe("the tool table", () => {
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    expect(tools.length).toBe(26);
+    // 26 + `create_imports` and `confirm_best`, the two bulk-import doors.
+    expect(tools.length).toBe(28);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * The two tools the bulk-import session asked for, checked as schemas and sentences like the
+ * rest of this file: an agent never sees `imports.bulk.ts`, it sees these.
+ */
+describe("confirm_best and create_imports — the bulk-import doors", () => {
+  it("confirm_best defaults to 0.8 coverage and prefers an Album", () => {
+    const parsed = z.object(schemaOf("confirm_best")).parse({ importId: "imp_1" }) as {
+      minCoverage: number;
+      preferType: string;
+    };
+    expect(parsed.minCoverage).toBe(0.8);
+    expect(parsed.preferType).toBe("album");
+  });
+
+  it("confirm_best refuses a coverage outside [0, 1]", () => {
+    expect(parse("confirm_best", { importId: "i", minCoverage: 1.5 }).success).toBe(false);
+    expect(parse("confirm_best", { importId: "i", minCoverage: -0.1 }).success).toBe(false);
+  });
+
+  it("confirm_best says what happens under the bar, and who signs the decision", () => {
+    const text = byName.get("confirm_best")?.description ?? "";
+    // The whole reason it is safe to loop over three hundred imports.
+    expect(text).toContain("minCoverage");
+    expect(text.toLowerCase()).toContain("nothing is confirmed");
+    expect(text).toContain("decidedBy: mcp");
+  });
+
+  it("create_imports caps the list and says a bad URL loses only itself", () => {
+    const many = Array.from({ length: 101 }, () => "fixture://discovery");
+    expect(parse("create_imports", { urls: many }).success).toBe(false);
+    expect(parse("create_imports", { urls: ["fixture://discovery"] }).success).toBe(true);
+    expect(parse("create_imports", { urls: [] }).success).toBe(false);
+    const text = byName.get("create_imports")?.description ?? "";
+    expect(text).toContain("100");
+    expect(text).toContain("results");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * Pagination, which existed and said so nowhere.
+ *
+ * `limit` was on three tools with no description and no total beside it, so an agent read the
+ * first page and had no way of knowing there was a second. These assertions are on the text and
+ * the schema because those are the two things the agent gets.
+ */
+describe("the list tools are discoverable as pages", () => {
+  it("list_imports takes an offset and describes both parameters", () => {
+    const parsed = z.object(schemaOf("list_imports")).parse({}) as {
+      limit: number;
+      offset: number;
+    };
+    expect(parsed.limit).toBe(20);
+    expect(parsed.offset).toBe(0);
+    expect(schemaOf("list_imports")["limit"]?.description ?? "").toContain("1–100");
+    expect(schemaOf("list_imports")["offset"]?.description ?? "").toContain("total");
+  });
+
+  it("every list tool's description names its limit, its default and how to tell there is more", () => {
+    for (const name of ["list_imports", "list_discover", "search_library"]) {
+      const text = byName.get(name)?.description ?? "";
+      expect(text, `${name} should document \`limit\``).toContain("`limit`");
+      expect(text, `${name} should say what the default is`).toMatch(/default/i);
+    }
+    // Only `list_imports` is a page over an unbounded table, so only it owes a total.
+    expect(byName.get("list_imports")?.description ?? "").toContain("hasMore");
   });
 });
 
