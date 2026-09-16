@@ -164,6 +164,9 @@ run_import() {
   body="$(curl -sS --max-time 60 -b "$JAR" -H 'content-type: application/json' \
     -d "{\"url\":\"$url\",\"options\":{\"autoConfirm\":true},\"priority\":\"next\"}" \
     "$BASE/api/v1/imports" || true)"
+  # `.id` at the top level. `POST /imports` used to answer `{"import":{"id":…}}`, which the
+  # jq branch of `json_get` read as empty — so on a machine with jq this said "the import was
+  # not created" about an import that had been. The route is flat now and both branches agree.
   id="$(printf '%s' "$body" | json_get id)"
   if [ -z "$id" ]; then
     fail "the import was not created: $(printf '%s' "$body" | cut -c1-400)"
