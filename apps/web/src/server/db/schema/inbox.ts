@@ -60,3 +60,38 @@ export type InboxItem = typeof inboxItems.$inferSelect;
 export type NewInboxItem = typeof inboxItems.$inferInsert;
 export type Decision = typeof decisions.$inferSelect;
 export type NewDecision = typeof decisions.$inferInsert;
+
+/**
+ * "Stop asking about this", remembered on the **subject** rather than on the item.
+ *
+ * This is the same decision `discover_dismissals` already made, made a second time, and the
+ * reasoning transfers verbatim: the memory has to survive a run that no longer proposes the
+ * thing at all, and it has to be consultable *before* an item is written. Storing it as a
+ * status on the item would make it exactly as durable as the proposal — which is to say, not
+ * at all.
+ *
+ * The Inbox learnt that the hard way. Eleven legitimate duplicates — one recording on an
+ * album and on a compilation — were answered "keep both copies" one at a time; the next scan
+ * built eleven new `inbox_items` rows, under new ids, asking the same eleven questions. The
+ * dismissal had been written on the item, and the item is rebuilt by every scan.
+ *
+ * `subject` is the stable identity of a *question*, not of a row, and it is deliberately not
+ * the same string as `inbox_items.payload.subject`: an item aggregates (two hundred orphan
+ * files are one card) while a dismissal is per decision (one path). What goes into the key
+ * per type — and therefore what makes a dismissal expire, because a key that no longer
+ * matches is a question that comes back — lives in `services/inbox-dismissals.ts`.
+ */
+export const inboxDismissals = pgTable(
+  "inbox_dismissals",
+  {
+    subject: text("subject").primaryKey(),
+    type: inboxTypeEnum("type").notNull(),
+    /** What it was, in words, so the Console can list what you have hidden without a scan. */
+    label: text("label").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("inbox_dismissals_type_idx").on(table.type)],
+);
+
+export type InboxDismissal = typeof inboxDismissals.$inferSelect;
+export type NewInboxDismissal = typeof inboxDismissals.$inferInsert;
