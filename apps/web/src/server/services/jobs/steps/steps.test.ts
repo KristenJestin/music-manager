@@ -458,11 +458,21 @@ describe("describePositions", () => {
   });
 
   it("names bare positions on a single-disc record", () => {
-    expect(describePositions([cell(1, 7), cell(1, 8)])).toBe("Positions 7, 8.");
+    expect(describePositions([cell(1, 7), cell(1, 8)], false)).toBe("Positions 7, 8.");
   });
 
   it("names the disc as soon as there are two", () => {
-    expect(describePositions([cell(1, 6), cell(2, 1), cell(2, 2)])).toBe("disc 1: 6; disc 2: 1, 2");
+    expect(describePositions([cell(1, 6), cell(2, 1), cell(2, 2)], true)).toBe(
+      "disc 1: 6; disc 2: 1, 2",
+    );
+  });
+
+  /**
+   * The flag describes the *record*, not the gaps. Six positions that all sit on disc 2 are
+   * still six positions of a two-disc record, and "Positions 1, 2, 3" names six tracks of it.
+   */
+  it("names the disc even when every gap is on the same one", () => {
+    expect(describePositions([cell(2, 1), cell(2, 2)], true)).toBe("disc 2: 1, 2");
   });
 });
 

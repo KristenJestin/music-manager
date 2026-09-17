@@ -1037,15 +1037,16 @@ export function uncoveredTracks(
 }
 
 /**
- * "Positions 7, 8, 9" on one disc; "disc 2: 1, 2, 3" as soon as there are two.
+ * "Positions 7, 8, 9" on one disc; "disc 2: 1, 2, 3" as soon as the *record* has two.
  *
  * A bare position is ambiguous the moment a record has a second medium, and the sentence the
  * owner read — six positions that do not exist on his album — was ambiguous *and* wrong.
+ * `multiDisc` describes the release and not the gaps, because six gaps that all sit on disc 2
+ * still need to say which disc they sit on.
  */
-export function describePositions(cells: readonly UncoveredCell[]): string {
-  const discs = new Set(cells.map((cell) => cell.mediumPosition));
-  if (discs.size <= 1) return `Positions ${cells.map((cell) => cell.position).join(", ")}.`;
-  return [...discs]
+export function describePositions(cells: readonly UncoveredCell[], multiDisc: boolean): string {
+  if (!multiDisc) return `Positions ${cells.map((cell) => cell.position).join(", ")}.`;
+  return [...new Set(cells.map((cell) => cell.mediumPosition))]
     .sort((a, b) => a - b)
     .map((disc) => {
       const positions = cells
@@ -1093,10 +1094,22 @@ async function applySupplied(
   }
 
   /*
-   * The release itself, read once for both things that need it: its release group and its
+   * The release itself, read once for the two things that need it: its release group and its
    * **media**. `null` when there is nothing to look up, or nothing answered.
+   *
+   * **Asked for only when it changes an answer**, because `confirmSupplied` runs this step
+   * inside the wizard's Start button — a server function, synchronous, with somebody watching
+   * (`CLAUDE.md`: a call that can take minutes belongs on a queue). The release group is
+   * already known when the caller supplied it, and the media only matter when the mapping
+   * spans more than one of them: on a single-disc record `trackTotal` and the positions are
+   * the whole grid, and reading the tracklist would buy nothing but the track titles. So this
+   * costs exactly what it cost before on every path that existed before it.
    */
-  const release = await lookupSupplied(ctx, supplied.releaseMbid);
+  const statedGroup = supplied.releaseGroupMbid;
+  const knowsGroup = statedGroup !== undefined && statedGroup !== null && statedGroup !== "";
+  const spansDiscs = supplied.tracks.some((entry) => (entry.mediumPosition ?? 1) !== 1);
+  const release =
+    knowsGroup && !spansDiscs ? null : await lookupSupplied(ctx, supplied.releaseMbid);
   const tracklist = release === null ? null : flattenTracks(release);
 
   if (supplied.releaseMbid === null) {
@@ -1125,11 +1138,9 @@ async function applySupplied(
      * without one. The release lookup carries `release-groups` in its `inc` list already, so
      * this costs a cache hit in the ordinary case and one request in the worst.
      */
-    const stated = supplied.releaseGroupMbid;
-    const group =
-      stated !== undefined && stated !== null && stated !== ""
-        ? stated
-        : (release?.["release-group"]?.id ?? undefined);
+    const group = knowsGroup
+      ? (statedGroup ?? undefined)
+      : (release?.["release-group"]?.id ?? undefined);
     await persistRelease(ctx, {
       id: supplied.releaseMbid,
       ...(group === undefined ? {} : { releaseGroupId: group }),
@@ -1162,6 +1173,13 @@ async function applySupplied(
   }
 
   const uncovered = uncoveredTracks(supplied, tracklist);
+  // The record's discs, not the gaps' — read from the tracklist when there is one, and from
+  // the mapping when there is not.
+  const discs = new Set<number>([
+    ...(tracklist ?? []).map((track) => track.mediumPosition),
+    ...supplied.tracks.map((entry) => entry.mediumPosition ?? 1),
+    ...uncovered.map((cell) => cell.mediumPosition),
+  ]);
   if (uncovered.length > 0) {
     await raise(
       ctx.raised,
@@ -1169,7 +1187,7 @@ async function applySupplied(
         type: "uncovered_tracks",
         importId: ctx.job.id,
         title: `${String(uncovered.length)} track(s) of the release have no video`,
-        summary: describePositions(uncovered),
+        summary: describePositions(uncovered, discs.size > 1),
         payload: {
           releaseMbid: supplied.releaseMbid,
           tracks: uncovered.map((cell) => ({

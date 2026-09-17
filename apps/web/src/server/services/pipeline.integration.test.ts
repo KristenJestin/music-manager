@@ -793,6 +793,92 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
   /* ---------------------------------------------------------------- */
 
   /**
+   * A supplied mapping over two discs raises no phantom gap — the second owner defect, through
+   * the step rather than through the pure function.
+   *
+   * `ac7518c6…` is the two-disc *Discovery* vinyl the cassette already carries: seven tracks on
+   * each medium, numbered 1–7 then 1–7. Under the flat comparison the covered set was `{1..7}`
+   * and the grid was `1..14`, so seven positions that do not exist on the record were reported
+   * missing. That is *Crèvecœur* exactly, and five of the owner's other albums.
+   */
+  describe("a supplied mapping over two discs", () => {
+    const VINYL = "ac7518c6-b630-4761-99c7-6a94cc35a594";
+
+    async function suppliedOverTwoDiscs(cover: "all" | "all but disc 2 track 3"): Promise<string> {
+      const created = await imports.createFromUrl("fixture://discovery");
+      const importId = created.job.id;
+      const rows = await db()
+        .select()
+        .from(schema.importTracks)
+        .where(eq(schema.importTracks.importId, importId))
+        .orderBy(schema.importTracks.position);
+
+      // Seven and seven, in the order the two media hold them.
+      const cells = [1, 2].flatMap((medium) =>
+        [1, 2, 3, 4, 5, 6, 7].map((position) => ({ medium, position })),
+      );
+      const bindings = cells.flatMap((cell, index) => {
+        const row = rows[index];
+        if (row === undefined) return [];
+        if (cover !== "all" && cell.medium === 2 && cell.position === 3) return [];
+        return [
+          {
+            position: row.position,
+            trackPosition: cell.position,
+            mediumPosition: cell.medium,
+            recordingMbid: null,
+            trackTitle: row.sourceTitle,
+            confidence: 1,
+          },
+        ];
+      });
+
+      await db()
+        .update(schema.imports)
+        .set({
+          options: {
+            // `releaseGroupMbid` is supplied, so the step has no reason to look the release up
+            // for *that* — the media are the only reason it still does, which is the decision
+            // this exercises.
+            mapping: {
+              releaseMbid: VINYL,
+              releaseGroupMbid: "f22942a1-6f70-4f48-866e-238cb2308fbd",
+              trackTotal: 14,
+              tracks: bindings,
+            },
+          } as unknown as typeof schema.imports.$inferSelect.options,
+        })
+        .where(eq(schema.imports.id, importId));
+      await jobs.runStep(importId, "match", { db: db() });
+      return importId;
+    }
+
+    it("asks nothing when all fourteen tracks of the two discs are covered", async () => {
+      const importId = await suppliedOverTwoDiscs("all");
+      expect(await inbox.listInbox({ importId, status: "open", type: "uncovered_tracks" })).toEqual(
+        [],
+      );
+    }, 120_000);
+
+    it("names the disc of the one track it really missed", async () => {
+      const importId = await suppliedOverTwoDiscs("all but disc 2 track 3");
+      const [item] = await inbox.listInbox({
+        importId,
+        status: "open",
+        type: "uncovered_tracks",
+      });
+      expect(item).toBeDefined();
+      const tracks = item?.payload["tracks"] as { position: number; mediumPosition: number }[];
+      expect(tracks).toHaveLength(1);
+      expect(tracks[0]).toMatchObject({ position: 3, mediumPosition: 2 });
+      // "Positions 3." would name two tracks of this record; the summary says which disc.
+      expect(item?.summary).toContain("disc 2");
+    }, 120_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+
+  /**
    * Re-matching re-evaluates rather than accumulates — the fourth owner defect.
    *
    * `openInboxItem` made `match` idempotent in one direction only. Nothing closed the question
