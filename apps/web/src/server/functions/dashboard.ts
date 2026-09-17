@@ -21,6 +21,7 @@ import {
   type JobSummary,
   type RecentAlbum,
   type WorkerCurrent,
+  type WorkerWaiting,
 } from "#/server/services/console.queries.ts";
 import { serverEnv } from "#/server/env.ts";
 import { toolbox } from "#/server/toolbox/client.ts";
@@ -45,6 +46,15 @@ export interface ShellPayload {
   readonly current: WorkerCurrent | null;
   /** Imports waiting for the worker behind the download slot, not counting the one on it. */
   readonly queued: number;
+  /**
+   * The head of that queue, named and in the worker's own order.
+   *
+   * It rides with the counters rather than on a channel of its own: every screen that wants
+   * to say *what* is in the way — the wizard while it reads a source, the worker card —
+   * already reads this payload, which refreshes on the shell's interval and on every journal
+   * event. A second poll for the same five rows is the bug `fix-wizard-reuse` just removed.
+   */
+  readonly waiting: readonly WorkerWaiting[];
   /** The last few journal lines, for the activity drawer. */
   readonly activity: readonly JobEventPayload[];
 }
@@ -76,6 +86,7 @@ export const fetchShell = createServerFn({ method: "GET", strict: STRICT })
         failed: counts.failed,
         current: worker.current,
         queued: worker.queued,
+        waiting: worker.waiting,
         activity,
       };
     } catch (error) {
