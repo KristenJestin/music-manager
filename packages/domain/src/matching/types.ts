@@ -258,6 +258,20 @@ export interface FitLine {
   readonly status: MappingStatus;
 }
 
+/**
+ * One medium (disc) of a candidate release, as the search result already describes it.
+ *
+ * A release *search* carries `media[].format` and `media[].track-count` without any tracklist,
+ * which is exactly what "2 × CD, 12 + 9 tracks" needs — so the per-disc breakdown costs nothing
+ * that was not already fetched, and it is known for the candidates nobody looked up too.
+ */
+export interface ReleaseMedium {
+  /** One-based, as MusicBrainz numbers discs. */
+  readonly position: number;
+  readonly format: string | null;
+  readonly trackCount: number;
+}
+
 /** One scored release candidate — the shape `wizard.releaseCandidates` is drawn from. */
 export interface ReleaseCandidate {
   readonly id: string;
@@ -274,6 +288,23 @@ export interface ReleaseCandidate {
   readonly secondary: readonly string[];
   readonly disambiguation: string;
   readonly barcode: string | null;
+  /**
+   * The first catalogue number on the release — `724384960650`, `PARLO 4960652`.
+   *
+   * Out of `label-info[].catalog-number`, which `inc=labels` has always returned beside the
+   * label name the `label` signal already scores. Between two pressings on the same label in
+   * the same country it is very often the only thing that differs.
+   */
+  readonly catalogNumber: string | null;
+  /** `Jewel Case`, `Digipak`, `None`… — `release.packaging`, verbatim. */
+  readonly packaging: string | null;
+  /**
+   * The discs, in order, with the format and the track count of each.
+   *
+   * `tracks` is their sum and stays, because every caller reads it; this is what separates a
+   * 2 × CD of 12 + 9 from a single CD of 21.
+   */
+  readonly media: readonly ReleaseMedium[];
   /**
    * What the Cover Art Archive holds for this pressing, or `null` when it was never looked up.
    *
@@ -379,7 +410,15 @@ export interface ReleaseGroupRanking {
   readonly margin: number | null;
 }
 
-/** The release a lone recording is imported *as* — album > single > EP > compilation/live. */
+/**
+ * The release a lone recording is imported *as* — album > single > EP > compilation/live.
+ *
+ * It carries the same distinguishing facts as a `ReleaseCandidate` because it is the same
+ * question asked in a smaller box: the owner's *Arcane: League of Legends* single offered
+ * eighteen options whose titles were identical, and a list of eighteen identical titles is a
+ * list of one option. Everything here comes from the release documents `recordingBorrow`
+ * already returns.
+ */
 export interface BorrowRelease {
   readonly id: string;
   readonly title: string;
@@ -388,6 +427,13 @@ export interface BorrowRelease {
   readonly date: string | null;
   readonly country: string | null;
   readonly format: string | null;
+  /** How many discs, so "1/18" on a 2 × CD reads differently from "1/18" on a single. */
+  readonly mediumCount: number;
+  readonly label: string | null;
+  readonly catalogNumber: string | null;
+  readonly barcode: string | null;
+  readonly status: string | null;
+  readonly disambiguation: string;
   readonly trackPosition: number | null;
   readonly trackCount: number | null;
   readonly preferred: boolean;

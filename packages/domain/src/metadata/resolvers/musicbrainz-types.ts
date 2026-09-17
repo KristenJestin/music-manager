@@ -106,7 +106,8 @@ export interface MbMedium {
 }
 
 export interface MbLabelInfo {
-  readonly "catalog-number"?: string;
+  /** MusicBrainz sends `null` — not an absent key — for a label entry with no catalogue number. */
+  readonly "catalog-number"?: string | null;
   readonly label?: { readonly id?: string; readonly name?: string };
 }
 
@@ -150,6 +151,15 @@ export interface MbRelease {
   readonly "cover-art-archive"?: MbCoverArtArchive;
   readonly country?: string;
   readonly status?: string;
+  /**
+   * The physical packaging — `Jewel Case`, `Digipak`, `Cardboard/Paper Sleeve`, `None` for a
+   * digital release.
+   *
+   * It has always been in the payload a release lookup returns, and `scripts/prune-musicbrainz.ts`
+   * has always kept it; it was simply never typed, so the candidate card could not say that two
+   * otherwise identical pressings are a jewel case and a digipak. No `inc=` list changes for it.
+   */
+  readonly packaging?: string | null;
   readonly barcode?: string;
   readonly asin?: string;
   readonly quality?: string;
