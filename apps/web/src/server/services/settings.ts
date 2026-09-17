@@ -770,6 +770,24 @@ export const SETTING_DEFINITIONS = {
     "",
     "The same directory as the toolbox container sees it. Empty means: take MM_TOOLBOX_LIBRARY_ROOT.",
   ),
+  /*
+   * The directories `POST /imports/{id}/tracks/{trackId}/file` may read a **server path** from.
+   *
+   * Empty on purpose, and empty means "the library and nothing else". A path arriving in an
+   * HTTP body and opened without a check is a file-read primitive: the request would copy any
+   * file the app can read into the library, give it a `.opus` name and hand it to the tagger.
+   * So the route resolves the path (symlinks and all, `realpath`), and refuses it unless it
+   * lands under the library root or under one of these roots. Adding `D:\Musique` here is the
+   * operator saying, once, "this folder is mine and the app may read from it" — which is what
+   * taking over an existing library needs, and it is a decision that belongs to a person with
+   * access to Settings rather than to whoever holds an API key.
+   */
+  adoptSourceRoots: define(
+    z.array(z.string().min(1)),
+    [],
+    "Absolute directories a local file may be adopted *from* by path. The library root is " +
+      "always allowed; everything else has to be listed here. Uploads are unaffected.",
+  ),
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFINITIONS;

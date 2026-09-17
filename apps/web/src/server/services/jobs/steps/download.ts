@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, statSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
-import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
+import { containerPath, hostPath, taggable, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
 import {
@@ -64,30 +64,12 @@ function targetRelative(ctx: StepContext, track: ImportTrack): string {
 }
 
 /**
- * Containers `tag` can actually write to — the same list as the toolbox's
- * `TAGGABLE_SUFFIXES`. A `.webm` left behind by an older, pre-remux download must **not**
- * count as "already downloaded": reusing it would walk straight back into
- * `TAG_WRITE_FAILED — Unsupported container '.webm'` on every retry.
+ * True when a previous run already produced a non-empty, taggable file for this track — or
+ * when somebody adopted one into the work directory by hand (`services/adopt.ts`).
+ *
+ * `taggable` is `paths.ts`'s, shared with `adopt`: the containers this step is willing to
+ * reuse and the containers that route is willing to accept have to be one list.
  */
-const TAGGABLE_SUFFIXES = new Set([
-  ".opus",
-  ".ogg",
-  ".oga",
-  ".flac",
-  ".mp3",
-  ".mp2",
-  ".m4a",
-  ".mp4",
-  ".m4b",
-  ".aac",
-]);
-
-function taggable(relative: string): boolean {
-  const dot = relative.lastIndexOf(".");
-  return dot === -1 ? false : TAGGABLE_SUFFIXES.has(relative.slice(dot).toLowerCase());
-}
-
-/** True when a previous run already produced a non-empty, taggable file for this track. */
 function fileReady(ctx: StepContext, track: ImportTrack): string | null {
   const candidates = [
     ...(track.downloadPath === null ? [] : [track.downloadPath]),
