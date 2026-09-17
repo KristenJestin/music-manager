@@ -44,7 +44,6 @@ import {
 import { type QualityFilter } from "#/lib/library-filters.ts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
-  imports,
   importTracks,
   libraryAlbums,
   libraryTracks,
@@ -986,12 +985,12 @@ export async function tracksBehindSchema(options: {
  *    write, and comparing a fresh `projectionHash(projectDocument(document))` against it is the
  *    honest test for this half.
  *  - `sources` — the **document itself** is stale. The mapping the database now holds
- *    (`import_tracks.recording_mbid` / `track_mbid`, `imports.release_mbid`) is not the one the
- *    document was built from, so document and file can agree perfectly *on the previous
- *    edition*. The hash test is structurally blind to that: `matchStep` rewrites the mapping and
- *    rebuilds no document, so both sides of the comparison stay equal while the truth moves
- *    underneath them. This is the half that let the AURORA and Birdy albums keep the previous
- *    edition's `MUSICBRAINZ_RELEASETRACKID` and no `ASIN` at all.
+ *    (`import_tracks.recording_mbid` and `track_mbid`) is not the one the document was built
+ *    from, so document and file can agree perfectly *on the previous edition*. The hash test is
+ *    structurally blind to that: `matchStep` rewrites the mapping and rebuilds no document, so
+ *    both sides of the comparison stay equal while the truth moves underneath them. This is the
+ *    half that let the AURORA and Birdy albums keep the previous edition's
+ *    `MUSICBRAINZ_RELEASETRACKID` and no `ASIN` at all.
  *
  * Both are cleared by one act, which is what makes the state actionable rather than merely
  * true: `retagOne` rebuilds the document from the raw cache (so the mapping catches up), writes
@@ -1005,14 +1004,18 @@ export interface AdriftTrack {
 }
 
 /**
- * `null` on either side is "not known", and an unknown is never a divergence.
+ * Asymmetric on purpose: the **database** is the one making the claim.
  *
- * A document built by "import without MusicBrainz" carries no `MUSICBRAINZ_TRACKID`, and its
- * import row carries none either. Calling that pair a divergence would put a permanent "1 file
- * behind the database" on every untagged album, under a button that could never clear it.
+ * `held` is what the stored document says; `claimed` is what the mapping now says. A `claimed`
+ * of `null` is not a claim at all — a document built by "import without MusicBrainz" carries no
+ * `MUSICBRAINZ_TRACKID` and its import row carries none either, and calling that pair a
+ * divergence would put a permanent "1 file behind the database" on every untagged album, under
+ * a button that could never clear it. But a `held` of `null` against a real `claimed` *is* a
+ * divergence, and a clearable one: the database has learned an identifier the document predates,
+ * and a rebuild fills it in.
  */
-function disagrees(left: string | null, right: string | null): boolean {
-  return left !== null && right !== null && left !== right;
+function disagrees(held: string | null, claimed: string | null): boolean {
+  return claimed !== null && held !== claimed;
 }
 
 /** One identifier off a document, tolerating the multi-valued shape the tag map allows. */
@@ -1057,11 +1060,9 @@ export async function tracksAdrift(options: {
       recordingMbid: importTracks.recordingMbid,
       trackMbid: importTracks.trackMbid,
       role: importTracks.role,
-      releaseMbid: imports.releaseMbid,
     })
     .from(libraryTracks)
     .innerJoin(importTracks, eq(libraryTracks.importTrackId, importTracks.id))
-    .innerJoin(imports, eq(importTracks.importId, imports.id))
     /*
      * Joined on `import_track_id`, not on `library_track_id`, and the difference is one row
      * per file rather than several.
@@ -1086,10 +1087,21 @@ export async function tracksAdrift(options: {
     if (row.role === "extra") continue;
     const document = row.document as unknown as TrackDocument;
 
+    /*
+     * The recording and the release *track*, and deliberately not the release itself.
+     *
+     * A release-track MBID is unique to one release, so it moves whenever the edition does —
+     * it carries all the detection power the release id would, and none of its risk.
+     * `musicbrainz_albumid` is `albumScope: true`, so `resolveAlbumScope` gives every track of
+     * an album one value for it; on an album assembled from two imports of two editions that
+     * value cannot agree with both `imports.release_mbid` rows, and a re-tag would re-unify it
+     * to the same answer every time. That is a §2.7 divergence, which the Quality page already
+     * names — not a file behind the database, and never a warning under a button that cannot
+     * clear it.
+     */
     if (
       disagrees(identifierOf(document, "musicbrainz_recordingid"), row.recordingMbid) ||
-      disagrees(identifierOf(document, "musicbrainz_releasetrackid"), row.trackMbid) ||
-      disagrees(identifierOf(document, "musicbrainz_albumid"), row.releaseMbid)
+      disagrees(identifierOf(document, "musicbrainz_releasetrackid"), row.trackMbid)
     ) {
       out.push({ track: row.track, reason: "sources" });
       continue;

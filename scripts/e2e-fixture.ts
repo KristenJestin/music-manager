@@ -255,6 +255,20 @@ async function stepRow(
 }
 
 /** The id of the newest import. `mm import` prints it, but SQL is unambiguous. */
+/** Wait for a queued re-tag run to leave `pending`/`running`, and say where it landed. */
+async function waitForRetagRun(runId: string, timeoutMs = 60_000): Promise<string> {
+  if (runId === "") return "no run id";
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const rows = await sql<{ status: string }[]>`
+      select status::text as status from retag_runs where id = ${runId} limit 1`;
+    const status = rows[0]?.status ?? "missing";
+    if (status !== "pending" && status !== "running") return status;
+    if (Date.now() > deadline) return `still ${status} after ${String(timeoutMs)} ms`;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+}
+
 async function latestImport(): Promise<string> {
   const rows = await sql<{ id: string }[]>`select id from imports order by created_at desc limit 1`;
   const id = rows[0]?.id;
@@ -854,6 +868,33 @@ async function main(): Promise<void> {
     settled.includes("already matches the database"),
     "running it again finds nothing: a re-tag does not leave work behind itself",
     settled.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  /*
+   * ---- and the same thing without anybody asking ----
+   *
+   * Everything above was driven by hand, which is the *repair* for a library that already
+   * diverged. This is the half that stops it happening again: a field corrected from the
+   * Console queues the catch-up because of where it is written (`services/projection.ts`), and
+   * the worker rewrites the file. `ENGINEER` is the owner's own second example — "Robin
+   * Schmidt" in the database, "Robin Schmidt, Alex Wharton" in the file.
+   */
+  const trackRow = await sql<{ id: string }[]>`
+    select id from library_tracks where path = ${FILE_1} limit 1`;
+  const overridden = await mm("doc", "set", trackRow[0]?.id ?? "", "engineer", "Robin Schmidt");
+  check(
+    overridden.includes("re-tag     queued"),
+    "a hand correction queues the catch-up itself — nobody had to know a re-tag exists",
+    overridden.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  const engineerRunId = /run (rtg_[0-9A-Z]+)/.exec(overridden)?.[1] ?? "";
+  const engineerRun = await waitForRetagRun(engineerRunId);
+  check(engineerRun === "done", "the worker drained it", engineerRun);
+  check(
+    ((await probe(FILE_1)).tags["ENGINEER"] ?? "") === "Robin Schmidt",
+    "and the file now says what the database says",
+    (await probe(FILE_1)).tags["ENGINEER"] ?? "(absent)",
   );
 
   /* ---- and back, so the library this suite leaves behind is correct ---- */
