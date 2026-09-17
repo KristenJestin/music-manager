@@ -190,14 +190,15 @@ server {
 
 ## 3. Où sont les données
 
-Quatre volumes, nommés par défaut — rien à créer à la main.
+Cinq volumes, nommés par défaut — rien à créer à la main.
 
-| Volume    | Contenu                                                        | Perte = ?                                                                        |
-| --------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `pgdata`  | PostgreSQL : la **source de vérité** des métadonnées           | catastrophique ; c'est ce qu'on sauvegarde                                       |
-| `library` | la musique, partagée avec le toolbox (et Navidrome)            | grave, mais re-téléchargeable                                                    |
-| `cache`   | le scratch du toolbox (`TMPDIR`) : recadrages, scans           | aucune conséquence                                                               |
-| `cookies` | `cookies.txt` pour `cookiesMode: file` (§5 ter), lecture seule | aucune si un jar collé (`paste`) est aussi en usage — celui-là vit dans `pgdata` |
+| Volume    | Contenu                                                                  | Perte = ?                                                                        |
+| --------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `pgdata`  | PostgreSQL : la **source de vérité** des métadonnées                     | catastrophique ; c'est ce qu'on sauvegarde                                       |
+| `library` | la musique, partagée avec le toolbox (et Navidrome)                      | grave, mais re-téléchargeable                                                    |
+| `cache`   | le scratch du toolbox (`TMPDIR`) : recadrages, scans                     | aucune conséquence                                                               |
+| `cookies` | `cookies.txt` pour `cookiesMode: file` (§5 ter), lecture seule           | aucune si un jar collé (`paste`) est aussi en usage — celui-là vit dans `pgdata` |
+| `adopt`   | une bibliothèque **existante** que `mm import <dossier>` lit (§5 sexies) | aucune : Music Manager n'y écrit jamais, le montage est en lecture seule         |
 
 ```bash
 docker volume inspect music-manager_pgdata     # où c'est réellement sur le disque
@@ -719,6 +720,11 @@ affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en t
 
 ### Reprendre une bibliothèque existante, piste par piste
 
+> **Cette procédure-ci suppose un import qui existe déjà**, confirmé, avec ses pistes. Quand la
+> source ne se résout même pas — une playlist disparue de YouTube, un album derrière une
+> vérification d'âge — il n'y a aucune piste à qui donner un fichier : c'est
+> **§ 5 sexies, `mm import <dossier>`**, qu'il vous faut.
+
 1. Créez les imports depuis les URL YouTube correspondantes (`mm import --from-file`) et
    confirmez-les (`mm confirm-best`) : c'est ce qui apporte les métadonnées MusicBrainz.
 2. Ouvrez le dossier source : `mm settings set adoptSourceRoots '["/srv/ancienne"]'`.
@@ -726,6 +732,184 @@ affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en t
    `GET /api/v1/imports/{id}` depuis un agent.
 4. Aucun octet n'est téléchargé pour ces pistes, et le créneau unique reste libre pour les
    albums qui, eux, en ont besoin.
+
+---
+
+## 5 sexies. Importer un dossier : `mm import <dossier>`
+
+Adopter un fichier (§ 5 quinquies) exige **un import déjà confirmé, avec ses pistes**. Trois
+situations n'en ont pas et ne peuvent pas en avoir, parce qu'elles échouent à l'étape `resolve`,
+avant qu'une seule ligne de piste existe :
+
+- **une playlist qui a disparu de YouTube** (« The playlist does not exist »). Le listage
+  échoue avant d'avoir énuméré quoi que ce soit ;
+- **un album derrière une vérification d'âge**, qui échoue de la même façon ;
+- **une bibliothèque existante**, dont les fichiers sont simplement déjà sur le disque.
+
+Pour les trois, la source n'est pas une URL : c'est un dossier.
+
+```bash
+docker compose -f docker-compose.prod.yml exec web \
+  bun run mm -- import '/adopt/Daft Punk/Discovery' --yes --follow
+```
+
+### Ce que ça fait, exactement
+
+**Le dossier est listé comme une playlist est listée.** Chaque fichier devient une entrée, avec
+son titre, sa durée et ses tags existants. Le reste du pipeline ne change pas :
+
+| Étape         | Pour une URL               | Pour un dossier                                                                            |
+| ------------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| `resolve`     | yt-dlp énumère les vidéos  | l'application énumère les fichiers, le toolbox les lit tous en **une seule** requête       |
+| `match`       | sur les tags YouTube Music | **sur les tags des fichiers** — même problème, meilleurs signaux : durée exacte, empreinte |
+| `download`    | yt-dlp télécharge          | **le fichier est adopté** : copié depuis le disque, aucun octet téléchargé                 |
+| `fingerprint` | inchangé                   | inchangé                                                                                   |
+| `tag`         | inchangé                   | inchangé                                                                                   |
+| `place`       | inchangé                   | inchangé                                                                                   |
+
+Quelques conséquences qui se voient :
+
+- **Le créneau de téléchargement unique n'est jamais pris.** Importer une bibliothèque entière
+  n'empêche pas un album normal de se télécharger en même temps.
+- **Le listage n'est pas récursif. Un dossier = une sortie.** Un dossier d'albums est une
+  _bibliothèque_, pas un disque : pointez le dossier de l'album, pas celui au-dessus. Le refus
+  vous le dit (« A folder of album folders is a library, not a release »).
+- **L'ordre vient des fichiers.** Si tous portent un `TRACKNUMBER`, c'est lui qui ordonne ; sinon
+  c'est l'ordre des noms, trié numériquement (`2 -` avant `10 -`).
+- **`--release <mbid>` épingle la sortie**, exactement comme pour une URL. Et si les fichiers
+  portent déjà tous le même `MUSICBRAINZ_ALBUMID` — ce qui est le cas d'une bibliothèque taguée
+  par Picard ou par la v1 — il est utilisé tout seul, sauf si vous avez passé `--release`.
+- **Si MusicBrainz ne connaît pas l'album**, l'import ne s'arrête pas et ne pose pas de
+  question : il se rabat sur les tags des fichiers, par le chemin « import sans MusicBrainz »
+  qui existe déjà. L'album est classé `untagged` dans la bibliothèque, donc retrouvable et
+  finissable plus tard. `--no-untagged` demande l'inverse : parquer l'import dans la file de
+  revue et attendre une décision.
+- **L'original n'est jamais modifié.** Les octets sont copiés, tagués dans la bibliothèque de
+  Music Manager, et le dossier source est lu — jamais écrit, jamais déplacé, jamais supprimé.
+
+Le même import existe partout ailleurs :
+
+```bash
+# API
+curl -sS -X POST "$MM_URL/api/v1/imports" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d '{"url":"/adopt/Daft Punk/Discovery","options":{"autoConfirm":true}}'
+```
+
+Et un agent MCP appelle `create_import` avec le chemin à la place de l'URL.
+
+### Monter une bibliothèque existante
+
+Le conteneur ne monte que la bibliothèque **courante**. Un dossier source ailleurs sur la
+machine lui est invisible, et l'import échoue au listage. `MM_ADOPT_PATH` est ce montage :
+
+```dotenv
+# .env
+MM_ADOPT_PATH=/srv/ancienne-bibliotheque
+```
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec web ls /adopt   # doit lister vos albums
+```
+
+Trois conteneurs le reçoivent, **au même chemin `/adopt`** :
+
+| Service   | Pourquoi il en a besoin                                                             |
+| --------- | ----------------------------------------------------------------------------------- |
+| `web`     | il parcourt le dossier et vérifie qu'il a le droit de le lire                       |
+| `worker`  | c'est lui qui exécute `download`, donc lui qui copie les octets                     |
+| `toolbox` | c'est lui qui a ffprobe, et donc lui qui lit la durée et les tags de chaque fichier |
+
+Le **même chemin** dans les trois, et ce n'est pas un détail d'écriture : c'est ce qui fait que
+la traduction entre eux est l'identité, et donc qu'il n'existe pas une deuxième paire de
+variables à tenir synchronisée comme `MM_LIBRARY_ROOT` / `MM_TOOLBOX_LIBRARY_ROOT`. Un chemin
+qui voudrait dire `/adopt` ici et `/srv/musique` là serait une source de pannes pour rien.
+
+**Le montage est en lecture seule (`:ro`), et doit le rester.** Music Manager est propriétaire
+de _sa_ bibliothèque et de rien d'autre : il lit ces octets, les copie, et écrit les tags sur
+sa copie. Votre bibliothèque d'origine n'est jamais modifiée, jamais déplacée, jamais supprimée
+— et le `:ro` fait de cette phrase une propriété du déploiement plutôt qu'une promesse dans une
+documentation. Ne l'enlevez pas.
+
+Le montage ne suffit pas.
+
+### Ouvrir le dossier à la lecture : `adoptSourceRoots`
+
+Le même garde-fou qu'au § 5 quinquies s'applique **sans changement** à un dossier. Il est vide
+par défaut, et vide veut dire « la bibliothèque, et rien d'autre » :
+
+```bash
+docker compose -f docker-compose.prod.yml exec web \
+  bun run mm -- settings set adoptSourceRoots '["/adopt"]'
+docker compose -f docker-compose.prod.yml exec web \
+  bun run mm -- settings get adoptSourceRoots
+```
+
+Sans ça, tout chemin sous `/adopt` répond `ADOPT_PATH_REFUSED` (403). Ce n'est pas une
+précaution excessive : **un chemin arrivant dans un corps de requête HTTP est une primitive de
+lecture de fichier**, et un _dossier_ accepté autorise d'un coup tout ce que le listage y
+trouvera. Le chemin est réduit (`..`) puis résolu (`realpath`) avant d'être comparé, exactement
+comme pour un fichier isolé, de sorte qu'un lien symbolique posé dans un dossier autorisé ne
+peut pas pointer en dehors.
+
+Le chemin à écrire est celui que **le serveur** voit — `/adopt/...` — pas celui de votre poste.
+
+### La reprise d'une bibliothèque entière, en pratique
+
+```bash
+# 1. monter, une fois
+echo 'MM_ADOPT_PATH=/srv/ancienne-bibliotheque' >> .env
+docker compose -f docker-compose.prod.yml up -d
+
+# 2. ouvrir, une fois
+docker compose -f docker-compose.prod.yml exec web \
+  bun run mm -- settings set adoptSourceRoots '["/adopt"]'
+
+# 3. un album à la fois — le dossier de l'album, pas celui au-dessus
+docker compose -f docker-compose.prod.yml exec web \
+  bun run mm -- import '/adopt/Daft Punk/Discovery' --yes --follow
+```
+
+Pour boucler sur des dizaines d'albums, un `for` sur les sous-dossiers suffit : chaque import
+est indépendant, et aucun ne prend le créneau de téléchargement.
+
+```bash
+docker compose -f docker-compose.prod.yml exec web sh -c '
+  for album in /adopt/*/*; do
+    [ -d "$album" ] && bun run mm -- import "$album" --yes
+  done'
+```
+
+### Les refus, et ce qu'ils demandent
+
+| Code                       | Ce qui s'est passé                                           | Quoi faire                                                                                                                       |
+| -------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `ADOPT_PATH_REFUSED` (403) | Le dossier est hors bibliothèque et hors `adoptSourceRoots`. | Ajouter le dossier au réglage. Le message liste les racines autorisées.                                                          |
+| `FOLDER_NO_AUDIO` (400)    | Rien d'importable dedans.                                    | Le message dit ce qu'il a vu. S'il compte des sous-dossiers : vous avez visé un cran trop haut, importez chaque dossier d'album. |
+| `INVALID_INPUT` (400)      | Chemin relatif.                                              | Donner le chemin **absolu** : un chemin relatif désignerait un dossier différent selon le processus qui le résout.               |
+| `NOT_FOUND` (404)          | Le dossier est dans une racine autorisée mais n'existe pas.  | Vérifier la frappe. Un chemin hors racine répond 403, jamais 404 — la liste blanche n'est pas un oracle de système de fichiers.  |
+
+Un fichier que ffprobe n'arrive pas à lire n'arrête **pas** l'import : il est sauté, avec une
+ligne dans le journal qui le nomme et dit pourquoi. Le listage de deux cents pistes vaut mieux
+que le refus d'une seule. Si _tous_ les fichiers échouent et que le dossier est hors
+bibliothèque, le message nomme la cause la plus probable : le toolbox n'a pas le montage.
+
+### Ce que les tags diront
+
+Comme pour un fichier adopté isolément (§ 5 quinquies), à un détail près :
+
+| Champ                    | Fichier adopté sur une piste YouTube                                     | Fichier venu d'un import de dossier                    |
+| ------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `COMMENT`                | `Adopted local file "03.flac" on … · not downloaded from youtu.be/… · …` | `Adopted local file "03.flac" on … · imported … par …` |
+| `ORIGINALFILENAME`       | le nom du fichier adopté                                                 | le nom du fichier adopté                               |
+| `ENCODEDBY`              | n/a — « the file was adopted from disk, not downloaded »                 | idem                                                   |
+| `MUSICMANAGER_SOURCEURL` | l'URL de la vidéo (l'identité de la piste)                               | l'URL `file://` du fichier source                      |
+
+La clause « not downloaded from … » disparaît pour un import de dossier, et c'est voulu : elle
+existe pour nommer la vidéo dont les octets ne viennent _pas_. Ici il n'y en a jamais eu — le
+fichier **est** la source — et inventer une vidéo dans le seul champ qu'un humain lit pour
+savoir d'où vient sa musique serait un mensonge.
 
 ---
 
