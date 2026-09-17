@@ -1,5 +1,13 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, test, pressGlobal, shellReady, signIn, typeInto } from "./helpers.ts";
+import {
+  expect,
+  test,
+  pasteIntoPage,
+  pressGlobal,
+  shellReady,
+  signIn,
+  typeInto,
+} from "./helpers.ts";
 
 /**
  * ⌘K, the Console's front door.
@@ -25,26 +33,6 @@ import { expect, test, pressGlobal, shellReady, signIn, typeInto } from "./helpe
 
 /** The fixture album's release, seeded into `source_cache` — `packages/domain/fixtures`. */
 const DISCOVERY_RELEASE = "d073287b-d1bd-4f11-a933-a4386f8cf701";
-
-/**
- * Paste, the way the browser delivers it.
- *
- * Playwright cannot write the OS clipboard, and `⌘V` without one pastes nothing. The handler
- * under test listens for the `paste` **event** rather than the keystroke — precisely so that
- * the clipboard's contents are in hand — so dispatching that event with a `DataTransfer` is
- * the same input the real gesture produces, minus the part the browser owns.
- */
-async function pasteIntoPage(page: Page, text: string): Promise<void> {
-  await shellReady(page);
-  await page.evaluate((pasted: string) => {
-    const data = new DataTransfer();
-    data.setData("text/plain", pasted);
-    document.body.dispatchEvent(
-      new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }),
-    );
-  }, text);
-  await expect(page.getByTestId("palette-input")).toHaveValue(text, { timeout: 30_000 });
-}
 
 /**
  * Walk the highlight down to a row with the arrow keys, and stop when it is there.
