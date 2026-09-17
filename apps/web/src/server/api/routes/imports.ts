@@ -27,6 +27,7 @@ import {
   bumpImport,
   cancelImport,
   countImports,
+  forgetMapping,
   listImports,
   pauseImport,
   requeueUpstreamFailures,
@@ -39,6 +40,7 @@ import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
+import { forgetsMapping } from "#/server/services/retry-plan.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
@@ -635,6 +637,15 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       path: "/{id}/retry",
       tags: [TAG],
       summary: "Re-run one step",
+      description:
+        "Rewinds the import to `step` and puts it back on the queue; the worker runs it.\n\n" +
+        "**`resolve` and `match` discard the confirmed mapping.** The `match` step applies a " +
+        "supplied mapping verbatim when `imports.options` carries one, so a rewind that kept " +
+        "it would re-apply the very mapping you are asking to replace. The confirmed release, " +
+        "the per-video mapping, the signature that opened the confirmation gate and the Inbox " +
+        "items the old match raised all go; the `decisions` rows stay, because they are the " +
+        "audit trail and not the answer. `forgotMapping` in the response says whether it " +
+        "happened. Every other step keeps the mapping and rewinds only the tail.",
       middleware: [requireScope("imports:write")] as const,
       request: {
         params: z.object({ id: idParam }),
@@ -644,7 +655,11 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         200: {
           content: {
             "application/json": {
-              schema: z.object({ import: importSchema, status: z.string() }),
+              schema: z.object({
+                import: importSchema,
+                status: z.string(),
+                forgotMapping: z.boolean(),
+              }),
             },
           },
           description: "Retried",
@@ -662,12 +677,17 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         });
       }
       if ((await getImport(id, db())) === null) throw notFound(id);
+      // A re-match discards the confirmed mapping, here exactly as in the Console and the CLI:
+      // `matchStep` applies `options.mapping` verbatim when it is there, so leaving it would
+      // make `--step match` re-apply the very mapping the caller is asking to replace.
+      const forgotMapping = forgetsMapping(step as StepName);
+      if (forgotMapping) await forgetMapping(id, db());
       // Rewind, then queue. Running the step here would put a second downloader in the web
       // process, next to the worker's — see `rewindTo` and owner review C3.
       await rewindTo(id, step as StepName, db());
       await enqueue(id, "api retry", step as StepName);
       const fresh = await getImport(id, db());
-      return c.json({ import: toImport(fresh as Import), status: "queued" }, 200);
+      return c.json({ import: toImport(fresh as Import), status: "queued", forgotMapping }, 200);
     },
   );
 

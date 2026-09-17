@@ -226,6 +226,21 @@ describe.skipIf(unavailable !== null)("retrying from a chosen step", () => {
     expect(mapped.length).toBeGreaterThanOrEqual(13);
   }, 120_000);
 
+  /*
+   * Three doors, one room.
+   *
+   * The Console's menu, `POST /imports/{id}/retry` and `mm retry --step match` all decide
+   * "does this discard the mapping?" by asking `forgetsMapping`, so a re-match cannot mean one
+   * thing on a screen and another in a terminal. This asserts the predicate they share, which
+   * is the only thing the three have in common by construction.
+   */
+  it("says the same thing about every step, whichever door asked", () => {
+    expect(forgetsMapping("match")).toBe(true);
+    expect(forgetsMapping("resolve")).toBe(true);
+    expect(forgetsMapping("download")).toBe(false);
+    expect(forgetsMapping("verify")).toBe(false);
+  });
+
   /* The menu and the server read one list, so what is on offer is what will be accepted. */
   it("offers a confirmed import every step it has reached, and no more", async () => {
     const id = await confirmedImport();

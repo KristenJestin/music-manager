@@ -59,6 +59,7 @@ import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/servic
 import {
   bumpImport,
   cancelImport,
+  forgetMapping,
   listImports,
   pauseImport,
   requeueUpstreamFailures,
@@ -66,6 +67,7 @@ import {
   stepsOf,
 } from "#/server/services/jobs/index.ts";
 import { enqueueAll } from "#/server/services/queue.ts";
+import { forgetsMapping } from "#/server/services/retry-plan.ts";
 import {
   isSecretSetting,
   isSettingKey,
@@ -497,6 +499,18 @@ async function cmdRetry(args: Args): Promise<number> {
   }
   if (!(STEP_ORDER as readonly string[]).includes(step)) {
     throw new MMError("INVALID_INPUT", `Unknown step "${step}". One of: ${STEP_ORDER.join(", ")}.`);
+  }
+  /*
+   * A re-match discards the confirmed mapping, here exactly as in the Console.
+   *
+   * `matchStep` applies `options.mapping` verbatim when it is there, so `--step match` on a
+   * confirmed import would re-apply the mapping the operator is trying to be rid of. Naming a
+   * step on the command line is the same deliberate gesture as choosing one from the menu, and
+   * two doors into one room must not disagree about what "match again" means.
+   */
+  if (forgetsMapping(step as StepName)) {
+    await forgetMapping(id, db());
+    line(`discarded the confirmed release and the video → track mapping`);
   }
   // Rewind here, run nowhere. The CLI used to execute the step in its own process, which on
   // `--step download` opened a second download beside the worker's and earned the job a
