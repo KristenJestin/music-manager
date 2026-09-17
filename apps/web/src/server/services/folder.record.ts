@@ -32,7 +32,18 @@ import { z } from "zod";
 export const FOLDER_FILE_KEY = "mm_file";
 
 export const folderFileSchema = z.object({
-  /** Absolute path on **this server**, already resolved against `adoptSourceRoots`. */
+  /**
+   * Absolute path on **this server**, already `realpath`-resolved against `adoptSourceRoots`.
+   *
+   * Absolute, and it has to be: every path this application *stores in a column* is
+   * library-relative (`CLAUDE.md` § Code style) because the library is the one directory both
+   * sides of the bridge agree on — and a source folder is by definition outside it. This is
+   * not such a column. It is a field of the verbatim source payload, next to the tags the file
+   * carried, and it names a place on a disk rather than a place in the library.
+   *
+   * `download` re-checks it against the allow-list before opening it (`adoptTrackFile`), so a
+   * row written when a root was allowed does not survive that root being withdrawn.
+   */
   path: z.string().min(1),
   /** The file's own name. Basename, never a path — this is what `ORIGINALFILENAME` becomes. */
   name: z.string().min(1),
