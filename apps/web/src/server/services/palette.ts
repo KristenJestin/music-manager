@@ -145,7 +145,11 @@ export async function searchLibrary(
       kind: "album" as const,
       id: row.id,
       title: row.title,
-      subtitle: [row.artist, row.year === null ? null : String(row.year), `${String(row.present)}/${String(row.total)} tracks`]
+      subtitle: [
+        row.artist,
+        row.year === null ? null : String(row.year),
+        `${String(row.present)}/${String(row.total)} tracks`,
+      ]
         .filter((part): part is string => part !== null)
         .join(" · "),
     })),
@@ -170,11 +174,7 @@ export async function searchLibrary(
 
 /** What the palette will do with an identified reference. */
 export type PaletteRefAction =
-  | "pin-release"
-  | "pin-group"
-  | "match-recording"
-  | "browse-artist"
-  | "none";
+  "pin-release" | "pin-group" | "match-recording" | "browse-artist" | "none";
 
 export interface PaletteRef {
   readonly mbid: string;
@@ -214,8 +214,9 @@ function credited(doc: { readonly "artist-credit"?: unknown }): string | null {
   const credits = doc["artist-credit"];
   if (!Array.isArray(credits)) return null;
   const name = credits
-    .map((entry: { name?: string; artist?: { name?: string }; joinphrase?: string }) =>
-      `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`,
+    .map(
+      (entry: { name?: string; artist?: { name?: string }; joinphrase?: string }) =>
+        `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`,
     )
     .join("")
     .trim();
@@ -537,7 +538,13 @@ export async function tracksMatchingRecording(
   });
 
   return {
-    exact: rows.filter((row) => row.exact).slice(0, limit).map(hit),
-    byTitle: rows.filter((row) => !row.exact).slice(0, limit).map(hit),
+    exact: rows
+      .filter((row) => row.exact)
+      .slice(0, limit)
+      .map(hit),
+    byTitle: rows
+      .filter((row) => !row.exact)
+      .slice(0, limit)
+      .map(hit),
   };
 }

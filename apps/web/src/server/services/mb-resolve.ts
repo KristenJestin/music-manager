@@ -160,7 +160,8 @@ export function directLookups(db: Database, signal?: AbortSignal, offline = fals
     }
   };
   return {
-    release: async (mbid) => await quietly(async () => (await lookupRelease(await ctx(), mbid)).data),
+    release: async (mbid) =>
+      await quietly(async () => (await lookupRelease(await ctx(), mbid)).data),
     recording: async (mbid) =>
       await quietly(async () => (await lookupRecording(await ctx(), mbid)).data),
     releaseGroup: async (mbid) =>
