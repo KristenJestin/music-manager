@@ -469,9 +469,14 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         "**Two criteria, one endpoint, chosen by what the import is** — `kind` in the answer " +
         "says which one ran. A caller looping over the ids `POST /imports/batch` returned does " +
         "not know which of them the `resolve` step made a single, and should not have to.\n\n" +
-        "**An album is decided on coverage.** The release that binds the most of this import's " +
-        "videos wins, the mapping comes from its `fitLines`, and `minCoverage` (mapped videos " +
-        '÷ videos in the import) is the bar. `preferType: "album"` breaks a tie in favour of ' +
+        "**An album is decided on an exact match.** This is the only path that commits a " +
+        "release without anybody reading the card, so it commits only when there is nothing " +
+        "left to ask: every video of the import bound to a track, no track of the release left " +
+        "without a video, and a candidate credited to the artist the source names. The release " +
+        "that binds the most videos wins and the mapping comes from its `fitLines`; " +
+        "`minCoverage` (mapped videos ÷ videos in the import) is a bar you may *raise* on top " +
+        "of the rule and cannot use to waive it — a deliberately inexact album is what " +
+        '`confirm-mapping` is for. `preferType: "album"` breaks a tie in favour of ' +
         "an Album over an EP or a Single that maps the same number of videos; it is a " +
         "tie-break, not a weight, and never promotes a candidate that maps fewer.\n\n" +
         "**A single is decided on the margin.** One video is ranked against *recordings*, so " +

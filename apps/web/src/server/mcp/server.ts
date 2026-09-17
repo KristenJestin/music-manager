@@ -717,9 +717,17 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "**Two criteria, one tool, chosen by what the import is.** `kind` in the answer says " +
         "which one ran. Loop this over every id `create_imports` gave you; you do not have to " +
         "know in advance which of them resolved to a single.\n\n" +
-        "**An album is decided on coverage** — `minCoverage` is mapped videos ÷ videos in the " +
-        "import, and defaults to 0.8 — and the mapping comes from the winning release's " +
-        "`fitLines`. " +
+        "**An album is decided on an exact match.** This is the only path that commits a " +
+        "release without a person reading the card, so it commits only when there is nothing " +
+        "left to ask: every video of the import bound to a track, no track of the release left " +
+        "without a video, and a candidate credited to the artist the source names. Anything " +
+        "else is a refusal naming the condition that failed, and the import is left waiting. " +
+        "Five albums of the owner's library were imported under the old rule with **no release " +
+        "of the right size in MusicBrainz at all**; a parked import beats a wrong album that " +
+        "looks finished.\n\n" +
+        "`minCoverage` (mapped videos ÷ videos, default 0.8) is a bar you may *raise* on top of " +
+        "that; it cannot waive it. A deliberately inexact album is `confirm_mapping`'s job. " +
+        "The mapping comes from the winning release's `fitLines`, and " +
         '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single that ' +
         "maps the same number of videos; it never promotes a candidate that maps fewer.\n\n" +
         "**A single is decided on the margin.** One video is ranked against *recordings*, so " +

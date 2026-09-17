@@ -281,7 +281,10 @@ export const confirmBestSchema = z
         example: DEFAULT_MIN_COVERAGE,
         description:
           "**Albums only.** Mapped videos ÷ videos in the import. Below it the call is a 409 " +
-          "and the import is left waiting, untouched.",
+          "and the import is left waiting, untouched. A bar you may *raise*: an album is " +
+          "confirmed here only on an exact match — every video bound, every track of the " +
+          "release covered, the source's artist carried — and `minCoverage` cannot waive that. " +
+          "A deliberately inexact album goes through `confirm-mapping`.",
       }),
     minMargin: z
       .number()
