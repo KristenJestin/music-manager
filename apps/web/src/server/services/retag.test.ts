@@ -9,7 +9,15 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ProjectedTag } from "@mm/domain";
-import { diffProjection, formatOf, hashProjection, isNoop } from "./retag.ts";
+import type { RetagSelection } from "#/server/db/schema/enums.vocab.ts";
+import {
+  diffProjection,
+  emptyReason,
+  emptyRunNote,
+  formatOf,
+  hashProjection,
+  isNoop,
+} from "./retag.ts";
 
 const tag = (key: string, value: string, field = key.toLowerCase()): ProjectedTag => ({
   key,
@@ -173,5 +181,49 @@ describe("hashProjection", () => {
 
   it("is short enough to store on every row", () => {
     expect(hashProjection([tag("TITLE", "T")])).toHaveLength(32);
+  });
+});
+
+/**
+ * A run that touched nothing must say which question it asked.
+ *
+ * The owner ran a repair on a file a library scan had just reported drifted and read back
+ * `done: 0/1 file(s), 0 changed, 0 failed`, which is the shape of a success. It was not one: the
+ * run had selected nothing. "0 changed" is the absence of a finding, and printing it alone over
+ * an empty set is how a repair that never happened comes to look like a repair that did.
+ */
+describe("emptyRunNote", () => {
+  const run = (over: Partial<Parameters<typeof emptyRunNote>[0]> = {}) =>
+    ({
+      done: 0,
+      dryRun: false,
+      selection: "adrift" as RetagSelection,
+      status: "done" as const,
+      ...over,
+    }) as Parameters<typeof emptyRunNote>[0];
+
+  it("says nothing when the run actually processed a file", () => {
+    // A run that looked at four files and changed none of them did its job, and `0 changed` is
+    // then the whole truth. The note is for a run that looked at *nothing*.
+    expect(emptyRunNote(run({ done: 4 }))).toBeNull();
+  });
+
+  it("says nothing about a run somebody stopped", () => {
+    expect(emptyRunNote(run({ status: "cancelled" }))).toBeNull();
+    expect(emptyRunNote(run({ status: "failed" }))).toBeNull();
+  });
+
+  it("names the question each selection asked", () => {
+    expect(emptyRunNote(run({ selection: "adrift" }))).toBe(
+      `No file was selected — ${emptyReason("adrift")}`,
+    );
+    expect(emptyRunNote(run({ selection: "all" }))).toContain("there is no file in scope");
+    // …and `behind` points at the selection that would have answered differently, rather than
+    // claiming anything about values it never compared.
+    expect(emptyRunNote(run({ selection: "behind" }))).toContain("mm retag --adrift");
+  });
+
+  it("uses the words a dry run and a real run share, so neither claims a write", () => {
+    expect(emptyRunNote(run({ dryRun: true }))).toBe(emptyRunNote(run({ dryRun: false })));
   });
 });
