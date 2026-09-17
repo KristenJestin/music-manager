@@ -356,6 +356,9 @@
           "YTDLP_UNAVAILABLE",
           "YTDLP_AGE",
           "YTDLP_PRIVATE",
+          "PLAYLIST_UNAVAILABLE",
+          "PLAYLIST_PRIVATE",
+          "PLAYLIST_ENTRY_UNAVAILABLE",
           "FFMPEG_MISSING",
           "DOWNLOAD_CONTAINER",
           "TAG_WRITE_FAILED",
@@ -516,6 +519,54 @@
         "title": "ExtractEntry",
         "type": "object"
       },
+      "ExtractGap": {
+        "description": "One entry the source listed and yt-dlp could not read **at all**.\n\nDistinct from `ExtractEntry.unavailable`, and the difference is what is known rather than\nwhat is wrong. An unavailable *entry* came back — it has an id, a title, a position — and\nmerely cannot be fetched; a gap came back as nothing, so all that can be said about it is\nwhere it was and, when yt-dlp named them, which video it was and why it failed.\n\nIt exists because the alternative was silence. `ignoreerrors` is what stops one dead video\nfrom cancelling the extraction of the nineteen beside it, and without this list the price\nof that would be an import that quietly holds nineteen tracks where twenty were asked for.",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode",
+            "default": "PLAYLIST_ENTRY_UNAVAILABLE",
+            "description": "`reason` mapped onto the catalogue, so the Console decodes a gap with the same table it decodes a failure with. Defaults to `PLAYLIST_ENTRY_UNAVAILABLE`, which is the one thing always known: the playlist answered and this entry did not."
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The video id, when the failure yt-dlp logged named one.",
+            "title": "Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "One-based position in the playlist, as yt-dlp numbered it. `None` only when the source stated a count larger than the list it handed over, which says a gap exists without saying where.",
+            "title": "Position"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "yt-dlp's own sentence, stripped of its `ERROR:` and extractor prefixes.",
+            "title": "Reason"
+          }
+        },
+        "title": "ExtractGap",
+        "type": "object"
+      },
       "ExtractRequest": {
         "additionalProperties": false,
         "properties": {
@@ -616,6 +667,14 @@
               }
             ],
             "title": "Title"
+          },
+          "unreadable": {
+            "description": "The entries that were listed and could not be read. `len(entries) + len(unreadable)` is what the source said the playlist holds, so a caller can say '19 of 20 entries; 1 could not be read' without a second request. Always empty for a single video: there the failure is the call's, and it is raised.",
+            "items": {
+              "$ref": "#/components/schemas/ExtractGap"
+            },
+            "title": "Unreadable",
+            "type": "array"
           },
           "uploader": {
             "anyOf": [
