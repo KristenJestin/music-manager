@@ -82,6 +82,23 @@ export interface ImportOptions {
   readonly albumTitle?: string;
 
   /**
+   * When MusicBrainz has nothing, import from the source's own tags instead of asking.
+   *
+   * Absent means "decide by the source": **on for a folder, off for a URL**, and the asymmetry
+   * is the whole of it. A YouTube listing that matches nothing has no usable metadata to fall
+   * back on — a video title, a channel name, four tags YouTube Music inferred — so blocking and
+   * asking a human is right, and has been since P03. A folder's files carry real tags written
+   * by Picard or by this application's own v1, so "MusicBrainz does not know this record" is a
+   * fact about a bootleg or a live set rather than a reason to stop.
+   *
+   * Setting it explicitly overrides that in either direction: `false` on a folder somebody
+   * knows is on MusicBrainz and would rather be asked about, `true` on a URL they have given up
+   * on. It selects the `untagged` path that already exists (`match`, `SuppliedMapping` with
+   * `releaseMbid: null`); it does not add a second one.
+   */
+  readonly untaggedFallback?: boolean;
+
+  /**
    * The watched source that opened this import, when one did.
    *
    * Its presence is what makes `confirm` read the source's policy instead of its own rules:

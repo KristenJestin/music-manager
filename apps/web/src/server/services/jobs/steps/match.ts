@@ -25,7 +25,7 @@
  * whole answer, and `--release <mbid>` pins the release and lets the mapping be computed
  * against it.
  */
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type {
   MappingResult,
   MatchVideo,
@@ -40,7 +40,8 @@ import {
   mapping as mappingEngine,
   yearOf,
 } from "@mm/domain";
-import { imports, type ImportTrack } from "#/server/db/schema/index.ts";
+import { imports, inboxItems, type ImportTrack } from "#/server/db/schema/index.ts";
+import { isFolderSource } from "#/server/services/import-source.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
 import {
   cassetteGateway,
@@ -343,9 +344,107 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
     };
   }
 
-  return ctx.job.kind === "single" || rows.length === 1
-    ? await matchOneRecording(ctx, rows, videos, gateway)
-    : await matchOneAlbum(ctx, rows, videos, gateway);
+  const result =
+    ctx.job.kind === "single" || rows.length === 1
+      ? await matchOneRecording(ctx, rows, videos, gateway)
+      : await matchOneAlbum(ctx, rows, videos, gateway);
+
+  return (await untaggedFallback(ctx, rows, result)) ?? result;
+}
+
+/* ---- import without MusicBrainz, when MusicBrainz has nothing ---- */
+
+/**
+ * Is this import allowed to give up on MusicBrainz and build from the source's own tags?
+ *
+ * **On by default for a folder, off for everything else**, and the asymmetry is the point. A
+ * YouTube listing that matches nothing has *no* usable metadata to fall back on — a video
+ * title, a channel name, and four tags YouTube Music inferred — so blocking and asking a human
+ * is the right answer and has been since P03. A folder's files carry real tags, written by
+ * Picard or by this application's own v1: TITLE, ARTIST, ALBUM, TRACKNUMBER, DATE, often the
+ * MusicBrainz ids themselves. For those, "MusicBrainz does not know this record" is a fact
+ * about a bootleg, a live set or an unregistered artist, not a reason to stop.
+ *
+ * `options.untaggedFallback` overrides it in either direction, because a person importing a
+ * folder they *know* is on MusicBrainz would rather be asked than filed under a wrong title.
+ */
+function wantsUntaggedFallback(job: StepContext["job"]): boolean {
+  const stated = job.options.untaggedFallback;
+  return stated ?? isFolderSource(job.url);
+}
+
+/**
+ * Turn "the Inbox is asking which release this is" into "import it without MusicBrainz".
+ *
+ * Intercepted here, once, rather than at each of the three places `matchOneAlbum` gives up —
+ * no candidate at all, nothing credited to the artist, nothing above the preselection floor.
+ * All three mean the same thing to a folder import ("MusicBrainz cannot tell me what this
+ * is"), and one interception cannot drift from another the way three guards would.
+ *
+ * The Inbox item the refusal opened is **dismissed, not resolved**: nobody answered it, and
+ * leaving it open would show a review queue entry for a job that has already moved on. This is
+ * the same distinction `forgetMapping` draws for the same items.
+ *
+ * What it then does is exactly the existing `untagged` path — a supplied mapping with
+ * `releaseMbid: null`, the source's own order, the album flagged `untagged` in the library so
+ * it can be found and finished later. Nothing new; the fallback has simply stopped being empty.
+ */
+async function untaggedFallback(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  result: StepResult,
+): Promise<StepResult | null> {
+  if (result.status !== "blocked" || result.blockedAs !== "awaiting_review") return null;
+  if (!wantsUntaggedFallback(ctx.job)) return null;
+
+  await ctx.db
+    .update(inboxItems)
+    .set({ status: "dismissed", resolvedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(inboxItems.importId, ctx.job.id),
+        eq(inboxItems.status, "open"),
+        inArray(inboxItems.type, ["ambiguous_release", "ambiguous_recording"]),
+      ),
+    );
+
+  const videos = rows.map(toMatchVideo);
+  const hints = albumHints(videos, {
+    album: ctx.job.title,
+    artist: ctx.job.artist,
+    year: ctx.job.year,
+  });
+  await ctx.say(
+    "match.untagged",
+    `MusicBrainz has nothing for this; importing from the source's own tags instead.`,
+    {
+      level: "warn",
+      data: { reason: result.message, album: hints.album ?? null, artist: hints.artist ?? null },
+    },
+  );
+
+  /*
+   * The source's own order, one track per entry, in the order `resolve` listed them.
+   *
+   * `trackPosition` is the *position in this import*, which for a folder is the tracklist the
+   * files already state (`folder-source.ts` orders by DISCNUMBER/TRACKNUMBER when every file
+   * carries one). `place` files an untagged album on (album, disc, track), so this is what
+   * decides the filenames — and it is the one thing that would be wrong if the folder were
+   * listed in an arbitrary order.
+   */
+  return await applySupplied(ctx, rows, {
+    releaseMbid: null,
+    ...(hints.album === undefined || hints.album === null ? {} : { album: hints.album }),
+    ...(hints.artist === undefined || hints.artist === null ? {} : { albumArtist: hints.artist }),
+    year: hints.year ?? null,
+    tracks: rows.map((row, index) => ({
+      position: row.position,
+      trackPosition: index + 1,
+      recordingMbid: null,
+      trackTitle: row.trackTitle ?? row.sourceTitle,
+      confidence: 1,
+    })),
+  });
 }
 
 /* ---- album ---- */

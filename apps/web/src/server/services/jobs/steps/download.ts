@@ -22,6 +22,8 @@ import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
 import { containerPath, hostPath, taggable, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { adoptionOf } from "#/server/services/adopt.record.ts";
+import { adoptTrackFile } from "#/server/services/adopt.ts";
+import { folderFileOf } from "#/server/services/folder.record.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
 import {
   aborted,
@@ -269,6 +271,56 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
      * one copy that exists with a failure — so `force` is honoured for everything except a
      * track whose `raw` carries an adoption record.
      */
+    /*
+     * A folder import's track: **adopt the file, never fetch it.**
+     *
+     * This is where "each file is adopted rather than downloaded" actually happens, and it
+     * goes through `adoptTrackFile` — the plumbing the single-file work landed — rather than
+     * through a copy of it. The whole of the difference between a folder import and a YouTube
+     * one is these few lines: the bytes are already on the disk, they are copied into the work
+     * directory the way `download` would have left them, and the track carries on at
+     * `fingerprint` exactly as if they had been fetched.
+     *
+     * Placed *after* the "already filed" and "already in the library" checks and *before*
+     * `fileReady`, so a re-run of the step is free: a second pass finds the file the first one
+     * adopted and falls through to the reuse branch below, which is the same thing a re-run of
+     * a real download does. `queue: false` because this loop's own `onTrackDownloaded` is what
+     * announces the track, and two announcements would run `fingerprint` twice.
+     *
+     * A refusal here fails **this track**, not the album: a folder where one file has gone
+     * missing since `resolve` listed it must still import the other thirteen, and that is the
+     * same contract a failed download has.
+     */
+    const fromFolder = folderFileOf(track.raw);
+    if (fromFolder !== null && fileReady(ctx, track) === null) {
+      try {
+        const result = await adoptTrackFile({
+          importId: ctx.job.id,
+          trackId: track.id,
+          source: { kind: "path", path: fromFolder.path },
+          adoptedBy: "folder import",
+          db: ctx.db,
+          settings: ctx.settings,
+          toolbox: ctx.toolbox,
+          queue: false,
+        });
+        reused += 1;
+        await ctx.onTrackDownloaded?.(track.id);
+        void result;
+      } catch (error) {
+        const failure = MMError.from(error);
+        await updateTrack(ctx, track.id, { attempts: 1, error: failure.toBody() });
+        await setTrackState(ctx, track.id, "failed");
+        await ctx.say("track.failed", `${track.sourceTitle}: ${failure.message}`, {
+          trackId: track.id,
+          level: "error",
+          data: { code: failure.code, path: fromFolder.path, adopted: false },
+        });
+        failures.push({ track: track.sourceTitle, error: failure });
+      }
+      continue;
+    }
+
     const adopted = adoptionOf(track.raw) !== null;
     const ready = fileReady(ctx, track);
     if (ready !== null && (!force || adopted)) {
