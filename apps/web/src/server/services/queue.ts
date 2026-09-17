@@ -65,6 +65,27 @@ export async function enqueueWatchedSourceScan(
 }
 
 /**
+ * Ask the worker to read the whole library back from Navidrome (P07).
+ *
+ * The dynamic import is the same trick as `enqueueWatchedSourceScan` above, and it earns more
+ * here than anywhere: `handlers/verify.ts` pulls in `services/verify.ts`, which pulls in the
+ * Subsonic client, and the web process wants none of that for the sake of one queue name.
+ */
+export async function enqueueLibraryVerify(
+  job: { trigger?: string; rescan?: boolean } = {},
+): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    const { enqueueVerify } = await import("#/worker/handlers/verify.ts");
+    return await enqueueVerify(boss, job);
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
  * Ask for the weekly source refresh to run now (`cron.refresh-sources`).
  *
  * The cron queue is the trigger, not a second one: the handler is already registered on it

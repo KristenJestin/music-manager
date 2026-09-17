@@ -47,6 +47,7 @@ const WORKER_BEAT_MS = 30_000;
 const SCHEDULE_POLL_MS = 60_000;
 
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
+import { handleVerifyLibrary, type VerifyJob } from "./handlers/verify.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
   createBoss,
@@ -411,6 +412,22 @@ export async function startWorker(): Promise<Worker> {
     },
   );
 
+  /* ---- verify: read the whole library back from Navidrome (P07) ---- */
+  //
+  // `singleton`, five-second polling, one at a time: a rescan wait of up to four minutes and
+  // then six or seven Subsonic calls per album is not something to run twice at once. It used
+  // to run inside the HTTP request the "Verify library" button made, which is what this moves.
+  await boss.work<VerifyJob>(
+    QUEUES.verify,
+    { localConcurrency: 1, pollingIntervalSeconds: 5 },
+    async (jobs: Job<VerifyJob>[]) => {
+      for (const job of jobs) {
+        log("verify.library", { jobId: job.id, trigger: job.data.trigger });
+        await handleVerifyLibrary(job, { db: db(), signal: shutdown.signal, log });
+      }
+    },
+  );
+
   /* ---- the two crons P07b owns ---- */
   await boss.work("cron.scan", { localConcurrency: 1 }, async () => {
     await enqueueScan(boss, { trigger: "cron" });
@@ -440,6 +457,7 @@ export async function startWorker(): Promise<Worker> {
   const HANDLED = new Set<string>([
     QUEUES.retag,
     QUEUES.scan,
+    QUEUES.verify,
     QUEUES.webhook,
     "cron.refresh-sources",
     "cron.scan",

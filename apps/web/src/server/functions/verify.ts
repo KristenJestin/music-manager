@@ -5,19 +5,20 @@
  * of HTTP calls to a server on the same network and the operator pressed a button and is
  * looking at the screen. `verifyAll` is the opposite — one scan and then every album — so it
  * goes on the queue and the page follows the journal.
+ *
+ * That second sentence was aspirational until 2026-09-17: `verifyAll` ran `verifyLibrary`
+ * inline, and a quarter of an hour of Subsonic calls inside one HTTP request is exactly the
+ * shape of bug this file's neighbours were fixed for. It really does go on the queue now; see
+ * `worker/handlers/verify.ts`.
  */
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { navidromeStatus, type NavidromeStatus } from "#/server/services/navidrome.ts";
-import {
-  albumSubject,
-  verifyAlbum,
-  verifyLibrary,
-  type AlbumVerification,
-  type LibraryVerifyReport,
-} from "#/server/services/verify.ts";
+import { enqueueLibraryVerify } from "#/server/services/queue.ts";
+import { libraryCounts } from "#/server/services/scan.ts";
+import { albumSubject, verifyAlbum, type AlbumVerification } from "#/server/services/verify.ts";
 
 export interface AlbumVerifyPayload {
   readonly albumId: string;
@@ -70,16 +71,33 @@ export const verifyOne = createServerFn({ method: "POST", strict: STRICT })
     }
   });
 
-/** "Verify library": one scan, then every album. */
+/**
+ * "Verify library": one scan, then every album — on the queue, where it always claimed to be.
+ *
+ * The header of this file has said since P07 that this goes on the queue and the page follows
+ * the journal. It did not. It ran `verifyLibrary` inline, in the HTTP request the button made:
+ * a Navidrome rescan wait of up to `navidromeWaitTimeoutMs` (four minutes by default) followed
+ * by six or seven Subsonic calls **per album**, serially, uncapped. Six hundred albums is a
+ * quarter of an hour, and there is no connection timeout that makes that acceptable — the
+ * production runtime hangs up after ten seconds of silence by default, and even the raised
+ * ceiling of `server/http/abort.ts` is four minutes.
+ *
+ * So it now enqueues and returns, like `startScan` and `startRetag` next door. `total` is what
+ * the page needs in order to say something true immediately ("reading back 412 albums"), and
+ * the per-album lines arrive on `/api/events` as `verify.progress`, ending in `verify.done`
+ * with the counts the toast used to carry.
+ */
 export const verifyAll = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ rescan: z.boolean().optional() }).default({}))
-  .handler(async ({ data }): Promise<LibraryVerifyReport> => {
+  .handler(async ({ data }): Promise<{ queued: boolean; total: number }> => {
     try {
-      return await verifyLibrary({
-        db: db(),
+      const { albums: total } = await libraryCounts(db());
+      const jobId = await enqueueLibraryVerify({
+        trigger: "manual",
         ...(data.rescan === undefined ? {} : { rescan: data.rescan }),
       });
+      return { queued: jobId !== null, total };
     } catch (error) {
       return toFailure(error);
     }
