@@ -123,7 +123,11 @@ test.describe("dismissals the Console can see and undo", () => {
     await page.getByTestId("review-option").filter({ hasText: "Keep both copies" }).click();
     await page.getByTestId("review-confirm").click();
 
-    await page.getByTestId("review-dismissals-toggle").click();
+    // The panel's own counter is what says the answer has landed; the queue navigates away
+    // underneath it, so waiting on the toggle's text is the one stable signal here.
+    const toggle = page.getByTestId("review-dismissals-toggle");
+    await expect(toggle).toContainText("2 question(s) hidden");
+    await toggle.click();
     await expect(page.getByTestId("review-dismissal")).toHaveCount(2);
 
     await page

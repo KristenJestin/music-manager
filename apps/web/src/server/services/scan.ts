@@ -937,6 +937,10 @@ async function raiseScanItems(db: Database, report: ScanReport): Promise<void> {
    * Orphans are filtered per path, not per card. The card is the aggregate ("two hundred
    * files are not in the database") but the answer was about the files, so a path already
    * answered drops out and a *new* stray file raises the card again carrying only itself.
+   *
+   * `dismissSubjects` is the *listed* two hundred rather than all of them, which is the
+   * honest reading of the answer: you were shown two hundred paths and you answered about
+   * two hundred paths. A larger pile comes back, two hundred at a time, until it is gone.
    */
   const orphans = report.orphans.filter((orphan) => !hidden.has(orphanSubject(orphan.path)));
   if (orphans.length > 0) {
