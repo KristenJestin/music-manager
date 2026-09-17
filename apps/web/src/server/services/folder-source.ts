@@ -294,7 +294,10 @@ function entryOf(
   const stem = name.replace(/\.[^.]+$/, "");
   const title = tagOf(tags, "TITLE") ?? stem;
   const artist = tagOf(tags, "ARTIST") ?? tagOf(tags, ...ALBUM_ARTIST);
-  const entry: Record<string, unknown> = {
+  // Typed against the generated contract on purpose: a field renamed in the toolbox's
+  // `models.py` has to be a TypeScript error here rather than an entry that is silently
+  // missing something `match` reads.
+  const base: ExtractEntry = {
     id: fileId(name),
     title,
     duration: file.durationSeconds,
@@ -310,14 +313,17 @@ function entryOf(
     playlist_index: trackNumberOf(tags) ?? index,
     availability: null,
     unavailable: false,
-    /*
-     * The provenance, carried on the entry so that it lands in `import_tracks.raw` verbatim
-     * with everything else `resolve` writes. `download` reads it to adopt the file instead of
-     * fetching it; a rebuild of the document a year from now reads its `tags`.
-     */
-    [FOLDER_FILE_KEY]: file,
   };
-  return entry as unknown as ExtractEntry;
+  /*
+   * The provenance, carried on the entry so that it lands in `import_tracks.raw` verbatim with
+   * everything else `resolve` writes. `download` reads it to adopt the file instead of fetching
+   * it; a rebuild of the document a year from now reads its `tags`.
+   *
+   * The one cast in this module, and it only widens: `base` above *is* an `ExtractEntry`, and
+   * what is added is a namespaced key the generated type has no room for — the same thing
+   * `mm_adoption` does to the yt-dlp payload it sits beside.
+   */
+  return { ...base, [FOLDER_FILE_KEY]: file } as ExtractEntry;
 }
 
 /**
