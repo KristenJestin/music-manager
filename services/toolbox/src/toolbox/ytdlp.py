@@ -12,6 +12,7 @@ value crossing its boundary is narrowed here.
 
 from __future__ import annotations
 
+import re
 import tempfile
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
@@ -20,10 +21,12 @@ from typing import Any, Final, cast
 
 from yt_dlp import YoutubeDL  # pyright: ignore[reportMissingTypeStubs]
 
-from toolbox.models import ExtractEntry, ExtractResult, Thumbnail, YtdlpOptions
+from toolbox.errors import ErrorCode, classify_message, strip_ytdlp_prefix
+from toolbox.models import ExtractEntry, ExtractGap, ExtractResult, Thumbnail, YtdlpOptions
 from toolbox.tagging import TAGGABLE_SUFFIXES
 
 __all__ = [
+    "ExtractionLog",
     "audio_extraction_codec",
     "build_options",
     "cookie_jar",
@@ -44,6 +47,9 @@ _BASE: dict[str, Any] = {
     "no_warnings": True,
     "noprogress": True,
     "noplaylist": False,
+    # `False` here and nowhere else: a *download* that fails must fail. `/extract` turns it on
+    # for the listing only (:func:`toolbox.extract.listing_options`), because there the unit of
+    # failure is an entry rather than the call.
     "ignoreerrors": False,
     "extract_flat": False,
     "retries": 3,
@@ -51,6 +57,76 @@ _BASE: dict[str, Any] = {
     # `--continue` is always on: a toolbox restart must resume the `.part`, never restart it.
     "continuedl": True,
 }
+
+
+#: yt-dlp prints every user-visible failure through ``report_error``, which reaches a logger
+#: as ``ERROR: [extractor] <id>: <sentence>``. Colour is only added for a tty, but a stray
+#: escape sequence would end up quoted in the Console, so it is stripped unconditionally.
+_ANSI: Final[re.Pattern[str]] = re.compile(r"\x1b\[[0-9;]*m")
+_ERROR_PREFIX: Final[re.Pattern[str]] = re.compile(r"^ERROR:\s*", re.IGNORECASE)
+#: ``[youtube] dQw4w9WgXcQ: Private video`` — the id yt-dlp names in a failure it swallowed.
+#: Eleven characters is the YouTube video id, and nothing else in these messages has that
+#: shape between a bracket and a colon.
+_ERROR_ID: Final[re.Pattern[str]] = re.compile(r"\[[^\]]+\]\s+([A-Za-z0-9_-]{11}):")
+
+
+class ExtractionLog:
+    """What ``ignoreerrors`` swallowed, kept so the caller can still say what happened.
+
+    ``ignoreerrors`` is the difference between "one dead video kills the playlist" and
+    "nineteen of twenty come back", but it buys that by turning an exception into a line on
+    stderr. yt-dlp's ``logger`` option is the documented way to intercept that line, so this
+    object *is* the option: ``report_error`` arrives at :meth:`error`, and everything else —
+    progress, warnings, debug chatter — is dropped on the floor.
+
+    Two readers, both in :mod:`toolbox.extract`:
+
+    - when yt-dlp came back with **nothing at all**, the first message here is the only
+      statement of why, and it is what the error is classified from. Without it the caller
+      sees ``yt-dlp returned no information`` and has to guess between "the playlist is gone",
+      "the playlist is private" and "a video inside it is";
+    - when yt-dlp came back with a **playlist minus some entries**, one message was logged per
+      entry it gave up on, in the order it tried them, which is how a gap gets an id and a
+      sentence instead of only a position.
+    """
+
+    __slots__ = ("messages",)
+
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    # -- yt-dlp's logger protocol; only `error` carries anything we keep ----------------
+    def debug(self, msg: str) -> None:
+        return None
+
+    def info(self, msg: str) -> None:
+        return None
+
+    def warning(self, msg: str) -> None:
+        return None
+
+    def error(self, msg: str) -> None:
+        """Keep one failure, without its ``ERROR:`` prefix and without its colour."""
+        clean = _ANSI.sub("", str(msg)).strip()
+        if not clean.upper().startswith("ERROR:"):
+            return
+        text = _ERROR_PREFIX.sub("", clean).strip()
+        if text:
+            self.messages.append(text)
+
+    def gap(self, index: int) -> tuple[str | None, str | None]:
+        """The ``(id, reason)`` of the ``index``-th failure yt-dlp swallowed, if it logged one.
+
+        Positional, because that is the only correspondence yt-dlp offers: it walks a playlist
+        in order and reports each entry it gives up on as it reaches it, so the *n*-th message
+        belongs to the *n*-th hole. The caller only uses it when the two counts agree, so a
+        surprise message never renames a gap after somebody else's video.
+        """
+        if index >= len(self.messages):
+            return (None, None)
+        raw = self.messages[index]
+        found = _ERROR_ID.search(raw)
+        return (found.group(1) if found else None, strip_ytdlp_prefix(raw) or raw)
 
 
 def yt_dlp_version() -> str | None:
@@ -250,23 +326,96 @@ def entry_from_info(info: Mapping[str, Any], index: int) -> ExtractEntry:
     )
 
 
-def result_from_info(info: Mapping[str, Any]) -> ExtractResult:
-    """Turn a video or playlist info dict into an :class:`ExtractResult`."""
+def _stated_positions(info: Mapping[str, Any]) -> list[int] | None:
+    """yt-dlp's own one-based numbering of the entries it handed back, when it kept it.
+
+    ``requested_entries`` is written per playlist and **includes the holes**, so it is the one
+    place a gap's real position survives. yt-dlp drops the key when it would be the full
+    ``1..n`` range, which is exactly the case where the index in ``entries`` already is the
+    position — so its absence costs nothing.
+    """
+    raw = info.get("requested_entries")
+    if not isinstance(raw, list):
+        return None
+    out: list[int] = []
+    for item in cast(list[Any], raw):
+        if not isinstance(item, int) or isinstance(item, bool):
+            return None
+        out.append(item)
+    return out
+
+
+def _gaps(
+    holes: list[int],
+    info: Mapping[str, Any],
+    listed_total: int,
+    errors: ExtractionLog | None,
+) -> list[ExtractGap]:
+    """One :class:`ExtractGap` per entry the source listed and yt-dlp handed back as nothing.
+
+    Two sources of holes, and both are counted because the difference is invisible to whoever
+    reads the number: a ``None`` left in ``entries`` by ``ignoreerrors``, and the shortfall
+    between ``playlist_count`` — the source's own statement of how many it holds — and the
+    length of the list. Either way ``len(entries) + len(unreadable)`` is what the playlist
+    claimed to contain, which is the "of 20" in "19 of 20 entries".
+    """
+    positions = _stated_positions(info)
+    # The n-th message belongs to the n-th hole *only* if yt-dlp logged exactly one per hole.
+    # Anything else — a retry that also failed, a warning promoted to an error — and the
+    # alignment is a guess, so the gaps keep their positions and lose their sentences.
+    aligned = errors is not None and len(errors.messages) == len(holes)
+    gaps: list[ExtractGap] = []
+    for nth, at in enumerate(holes):
+        position = positions[at] if positions is not None and at < len(positions) else at + 1
+        video_id, reason = errors.gap(nth) if aligned and errors is not None else (None, None)
+        code = classify_message(reason) if reason else ErrorCode.UNKNOWN
+        gaps.append(
+            ExtractGap(
+                position=position,
+                id=video_id,
+                reason=reason,
+                # Never `UNKNOWN`: even with nothing to quote, what happened is known — the
+                # playlist answered and one of its entries did not.
+                code=ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE if code is ErrorCode.UNKNOWN else code,
+            )
+        )
+    stated = _as_int(info.get("playlist_count"))
+    missing = 0 if stated is None else stated - listed_total
+    for _ in range(max(0, missing)):
+        gaps.append(ExtractGap(code=ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE))
+    return gaps
+
+
+def result_from_info(
+    info: Mapping[str, Any], *, errors: ExtractionLog | None = None
+) -> ExtractResult:
+    """Turn a video or playlist info dict into an :class:`ExtractResult`.
+
+    ``errors`` is the :class:`ExtractionLog` the same call was run with. It is optional because
+    two callers have none — the fixtures backend and the maintenance self-test — and a gap
+    without a sentence is still a gap.
+    """
     entries_raw = info.get("entries")
     if isinstance(entries_raw, list):
+        items = cast(list[Any], entries_raw)
         entries: list[ExtractEntry] = []
-        # `ignoreerrors` (flat mode) replaces an entry it could not read with `None`. There is
-        # nothing to report about it — no id, no title — so it is dropped, and the gap shows
-        # up as a `playlist_index` that skips a number rather than as a failed scan.
-        for item in cast(list[Any], entries_raw):
+        holes: list[int] = []
+        # `ignoreerrors` replaces an entry it could not read with `None`. It is **counted, not
+        # dropped**: nineteen entries where the source listed twenty is a fact the operator has
+        # to be told, and the whole defect this file was changed for is nineteen good tracks
+        # being thrown away to report the twentieth.
+        for at, item in enumerate(items):
             if isinstance(item, dict):
                 entries.append(entry_from_info(cast(dict[str, Any], item), len(entries)))
+            else:
+                holes.append(at)
         return ExtractResult(
             kind="playlist",
             title=_as_str(info.get("title")),
             uploader=_as_str(info.get("uploader")) or _as_str(info.get("channel")),
             id=_as_str(info.get("id")),
             entries=entries,
+            unreadable=_gaps(holes, info, len(items), errors),
         )
     return ExtractResult(
         kind="video",

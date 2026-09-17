@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from fastapi.testclient import TestClient
 
 from toolbox import extract as extract_module
-from toolbox.errors import ErrorCode
+from toolbox.errors import ErrorCode, ToolboxError
 from toolbox.models import ExtractRequest
 from toolbox.ytdlp import result_from_info
 
@@ -130,11 +130,13 @@ def test_a_yt_dlp_failure_becomes_a_catalogued_error(monkeypatch: pytest.MonkeyP
 # ----------------------------------------------------------------------------------
 
 
-def test_flat_is_off_by_default_and_asks_yt_dlp_for_nothing_extra():
-    from toolbox.extract import flat_options
+def test_a_listing_always_tolerates_a_dead_entry_and_flat_only_adds_the_stub_mode():
+    from toolbox.extract import listing_options
 
-    assert flat_options(False) == {}
-    assert flat_options(True) == {"extract_flat": "in_playlist", "ignoreerrors": True}
+    # `ignoreerrors` is on for **both**: it used to be flat mode's alone, which is why an
+    # ordinary playlist still died on its first unreadable entry.
+    assert listing_options(False) == {"ignoreerrors": True}
+    assert listing_options(True) == {"ignoreerrors": True, "extract_flat": "in_playlist"}
 
 
 def test_the_watched_fixture_grows_by_exactly_one_entry_between_snapshots(
@@ -204,3 +206,246 @@ def test_a_flat_playlist_numbers_the_entries_it_could_read(monkeypatch: pytest.M
     """`ignoreerrors` hands back `None` for an entry it gave up on; it must not shift the rest."""
     result = result_from_info({"title": "Watched", "entries": [INFO_VIDEO, None, INFO_VIDEO]})
     assert [entry.index for entry in result.entries] == [0, 1]
+
+
+# ----------------------------------------------------------------------------------
+# a playlist that lost one entry — the defect of 2026-09-17
+# ----------------------------------------------------------------------------------
+#
+# The owner's evidence: `GET /tools/url` on an `OLAK5uy_…` album answered `entries: 0` and
+# "This video is not available", while `yt-dlp --flat-playlist --ignore-errors` listed all
+# twenty titles. One dead entry cancelled the extraction of the other nineteen, and twenty
+# playlists were filed as "vanished from YouTube" on the strength of it.
+#
+# These tests drive the **full** extraction — not the flat mode the tolerance used to be
+# scoped to — through a fake `YoutubeDL`, so `extract()` runs whole: the logger really is
+# wired in, `extract_info` really refuses an empty info dict, and the gap really comes out of
+# `result_from_info`.
+
+
+class _FakeYoutubeDL:
+    """Enough of yt-dlp to run :func:`toolbox.ytdlp.extract_info` for real.
+
+    ``_PLAN`` is what this instance will do: the messages it reports through the logger it was
+    handed — which is how `ignoreerrors` behaves, an error on stderr instead of an exception —
+    and the info dict it then returns, ``None`` for "nothing came back at all".
+    """
+
+    _PLAN: tuple[list[str], dict[str, Any] | None] = ([], None)
+
+    def __init__(self, params: dict[str, Any]) -> None:
+        self.params = params
+
+    def __enter__(self) -> _FakeYoutubeDL:
+        return self
+
+    def __exit__(self, *_: object) -> bool:
+        return False
+
+    def extract_info(self, _url: str, download: bool = False) -> dict[str, Any] | None:
+        assert download is False
+        messages, info = self._PLAN
+        logger = self.params.get("logger")
+        assert logger is not None, "`extract` must hand yt-dlp a logger, or a gap has no reason"
+        for message in messages:
+            logger.error(message)
+        return info
+
+    def sanitize_info(self, info: dict[str, Any]) -> dict[str, Any]:
+        return info
+
+
+def _plan(
+    monkeypatch: pytest.MonkeyPatch,
+    messages: list[str],
+    info: dict[str, Any] | None,
+) -> None:
+    """Make the next `extract()` call run against a yt-dlp that behaves like this."""
+    from toolbox import ytdlp as ytdlp_module
+
+    planned = type("_Planned", (_FakeYoutubeDL,), {"_PLAN": (messages, info)})
+    monkeypatch.setattr(ytdlp_module, "YoutubeDL", planned)
+
+
+def _playlist_of(size: int, dead: int) -> dict[str, Any]:
+    """A ``size``-entry album info dict with entry ``dead`` (one-based) handed back as `None`."""
+    entries: list[dict[str, Any] | None] = []
+    for position in range(1, size + 1):
+        if position == dead:
+            entries.append(None)
+            continue
+        entries.append({**INFO_VIDEO, "id": f"vid{position:08d}", "playlist_index": position})
+    return {
+        "_type": "playlist",
+        "id": "OLAK5uy_mZJMy9aqF3ew9kNoyIXX704dLo5x9Rse4",
+        "title": "Album - Discovery",
+        "playlist_count": size,
+        "entries": entries,
+    }
+
+
+PLAYLIST_URL = "https://music.youtube.com/playlist?list=OLAK5uy_mZJMy9aqF3ew9kNoyIXX704dLo5x9Rse4"
+
+
+def test_one_dead_entry_leaves_nineteen_and_is_reported_as_a_gap(monkeypatch: pytest.MonkeyPatch):
+    """The whole defect, in one assertion pair: nineteen entries, one reported hole."""
+    _plan(
+        monkeypatch,
+        ["ERROR: [youtube] vid00000007: Private video. Sign in if you have been granted access"],
+        _playlist_of(20, dead=7),
+    )
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+
+    assert result.kind == "playlist"
+    assert len(result.entries) == 19
+    # Our own numbering closes over the hole; nothing downstream sees a missing position.
+    assert [entry.index for entry in result.entries] == list(range(19))
+    assert len(result.unreadable) == 1
+    gap = result.unreadable[0]
+    assert gap.position == 7
+    assert gap.id == "vid00000007"
+    assert gap.reason is not None and gap.reason.startswith("Private video")
+    assert gap.code is ErrorCode.YTDLP_PRIVATE
+    # "19 of 20 entries; 1 could not be read" is readable off the result, with no second call.
+    assert len(result.entries) + len(result.unreadable) == 20
+
+
+def test_a_gap_keeps_its_position_when_yt_dlp_renumbered_the_listing(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """`requested_entries` is the only place a hole's real position survives, so it is read."""
+    info = _playlist_of(5, dead=2)
+    info["requested_entries"] = [2, 3, 4, 5, 6]
+    _plan(monkeypatch, ["ERROR: [youtube] vid00000002: Video unavailable"], info)
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert [gap.position for gap in result.unreadable] == [3]
+    assert result.unreadable[0].code is ErrorCode.YTDLP_UNAVAILABLE
+
+
+def test_a_gap_yt_dlp_said_nothing_about_still_counts(monkeypatch: pytest.MonkeyPatch):
+    """No sentence and no id is still a hole, and still `PLAYLIST_ENTRY_UNAVAILABLE`."""
+    _plan(monkeypatch, [], _playlist_of(20, dead=7))
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert len(result.entries) == 19
+    assert [(gap.id, gap.reason) for gap in result.unreadable] == [(None, None)]
+    assert result.unreadable[0].code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
+
+
+def test_entries_the_source_counted_and_never_handed_over_are_counted_too(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """`playlist_count` says twenty; eighteen arrived and none of them was a `None`."""
+    info = _playlist_of(18, dead=0)
+    info["playlist_count"] = 20
+    _plan(monkeypatch, [], info)
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert len(result.entries) == 18
+    assert len(result.unreadable) == 2
+
+
+def test_a_single_dead_video_is_still_an_error(monkeypatch: pytest.MonkeyPatch):
+    """`ignoreerrors` must not turn one dead video into an empty success."""
+    _plan(
+        monkeypatch,
+        ["ERROR: [youtube] eZKgoOjJmrp: Video unavailable. This video is no longer available"],
+        None,
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url="https://youtu.be/eZKgoOjJmrp"))
+    assert raised.value.code is ErrorCode.YTDLP_UNAVAILABLE
+    # The sentence is yt-dlp's own, not our "yt-dlp returned no information".
+    assert raised.value.message.startswith("Video unavailable")
+
+
+def test_a_private_playlist_is_its_own_code(monkeypatch: pytest.MonkeyPatch):
+    """Case two of three: the playlist is there, and we are not allowed to list it."""
+    _plan(
+        monkeypatch,
+        ["ERROR: [youtube:tab] OLAK5uy_x: This playlist is private, use --cookies"],
+        None,
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert raised.value.code is ErrorCode.PLAYLIST_PRIVATE
+    assert raised.value.status == 403
+
+
+def test_a_deleted_playlist_is_its_own_code(monkeypatch: pytest.MonkeyPatch):
+    """Case one of three, and the one that used to read "This video is not available"."""
+    _plan(
+        monkeypatch,
+        ["ERROR: [youtube:tab] OLAK5uy_x: YouTube said: The playlist does not exist."],
+        None,
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert raised.value.code is ErrorCode.PLAYLIST_UNAVAILABLE
+    assert raised.value.status == 404
+
+
+def test_a_playlist_url_that_answered_with_a_video_error_is_not_blamed_on_a_video(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The promotion rule: nothing came back from a *playlist*, so the playlist is the subject."""
+    _plan(monkeypatch, ["ERROR: [youtube] abc: Video unavailable"], None)
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert raised.value.code is ErrorCode.PLAYLIST_UNAVAILABLE
+
+
+def test_a_playlist_of_nothing_but_gaps_says_so(monkeypatch: pytest.MonkeyPatch):
+    """Case three, in the only shape where it is fatal: every entry of it was unreadable."""
+    _plan(
+        monkeypatch,
+        ["ERROR: [youtube] vid00000001: Private video", "ERROR: [youtube] vid00000002: Private"],
+        {"id": "OLAK5uy_x", "title": "Album - Gone", "entries": [None, None]},
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert raised.value.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
+    assert len(cast("list[object]", raised.value.details["unreadable"])) == 2
+
+
+def test_an_empty_playlist_is_not_a_failure(monkeypatch: pytest.MonkeyPatch):
+    """Zero entries and zero gaps is a playlist with nothing in it, which is not an error."""
+    _plan(monkeypatch, [], {"id": "OLAK5uy_x", "title": "Album - Empty", "entries": []})
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert result.entries == []
+    assert result.unreadable == []
+
+
+# ----------------------------------------------------------------------------------
+# the same thing, offline: `fixture://<name>?gap=<n>`
+# ----------------------------------------------------------------------------------
+
+
+def test_the_gap_fixture_drops_one_entry_and_reports_it(fixture_client: TestClient):
+    payload = fixture_client.post("/extract", json={"url": "fixture://discovery?gap=14"}).json()
+    assert len(payload["entries"]) == 14
+    assert [entry["index"] for entry in payload["entries"]] == list(range(14))
+    assert len(payload["unreadable"]) == 1
+    gap = payload["unreadable"][0]
+    assert gap["position"] == 15
+    assert gap["code"] == ErrorCode.YTDLP_PRIVATE.value
+    assert gap["reason"].startswith("Private video")
+
+
+def test_the_gap_fixture_renumbers_what_download_is_addressed_by(fixture_client: TestClient):
+    """`#n` follows the listing the caller was handed, not the recording's own numbering."""
+    without = fixture_client.post("/extract", json={"url": "fixture://discovery"}).json()
+    with_gap = fixture_client.post("/extract", json={"url": "fixture://discovery?gap=0"}).json()
+    assert with_gap["entries"][0]["title"] == without["entries"][1]["title"]
+    one = fixture_client.post("/extract", json={"url": "fixture://discovery?gap=0#0"}).json()
+    assert one["kind"] == "video"
+    assert one["entries"][0]["title"] == without["entries"][1]["title"]
+
+
+def test_a_gap_a_fixture_cannot_have_is_an_error(fixture_client: TestClient):
+    response = fixture_client.post("/extract", json={"url": "fixture://discovery?gap=99"})
+    assert response.status_code == 404
+    assert response.json()["code"] == ErrorCode.FIXTURE_UNKNOWN.value
+
+
+def test_an_ordinary_fixture_reports_no_gap(fixture_client: TestClient):
+    payload = fixture_client.post("/extract", json={"url": "fixture://discovery"}).json()
+    assert payload["unreadable"] == []
