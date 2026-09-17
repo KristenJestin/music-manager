@@ -202,11 +202,16 @@ async function followImport(importId: string): Promise<number> {
 /* ------------------------------------------------------------------ */
 
 /**
- * `mm import --from-file <path>` — one line per URL, `#` comments and blank lines dropped.
+ * `mm import --from-file <path>` — one line per **source**, `#` comments and blanks dropped.
  *
  * The bulk form of the paste box. Nothing is resolved in this process: `createImportsBatch`
- * queues the rows and the worker resolves them, which is what makes three hundred URLs a
+ * queues the rows and the worker resolves them, which is what makes three hundred sources a
  * second's work here instead of an hour of extractions.
+ *
+ * A line may be a **folder path** as well as a URL — they go through the same
+ * `parseImportSource` — which is how twenty album folders are queued in one command. Note that
+ * a folder refused for its path or for holding no audio is reported on *its* line and costs
+ * the other nineteen nothing, because a batch resolves later and per row.
  */
 async function cmdImportBatch(args: Args, path: string): Promise<number> {
   const urls = readFileSync(path, "utf8")
@@ -1556,7 +1561,8 @@ const USAGE = `mm — Music Manager
                                           downloaded. The folder must be inside adoptSourceRoots.
                                           --no-untagged asks instead of falling back to the
                                           files' own tags when MusicBrainz has nothing.
-  mm import --from-file <path> [--yes] [--force]   one URL per line, '#' comments; queued, not resolved
+  mm import --from-file <path> [--yes] [--force]   one source per line (URL or folder),
+                                          '#' comments; queued, not resolved
   mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
                                           confirm the engine's best candidate: an album on
                                           coverage, a single on its margin over the runner-up
