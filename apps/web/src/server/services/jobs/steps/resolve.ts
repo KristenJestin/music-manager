@@ -19,7 +19,12 @@
  */
 import { eq } from "drizzle-orm";
 import { stripReleaseTypePrefix } from "@mm/domain";
-import { imports, importTracks, type ImportKind } from "#/server/db/schema/index.ts";
+import {
+  imports,
+  importTracks,
+  type ImportKind,
+  type SourceGap,
+} from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { listFolder, type FolderListing } from "#/server/services/folder-source.ts";
@@ -32,12 +37,35 @@ import type { StepContext } from "../context.ts";
 /** A URL that points at a channel rather than at a video or a playlist. */
 const CHANNEL = /youtube\.com\/(?:channel\/|c\/|user\/|@)/i;
 
+/** The gaps a listing reported, normalised — an older toolbox image sends no field at all. */
+export function gapsOf(extract: ExtractResult): readonly SourceGap[] {
+  return (extract.unreadable ?? []).map((gap) => ({
+    position: gap.position ?? null,
+    id: gap.id ?? null,
+    reason: gap.reason ?? null,
+    code: gap.code,
+  }));
+}
+
+/** How many entries the source said it had: the ones that came back, plus the ones that did not. */
+export function listedCount(extract: ExtractResult): number {
+  return extract.entries.length + gapsOf(extract).length;
+}
+
 /**
  * What the URL turned out to be.
  *
  * The distinction that matters downstream is `album` vs `playlist`: an album gets one release
  * and one folder, a playlist is a bag of singles. YouTube Music sets the `album` tag on every
  * entry of an album playlist, so a strong majority agreeing on one album name is the signal.
+ *
+ * **A gap in the listing must not change the answer.** The test for a lone video is made
+ * against what the source *listed* — the entries plus the ones the toolbox could not read —
+ * because a two-track single whose first video is private is still not one video, and calling
+ * it a `single` would send it down the isolated-video path, where the admission rules refuse
+ * outright instead of skipping. The album majority is still measured against what actually
+ * came back: nothing can be claimed about an entry nobody read, and pretending an unread entry
+ * disagrees would demote albums for a reason that has nothing to do with the music.
  */
 export function classify(url: string, extract: ExtractResult): ImportKind {
   /*
@@ -56,7 +84,7 @@ export function classify(url: string, extract: ExtractResult): ImportKind {
    * tagged these files is a deliberate statement, where YouTube Music's is inferred.
    */
   if (CHANNEL.test(url)) return "channel";
-  if (extract.kind === "video" || extract.entries.length <= 1) return "single";
+  if (extract.kind === "video" || listedCount(extract) <= 1) return "single";
 
   const albums = extract.entries.map((entry) => (entry.album ?? "").trim()).filter((a) => a !== "");
   if (albums.length === 0) return "playlist";
@@ -121,6 +149,25 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     await ctx.say("resolve.skipped", `${file.name}: ${file.reason}`, {
       level: "warn",
       data: { file: file.name, reason: file.reason, code: file.code },
+    });
+  }
+
+  /*
+   * What the source listed and could not hand over.
+   *
+   * Journalled **before** the admission rules and before anything else can fail, and in the
+   * same shape as `resolve.skipped` beside it, because the two answer the same question from
+   * the operator — "why is this album short?" — and the answers are different: one entry was
+   * refused by a rule he set, the other could not be read at all. A gap is a `warn`, never an
+   * error: the import is proceeding, and the nineteen entries beside it are the point.
+   */
+  const gaps = gapsOf(extract);
+  for (const gap of gaps) {
+    const where = gap.position === null ? "An entry" : `Entry ${String(gap.position)}`;
+    const which = gap.id === null ? "" : ` (${gap.id})`;
+    await ctx.say("resolve.unreadable", `${where}${which}: ${gap.reason ?? "could not be read"}`, {
+      level: "warn",
+      data: { position: gap.position, videoId: gap.id, code: gap.code, reason: gap.reason },
     });
   }
 
@@ -283,6 +330,9 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
       kind,
       title,
       artist: extract.uploader ?? admitted[0]?.uploader ?? null,
+      // Rewritten on every run, including a `--force` re-read: an entry that came back this
+      // time must stop being reported as missing, and one that has since died must start.
+      unreadable: gaps as SourceGap[],
       ...(hinted === null
         ? {}
         : {
@@ -300,9 +350,21 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     listing === null || listing.skipped.length === 0
       ? ""
       : `, ${String(listing.skipped.length)} file(s) skipped`;
+  /*
+   * "19 of 20 entries; 1 could not be read" — the sentence the owner needed and did not have.
+   *
+   * It leads the message rather than trailing it, because the count is the first thing anyone
+   * checks against the listing they can see in a browser, and a short album that does not say
+   * it is short is what sent twenty live playlists to the failed pile.
+   */
+  const head =
+    gaps.length === 0
+      ? `${String(admitted.length)} ${noun === "files" ? "file" : "video"}(s)`
+      : `${String(admitted.length)} of ${String(listedCount(extract))} entries; ` +
+        `${String(gaps.length)} could not be read`;
   return {
     status: "done",
-    message: `${String(admitted.length)} ${noun === "files" ? "file" : "video"}(s), kind ${kind}${refused}${unreadable}`,
+    message: `${head}, kind ${kind}${refused}${unreadable}`,
     data: {
       videos: admitted.length,
       kind,
@@ -310,7 +372,10 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
       ...(listing === null ? {} : { folder: listing.folder, files: admitted.length }),
       ...(hinted === null ? {} : { releaseMbid: hinted }),
       ...(skipped.length === 0 ? {} : { refused: skipped }),
-      ...(listing === null || listing.skipped.length === 0 ? {} : { unreadable: listing.skipped }),
+      ...(gaps.length === 0 ? {} : { listed: listedCount(extract), unreadable: gaps }),
+      ...(listing === null || listing.skipped.length === 0
+        ? {}
+        : { unreadableFiles: listing.skipped }),
     },
   };
 }
