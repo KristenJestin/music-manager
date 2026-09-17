@@ -203,7 +203,24 @@ export function CommandPalette() {
    */
   const [typed, setTyped] = useState<string | null>(null);
   const query = typed ?? paletteSeed ?? "";
-  const [active, setActive] = useState("");
+  /**
+   * The highlighted row, and **the list it was highlighted in**.
+   *
+   * The pair is the whole point. The library answers 150 ms after the keystroke and
+   * MusicBrainz half a second after that, so the rows appear *above* whatever was highlighted
+   * while they were being fetched — and cmdk, reasonably, keeps the highlight where it is when
+   * the item it points at still exists. The result was the palette's worst possible behaviour:
+   * you type an artist's name, their page appears at the top, you press Enter, and the app asks
+   * MusicBrainz about something instead, because the offer at the bottom was the only enabled
+   * row at the instant you started typing. ↓ cannot go back up, so nothing recovers it either.
+   *
+   * So a choice is only honoured for the list it was made in. When the rows change, the
+   * highlight is the first row again — which is where a person who has not touched the arrows
+   * expects it, and the only honest answer when the list has moved underneath them.
+   */
+  const [chosen, setChosen] = useState<{ readonly rows: string; readonly key: string } | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
 
   /*
@@ -872,16 +889,28 @@ export function CommandPalette() {
   ]);
 
   /*
+   * The list as one string, and where the highlight actually is.
+   *
+   * `signature` is the row keys in order: it changes exactly when an answer lands, a query is
+   * edited or a group appears, and not when a person walks the list with the arrows. So a
+   * `chosen` taken under the same signature is still theirs, and one taken under a different
+   * list is stale — the first row again.
+   */
+  const rows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
+  const signature = useMemo(() => rows.map((row) => row.key).join(" "), [rows]);
+  const active =
+    chosen !== null && chosen.rows === signature
+      ? chosen.key
+      : (rows.find((row) => row.disabled !== true)?.key ?? "");
+
+  /*
    * The footer's sentence, and the reason every row carries one.
    *
    * A palette that offers "Discovery" three times — an album of yours, a MusicBrainz record, a
    * page — has to say which is which *before* Enter, not after. cmdk tracks the highlight in
    * `value`, so the sentence under the list is a lookup rather than a second source of truth.
    */
-  const highlighted = useMemo(
-    () => groups.flatMap((group) => group.rows).find((row) => row.key === active) ?? null,
-    [groups, active],
-  );
+  const highlighted = useMemo(() => rows.find((row) => row.key === active) ?? null, [rows, active]);
 
   return (
     <CommandDialog
@@ -904,7 +933,9 @@ export function CommandPalette() {
       <Command
         shouldFilter={false}
         value={active}
-        onValueChange={setActive}
+        onValueChange={(key: string) => {
+          setChosen({ rows: signature, key });
+        }}
         label="Search, import or go to"
       >
         <CommandInput
