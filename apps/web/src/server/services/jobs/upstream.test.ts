@@ -124,6 +124,41 @@ describe("classifyFailure — the import is broken", () => {
   it("calls a missing MusicBrainz contact a settings error, not a busy server", () => {
     expect(classifyFailure(body(new MMError("MB_CONTACT_MISSING", "no contact")))).toBe("defect");
   });
+
+  /*
+   * The end condition of `mm retry --failed-step resolve`.
+   *
+   * Nineteen of the owner's twenty playlists are alive and lost one entry; the twentieth may
+   * genuinely be gone, and the requeue has to be able to *stop* on it. The toolbox now says so
+   * in its own word — `PLAYLIST_UNAVAILABLE`, a 404 about the playlist rather than
+   * `YTDLP_UNAVAILABLE` about a video inside it — and the rule must read that 404 the way it
+   * reads every other one. A code the ladder called `upstream` would put the import back on
+   * the queue with a growing delay for ever, which is the loop this test exists to forbid.
+   *
+   * `wasKilledByASource` says no for the same reason `--failed-upstream` was the wrong
+   * instrument for these twenty: nothing here is waiting on a busy server.
+   */
+  it("calls a deleted playlist a defect, so a requeue of the twenty can end", () => {
+    const gone = new MMError("PLAYLIST_UNAVAILABLE", "This playlist no longer exists.", {
+      hint: "The playlist itself was deleted, or the id is wrong.",
+      status: 404,
+    });
+    expect(classifyFailure(body(gone))).toBe("defect");
+    expect(isUpstreamFailure(body(gone))).toBe(false);
+    expect(wasKilledByASource(body(gone))).toBe(false);
+  });
+
+  /* Its two neighbours, which are about the same URL and mean different things. */
+  it("calls a private playlist and an unreadable entry defects too", () => {
+    const priv = new MMError("PLAYLIST_PRIVATE", "This playlist is private.", { status: 403 });
+    const entry = new MMError(
+      "PLAYLIST_ENTRY_UNAVAILABLE",
+      "An entry of this playlist could not be read.",
+      { status: 404 },
+    );
+    expect(classifyFailure(body(priv))).toBe("defect");
+    expect(classifyFailure(body(entry))).toBe("defect");
+  });
 });
 
 describe("wasKilledByASource — a different question from 'should we wait?'", () => {

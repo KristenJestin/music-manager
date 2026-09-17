@@ -160,6 +160,29 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
    * the operator — "why is this album short?" — and the answers are different: one entry was
    * refused by a rule he set, the other could not be read at all. A gap is a `warn`, never an
    * error: the import is proceeding, and the nineteen entries beside it are the point.
+   *
+   * **And deliberately not an Inbox item.** The question came up when `inbox_dismissals`
+   * landed: "19 of 20 entries" reads like something a person could answer once. It is not,
+   * for three reasons that hold together.
+   *
+   * The memory that makes an answer durable is scoped, on purpose, to the four types a
+   * nightly walk of the library *rebuilds* (`DISMISSIBLE_TYPES` in
+   * `services/inbox-dismissals.ts`). A gap is import-scoped: `resolve` runs once per import,
+   * and the only thing that runs it again is an operator typing `mm retry`. There is nothing
+   * here to stop asking, because nothing asks twice.
+   *
+   * There is also no verb. `dismiss` and `ignore` are the only answers a card could offer —
+   * the entry is gone from the source and no button here brings it back, and `mm adopt` wants
+   * a track row that a gap never became. A card whose whole content is *OK* is a queue entry
+   * that costs more than it carries, and `mm retry --failed-step resolve` raises twenty of
+   * them in one command, into the queue `fix-scan-dismissals` was written to keep short.
+   *
+   * Finally it is not lost by staying out. The gap is a column (`imports.unreadable`), a
+   * permanent callout on the import page naming every missing entry, a count in the wizard
+   * before Start and one in the URL test box — four places that outlive this journal line.
+   * What would change the answer is the gap becoming *actionable*: keep a placeholder track
+   * for the missing entry, give `mm adopt` something to fill, and the question is worth
+   * asking.
    */
   const gaps = gapsOf(extract);
   for (const gap of gaps) {
