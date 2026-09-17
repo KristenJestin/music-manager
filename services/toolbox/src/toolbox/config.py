@@ -84,6 +84,33 @@ def library_root() -> Path:
 FIXTURE_SLOW_MAX_MS: Final[float] = 2_000.0
 
 
+#: Upper bound on ``?extractslow=<ms>``. Long enough to hold a browser's first paint open,
+#: short enough that a test using it is still a test.
+FIXTURE_EXTRACT_SLOW_MAX_MS: Final[float] = 20_000.0
+
+
+def fixture_extract_delay_seconds(url: str) -> float:
+    """How long ``/extract`` pretends to take for one URL — ``?extractslow=<ms>``, else none.
+
+    The sibling of ``?slow=``, for the other slow thing a source can be. A recorded extraction
+    is instant, and instant is the one speed at which a whole class of bug is invisible: the
+    `resolve` of a real playlist takes the owner a minute, and for that minute the wizard's URL
+    still says ``?url=`` rather than ``?importId=``. Anything that re-enters that loader —
+    a poll, a second tab, an impatient Enter — is a second creation, and a test whose extraction
+    returns in eight milliseconds never has a window to re-enter.
+
+    Zero, and therefore free, for every URL that does not ask.
+    """
+    ref = parse_fixture(url)
+    raw = (ref.params.get("extractslow") if ref is not None else None) or ""
+    if raw.strip() == "":
+        return 0.0
+    try:
+        return min(max(float(raw), 0.0), FIXTURE_EXTRACT_SLOW_MAX_MS) / 1000.0
+    except ValueError:
+        return 0.0
+
+
 def fixture_delay_seconds_for(url: str) -> float:
     """The per-slice delay for one URL — the installation default, or its ``?slow=<ms>``.
 

@@ -1,4 +1,4 @@
-import { expect, test, resolveSource, signIn, waitForStatus } from "./helpers.ts";
+import { expect, test, resolveSource, signIn, uniqueSource, waitForStatus } from "./helpers.ts";
 
 /**
  * The reference scenario of `docs/phases/P06-web-coeur.md`:
@@ -108,9 +108,36 @@ test.describe("importing an album", () => {
     }
   });
 
-  test("a second import of the same URL is reported, not refused", async ({ page }) => {
+  /*
+   * `docs/04` § Règles: a URL imported before is *reported*, not refused.
+   *
+   * It used to be observed by pasting `fixture://discovery` a second time and reading the
+   * banner, which worked only because the wizard opened a new import every time — the defect
+   * of `fix-wizard-reuse`. A second visit now re-enters the first import, so the second import
+   * has to be asked for, which is the whole point: re-importing is legitimate and it is no
+   * longer what happens by accident. The banner is what it has always been.
+   */
+  test("a second import of the same URL is asked for, then reported — not refused", async ({
+    page,
+  }) => {
     await signIn(page);
-    await resolveSource(page, "fixture://discovery");
+    const url = uniqueSource("fixture://discovery");
+
+    await page.goto(`/import/new?url=${encodeURIComponent(url)}`);
+    await page.waitForURL(/importId=/, { timeout: 120_000 });
+    await expect(page.getByTestId("source-count")).toBeVisible({ timeout: 60_000 });
+    const first = new URL(page.url()).searchParams.get("importId") ?? "";
+
+    // Coming back re-enters it, and says so instead of quietly opening a second.
+    await page.goto(`/import/new?url=${encodeURIComponent(url)}`);
+    await page.waitForURL(/importId=/, { timeout: 120_000 });
+    await expect(page.getByTestId("wizard-reused")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(/imported before/)).toHaveCount(0);
+
+    // And the escape hatch is a gesture: press it, and there are two, reported.
+    await page.getByTestId("wizard-fresh").click();
+    await expect(page.getByTestId("wizard-duplicates")).toBeVisible({ timeout: 120_000 });
     await expect(page.getByText(/imported before/)).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("importId")).not.toBe(first);
   });
 });

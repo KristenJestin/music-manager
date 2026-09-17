@@ -147,9 +147,31 @@ async function submitLogin(page: Page): Promise<void> {
   await shellReady(page);
 }
 
+/**
+ * A source of this call's own: the same recording, under a URL nothing else in the run uses.
+ *
+ * The wizard now **re-enters** an import that is already parked for a URL instead of opening a
+ * second one, which is the whole point of `fix-wizard-reuse`. Twenty specs pasting
+ * `fixture://discovery` into one database would therefore all land on the first spec's import,
+ * and what each of them did to it would leak into the next — flakily, because whether the first
+ * import is still parked depends on which specs have run.
+ *
+ * So a spec that wants its own import asks for its own source. The query string is ignored by
+ * every fixture in the toolbox except `fp`, `slow` and `snapshot`, and `cassetteNameOf` strips
+ * it, so this is the same fifteen videos and the same recorded MusicBrainz traffic — a
+ * different *submission* of it, which is exactly what these tests mean. `wizard-reuse.spec.ts`
+ * is the one spec that deliberately pastes the same URL twice, and it does not use this.
+ */
+let sources = 0;
+export function uniqueSource(url: string): string {
+  sources += 1;
+  const marker = `spec=${process.pid.toString(36)}-${sources.toString(36)}`;
+  return url.includes("?") ? `${url}&${marker}` : `${url}?${marker}`;
+}
+
 /** Paste a URL into the wizard and wait for `resolve` to have produced its videos. */
 export async function resolveSource(page: Page, url: string): Promise<string> {
-  await page.goto(`/import/new?url=${encodeURIComponent(url)}`);
+  await page.goto(`/import/new?url=${encodeURIComponent(uniqueSource(url))}`);
   await page.waitForURL(/importId=/, { timeout: 120_000 });
   await expect(page.getByTestId("source-count")).toBeVisible();
   const importId = new URL(page.url()).searchParams.get("importId");

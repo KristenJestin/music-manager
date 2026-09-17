@@ -39,7 +39,7 @@ import type { Import, ImportKind, ImportTrack } from "#/server/db/schema/index.t
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
-import { pauseImport } from "#/server/services/jobs/index.ts";
+import { pauseImport, runStep } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf } from "#/server/services/console.queries.ts";
 import { confirmSupplied } from "#/server/services/confirm.ts";
@@ -124,12 +124,23 @@ export interface SourceView {
   readonly description: string | null;
   /** Imports of the same URL that already exist, newest first. */
   readonly duplicates: readonly { id: string; status: string; createdAt: string }[];
+  /** When this import was opened. Step 1 names it when it re-entered an existing one. */
+  readonly createdAt: string;
+  /**
+   * This call re-entered an import that already existed instead of opening a new one.
+   *
+   * Only `resolveSource` can answer it — `fetchSource` is a read and reuses nothing — and the
+   * wizard carries it into the address bar as `?reused`, because the loader redirects to
+   * `?importId=` and the answer would otherwise be lost between the two screens.
+   */
+  readonly reused: boolean;
 }
 
 function toSourceView(
   job: Import,
   rows: readonly ImportTrack[],
   duplicates: readonly Import[],
+  reused = false,
 ): SourceView {
   const videos = rows.map((row) => {
     const raw = row.raw;
@@ -194,6 +205,8 @@ function toSourceView(
       status: row.status,
       createdAt: row.createdAt.toISOString(),
     })),
+    createdAt: job.createdAt.toISOString(),
+    reused,
   };
 }
 
@@ -226,17 +239,111 @@ export const resolveSource = createServerFn({ method: "POST", strict: STRICT })
        * preselection. Nothing new decides anything.
        */
       releaseMbid: z.string().trim().min(1).max(64).optional(),
+      /**
+       * Open a **new** import even though this URL already has one that could be re-entered.
+       *
+       * The escape hatch, and it has to be asked for. Re-importing a URL is legitimate — it is
+       * how you pick up better metadata — but it is a decision, and making it the default is
+       * what left 204 parked imports for 7 URLs on the owner's instance, each one a yt-dlp
+       * extraction nobody wanted.
+       */
+      fresh: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }): Promise<SourceView> => {
     try {
       const created = await createImport(data.url, {
         db: db(),
+        reuse: data.fresh !== true,
         ...(data.releaseMbid === undefined ? {} : { releaseMbid: data.releaseMbid }),
       });
-      await pauseImport(created.job.id, "Waiting for the import wizard.", db());
+      await parkForWizard(created.job.id);
       const { rows } = await videosOf(created.job.id, db());
-      return toSourceView({ ...created.job, status: "paused" }, rows, created.duplicates);
+      return toSourceView(
+        { ...created.job, status: "paused" },
+        rows,
+        created.duplicates,
+        created.reused,
+      );
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Park a job where the wizard can work on it, and keep it parked between visits.
+ *
+ * Not optional and not cosmetic: `createImport` leaves an import `pending` at `match`, and a
+ * running worker's `resumableImports()` picks exactly those up. Without this, opening the
+ * wizard would start the import the wizard exists to let you configure.
+ *
+ * `paused` is not resumable, so nothing touches the job until step 4 says so — and because
+ * every entrance goes through here, an import re-entered on a second visit is re-parked rather
+ * than left in whatever state the previous visit abandoned it in.
+ */
+async function parkForWizard(importId: string): Promise<void> {
+  await pauseImport(importId, "Waiting for the import wizard.", db());
+}
+
+/**
+ * "Re-fetch" — ask the source again, on the import already open.
+ *
+ * It used to be the same call as "Resolve", which meant the button labelled *re-fetch* created
+ * a sibling import every time it was pressed. It now re-runs the `resolve` step on the row the
+ * wizard is looking at. `resolve` is idempotent by construction (see its own note): the entries
+ * are re-read and the raw payloads replaced, and nothing a later step wrote is disturbed,
+ * because those columns are matched on the entry id rather than on the row.
+ *
+ * Refused on an import that is running or finished. There is no honest way to re-read the
+ * source under a download that is in flight, and a `done` import is a record of what happened
+ * rather than a draft — "import it again" is a new import, made deliberately.
+ */
+export const refetchSource = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ importId: z.string().min(1) }))
+  .handler(async ({ data }): Promise<SourceView> => {
+    try {
+      const job = await getImport(data.importId, db());
+      if (job === null) {
+        throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
+      }
+      if (job.status === "running" || job.status === "done" || job.status === "cancelled") {
+        throw new MMError(
+          "INVALID_INPUT",
+          `This import is ${job.status}, so its source cannot be read again into it.`,
+          {
+            hint:
+              job.status === "running"
+                ? "It is on the worker now. Pause it first, or watch it on its job page."
+                : "Paste the URL again to open a new import; the duplicate is reported, not refused.",
+            action: "Open a new import",
+            status: 409,
+          },
+        );
+      }
+
+      const result = await runStep(job.id, "resolve", {
+        db: db(),
+        settings: await loadSettings(db()),
+      });
+      /*
+       * A re-fetch that failed is raised here rather than filed away.
+       *
+       * The job row keeps the typed error, as it always does — but whoever pressed the button
+       * is still looking at the screen, and parking the import on top of a failed `resolve`
+       * would leave a row that says `paused` over a step that says it could not read the
+       * source. The wizard's own error banner is the right place for it.
+       */
+      if (result.status === "failed" && result.error !== undefined) {
+        throw MMError.fromBody(result.error);
+      }
+      // `resolve` leaves the job `pending` at `match`, which a running worker would pick up.
+      await parkForWizard(job.id);
+
+      const fresh = (await getImport(job.id, db())) ?? job;
+      const { rows } = await videosOf(job.id, db());
+      const duplicates = await duplicatesOf(fresh.url, fresh.id, db());
+      return toSourceView({ ...fresh, status: "paused" }, rows, duplicates);
     } catch (error) {
       return toFailure(error);
     }

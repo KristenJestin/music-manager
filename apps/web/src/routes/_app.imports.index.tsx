@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
-import { Plus, RotateCcw } from "lucide-react";
+import { Layers, Plus, RotateCcw } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
@@ -19,7 +19,13 @@ import { SkeletonPage, SkeletonPageHeader, SkeletonTable } from "#/components/sk
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useJobsProgress, type StreamState } from "#/hooks/use-jobs-progress.ts";
 import { timeAgo } from "#/lib/format.ts";
-import { bumpJob, fetchJobs, retryFailedUpstream, retryJob } from "#/server/functions/jobs.ts";
+import {
+  bumpJob,
+  collapseParkedImports,
+  fetchJobs,
+  retryFailedUpstream,
+  retryJob,
+} from "#/server/functions/jobs.ts";
 import type { JobSummary } from "#/server/services/console.queries.ts";
 
 const search = z.object({
@@ -135,7 +141,7 @@ function JobsToolbar({ counts }: { readonly counts: Record<JobFilter, number> | 
 }
 
 function Jobs() {
-  const { jobs, counts, total, page, pageSize } = Route.useLoaderData();
+  const { jobs, counts, total, page, pageSize, parkedDuplicates } = Route.useLoaderData();
   const { status } = Route.useSearch();
   const router = useRouter();
   const toast = useToast();
@@ -354,6 +360,35 @@ function Jobs() {
                 }}
               >
                 <RotateCcw className="size-4" aria-hidden="true" /> Retry source failures
+              </Button>
+            ) : null}
+            {parkedDuplicates > 0 ? (
+              /*
+               * The owner's instance held 204 imports parked at "Waiting for the import
+               * wizard" for seven URLs, 80 of them for one album, because every visit to the
+               * wizard opened a new one. The wizard no longer does that; this is the broom for
+               * the rows that are already there. It keeps the newest import of each URL and
+               * never touches one whose tracks have done any work.
+               */
+              <Button
+                variant="outline"
+                data-testid="collapse-parked"
+                onClick={() => {
+                  act(
+                    async () => {
+                      const done = await collapseParkedImports({ data: { apply: true } });
+                      if (done.cancelled === 0) {
+                        throw new Error("Nothing to collapse: every URL already has one import.");
+                      }
+                      return done;
+                    },
+                    `Cancelled ${String(parkedDuplicates)} redundant parked import(s).`,
+                  );
+                }}
+              >
+                <Layers className="size-4" aria-hidden="true" /> Collapse {parkedDuplicates}{" "}
+                duplicate
+                {parkedDuplicates === 1 ? "" : "s"}
               </Button>
             ) : null}
             <Button

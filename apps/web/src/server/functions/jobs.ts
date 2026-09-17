@@ -29,6 +29,11 @@ import {
   type BumpResult,
 } from "#/server/services/jobs/index.ts";
 import { requireImport } from "#/server/services/jobs/context.ts";
+import {
+  collapseParkedDuplicates,
+  countParkedDuplicates,
+  type CollapseResult,
+} from "#/server/services/imports.reuse.ts";
 import { forgetsMapping, retryOptionsFor } from "#/server/services/retry-plan.ts";
 import { pageInfo } from "#/server/api/paging.ts";
 import {
@@ -81,6 +86,13 @@ export interface JobListPayload {
   readonly hasMore: boolean;
   readonly page: number;
   readonly pageSize: number;
+  /**
+   * How many parked imports a collapse would cancel as redundant siblings.
+   *
+   * Unfiltered, like `counts`: the offer to tidy up is about the table, not about the page.
+   * Zero on a healthy installation, and the button is not drawn at all then.
+   */
+  readonly parkedDuplicates: number;
 }
 
 export const fetchJobs = createServerFn({ method: "GET", strict: STRICT })
@@ -96,10 +108,11 @@ export const fetchJobs = createServerFn({ method: "GET", strict: STRICT })
   .handler(async ({ data }): Promise<JobListPayload> => {
     try {
       const offset = data.page * JOBS_PAGE_SIZE;
-      const [jobs, total, counts] = await Promise.all([
+      const [jobs, total, counts, parkedDuplicates] = await Promise.all([
         listJobs({ status: data.status, limit: JOBS_PAGE_SIZE, offset }),
         countJobs(data.status),
         jobCounts(),
+        countParkedDuplicates(db()),
       ]);
       return {
         jobs,
@@ -107,6 +120,7 @@ export const fetchJobs = createServerFn({ method: "GET", strict: STRICT })
         ...pageInfo(total, offset, JOBS_PAGE_SIZE),
         page: data.page,
         pageSize: JOBS_PAGE_SIZE,
+        parkedDuplicates,
       };
     } catch (error) {
       return toFailure(error);
@@ -433,6 +447,32 @@ export const confirmJob = createServerFn({ method: "POST", strict: STRICT })
     try {
       const { job, mapped } = await confirmProposed(data.id, "console", db());
       return { mapped, status: job.status };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Collapse the parked duplicates of the whole table — the owner's 204 rows, in one press.
+ *
+ * A dry run unless `apply` is set, and the Console uses both: the page asks for the count on
+ * every load (`parkedDuplicates`), and the button applies. The guard is
+ * `services/imports.reuse.ts`'s and is deliberately narrow — only imports that are `paused`,
+ * not by the worker, no further than `match`, and with **no track that has done any work**;
+ * never the newest of a URL, so every URL keeps one.
+ */
+export const collapseParkedImports = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z.object({ url: z.string().min(1).optional(), apply: z.boolean().default(false) }),
+  )
+  .handler(async ({ data }): Promise<CollapseResult> => {
+    try {
+      return await collapseParkedDuplicates({
+        apply: data.apply,
+        db: db(),
+        ...(data.url === undefined ? {} : { url: data.url }),
+      });
     } catch (error) {
       return toFailure(error);
     }

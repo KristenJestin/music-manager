@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   ArrowRight,
@@ -26,6 +26,7 @@ import { MappingRow } from "#/components/mapping-row.tsx";
 import { MbSearchPanel } from "#/components/mb-search-panel.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 import { Stepper } from "#/components/stepper.tsx";
+import { TimeAgo } from "#/components/time-ago.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { RecordingCandidateCard } from "#/components/candidate-card.tsx";
 import { ReleaseGroupCard } from "#/components/candidate-group.tsx";
@@ -44,6 +45,7 @@ import {
   fetchMapping,
   fetchRecording,
   fetchSource,
+  refetchSource,
   resolvePastedRef,
   resolveSource,
   searchCandidates,
@@ -97,6 +99,15 @@ const search = z.object({
    * and step 2 both honour it. It stays in the address bar so a reload keeps the pin.
    */
   pin: z.string().optional(),
+  /**
+   * This screen re-entered an import that already existed rather than opening a new one.
+   *
+   * In the URL for one reason: the `?url=` entrance **redirects** to `?importId=`, so the
+   * answer `resolveSource` gave is gone by the time step 1 renders. Silently switching which
+   * import somebody is configuring is exactly the thing that must not happen quietly, and a
+   * flag that survives the redirect, a reload and a shared link is the cheapest way to say so.
+   */
+  reused: z.boolean().optional(),
 });
 
 type WizardSearch = z.infer<typeof search>;
@@ -190,7 +201,11 @@ export const Route = createFileRoute("/_app/import/new")({
       });
       throw redirect({
         to: "/import/new",
-        search: { importId: created.importId, step: 1 },
+        search: {
+          importId: created.importId,
+          step: 1,
+          ...(created.reused ? { reused: true } : {}),
+        },
         replace: true,
       });
     }
@@ -474,25 +489,45 @@ function WizardPending() {
  *
  * Re-running the loader is safe however often it happens: `fetchCandidates` answers `pending`
  * for as long as the run is in flight and never starts a second one (`match-runs.ts`).
+ *
+ * **A poll must never re-run a loader that can create.** `router.invalidate()` re-runs *this
+ * route's* loader, and this route's loader has a branch that creates an import: `?url=` with no
+ * `importId` calls `resolveSource`, which is a full yt-dlp extraction — a minute on one of the
+ * owner's playlists. Every tick inside that minute is another creation, and four ticks are the
+ * four identical imports he watched arrive at once without having refreshed anything.
+ *
+ * Two guards, and they are deliberately both:
+ *
+ *  - **here**, `importId` is required before a single tick is armed. This component is only
+ *    rendered from the `importId !== undefined` branch today, so the guard is a restatement —
+ *    which is the point: it makes the rule local and checkable instead of an invariant two
+ *    hundred lines away that a later edit can quietly break.
+ *  - **in the loader**, where the creation is now idempotent per URL whatever re-enters it
+ *    (`services/imports.reuse.ts`). That is the guard that holds when the re-entry is a second
+ *    tab, a double-submitted Enter or an F5 rather than this timer, none of which this file
+ *    can see.
  */
 function WizardMatching({ importId, step }: { readonly importId: string; readonly step: number }) {
   const router = useRouter();
   const progress = useMatchProgress(importId);
   const phase = progress?.phase ?? null;
+  /** Nothing to poll *for* without an import, and the loader without one is a creation. */
+  const pollable = importId !== "";
 
   useEffect(() => {
-    if (phase !== "done") return;
+    if (!pollable || phase !== "done") return;
     void router.invalidate();
-  }, [phase, router]);
+  }, [pollable, phase, router]);
 
   useEffect(() => {
+    if (!pollable) return;
     const timer = setInterval(() => {
       void router.invalidate();
     }, MATCH_POLL_MS);
     return () => {
       clearInterval(timer);
     };
-  }, [router]);
+  }, [pollable, router]);
 
   return <MatchPanel step={step} matching progress={progress} testId="wizard-matching" />;
 }
@@ -523,6 +558,7 @@ function Wizard() {
   const { source, candidates, mapping, recording, sourceFailure, matching } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const toast = useToast();
 
   /*
@@ -601,6 +637,7 @@ function Wizard() {
         <StepSource
           source={source}
           pin={params.pin ?? null}
+          reused={params.reused === true}
           busy={blocked}
           onResolve={(url) => {
             setBusy(true);
@@ -608,6 +645,57 @@ function Wizard() {
             void resolveSource({
               data: {
                 url,
+                ...(params.pin === undefined || params.pin === ""
+                  ? {}
+                  : { releaseMbid: params.pin }),
+              },
+            }).then((created) => {
+              setBusy(false);
+              void navigate({
+                to: "/import/new",
+                search: {
+                  importId: created.importId,
+                  step: 1,
+                  ...(created.reused ? { reused: true } : {}),
+                },
+              });
+            }, fail);
+          }}
+          /*
+           * Re-fetch asks the source again **on this import**. It used to call `resolveSource`
+           * with the same URL, which created a sibling import every time it was pressed — the
+           * single largest contributor to the 204 parked rows this branch is about.
+           */
+          onRefetch={() => {
+            if (params.importId === undefined) return;
+            setBusy(true);
+            setError(null);
+            void refetchSource({ data: { importId: params.importId } }).then((fresh) => {
+              setBusy(false);
+              void router.invalidate();
+              toast(
+                `Read again from the source: ${String(fresh.videos.length)} ${
+                  fresh.videos.length === 1 ? "video" : "videos"
+                }.`,
+                "ok",
+              );
+            }, fail);
+          }}
+          /*
+           * "Import it again as a new job" — `docs/04` § Règles's re-import, made a gesture.
+           *
+           * The rule is that re-importing a URL is allowed and reported, not refused; what was
+           * wrong was that it happened by accident, four times, on a source that took a minute.
+           * `fresh` is the same call with the re-entry switched off.
+           */
+          onFresh={() => {
+            if (source === null) return;
+            setBusy(true);
+            setError(null);
+            void resolveSource({
+              data: {
+                url: source.url,
+                fresh: true,
                 ...(params.pin === undefined || params.pin === ""
                   ? {}
                   : { releaseMbid: params.pin }),
@@ -1267,21 +1355,78 @@ function HighlightedDescription({ text }: { readonly text: string }) {
 function StepSource({
   source,
   pin,
+  reused,
   busy,
   onResolve,
+  onRefetch,
+  onFresh,
   onContinue,
 }: {
   readonly source: SourceView | null;
   /** A release chosen in the palette before this import existed; `null` the usual way round. */
   readonly pin: string | null;
+  /** This screen picked up an import that already existed for the URL. */
+  readonly reused: boolean;
   readonly busy: boolean;
   readonly onResolve: (url: string) => void;
+  readonly onRefetch: () => void;
+  /** Open a second import for this URL on purpose — the escape hatch, asked for out loud. */
+  readonly onFresh: () => void;
   readonly onContinue: () => void;
 }) {
   const [pasted, setPasted] = useState(source?.url ?? "");
+  /*
+   * The box still holds the URL this import was opened for: pressing the button means
+   * *re-fetch this import*, not *start another one for the same link*. Change a character and
+   * it means "resolve that instead", and goes back through `resolveSource`.
+   */
+  const sameSource = source !== null && pasted.trim() === source.url;
+  const submit = (): void => {
+    /*
+     * `busy` guards the *keyboard* too, and it did not.
+     *
+     * The button has been disabled while a resolve is in flight since P06; Enter went straight
+     * past it, so holding the key — or simply pressing it again, on a source that takes a
+     * minute — sent a second `resolveSource` for the same URL. That is the same duplicate the
+     * loader's poll produced, one keystroke away, and the reason the service-side rule is the
+     * one that actually has to hold.
+     */
+    if (busy || pasted.trim() === "") return;
+    if (sameSource) onRefetch();
+    else onResolve(pasted);
+  };
 
   return (
     <>
+      {!reused || source === null ? null : (
+        /*
+         * Somebody pasted a URL and landed on an import they did not just create. Saying which
+         * one, and when it was opened, is the difference between "the wizard reused my import"
+         * and "the wizard silently changed what I am looking at".
+         */
+        <Callout tone="info" className="mb-3.5" data-testid="wizard-reused">
+          Picked up the import opened <TimeAgo at={source.createdAt} /> for this URL —{" "}
+          <Link
+            to="/imports/$id"
+            params={{ id: source.importId }}
+            className="font-mono text-2xs text-primary"
+          >
+            {source.importId}
+          </Link>
+          . Nothing new was fetched from YouTube, and no second import was opened. Use
+          &ldquo;Re-fetch&rdquo; to read the source again into it, or{" "}
+          <button
+            type="button"
+            data-testid="wizard-fresh"
+            disabled={busy}
+            onClick={onFresh}
+            className="font-medium text-primary underline underline-offset-2 disabled:opacity-50"
+          >
+            import it again as a new job
+          </button>
+          {" — "}re-importing is legitimate, it is simply no longer what happens by accident.
+        </Callout>
+      )}
       {pin === null || pin === "" ? null : (
         /*
          * The pin arrived before the source did, so it has to be visible before there is
@@ -1310,7 +1455,7 @@ function StepSource({
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
-                      onResolve(pasted);
+                      submit();
                     }
                   }}
                   placeholder="https://music.youtube.com/playlist?list=OLAK5uy_… or fixture://discovery"
@@ -1319,13 +1464,12 @@ function StepSource({
                 <Button
                   variant="outline"
                   data-testid="wizard-resolve"
+                  data-action={sameSource ? "refetch" : "resolve"}
                   disabled={busy || pasted.trim() === ""}
-                  onClick={() => {
-                    onResolve(pasted);
-                  }}
+                  onClick={submit}
                 >
                   <RefreshCw className={cn("size-4", busy && "animate-spin")} aria-hidden="true" />
-                  {source === null ? "Resolve" : "Re-fetch"}
+                  {sameSource ? "Re-fetch" : "Resolve"}
                 </Button>
               </span>
               <span className="text-2xs text-fg-3">
@@ -1463,7 +1607,7 @@ function StepSource({
 
         <div className="flex flex-col gap-3.5">
           {source !== null && source.duplicates.length > 0 ? (
-            <Callout tone="warn">
+            <Callout tone="warn" data-testid="wizard-duplicates">
               This URL was imported before ({source.duplicates.length}{" "}
               {source.duplicates.length === 1 ? "time" : "times"}). Re-importing is allowed; it is
               how you pick up better metadata, and files already in the library are skipped unless

@@ -384,6 +384,9 @@ thing: the single download slot.
   `/download` copies a bundled five-second Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it,
   and `?slow=<ms>` (capped at 2 s a slice) paces one import only — that is how a browser test
   catches a track _while_ it is downloading without slowing every other spec down.
+  `?extractslow=<ms>` (capped at 20 s) is its sibling on `/extract`: a recorded extraction is
+  instant, and instant is the one speed at which a race inside `resolve` is invisible — the
+  wizard's URL says `?url=` rather than `?importId=` for exactly as long as `resolve` takes.
 - Environment: `MM_TOOLBOX_TOKEN` (bearer, empty = off), `MM_TOOLBOX_FIXTURES`,
   `MM_YTDLP_AUTOUPDATE`, `MM_ACOUSTID_KEY`, `MM_LIBRARY_ROOT`, `MM_TOOLBOX_FIXTURE_DELAY_MS`.
 - Tests: `uv run pytest` is offline and needs no binaries; the ones that do skip themselves.

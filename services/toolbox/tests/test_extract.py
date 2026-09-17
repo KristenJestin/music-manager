@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from toolbox import extract as extract_module
+from toolbox.config import fixture_extract_delay_seconds
 from toolbox.errors import ErrorCode, ToolboxError
 from toolbox.models import ExtractRequest
 from toolbox.ytdlp import result_from_info
@@ -449,3 +450,33 @@ def test_a_gap_a_fixture_cannot_have_is_an_error(fixture_client: TestClient):
 def test_an_ordinary_fixture_reports_no_gap(fixture_client: TestClient):
     payload = fixture_client.post("/extract", json={"url": "fixture://discovery"}).json()
     assert payload["unreadable"] == []
+def test_extractslow_holds_one_extraction_open_without_touching_the_others():
+    """`?extractslow=<ms>` is the sibling of `?slow=`, for the other slow thing a source is.
+
+    A recorded extraction is instant, and instant is the one speed at which a whole class of
+    bug is invisible: while `resolve` runs, the wizard's address bar still says `?url=` rather
+    than `?importId=`, and anything that re-enters that loader in the meantime — a poll, a
+    second tab, an impatient Enter — is a second creation. A test whose extraction returns in
+    eight milliseconds never has a window to re-enter, so it proves nothing either way.
+    """
+    assert fixture_extract_delay_seconds("fixture://discovery?extractslow=1500") == pytest.approx(
+        1.5
+    )
+    # Capped, for the same reason `?slow=` is: a switch may open a window, not a career.
+    assert fixture_extract_delay_seconds("fixture://discovery?extractslow=999999") == pytest.approx(
+        20.0
+    )
+    # Absence and nonsense both cost nothing: every other fixture URL is unaffected.
+    assert fixture_extract_delay_seconds("fixture://discovery") == 0.0
+    assert fixture_extract_delay_seconds("fixture://discovery?extractslow=abc") == 0.0
+    assert fixture_extract_delay_seconds("https://youtube.com/watch?v=x") == 0.0
+
+
+def test_a_slow_extraction_still_answers_the_same_recording(fixture_client: TestClient):
+    """The delay is a delay and nothing else: the entries are the ones `discovery` holds."""
+    plain = fixture_client.post("/extract", json={"url": "fixture://discovery"}).json()
+    slow = fixture_client.post(
+        "/extract", json={"url": "fixture://discovery?extractslow=50"}
+    ).json()
+    assert len(slow["entries"]) == len(plain["entries"])
+    assert [entry["id"] for entry in slow["entries"]] == [entry["id"] for entry in plain["entries"]]

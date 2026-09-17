@@ -55,6 +55,7 @@ import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
+import { collapseParkedDuplicates } from "#/server/services/imports.reuse.ts";
 import { folderPathOf } from "#/server/services/import-source.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
@@ -394,7 +395,65 @@ async function cmdImport(args: Args): Promise<number> {
   return code;
 }
 
-async function cmdJobs(): Promise<number> {
+/**
+ * `mm jobs collapse` — the broom for the wizard's old duplicates.
+ *
+ * 204 imports parked at "Waiting for the import wizard" for 7 URLs, because every visit to the
+ * wizard opened a new one. The wizard no longer does that (`services/imports.reuse.ts`); this
+ * collapses what is already there, keeping the newest import of every URL.
+ *
+ * **Dry by default**, like `mm relocate` and `mm library repair-orphans`. It cancels rows, and
+ * a command that would cancel 197 imports has to be able to say which ones first.
+ *
+ * The guard is not restated here — it is `findParkedDuplicates`', shared with the reuse rule —
+ * but it is worth naming: only imports that are `paused`, not by the worker, no further than
+ * `match`, and with **no track that has downloaded, tagged or placed anything**. An import that
+ * has done work is never in this list, and every URL keeps one.
+ */
+async function cmdJobsCollapse(args: Args): Promise<number> {
+  const url = flagString(args, "url");
+  const apply = flagBoolean(args, "apply");
+  const result = await collapseParkedDuplicates({
+    apply,
+    db: db(),
+    ...(url === undefined ? {} : { url }),
+  });
+
+  if (flagBoolean(args, "json")) {
+    line(JSON.stringify(result, null, 2));
+    return 0;
+  }
+
+  if (result.groups.length === 0) {
+    line("no parked duplicates — every URL already has at most one import waiting");
+    return 0;
+  }
+
+  line(
+    `${String(result.cancelled)} redundant parked import(s) across ${String(result.groups.length)} URL(s)` +
+      (result.applied ? ", cancelled" : " — dry run, nothing changed"),
+  );
+  line("");
+  for (const group of result.groups) {
+    line(
+      `  ${String(result.applied ? "cancelled" : "would cancel")} ${String(group.cancel.length).padStart(3)}  ${group.url}`,
+    );
+    line(`      keeping ${group.keep} (opened ${group.keepCreatedAt})`);
+  }
+  if (!result.applied) {
+    line("");
+    line("  re-run with --apply to cancel them");
+  }
+  return 0;
+}
+
+async function cmdJobs(args: Args): Promise<number> {
+  if (args.positional[1] === "collapse") return await cmdJobsCollapse(args);
+  if (args.positional[1] !== undefined) {
+    throw new MMError("INVALID_INPUT", `Unknown jobs subcommand "${args.positional[1]}".`, {
+      hint: "usage: mm jobs [collapse [--url <url>] [--apply] [--json]]",
+    });
+  }
   const rows = await listImports({ limit: 50 });
   if (rows.length === 0) {
     line("no imports yet — `mm import fixture://discovery --yes --follow`");
@@ -1642,6 +1701,10 @@ const USAGE = `mm — Music Manager
                                           coverage, a single on its margin over the runner-up
   mm match <url|fixture://…> [--kind album|single] [--json]   score candidates without importing
   mm jobs
+  mm jobs collapse [--url <url>] [--apply] [--json]
+                                          cancel the redundant imports parked at the wizard for
+                                          a URL, keeping the newest; never touches one whose
+                                          tracks have done any work. Dry run unless --apply
   mm job <id> [--follow]
   mm retry <id> --step <${STEP_ORDER.join("|")}>
   mm retry --failed-upstream [--dry-run] [--limit N]   every import a source killed, at once
@@ -1723,7 +1786,7 @@ async function main(): Promise<number> {
     case "match":
       return await cmdMatch(args);
     case "jobs":
-      return await cmdJobs();
+      return await cmdJobs(args);
     case "job":
       return await cmdJob(args);
     case "retry":
