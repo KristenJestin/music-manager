@@ -16,7 +16,7 @@
  * the one that already decided the ranking.
  */
 import { useState, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, Hand, ImageOff, ListChecks, Sparkles } from "lucide-react";
+import { ChevronDown, Hand, ImageOff, Info, ListChecks, Sparkles } from "lucide-react";
 import type {
   DiscMode,
   FitLine,
@@ -27,10 +27,12 @@ import type {
 import { cn } from "cn";
 import { BorrowSelect } from "#/components/borrow-select.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
+import { MbLink } from "#/components/mb-link.tsx";
+import { ReleaseFactsRow, ReleaseFactsTable, type FactKey } from "#/components/release-facts.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { SignalsRow } from "#/components/signals-row.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
-import { delta, mmss, pct, short } from "#/lib/format.ts";
+import { delta, mmss, pct } from "#/lib/format.ts";
 
 const BIG_TONE = {
   ok: "text-ok",
@@ -248,13 +250,24 @@ function TracklistFit({ lines }: { readonly lines: readonly FitLine[] }) {
 
 export interface ReleaseCandidateCardProps extends CommonProps {
   readonly candidate: ReleaseCandidate;
+  /**
+   * The facts that are *not* the same across the pressings shown beside this one.
+   *
+   * Computed by whoever holds the list — the group card — because a card cannot know on its
+   * own that it is the one with the odd barcode. Empty when the card stands alone, and then
+   * the row shows only the four facts that always read.
+   */
+  readonly differs?: ReadonlySet<FactKey>;
 }
+
+const NOTHING: ReadonlySet<FactKey> = new Set<FactKey>();
 
 export function ReleaseCandidateCard({
   candidate,
   selected,
   onSelect,
   byHand = false,
+  differs = NOTHING,
 }: ReleaseCandidateCardProps) {
   /*
    * `null` means "whatever selection implies", `true`/`false` mean "the reader has decided".
@@ -266,6 +279,7 @@ export function ReleaseCandidateCard({
    */
   const [open, setOpen] = useState<boolean | null>(null);
   const [fitOpen, setFitOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const showWhy = open ?? selected;
 
   return (
@@ -354,21 +368,42 @@ export function ReleaseCandidateCard({
             </ToneBadge>
           )}
         </div>
-        <div className="mt-0.5 flex flex-wrap gap-2.5 text-xs text-fg-2">
-          {[
-            candidate.date,
-            candidate.country,
-            candidate.format,
-            `${String(candidate.tracks)} tracks`,
-            candidate.label,
-            candidate.status,
-          ]
-            .filter((part): part is string => typeof part === "string" && part !== "")
-            .map((part, index) => (
-              <span key={`${part}-${String(index)}`}>{part}</span>
-            ))}
-          <span className="font-mono text-fg-3">{short(candidate.id)}…</span>
+        {/*
+         * The facts that separate this pressing from the one under it.
+         *
+         * The old row was `date · country · format · N tracks · label · status`, always those
+         * six, which is exactly the set two pressings of one album agree on — so the card
+         * printed six facts and said nothing. `ReleaseFactsRow` prints the four that always
+         * read plus whatever actually differs inside this group, so the common case is quieter
+         * than before and the pair that differs by a barcode alone shows the barcode.
+         */}
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-fg-2">
+          <ReleaseFactsRow candidate={candidate} differs={differs} />
+          {/* The page, for the person comparing two pressings. `stopPropagation` because the
+              whole card is the radio and opening MusicBrainz is not a vote. */}
+          <MbLink
+            kind="release"
+            mbid={candidate.id}
+            truncate
+            stopPropagation
+            data-testid="candidate-mb-release"
+            label="release"
+          />
+          {candidate.releaseGroupId === null ? null : (
+            <MbLink
+              kind="release-group"
+              mbid={candidate.releaseGroupId}
+              truncate
+              stopPropagation
+              data-testid="candidate-mb-group"
+              label="release group"
+            />
+          )}
         </div>
+
+        <Disclosure open={detailsOpen} testId="candidate-details">
+          <ReleaseFactsTable candidate={candidate} differs={differs} />
+        </Disclosure>
 
         <Disclosure open={showWhy} testId="candidate-why">
           <div className="mt-2">
@@ -384,17 +419,28 @@ export function ReleaseCandidateCard({
                 </li>
               ))}
             </ul>
-            <a
-              href={`https://musicbrainz.org/release/${candidate.id}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(event) => {
-                event.stopPropagation();
-              }}
-              className="mt-2 inline-flex items-center gap-1 text-2xs text-primary hover:underline"
-            >
-              <ExternalLink className="size-3" aria-hidden="true" /> Open on MusicBrainz
-            </a>
+            {/*
+             * Both entities, with their ids in full — this is the panel somebody opened to
+             * compare two pressings, and the id is what they will paste into MusicBrainz's own
+             * search when they get there.
+             */}
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <MbLink
+                kind="release"
+                mbid={candidate.id}
+                stopPropagation
+                data-testid="candidate-mb-release-full"
+                className="text-primary hover:text-primary"
+              />
+              <MbLink
+                kind="release-group"
+                mbid={candidate.releaseGroupId}
+                stopPropagation
+                missing="no release group"
+                data-testid="candidate-mb-group-full"
+                className="text-primary hover:text-primary"
+              />
+            </div>
           </div>
         </Disclosure>
 
@@ -436,6 +482,16 @@ export function ReleaseCandidateCard({
           </span>
         ) : null}
         <div className="flex flex-wrap justify-end gap-1">
+          <DisclosureButton
+            testId="details-toggle"
+            label="details"
+            openLabel="hide details"
+            open={detailsOpen}
+            icon={<Info className="size-3" aria-hidden="true" />}
+            onToggle={() => {
+              setDetailsOpen((current) => !current);
+            }}
+          />
           <DisclosureButton
             testId="fit-toggle"
             label="tracklist fit"
@@ -561,7 +617,7 @@ export function RecordingCandidateCard({
             <ToneBadge outline>{candidate.disambiguation}</ToneBadge>
           )}
         </div>
-        <div className="mt-0.5 flex flex-wrap gap-2.5 text-xs text-fg-2">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-fg-2">
           {candidate.borrow === null ? (
             <span className="text-warn">on no usable release</span>
           ) : (
@@ -572,6 +628,26 @@ export function RecordingCandidateCard({
                 ? null
                 : ` · track ${String(candidate.borrow.trackPosition)}`}
             </span>
+          )}
+          {/* The recording's own page, and the page of the release it would be filed under —
+              the same two links the album card carries, one entity along. */}
+          <MbLink
+            kind="recording"
+            mbid={candidate.id}
+            truncate
+            stopPropagation
+            data-testid="candidate-mb-recording"
+            label="recording"
+          />
+          {candidate.borrow === null ? null : (
+            <MbLink
+              kind="release"
+              mbid={candidate.borrow.id}
+              truncate
+              stopPropagation
+              data-testid="candidate-mb-release"
+              label="release"
+            />
           )}
         </div>
         <Disclosure open={showWhy} testId="candidate-why">
