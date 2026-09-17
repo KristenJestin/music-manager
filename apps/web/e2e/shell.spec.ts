@@ -54,7 +54,13 @@ test.describe("the shell", () => {
     await pressGlobal(page, "ControlOrMeta+k");
     await expect(page.getByTestId("palette-input")).toBeVisible();
     await typeInto(page.getByTestId("palette-input"), "Jobs");
-    await page.getByRole("option", { name: "Jobs" }).first().click();
+    /*
+     * `exact`, because the word is now quoted back at you by two other rows: the library group
+     * says "nothing in your library matches “Jobs”" and MusicBrainz offers to search for
+     * “Jobs”. A loose name matched the first of those, which is a *disabled* row, so the click
+     * did nothing and the test waited out a navigation that was never asked for.
+     */
+    await page.getByRole("option", { name: "Jobs", exact: true }).click();
     await page.waitForURL(/\/imports/, { timeout: 60_000 });
 
     await pressGlobal(page, "ControlOrMeta+k");
