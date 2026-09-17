@@ -951,7 +951,15 @@ export function CommandPalette() {
           <Kbd>
             ↵<span className="sr-only">Enter</span>
           </Kbd>
-          <span className="min-w-0 flex-1 truncate">
+          {/*
+            `aria-live`, because this sentence is the answer to a question the highlight has
+            just changed. cmdk already points `aria-activedescendant` at the option, so a
+            screen reader hears the row's *name*; what it cannot hear is the difference between
+            "Discovery, the album you own" and "Discovery, the record on MusicBrainz you could
+            import" — which is exactly what the sentence is for, and exactly what a sighted
+            person reads here.
+          */}
+          <span className="min-w-0 flex-1 truncate" aria-live="polite">
             {highlighted?.enterHint ?? "Type to search, ↑↓ to choose, Esc to close."}
           </span>
         </footer>
