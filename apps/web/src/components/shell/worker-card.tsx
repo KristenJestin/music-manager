@@ -15,8 +15,10 @@ import { cn } from "cn";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export function WorkerCard() {
+  const testId = useTestId();
   const { data } = useShell();
   const current = data?.current ?? null;
   const queued = data?.queued ?? 0;
@@ -24,7 +26,7 @@ export function WorkerCard() {
 
   return (
     <div
-      data-testid="worker-card"
+      data-testid={testId("worker-card")}
       className="rounded-lg border border-line bg-surface-2 p-2.5 text-xs"
     >
       <div className="flex items-center justify-between gap-2">
@@ -35,13 +37,13 @@ export function WorkerCard() {
           />
           <b className="font-medium">Worker</b>
         </span>
-        <span className="font-mono text-3xs text-fg-3" data-testid="worker-queued">
+        <span className="font-mono text-3xs text-fg-3" data-testid={testId("worker-queued")}>
           1 slot · {queued} queued
         </span>
       </div>
 
       {current === null ? (
-        <p className="mt-1.5 text-fg-3" data-testid="worker-idle">
+        <p className="mt-1.5 text-fg-3" data-testid={testId("worker-idle")}>
           {queued === 0
             ? "Idle: nothing downloading."
             : `Nothing downloading; ${String(queued)} waiting for the slot.`}
@@ -51,7 +53,7 @@ export function WorkerCard() {
           <Link
             to="/imports/$id"
             params={{ id: current.importId }}
-            data-testid="worker-current"
+            data-testid={testId("worker-current")}
             data-import-id={current.importId}
             className="mt-1.5 block truncate hover:text-primary"
           >

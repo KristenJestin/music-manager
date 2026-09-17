@@ -27,6 +27,7 @@ import {
   useToastManager,
 } from "#/components/ui/toast.tsx";
 import type { Toast as ToastValue } from "#/components/shell/shell-context.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 const TONES = {
   info: { Icon: Info, className: "text-info" },
@@ -63,10 +64,14 @@ function ToastList() {
 }
 
 export function Toaster() {
+  const testId = useTestId();
   return (
     <ToastProvider toastManager={toastManager}>
       <ToastPortal>
-        <ToastViewport data-testid="toaster" className="z-60 h-(--toast-frontmost-height)">
+        <ToastViewport
+          data-testid={testId("toaster")}
+          className="z-60 h-(--toast-frontmost-height)"
+        >
           <ToastList />
         </ToastViewport>
       </ToastPortal>

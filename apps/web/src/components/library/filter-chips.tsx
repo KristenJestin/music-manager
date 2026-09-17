@@ -33,6 +33,7 @@
 import type { ReactNode } from "react";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { cn } from "cn";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export interface FilterChip<T extends string> {
   readonly value: T;
@@ -91,11 +92,14 @@ export function PresetGroup<T extends string>({
   label = "Preset filters",
   className,
 }: Omit<FilterChipsProps<T>, "children">) {
+  // The group and every position in it are rendered by the page and by its pending tree
+  // alike; `pending-tree.tsx` is what keeps the two sets of ids apart.
+  const scoped = useTestId();
   return (
     <div
       role="group"
       aria-label={label}
-      data-testid={testId}
+      data-testid={scoped(testId)}
       /*
        * `overflow-x-auto` rather than a wrap or an overflow menu.
        *
@@ -115,7 +119,7 @@ export function PresetGroup<T extends string>({
           key={chip.value}
           {...link(chip.value)}
           title={chip.title}
-          data-testid={`${testId ?? "filter"}-${chip.value}`}
+          data-testid={scoped(`${testId ?? "filter"}-${chip.value}`)}
           /*
            * Which chip is on, said out loud.
            *

@@ -4,6 +4,7 @@ import { ShellProvider } from "#/components/shell/shell-context.tsx";
 import type { Crumb } from "#/components/shell/topbar.tsx";
 import { ErrorScreen } from "#/components/error-screen.tsx";
 import { SkeletonFallback } from "#/components/skeleton.tsx";
+import { PendingTree } from "#/components/pending-tree.tsx";
 import { fetchShell } from "#/server/functions/dashboard.ts";
 import { currentSession, setupState } from "#/server/functions/session.ts";
 
@@ -82,14 +83,24 @@ function AppError({ error }: { readonly error: unknown }) {
   );
 }
 
-/** The chrome, with the page inside it still being fetched. */
+/**
+ * The chrome, with the page inside it still being fetched.
+ *
+ * `PendingTree` because this is the shell a *second* time: the settled `_app` renders the same
+ * `AppShell`, and React keeps a re-suspended boundary's settled children mounted while its
+ * fallback is on screen. Wrapping it suffixes `app-shell`, `open-palette`, `url-paste` and the
+ * rest down here, so a query for the chrome names the copy that is on screen and not both.
+ * `components/pending-tree.tsx` is the argument in full.
+ */
 function AppPending() {
   return (
-    <ShellProvider initial={null}>
-      <AppShell crumbs={[{ label: "Music Manager" }]}>
-        <SkeletonFallback />
-      </AppShell>
-    </ShellProvider>
+    <PendingTree>
+      <ShellProvider initial={null}>
+        <AppShell crumbs={[{ label: "Music Manager" }]}>
+          <SkeletonFallback />
+        </AppShell>
+      </ShellProvider>
+    </PendingTree>
   );
 }
 

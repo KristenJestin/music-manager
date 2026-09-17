@@ -17,6 +17,7 @@
 import { Search, X } from "lucide-react";
 import { cn } from "cn";
 import { Input } from "#/components/ui/input.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export interface SearchInputProps {
   readonly value: string;
@@ -37,8 +38,11 @@ export function SearchInput({
   placeholder,
   className,
   label,
-  "data-testid": testId,
+  "data-testid": id,
 }: SearchInputProps) {
+  // A route renders this box twice — once as the page, once as its pending tree — so the id
+  // it is given is the settled one and the pending copy is suffixed from it.
+  const testId = useTestId();
   const clear = (): void => {
     onValueChange("");
     onSubmit?.("");
@@ -52,7 +56,7 @@ export function SearchInput({
       />
       <Input
         type="search"
-        data-testid={testId}
+        data-testid={testId(id)}
         aria-label={label ?? placeholder ?? "Search"}
         placeholder={placeholder}
         value={value}

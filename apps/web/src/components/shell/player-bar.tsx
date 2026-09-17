@@ -24,9 +24,11 @@ import { Cover } from "#/components/cover.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { usePlayer } from "#/components/shell/player-context.tsx";
 import { mmss } from "#/lib/format.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export function PlayerBar() {
   const player = usePlayer();
+  const testId = useTestId();
   const current = player.current;
   if (current === null) return null;
 
@@ -42,7 +44,7 @@ export function PlayerBar() {
      * why an otherwise non-interactive container is in the tab order.
      */
     <section
-      data-testid="player-bar"
+      data-testid={testId("player-bar")}
       role="region"
       aria-label="Player"
       tabIndex={0}
@@ -65,10 +67,10 @@ export function PlayerBar() {
         />
 
         <div className="min-w-0 w-56 shrink-0">
-          <div className="truncate font-medium" data-testid="player-title">
+          <div className="truncate font-medium" data-testid={testId("player-title")}>
             {current.title}
           </div>
-          <div className="truncate text-2xs text-fg-3" data-testid="player-artist">
+          <div className="truncate text-2xs text-fg-3" data-testid={testId("player-artist")}>
             {current.artist ?? "Unknown artist"}
             {current.album === null ? null : ` · ${current.album}`}
           </div>
@@ -108,7 +110,7 @@ export function PlayerBar() {
         </span>
         <input
           type="range"
-          data-testid="player-seek"
+          data-testid={testId("player-seek")}
           aria-label="Seek"
           className="h-1 grow accent-primary"
           min={0}
@@ -137,7 +139,7 @@ export function PlayerBar() {
           <input
             type="range"
             aria-label="Volume"
-            data-testid="player-volume"
+            data-testid={testId("player-volume")}
             className="h-1 w-20 accent-primary"
             min={0}
             max={1}
@@ -151,7 +153,7 @@ export function PlayerBar() {
 
         <ToneBadge
           tone={preview ? "info" : "ok"}
-          data-testid="player-source"
+          data-testid={testId("player-source")}
           title={
             preview
               ? "A thirty-second clip from Deezer. This record is not in your library."
@@ -162,7 +164,10 @@ export function PlayerBar() {
         </ToneBadge>
 
         {player.queue.length < 2 ? null : (
-          <span className="shrink-0 font-mono text-2xs text-fg-3" data-testid="player-queue">
+          <span
+            className="shrink-0 font-mono text-2xs text-fg-3"
+            data-testid={testId("player-queue")}
+          >
             {player.index + 1}/{player.queue.length}
           </span>
         )}
@@ -173,7 +178,11 @@ export function PlayerBar() {
       </div>
 
       {player.error === null ? null : (
-        <p className="px-4 pb-2 text-2xs text-danger" data-testid="player-error" role="status">
+        <p
+          className="px-4 pb-2 text-2xs text-danger"
+          data-testid={testId("player-error")}
+          role="status"
+        >
           {player.error}
         </p>
       )}
@@ -196,6 +205,7 @@ function IconButton({
   readonly onClick: () => void;
   readonly children: React.ReactNode;
 }) {
+  const scoped = useTestId();
   return (
     <button
       type="button"
@@ -203,7 +213,7 @@ function IconButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      {...(testid === undefined ? {} : { "data-testid": testid })}
+      {...(testid === undefined ? {} : { "data-testid": scoped(testid) })}
       className={cn(
         "inline-grid size-8 shrink-0 place-items-center rounded-md border transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-40",

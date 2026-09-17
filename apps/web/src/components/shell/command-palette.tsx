@@ -44,6 +44,7 @@ import { retryLastFailed } from "#/server/functions/jobs.ts";
 import { runYtdlpUpdate, startScan } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
 import { scanWatchedSourceNow } from "#/server/functions/watched-sources.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
@@ -90,6 +91,7 @@ interface PaletteAction {
 
 export function CommandPalette() {
   const navigate = useNavigate();
+  const testId = useTestId();
   const { paletteOpen, setPaletteOpen, toast } = useShell();
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
@@ -192,7 +194,7 @@ export function CommandPalette() {
       */}
       <Command>
         <CommandInput
-          data-testid="palette-input"
+          data-testid={testId("palette-input")}
           value={query}
           onValueChange={setQuery}
           placeholder="Paste a YouTube URL, or type a page name…"
@@ -238,7 +240,7 @@ export function CommandPalette() {
                 key={action.id}
                 value={action.label}
                 disabled={busy}
-                data-testid={`palette-action-${action.id}`}
+                data-testid={testId(`palette-action-${action.id}`)}
                 onSelect={() => {
                   act(action);
                 }}

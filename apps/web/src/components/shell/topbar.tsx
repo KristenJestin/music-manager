@@ -12,6 +12,7 @@ import { cn } from "cn";
 import { Kbd } from "#/components/kbd.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export interface Crumb {
   readonly label: string;
@@ -21,6 +22,7 @@ export interface Crumb {
 
 export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
   const navigate = useNavigate();
+  const testId = useTestId();
   const { setPaletteOpen, setDrawerOpen, data } = useShell();
   const [url, setUrl] = useState("");
   /*
@@ -73,7 +75,7 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
           <MonitorPlay className="size-4 shrink-0 text-fg-3" aria-hidden="true" />
           <span className="sr-only">Paste a YouTube URL to import</span>
           <input
-            data-testid="url-paste"
+            data-testid={testId("url-paste")}
             value={url}
             onChange={(event) => {
               setUrl(event.target.value);
@@ -97,7 +99,7 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         type="button"
         title="Activity"
         aria-label="Activity"
-        data-testid="open-drawer"
+        data-testid={testId("open-drawer")}
         disabled={!hydrated}
         onClick={() => {
           setDrawerOpen(true);
@@ -113,7 +115,7 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         type="button"
         title="Command palette"
         aria-label="Command palette"
-        data-testid="open-palette"
+        data-testid={testId("open-palette")}
         disabled={!hydrated}
         onClick={() => {
           setPaletteOpen(true);

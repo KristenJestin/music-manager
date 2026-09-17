@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 import { AlertTriangle, CircleAlert, Info, Sparkles, CircleCheck } from "lucide-react";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 const calloutVariants = cva("flex gap-2.5 rounded-md border px-3 py-2.5 text-xs", {
   variants: {
@@ -48,13 +49,14 @@ export function Callout({
   children,
   className,
   role,
-  "data-testid": testId,
+  "data-testid": id,
 }: CalloutProps) {
+  const scoped = useTestId();
   const Icon = DEFAULT_ICON[tone ?? "neutral"];
   return (
     <div
       data-slot="callout"
-      data-testid={testId}
+      data-testid={scoped(id)}
       role={role}
       className={cn(calloutVariants({ tone }), className)}
     >
