@@ -66,6 +66,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "#/components/ui/command.tsx";
+import { Kbd } from "#/components/kbd.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
 import { signOut } from "#/lib/auth-client.ts";
 import { retryLastFailed } from "#/server/functions/jobs.ts";
@@ -397,7 +398,16 @@ export function CommandPalette() {
     [close, toast],
   );
 
-  /** Go somewhere, closing the palette first so the page is not drawn under an overlay. */
+  /**
+   * Go somewhere, closing the palette first so the page is not drawn under an overlay.
+   *
+   * The cast is the price of building the rows as data. TanStack's `navigate` is typed on the
+   * *literal* route path, which lets it check `params` and `search` against that route — and
+   * these destinations are computed at runtime from what the server returned, so there is no
+   * literal to check them against. The paths are the ones the sidebar and the loaders already
+   * use, and `route-skeletons.spec.ts` plus this file's own browser spec walk them; a wrong one
+   * is a 404 in a test rather than a silent no-op.
+   */
   const go = useCallback(
     (
       to: string,
@@ -938,7 +948,9 @@ export function CommandPalette() {
           className="flex items-center gap-2 border-t border-line px-3 py-1.5 text-2xs text-fg-3"
           data-testid={testId("palette-hint")}
         >
-          <kbd className="rounded border border-line px-1">↵</kbd>
+          <Kbd>
+            ↵<span className="sr-only">Enter</span>
+          </Kbd>
           <span className="min-w-0 flex-1 truncate">
             {highlighted?.enterHint ?? "Type to search, ↑↓ to choose, Esc to close."}
           </span>

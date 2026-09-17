@@ -21,7 +21,7 @@
  * Nothing here talks to MusicBrainz except through `integrations/musicbrainz.ts`, which owns
  * the limiter and the cache. There is no second door onto that source and there must not be.
  */
-import { and, asc, desc, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
+import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { lucene, MB_ENTITY_NOUN, type MbEntityName, type MbRelease } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { artistsCache, libraryAlbums, libraryTracks } from "#/server/db/schema/index.ts";
@@ -531,13 +531,15 @@ export async function tracksMatchingRecording(
     })
     .from(libraryTracks)
     .leftJoin(libraryAlbums, eq(libraryAlbums.id, libraryTracks.albumId))
+    // One query for both halves, because the useful answer is "the id, and failing that the
+    // title" and two queries would be two round trips to find that out.
     .where(
-      or(
-        eq(libraryTracks.recordingMbid, recordingMbid),
-        title === null || title === ""
-          ? and(isNotNull(libraryTracks.recordingMbid), sql`false`)
-          : ilike(libraryTracks.title, `%${likeLiteral(title)}%`),
-      ),
+      title === null || title === ""
+        ? eq(libraryTracks.recordingMbid, recordingMbid)
+        : or(
+            eq(libraryTracks.recordingMbid, recordingMbid),
+            ilike(libraryTracks.title, `%${likeLiteral(title)}%`),
+          ),
     )
     .orderBy(desc(sql`${libraryTracks.recordingMbid} = ${recordingMbid}`), asc(libraryTracks.title))
     .limit(limit * 2);
