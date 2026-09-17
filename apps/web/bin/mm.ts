@@ -1557,8 +1557,8 @@ const USAGE = `mm — Music Manager
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
   mm import <folder> [--release <mbid>] [--yes] [--follow]
                                           an absolute folder of audio files: each file is an
-                                          entry, matched like a video and **adopted**, never
-                                          downloaded. The folder must be inside adoptSourceRoots.
+                                          entry, matched like a video, then adopted rather than
+                                          downloaded. Must be inside adoptSourceRoots.
                                           --no-untagged asks instead of falling back to the
                                           files' own tags when MusicBrainz has nothing.
   mm import --from-file <path> [--yes] [--force]   one source per line (URL or folder),
