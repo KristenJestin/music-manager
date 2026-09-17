@@ -12,11 +12,12 @@
  * Resolving an item writes a `decisions` row. That log is what P05 learns country, format and
  * explicit preferences from — visibly, in Settings, never opaquely.
  */
-import { and, asc, desc, eq, ilike, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   decisions,
+  importTracks,
   inboxItems,
   INBOX_STATUSES,
   INBOX_TYPES,
@@ -26,6 +27,8 @@ import {
   type InboxType,
   type StepName,
 } from "#/server/db/schema/index.ts";
+import { planResolution, type ResolutionPlan } from "./inbox.resolution.ts";
+import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { INBOX_SORTS, type InboxSort } from "#/lib/inbox-filters.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
@@ -311,12 +314,31 @@ export interface ResolveOptions {
   readonly status?: Extract<InboxStatus, "resolved" | "dismissed">;
 }
 
-/** Answer an item and log the decision. Returns the item as it now stands. */
+/** What answering an item did. `resumed` is the half the Console's toast is allowed to claim. */
+export interface ResolveResult {
+  readonly item: InboxItem;
+  /**
+   * True when answering it actually put the job back to work.
+   *
+   * The Console said "Decision saved; the job resumes" on every answer it managed to write,
+   * which was a promise nothing kept for a chosen candidate. It is now reported by whatever
+   * carried the answer out, so the sentence and the job agree.
+   */
+  readonly resumed: boolean;
+}
+
+/**
+ * Answer an item and log the decision.
+ *
+ * The plan is read **before** the row is closed. An answer no branch handles therefore throws
+ * with the item still `open`, which is the difference between "I could not do that" and a
+ * decision silently dropped on the floor.
+ */
 export async function resolveInboxItem(
   id: string,
   options: ResolveOptions,
   db: Database = defaultDb(),
-): Promise<InboxItem> {
+): Promise<ResolveResult> {
   const item = await getInboxItem(id, db);
   if (item === null) {
     throw new MMError("NOT_FOUND", `No Inbox item with id ${id}.`, {
@@ -324,6 +346,8 @@ export async function resolveInboxItem(
       action: "List the Inbox",
     });
   }
+
+  const plan = planResolution(item, options.resolution);
 
   const [updated] = await db
     .update(inboxItems)
@@ -357,9 +381,9 @@ export async function resolveInboxItem(
     db,
   );
 
-  await applyResolution(item, options.resolution, options.decidedBy ?? "user", db);
+  const { resumed } = await applyResolution(item, plan, options.decidedBy ?? "user", db);
 
-  return updated ?? item;
+  return { item: updated ?? item, resumed };
 }
 
 /* ------------------------------------------------------------------ */
@@ -454,7 +478,7 @@ export async function resolveInboxBatch(
 
   for (const item of items) {
     try {
-      const updated = await resolveInboxItem(
+      const { item: updated } = await resolveInboxItem(
         item.id,
         {
           resolution:
@@ -478,13 +502,19 @@ export async function resolveInboxBatch(
 }
 
 /**
- * Carry out an answer that is an **action** rather than a value.
+ * Carry out what an answer *means*, and say whether the job moved.
  *
- * Most items are answered with data — a release MBID, "accept as partial" — and the caller
- * then puts the job back on the queue. Two answers are not data at all: `retry` and `cancel`
- * are things that have to happen to the job, and until now they happened nowhere. "Cancel this
- * import" has been on the `uncovered_tracks` and `ambiguous_release` cards since P06 and only
- * ever wrote a `decisions` row; a `job_failed` item would have had the same problem.
+ * Two answers are things that have to happen to the job — `retry` and `cancel` — and two more
+ * are a **choice**: a release MBID on an `ambiguous_release` card, a recording MBID on an
+ * `ambiguous_recording` one. Those last two used to fall out of the first line of this
+ * function, because they carry no `action`: the item closed, the decision was logged, the
+ * Console promised a resume, and the import stayed `Blocked` at `match` for ever.
+ *
+ * They are now pinned through the door the pipeline already has — `imports.options.releaseMbid`
+ * for a release (what `mm import --release <mbid>` and the card's "paste a release id" button
+ * write) and `imports.options.mapping` for a recording (what `confirm-mapping`, MCP's
+ * `confirm_mapping` and the wizard's Start button write) — and then re-matched from `match`.
+ * No second door was invented.
  *
  * It lives here rather than in the four callers (Console, `/api/v1`, MCP, CLI) precisely
  * because `docs/04` says an item "se résout par l'API comme par l'interface" — one
@@ -494,40 +524,37 @@ export async function resolveInboxBatch(
  */
 async function applyResolution(
   item: InboxItem,
-  resolution: Record<string, unknown>,
+  plan: ResolutionPlan,
   decidedBy: string,
   db: Database,
-): Promise<void> {
-  const action = resolution["action"];
-  if (typeof action !== "string") return;
-
+): Promise<{ resumed: boolean }> {
   /* ---- the library-scoped answers, which have no import behind them ---- */
 
-  if (action === "trash_orphans" || action === "trash_duplicates") {
-    await trash(action === "trash_orphans" ? orphanPaths(item) : duplicatePaths(item), db);
-    return;
+  if (plan.kind === "trash") {
+    await trash(plan.what === "orphans" ? orphanPaths(item) : duplicatePaths(item), db);
+    return { resumed: false };
   }
-  if (action === "update_ytdlp") {
+  if (plan.kind === "update-ytdlp") {
     const { updateYtdlp } = await import("#/server/services/tools.ts");
     await updateYtdlp({ db });
-    return;
+    return { resumed: false };
   }
-  if (action === "reverify") {
+  if (plan.kind === "reverify") {
     const albumId = item.payload["subject"];
     if (typeof albumId === "string" && albumId !== "") {
       const { verifyAlbum } = await import("#/server/services/verify.ts");
       await verifyAlbum(albumId, { db });
     }
-    return;
+    return { resumed: false };
   }
 
-  if (item.importId === null) return;
+  if (item.importId === null) return { resumed: false };
   const importId = item.importId;
 
-  if (action === "cancel") {
+  if (plan.kind === "cancel") {
     const { cancelImport } = await import("#/server/services/jobs/index.ts");
     await cancelImport(importId, db);
-    return;
+    return { resumed: false };
   }
 
   /*
@@ -542,28 +569,203 @@ async function applyResolution(
    * does that once — the Console after checking nothing else is open, `/api/v1` unconditionally,
    * the batch once per import — and a second `enqueue` here would race the first.
    */
-  if (action === "confirm") {
+  if (plan.kind === "confirm") {
     const { setImportOptions } = await import("#/server/services/console.queries.ts");
     await setImportOptions(importId, { autoConfirm: true, confirmedBy: decidedBy }, {}, db);
-    return;
+    return { resumed: false };
   }
 
-  if (action !== "retry") return;
+  if (plan.kind === "use-acoustid" || plan.kind === "skip-track") {
+    await rebindTrack(item, plan.kind, db);
+    return { resumed: false };
+  }
+
+  /* ---- the answers that are a chosen MusicBrainz entity ---- */
+
+  if (plan.kind === "pin-release" || plan.kind === "pin-recording") {
+    return { resumed: await pinAndRematch(item, plan, db) };
+  }
+
+  if (plan.kind !== "retry") return { resumed: false };
 
   /*
-   * Rewind, then hand the job back to the worker — never run it here. A retry from an HTTP
-   * request that executed the steps inline would die with the request, and `download` is not
-   * even allowed to run outside the single global queue.
+   * Rewind, then hand the job back to the worker. A retry from an HTTP request that ran the
+   * whole pipeline inline would die with the request, and `download` is not even allowed to
+   * run outside the single global queue — hence `only`, which runs the rewound step and leaves
+   * everything after it to the queue.
    */
   const { retryStep, resumeStepOf } = await import("#/server/services/jobs/index.ts");
   const { enqueue } = await import("#/server/services/queue.ts");
-  const asked = resolution["step"] ?? item.preselected?.["step"];
+  const asked = plan.step ?? item.preselected?.["step"];
   const from =
     typeof asked === "string" && (STEPS as readonly string[]).includes(asked)
       ? (asked as StepName)
       : await resumeStepOf(importId, db);
   await retryStep(importId, from, { db, only: true });
   await enqueue(importId, "inbox retry", from);
+  return { resumed: true };
+}
+
+/**
+ * The statuses from which a re-match is the answer rather than a surprise.
+ *
+ * An import that is `done`, `failed` or `cancelled` is not waiting for this question — the v1
+ * migration raises `ambiguous_recording` items on imports that have already finished, and
+ * rewinding one of those to `match` would re-run a pipeline over a library row. The choice is
+ * still recorded on the import and in `decisions`; nothing is restarted.
+ */
+const REMATCHABLE: readonly string[] = ["pending", "awaiting_review", "awaiting_confirm", "paused"];
+
+/**
+ * Apply a chosen release or recording, then match again against it.
+ *
+ * The **same** two fields the rest of the pipeline already accepts a pinned answer through:
+ * `options.releaseMbid`, read by `matchOneAlbum`'s pin branch — which looks the release up by
+ * MBID when the search never returned it — and `options.mapping`, read by `applySupplied`.
+ * Answering the card is then indistinguishable from having pinned it on the command line,
+ * which is the property that makes this fixable in one place.
+ */
+async function pinAndRematch(
+  item: InboxItem,
+  plan: Extract<ResolutionPlan, { kind: "pin-release" } | { kind: "pin-recording" }>,
+  db: Database,
+): Promise<boolean> {
+  const importId = item.importId;
+  if (importId === null) return false;
+
+  const { setImportOptions } = await import("#/server/services/console.queries.ts");
+  const { getImport } = await import("#/server/services/imports.ts");
+  const job = await getImport(importId, db);
+  if (job === null) return false;
+
+  if (plan.kind === "pin-release") {
+    await setImportOptions(
+      importId,
+      { releaseMbid: plan.releaseMbid },
+      { releaseMbid: plan.releaseMbid },
+      db,
+    );
+  } else {
+    const mapping = await recordingMapping(item, plan, db);
+    if (mapping === null) return false;
+    await setImportOptions(
+      importId,
+      { mapping, ...(mapping.releaseMbid === null ? {} : { releaseMbid: mapping.releaseMbid }) },
+      { ...(mapping.releaseMbid === null ? {} : { releaseMbid: mapping.releaseMbid }) },
+      db,
+    );
+  }
+
+  if (!REMATCHABLE.includes(job.status)) return false;
+
+  const { retryStep } = await import("#/server/services/jobs/index.ts");
+  const { enqueue } = await import("#/server/services/queue.ts");
+  await retryStep(importId, "match", { db, only: true });
+  await enqueue(importId, "inbox decision", "match");
+  return true;
+}
+
+/**
+ * The supplied mapping a chosen recording amounts to.
+ *
+ * Exactly the shape the wizard's single path sends (`routes/_app.import.new.tsx`): one line,
+ * the recording, the release it is borrowed from, and `trackTotal: 0` — a single covers no
+ * tracklist, so `applySupplied` must not raise an `uncovered_tracks` notice for the ten other
+ * tracks of the album it happens to be filed under.
+ *
+ * The borrow release comes from the candidate in the item's own payload, because the card's
+ * options carry a recording id and nothing else: an answer that is not the preselection would
+ * otherwise have no album to be filed under at all.
+ */
+async function recordingMapping(
+  item: InboxItem,
+  plan: Extract<ResolutionPlan, { kind: "pin-recording" }>,
+  db: Database,
+): Promise<SuppliedMapping | null> {
+  if (item.trackId === null) return null;
+
+  const candidates = item.payload["candidates"];
+  const candidate = (Array.isArray(candidates) ? candidates : [])
+    .map((entry) => entry as Record<string, unknown>)
+    .find((entry) => entry["id"] === plan.recordingMbid);
+  const borrow = (candidate?.["borrow"] ?? null) as Record<string, unknown> | null;
+
+  const borrowId = typeof borrow?.["id"] === "string" ? borrow["id"] : null;
+  const releaseMbid = borrowId ?? plan.releaseMbid;
+  if (releaseMbid === null) return null;
+
+  const [row] = await db
+    .select()
+    .from(importTracks)
+    .where(eq(importTracks.id, item.trackId))
+    .limit(1);
+  if (row === undefined) return null;
+
+  const date = typeof borrow?.["date"] === "string" ? borrow["date"] : null;
+  const parsed = date === null || date.length < 4 ? null : Number(date.slice(0, 4));
+  const title = typeof borrow?.["title"] === "string" ? borrow["title"] : null;
+  const artist = typeof candidate?.["artist"] === "string" ? candidate["artist"] : null;
+  const trackTitle =
+    typeof candidate?.["title"] === "string" ? candidate["title"] : row.sourceTitle;
+
+  return {
+    releaseMbid,
+    ...(title === null ? {} : { album: title }),
+    ...(artist === null ? {} : { albumArtist: artist }),
+    year: parsed === null || Number.isNaN(parsed) ? null : parsed,
+    trackTotal: 0,
+    tracks: [
+      {
+        position: row.position,
+        trackPosition: typeof borrow?.["trackPosition"] === "number" ? borrow["trackPosition"] : 1,
+        mediumPosition: 1,
+        recordingMbid: plan.recordingMbid,
+        trackTitle,
+        confidence: typeof candidate?.["score"] === "number" ? candidate["score"] : 1,
+      },
+    ],
+  };
+}
+
+/**
+ * The two answers to a fingerprint disagreement that are not "keep what I confirmed".
+ *
+ * Both were offered by the card and carried out by nobody: the item closed, `fingerprint` read
+ * "answered" as "accepted", and the file was tagged with the mapping the fingerprint had just
+ * contradicted. Neither re-queues — `fingerprint` re-runs once the item is closed, and the
+ * caller enqueues exactly as it does for every other answer.
+ */
+async function rebindTrack(
+  item: InboxItem,
+  kind: "use-acoustid" | "skip-track",
+  db: Database,
+): Promise<void> {
+  if (item.trackId === null) return;
+
+  if (kind === "skip-track") {
+    // `extra` is the role every step reads as "not part of this album": `mappedTracks` drops
+    // it, so nothing downloads, tags or files it, and the counts stop expecting it.
+    await db
+      .update(importTracks)
+      .set({ role: "extra", updatedAt: new Date() })
+      .where(eq(importTracks.id, item.trackId));
+    return;
+  }
+
+  const heard = item.payload["heard"] as Record<string, unknown> | undefined;
+  const recordingMbid =
+    typeof heard?.["recordingMbid"] === "string" ? heard["recordingMbid"] : null;
+  if (recordingMbid === null) return;
+  const title = typeof heard?.["title"] === "string" ? heard["title"] : null;
+  await db
+    .update(importTracks)
+    .set({
+      recordingMbid,
+      ...(title === null ? {} : { trackTitle: title }),
+      fingerprintOk: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(importTracks.id, item.trackId));
 }
 
 /** The paths an `orphan_files` item is about. */
@@ -614,4 +816,79 @@ export async function closeItemsOf(importId: string, db: Database = defaultDb())
     .update(inboxItems)
     .set({ status: "dismissed", resolvedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(inboxItems.importId, importId), eq(inboxItems.status, "open")));
+}
+
+/**
+ * Close the questions a step raised last time and did **not** raise this time.
+ *
+ * `openInboxItem` makes a step idempotent in one direction only: re-running it refreshes the
+ * item it still wants to ask rather than piling up a second. Nothing ever closed the other
+ * direction, so an import re-matched onto a release that covers every track kept its
+ * "6 track(s) of the release have no video" for ever. The owner re-matched fifteen albums and
+ * not one flag was re-evaluated — and a review queue full of false positives stops being read,
+ * which costs more than the bug that filled it.
+ *
+ * Two guarantees, and the second is why this is not `closeItemsOf`:
+ *
+ *  - **only the types the step owns.** `match` closes its own four; a `fingerprint_mismatch`
+ *    or a `job_failed` is somebody else's record and is left exactly where it is;
+ *  - **only `open` items.** An item a person answered is `resolved` or `dismissed`, and this
+ *    `where` cannot see it. A decision is a record, not a cache.
+ *
+ * `raised` is the set of ids this run actually opened or refreshed — collected rather than
+ * inferred from `updated_at`, because the row's timestamp comes from the database clock and
+ * the run's start would come from this process's, and a step must not depend on the two
+ * agreeing to the millisecond.
+ */
+export async function closeSupersededItems(
+  importId: string,
+  types: readonly InboxType[],
+  raised: ReadonlySet<string>,
+  db: Database = defaultDb(),
+): Promise<InboxItem[]> {
+  if (types.length === 0) return [];
+  const stale = await db
+    .select()
+    .from(inboxItems)
+    .where(
+      and(
+        eq(inboxItems.importId, importId),
+        eq(inboxItems.status, "open"),
+        inArray(inboxItems.type, [...types]),
+      ),
+    );
+  const going = stale.filter((item) => !raised.has(item.id));
+  if (going.length === 0) return [];
+
+  const now = new Date();
+  await db
+    .update(inboxItems)
+    .set({
+      status: "dismissed",
+      // No `decisions` row: nobody decided this. The question stopped being true, and the
+      // resolution says so in as many words rather than claiming somebody answered it.
+      resolution: { closedBy: "re-run", reason: "the step that raised it no longer does" },
+      resolvedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      inArray(
+        inboxItems.id,
+        going.map((item) => item.id),
+      ),
+    );
+
+  for (const item of going) {
+    await emit(
+      {
+        importId,
+        trackId: item.trackId,
+        type: "inbox.resolved",
+        message: `No longer asking: ${item.title}`,
+        data: { inboxItemId: item.id, inboxType: item.type, closedBy: "re-run" },
+      },
+      db,
+    );
+  }
+  return going;
 }
