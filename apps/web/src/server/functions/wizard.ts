@@ -24,11 +24,13 @@ import { MMError } from "@mm/contracts";
 import {
   albumHints,
   releaseGroups,
+  type DiscMode,
   type MappingLine,
   type MatchTrack,
   type RecordingCandidate,
   type ReleaseCandidate,
   type ReleaseGroupCandidate,
+  type SanitizeMode,
   type UncoveredTrack,
   type ExtraVideo,
 } from "@mm/domain";
@@ -41,6 +43,7 @@ import { pauseImport } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf } from "#/server/services/console.queries.ts";
 import { confirmSupplied } from "#/server/services/confirm.ts";
+import { resolveMbRef, type ResolveInput, type ResolvedRef } from "#/server/services/mb-resolve.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
 import {
   hintsFor,
@@ -53,7 +56,7 @@ import {
   searchReleases,
   videosOf,
 } from "#/server/services/matching.queries.ts";
-import { loadSettings } from "#/server/services/settings.ts";
+import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { isSourceOutage } from "#/lib/errors.ts";
 
 /* ------------------------------------------------------------------ */
@@ -243,6 +246,22 @@ export interface CandidatesView {
   /** What the source thinks it is — shown above the list so the query is never a mystery. */
   readonly hints: { readonly album: string | null; readonly artist: string | null };
   /**
+   * Enough of the placement settings to **compute** where a file will land.
+   *
+   * The single path asks you to pick which release supplies the album context — the folder,
+   * the `ALBUM` tag and the track number — and it used to describe that in a sentence. A
+   * sentence about a path is not a path: choosing between two albums should show two different
+   * paths. `renderPathTemplate` is pure and in `@mm/domain`, so the wizard renders exactly what
+   * `place` will, from the settings that will be in force.
+   */
+  readonly filing: {
+    readonly template: string;
+    readonly discMode: DiscMode;
+    readonly sanitize: SanitizeMode;
+    /** The container the download will produce, so the preview ends in the right suffix. */
+    readonly extension: string;
+  };
+  /**
    * Set when MusicBrainz refused and this list came out of the raw cache instead.
    *
    * `null` on the normal path. When it is present the candidates are real but possibly stale,
@@ -271,7 +290,26 @@ export interface DegradedSource {
 }
 
 /** The view for "the source refused and the cache had nothing": no list, and why. */
-function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesView {
+/**
+ * The placement settings the wizard renders a path preview from.
+ *
+ * Opus is the extension, because it is what the downloader produces for a YouTube source and
+ * what `place` will therefore be filing; the preview would be a lie in any other suffix.
+ */
+function filingOf(settings: Settings): CandidatesView["filing"] {
+  return {
+    template: settings.pathTemplate,
+    discMode: settings.discMode,
+    sanitize: settings.sanitizeMode,
+    extension: "opus",
+  };
+}
+
+function emptyCandidates(
+  job: Import,
+  unavailable: DegradedSource,
+  filing: CandidatesView["filing"],
+): CandidatesView {
   return {
     kind: job.kind === "single" ? "single" : "album",
     releases: [],
@@ -285,6 +323,7 @@ function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesVi
     planned: { searches: 0, lookups: 0 },
     queries: [],
     hints: { album: job.title, artist: job.artist },
+    filing,
     degraded: null,
     unavailable,
   };
@@ -350,7 +389,7 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
           // Neither the source nor the cache. The *source* error is what is reported —
           // "musicbrainz answered HTTP 503" is the cause; `OFFLINE_CACHE_MISS` is only how
           // the rescue attempt ended.
-          return emptyCandidates(job, degradedOf(error));
+          return emptyCandidates(job, degradedOf(error), filingOf(settings));
         }
       }
 
@@ -372,6 +411,7 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
           planned: result.planned,
           queries: result.queries,
           hints: { album: hints.album ?? null, artist: hints.artist ?? null },
+          filing: filingOf(settings),
           degraded,
           unavailable: null,
         };
@@ -390,6 +430,7 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         planned: result.planned,
         queries: result.queries,
         hints: { album: hints.album ?? null, artist: hints.artist ?? null },
+        filing: filingOf(settings),
         degraded,
         unavailable: null,
       };
@@ -404,8 +445,160 @@ export interface SearchResultView {
   readonly releases: readonly ReleaseCandidate[];
   readonly groups: readonly ReleaseGroupCandidate[];
   readonly recordings: readonly RecordingCandidate[];
+  /** The Lucene query as it left, verbatim. */
   readonly query: string;
+  /**
+   * The title and artist it was built from.
+   *
+   * Sent back so an empty result can **read back what was searched for**. "Nothing found for
+   * that" is useless; "nothing titled *bewitched Laufey*" would have told the owner instantly
+   * that his artist name had been folded into the title, which is exactly what had happened.
+   * It also makes a guessed split visible, and therefore correctable.
+   */
+  readonly terms: { title: string; artist: string | null; guessed: boolean } | null;
 }
+
+/**
+ * What is this id? — asked the moment the box holds one, not when a button is pressed.
+ *
+ * The box had two failure modes and this answers both. It **refused the id people have**: a
+ * release id pasted on a single came back as "No MusicBrainz recording with id …", which says
+ * the id is wrong when it is the *kind* that is wrong. And it **said nothing for the id it
+ * accepted**: a valid recording id produced no error, no preview and no new candidate, so the
+ * owner's question was, verbatim, "does that mean it found it and I can hit next???" — and the
+ * answer was no, he had to press Search MusicBrainz, and nothing said so.
+ *
+ * So the resolution is a *read*: one gated lookup, no writes, no side effects, called as the
+ * field changes. `null` means the string holds no MusicBrainz reference at all, which is the
+ * page's signal that this is free text and belongs in a search.
+ */
+export const resolvePastedRef = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ importId: z.string().min(1), input: z.string().min(1).max(500) }))
+  .handler(async ({ data }): Promise<ResolvedRef | null> => {
+    try {
+      const job = await requireJob(data.importId);
+      return await resolveMbRef(data.input, await refContext(job));
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Do what the preview said would happen.
+ *
+ * Every branch here is an existing pipeline path, reached with an id the resolver worked out:
+ * `pinnedRecording` for a recording (and for the track a pasted *release* turned out to name),
+ * `pinnedRelease` for a release, and the ordinary search for the two cases that are a search —
+ * a release group's editions, and an artist's catalogue. Nothing new decides anything.
+ *
+ * `selectId` is the whole reason this is not `searchCandidates`: the caller has to know which
+ * card to select, promote and scroll to. A hand-supplied candidate used to be appended to the
+ * bottom of the list, below four irrelevant ones and off screen, and the owner reasonably
+ * concluded that nothing had happened.
+ */
+export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ importId: z.string().min(1), input: z.string().min(1).max(500) }))
+  .handler(async ({ data }): Promise<{ view: SearchResultView; selectId: string | null }> => {
+    try {
+      const job = await requireJob(data.importId);
+      const context = await refContext(job);
+      const ref = await resolveMbRef(data.input, context);
+      if (ref === null) {
+        throw new MMError("INVALID_INPUT", "That is not a MusicBrainz id or address.", {
+          hint: "Paste an id, a musicbrainz.org link, or search in words.",
+          status: 400,
+        });
+      }
+      if (ref.action === "none" || ref.targetMbid === null) {
+        // The refusal *names what it is*, which is the entire complaint: "no recording with id
+        // X" for a perfectly good release is the worst answer available.
+        throw new MMError("INVALID_INPUT", ref.explanation, {
+          hint:
+            ref.entity === null
+              ? "Check the id on musicbrainz.org."
+              : `The id is a valid ${ref.noun ?? "entity"}; this import needs something else.`,
+          status: 400,
+        });
+      }
+
+      const settings = await loadSettings(db());
+      const single = context.single;
+
+      if (ref.action === "use-recording" || ref.action === "track-of-release") {
+        const { candidate } = await pinnedRecording({
+          job,
+          settings,
+          db: db(),
+          recordingMbid: ref.targetMbid,
+        });
+        return {
+          view: {
+            kind: "single",
+            releases: [],
+            groups: [],
+            recordings: [candidate],
+            query: ref.mbid,
+            terms: null,
+          },
+          selectId: candidate.id,
+        };
+      }
+
+      if (ref.action === "pin-release") {
+        const { candidate } = await pinnedRelease({
+          job,
+          settings,
+          db: db(),
+          releaseMbid: ref.targetMbid,
+        });
+        return {
+          view: {
+            kind: "album",
+            releases: [candidate],
+            groups: releaseGroups.group([candidate]).groups,
+            recordings: [],
+            query: ref.mbid,
+            terms: null,
+          },
+          selectId: candidate.id,
+        };
+      }
+
+      // `editions-of-group` and `search-artist`: both are a search, run against the pipeline's
+      // own scorer so a hand-found candidate's number means what every other number means.
+      const query = ref.searchText ?? ref.title ?? ref.mbid;
+      if (single) {
+        const found = await searchRecordings({ job, settings, db: db(), query });
+        return {
+          view: {
+            kind: "single",
+            releases: [],
+            groups: [],
+            recordings: found.candidates,
+            query: found.query,
+            terms: found.terms,
+          },
+          selectId: found.candidates[0]?.id ?? null,
+        };
+      }
+      const found = await searchReleases({ job, settings, db: db(), query });
+      return {
+        view: {
+          kind: "album",
+          releases: found.candidates,
+          groups: found.groups,
+          recordings: [],
+          query: found.query,
+          terms: found.terms,
+        },
+        selectId: found.candidates[0]?.id ?? null,
+      };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
 
 /**
  * Search MusicBrainz in words, or paste an MBID.
@@ -421,14 +614,19 @@ export interface SearchResultView {
  */
 export const searchCandidates = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ importId: z.string().min(1), query: z.string().trim().min(1) }))
+  .inputValidator(
+    z.object({
+      importId: z.string().min(1),
+      query: z.string().trim().min(1),
+      /** The wizard's second field. Absent means "split the query and say what you split". */
+      artist: z.string().trim().optional(),
+    }),
+  )
   .handler(async ({ data }): Promise<SearchResultView> => {
     try {
-      const job = await getImport(data.importId, db());
-      if (job === null) {
-        throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
-      }
+      const job = await requireJob(data.importId);
       const settings = await loadSettings(db());
+      const artist = data.artist ?? null;
       const mbid = parseMbid(data.query);
 
       if (await isSingle(job)) {
@@ -439,15 +637,29 @@ export const searchCandidates = createServerFn({ method: "POST", strict: STRICT 
             db: db(),
             recordingMbid: mbid,
           });
-          return { kind: "single", releases: [], groups: [], recordings: [candidate], query: mbid };
+          return {
+            kind: "single",
+            releases: [],
+            groups: [],
+            recordings: [candidate],
+            query: mbid,
+            terms: null,
+          };
         }
-        const found = await searchRecordings({ job, settings, db: db(), query: data.query });
+        const found = await searchRecordings({
+          job,
+          settings,
+          db: db(),
+          query: data.query,
+          artist,
+        });
         return {
           kind: "single",
           releases: [],
           groups: [],
           recordings: found.candidates,
           query: found.query,
+          terms: found.terms,
         };
       }
 
@@ -459,15 +671,17 @@ export const searchCandidates = createServerFn({ method: "POST", strict: STRICT 
           groups: releaseGroups.group([candidate]).groups,
           recordings: [],
           query: mbid,
+          terms: null,
         };
       }
-      const found = await searchReleases({ job, settings, db: db(), query: data.query });
+      const found = await searchReleases({ job, settings, db: db(), query: data.query, artist });
       return {
         kind: "album",
         releases: found.candidates,
         groups: found.groups,
         recordings: [],
         query: found.query,
+        terms: found.terms,
       };
     } catch (error) {
       return toFailure(error);
@@ -486,6 +700,34 @@ async function isSingle(job: Import): Promise<boolean> {
   if (job.kind === "single") return true;
   const { rows } = await videosOf(job.id, db());
   return rows.length === 1;
+}
+
+/** The import, or a 404 that says which id was asked for. */
+async function requireJob(importId: string): Promise<Import> {
+  const job = await getImport(importId, db());
+  if (job === null) {
+    throw new MMError("NOT_FOUND", `No import with id ${importId}.`, { status: 404 });
+  }
+  return job;
+}
+
+/**
+ * What the resolver needs to know about this import: is it one video, and which one.
+ *
+ * The video's title and length are what turn "that is a release" into "that is a release, and
+ * of its twelve tracks this is the one your video is" — the last step the owner should not
+ * have to take by hand after pasting the album he already had.
+ */
+async function refContext(job: Import): Promise<ResolveInput> {
+  const { videos } = await videosOf(job.id, db());
+  const first = videos[0];
+  return {
+    job,
+    single: await isSingle(job),
+    videoTitle: first?.title ?? job.title ?? null,
+    videoSeconds: first?.durationSeconds ?? null,
+    db: db(),
+  };
 }
 
 /**

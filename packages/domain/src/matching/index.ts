@@ -34,6 +34,8 @@ export {
 export type { DeepPartialConfig } from "./config.ts";
 
 export { albumHints } from "./hints.ts";
+export { describeSearchTerms, splitSearchTerms } from "./search-terms.ts";
+export type { SearchTerms } from "./search-terms.ts";
 export type { HintFallback } from "./hints.ts";
 
 export {

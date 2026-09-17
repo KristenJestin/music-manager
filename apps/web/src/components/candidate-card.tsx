@@ -16,8 +16,14 @@
  * the one that already decided the ranking.
  */
 import { useState, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, ImageOff, ListChecks, Sparkles } from "lucide-react";
-import type { FitLine, RecordingCandidate, ReleaseCandidate } from "@mm/domain";
+import { ChevronDown, ExternalLink, Hand, ImageOff, ListChecks, Sparkles } from "lucide-react";
+import type {
+  DiscMode,
+  FitLine,
+  RecordingCandidate,
+  ReleaseCandidate,
+  SanitizeMode,
+} from "@mm/domain";
 import { cn } from "cn";
 import { BorrowSelect } from "#/components/borrow-select.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
@@ -38,6 +44,15 @@ const BIG_TONE = {
 interface CommonProps {
   readonly selected: boolean;
   readonly onSelect: (id: string) => void;
+  /**
+   * This card is here because somebody pasted its id.
+   *
+   * Stronger than `preselected`, and deliberately a different word: the preselection is the
+   * algorithm proposing, and this is a person naming. A hand-supplied candidate used to be
+   * appended to the *bottom* of the list, below the four the search preferred and off screen,
+   * so the owner pasted a valid id, saw nothing move, and concluded nothing had happened.
+   */
+  readonly byHand?: boolean;
 }
 
 /**
@@ -52,6 +67,27 @@ function PreselectedFlag() {
     <span className="absolute -top-2 left-3 z-10 rounded-sm bg-background">
       <ToneBadge tone="primary">
         <Sparkles className="size-3" aria-hidden="true" /> preselected
+      </ToneBadge>
+    </span>
+  );
+}
+
+/**
+ * The "chosen by id" flag, which outranks the preselection and says so.
+ *
+ * The score still shows underneath, honestly — a hand-picked candidate may well score 20 %, and
+ * that is information rather than a contradiction. What must not happen is the *ranking*
+ * burying it, which is why the card wearing this one is moved to the top of the list and
+ * scrolled to rather than left where its score would put it.
+ */
+function ByHandFlag() {
+  return (
+    <span
+      data-testid="candidate-by-hand"
+      className="absolute -top-2 left-3 z-10 rounded-sm bg-background"
+    >
+      <ToneBadge tone="ok">
+        <Hand className="size-3" aria-hidden="true" /> chosen by id
       </ToneBadge>
     </span>
   );
@@ -214,7 +250,12 @@ export interface ReleaseCandidateCardProps extends CommonProps {
   readonly candidate: ReleaseCandidate;
 }
 
-export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseCandidateCardProps) {
+export function ReleaseCandidateCard({
+  candidate,
+  selected,
+  onSelect,
+  byHand = false,
+}: ReleaseCandidateCardProps) {
   /*
    * `null` means "whatever selection implies", `true`/`false` mean "the reader has decided".
    *
@@ -233,6 +274,7 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
       data-candidate-id={candidate.id}
       data-selected={selected}
       data-preselected={candidate.preselected}
+      data-by-hand={byHand}
       role="radio"
       aria-checked={selected}
       tabIndex={0}
@@ -251,7 +293,7 @@ export function ReleaseCandidateCard({ candidate, selected, onSelect }: ReleaseC
         selected && "border-primary bg-primary-soft hover:border-primary hover:bg-primary-soft",
       )}
     >
-      {candidate.preselected ? <PreselectedFlag /> : null}
+      {byHand ? <ByHandFlag /> : candidate.preselected ? <PreselectedFlag /> : null}
 
       {/* `mt-1` rather than a centred row: D2 wants this level with the *title*, not with the
           middle of a card whose height depends on which sections are open. */}
@@ -430,6 +472,19 @@ export interface RecordingCandidateCardProps extends CommonProps {
   /** The release chosen to borrow album context from, when this card is the selected one. */
   readonly borrow?: string | null;
   readonly onBorrow?: (releaseMbid: string) => void;
+  /**
+   * The placement settings, so the album choice can show the **path** it produces.
+   *
+   * Passed down rather than fetched here: `renderPathTemplate` is pure and in `@mm/domain`, and
+   * the template and the sanitise mode are the ones `place` will use, which is the only way the
+   * preview and the result cannot drift.
+   */
+  readonly filing?: {
+    readonly template: string;
+    readonly discMode: DiscMode;
+    readonly sanitize: SanitizeMode;
+    readonly extension: string;
+  } | null;
 }
 
 export function RecordingCandidateCard({
@@ -439,6 +494,8 @@ export function RecordingCandidateCard({
   videoSeconds,
   borrow = null,
   onBorrow,
+  byHand = false,
+  filing = null,
 }: RecordingCandidateCardProps) {
   // Tri-state, same reason as the release card: a boolean OR-ed with `selected` made the
   // button on the selected card do nothing at all (D1).
@@ -471,7 +528,7 @@ export function RecordingCandidateCard({
         selected && "border-primary bg-primary-soft",
       )}
     >
-      {candidate.preselected ? <PreselectedFlag /> : null}
+      {byHand ? <ByHandFlag /> : candidate.preselected ? <PreselectedFlag /> : null}
       <span
         aria-hidden="true"
         className={cn(
@@ -544,7 +601,16 @@ export function RecordingCandidateCard({
             }}
             role="presentation"
           >
-            <BorrowSelect releases={candidate.releases} value={borrow} onChange={onBorrow} />
+            <BorrowSelect
+              releases={candidate.releases}
+              value={borrow}
+              onChange={onBorrow}
+              filing={
+                filing === null
+                  ? null
+                  : { ...filing, artist: candidate.artist, title: candidate.title }
+              }
+            />
           </div>
         ) : null}
       </div>

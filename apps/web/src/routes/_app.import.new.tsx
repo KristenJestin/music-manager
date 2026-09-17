@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import {
@@ -9,7 +9,6 @@ import {
   Play,
   RefreshCw,
   Sparkles,
-  Search,
 } from "lucide-react";
 import type {
   BorrowRelease,
@@ -24,6 +23,7 @@ import { Callout } from "#/components/callout.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { MappingRow } from "#/components/mapping-row.tsx";
+import { MbSearchPanel } from "#/components/mb-search-panel.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
 import { Stepper } from "#/components/stepper.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
@@ -36,11 +36,14 @@ import { cn } from "cn";
 import { mmss, pct } from "#/lib/format.ts";
 import { isSourceOutage, readFailure } from "#/lib/errors.ts";
 import type { DegradedSource } from "#/server/functions/wizard.ts";
+import type { ResolvedRef } from "#/server/services/mb-resolve.ts";
 import {
+  applyPastedRef,
   fetchCandidates,
   fetchMapping,
   fetchRecording,
   fetchSource,
+  resolvePastedRef,
   resolveSource,
   searchCandidates,
   startImport,
@@ -463,18 +466,44 @@ function Wizard() {
           onBorrow={(releaseMbid) => {
             go({ borrow: releaseMbid });
           }}
-          onSearch={async (query) => {
+          onSearch={async (title, artist) => {
             if (params.importId === undefined) return null;
             setBusy(true);
             setError(null);
             try {
               const result = await searchCandidates({
-                data: { importId: params.importId, query },
+                data: {
+                  importId: params.importId,
+                  query: title,
+                  ...(artist.trim() === "" ? {} : { artist }),
+                },
               });
               setBusy(false);
-              if (result.releases.length + result.recordings.length === 0) {
-                toast("Nothing found for that.", "warn");
-              }
+              /*
+               * No toast on an empty result any more. "Nothing found for that" said nothing at
+               * all — it did not say what had been searched for, which is the one fact that
+               * would have explained why `bewitched Laufey` matched nothing. The panel prints
+               * the terms it actually used, in place, where they can be corrected.
+               */
+              return result;
+            } catch (cause) {
+              fail(cause);
+              return null;
+            }
+          }}
+          onResolveRef={async (input) => {
+            if (params.importId === undefined) return null;
+            // Deliberately not behind `setBusy`: it is a read, it happens while somebody is
+            // typing, and disabling the page under them would be worse than the wait.
+            return await resolvePastedRef({ data: { importId: params.importId, input } });
+          }}
+          onApplyRef={async (input) => {
+            if (params.importId === undefined) return null;
+            setBusy(true);
+            setError(null);
+            try {
+              const result = await applyPastedRef({ data: { importId: params.importId, input } });
+              setBusy(false);
               return result;
             } catch (cause) {
               fail(cause);
@@ -1350,6 +1379,8 @@ function StepMatch({
   onSelect,
   onBorrow,
   onSearch,
+  onResolveRef,
+  onApplyRef,
   onBack,
   onContinue,
   onSkipMusicBrainz,
@@ -1363,13 +1394,28 @@ function StepMatch({
   readonly borrow: string | null;
   readonly onSelect: (id: string) => void;
   readonly onBorrow: (releaseMbid: string) => void;
-  readonly onSearch: (query: string) => Promise<SearchResultView | null>;
+  readonly onSearch: (title: string, artist: string) => Promise<SearchResultView | null>;
+  /** One gated lookup that writes nothing: "what is this id?", asked as it is typed. */
+  readonly onResolveRef: (input: string) => Promise<ResolvedRef | null>;
+  readonly onApplyRef: (
+    input: string,
+  ) => Promise<{ view: SearchResultView; selectId: string | null } | null>;
   readonly onBack: () => void;
   readonly onContinue: () => void;
   readonly onSkipMusicBrainz: () => void;
 }) {
-  const [query, setQuery] = useState("");
   const [manual, setManual] = useState<SearchResultView | null>(null);
+  /**
+   * The id somebody named, rather than chose from the list.
+   *
+   * It outranks the ranking — the card wears `chosen by id`, goes to the **top** of the list
+   * and is scrolled to. A hand-supplied candidate used to be appended at the bottom, under four
+   * irrelevant ones and off screen, which is how the owner came to believe that pasting a valid
+   * id had done nothing at all.
+   */
+  const [handPicked, setHandPicked] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const listRef = useRef<HTMLDivElement | null>(null);
 
   const single = candidates?.kind === "single";
   const preselected =
@@ -1391,7 +1437,24 @@ function StepMatch({
     const extra = found
       .filter((entry) => !ranked.some((known) => known.id === entry.id))
       .map((entry) => (entry.preselected ? { ...entry, preselected: false } : entry));
-    return [...ranked, ...extra];
+    return promote([...ranked, ...extra]);
+  }
+
+  /**
+   * The hand-picked entry first, whatever its score.
+   *
+   * The score still shows, honestly — a candidate somebody named may well score 20 %, and that
+   * is information rather than a contradiction. What must not happen is the ranking burying it
+   * at the bottom of a list nobody scrolls, which is exactly what the previous `[...ranked,
+   * ...extra]` did. A card already in the list is *promoted* rather than duplicated.
+   */
+  function promote<T extends { readonly id: string }>(entries: readonly T[]): T[] {
+    if (handPicked === null) return [...entries];
+    const index = entries.findIndex((entry) => entry.id === handPicked);
+    if (index <= 0) return [...entries];
+    const chosen = entries[index];
+    if (chosen === undefined) return [...entries];
+    return [chosen, ...entries.filter((_, at) => at !== index)];
   }
 
   // DRIVE-1 §B2: the single branch rendered `candidates.recordings` and dropped the manual
@@ -1435,13 +1498,63 @@ function StepMatch({
       if (extra.length === 0) continue;
       byId.set(key, { ...known, releases: [...known.releases, ...extra] });
     }
-    return [...byId.values()];
+    /*
+     * The group *holding* the hand-picked release comes first, for the same reason the card
+     * does on the single path: the album list is made of groups, and the release somebody named
+     * lives inside one of them.
+     */
+    const all = [...byId.values()];
+    if (handPicked === null) return all;
+    const index = all.findIndex((entry) =>
+      entry.releases.some((release) => release.id === handPicked),
+    );
+    if (index <= 0) return all;
+    const chosen = all[index];
+    if (chosen === undefined) return all;
+    return [chosen, ...all.filter((_, at) => at !== index)];
   }
 
-  const runSearch = (): void => {
-    if (query.trim() === "") return;
-    void onSearch(query).then(setManual);
+  const runSearch = async (title: string, artist: string): Promise<void> => {
+    if (title.trim() === "") return;
+    const found = await onSearch(title, artist);
+    setManual(found);
+    setHandPicked(null);
   };
+
+  /**
+   * Take what the preview offered: put the candidate in the list, at the top, selected, and
+   * scroll to it.
+   *
+   * The scroll and the announcement are the same statement made twice, for the two ways of
+   * reading the page. Without them the list is *correct* and the person is still looking at
+   * whatever was on screen before.
+   */
+  const applyRef = async (input: string): Promise<void> => {
+    const result = await onApplyRef(input);
+    if (result === null) return;
+    setManual(result.view);
+    if (result.selectId === null) return;
+    setHandPicked(result.selectId);
+    onSelect(result.selectId);
+    const named =
+      result.view.recordings.find((entry) => entry.id === result.selectId)?.title ??
+      result.view.releases.find((entry) => entry.id === result.selectId)?.title ??
+      "it";
+    setAnnouncement(`${named} added at the top of the list and selected.`);
+  };
+
+  /*
+   * Scroll to the hand-picked card once it is actually rendered.
+   *
+   * After the state change, not inside the handler: the card does not exist yet when `applyRef`
+   * returns, and `scrollIntoView` on an element that is not there is the silent no-op that made
+   * the first attempt at this look like it worked.
+   */
+  useEffect(() => {
+    if (handPicked === null) return;
+    const card = listRef.current?.querySelector(`[data-candidate-id="${handPicked}"]`);
+    card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [handPicked, manual]);
 
   return (
     <>
@@ -1531,45 +1644,45 @@ function StepMatch({
             ) : null}
           </Callout>
 
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <label className="flex h-8 w-72 items-center gap-1.5 rounded-md border border-line-strong bg-background px-2.5">
-              <Search className="size-4 shrink-0 text-fg-3" aria-hidden="true" />
-              <span className="sr-only">Search MusicBrainz, or paste an MBID</span>
-              <input
-                data-testid="mb-search"
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    runSearch();
-                  }
-                }}
-                placeholder={
-                  single
-                    ? "Search recordings, or paste a recording MBID…"
-                    : "Search releases, or paste a release MBID…"
-                }
-                className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-fg-3"
-              />
-            </label>
-            <Button variant="outline" size="sm" disabled={busy} onClick={runSearch}>
-              Search MusicBrainz
-            </Button>
-          </div>
+          <MbSearchPanel
+            single={single}
+            busy={busy}
+            defaultTitle={source?.hints.album ?? source?.videos[0]?.title ?? ""}
+            defaultArtist={source?.hints.artist ?? source?.uploader ?? ""}
+            onResolve={onResolveRef}
+            onApply={applyRef}
+            onSearch={runSearch}
+            terms={manual?.terms ?? null}
+            empty={manual !== null && manual.releases.length + manual.recordings.length === 0}
+          />
 
-          <div className="flex flex-col gap-2.5" data-testid="candidate-list">
+          {/*
+            The same statement the scroll makes, for the reader who is not watching the list.
+            Off screen, polite, and replaced rather than appended, so it announces the last
+            thing that happened and not a transcript of the session.
+          */}
+          <span className="sr-only" role="status" aria-live="polite" data-testid="candidate-live">
+            {announcement}
+          </span>
+
+          <div
+            className="flex flex-col gap-2.5"
+            data-testid="candidate-list"
+            ref={listRef}
+            role="radiogroup"
+            aria-label={single ? "Recordings" : "Release groups"}
+          >
             {single
               ? recordings.map((candidate) => (
                   <RecordingCandidateCard
                     key={candidate.id}
                     candidate={candidate}
                     selected={selected === candidate.id}
+                    byHand={handPicked === candidate.id}
                     onSelect={onSelect}
                     borrow={borrow}
                     onBorrow={onBorrow}
+                    filing={candidates?.filing ?? null}
                     videoSeconds={source?.videos[0]?.durationSeconds ?? null}
                   />
                 ))
@@ -1578,6 +1691,7 @@ function StepMatch({
                     key={entry.id ?? `ungrouped-${String(index)}`}
                     group={entry}
                     selected={selected}
+                    byHand={handPicked}
                     onSelect={onSelect}
                     defaultOpen={index === 0}
                   />
@@ -1586,13 +1700,19 @@ function StepMatch({
 
           <Callout className="mt-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                Nothing fits? Paste the MBID of the right {single ? "recording" : "release"} above,
-                and the {single ? "import is filed" : "mapping is computed"} against whatever you
-                pin, even if the search never proposed it. If MusicBrainz genuinely does not have
+              {/*
+                Rewritten against the box above, which now takes any MusicBrainz id or link and
+                says what it is before you press anything. The old copy promised a *recording*
+                MBID field that refused every other kind, and it was cut off on screen because
+                it ran to five lines inside a row that also held a button.
+              */}
+              <div className="min-w-0 basis-96">
+                Still nothing? Paste any MusicBrainz id or link above — a{" "}
+                {single ? "recording, a release or a release group" : "release or a release group"}{" "}
+                — and it is resolved to what this step needs. If MusicBrainz genuinely does not have
                 this (a live set, a bootleg, an unregistered artist), import it from the YouTube
-                tags alone. The album is then flagged <b>untagged</b> in the library, with its own
-                filter on the Quality page, so it can be finished the day a release appears.
+                tags alone: the album is flagged <b>untagged</b> in the library, with its own filter
+                on the Quality page, so it can be finished the day a release appears.
               </div>
               <Button
                 variant="outline"

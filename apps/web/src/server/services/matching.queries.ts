@@ -22,6 +22,7 @@ import {
   recordingCandidates,
   releaseCandidates,
   releaseGroups,
+  splitSearchTerms,
   type AlbumHints,
   type MappingResult,
   type MatchTrack,
@@ -199,9 +200,52 @@ export function parseMbid(input: string): string | null {
   return found === null ? null : found[0].toLowerCase();
 }
 
+/**
+ * How many release groups a hand search resolves down to their releases.
+ *
+ * Three, because each one costs a second search through the one-per-second gate and the list
+ * this feeds is something a person is looking at. `DEFAULT_GROUP_LIMIT` is the matcher's own
+ * budget for the same step and is larger; the matcher is not being waited for.
+ */
+const MANUAL_GROUPS = 3;
+
 export interface SearchInput extends RankingInput {
-  /** Free text, as typed. Escaped into a Lucene query before it leaves. */
+  /**
+   * The title, or — when `artist` is absent — the whole typed string.
+   *
+   * It used to be the whole typed string *always*, and it went into one field:
+   * `releaseQuery({ album: query })`. So `bewitched Laufey` asked MusicBrainz for a release
+   * literally titled "bewitched Laufey" and came back empty over a record it obviously has.
+   */
   readonly query: string;
+  /**
+   * The artist, when the caller has one — the wizard's second field, or the split of a
+   * `Artist - Title` string. `undefined` means "not stated", which is not the same as "any":
+   * the caller that has neither gets `splitSearchTerms` applied to `query` below.
+   */
+  readonly artist?: string | null;
+}
+
+/** What was actually asked of MusicBrainz, so an empty answer can read it back. */
+export interface SearchTermsUsed {
+  readonly title: string;
+  readonly artist: string | null;
+  /** True when the artist was guessed out of one string rather than typed into its own field. */
+  readonly guessed: boolean;
+}
+
+/**
+ * The title and the artist this search will use.
+ *
+ * A stated artist is taken as stated. Only a caller that gave none falls back to splitting the
+ * string on the separators people write — and the split travels back to the page, because a
+ * guess nobody can see is a guess nobody can correct.
+ */
+function termsOf(input: SearchInput): SearchTermsUsed {
+  const stated = input.artist?.trim() ?? "";
+  if (stated !== "") return { title: input.query.trim(), artist: stated, guessed: false };
+  const split = splitSearchTerms(input.query);
+  return { title: split.title, artist: split.artist, guessed: split.guessed };
 }
 
 /**
@@ -211,18 +255,58 @@ export interface SearchInput extends RankingInput {
  * knows nothing about the fourteen durations sitting in front of you; running the results
  * through the same engine means the number next to a hand-found release means the same thing
  * as the number next to a proposed one.
+ *
+ * **Two searches, not one.** The list this feeds is made of release *groups* — the banner above
+ * it says so, and the ranked list is built that way — while this searched releases, so a
+ * well-formed query could still return things that did not belong in the list. It now asks for
+ * the group first, exactly as `matchAlbum` does, and falls back to the release search when the
+ * group search finds nothing. That is the same two-level resolution a proposed candidate goes
+ * through, which is what stops the manual path being a second, weaker matcher.
  */
 export async function searchReleases(input: SearchInput): Promise<{
   candidates: readonly ReleaseCandidate[];
   groups: readonly ReleaseGroupCandidate[];
   query: string;
+  terms: SearchTermsUsed;
 }> {
   const db = input.db ?? defaultDb();
   const { videos } = await videosOf(input.job.id, db);
   const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
-  const query = lucene.releaseQuery({ album: input.query.trim() });
-  const found = await gateway.search("release", query, input.settings.matchSearchLimit);
-  const releases = found?.releases ?? [];
+  const terms = termsOf(input);
+
+  /*
+   * The group search first. `releaseGroupQuery` already takes an artist and has since P05;
+   * what was missing was a caller that had one to give.
+   */
+  const groupQuery = lucene.releaseGroupQuery(terms.title, terms.artist);
+  const groupFound = await gateway.search("release-group", groupQuery, MANUAL_GROUPS);
+  const groupIds = (groupFound?.["release-groups"] ?? [])
+    .slice(0, MANUAL_GROUPS)
+    .map((group) => group.id)
+    .filter((id): id is string => typeof id === "string" && id !== "");
+
+  const releases: MbRelease[] = [];
+  const queries: string[] = [groupQuery];
+  for (const rgid of groupIds) {
+    const byGroup = lucene.releaseQuery({ album: terms.title, releaseGroupId: rgid });
+    queries.push(byGroup);
+    const inGroup = await gateway.search("release", byGroup, input.settings.matchSearchLimit);
+    releases.push(...(inGroup?.releases ?? []));
+  }
+
+  /*
+   * The release search stays as the fallback, not as the first question. A record whose group
+   * MusicBrainz files under another name — the case `releaseGroupQueryWide` exists for in the
+   * matcher — still has to be findable by hand.
+   */
+  if (releases.length === 0) {
+    const direct = lucene.releaseQuery({ album: terms.title, artist: terms.artist });
+    queries.push(direct);
+    const found = await gateway.search("release", direct, input.settings.matchSearchLimit);
+    releases.push(...(found?.releases ?? []));
+  }
+
+  const query = queries[queries.length - 1] ?? groupQuery;
 
   const limit = lookupLimitOf(input.settings);
   const config = configFromSettings(input.settings);
@@ -253,6 +337,7 @@ export async function searchReleases(input: SearchInput): Promise<{
     // the same shape as a proposed one, or the search box would produce cards of a second kind.
     groups: releaseGroups.group(scored.candidates).groups,
     query,
+    terms,
   };
 }
 
@@ -385,11 +470,14 @@ export async function pinnedRecording(
  */
 export async function searchRecordings(
   input: SearchInput,
-): Promise<{ candidates: readonly RecordingCandidate[]; query: string }> {
+): Promise<{ candidates: readonly RecordingCandidate[]; query: string; terms: SearchTermsUsed }> {
   const db = input.db ?? defaultDb();
   const video = await loneVideo(input.job, db);
   const gateway = await gatewayForUrl(input.job.url, db, input.signal, input.offline ?? false);
-  const query = lucene.recordingQuery({ title: input.query.trim() });
+  const terms = termsOf(input);
+  // Same defect as the album side, one field along: the whole typed string went into
+  // `recording:` and an artist folded into a title finds nothing.
+  const query = lucene.recordingQuery({ title: terms.title, artist: terms.artist });
   const found = await gateway.search("recording", query, input.settings.matchSearchLimit);
   const recordings = found?.recordings ?? [];
 
@@ -413,6 +501,7 @@ export async function searchRecordings(
     candidates: recordingCandidates.score({ video, candidates }, configFromSettings(input.settings))
       .candidates,
     query,
+    terms,
   };
 }
 

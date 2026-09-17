@@ -42,6 +42,14 @@ export interface ReleaseGroupCardProps {
   readonly onSelect: (id: string) => void;
   /** Open on mount. True for the best group, false for the rest. */
   readonly defaultOpen: boolean;
+  /**
+   * The release MBID somebody pasted, when it is one of this group's.
+   *
+   * The group holding it opens and comes first, and the release itself wears `chosen by id`.
+   * A hand-supplied candidate that is inside a folded group is as invisible as one at the
+   * bottom of the list, which is the defect this answers.
+   */
+  readonly byHand?: string | null;
 }
 
 export function ReleaseGroupCard({
@@ -49,6 +57,7 @@ export function ReleaseGroupCard({
   selected,
   onSelect,
   defaultOpen,
+  byHand = null,
 }: ReleaseGroupCardProps) {
   /*
    * `null` means "follow the default", so a group that becomes the one holding the selection
@@ -56,7 +65,9 @@ export function ReleaseGroupCard({
    */
   const [open, setOpen] = useState<boolean | null>(null);
   const holdsSelection = group.releases.some((release) => release.id === selected);
-  const isOpen = open ?? (defaultOpen || holdsSelection);
+  const holdsHandPicked =
+    byHand !== null && group.releases.some((release) => release.id === byHand);
+  const isOpen = open ?? (defaultOpen || holdsSelection || holdsHandPicked);
   const best = group.releases[0];
 
   const years = group.year === null ? null : String(group.year);
@@ -161,6 +172,7 @@ export function ReleaseGroupCard({
                 key={candidate.id}
                 candidate={candidate}
                 selected={selected === candidate.id}
+                byHand={byHand === candidate.id}
                 onSelect={onSelect}
               />
             ))}

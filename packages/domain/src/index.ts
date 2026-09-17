@@ -143,6 +143,8 @@ export {
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./normalize/title.ts";
+export { MB_ENTITIES, MB_ENTITY_NOUN, parseMbRef } from "./normalize/mb-ref.ts";
+export type { MbEntityName, MbRef } from "./normalize/mb-ref.ts";
 export { hasProvidedToYouTube, parseYouTubeDescription } from "./normalize/youtube-description.ts";
 export type { YouTubeCredit, YouTubeDescription } from "./normalize/youtube-description.ts";
 
