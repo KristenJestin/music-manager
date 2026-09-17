@@ -86,6 +86,16 @@ const search = z.object({
    * preferred", which is the honest default — it is not the same as a choice.
    */
   borrow: z.string().optional(),
+  /**
+   * A MusicBrainz release chosen **before** the source — the command palette's order.
+   *
+   * ⌘K resolves a pasted release (or an edition of a pasted release group) and lands here with
+   * `pin` and nothing else: the URL is what is still missing, so step 1 opens on an empty box
+   * with the pinned record named above it. On resolve it goes onto the import as
+   * `options.releaseMbid`, the same door `mm import --release` uses, and from there `match`
+   * and step 2 both honour it. It stays in the address bar so a reload keeps the pin.
+   */
+  pin: z.string().optional(),
 });
 
 type WizardSearch = z.infer<typeof search>;
@@ -170,7 +180,13 @@ export const Route = createFileRoute("/_app/import/new")({
      */
     if (deps.importId === undefined) {
       if (deps.url === undefined || deps.url.trim() === "") return NO_DATA;
-      const created = await resolveSource({ data: { url: deps.url } });
+      const created = await resolveSource({
+        data: {
+          url: deps.url,
+          // The pin is applied at creation, so it is on the row before `match` ever runs.
+          ...(deps.pin === undefined || deps.pin === "" ? {} : { releaseMbid: deps.pin }),
+        },
+      });
       throw redirect({
         to: "/import/new",
         search: { importId: created.importId, step: 1 },
@@ -583,11 +599,19 @@ function Wizard() {
       {params.step === 1 ? (
         <StepSource
           source={source}
+          pin={params.pin ?? null}
           busy={blocked}
           onResolve={(url) => {
             setBusy(true);
             setError(null);
-            void resolveSource({ data: { url } }).then((created) => {
+            void resolveSource({
+              data: {
+                url,
+                ...(params.pin === undefined || params.pin === ""
+                  ? {}
+                  : { releaseMbid: params.pin }),
+              },
+            }).then((created) => {
               setBusy(false);
               void navigate({
                 to: "/import/new",
@@ -1241,11 +1265,14 @@ function HighlightedDescription({ text }: { readonly text: string }) {
 
 function StepSource({
   source,
+  pin,
   busy,
   onResolve,
   onContinue,
 }: {
   readonly source: SourceView | null;
+  /** A release chosen in the palette before this import existed; `null` the usual way round. */
+  readonly pin: string | null;
   readonly busy: boolean;
   readonly onResolve: (url: string) => void;
   readonly onContinue: () => void;
@@ -1254,6 +1281,19 @@ function StepSource({
 
   return (
     <>
+      {pin === null || pin === "" ? null : (
+        /*
+         * The pin arrived before the source did, so it has to be visible before there is
+         * anything else on the screen: somebody who pressed "start an import pinned to this"
+         * in ⌘K is now looking at an empty box, and without this line the pin is invisible
+         * until step 2 and indistinguishable from having been dropped.
+         */
+        <Callout tone="info" className="mb-3.5" data-testid="wizard-pinned">
+          Pinned to MusicBrainz release <code className="font-mono text-2xs">{pin}</code>. Paste the
+          YouTube link below and the mapping will be computed against that release&rsquo;s
+          tracklist.
+        </Callout>
+      )}
       <div className="split-grid">
         <div className="flex flex-col gap-3.5">
           <div className="rounded-xl border border-line bg-surface-1 p-3.5">
