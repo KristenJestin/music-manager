@@ -135,13 +135,13 @@ async function upsertStepRow(
     .where(eq(jobSteps.id, existing.id));
 }
 
-/** Every mapped video of an import, in tracklist order. */
+/** Every mapped video of an import, in tracklist order — `(medium, position)`, never position alone. */
 export async function mappedTracksOf(db: Database, importId: string): Promise<ImportTrack[]> {
   return await db
     .select()
     .from(importTracks)
     .where(and(eq(importTracks.importId, importId), eq(importTracks.role, "mapped")))
-    .orderBy(asc(importTracks.trackPosition));
+    .orderBy(asc(importTracks.mediumPosition), asc(importTracks.trackPosition));
 }
 
 /**
