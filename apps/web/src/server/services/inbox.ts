@@ -12,18 +12,21 @@
  * Resolving an item writes a `decisions` row. That log is what P05 learns country, format and
  * explicit preferences from — visibly, in Settings, never opaquely.
  */
-import { and, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, or, sql, type SQL } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
   decisions,
   inboxItems,
+  INBOX_STATUSES,
+  INBOX_TYPES,
   STEPS,
   type InboxItem,
   type InboxStatus,
   type InboxType,
   type StepName,
 } from "#/server/db/schema/index.ts";
+import { INBOX_SORTS, type InboxSort } from "#/lib/inbox-filters.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
 
@@ -108,35 +111,164 @@ export async function openInboxItem(
   return created;
 }
 
+/**
+ * The sort vocabulary, re-exported so the service and the route spell it once.
+ *
+ * It is *defined* in `lib/inbox-filters.ts` rather than here because `/review` validates
+ * `?sort=` against it, and a route that value-imports anything under `server/**` ships Drizzle
+ * to the browser with it (`client-boundary.guard.test.ts`). Same split, same reason, as
+ * `lib/library-filters.ts`.
+ */
+export { INBOX_SORTS, type InboxSort };
+
 export interface InboxFilter {
   readonly status?: InboxStatus;
   readonly importId?: string;
   readonly type?: InboxType;
+  /**
+   * Free text over **what the card shows**: its title, its summary, and its type.
+   *
+   * The type is matched as text rather than as an enum so the words the Console prints —
+   * `ambiguous release`, underscore humanised away — find the rows they name. A search box
+   * over a queue whose every row is labelled by its type has to reach that label.
+   */
+  readonly search?: string;
   /** Cap the rows. `countInbox` ignores it — a count is a count of the whole set. */
   readonly limit?: number;
+  /** Skip this many rows. `countInbox` ignores it too, for the same reason. */
+  readonly offset?: number;
+  readonly sort?: InboxSort;
 }
 
-/** The one `where` the list and the count both take, so the two cannot describe two sets. */
+/**
+ * Escape the three characters `like` reads as syntax.
+ *
+ * Every one of the fourteen type names contains an underscore, which `like` reads as "any one
+ * character" — so `job_failed` would also match `job failed`. The search box on this page is
+ * pointed at that vocabulary more than at anything else, so getting it wrong is not a corner
+ * case.
+ */
+function likeTerm(value: string): string {
+  return `%${value.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`;
+}
+
+/**
+ * The one `where` the list and the count both take, so the two cannot describe two sets.
+ *
+ * Not a stylistic preference: "the filtered count lies" has been a bug in this codebase twice,
+ * both times because a count was computed from a predicate that had drifted from the list's,
+ * and the pager then promised rows no page contained. Every function below goes through here,
+ * and none of them assembles a condition of its own.
+ */
 function inboxWhere(filter: InboxFilter): SQL | undefined {
+  const term = filter.search?.trim() ?? "";
+  const free =
+    term === ""
+      ? undefined
+      : or(
+          ilike(inboxItems.title, likeTerm(term)),
+          ilike(inboxItems.summary, likeTerm(term)),
+          ilike(sql`${inboxItems.type}::text`, likeTerm(term)),
+        );
+
   const filters: SQL[] = [
     ...(filter.status === undefined ? [] : [eq(inboxItems.status, filter.status)]),
     ...(filter.importId === undefined ? [] : [eq(inboxItems.importId, filter.importId)]),
     ...(filter.type === undefined ? [] : [eq(inboxItems.type, filter.type)]),
+    ...(free === undefined ? [] : [free]),
   ];
   return filters.length === 0 ? undefined : and(...filters);
 }
 
-/** List items, newest first. */
+/**
+ * The `order by` of one sort.
+ *
+ * Every one of them ends on `created_at`, which is what makes paging deterministic: a sort
+ * with ties and no tie-breaker shows the same row on two pages and hides another entirely,
+ * which is the paging bug nobody reports because it looks like a miscount.
+ */
+function inboxOrder(sort: InboxSort): SQL[] {
+  switch (sort) {
+    case "oldest":
+      return [asc(inboxItems.createdAt)];
+    case "type":
+      // `::text`, not the enum: a pgEnum orders by declaration order, and what was asked for is
+      // the list grouped by the word on the badge.
+      return [asc(sql`${inboxItems.type}::text`), desc(inboxItems.createdAt)];
+    case "title":
+      return [asc(sql`lower(${inboxItems.title})`), desc(inboxItems.createdAt)];
+    default:
+      return [desc(inboxItems.createdAt)];
+  }
+}
+
+/** List items, newest first unless another sort is asked for. */
 export async function listInbox(
   filter: InboxFilter = {},
   db: Database = defaultDb(),
 ): Promise<InboxItem[]> {
-  const query = db
+  let query = db
     .select()
     .from(inboxItems)
     .where(inboxWhere(filter))
-    .orderBy(desc(inboxItems.createdAt));
-  return filter.limit === undefined ? await query : await query.limit(filter.limit);
+    .orderBy(...inboxOrder(filter.sort ?? "recent"))
+    .$dynamic();
+  if (filter.limit !== undefined) query = query.limit(filter.limit);
+  if (filter.offset !== undefined && filter.offset > 0) query = query.offset(filter.offset);
+  return await query;
+}
+
+/**
+ * How many items of each type match — **with the type predicate dropped**.
+ *
+ * The chips above the queue read "Ambiguous release 40" while one of them is selected, so
+ * their numbers have to describe the set the *other* filters leave. Counting with the type
+ * predicate still in place would print the page size next to the active chip and a zero next
+ * to every other one. Dropping exactly one condition and keeping `inboxWhere` for the rest is
+ * what stops the counts from becoming a second, hand-written filter.
+ */
+export async function countInboxByType(
+  filter: InboxFilter = {},
+  db: Database = defaultDb(),
+): Promise<Record<InboxType, number>> {
+  const { type: _dropped, ...rest } = filter;
+  void _dropped;
+  const rows = await db
+    .select({ type: inboxItems.type, total: sql<number>`count(*)::int` })
+    .from(inboxItems)
+    .where(inboxWhere(rest))
+    .groupBy(inboxItems.type);
+
+  const counts = Object.fromEntries(INBOX_TYPES.map((name) => [name, 0])) as Record<
+    InboxType,
+    number
+  >;
+  for (const row of rows) counts[row.type] = Number(row.total);
+  return counts;
+}
+
+/**
+ * How many items of each status match — with the **status** predicate dropped, for exactly the
+ * reason `countInboxByType` drops the type one.
+ */
+export async function countInboxByStatus(
+  filter: InboxFilter = {},
+  db: Database = defaultDb(),
+): Promise<Record<InboxStatus, number>> {
+  const { status: _dropped, ...rest } = filter;
+  void _dropped;
+  const rows = await db
+    .select({ status: inboxItems.status, total: sql<number>`count(*)::int` })
+    .from(inboxItems)
+    .where(inboxWhere(rest))
+    .groupBy(inboxItems.status);
+
+  const counts = Object.fromEntries(INBOX_STATUSES.map((name) => [name, 0])) as Record<
+    InboxStatus,
+    number
+  >;
+  for (const row of rows) counts[row.status] = Number(row.total);
+  return counts;
 }
 
 /**
