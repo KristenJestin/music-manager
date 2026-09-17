@@ -329,9 +329,9 @@ describe("the request timeout", () => {
 
 describe("a disconnection in the access log", () => {
   it("is info, not error — a client that hung up is not this server's error rate", () => {
-    expect(levelFor({ method: "GET", path: "/_serverFn/abc", status: CLIENT_CLOSED, ms: 11316 })).toBe(
-      "info",
-    );
+    expect(
+      levelFor({ method: "GET", path: "/_serverFn/abc", status: CLIENT_CLOSED, ms: 11316 }),
+    ).toBe("info");
     // …and it is still a line, because it is how an operator sees that something is slow.
     const line = accessLine(
       { method: "GET", path: "/_serverFn/abc", status: CLIENT_CLOSED, ms: 11316 },

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import {
@@ -31,7 +31,7 @@ import { RecordingCandidateCard } from "#/components/candidate-card.tsx";
 import { ReleaseGroupCard } from "#/components/candidate-group.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
-import { useMatchProgress } from "#/hooks/use-match-progress.ts";
+import { useMatchProgress, type MatchProgressSnapshot } from "#/hooks/use-match-progress.ts";
 import { cn } from "cn";
 import { mmss, pct } from "#/lib/format.ts";
 import { isSourceOutage, readFailure } from "#/lib/errors.ts";
@@ -103,6 +103,20 @@ interface WizardData {
    * banner, and `_app.tsx`'s boundary is where it belongs.
    */
   readonly sourceFailure: DegradedSource | null;
+  /**
+   * The MusicBrainz match is running behind the request, and this screen is watching it.
+   *
+   * Step 2 is ten to fifteen seconds of MusicBrainz, and it used to spend them inside the
+   * loader's own HTTP request — which the production runtime kills at ten
+   * (`server/http/abort.ts`) and which a reload restarted from zero. The match now runs beside
+   * the request (`server/services/match-runs.ts`); this flag is the loader saying "it has
+   * started, come back when the stream says it is done", and `WizardMatching` is what the page
+   * shows in the meantime.
+   *
+   * Different from the router's `pendingComponent`, which is what a *loader* looks like while
+   * it runs: this one is data, so it survives SSR, a reload and a new tab on the same URL.
+   */
+  readonly matching: boolean;
 }
 
 const NO_DATA: WizardData = {
@@ -111,6 +125,7 @@ const NO_DATA: WizardData = {
   mapping: null,
   recording: null,
   sourceFailure: null,
+  matching: false,
 };
 
 /**
@@ -166,6 +181,15 @@ export const Route = createFileRoute("/_app/import/new")({
       fetchCandidates({ data: { importId: deps.importId ?? "" } }),
     );
     if (asked.failure !== null) return { ...NO_DATA, source, sourceFailure: asked.failure };
+    /*
+     * The match has started and there is nothing to choose from yet.
+     *
+     * Not an error, not an empty list, and above all not fifteen seconds spent inside this
+     * loader: the request that returned this came back in milliseconds, and the work is going
+     * on in the server behind it. `WizardMatching` follows `/api/match-progress` and re-runs
+     * this loader when the stream says the match is done.
+     */
+    if (asked.data.pending) return { ...NO_DATA, source, matching: true };
     /*
      * Two ways step 2 can learn that MusicBrainz refused, and the first is the one that counts.
      *
@@ -261,30 +285,62 @@ export interface WizardOptions {
 /* ================================================================== */
 
 /**
- * What the wizard looks like while its loader is running.
+ * How long the match is honestly going to take, in words, from the plan it is actually running.
  *
- * Step 2 is the one that takes real time — a release-group search, one release search per
- * group kept, and up to six tracklist lookups, at the one request per second the service is
- * rate-limited to, so about ten seconds is the floor (decision 151). The screen therefore
- * reports the work rather than spinning: which request is being made now, and how many of the
- * planned ones are done. The plan narrows as soon as the group search says how many groups
- * there really were, so the denominator is a promise rather than a guess.
+ * The old sentence read *"MusicBrainz allows one request per second, so this takes about ten
+ * seconds"*, and it was wrong in three separate ways. The owner's own screenshot says it:
+ * `2/2 searches, 0/12 tracklist lookups` is **fourteen** requests, so fourteen seconds at best,
+ * not ten. Ten was never the figure for twelve lookups even on the defaults — 1 + 3 searches
+ * and 6 lookups is already ten requests, and ten requests one second apart take longer than
+ * ten seconds, because the first one has to come back. And the gate is **installation-wide**
+ * (`server/integrations/rate-gate.ts` holds it in Postgres, shared with the worker and the CLI),
+ * so a running import pushes every number here out by however much it is spending.
+ *
+ * So: no constant, a floor rather than an estimate, and only once the plan is known. Before
+ * the first frame arrives there is no number to give, and the honest thing is not to invent one.
  */
-function WizardPending() {
-  const params = Route.useSearch();
-  const matching = params.step >= 2 && params.importId !== undefined;
-  const progress = useMatchProgress(matching ? (params.importId ?? null) : null);
+function matchEstimate(progress: MatchProgressSnapshot | null): string {
+  const planned = (progress?.searchesPlanned ?? 0) + (progress?.lookupsPlanned ?? 0);
+  const shared =
+    "The limit is shared with everything else this installation is doing, so an import running at the same time makes it longer.";
+  if (planned <= 0) {
+    return `MusicBrainz allows one request per second. ${shared} Nothing is downloaded and nothing is written until you press Start.`;
+  }
+  return `MusicBrainz allows one request per second, so ${String(planned)} requests take at least ${String(planned)} seconds. ${shared} Nothing is downloaded and nothing is written until you press Start.`;
+}
 
+/**
+ * The match, while it happens: which request is being made now, and how many are done.
+ *
+ * One panel, two callers, because the two states it draws are visually the same thing and
+ * telling them apart would be a distinction only the code cares about:
+ *
+ *  - `WizardPending`, the router's `pendingComponent`, for the seconds a *loader* is running —
+ *    step 1 resolving a URL through yt-dlp, and the round trip of every re-run;
+ *  - `WizardMatching`, a real component rendered from loader **data**, for the ten to fifteen
+ *    seconds the MusicBrainz match now spends running beside the request rather than inside
+ *    it. That one survives SSR and a reload, which is the whole point of the change.
+ *
+ * The plan narrows as soon as the group search says how many groups there really were, so the
+ * denominator is a promise rather than a guess (decision 151).
+ */
+function MatchPanel({
+  step,
+  matching,
+  progress,
+  testId,
+}: {
+  readonly step: number;
+  /** False on step 1: the wait is yt-dlp's, and MusicBrainz has nothing to do with it. */
+  readonly matching: boolean;
+  readonly progress: MatchProgressSnapshot | null;
+  readonly testId: string;
+}) {
   const done = (progress?.searches ?? 0) + (progress?.lookups ?? 0);
   const planned = Math.max(1, (progress?.searchesPlanned ?? 4) + (progress?.lookupsPlanned ?? 6));
 
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      data-testid="wizard-pending"
-      className="flex flex-col gap-3.5"
-    >
+    <div role="status" aria-busy="true" data-testid={testId} className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-1 px-4 py-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">New import</h1>
@@ -292,7 +348,7 @@ function WizardPending() {
             {matching ? "Asking MusicBrainz which release this is" : "Reading the source"}
           </p>
         </div>
-        <Stepper steps={STEP_NAMES} current={params.step - 1} done={params.step - 1} />
+        <Stepper steps={STEP_NAMES} current={step - 1} done={step - 1} />
       </div>
 
       <section className="rounded-xl border border-line bg-surface-1 px-6 py-10">
@@ -304,7 +360,7 @@ function WizardPending() {
           <p className="text-xs text-fg-2" data-testid="pending-label">
             {progress?.label ??
               (matching
-                ? "One release-group search, one release search per group, then up to six tracklist lookups — one request per second."
+                ? "One release-group search, one release search per group, then one tracklist lookup per candidate — one request per second."
                 : "Asking YouTube what is behind this link.")}
           </p>
 
@@ -329,15 +385,72 @@ function WizardPending() {
             </div>
           ) : null}
 
-          <p className="text-2xs text-fg-3">
-            MusicBrainz allows one request per second, so this takes about ten seconds. Nothing is
-            downloaded and nothing is written until you press Start.
+          <p className="text-2xs text-fg-3" data-testid="pending-estimate">
+            {matching
+              ? matchEstimate(progress)
+              : "Nothing is downloaded and nothing is written until you press Start."}
           </p>
         </div>
       </section>
     </div>
   );
 }
+
+/** What the wizard looks like while its **loader** is running. */
+function WizardPending() {
+  const params = Route.useSearch();
+  const matching = params.step >= 2 && params.importId !== undefined;
+  const progress = useMatchProgress(matching ? (params.importId ?? null) : null);
+  return (
+    <MatchPanel
+      step={params.step}
+      matching={matching}
+      progress={progress}
+      testId="wizard-pending"
+    />
+  );
+}
+
+/**
+ * The same panel, but for a match that is running **in the server** rather than in the request.
+ *
+ * Two ways out of it, and both are needed:
+ *
+ *  - the progress stream reaching `done`, which is the fast one and the normal one. The
+ *    snapshot is kept for thirty seconds after the end (`server/services/match-progress.ts`),
+ *    so a stream opened *after* the match finished still receives it and this still fires;
+ *  - a slow poll, for the case where the stream never arrives at all. Server-Sent Events go
+ *    through most proxies and not all of them, and a wizard that hangs for ever because a
+ *    buffering proxy ate the frames would be a worse bug than the one being fixed. Four
+ *    seconds is cheap: the loader it re-runs is a database read and an offline ranking.
+ *
+ * Re-running the loader is safe however often it happens: `fetchCandidates` answers `pending`
+ * for as long as the run is in flight and never starts a second one (`match-runs.ts`).
+ */
+function WizardMatching({ importId, step }: { readonly importId: string; readonly step: number }) {
+  const router = useRouter();
+  const progress = useMatchProgress(importId);
+  const phase = progress?.phase ?? null;
+
+  useEffect(() => {
+    if (phase !== "done") return;
+    void router.invalidate();
+  }, [phase, router]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void router.invalidate();
+    }, MATCH_POLL_MS);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [router]);
+
+  return <MatchPanel step={step} matching progress={progress} testId="wizard-matching" />;
+}
+
+/** The fallback cadence for a stream that never arrived. Not the normal way out. */
+const MATCH_POLL_MS = 4_000;
 
 /**
  * The wizard's action bar: Back on the left, the step's forward action on the right.
@@ -359,7 +472,7 @@ function WizardActions({ children }: { readonly children: ReactNode }) {
 }
 
 function Wizard() {
-  const { source, candidates, mapping, recording, sourceFailure } = Route.useLoaderData();
+  const { source, candidates, mapping, recording, sourceFailure, matching } = Route.useLoaderData();
   const params = Route.useSearch();
   const navigate = useNavigate();
   const toast = useToast();
@@ -397,6 +510,17 @@ function Wizard() {
   };
 
   const single = source?.kind === "single" || candidates?.kind === "single";
+
+  /*
+   * The match is running in the server: this screen is the whole page until it lands.
+   *
+   * Before the shell and before the stepper, because there is no wizard to draw yet — the
+   * candidates are the wizard, and they do not exist. `MatchPanel` draws its own header and
+   * stepper so the frame does not flicker between the two.
+   */
+  if (matching && params.importId !== undefined) {
+    return <WizardMatching importId={params.importId} step={params.step} />;
+  }
 
   return (
     <div data-testid="wizard" data-step={params.step}>

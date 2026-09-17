@@ -53,7 +53,13 @@ import {
   searchReleases,
   videosOf,
 } from "#/server/services/matching.queries.ts";
-import { loadSettings } from "#/server/services/settings.ts";
+import {
+  matchRun,
+  settleMatchRun,
+  startMatchRun,
+  takeMatchFailure,
+} from "#/server/services/match-runs.ts";
+import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { isSourceOutage } from "#/lib/errors.ts";
 
 /* ------------------------------------------------------------------ */
@@ -260,6 +266,22 @@ export interface CandidatesView {
    * thing on every path (decision 165). The lists are empty when this is set.
    */
   readonly unavailable: DegradedSource | null;
+  /**
+   * The match is running **behind** this request, and there is nothing to show yet.
+   *
+   * Step 2 is fifteen seconds of MusicBrainz on the owner's settings, and those fifteen
+   * seconds used to be spent inside this very handler — which is how a page ended up being
+   * killed by a ten-second idle timeout and how a reload restarted the whole search
+   * (`server/services/match-runs.ts`). The work now runs beside the request; this field is
+   * the request saying so, and the screen follows `/api/match-progress` until it flips.
+   *
+   * A value rather than a 202 or an exception, for the reason the two fields above give: JSON
+   * reads the same whether the loader ran during SSR or from a click, and a status code does
+   * not survive the SSR boundary at all.
+   *
+   * The lists are empty when this is set, exactly as for `unavailable`.
+   */
+  readonly pending: boolean;
 }
 
 /** Why a view is not what a healthy source would have produced. */
@@ -270,8 +292,11 @@ export interface DegradedSource {
   readonly hint: string | null;
 }
 
-/** The view for "the source refused and the cache had nothing": no list, and why. */
-function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesView {
+/** A view with no candidates in it, which is two different sentences and one set of fields. */
+function blankCandidates(
+  job: Import,
+  say: { unavailable: DegradedSource | null; pending: boolean },
+): CandidatesView {
   return {
     kind: job.kind === "single" ? "single" : "album",
     releases: [],
@@ -286,8 +311,19 @@ function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesVi
     queries: [],
     hints: { album: job.title, artist: job.artist },
     degraded: null,
-    unavailable,
+    unavailable: say.unavailable,
+    pending: say.pending,
   };
+}
+
+/** The view for "the source refused and the cache had nothing": no list, and why. */
+function emptyCandidates(job: Import, unavailable: DegradedSource): CandidatesView {
+  return blankCandidates(job, { unavailable, pending: false });
+}
+
+/** The view for "ask again in a second": no list, and a match running behind the request. */
+function pendingCandidates(job: Import): CandidatesView {
+  return blankCandidates(job, { unavailable: null, pending: true });
 }
 
 function degradedOf(error: unknown): DegradedSource {
@@ -312,6 +348,124 @@ const SHOWN = 12;
  */
 const SHOWN_GROUPS = 6;
 
+/**
+ * Turn a finished ranking into the screen's shape. The two kinds share every field but three.
+ */
+async function candidatesView(
+  job: Import,
+  result: Awaited<ReturnType<typeof rankFor>>,
+  degraded: DegradedSource | null,
+): Promise<CandidatesView> {
+  const { videos } = await videosOf(job.id, db());
+  const hints = hintsFor(job, videos);
+  const preselected = result.ranking.preselected;
+  const common = {
+    preselectedId: preselected?.id ?? null,
+    safe: preselected?.safe ?? false,
+    ambiguous: result.ranking.ambiguous,
+    margin: result.ranking.margin,
+    budget: result.budget,
+    planned: result.planned,
+    queries: result.queries,
+    hints: { album: hints.album ?? null, artist: hints.artist ?? null },
+    degraded,
+    unavailable: null,
+    pending: false,
+  } as const;
+
+  if (result.kind === "single") {
+    return {
+      ...common,
+      kind: "single",
+      releases: [],
+      groups: [],
+      recordings: result.ranking.candidates.slice(0, SHOWN),
+    };
+  }
+  return {
+    ...common,
+    kind: "album",
+    releases: result.ranking.candidates.slice(0, SHOWN),
+    groups: result.groups.groups.slice(0, SHOWN_GROUPS),
+    recordings: [],
+  };
+}
+
+/**
+ * The ranking as it can be computed from `source_cache` alone, or `null` when it cannot.
+ *
+ * This is the *fast* path and, after the first visit, the normal one. Every MusicBrainz
+ * document a match reads is written to `source_cache` on the way past, so an import that has
+ * been matched once can be re-ranked with no request at all — which is what makes it possible
+ * for the live match to run beside the request and for the request to simply read the answer
+ * when it lands (`server/services/match-runs.ts`).
+ *
+ * `null` rather than a throw, because "the cache cannot answer this yet" is the expected state
+ * on a first visit and not a failure of anything. A miss raises `OFFLINE_CACHE_MISS` from
+ * `integrations/cached.ts`; anything *else* thrown here is a real bug and is left to escape.
+ */
+async function cachedView(job: Import, settings: Settings): Promise<CandidatesView | null> {
+  try {
+    const ranked = await rankFor({ job, settings, db: db(), offline: true });
+    return await candidatesView(job, ranked, null);
+  } catch (error) {
+    if (MMError.from(error).code === "OFFLINE_CACHE_MISS") return null;
+    if (isSourceOutage(error)) return null;
+    throw error;
+  }
+}
+
+/**
+ * A run that failed, reported once — rescued by the cache when the cache can stand in.
+ *
+ * Decision 165, unchanged in substance: a list that might be a week old and *says so* beats no
+ * list. What changed is where the failure comes from. It used to be the exception the handler
+ * had just caught; it is now the one the background run recorded, read out of the registry and
+ * erased on the way past so that Retry starts a fresh attempt.
+ */
+async function failedView(
+  job: Import,
+  settings: Settings,
+  failure: unknown,
+): Promise<CandidatesView> {
+  const rescued = await cachedView(job, settings);
+  const degraded = degradedOf(failure);
+  return rescued === null ? emptyCandidates(job, degraded) : { ...rescued, degraded };
+}
+
+/**
+ * How long the request lingers on a match it has just started, before answering "pending".
+ *
+ * Two seconds. A match answered from `source_cache` or from a `fixture://` cassette finishes in
+ * milliseconds, and making *that* cost a second round trip and a flash of the waiting screen
+ * would be a regression dressed up as a fix. A real MusicBrainz match cannot finish inside it —
+ * ten to fourteen requests at one per second — so the slow case always gets the pending answer,
+ * which is the case this whole change is about.
+ *
+ * Far below the connection's own patience, which is what the change exists to respect.
+ */
+const GRACE_MS = 2_000;
+
+/**
+ * Step 2's candidates, without waiting for MusicBrainz inside the request.
+ *
+ * **This handler no longer runs the match in its own HTTP request.** It used to, and that is
+ * what the owner saw die: fourteen MusicBrainz requests at one per second, on a connection the
+ * production runtime closes after ten seconds of silence (`server/http/abort.ts`). The four
+ * states below replaced those fifteen seconds.
+ *
+ *  1. a match is **running** — say so and return; the screen follows `/api/match-progress`,
+ *     and a reload lands here too, which is what makes a reload resume rather than restart;
+ *  2. a match has **finished** — render the ranking it left in the registry, or re-rank
+ *     offline against `source_cache` when the registry has been lost to a restart;
+ *  3. the last run **failed** — report it once, rescued by the cache where possible;
+ *  4. nothing is known — rank from the cache if it can answer, otherwise start a run.
+ *
+ * The order matters. `running` is checked before anything else because a half-finished match
+ * has left half its documents in `source_cache`, and a ranking computed from half the documents
+ * is a wrong answer presented as a final one. While a run is in flight, the only honest answer
+ * is "in flight".
+ */
 export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ importId: z.string().min(1) }))
@@ -322,77 +476,40 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         throw new MMError("NOT_FOUND", `No import with id ${data.importId}.`, { status: 404 });
       }
       const settings = await loadSettings(db());
+      const run = matchRun(job.id);
+
+      // 1. In flight. A reload three seconds in joins it rather than starting a second one.
+      if (run?.status === "running") return pendingCandidates(job);
+
+      // 2. Finished, and the ranking is still in hand: no recomputation, no request, the exact
+      //    answer the run produced. `result` is null only if the registry was swept mid-read.
+      if (run?.status === "done" && run.result !== null) {
+        return await candidatesView(job, run.result, null);
+      }
+
+      // 3. Failed. Read once — see `takeMatchFailure` — so Retry is a real retry.
+      if (run?.status === "failed") {
+        return await failedView(job, settings, takeMatchFailure(job.id));
+      }
 
       /*
-       * MusicBrainz refusing is not the end of step 2 (decision 165).
-       *
-       * The first attempt is the live one. If the source is down or rate-limiting us, the
-       * ranking is computed a second time **offline**, against the raw cache: for an import
-       * whose candidates were already fetched once — a reload, a Back, a second look — every
-       * document it needs is a row, and the screen keeps its list instead of going blank. The
-       * failure travels with it in `degraded`, because a list that might be a week old and
-       * says nothing about it is worse than no list.
-       *
-       * When the cache has nothing either, the original *source* error is what is raised, not
-       * `OFFLINE_CACHE_MISS`: "MusicBrainz answered HTTP 503" is the true cause, and the
-       * second attempt is an implementation detail of trying to survive it.
+       * 4. Nothing known here. The cache may still know: a restart, a wizard reopened an hour
+       *    later, a Back from step 3. Every document a match reads is written to `source_cache`
+       *    on the way past, so an import matched once re-ranks with no request at all.
        */
-      let degraded: DegradedSource | null = null;
-      let result: Awaited<ReturnType<typeof rankFor>>;
-      try {
-        result = await rankFor({ job, settings, db: db() });
-      } catch (error) {
-        if (!isSourceOutage(error)) throw error;
-        try {
-          result = await rankFor({ job, settings, db: db(), offline: true });
-          degraded = degradedOf(error);
-        } catch {
-          // Neither the source nor the cache. The *source* error is what is reported —
-          // "musicbrainz answered HTTP 503" is the cause; `OFFLINE_CACHE_MISS` is only how
-          // the rescue attempt ended.
-          return emptyCandidates(job, degradedOf(error));
-        }
-      }
+      const cached = await cachedView(job, settings);
+      if (cached !== null) return cached;
 
-      const { videos } = await videosOf(job.id, db());
-      const hints = hintsFor(job, videos);
-
-      if (result.kind === "single") {
-        const preselected = result.ranking.preselected;
-        return {
-          kind: "single",
-          releases: [],
-          groups: [],
-          recordings: result.ranking.candidates.slice(0, SHOWN),
-          preselectedId: preselected?.id ?? null,
-          safe: preselected?.safe ?? false,
-          ambiguous: result.ranking.ambiguous,
-          margin: result.ranking.margin,
-          budget: result.budget,
-          planned: result.planned,
-          queries: result.queries,
-          hints: { album: hints.album ?? null, artist: hints.artist ?? null },
-          degraded,
-          unavailable: null,
-        };
+      // Genuinely new. Start the match behind the request, and linger only a moment for it.
+      startMatchRun(job.id, () => rankFor({ job, settings, db: db() }));
+      const settled = await settleMatchRun(job.id, GRACE_MS);
+      if (settled?.status === "done" && settled.result !== null) {
+        return await candidatesView(job, settled.result, null);
       }
-      const preselected = result.ranking.preselected;
-      return {
-        kind: "album",
-        releases: result.ranking.candidates.slice(0, SHOWN),
-        groups: result.groups.groups.slice(0, SHOWN_GROUPS),
-        recordings: [],
-        preselectedId: preselected?.id ?? null,
-        safe: preselected?.safe ?? false,
-        ambiguous: result.ranking.ambiguous,
-        margin: result.ranking.margin,
-        budget: result.budget,
-        planned: result.planned,
-        queries: result.queries,
-        hints: { album: hints.album ?? null, artist: hints.artist ?? null },
-        degraded,
-        unavailable: null,
-      };
+      if (settled?.status === "failed") {
+        return await failedView(job, settings, takeMatchFailure(job.id));
+      }
+      return pendingCandidates(job);
     } catch (error) {
       return toFailure(error);
     }
