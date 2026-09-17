@@ -19,6 +19,7 @@ import { DataTable, type Column } from "#/components/data-table.tsx";
 import { NotFoundScreen } from "#/components/error-screen.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
+import { MbLink } from "#/components/mb-link.tsx";
 import { isPipelineStep, pipelineCount, PipelineStepper } from "#/components/pipeline-dots.tsx";
 import {
   ImportStatusBadge,
@@ -293,8 +294,25 @@ function JobPage() {
                 </span>
               )}
             </div>
-            <div className="font-mono text-2xs text-fg-2">
-              track {track.trackPosition ?? "?"} · {short(track.recordingMbid)}…
+            {/*
+              The recording id, openable.
+
+              It was `a16beab5…` in a plain span, which is the exact thing a person staring at a
+              blocked import needs to look up and could only look up by retyping. `MbLink` is
+              the Console's one answer to "how do we link to musicbrainz.org", and `truncate`
+              renders the same eight characters the column was already sized for.
+            */}
+            <div className="flex items-center gap-1 font-mono text-2xs text-fg-2">
+              <span>track {track.trackPosition ?? "?"}</span>
+              <span aria-hidden="true">·</span>
+              <MbLink
+                kind="recording"
+                mbid={track.recordingMbid}
+                truncate
+                stopPropagation
+                missing="none"
+                data-testid="track-recording-mb"
+              />
             </div>
           </div>
         ),
@@ -649,15 +667,16 @@ function JobPage() {
         <section className="rounded-xl border border-line bg-surface-1">
           <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
             <h2 className="text-sm font-semibold">Release</h2>
+            {/* Was a fourth hand-written musicbrainz.org anchor, predating the component that
+                exists to make "how does the Console link to MusicBrainz" have one answer. */}
             {job.releaseMbid === null ? null : (
-              <a
-                href={`https://musicbrainz.org/release/${job.releaseMbid}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-2xs text-primary hover:underline"
-              >
-                <ExternalLink className="size-3" aria-hidden="true" /> MB
-              </a>
+              <MbLink
+                kind="release"
+                mbid={job.releaseMbid}
+                label="MB"
+                data-testid="job-release-mb"
+                className="text-2xs text-primary hover:underline"
+              />
             )}
           </header>
           <div className="px-3.5 py-3">
@@ -671,8 +690,19 @@ function JobPage() {
                   { label: "Year", value: job.year ?? "not resolved" },
                   {
                     label: "MBID",
-                    value: <span className="font-mono text-2xs">{job.releaseMbid}</span>,
+                    value: <MbLink kind="release" mbid={job.releaseMbid} />,
                   },
+                  // The release group is on the row and was never shown, though it is the id
+                  // that answers "which other pressings of this record exist" — the question
+                  // behind every edition decision in the review queue.
+                  ...(job.releaseGroupMbid === null
+                    ? []
+                    : [
+                        {
+                          label: "Release group",
+                          value: <MbLink kind="release-group" mbid={job.releaseGroupMbid} />,
+                        },
+                      ]),
                   {
                     label: "Mapping",
                     value: `${String(release.mapped ?? tracks.filter((t) => t.role === "mapped").length)} bound · ${String(release.extras ?? tracks.filter((t) => t.role === "extra").length)} extra`,
