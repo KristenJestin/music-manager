@@ -15,7 +15,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { RETAG_SCOPES, type RetagDiff, type RetagRun } from "#/server/db/schema/index.ts";
+import {
+  RETAG_SCOPES,
+  RETAG_SELECTIONS,
+  type RetagDiff,
+  type RetagRun,
+} from "#/server/db/schema/index.ts";
 import { createBoss, stopBoss } from "#/worker/queues.ts";
 import { enqueueRetag } from "#/worker/handlers/retag.ts";
 import { cancelRun, getRun, listRuns, planRetag, runView } from "#/server/services/retag.ts";
@@ -44,7 +49,12 @@ export const startRetag = createServerFn({ method: "POST", strict: STRICT })
       scope: z.enum(RETAG_SCOPES).default("library"),
       targetId: z.string().nullable().default(null),
       dryRun: z.boolean().default(false),
-      /** `false` re-projects everything in scope, not only what is behind. */
+      /**
+       * Which files inside the scope: `behind` the schema version, `adrift` from the database,
+       * or `all`. `adrift` is what the "N files are behind the database" button sends.
+       */
+      selection: z.enum(RETAG_SELECTIONS).optional(),
+      /** The older two-way spelling. `false` is `all`, `true` is `behind`. `selection` wins. */
       onlyBehind: z.boolean().default(true),
     }),
   )
@@ -60,6 +70,7 @@ export const startRetag = createServerFn({ method: "POST", strict: STRICT })
         scope: data.scope,
         targetId: data.targetId,
         dryRun: data.dryRun,
+        ...(data.selection === undefined ? {} : { selection: data.selection }),
         onlyBehind: data.onlyBehind,
         trigger: "manual",
       });
@@ -90,6 +101,7 @@ export const previewRetag = createServerFn({ method: "GET", strict: STRICT })
     z.object({
       scope: z.enum(RETAG_SCOPES).default("library"),
       targetId: z.string().nullable().default(null),
+      selection: z.enum(RETAG_SELECTIONS).optional(),
       onlyBehind: z.boolean().default(true),
     }),
   )
@@ -102,6 +114,7 @@ export const previewRetag = createServerFn({ method: "GET", strict: STRICT })
           settings,
           scope: data.scope,
           targetId: data.targetId,
+          ...(data.selection === undefined ? {} : { selection: data.selection }),
           onlyBehind: data.onlyBehind,
         }),
         filesBehindCount({ db: db(), settings }),

@@ -157,9 +157,16 @@ export async function refreshAlbumFromSource(
   }
 
   /*
-   * A re-tag with `onlyBehind: false`, because nothing about the tag *schema* changed — what
-   * changed is the answer MusicBrainz gives, and a run filtered on "behind the schema" would
-   * find nothing to do and report success without opening a file.
+   * A re-tag with `selection: "all"`, and **not** through `services/projection.ts`.
+   *
+   * That is the one deliberate exception to "the seam queues it", and the reason is that
+   * `tracksAdrift` compares the *stored* document — it cannot see a change that has only
+   * happened in the raw source cache. This function has just refetched the release; the
+   * documents that would be built from it are different, but no document has been rewritten
+   * yet, so the adrift test would honestly answer "nothing" and the refresh would report
+   * success without opening a file. `all` re-projects every track of the album, which is
+   * exactly what a refetched source is for, and `retagOne`'s own per-file diff is what keeps a
+   * file that did not really change from being reported as changed.
    */
   const dryRun = options.dryRun ?? false;
   const run = await createRun({
@@ -167,7 +174,7 @@ export async function refreshAlbumFromSource(
     settings,
     scope: "album",
     targetId: albumId,
-    onlyBehind: false,
+    selection: "all",
     dryRun,
     trigger: "sources",
   });

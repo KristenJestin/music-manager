@@ -1,5 +1,5 @@
 {
-  "id": "c0e53636-8bc5-4826-8551-0c0aa4c5c1d1",
+  "id": "fbb5704d-e20e-4dad-bd5a-458f62091e21",
   "prevId": "c004df03-28e6-4344-924c-c39e3249619a",
   "version": "7",
   "dialect": "postgresql",
@@ -1689,61 +1689,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.inbox_dismissals": {
-      "name": "inbox_dismissals",
-      "schema": "",
-      "columns": {
-        "subject": {
-          "name": "subject",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "inbox_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "label": {
-          "name": "label",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "inbox_dismissals_type_idx": {
-          "name": "inbox_dismissals_type_idx",
-          "columns": [
-            {
-              "expression": "type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.inbox_items": {
       "name": "inbox_items",
       "schema": "",
@@ -2111,6 +2056,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "selection": {
+          "name": "selection",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'behind'"
         },
         "trigger": {
           "name": "trigger",

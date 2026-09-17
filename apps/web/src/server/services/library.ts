@@ -86,6 +86,8 @@ import {
   scoreLoadedTracks,
   summarise,
   tagMapRows,
+  tracksAdrift,
+  type AdriftReason,
   type AlbumCardQuality,
   type AlbumQuality,
   type LibraryQualityStats,
@@ -323,6 +325,19 @@ export interface AlbumDetail {
   readonly currentSchema: number;
   readonly schemaOverridden: boolean;
   readonly sizeBytes: number;
+  /**
+   * How many of this album's files no longer match the database, and why.
+   *
+   * Distinct from `quality.filesBehind`, which counts files written by an older *projection
+   * version*, and wider than `quality.driftCount`, which only sees the document-versus-file
+   * half. This is `quality.tracksAdrift`: the count the album page renders as "N files are
+   * behind the database" and the button beside it fixes. `reasons` says which halves are in
+   * play, so the sentence can name the cause rather than making the reader guess.
+   */
+  readonly adrift: {
+    readonly count: number;
+    readonly reasons: readonly AdriftReason[];
+  };
 }
 
 /**
@@ -396,6 +411,15 @@ export async function albumDetail(
 
   const loaded = await documentsOfTracks(tracks, db);
   const quality = scoreAlbum(album, loaded, currentSchema, onDisk);
+  /*
+   * The projection invariant, on the page the owner is already looking at.
+   *
+   * One query beside the ones above, and it answers the question a library scan used to be the
+   * only way to ask: which of these files no longer say what the database says? Before this the
+   * page could show a perfect score, thirteen green ticks and `13/13 tracks` over twelve files
+   * carrying the previous edition's `MUSICBRAINZ_RELEASETRACKID`.
+   */
+  const adrift = await tracksAdrift({ db, albumId });
   const documents = loaded
     .map((entry) => entry.document)
     .filter((document): document is TrackDocument => document !== null);
@@ -525,6 +549,10 @@ export async function albumDetail(
     currentSchema,
     schemaOverridden: isSchemaOverridden(settings),
     sizeBytes: tracks.reduce((total, track) => total + (track.size ?? 0), 0),
+    adrift: {
+      count: adrift.length,
+      reasons: [...new Set(adrift.map((entry) => entry.reason))],
+    },
   };
 }
 
@@ -869,6 +897,14 @@ export interface TrackDetail {
   readonly behind: boolean;
   readonly currentSchema: number;
   readonly lyrics: string | null;
+  /**
+   * `null` when the file matches the database, otherwise why it does not.
+   *
+   * The same test the album page renders, narrowed to one track: `quality.tracksAdrift`.
+   * `behind` beside it is a different claim — "written by an older projection version" — and
+   * the two are false independently.
+   */
+  readonly adrift: AdriftReason | null;
 }
 
 export async function trackDetail(
@@ -946,6 +982,7 @@ export async function trackDetail(
     behind: track.tagSchemaVersion === null || track.tagSchemaVersion < currentSchema,
     currentSchema,
     lyrics,
+    adrift: (await tracksAdrift({ db, trackId }))[0]?.reason ?? null,
   };
 }
 

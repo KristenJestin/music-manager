@@ -140,6 +140,63 @@ export async function readDecisions(
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* the projection invariant                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Make an album's files disagree with the database, and undo it.
+ *
+ * The situation, not a shortcut: these are the two columns `applySupplied` writes when a
+ * different edition is confirmed for an album whose files are already placed, and nothing
+ * else. The page is then read, and the button pressed, through the Console like everything
+ * else here. Swapping two bindings is its own inverse, so the same call restores the album.
+ */
+export async function swapTrackBindings(albumId: string): Promise<number> {
+  const sql = connect();
+  try {
+    const rows = await sql<{ n: string }[]>`
+      with tracks as (
+        select it.id, it.import_id, it.track_position, it.track_mbid, it.recording_mbid,
+               it.track_title
+          from import_tracks it
+          join library_tracks lt on lt.import_track_id = it.id
+         where lt.album_id = ${albumId} and it.track_position in (1, 2)
+      )
+      update import_tracks a
+         set track_position = b.track_position,
+             track_mbid     = b.track_mbid,
+             recording_mbid = b.recording_mbid,
+             track_title    = b.track_title
+        from tracks b
+       where a.id in (select id from tracks)
+         and a.import_id = b.import_id
+         and a.track_position <> b.track_position
+      returning a.id::text as n`;
+    return rows.length;
+  } finally {
+    await sql.end();
+  }
+}
+
+/** The album the Discovery import placed, for a spec that needs one with files on disk. */
+export async function firstAlbumId(): Promise<string | null> {
+  const sql = connect();
+  try {
+    const rows = await sql<{ id: string }[]>`
+      select a.id
+        from library_albums a
+        join library_tracks t on t.album_id = a.id
+       where t.import_track_id is not null
+       group by a.id
+      having count(*) >= 2
+       limit 1`;
+    return rows[0]?.id ?? null;
+  } finally {
+    await sql.end();
+  }
+}
+
 /**
  * Empty `inbox_dismissals`.
  *

@@ -29,6 +29,7 @@
  * against it.
  */
 import { and, eq, inArray } from "drizzle-orm";
+import { MMError } from "@mm/contracts";
 import type {
   MappingResult,
   MatchTrack,
@@ -371,18 +372,28 @@ function keep<T>(candidates: readonly T[]): T[] {
 }
 
 /**
- * Run the step, then **close the questions it no longer asks**.
+ * Run the step, then settle what the run leaves behind it: **the questions it no longer asks**,
+ * and **the files that no longer agree with the mapping it has just written**.
  *
- * Re-matching used to accumulate: `openInboxItem` refreshed the item a step still wanted to
- * raise and nothing ever closed the one it had stopped raising, so an album re-matched onto a
- * release that covers every track kept its "6 track(s) of the release have no video" flag for
- * ever. The owner re-matched fifteen albums and not one flag was re-evaluated.
+ * Two clean-ups, one seam, and deliberately so. `runMatch` decides; everything that has to be
+ * true *afterwards* is a consequence of that decision and not a branch inside it, so neither
+ * of the two is repeated at the three places `matchOneAlbum` gives up nor at the four doors a
+ * confirmation comes through.
+ *
+ * **Closing.** Re-matching used to accumulate: `openInboxItem` refreshed the item a step still
+ * wanted to raise and nothing ever closed the one it had stopped raising, so an album
+ * re-matched onto a release that covers every track kept its "6 track(s) of the release have no
+ * video" flag for ever. The owner re-matched fifteen albums and not one flag was re-evaluated.
  *
  * `closeItemsOf` was the only closing verb in this module and it is the wrong one here: it
  * dismisses *everything* open on the import, which is right for a cancellation and would throw
  * away a `fingerprint_mismatch` and a `job_failed` here. What this needs is the difference
  * between what was open and what was just asked, over the four types this step owns — and only
  * over `open` rows, so an item a person answered stays the record it is.
+ *
+ * **Catching up.** See `catchUp`. It runs after the closing rather than before it because the
+ * two report to the same journal and the reading order is the acting order: the Inbox settles,
+ * then the files are told to follow. Nothing in either depends on the other.
  */
 export async function matchStep(ctx: StepContext): Promise<StepResult> {
   const result = await runMatch(ctx);
@@ -394,6 +405,7 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
       { level: "info", data: { items: closed.map((item) => ({ id: item.id, type: item.type })) } },
     );
   }
+  await catchUp(ctx, result);
   return result;
 }
 
@@ -542,6 +554,79 @@ async function untaggedFallback(
       confidence: 1,
     })),
   });
+}
+
+/**
+ * The files catch up with the mapping that has just been written.
+ *
+ * This is the whole of the fix for "confirming a different release leaves the previous
+ * edition's tags on disk", and it is *here* rather than in `services/confirm.ts` because this
+ * is where every confirmation ends up: `confirmSupplied` (the wizard's Start button, the album
+ * page's "Change release", `POST /confirm-mapping`, MCP's `confirm_mapping`) and
+ * `confirmBest`/`applyAndReport` (`POST /confirm-best`, MCP, the batch) both call
+ * `runStep(id, "match")`, and an Inbox `{action: "retry", step: "match"}` re-queues this step.
+ * One call, four doors, and `services/confirm.ts` untouched.
+ *
+ * Nothing is queued unless the import already has files in the library **and** those files
+ * disagree with the mapping the database now holds — which is the whole of an ordinary first
+ * import, where `library_tracks` has no row yet and this costs one indexed query.
+ *
+ * `place` and `tag` will not do it instead: a track that has reached `done` or `placed` is
+ * terminal in `machine.ts`, so re-queueing the import after a re-match re-runs nothing over
+ * the files that are already filed. That is the exact shape of the defect.
+ *
+ * ## The untagged fallback is not an exception, and must not become one
+ *
+ * `untaggedFallback` ends in `applySupplied` with `releaseMbid: null`, every `recordingMbid`
+ * `null`, and no MusicBrainz document anywhere. Queueing a re-tag for *that* would be a loop
+ * with no progress: there is nothing to rebuild from, so the rebuild would change nothing and
+ * the next pass would find the same files still adrift. It is therefore worth being precise
+ * about why this is called anyway, unconditionally, rather than guarded with
+ * `if (result.releaseMbid !== null)`.
+ *
+ * **The guard belongs in the comparison, and it is already there.** `quality.tracksAdrift` is
+ * asymmetric on purpose: `disagrees(held, claimed)` is false whenever `claimed` is `null`,
+ * because a mapping that holds no identifier is not *claiming* the file is wrong. An untagged
+ * album therefore contributes nothing under the `sources` reason — and nothing under
+ * `document` either, since the stored document and its `projection_hash` were written together
+ * and a re-match that builds no document moves neither. An adopted file that this application
+ * never wrote carries `projection_hash = null` and is skipped outright. So `ensureProjection`
+ * fires, reads no adrift track, opens no run, and costs one indexed query.
+ *
+ * That is the right place for it. A guard here would say "an untagged import never needs to
+ * catch up", which is false in the direction that matters: a folder filed untagged and *later*
+ * pinned to a release re-enters this step with real `recordingMbid`s against a document that
+ * holds none, `disagrees(null, "…")` is true, and the re-tag that rebuilds from the freshly
+ * learned mapping is exactly the repair. The fallback's own path stays silent for the same
+ * reason the first import of anything does: `library_tracks` has no row for this import until
+ * `place` has run, so a folder import's `match` resolves to no album at all.
+ */
+async function catchUp(ctx: StepContext, result: StepResult): Promise<void> {
+  if (result.status !== "done" && result.status !== "skipped") return;
+  try {
+    const { ensureProjectionForImport } = await import("#/server/services/projection.ts");
+    const outcomes = await ensureProjectionForImport({
+      importId: ctx.job.id,
+      db: ctx.db,
+      settings: ctx.settings,
+      trigger: "sources",
+    });
+    for (const outcome of outcomes) {
+      if (outcome.reused) continue;
+      await ctx.say(
+        "step.done",
+        `${String(outcome.adrift)} file(s) of this album no longer match the database; a re-tag is queued.`,
+        { data: { runId: outcome.runId, adrift: outcome.adrift, total: outcome.total } },
+      );
+    }
+  } catch (error) {
+    // The mapping is written and correct; failing the `match` step because the catch-up could
+    // not be queued would throw away the part that worked. The Quality page and the album page
+    // both report the drift, so the state is recoverable by hand.
+    await ctx.say("step.progress", `Could not queue the re-tag: ${MMError.from(error).message}`, {
+      level: "warn",
+    });
+  }
 }
 
 /* ---- album ---- */

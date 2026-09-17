@@ -67,6 +67,7 @@ import { emit } from "#/server/services/events.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { discBucket, freeAlbumPosition, insertLibraryTrack } from "#/server/services/positions.ts";
 import { hashProjection, formatOf } from "#/server/services/retag.ts";
+import { withoutProjection } from "#/server/services/projection.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { walkLibrary, type WalkedFile } from "#/server/services/scan.ts";
 
@@ -272,6 +273,19 @@ function folderOf(path: string): string {
  * CLI passes unless `--apply` is given.
  */
 export async function repairOrphans(options: RepairOptions = {}): Promise<RepairReport> {
+  /*
+   * Suppressed, explicitly, rather than batched.
+   *
+   * This pass adopts up to five thousand files, writing a document and stamping a projection
+   * hash for each; every one of those writes is a placed track whose document has just moved,
+   * so the seam would queue a run per album and flood the queue with hundreds of them for work
+   * this function has already done itself. Suppression is the honest answer for a writer that
+   * *is* the catch-up, as it is for the re-tag and the v1 take-over.
+   */
+  return await withoutProjection(async () => await repairOrphansInner(options));
+}
+
+async function repairOrphansInner(options: RepairOptions): Promise<RepairReport> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const paths = options.paths ?? resolvePaths(settings);

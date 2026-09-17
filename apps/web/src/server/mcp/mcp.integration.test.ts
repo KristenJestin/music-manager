@@ -1835,7 +1835,10 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
         onlyBehind: true,
       })) as { runId: string; total: number; note?: string };
       expect(result.total).toBe(0);
-      expect(result.note).toContain("Nothing in scope");
+      // The note names the question the selection actually asked — `behind` compares a schema
+      // *version*, never values — and points at the selection that compares values.
+      expect(result.note).toContain("older projection version");
+      expect(result.note).toContain("adrift");
 
       const [row] = await db()
         .select()

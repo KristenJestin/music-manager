@@ -180,3 +180,19 @@ export type WatchedScanStatus = (typeof WATCHED_SCAN_STATUSES)[number];
  */
 export const WATCHED_ITEM_STATUSES = ["new", "imported", "skipped", "ignored"] as const;
 export type WatchedItemStatus = (typeof WATCHED_ITEM_STATUSES)[number];
+
+/**
+ * Which files inside its scope a re-tag run covers.
+ *
+ *  - `behind` — those whose `tag_schema_version` is older than the run's. §8's schema bump, and
+ *    a question about `MUSICMANAGER_TAGSCHEMA` rather than about values.
+ *  - `adrift` — those whose file disagrees with the database (`quality.tracksAdrift`): the
+ *    answer to a re-match or a hand correction. This is the one selection that is about values.
+ *  - `all` — everything in scope, current or not.
+ *
+ * Here rather than in `retag.ts` for the reason `AGENTS.md` gives for `STEPS`: the Console needs
+ * it as a *value* — the album page's "Update the files" button sends `adrift` — and it should
+ * not cost the visitor `drizzle-orm/pg-core` to have it.
+ */
+export const RETAG_SELECTIONS = ["behind", "adrift", "all"] as const;
+export type RetagSelection = (typeof RETAG_SELECTIONS)[number];

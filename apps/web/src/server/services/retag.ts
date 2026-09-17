@@ -57,6 +57,7 @@ import {
   type LibraryTrack,
   type RetagRun,
   type RetagScope,
+  type RetagSelection,
   type RetagTagChange,
   type RetagTrigger,
 } from "#/server/db/schema/index.ts";
@@ -68,7 +69,8 @@ import { albumScopeResolver } from "#/server/services/album-scope.ts";
 import { rebuild as rebuildDocument } from "#/server/services/documents.ts";
 import { lyricsOf } from "#/server/services/jobs/steps/tag.ts";
 import { requestRescan } from "#/server/services/navidrome.ts";
-import { tracksBehindSchema } from "#/server/services/quality.ts";
+import { withoutProjection } from "#/server/services/projection.ts";
+import { tracksAdrift, tracksBehindSchema } from "#/server/services/quality.ts";
 import { effectiveSchemaVersion } from "#/server/services/schema-version.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
@@ -278,15 +280,47 @@ export interface PlanOptions {
   readonly scope: RetagScope;
   /** An album id for `album`, a library-track id for `track`, absent for `library`. */
   readonly targetId?: string | null;
-  /** `false` re-tags everything in scope, even the files that are already current. */
+  /**
+   * Which files inside the scope. See `RETAG_SELECTIONS`.
+   *
+   * `adrift` is the one that is about *values*: the files that disagree with the database.
+   * Nothing selected `behind` before it existed, so a re-matched album — every file of it
+   * carrying the current schema version and the previous edition's ids — was unreachable from
+   * `mm retag`, from the Quality page and from the REST route alike, and the only report that
+   * knew was a full library scan.
+   */
+  readonly selection?: RetagSelection;
+  /**
+   * The old two-way spelling of `selection`, kept so every existing caller still means what it
+   * meant: `true` (the default) is `behind`, `false` is `all`. `selection` wins when both are
+   * given.
+   */
   readonly onlyBehind?: boolean;
+}
+
+/** `selection`, defaulted, with the legacy `onlyBehind` folded into it. */
+export function selectionOf(options: {
+  selection?: RetagSelection;
+  onlyBehind?: boolean;
+}): RetagSelection {
+  if (options.selection !== undefined) return options.selection;
+  return options.onlyBehind === false ? "all" : "behind";
 }
 
 /** Which files a run would touch, in a stable order. */
 export async function planRetag(options: PlanOptions): Promise<LibraryTrack[]> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
-  const onlyBehind = options.onlyBehind ?? true;
+  const selection = selectionOf(options);
+
+  if (selection === "adrift") {
+    const scoped = await tracksAdrift({
+      db,
+      ...(options.scope === "album" ? { albumId: options.targetId ?? "" } : {}),
+      ...(options.scope === "track" ? { trackId: options.targetId ?? "" } : {}),
+    });
+    return scoped.map((entry) => entry.track);
+  }
 
   if (options.scope === "track") {
     const id = options.targetId ?? "";
@@ -297,7 +331,7 @@ export async function planRetag(options: PlanOptions): Promise<LibraryTrack[]> {
 
   if (options.scope === "album") {
     const id = options.targetId ?? "";
-    if (onlyBehind) return await tracksBehindSchema({ db, settings, albumId: id });
+    if (selection === "behind") return await tracksBehindSchema({ db, settings, albumId: id });
     return await db
       .select()
       .from(libraryTracks)
@@ -305,7 +339,7 @@ export async function planRetag(options: PlanOptions): Promise<LibraryTrack[]> {
       .orderBy(libraryTracks.discNumber, libraryTracks.trackNumber);
   }
 
-  if (onlyBehind) return await tracksBehindSchema({ db, settings });
+  if (selection === "behind") return await tracksBehindSchema({ db, settings });
   return await db
     .select()
     .from(libraryTracks)
@@ -344,6 +378,7 @@ export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
       id,
       scope: options.scope,
       targetId: options.targetId ?? null,
+      selection: selectionOf(options),
       trigger: options.trigger ?? "manual",
       dryRun: options.dryRun ?? false,
       status: empty ? "done" : "pending",
@@ -359,7 +394,7 @@ export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
     {
       type: empty ? "retag.done" : "retag.queued",
       message: empty
-        ? `${options.dryRun === true ? "Dry run" : "Re-tag"}: nothing in scope is behind the projection.`
+        ? `${options.dryRun === true ? "Dry run" : "Re-tag"}: ${emptyReason(selectionOf(options))}`
         : `${options.dryRun === true ? "Dry run" : "Re-tag"} queued: ${String(targets.length)} file(s), projection v${String(row.schemaVersion)}.`,
       data: { runId: row.id, scope: row.scope, total: row.total, dryRun: row.dryRun },
     },
@@ -367,6 +402,26 @@ export async function createRun(options: CreateRunOptions): Promise<RetagRun> {
   );
 
   return row;
+}
+
+/**
+ * What an empty run actually found out, which is not what it used to say.
+ *
+ * "Nothing in scope is behind the projection" was printed for `behind`, and it is a claim
+ * about *values* that `behind` has no means of making — it compares a schema version. The owner
+ * read it on twelve Birdy files that carried the previous edition's ids and reasonably
+ * concluded the re-tag was broken; what was broken was the sentence. Each selection now reports
+ * the question it actually asked, and `behind` says which one would have answered differently.
+ */
+export function emptyReason(selection: RetagSelection): string {
+  if (selection === "adrift") return "every file in scope already matches the database.";
+  if (selection === "all") return "there is no file in scope.";
+  return (
+    "no file in scope was written by an older projection version. " +
+    "That is a question about `MUSICMANAGER_TAGSCHEMA`, not about values — " +
+    "use the `adrift` selection (`mm retag --adrift`) to find files whose tags disagree " +
+    "with the database."
+  );
 }
 
 /**
@@ -634,6 +689,14 @@ export interface BatchResult {
  * file re-tagged twice.
  */
 export async function runBatch(runId: string, options: BatchOptions = {}): Promise<BatchResult> {
+  // A re-tag writes tags; writing tags changes what the file holds; and *that* must not queue
+  // another re-tag. Nothing under here goes through `services/projection.ts` today — `retagOne`
+  // rebuilds with `persist: false` and `stamp` writes the rows directly — so the wrapper is
+  // belt and braces rather than load-bearing, which is exactly when a loop guard is cheap.
+  return await withoutProjection(async () => await runBatchInner(runId, options));
+}
+
+async function runBatchInner(runId: string, options: BatchOptions): Promise<BatchResult> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const toolbox = options.toolbox ?? defaultToolbox();
@@ -662,16 +725,7 @@ export async function runBatch(runId: string, options: BatchOptions = {}): Promi
   }
 
   /* ---- what is left ---- */
-  const planned = await planRetag({
-    db,
-    settings,
-    scope: run.scope,
-    targetId: run.targetId,
-    // A run that was opened over "everything" keeps that meaning even as files stop being
-    // behind: `alreadyDone` below is what shrinks the remaining set, not the filter.
-    onlyBehind: false,
-  });
-  const scoped = await scopeTargets(run, planned, db);
+  const scoped = await scopeTargets(run, db, settings);
   const done = await doneIds(run.id, db);
   const pending = scoped.filter((track) => !done.has(track.id));
   const slice = pending.slice(0, batchSize);
@@ -770,24 +824,61 @@ export async function runBatch(runId: string, options: BatchOptions = {}): Promi
   };
 }
 
-/** A run scoped to `library` still means "everything that was behind when it opened". */
+/**
+ * The files this run still means, re-derived on every batch.
+ *
+ * Re-derived rather than remembered because a run is a queue of batches and a worker can die
+ * between two of them; the price is that the set has to be recomputed from a world the run is
+ * itself changing, and that is what the `stamped` union below is for. A file this run has
+ * already written is no longer behind and no longer adrift — it would drop out of the filter,
+ * and `remaining` would go wrong under a progress bar somebody is watching.
+ *
+ * **It reads `run.selection`.** It used to read nothing and assume `behind` for every `library`
+ * run, which silently unmade `onlyBehind: false`: `mm retag --all` opened a run over the whole
+ * library, `planRetag` returned four thousand files, this function threw every one of them away
+ * because none was behind the *schema*, and the run finished `done` with `0/4344` without
+ * opening a file. The two bugs compounded — one selection that could not see a value change,
+ * and one filter that discarded the selection that could.
+ */
 async function scopeTargets(
   run: RetagRun,
-  planned: readonly LibraryTrack[],
   db: Database,
+  settings: Settings,
 ): Promise<LibraryTrack[]> {
-  if (run.scope !== "library") return [...planned];
-  // Re-derive the set from the run's own schema version rather than the live one: a run
-  // opened at v2 must finish at v2 even if somebody bumps to v3 halfway through.
-  const behind = planned.filter(
-    (track) => track.tagSchemaVersion === null || track.tagSchemaVersion < run.schemaVersion,
-  );
-  // Files this run has already stamped are no longer "behind", so they would vanish from the
-  // filter — which would make `remaining` wrong. The already-done set is added back in.
+  const plan = { db, settings, scope: run.scope, targetId: run.targetId } as const;
+
+  let selected: LibraryTrack[];
+  if (run.selection === "all") {
+    selected = await planRetag({ ...plan, selection: "all" });
+  } else if (run.selection === "behind") {
+    /*
+     * Everything in scope, filtered by the run's **own** schema version rather than the live
+     * one: a run opened at v2 must finish at v2 even if somebody bumps the projection to v3
+     * halfway through it. `planRetag`'s `behind` reads the current version, so it cannot be
+     * used here — this is the one selection whose meaning is frozen at the run row.
+     */
+    selected = (await planRetag({ ...plan, selection: "all" })).filter(
+      (track) => track.tagSchemaVersion === null || track.tagSchemaVersion < run.schemaVersion,
+    );
+  } else {
+    // Straight from `planRetag`, not scope-wide-then-filtered: a library-wide adrift run would
+    // otherwise re-project every document in the library **twice** on every batch of 25.
+    selected = await planRetag({ ...plan, selection: "adrift" });
+  }
+  if (run.selection === "all") return selected;
+
+  /*
+   * Files this run has already written are no longer behind and no longer adrift, so they drop
+   * out of the selection — and `remaining` would go wrong under a progress bar somebody is
+   * watching. Added back by id rather than by re-reading the scope.
+   */
   const done = await doneIds(run.id, db);
-  const stamped = planned.filter((track) => done.has(track.id));
-  const seen = new Set(behind.map((track) => track.id));
-  return [...behind, ...stamped.filter((track) => !seen.has(track.id))];
+  if (done.size === 0) return selected;
+  const seen = new Set(selected.map((track) => track.id));
+  const missing = [...done].filter((id) => !seen.has(id));
+  if (missing.length === 0) return selected;
+  const stamped = await db.select().from(libraryTracks).where(inArray(libraryTracks.id, missing));
+  return [...selected, ...stamped];
 }
 
 async function doneIds(runId: string, db: Database): Promise<Set<string>> {

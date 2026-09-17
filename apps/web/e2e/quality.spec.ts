@@ -152,8 +152,20 @@ test.describe("metadata quality and the tag schema", () => {
 
     /* ---- the dry run: a diff, and not one byte written --------------------- */
 
+    /*
+     * Scoped to the toaster, not to the page.
+     *
+     * The Console's activity feed prints the journal, and `createRun` writes "Re-tag queued: N
+     * file(s), projection vN." to it — the same words in a different sentence. A bare
+     * `getByText(/re-tag queued/i)` therefore matches any earlier run's journal line as well as
+     * this click's toast, and fails Playwright's strict mode the moment a spec before this one
+     * has queued anything. `projection.spec.ts` is such a spec; it was only ever luck that none
+     * existed before.
+     */
     await page.getByTestId("retag-dry-run").click();
-    await expect(page.getByText(/dry run queued/i)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("toaster").getByText(/dry run queued/i)).toBeVisible({
+      timeout: 60_000,
+    });
     await waitForRetag(page);
 
     // A dry run writes nothing, so the count is exactly what it was.
@@ -162,7 +174,9 @@ test.describe("metadata quality and the tag schema", () => {
     /* ---- the real run ------------------------------------------------------ */
 
     await page.getByTestId("retag-all").click();
-    await expect(page.getByText(/re-tag queued/i)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("toaster").getByText(/re-tag queued/i)).toBeVisible({
+      timeout: 60_000,
+    });
     await waitForRetag(page);
 
     await expect

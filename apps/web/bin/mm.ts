@@ -87,6 +87,7 @@ import { albumDetail, albumGrid, artistList, trackList } from "#/server/services
 import {
   cancelRun,
   createRun,
+  emptyReason,
   listRuns,
   runToCompletion,
   runView,
@@ -1453,22 +1454,35 @@ async function cmdRetag(args: Args): Promise<number> {
   const track = flagString(args, "track");
   const scope = track !== undefined ? "track" : album !== undefined ? "album" : "library";
   const dryRun = flagBoolean(args, "dry-run");
-  const onlyBehind = !flagBoolean(args, "all");
+  /*
+   * Three selections, and the default is still the old one so no script changes meaning.
+   *
+   * `--adrift` is the repair for a library that already diverged: it selects the files whose
+   * tags disagree with the database rather than the files written by an older *projection
+   * version*, which is all the default has ever been able to see. Without it a re-matched album
+   * was unreachable from here — `mm retag --album …` answered "nothing to do" on twelve files
+   * that plainly carried the previous edition's ids.
+   */
+  const selection = flagBoolean(args, "adrift")
+    ? "adrift"
+    : flagBoolean(args, "all")
+      ? "all"
+      : "behind";
 
   const run = await createRun({
     db: db(),
     scope,
     targetId: track ?? album ?? null,
     dryRun,
-    onlyBehind,
+    selection,
     trigger: "manual",
   });
 
   line(
-    `${dryRun ? "Dry run" : "Re-tag"} ${run.id}: ${String(run.total)} file(s) to projection v${String(run.schemaVersion)}.`,
+    `${dryRun ? "Dry run" : "Re-tag"} ${run.id}: ${String(run.total)} file(s) to projection v${String(run.schemaVersion)} (selection: ${selection}).`,
   );
   if (run.total === 0) {
-    line("Nothing to do — every file in scope already carries that projection.");
+    line(`Nothing to do — ${emptyReason(selection)}`);
     return 0;
   }
 
@@ -1613,8 +1627,11 @@ const USAGE = `mm — Music Manager
   mm library repair-orphans [--apply] [--limit n] [--json]
                                           re-attach library files that have no row, from their
                                           own MUSICBRAINZ_* tags; dry run unless --apply
-  mm retag [--album <id>|--track <id>] [--dry-run] [--all] [--queue]
+  mm retag [--album <id>|--track <id>] [--dry-run] [--adrift|--all] [--queue]
                                           re-project from the raw cache; offline, no re-download
+                                          default selects files behind the schema *version*;
+                                          --adrift selects files whose tags disagree with the
+                                          database; --all selects everything in scope
   mm retag runs | show <run id> | cancel <run id>             the runs, and the per-file diffs
   mm relocate [--album <id>] [--apply] [--json]               re-file against pathTemplate; dry by default
 

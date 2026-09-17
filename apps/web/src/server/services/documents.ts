@@ -21,6 +21,26 @@
  *
  * Precedence and locks are not applied here either: `merge` in `@mm/domain` owns both, and
  * this module's job is to hand it patches in the right order with a locked set on top.
+ *
+ * ## Why the projection catch-up is *not* hooked into `persist()`
+ *
+ * `persist()` below is the single place a document reaches the database, so it looks like the
+ * obvious seam for "a write that changes what the files carry must make the files catch up"
+ * (`services/projection.ts`). It is the wrong one, for three reasons and the first is decisive:
+ *
+ *  1. **the path that made this a bug writes no document.** `matchStep` rewrites
+ *     `imports.release_mbid` and every `import_tracks` row when a different edition is
+ *     confirmed, and leaves `metadata_documents` exactly as it was. A hook here would never
+ *     fire, and the re-matched album would still carry the previous edition's identifiers.
+ *  2. **the document `persist()` receives is the per-track build**, before `unifyScope` has
+ *     applied the album's value for the 36 `albumScope` fields. Its projection legitimately
+ *     differs from what the file holds on every album that has been unified — which is why
+ *     `retagOne` calls `applyAlbumScopeTo` before projecting.
+ *  3. it is called from inside the `tag` step, one line before that step writes the file.
+ *
+ * So the seam sits one level out, at the end of each unit of work that changed what a placed
+ * file would be written from: `matchStep`, `overrides.write`, `refreshAlbumFromSource`. See the
+ * header of `services/projection.ts`.
  */
 import { and, eq, isNull, or } from "drizzle-orm";
 import { MMError } from "@mm/contracts";

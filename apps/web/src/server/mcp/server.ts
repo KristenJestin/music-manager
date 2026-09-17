@@ -61,8 +61,10 @@ import {
   abbreviateChange,
   createRun,
   DIFF_VALUE_LIMIT,
+  emptyReason,
   runToCompletion,
   runView,
+  selectionOf,
 } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
 import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
@@ -83,8 +85,10 @@ import { KEY_RATE_LIMIT, SUGGESTED_POLL_INTERVAL_MS } from "#/server/auth/key-ra
 import {
   IMPORT_STATUSES,
   INBOX_TYPES,
+  RETAG_SELECTIONS,
   type ImportStatus,
   type InboxType,
+  type RetagSelection,
 } from "#/server/db/schema/enums.vocab.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 
@@ -1423,10 +1427,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         albumId: z.string().optional().describe("Omit with `trackId` to re-tag the library."),
         trackId: z.string().optional(),
         dryRun: z.boolean().default(true),
+        selection: z
+          .enum(RETAG_SELECTIONS)
+          .optional()
+          .describe(
+            "Which files in scope. `behind` (the default) is files written by an older tag " +
+              "*schema version* — not a question about values. `adrift` is files whose tags " +
+              "disagree with the database: a release confirmed since they were filed, a field " +
+              "corrected by hand. `all` is everything in scope. Use `adrift` to repair a " +
+              "divergence; `behind` will report nothing to do on it.",
+          ),
         onlyBehind: z
           .boolean()
           .default(true)
-          .describe("Only files whose projection is behind the current tag schema."),
+          .describe("The older two-way spelling of `selection`. `false` is `all`."),
         limit: z
           .number()
           .int()
@@ -1439,21 +1453,23 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         albumId?: string;
         trackId?: string;
         dryRun: boolean;
+        selection?: RetagSelection;
         onlyBehind: boolean;
         limit: number;
       }) => {
         const scope =
           args.trackId !== undefined ? "track" : args.albumId !== undefined ? "album" : "library";
+        const selection = selectionOf(args);
         const run = await createRun({
           db: db(),
           scope,
           targetId: args.trackId ?? args.albumId ?? null,
           dryRun: args.dryRun,
-          onlyBehind: args.onlyBehind,
+          selection,
           trigger: "manual",
         });
         if (run.total === 0) {
-          return { runId: run.id, total: 0, note: "Nothing in scope is behind the projection." };
+          return { runId: run.id, total: 0, note: emptyReason(selection) };
         }
         // A dry run is cheap and its whole point is the answer, so it is run here. A real
         // re-tag of a library writes thousands of files and goes to the worker.
