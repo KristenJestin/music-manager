@@ -52,6 +52,7 @@ import {
   openLibraryItem,
   openLibraryItems,
 } from "#/server/services/library-inbox.ts";
+import { albumIncompleteSubject } from "#/server/services/inbox-dismissals.ts";
 import {
   NAVIDROME_DISABLED_MESSAGE,
   NAVIDROME_UNCONFIGURED_MESSAGE,
@@ -885,6 +886,12 @@ export async function raiseIncompleteAlbums(db: Database = defaultDb()): Promise
       {
         type: "album_incomplete",
         subject,
+        /*
+         * The denominator is in the key: "accept it as it is" is an answer about an album
+         * measured against a known total, and a re-match that changes that total is a
+         * different gap (`services/inbox-dismissals.ts`).
+         */
+        dismissSubjects: [albumIncompleteSubject(album.id, album.trackCount)],
         title: `${album.artist} — ${album.title} is missing ${String(missing)} track(s)`,
         summary: `${String(album.presentCount)} of ${String(album.trackCount)} tracks are on disk. Discover can re-import the rest.`,
         payload: {

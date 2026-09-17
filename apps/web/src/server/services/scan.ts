@@ -38,6 +38,12 @@ import { containerPath, hostPath, toPosix, type PathMap } from "#/server/paths.t
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeLibraryItem, openLibraryItem } from "#/server/services/library-inbox.ts";
+import {
+  dismissedSubjects,
+  duplicateSubject,
+  mergeConflictSubject,
+  orphanSubject,
+} from "#/server/services/inbox-dismissals.ts";
 import { recountAlbums } from "#/server/services/album-counters.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -159,7 +165,20 @@ export interface DriftedTrack {
 export interface DuplicateGroup {
   readonly recordingMbid: string;
   readonly title: string;
-  readonly files: readonly { readonly trackId: string; readonly path: string }[];
+  /**
+   * `albumId` is here for the dismissal key and not for the card.
+   *
+   * "This recording is on the album and on the compilation, and that is fine" is an answer
+   * about the two *releases*, so the memory is keyed on them rather than on the paths the
+   * files happen to sit at — a relocate would rewrite those and ask again. See
+   * `services/inbox-dismissals.ts`. Null on a track filed under no album; a report written
+   * before this field existed simply has none, and the key falls back to `-`.
+   */
+  readonly files: readonly {
+    readonly trackId: string;
+    readonly path: string;
+    readonly albumId: string | null;
+  }[];
 }
 
 /**
@@ -680,12 +699,12 @@ export async function runScan(options: ScanOptions = {}): Promise<{
 
     const byRecording = new Map<
       string,
-      { title: string; files: { trackId: string; path: string }[] }
+      { title: string; files: { trackId: string; path: string; albumId: string | null }[] }
     >();
     for (const row of rows) {
       if (row.recordingMbid === null || row.recordingMbid === "") continue;
       const group = byRecording.get(row.recordingMbid) ?? { title: row.title, files: [] };
-      group.files.push({ trackId: row.id, path: row.path });
+      group.files.push({ trackId: row.id, path: row.path, albumId: row.albumId });
       byRecording.set(row.recordingMbid, group);
     }
     const duplicates: DuplicateGroup[] = [...byRecording.entries()]
@@ -903,17 +922,36 @@ function chunk<T>(values: readonly T[], size: number): T[][] {
  * not two hundred. Duplicates are per recording, because that is the unit you decide about.
  */
 async function raiseScanItems(db: Database, report: ScanReport): Promise<void> {
-  if (report.orphans.length > 0) {
+  /*
+   * The memory, read once, before a single row is written.
+   *
+   * Every finding below is filtered through it rather than being raised and then dismissed
+   * again: the owner answered eleven duplicates one at a time and the next scan asked all
+   * eleven again, because the answer lived on the item and the scan builds new items. See
+   * `services/inbox-dismissals.ts` — including why the duplicate key is the recording plus
+   * the albums rather than the paths the scan happens to compare.
+   */
+  const hidden = await dismissedSubjects(db);
+
+  /*
+   * Orphans are filtered per path, not per card. The card is the aggregate ("two hundred
+   * files are not in the database") but the answer was about the files, so a path already
+   * answered drops out and a *new* stray file raises the card again carrying only itself.
+   */
+  const orphans = report.orphans.filter((orphan) => !hidden.has(orphanSubject(orphan.path)));
+  if (orphans.length > 0) {
+    const listed = orphans.slice(0, 200);
     await openLibraryItem(
       {
         type: "orphan_files",
         subject: "scan:orphans",
-        title: `${String(report.orphans.length)} file(s) in the library are not in the database`,
-        summary: report.orphans
+        dismissSubjects: listed.map((orphan) => orphanSubject(orphan.path)),
+        title: `${String(orphans.length)} file(s) in the library are not in the database`,
+        summary: orphans
           .slice(0, 3)
           .map((orphan) => orphan.path)
           .join(" · "),
-        payload: { orphans: report.orphans.slice(0, 200), total: report.orphans.length },
+        payload: { orphans: listed, total: orphans.length },
         preselected: { action: "identify" },
       },
       db,
@@ -923,10 +961,16 @@ async function raiseScanItems(db: Database, report: ScanReport): Promise<void> {
   }
 
   for (const group of report.duplicates) {
+    const subject = duplicateSubject(
+      group.recordingMbid,
+      group.files.map((file) => file.albumId ?? null),
+    );
+    if (hidden.has(subject)) continue;
     await openLibraryItem(
       {
         type: "duplicate_recording",
         subject: `recording:${group.recordingMbid}`,
+        dismissSubjects: [subject],
         title: `“${group.title}” is in the library ${String(group.files.length)} times`,
         summary: group.files.map((file) => file.path).join(" · "),
         payload: { ...group },
@@ -945,10 +989,18 @@ async function raiseScanItems(db: Database, report: ScanReport): Promise<void> {
    * collision rather than one per scan.
    */
   for (const conflict of report.mergeConflicts ?? []) {
+    const subject = mergeConflictSubject(
+      conflict.albumId,
+      conflict.on,
+      conflict.key,
+      conflict.rows.map((row) => row.trackId),
+    );
+    if (hidden.has(subject)) continue;
     await openLibraryItem(
       {
         type: "duplicate_recording",
         subject: `merge:${conflict.key}`,
+        dismissSubjects: [subject],
         title:
           `${String(conflict.rows.length)} library rows share one ` +
           `${conflict.on === "position" ? "position" : "recording"} on this album`,

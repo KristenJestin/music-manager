@@ -10,12 +10,20 @@
  * So they are keyed on their own subject instead: the library album id, the scan run, the
  * recording MBID. The identity is written into `payload.subject` and matched there, which
  * keeps the whole thing inside the existing table and needs no migration.
+ *
+ * That `subject` is the key of the **row**, and it is not the key of the *question*. The two
+ * differ on purpose: an item aggregates (two hundred orphan files are one card) while an
+ * answer is per decision. `dismissSubjects` below carries the question's key, and it is read
+ * from `inbox_dismissals` *before* anything is inserted, so a subject somebody has already
+ * answered never becomes a row at all. Pre-answering a queue is not the same as quietening
+ * it; see `services/inbox-dismissals.ts` for the key per type and for what makes one expire.
  */
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { inboxItems, type InboxItem, type InboxType } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
+import { dismissedSubjects } from "./inbox-dismissals.ts";
 import { emit } from "./events.ts";
 
 export interface LibraryInboxOptions {
@@ -26,6 +34,14 @@ export interface LibraryInboxOptions {
   readonly summary?: string;
   readonly payload?: Record<string, unknown>;
   readonly preselected?: Record<string, unknown>;
+  /**
+   * The key(s) of the *question*, looked up in `inbox_dismissals` before anything is written.
+   *
+   * Several, because one card can carry several decisions: an `orphan_files` item that lists
+   * three paths is silent only if all three have been answered. Omitted means "this type is
+   * not rebuilt, ask freely" — which is the truth for every import-scoped raiser.
+   */
+  readonly dismissSubjects?: readonly string[];
 }
 
 /** The `payload.subject` of an open item, matched as JSON text. */
@@ -35,12 +51,18 @@ const subjectOf = (subject: string) => sql`${inboxItems.payload} ->> 'subject' =
  * Raise a library-scoped item, or refresh the one already open for the same subject.
  *
  * Idempotent by construction, which is what lets the nightly scan run every night without
- * turning the Inbox into a log.
+ * turning the Inbox into a log. Returns `null` when every question the item would ask has
+ * already been answered "and stop asking": the row is never written, so the queue is quiet
+ * rather than full of items somebody has to dismiss a second time.
  */
 export async function openLibraryItem(
   options: LibraryInboxOptions,
   db: Database = defaultDb(),
-): Promise<InboxItem> {
+): Promise<InboxItem | null> {
+  if (options.dismissSubjects !== undefined && options.dismissSubjects.length > 0) {
+    const hidden = await dismissedSubjects(db);
+    if (options.dismissSubjects.every((subject) => hidden.has(subject))) return null;
+  }
   const payload = { ...(options.payload ?? {}), subject: options.subject };
   const [existing] = await db
     .select()
