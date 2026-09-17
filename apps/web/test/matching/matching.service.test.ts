@@ -85,7 +85,7 @@ describe("the recorded scenarios", () => {
 /* ------------------------------------------------------------------ */
 
 describe("the request budget", () => {
-  it("spends one group search, one search per group kept, and fewer lookups than the ceiling", async () => {
+  it("spends the whole ceiling on Discovery, which is the shape the ceiling is for", async () => {
     const recorded = cassette("discovery");
     const gateway = cassetteGateway(recorded);
     const result = await matchAlbum(gateway, albumInput(recorded), settings);
@@ -95,12 +95,15 @@ describe("the request budget", () => {
     expect(result.budget.searches).toBeLessThanOrEqual(result.planned.searches);
     expect(result.budget.searches).toBeGreaterThan(1);
     /*
-     * The lookup half is now a *ceiling*, and Discovery comes nowhere near it: four release
-     * groups get their reserved lookup and the bound then says no unopened pressing can beat
-     * a fourteen-track French CD that already covers every track. The old flat plan spent six.
+     * The expensive case, and worth having one in the suite. *Discovery* is twenty-three
+     * pressings of one record, and the playlist carries a radio edit — so no candidate is ever
+     * *exact*, the early stop never fires, and the leader's fit is 13/14 because "Face to
+     * Face" is 2.2 s out on every pressing. Any unopened pressing could have had a 238-second
+     * "Face to Face", so the bound is right to keep looking and right to find nothing. This is
+     * what `matchLookupLimit` is a ceiling *for*: everything else in the corpus costs three.
      */
-    expect(result.budget.lookups).toBeLessThan(lookupLimitOf(settings));
-    expect(result.budget.lookups).toBe(4);
+    expect(result.budget.lookups).toBe(lookupLimitOf(settings));
+    expect(result.stoppedBecause).toBe("ceiling");
     // The counter on the gateway is the ground truth; `budget` must not be able to drift.
     expect(gateway.calls).toEqual(result.budget);
   });
@@ -503,10 +506,13 @@ describe("The Heist (Deluxe Edition) — a duo credit, an edition, and eighteen 
   it("marks a standard pressing down for not being the edition asked for", async () => {
     const recorded = cassette("the-heist");
     const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
-    const standard = result.ranking.candidates.find(
-      (candidate) => candidate.detailed && candidate.tracks === 15,
-    );
-    expect(standard, "a fifteen-track pressing was read").toBeDefined();
+    /*
+     * The deduction is on the *known* half of a candidate — a disambiguation and a title come
+     * back with the search — so it lands on the fifteen-track pressings without any of them
+     * having to be opened. Which is the point: it is part of what keeps them from being.
+     */
+    const standard = result.ranking.candidates.find((candidate) => candidate.tracks === 15);
+    expect(standard, "a fifteen-track pressing is among the candidates").toBeDefined();
     expect(standard?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
       /asks for the deluxe edition and this pressing does not say it is one/,
     );

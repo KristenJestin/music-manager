@@ -1,7 +1,7 @@
 {
   "name": "rise-against",
   "kind": "album",
-  "recordedAt": "2026-09-17T08:32:37.115Z",
+  "recordedAt": "2026-09-17T09:50:29.548Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_appeal-to-reason",
     "album": "Appeal to Reason",
@@ -3754,6 +3754,639 @@
       }
     },
     {
+      "key": "release/46a691d9-67f7-42c1-bc91-7689b0a7fade?inc=releaseFull",
+      "payload": {
+        "id": "46a691d9-67f7-42c1-bc91-7689b0a7fade",
+        "title": "Appeal to Reason",
+        "disambiguation": "",
+        "date": "2014-09-12",
+        "country": "XW",
+        "status": "Official",
+        "barcode": "00602517849068",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "darkened": false,
+          "front": true,
+          "artwork": true,
+          "back": false,
+          "count": 2
+        },
+        "artist-credit": [
+          {
+            "name": "Rise Against",
+            "joinphrase": "",
+            "artist": {
+              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+              "name": "Rise Against",
+              "sort-name": "Rise Against",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "08UMGIM18022",
+            "label": {
+              "id": "0fadc2ce-f7de-4e27-bbe6-612b317e716b",
+              "name": "Geffen Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
+          "title": "Appeal to Reason",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2008-10-02",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Rise Against",
+              "joinphrase": "",
+              "artist": {
+                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                "name": "Rise Against",
+                "sort-name": "Rise Against",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 14,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "07d9e8eb-e8df-41d5-b72f-478c48239e06",
+                "position": 1,
+                "number": "1",
+                "title": "Collapse (Post‐Amerika)",
+                "length": 199000,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
+                  "title": "Collapse (Post‐Amerika)",
+                  "disambiguation": "",
+                  "length": 199000,
+                  "video": false,
+                  "isrcs": ["USUM70832575"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "6dd94667-fe33-4d51-a850-466712196e85",
+                "position": 2,
+                "number": "2",
+                "title": "Long Forgotten Sons",
+                "length": 241560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
+                  "title": "Long Forgotten Sons",
+                  "disambiguation": "",
+                  "length": 241560,
+                  "video": false,
+                  "isrcs": ["USUM70832576"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "91dddea9-5255-490e-93fc-16e0b5b09280",
+                "position": 3,
+                "number": "3",
+                "title": "Re‐Education (Through Labor)",
+                "length": 222453,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
+                  "title": "Re‐Education (Through Labor)",
+                  "disambiguation": "",
+                  "length": 222453,
+                  "video": false,
+                  "isrcs": ["USUM70828859"],
+                  "first-release-date": "2008-08-25",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c71b8a44-0189-44e6-86de-e1779dc5f1be",
+                "position": 4,
+                "number": "4",
+                "title": "The Dirt Whispered",
+                "length": 189080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
+                  "title": "The Dirt Whispered",
+                  "disambiguation": "",
+                  "length": 189080,
+                  "video": false,
+                  "isrcs": ["USUM70832577"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bb7a44c1-75a6-4031-8b59-2d321bcb8f35",
+                "position": 5,
+                "number": "5",
+                "title": "Kotov Syndrome",
+                "length": 184773,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
+                  "title": "Kotov Syndrome",
+                  "disambiguation": "",
+                  "length": 184760,
+                  "video": false,
+                  "isrcs": ["USUM70832578"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "514a3558-fdef-467e-b7c0-4f0e1105103c",
+                "position": 6,
+                "number": "6",
+                "title": "From Heads Unworthy",
+                "length": 222360,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
+                  "title": "From Heads Unworthy",
+                  "disambiguation": "",
+                  "length": 222373,
+                  "video": false,
+                  "isrcs": ["USUM70832579"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1fceb771-ee8d-48d9-bbbb-4684fb39bc0a",
+                "position": 7,
+                "number": "7",
+                "title": "The Strength to Go On",
+                "length": 207027,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
+                  "title": "The Strength to Go On",
+                  "disambiguation": "",
+                  "length": 207026,
+                  "video": false,
+                  "isrcs": ["USUM70832580"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "ac336ba8-1c75-442b-939e-03551b0aab93",
+                "position": 8,
+                "number": "8",
+                "title": "Audience of One",
+                "length": 245480,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
+                  "title": "Audience of One",
+                  "disambiguation": "",
+                  "length": 245480,
+                  "video": false,
+                  "isrcs": ["USUM70832581"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "72da3f23-fbc1-4ce4-873e-14184212d0e9",
+                "position": 9,
+                "number": "9",
+                "title": "Entertainment",
+                "length": 214667,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
+                  "title": "Entertainment",
+                  "disambiguation": "",
+                  "length": 214666,
+                  "video": false,
+                  "isrcs": ["USUM70832582"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "184146cb-d0a7-4987-87c8-a370efd7807b",
+                "position": 10,
+                "number": "10",
+                "title": "Hero of War",
+                "length": 253080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
+                  "title": "Hero of War",
+                  "disambiguation": "",
+                  "length": 253080,
+                  "video": false,
+                  "isrcs": ["USUM70832583"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "fc79782a-8ad4-4473-b46e-0354657eb211",
+                "position": 11,
+                "number": "11",
+                "title": "Savior",
+                "length": 242280,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
+                  "title": "Savior",
+                  "disambiguation": "",
+                  "length": 242280,
+                  "video": false,
+                  "isrcs": ["USUM70832584"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "da67059d-f66d-474e-acb6-12e08c873a83",
+                "position": 12,
+                "number": "12",
+                "title": "Hairline Fracture",
+                "length": 242560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
+                  "title": "Hairline Fracture",
+                  "disambiguation": "",
+                  "length": 242560,
+                  "video": false,
+                  "isrcs": ["USUM70832585"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "514e14c3-9992-43d1-b08a-3401554bd814",
+                "position": 13,
+                "number": "13",
+                "title": "Whereabouts Unknown",
+                "length": 242427,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
+                  "title": "Whereabouts Unknown",
+                  "disambiguation": "",
+                  "length": 242000,
+                  "video": false,
+                  "isrcs": ["USUM70832586"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1b40bfbb-0d4c-4edd-b173-2d7d4c699548",
+                "position": 14,
+                "number": "14",
+                "title": "Elective Amnesia (single version)",
+                "length": 236453,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "cb4eb8ab-597b-48c1-8060-2da7c3efe7fa",
+                  "title": "Elective Amnesia",
+                  "disambiguation": "",
+                  "length": 234823,
+                  "video": false,
+                  "isrcs": ["USUM70831762", "USUM71307889"],
+                  "first-release-date": "2008-10-06",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "key": "release/954f8d9c-b667-4f3b-a6e0-1e00da7e2371?inc=releaseFull",
       "payload": {
         "id": "954f8d9c-b667-4f3b-a6e0-1e00da7e2371",
@@ -4387,606 +5020,6 @@
       }
     },
     {
-      "key": "release/dd33e659-88b0-4862-951a-80c700919282?inc=releaseFull",
-      "payload": {
-        "id": "dd33e659-88b0-4862-951a-80c700919282",
-        "title": "Appeal to Reason",
-        "disambiguation": "",
-        "date": "2008-10-07",
-        "country": "CA",
-        "status": "Official",
-        "barcode": "00602517826625",
-        "packaging": "None",
-        "quality": "normal",
-        "cover-art-archive": {
-          "darkened": false,
-          "count": 1,
-          "back": false,
-          "artwork": true,
-          "front": true
-        },
-        "artist-credit": [
-          {
-            "name": "Rise Against",
-            "joinphrase": "",
-            "artist": {
-              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-              "name": "Rise Against",
-              "sort-name": "Rise Against",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": null,
-            "label": {
-              "id": "68803e28-86fe-4a95-985f-8e493795ab31",
-              "name": "DGC Records"
-            }
-          },
-          {
-            "catalog-number": null,
-            "label": {
-              "id": "0fadc2ce-f7de-4e27-bbe6-612b317e716b",
-              "name": "Geffen Records"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
-          "title": "Appeal to Reason",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2008-10-02",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Rise Against",
-              "joinphrase": "",
-              "artist": {
-                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                "name": "Rise Against",
-                "sort-name": "Rise Against",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "Digital Media",
-            "title": "",
-            "track-count": 13,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "d9732a75-c321-4348-b7f0-314ce53c1aeb",
-                "position": 1,
-                "number": "1",
-                "title": "Collapse (Post‐Amerika)",
-                "length": 199000,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
-                  "title": "Collapse (Post‐Amerika)",
-                  "disambiguation": "",
-                  "length": 199000,
-                  "video": false,
-                  "isrcs": ["USUM70832575"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "be06b22e-58b3-425b-b5ce-e0dde53671fa",
-                "position": 2,
-                "number": "2",
-                "title": "Long Forgotten Sons",
-                "length": 241560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
-                  "title": "Long Forgotten Sons",
-                  "disambiguation": "",
-                  "length": 241560,
-                  "video": false,
-                  "isrcs": ["USUM70832576"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "b29b3ea1-7c2a-4aef-98e1-f341cecc9085",
-                "position": 3,
-                "number": "3",
-                "title": "Re‐Education (Through Labor)",
-                "length": 222453,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
-                  "title": "Re‐Education (Through Labor)",
-                  "disambiguation": "",
-                  "length": 222453,
-                  "video": false,
-                  "isrcs": ["USUM70828859"],
-                  "first-release-date": "2008-08-25",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "fd4c1717-8d80-44f9-a394-b5fb5f98df9a",
-                "position": 4,
-                "number": "4",
-                "title": "The Dirt Whispered",
-                "length": 189080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
-                  "title": "The Dirt Whispered",
-                  "disambiguation": "",
-                  "length": 189080,
-                  "video": false,
-                  "isrcs": ["USUM70832577"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "9269cc5b-4aaa-42b7-8a62-e2e5682e7923",
-                "position": 5,
-                "number": "5",
-                "title": "Kotov Syndrome",
-                "length": 184760,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
-                  "title": "Kotov Syndrome",
-                  "disambiguation": "",
-                  "length": 184760,
-                  "video": false,
-                  "isrcs": ["USUM70832578"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "fb1c1141-a89e-4866-9a5a-6fa52e902527",
-                "position": 6,
-                "number": "6",
-                "title": "From Heads Unworthy",
-                "length": 222373,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
-                  "title": "From Heads Unworthy",
-                  "disambiguation": "",
-                  "length": 222373,
-                  "video": false,
-                  "isrcs": ["USUM70832579"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "bfbf3f95-7cab-46c4-9c83-ffb12bee4a9b",
-                "position": 7,
-                "number": "7",
-                "title": "The Strength to Go On",
-                "length": 207026,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
-                  "title": "The Strength to Go On",
-                  "disambiguation": "",
-                  "length": 207026,
-                  "video": false,
-                  "isrcs": ["USUM70832580"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "39a9cd93-e6a1-4923-9660-0761f03b5db5",
-                "position": 8,
-                "number": "8",
-                "title": "Audience of One",
-                "length": 245480,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
-                  "title": "Audience of One",
-                  "disambiguation": "",
-                  "length": 245480,
-                  "video": false,
-                  "isrcs": ["USUM70832581"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "a2fa2815-18c1-4f8d-822b-c04372ae794d",
-                "position": 9,
-                "number": "9",
-                "title": "Entertainment",
-                "length": 214666,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
-                  "title": "Entertainment",
-                  "disambiguation": "",
-                  "length": 214666,
-                  "video": false,
-                  "isrcs": ["USUM70832582"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "b33f1329-0a4b-4707-b6a4-3b4833ce7074",
-                "position": 10,
-                "number": "10",
-                "title": "Hero of War",
-                "length": 253080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
-                  "title": "Hero of War",
-                  "disambiguation": "",
-                  "length": 253080,
-                  "video": false,
-                  "isrcs": ["USUM70832583"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "2801af24-9876-455a-86f5-8b1ea1ba1abe",
-                "position": 11,
-                "number": "11",
-                "title": "Savior",
-                "length": 242280,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
-                  "title": "Savior",
-                  "disambiguation": "",
-                  "length": 242280,
-                  "video": false,
-                  "isrcs": ["USUM70832584"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c07897fd-9380-48d1-9547-f3529a5fe1bc",
-                "position": 12,
-                "number": "12",
-                "title": "Hairline Fracture",
-                "length": 242560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
-                  "title": "Hairline Fracture",
-                  "disambiguation": "",
-                  "length": 242560,
-                  "video": false,
-                  "isrcs": ["USUM70832585"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "1f46bad5-237e-4f8a-acb6-c60c40e95feb",
-                "position": 13,
-                "number": "13",
-                "title": "Whereabouts Unknown",
-                "length": 242426,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
-                  "title": "Whereabouts Unknown",
-                  "disambiguation": "",
-                  "length": 242000,
-                  "video": false,
-                  "isrcs": ["USUM70832586"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
       "key": "release/20ccb88a-e148-419a-9eb9-35804e96d666?inc=releaseFull",
       "payload": {
         "id": "20ccb88a-e148-419a-9eb9-35804e96d666",
@@ -5599,6 +5632,1239 @@
                   "length": 202752,
                   "video": false,
                   "isrcs": ["USUM70830283", "USUM71307949"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/a882f73c-83ac-410f-bf98-7d60cc2c1ee3?inc=releaseFull",
+      "payload": {
+        "id": "a882f73c-83ac-410f-bf98-7d60cc2c1ee3",
+        "title": "Appeal to Reason",
+        "disambiguation": "",
+        "date": "2008-10-10",
+        "country": "DE",
+        "status": "Official",
+        "barcode": "0602517843530",
+        "packaging": "Other",
+        "quality": "normal",
+        "cover-art-archive": {
+          "artwork": false,
+          "back": false,
+          "darkened": false,
+          "count": 0,
+          "front": false
+        },
+        "artist-credit": [
+          {
+            "name": "Rise Against",
+            "joinphrase": "",
+            "artist": {
+              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+              "name": "Rise Against",
+              "sort-name": "Rise Against",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "0602517843530",
+            "label": {
+              "id": "68803e28-86fe-4a95-985f-8e493795ab31",
+              "name": "DGC Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
+          "title": "Appeal to Reason",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2008-10-02",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Rise Against",
+              "joinphrase": "",
+              "artist": {
+                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                "name": "Rise Against",
+                "sort-name": "Rise Against",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "CD",
+            "title": "",
+            "track-count": 14,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "01d28d57-f3b4-3fcb-be32-bd1b31b3a624",
+                "position": 1,
+                "number": "1",
+                "title": "Collapse (Post‐Amerika)",
+                "length": 199000,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
+                  "title": "Collapse (Post‐Amerika)",
+                  "disambiguation": "",
+                  "length": 199000,
+                  "video": false,
+                  "isrcs": ["USUM70832575"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "7f4244fb-aff4-3bac-9435-29254f80d9d8",
+                "position": 2,
+                "number": "2",
+                "title": "Long Forgotten Sons",
+                "length": 241560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
+                  "title": "Long Forgotten Sons",
+                  "disambiguation": "",
+                  "length": 241560,
+                  "video": false,
+                  "isrcs": ["USUM70832576"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1be08b6d-2974-3271-870c-9152815c1b7d",
+                "position": 3,
+                "number": "3",
+                "title": "Re‐Education (Through Labor)",
+                "length": 222453,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
+                  "title": "Re‐Education (Through Labor)",
+                  "disambiguation": "",
+                  "length": 222453,
+                  "video": false,
+                  "isrcs": ["USUM70828859"],
+                  "first-release-date": "2008-08-25",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "087aaae8-796f-3dd2-9bb4-4737ec0b96f5",
+                "position": 4,
+                "number": "4",
+                "title": "The Dirt Whispered",
+                "length": 189080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
+                  "title": "The Dirt Whispered",
+                  "disambiguation": "",
+                  "length": 189080,
+                  "video": false,
+                  "isrcs": ["USUM70832577"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "72caed87-4165-326e-ac31-f7b3666675ba",
+                "position": 5,
+                "number": "5",
+                "title": "Kotov Syndrome",
+                "length": 184760,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
+                  "title": "Kotov Syndrome",
+                  "disambiguation": "",
+                  "length": 184760,
+                  "video": false,
+                  "isrcs": ["USUM70832578"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "9f117482-5eff-3cc0-914b-06bac0bbde64",
+                "position": 6,
+                "number": "6",
+                "title": "From Heads Unworthy",
+                "length": 222373,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
+                  "title": "From Heads Unworthy",
+                  "disambiguation": "",
+                  "length": 222373,
+                  "video": false,
+                  "isrcs": ["USUM70832579"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "4d3d0c84-2b31-3634-ae73-67709ee71900",
+                "position": 7,
+                "number": "7",
+                "title": "The Strength to Go On",
+                "length": 207026,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
+                  "title": "The Strength to Go On",
+                  "disambiguation": "",
+                  "length": 207026,
+                  "video": false,
+                  "isrcs": ["USUM70832580"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "02a47038-ecb4-316a-87b2-0a2b11a24382",
+                "position": 8,
+                "number": "8",
+                "title": "Audience of One",
+                "length": 245480,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
+                  "title": "Audience of One",
+                  "disambiguation": "",
+                  "length": 245480,
+                  "video": false,
+                  "isrcs": ["USUM70832581"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "6ffd1dc9-11e6-30b9-9c1f-172ce98e31c3",
+                "position": 9,
+                "number": "9",
+                "title": "Entertainment",
+                "length": 214666,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
+                  "title": "Entertainment",
+                  "disambiguation": "",
+                  "length": 214666,
+                  "video": false,
+                  "isrcs": ["USUM70832582"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "3856cd44-6d82-38ca-8870-c20c19db9411",
+                "position": 10,
+                "number": "10",
+                "title": "Hero of War",
+                "length": 253080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
+                  "title": "Hero of War",
+                  "disambiguation": "",
+                  "length": 253080,
+                  "video": false,
+                  "isrcs": ["USUM70832583"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "064ba976-a41d-39f5-812a-c7c36cb07dc0",
+                "position": 11,
+                "number": "11",
+                "title": "Savior",
+                "length": 242280,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
+                  "title": "Savior",
+                  "disambiguation": "",
+                  "length": 242280,
+                  "video": false,
+                  "isrcs": ["USUM70832584"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "4a3a907c-62fa-3d63-b5d2-c73d5814d04b",
+                "position": 12,
+                "number": "12",
+                "title": "Hairline Fracture",
+                "length": 242560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
+                  "title": "Hairline Fracture",
+                  "disambiguation": "",
+                  "length": 242560,
+                  "video": false,
+                  "isrcs": ["USUM70832585"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c25ae476-99be-3831-a36c-f164828c2f57",
+                "position": 13,
+                "number": "13",
+                "title": "Whereabouts Unknown",
+                "length": 241533,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
+                  "title": "Whereabouts Unknown",
+                  "disambiguation": "",
+                  "length": 242000,
+                  "video": false,
+                  "isrcs": ["USUM70832586"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "5b8e2583-c644-33b5-80cd-86f83a0dbe74",
+                "position": 14,
+                "number": "14",
+                "title": "Historia calamitatum",
+                "length": 202933,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3bcdd7e1-0d28-440e-a6fb-fd1b13be4d3e",
+                  "title": "Historia calamitatum",
+                  "disambiguation": "",
+                  "length": 202752,
+                  "video": false,
+                  "isrcs": ["USUM70830283", "USUM71307949"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/dd33e659-88b0-4862-951a-80c700919282?inc=releaseFull",
+      "payload": {
+        "id": "dd33e659-88b0-4862-951a-80c700919282",
+        "title": "Appeal to Reason",
+        "disambiguation": "",
+        "date": "2008-10-07",
+        "country": "CA",
+        "status": "Official",
+        "barcode": "00602517826625",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "darkened": false,
+          "count": 1,
+          "back": false,
+          "artwork": true,
+          "front": true
+        },
+        "artist-credit": [
+          {
+            "name": "Rise Against",
+            "joinphrase": "",
+            "artist": {
+              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+              "name": "Rise Against",
+              "sort-name": "Rise Against",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "68803e28-86fe-4a95-985f-8e493795ab31",
+              "name": "DGC Records"
+            }
+          },
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "0fadc2ce-f7de-4e27-bbe6-612b317e716b",
+              "name": "Geffen Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
+          "title": "Appeal to Reason",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2008-10-02",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Rise Against",
+              "joinphrase": "",
+              "artist": {
+                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                "name": "Rise Against",
+                "sort-name": "Rise Against",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 13,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "d9732a75-c321-4348-b7f0-314ce53c1aeb",
+                "position": 1,
+                "number": "1",
+                "title": "Collapse (Post‐Amerika)",
+                "length": 199000,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
+                  "title": "Collapse (Post‐Amerika)",
+                  "disambiguation": "",
+                  "length": 199000,
+                  "video": false,
+                  "isrcs": ["USUM70832575"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "be06b22e-58b3-425b-b5ce-e0dde53671fa",
+                "position": 2,
+                "number": "2",
+                "title": "Long Forgotten Sons",
+                "length": 241560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
+                  "title": "Long Forgotten Sons",
+                  "disambiguation": "",
+                  "length": 241560,
+                  "video": false,
+                  "isrcs": ["USUM70832576"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b29b3ea1-7c2a-4aef-98e1-f341cecc9085",
+                "position": 3,
+                "number": "3",
+                "title": "Re‐Education (Through Labor)",
+                "length": 222453,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
+                  "title": "Re‐Education (Through Labor)",
+                  "disambiguation": "",
+                  "length": 222453,
+                  "video": false,
+                  "isrcs": ["USUM70828859"],
+                  "first-release-date": "2008-08-25",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "fd4c1717-8d80-44f9-a394-b5fb5f98df9a",
+                "position": 4,
+                "number": "4",
+                "title": "The Dirt Whispered",
+                "length": 189080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
+                  "title": "The Dirt Whispered",
+                  "disambiguation": "",
+                  "length": 189080,
+                  "video": false,
+                  "isrcs": ["USUM70832577"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "9269cc5b-4aaa-42b7-8a62-e2e5682e7923",
+                "position": 5,
+                "number": "5",
+                "title": "Kotov Syndrome",
+                "length": 184760,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
+                  "title": "Kotov Syndrome",
+                  "disambiguation": "",
+                  "length": 184760,
+                  "video": false,
+                  "isrcs": ["USUM70832578"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "fb1c1141-a89e-4866-9a5a-6fa52e902527",
+                "position": 6,
+                "number": "6",
+                "title": "From Heads Unworthy",
+                "length": 222373,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
+                  "title": "From Heads Unworthy",
+                  "disambiguation": "",
+                  "length": 222373,
+                  "video": false,
+                  "isrcs": ["USUM70832579"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bfbf3f95-7cab-46c4-9c83-ffb12bee4a9b",
+                "position": 7,
+                "number": "7",
+                "title": "The Strength to Go On",
+                "length": 207026,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
+                  "title": "The Strength to Go On",
+                  "disambiguation": "",
+                  "length": 207026,
+                  "video": false,
+                  "isrcs": ["USUM70832580"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "39a9cd93-e6a1-4923-9660-0761f03b5db5",
+                "position": 8,
+                "number": "8",
+                "title": "Audience of One",
+                "length": 245480,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
+                  "title": "Audience of One",
+                  "disambiguation": "",
+                  "length": 245480,
+                  "video": false,
+                  "isrcs": ["USUM70832581"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "a2fa2815-18c1-4f8d-822b-c04372ae794d",
+                "position": 9,
+                "number": "9",
+                "title": "Entertainment",
+                "length": 214666,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
+                  "title": "Entertainment",
+                  "disambiguation": "",
+                  "length": 214666,
+                  "video": false,
+                  "isrcs": ["USUM70832582"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b33f1329-0a4b-4707-b6a4-3b4833ce7074",
+                "position": 10,
+                "number": "10",
+                "title": "Hero of War",
+                "length": 253080,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
+                  "title": "Hero of War",
+                  "disambiguation": "",
+                  "length": 253080,
+                  "video": false,
+                  "isrcs": ["USUM70832583"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "2801af24-9876-455a-86f5-8b1ea1ba1abe",
+                "position": 11,
+                "number": "11",
+                "title": "Savior",
+                "length": 242280,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
+                  "title": "Savior",
+                  "disambiguation": "",
+                  "length": 242280,
+                  "video": false,
+                  "isrcs": ["USUM70832584"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c07897fd-9380-48d1-9547-f3529a5fe1bc",
+                "position": 12,
+                "number": "12",
+                "title": "Hairline Fracture",
+                "length": 242560,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
+                  "title": "Hairline Fracture",
+                  "disambiguation": "",
+                  "length": 242560,
+                  "video": false,
+                  "isrcs": ["USUM70832585"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1f46bad5-237e-4f8a-acb6-c60c40e95feb",
+                "position": 13,
+                "number": "13",
+                "title": "Whereabouts Unknown",
+                "length": 242426,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
+                  "title": "Whereabouts Unknown",
+                  "disambiguation": "",
+                  "length": 242000,
+                  "video": false,
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6806,23 +8072,23 @@
       }
     },
     {
-      "key": "release/a882f73c-83ac-410f-bf98-7d60cc2c1ee3?inc=releaseFull",
+      "key": "release/a114380b-4976-366d-b925-865b27b3cd76?inc=releaseFull",
       "payload": {
-        "id": "a882f73c-83ac-410f-bf98-7d60cc2c1ee3",
+        "id": "a114380b-4976-366d-b925-865b27b3cd76",
         "title": "Appeal to Reason",
-        "disambiguation": "",
-        "date": "2008-10-10",
-        "country": "DE",
+        "disambiguation": "limited edition digipak",
+        "date": "2008-10-06",
+        "country": "GB",
         "status": "Official",
         "barcode": "0602517843530",
-        "packaging": "Other",
+        "packaging": "Digipak",
         "quality": "normal",
         "cover-art-archive": {
-          "artwork": false,
-          "back": false,
           "darkened": false,
+          "front": false,
+          "artwork": false,
           "count": 0,
-          "front": false
+          "back": false
         },
         "artist-credit": [
           {
@@ -6838,10 +8104,10 @@
         ],
         "label-info": [
           {
-            "catalog-number": "0602517843530",
+            "catalog-number": "B0011904-02",
             "label": {
-              "id": "68803e28-86fe-4a95-985f-8e493795ab31",
-              "name": "DGC Records"
+              "id": "2182a316-c4bd-4605-936a-5e2fac52bdd2",
+              "name": "Interscope Records"
             }
           }
         ],
@@ -6874,7 +8140,7 @@
             "track-offset": 0,
             "tracks": [
               {
-                "id": "01d28d57-f3b4-3fcb-be32-bd1b31b3a624",
+                "id": "c136c6f7-c797-3a15-bc61-b3be8517cf0f",
                 "position": 1,
                 "number": "1",
                 "title": "Collapse (Post‐Amerika)",
@@ -6914,7 +8180,7 @@
                 }
               },
               {
-                "id": "7f4244fb-aff4-3bac-9435-29254f80d9d8",
+                "id": "f2236087-5d9e-35d1-8fff-d1bea69baa75",
                 "position": 2,
                 "number": "2",
                 "title": "Long Forgotten Sons",
@@ -6954,7 +8220,7 @@
                 }
               },
               {
-                "id": "1be08b6d-2974-3271-870c-9152815c1b7d",
+                "id": "c0f011eb-b1ab-392c-8269-53c7b6efcef9",
                 "position": 3,
                 "number": "3",
                 "title": "Re‐Education (Through Labor)",
@@ -6994,7 +8260,7 @@
                 }
               },
               {
-                "id": "087aaae8-796f-3dd2-9bb4-4737ec0b96f5",
+                "id": "17470d03-1516-3953-aba2-d9586feb5ed9",
                 "position": 4,
                 "number": "4",
                 "title": "The Dirt Whispered",
@@ -7034,7 +8300,7 @@
                 }
               },
               {
-                "id": "72caed87-4165-326e-ac31-f7b3666675ba",
+                "id": "3a0d7aa7-54c9-32bd-b043-974bcad99070",
                 "position": 5,
                 "number": "5",
                 "title": "Kotov Syndrome",
@@ -7074,7 +8340,7 @@
                 }
               },
               {
-                "id": "9f117482-5eff-3cc0-914b-06bac0bbde64",
+                "id": "e4d1a93f-714f-3489-aaf4-ff0b5ea96622",
                 "position": 6,
                 "number": "6",
                 "title": "From Heads Unworthy",
@@ -7114,7 +8380,7 @@
                 }
               },
               {
-                "id": "4d3d0c84-2b31-3634-ae73-67709ee71900",
+                "id": "e9a87c44-86f2-3b58-80bb-9acd7f6aa104",
                 "position": 7,
                 "number": "7",
                 "title": "The Strength to Go On",
@@ -7154,7 +8420,7 @@
                 }
               },
               {
-                "id": "02a47038-ecb4-316a-87b2-0a2b11a24382",
+                "id": "a1856b5d-897e-377e-ba73-37ca9de5b40e",
                 "position": 8,
                 "number": "8",
                 "title": "Audience of One",
@@ -7194,7 +8460,7 @@
                 }
               },
               {
-                "id": "6ffd1dc9-11e6-30b9-9c1f-172ce98e31c3",
+                "id": "eb905805-08ef-390c-89ce-d0a2fbf77214",
                 "position": 9,
                 "number": "9",
                 "title": "Entertainment",
@@ -7234,7 +8500,7 @@
                 }
               },
               {
-                "id": "3856cd44-6d82-38ca-8870-c20c19db9411",
+                "id": "563c8c87-829e-32cc-85d9-bf92e56cbbed",
                 "position": 10,
                 "number": "10",
                 "title": "Hero of War",
@@ -7274,7 +8540,7 @@
                 }
               },
               {
-                "id": "064ba976-a41d-39f5-812a-c7c36cb07dc0",
+                "id": "e6d9923d-60f1-37f3-af09-a3cf04eb2a68",
                 "position": 11,
                 "number": "11",
                 "title": "Savior",
@@ -7314,7 +8580,7 @@
                 }
               },
               {
-                "id": "4a3a907c-62fa-3d63-b5d2-c73d5814d04b",
+                "id": "9746f5d8-ccad-3d62-abe4-f856dcbd76e2",
                 "position": 12,
                 "number": "12",
                 "title": "Hairline Fracture",
@@ -7354,7 +8620,7 @@
                 }
               },
               {
-                "id": "c25ae476-99be-3831-a36c-f164828c2f57",
+                "id": "b0946e2d-e713-32d5-b998-a2e2af3e1b2f",
                 "position": 13,
                 "number": "13",
                 "title": "Whereabouts Unknown",
@@ -7394,11 +8660,644 @@
                 }
               },
               {
-                "id": "5b8e2583-c644-33b5-80cd-86f83a0dbe74",
+                "id": "53fcc0fd-2319-3e48-9a5d-bc3294895359",
                 "position": 14,
                 "number": "14",
                 "title": "Historia calamitatum",
                 "length": 202933,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3bcdd7e1-0d28-440e-a6fb-fd1b13be4d3e",
+                  "title": "Historia calamitatum",
+                  "disambiguation": "",
+                  "length": 202752,
+                  "video": false,
+                  "isrcs": ["USUM70830283", "USUM71307949"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/205f2019-fc18-477a-971c-ecc37aa216fc?inc=releaseFull",
+      "payload": {
+        "id": "205f2019-fc18-477a-971c-ecc37aa216fc",
+        "title": "Appeal to Reason",
+        "disambiguation": "Amazon digital edition",
+        "date": "2008-10-10",
+        "country": "DE",
+        "status": "Official",
+        "barcode": "",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "front": true,
+          "artwork": true,
+          "back": false,
+          "count": 1,
+          "darkened": false
+        },
+        "artist-credit": [
+          {
+            "name": "Rise Against",
+            "joinphrase": "",
+            "artist": {
+              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+              "name": "Rise Against",
+              "sort-name": "Rise Against",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "e5e126dc-368c-4cfa-8dae-c62ceeac5bbf",
+              "name": "Universal Music International Division"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
+          "title": "Appeal to Reason",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2008-10-02",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Rise Against",
+              "joinphrase": "",
+              "artist": {
+                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                "name": "Rise Against",
+                "sort-name": "Rise Against",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 14,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "dc7e4599-7d04-37e5-9fc3-e4ad9d09b196",
+                "position": 1,
+                "number": "1",
+                "title": "Collapse (Post-Amerika)",
+                "length": 199053,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
+                  "title": "Collapse (Post‐Amerika)",
+                  "disambiguation": "",
+                  "length": 199000,
+                  "video": false,
+                  "isrcs": ["USUM70832575"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0f260ae3-4dc1-34ed-84f0-df4260da942a",
+                "position": 2,
+                "number": "2",
+                "title": "Long Forgotten Sons",
+                "length": 241606,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
+                  "title": "Long Forgotten Sons",
+                  "disambiguation": "",
+                  "length": 241560,
+                  "video": false,
+                  "isrcs": ["USUM70832576"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0656cbae-8689-34b9-ad94-4a39384363a5",
+                "position": 3,
+                "number": "3",
+                "title": "Re-Education (Through Labor)",
+                "length": 222511,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
+                  "title": "Re‐Education (Through Labor)",
+                  "disambiguation": "",
+                  "length": 222453,
+                  "video": false,
+                  "isrcs": ["USUM70828859"],
+                  "first-release-date": "2008-08-25",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "e5265bc0-c138-34c4-ba9c-a8c366acad6c",
+                "position": 4,
+                "number": "4",
+                "title": "The Dirt Whispered",
+                "length": 189126,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
+                  "title": "The Dirt Whispered",
+                  "disambiguation": "",
+                  "length": 189080,
+                  "video": false,
+                  "isrcs": ["USUM70832577"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "173e5199-dba7-332a-8c0b-757dee50b6ba",
+                "position": 5,
+                "number": "5",
+                "title": "Kotov Syndrome",
+                "length": 184816,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
+                  "title": "Kotov Syndrome",
+                  "disambiguation": "",
+                  "length": 184760,
+                  "video": false,
+                  "isrcs": ["USUM70832578"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "64c0c2a0-a3c0-3ec8-b80b-f4b14a727f32",
+                "position": 6,
+                "number": "6",
+                "title": "From Heads Unworthy",
+                "length": 222432,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
+                  "title": "From Heads Unworthy",
+                  "disambiguation": "",
+                  "length": 222373,
+                  "video": false,
+                  "isrcs": ["USUM70832579"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "73a0aaa0-8988-3e89-ac68-1f343d37d9f4",
+                "position": 7,
+                "number": "7",
+                "title": "The Strength to Go On",
+                "length": 207072,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
+                  "title": "The Strength to Go On",
+                  "disambiguation": "",
+                  "length": 207026,
+                  "video": false,
+                  "isrcs": ["USUM70832580"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0f425157-6552-3d57-96f4-1f49c37a5f85",
+                "position": 8,
+                "number": "8",
+                "title": "Audience of One",
+                "length": 245524,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
+                  "title": "Audience of One",
+                  "disambiguation": "",
+                  "length": 245480,
+                  "video": false,
+                  "isrcs": ["USUM70832581"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "6414aba1-54ab-304d-a1b4-9a25c4cbcca7",
+                "position": 9,
+                "number": "9",
+                "title": "Entertainment",
+                "length": 214726,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
+                  "title": "Entertainment",
+                  "disambiguation": "",
+                  "length": 214666,
+                  "video": false,
+                  "isrcs": ["USUM70832582"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aa7557bb-8dda-3e65-9575-46484c1f6944",
+                "position": 10,
+                "number": "10",
+                "title": "Hero of War",
+                "length": 253126,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
+                  "title": "Hero of War",
+                  "disambiguation": "",
+                  "length": 253080,
+                  "video": false,
+                  "isrcs": ["USUM70832583"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "f52ac91a-6d32-3b25-aa6b-bb112a77ed81",
+                "position": 11,
+                "number": "11",
+                "title": "Savior",
+                "length": 242337,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
+                  "title": "Savior",
+                  "disambiguation": "",
+                  "length": 242280,
+                  "video": false,
+                  "isrcs": ["USUM70832584"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "54199e91-8afd-3ec5-8531-46c86ab16eb7",
+                "position": 12,
+                "number": "12",
+                "title": "Hairline Fracture",
+                "length": 242599,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
+                  "title": "Hairline Fracture",
+                  "disambiguation": "",
+                  "length": 242560,
+                  "video": false,
+                  "isrcs": ["USUM70832585"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "5ced47d1-220d-3496-b83c-28fb2598386e",
+                "position": 13,
+                "number": "13",
+                "title": "Whereabouts Unknown",
+                "length": 241580,
+                "artist-credit": [
+                  {
+                    "name": "Rise Against",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                      "name": "Rise Against",
+                      "sort-name": "Rise Against",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
+                  "title": "Whereabouts Unknown",
+                  "disambiguation": "",
+                  "length": 242000,
+                  "video": false,
+                  "isrcs": ["USUM70832586"],
+                  "first-release-date": "2008-10-02",
+                  "artist-credit": [
+                    {
+                      "name": "Rise Against",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
+                        "name": "Rise Against",
+                        "sort-name": "Rise Against",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "d0839754-6a59-31b4-8ce3-4f3824d770f9",
+                "position": 14,
+                "number": "14",
+                "title": "Historia Calamitatum",
+                "length": 202997,
                 "artist-credit": [
                   {
                     "name": "Rise Against",
@@ -9277,1905 +11176,6 @@
                   "length": 242000,
                   "video": false,
                   "isrcs": ["USUM70832586"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "release/46a691d9-67f7-42c1-bc91-7689b0a7fade?inc=releaseFull",
-      "payload": {
-        "id": "46a691d9-67f7-42c1-bc91-7689b0a7fade",
-        "title": "Appeal to Reason",
-        "disambiguation": "",
-        "date": "2014-09-12",
-        "country": "XW",
-        "status": "Official",
-        "barcode": "00602517849068",
-        "packaging": "None",
-        "quality": "normal",
-        "cover-art-archive": {
-          "darkened": false,
-          "front": true,
-          "artwork": true,
-          "back": false,
-          "count": 2
-        },
-        "artist-credit": [
-          {
-            "name": "Rise Against",
-            "joinphrase": "",
-            "artist": {
-              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-              "name": "Rise Against",
-              "sort-name": "Rise Against",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": "08UMGIM18022",
-            "label": {
-              "id": "0fadc2ce-f7de-4e27-bbe6-612b317e716b",
-              "name": "Geffen Records"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
-          "title": "Appeal to Reason",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2008-10-02",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Rise Against",
-              "joinphrase": "",
-              "artist": {
-                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                "name": "Rise Against",
-                "sort-name": "Rise Against",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "Digital Media",
-            "title": "",
-            "track-count": 14,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "07d9e8eb-e8df-41d5-b72f-478c48239e06",
-                "position": 1,
-                "number": "1",
-                "title": "Collapse (Post‐Amerika)",
-                "length": 199000,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
-                  "title": "Collapse (Post‐Amerika)",
-                  "disambiguation": "",
-                  "length": 199000,
-                  "video": false,
-                  "isrcs": ["USUM70832575"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "6dd94667-fe33-4d51-a850-466712196e85",
-                "position": 2,
-                "number": "2",
-                "title": "Long Forgotten Sons",
-                "length": 241560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
-                  "title": "Long Forgotten Sons",
-                  "disambiguation": "",
-                  "length": 241560,
-                  "video": false,
-                  "isrcs": ["USUM70832576"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "91dddea9-5255-490e-93fc-16e0b5b09280",
-                "position": 3,
-                "number": "3",
-                "title": "Re‐Education (Through Labor)",
-                "length": 222453,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
-                  "title": "Re‐Education (Through Labor)",
-                  "disambiguation": "",
-                  "length": 222453,
-                  "video": false,
-                  "isrcs": ["USUM70828859"],
-                  "first-release-date": "2008-08-25",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c71b8a44-0189-44e6-86de-e1779dc5f1be",
-                "position": 4,
-                "number": "4",
-                "title": "The Dirt Whispered",
-                "length": 189080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
-                  "title": "The Dirt Whispered",
-                  "disambiguation": "",
-                  "length": 189080,
-                  "video": false,
-                  "isrcs": ["USUM70832577"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "bb7a44c1-75a6-4031-8b59-2d321bcb8f35",
-                "position": 5,
-                "number": "5",
-                "title": "Kotov Syndrome",
-                "length": 184773,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
-                  "title": "Kotov Syndrome",
-                  "disambiguation": "",
-                  "length": 184760,
-                  "video": false,
-                  "isrcs": ["USUM70832578"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "514a3558-fdef-467e-b7c0-4f0e1105103c",
-                "position": 6,
-                "number": "6",
-                "title": "From Heads Unworthy",
-                "length": 222360,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
-                  "title": "From Heads Unworthy",
-                  "disambiguation": "",
-                  "length": 222373,
-                  "video": false,
-                  "isrcs": ["USUM70832579"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "1fceb771-ee8d-48d9-bbbb-4684fb39bc0a",
-                "position": 7,
-                "number": "7",
-                "title": "The Strength to Go On",
-                "length": 207027,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
-                  "title": "The Strength to Go On",
-                  "disambiguation": "",
-                  "length": 207026,
-                  "video": false,
-                  "isrcs": ["USUM70832580"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "ac336ba8-1c75-442b-939e-03551b0aab93",
-                "position": 8,
-                "number": "8",
-                "title": "Audience of One",
-                "length": 245480,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
-                  "title": "Audience of One",
-                  "disambiguation": "",
-                  "length": 245480,
-                  "video": false,
-                  "isrcs": ["USUM70832581"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "72da3f23-fbc1-4ce4-873e-14184212d0e9",
-                "position": 9,
-                "number": "9",
-                "title": "Entertainment",
-                "length": 214667,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
-                  "title": "Entertainment",
-                  "disambiguation": "",
-                  "length": 214666,
-                  "video": false,
-                  "isrcs": ["USUM70832582"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "184146cb-d0a7-4987-87c8-a370efd7807b",
-                "position": 10,
-                "number": "10",
-                "title": "Hero of War",
-                "length": 253080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
-                  "title": "Hero of War",
-                  "disambiguation": "",
-                  "length": 253080,
-                  "video": false,
-                  "isrcs": ["USUM70832583"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "fc79782a-8ad4-4473-b46e-0354657eb211",
-                "position": 11,
-                "number": "11",
-                "title": "Savior",
-                "length": 242280,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
-                  "title": "Savior",
-                  "disambiguation": "",
-                  "length": 242280,
-                  "video": false,
-                  "isrcs": ["USUM70832584"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "da67059d-f66d-474e-acb6-12e08c873a83",
-                "position": 12,
-                "number": "12",
-                "title": "Hairline Fracture",
-                "length": 242560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
-                  "title": "Hairline Fracture",
-                  "disambiguation": "",
-                  "length": 242560,
-                  "video": false,
-                  "isrcs": ["USUM70832585"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "514e14c3-9992-43d1-b08a-3401554bd814",
-                "position": 13,
-                "number": "13",
-                "title": "Whereabouts Unknown",
-                "length": 242427,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
-                  "title": "Whereabouts Unknown",
-                  "disambiguation": "",
-                  "length": 242000,
-                  "video": false,
-                  "isrcs": ["USUM70832586"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "1b40bfbb-0d4c-4edd-b173-2d7d4c699548",
-                "position": 14,
-                "number": "14",
-                "title": "Elective Amnesia (single version)",
-                "length": 236453,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "cb4eb8ab-597b-48c1-8060-2da7c3efe7fa",
-                  "title": "Elective Amnesia",
-                  "disambiguation": "",
-                  "length": 234823,
-                  "video": false,
-                  "isrcs": ["USUM70831762", "USUM71307889"],
-                  "first-release-date": "2008-10-06",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "release/a114380b-4976-366d-b925-865b27b3cd76?inc=releaseFull",
-      "payload": {
-        "id": "a114380b-4976-366d-b925-865b27b3cd76",
-        "title": "Appeal to Reason",
-        "disambiguation": "limited edition digipak",
-        "date": "2008-10-06",
-        "country": "GB",
-        "status": "Official",
-        "barcode": "0602517843530",
-        "packaging": "Digipak",
-        "quality": "normal",
-        "cover-art-archive": {
-          "darkened": false,
-          "front": false,
-          "artwork": false,
-          "count": 0,
-          "back": false
-        },
-        "artist-credit": [
-          {
-            "name": "Rise Against",
-            "joinphrase": "",
-            "artist": {
-              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-              "name": "Rise Against",
-              "sort-name": "Rise Against",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": "B0011904-02",
-            "label": {
-              "id": "2182a316-c4bd-4605-936a-5e2fac52bdd2",
-              "name": "Interscope Records"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
-          "title": "Appeal to Reason",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2008-10-02",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Rise Against",
-              "joinphrase": "",
-              "artist": {
-                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                "name": "Rise Against",
-                "sort-name": "Rise Against",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "CD",
-            "title": "",
-            "track-count": 14,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "c136c6f7-c797-3a15-bc61-b3be8517cf0f",
-                "position": 1,
-                "number": "1",
-                "title": "Collapse (Post‐Amerika)",
-                "length": 199000,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
-                  "title": "Collapse (Post‐Amerika)",
-                  "disambiguation": "",
-                  "length": 199000,
-                  "video": false,
-                  "isrcs": ["USUM70832575"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f2236087-5d9e-35d1-8fff-d1bea69baa75",
-                "position": 2,
-                "number": "2",
-                "title": "Long Forgotten Sons",
-                "length": 241560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
-                  "title": "Long Forgotten Sons",
-                  "disambiguation": "",
-                  "length": 241560,
-                  "video": false,
-                  "isrcs": ["USUM70832576"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c0f011eb-b1ab-392c-8269-53c7b6efcef9",
-                "position": 3,
-                "number": "3",
-                "title": "Re‐Education (Through Labor)",
-                "length": 222453,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
-                  "title": "Re‐Education (Through Labor)",
-                  "disambiguation": "",
-                  "length": 222453,
-                  "video": false,
-                  "isrcs": ["USUM70828859"],
-                  "first-release-date": "2008-08-25",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "17470d03-1516-3953-aba2-d9586feb5ed9",
-                "position": 4,
-                "number": "4",
-                "title": "The Dirt Whispered",
-                "length": 189080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
-                  "title": "The Dirt Whispered",
-                  "disambiguation": "",
-                  "length": 189080,
-                  "video": false,
-                  "isrcs": ["USUM70832577"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "3a0d7aa7-54c9-32bd-b043-974bcad99070",
-                "position": 5,
-                "number": "5",
-                "title": "Kotov Syndrome",
-                "length": 184760,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
-                  "title": "Kotov Syndrome",
-                  "disambiguation": "",
-                  "length": 184760,
-                  "video": false,
-                  "isrcs": ["USUM70832578"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "e4d1a93f-714f-3489-aaf4-ff0b5ea96622",
-                "position": 6,
-                "number": "6",
-                "title": "From Heads Unworthy",
-                "length": 222373,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
-                  "title": "From Heads Unworthy",
-                  "disambiguation": "",
-                  "length": 222373,
-                  "video": false,
-                  "isrcs": ["USUM70832579"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "e9a87c44-86f2-3b58-80bb-9acd7f6aa104",
-                "position": 7,
-                "number": "7",
-                "title": "The Strength to Go On",
-                "length": 207026,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
-                  "title": "The Strength to Go On",
-                  "disambiguation": "",
-                  "length": 207026,
-                  "video": false,
-                  "isrcs": ["USUM70832580"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "a1856b5d-897e-377e-ba73-37ca9de5b40e",
-                "position": 8,
-                "number": "8",
-                "title": "Audience of One",
-                "length": 245480,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
-                  "title": "Audience of One",
-                  "disambiguation": "",
-                  "length": 245480,
-                  "video": false,
-                  "isrcs": ["USUM70832581"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "eb905805-08ef-390c-89ce-d0a2fbf77214",
-                "position": 9,
-                "number": "9",
-                "title": "Entertainment",
-                "length": 214666,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
-                  "title": "Entertainment",
-                  "disambiguation": "",
-                  "length": 214666,
-                  "video": false,
-                  "isrcs": ["USUM70832582"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "563c8c87-829e-32cc-85d9-bf92e56cbbed",
-                "position": 10,
-                "number": "10",
-                "title": "Hero of War",
-                "length": 253080,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
-                  "title": "Hero of War",
-                  "disambiguation": "",
-                  "length": 253080,
-                  "video": false,
-                  "isrcs": ["USUM70832583"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "e6d9923d-60f1-37f3-af09-a3cf04eb2a68",
-                "position": 11,
-                "number": "11",
-                "title": "Savior",
-                "length": 242280,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
-                  "title": "Savior",
-                  "disambiguation": "",
-                  "length": 242280,
-                  "video": false,
-                  "isrcs": ["USUM70832584"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "9746f5d8-ccad-3d62-abe4-f856dcbd76e2",
-                "position": 12,
-                "number": "12",
-                "title": "Hairline Fracture",
-                "length": 242560,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
-                  "title": "Hairline Fracture",
-                  "disambiguation": "",
-                  "length": 242560,
-                  "video": false,
-                  "isrcs": ["USUM70832585"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "b0946e2d-e713-32d5-b998-a2e2af3e1b2f",
-                "position": 13,
-                "number": "13",
-                "title": "Whereabouts Unknown",
-                "length": 241533,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
-                  "title": "Whereabouts Unknown",
-                  "disambiguation": "",
-                  "length": 242000,
-                  "video": false,
-                  "isrcs": ["USUM70832586"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "53fcc0fd-2319-3e48-9a5d-bc3294895359",
-                "position": 14,
-                "number": "14",
-                "title": "Historia calamitatum",
-                "length": 202933,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "3bcdd7e1-0d28-440e-a6fb-fd1b13be4d3e",
-                  "title": "Historia calamitatum",
-                  "disambiguation": "",
-                  "length": 202752,
-                  "video": false,
-                  "isrcs": ["USUM70830283", "USUM71307949"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "release/205f2019-fc18-477a-971c-ecc37aa216fc?inc=releaseFull",
-      "payload": {
-        "id": "205f2019-fc18-477a-971c-ecc37aa216fc",
-        "title": "Appeal to Reason",
-        "disambiguation": "Amazon digital edition",
-        "date": "2008-10-10",
-        "country": "DE",
-        "status": "Official",
-        "barcode": "",
-        "packaging": "None",
-        "quality": "normal",
-        "cover-art-archive": {
-          "front": true,
-          "artwork": true,
-          "back": false,
-          "count": 1,
-          "darkened": false
-        },
-        "artist-credit": [
-          {
-            "name": "Rise Against",
-            "joinphrase": "",
-            "artist": {
-              "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-              "name": "Rise Against",
-              "sort-name": "Rise Against",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": null,
-            "label": {
-              "id": "e5e126dc-368c-4cfa-8dae-c62ceeac5bbf",
-              "name": "Universal Music International Division"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "0b0e4477-4b04-3683-8f01-3a4544c36b41",
-          "title": "Appeal to Reason",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2008-10-02",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Rise Against",
-              "joinphrase": "",
-              "artist": {
-                "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                "name": "Rise Against",
-                "sort-name": "Rise Against",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "Digital Media",
-            "title": "",
-            "track-count": 14,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "dc7e4599-7d04-37e5-9fc3-e4ad9d09b196",
-                "position": 1,
-                "number": "1",
-                "title": "Collapse (Post-Amerika)",
-                "length": 199053,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "372d2a61-8cf3-4870-bb25-4bb3e85a5edb",
-                  "title": "Collapse (Post‐Amerika)",
-                  "disambiguation": "",
-                  "length": 199000,
-                  "video": false,
-                  "isrcs": ["USUM70832575"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "0f260ae3-4dc1-34ed-84f0-df4260da942a",
-                "position": 2,
-                "number": "2",
-                "title": "Long Forgotten Sons",
-                "length": 241606,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "7a59a028-ff2c-43ca-95bf-c16fc6fe0481",
-                  "title": "Long Forgotten Sons",
-                  "disambiguation": "",
-                  "length": 241560,
-                  "video": false,
-                  "isrcs": ["USUM70832576"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "0656cbae-8689-34b9-ad94-4a39384363a5",
-                "position": 3,
-                "number": "3",
-                "title": "Re-Education (Through Labor)",
-                "length": 222511,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d738b02d-91e0-4139-8192-a374473ee41c",
-                  "title": "Re‐Education (Through Labor)",
-                  "disambiguation": "",
-                  "length": 222453,
-                  "video": false,
-                  "isrcs": ["USUM70828859"],
-                  "first-release-date": "2008-08-25",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "e5265bc0-c138-34c4-ba9c-a8c366acad6c",
-                "position": 4,
-                "number": "4",
-                "title": "The Dirt Whispered",
-                "length": 189126,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "d0dd3e8d-1c42-4215-af9d-0cb2abc8cd7e",
-                  "title": "The Dirt Whispered",
-                  "disambiguation": "",
-                  "length": 189080,
-                  "video": false,
-                  "isrcs": ["USUM70832577"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "173e5199-dba7-332a-8c0b-757dee50b6ba",
-                "position": 5,
-                "number": "5",
-                "title": "Kotov Syndrome",
-                "length": 184816,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4aeef1fa-99d6-4518-b30a-be47ef7669e2",
-                  "title": "Kotov Syndrome",
-                  "disambiguation": "",
-                  "length": 184760,
-                  "video": false,
-                  "isrcs": ["USUM70832578"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "64c0c2a0-a3c0-3ec8-b80b-f4b14a727f32",
-                "position": 6,
-                "number": "6",
-                "title": "From Heads Unworthy",
-                "length": 222432,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4a93f70f-6b0a-411b-8a25-596a1dc6b63a",
-                  "title": "From Heads Unworthy",
-                  "disambiguation": "",
-                  "length": 222373,
-                  "video": false,
-                  "isrcs": ["USUM70832579"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "73a0aaa0-8988-3e89-ac68-1f343d37d9f4",
-                "position": 7,
-                "number": "7",
-                "title": "The Strength to Go On",
-                "length": 207072,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "172256c3-040d-4ddf-8835-9d6034365fd6",
-                  "title": "The Strength to Go On",
-                  "disambiguation": "",
-                  "length": 207026,
-                  "video": false,
-                  "isrcs": ["USUM70832580"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "0f425157-6552-3d57-96f4-1f49c37a5f85",
-                "position": 8,
-                "number": "8",
-                "title": "Audience of One",
-                "length": 245524,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "01e3bce9-4e11-477a-a4f0-11f424765992",
-                  "title": "Audience of One",
-                  "disambiguation": "",
-                  "length": 245480,
-                  "video": false,
-                  "isrcs": ["USUM70832581"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "6414aba1-54ab-304d-a1b4-9a25c4cbcca7",
-                "position": 9,
-                "number": "9",
-                "title": "Entertainment",
-                "length": 214726,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "bf36fd5b-210e-4ab8-b6e5-ba5cbf3aa693",
-                  "title": "Entertainment",
-                  "disambiguation": "",
-                  "length": 214666,
-                  "video": false,
-                  "isrcs": ["USUM70832582"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "aa7557bb-8dda-3e65-9575-46484c1f6944",
-                "position": 10,
-                "number": "10",
-                "title": "Hero of War",
-                "length": 253126,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c77b446e-3192-4361-932c-a819f5879a70",
-                  "title": "Hero of War",
-                  "disambiguation": "",
-                  "length": 253080,
-                  "video": false,
-                  "isrcs": ["USUM70832583"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f52ac91a-6d32-3b25-aa6b-bb112a77ed81",
-                "position": 11,
-                "number": "11",
-                "title": "Savior",
-                "length": 242337,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "eda4b4af-21ef-4494-8657-f68ec116d4ad",
-                  "title": "Savior",
-                  "disambiguation": "",
-                  "length": 242280,
-                  "video": false,
-                  "isrcs": ["USUM70832584"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "54199e91-8afd-3ec5-8531-46c86ab16eb7",
-                "position": 12,
-                "number": "12",
-                "title": "Hairline Fracture",
-                "length": 242599,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "071bbfc9-f276-48dd-8a27-92d3317d1943",
-                  "title": "Hairline Fracture",
-                  "disambiguation": "",
-                  "length": 242560,
-                  "video": false,
-                  "isrcs": ["USUM70832585"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "5ced47d1-220d-3496-b83c-28fb2598386e",
-                "position": 13,
-                "number": "13",
-                "title": "Whereabouts Unknown",
-                "length": 241580,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "804697db-dc5e-4e6b-8ca4-4224a8a98ce7",
-                  "title": "Whereabouts Unknown",
-                  "disambiguation": "",
-                  "length": 242000,
-                  "video": false,
-                  "isrcs": ["USUM70832586"],
-                  "first-release-date": "2008-10-02",
-                  "artist-credit": [
-                    {
-                      "name": "Rise Against",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                        "name": "Rise Against",
-                        "sort-name": "Rise Against",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "d0839754-6a59-31b4-8ce3-4f3824d770f9",
-                "position": 14,
-                "number": "14",
-                "title": "Historia Calamitatum",
-                "length": 202997,
-                "artist-credit": [
-                  {
-                    "name": "Rise Against",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "606bf117-494f-4864-891f-09d63ff6aa4b",
-                      "name": "Rise Against",
-                      "sort-name": "Rise Against",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "3bcdd7e1-0d28-440e-a6fb-fd1b13be4d3e",
-                  "title": "Historia calamitatum",
-                  "disambiguation": "",
-                  "length": 202752,
-                  "video": false,
-                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {

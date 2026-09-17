@@ -11066,14 +11066,59 @@
         "country": "JP",
         "status": "Official",
         "barcode": "4988006788367",
+        "score": 100,
+        "packaging": "Jewel Case",
+        "artist-credit": [
+          {
+            "name": "Daft Punk",
+            "artist": {
+              "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+              "name": "Daft Punk",
+              "sort-name": "Daft Punk",
+              "disambiguation": "French electronic duo"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "VJCP-68283",
+            "label": {
+              "id": "49b58bdb-3d74-40c6-956a-4c4b46115c9c",
+              "name": "Virgin"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "48117b90-a16e-34ca-a514-19c702df1158",
+          "title": "Discovery",
+          "primary-type": "Album"
+        },
+        "media": [
+          {
+            "format": "CD",
+            "track-count": 14
+          }
+        ]
+      },
+      "detailed": false
+    },
+    {
+      "release": {
+        "id": "488477d8-10b4-47fe-a482-549f011406a5",
+        "title": "Discovery",
+        "disambiguation": "",
+        "date": "2021",
+        "country": "XE",
+        "status": "Official",
+        "barcode": "0190296610424",
         "packaging": "Jewel Case",
         "quality": "normal",
         "cover-art-archive": {
-          "darkened": false,
-          "artwork": true,
-          "count": 30,
           "front": true,
-          "back": true
+          "count": 1,
+          "darkened": false,
+          "back": false,
+          "artwork": true
         },
         "artist-credit": [
           {
@@ -11089,10 +11134,10 @@
         ],
         "label-info": [
           {
-            "catalog-number": "VJCP-68283",
+            "catalog-number": "0190296610424",
             "label": {
-              "id": "49b58bdb-3d74-40c6-956a-4c4b46115c9c",
-              "name": "Virgin"
+              "id": "3b0a155a-ce07-4e15-816b-2398cb4f0680",
+              "name": "ADA France"
             }
           }
         ],
@@ -11125,11 +11170,11 @@
             "track-offset": 0,
             "tracks": [
               {
-                "id": "83225df1-bdba-4ea4-b06d-830e401dec95",
+                "id": "2122fb1e-f064-4fbc-bd6a-b842a867affc",
                 "position": 1,
                 "number": "1",
                 "title": "One More Time",
-                "length": 321400,
+                "length": 321253,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11168,11 +11213,11 @@
                 }
               },
               {
-                "id": "e6919df4-90e9-403a-8508-424eacf10817",
+                "id": "de1c3913-ebf9-40c3-97f2-b2bc64f2cfd9",
                 "position": 2,
                 "number": "2",
                 "title": "Aerodynamic",
-                "length": 207493,
+                "length": 207866,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11211,11 +11256,11 @@
                 }
               },
               {
-                "id": "f77df529-be9d-4848-982c-fa45a1adafdb",
+                "id": "64306407-382b-4a2a-a809-c52d2a03d29e",
                 "position": 3,
                 "number": "3",
                 "title": "Digital Love",
-                "length": 298306,
+                "length": 297866,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11253,11 +11298,11 @@
                 }
               },
               {
-                "id": "85d22a4b-0e65-4960-a092-d70e2a771c5a",
+                "id": "5c6e04b6-5155-46d0-b368-37e43c9117cd",
                 "position": 4,
                 "number": "4",
                 "title": "Harder, Better, Faster, Stronger",
-                "length": 224333,
+                "length": 224506,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11296,11 +11341,11 @@
                 }
               },
               {
-                "id": "cf50ad0d-3306-426d-bd9d-caa267a75b6d",
+                "id": "4e39794f-e37c-4166-adfe-8f42dc0caff0",
                 "position": 5,
                 "number": "5",
                 "title": "Crescendolls",
-                "length": 211533,
+                "length": 211586,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11338,11 +11383,11 @@
                 }
               },
               {
-                "id": "acdc914e-3430-4dce-bf66-e7ba4802a7b5",
+                "id": "2c3d46b7-545d-4d79-8f90-67c951e8458d",
                 "position": 6,
                 "number": "6",
                 "title": "Nightvision",
-                "length": 104466,
+                "length": 104386,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11380,11 +11425,11 @@
                 }
               },
               {
-                "id": "2a0ad051-6e47-49ec-a72d-6b2af587efb9",
+                "id": "002406b0-d7f6-4096-8469-a9563d1e40f5",
                 "position": 7,
                 "number": "7",
                 "title": "Superheroes",
-                "length": 237693,
+                "length": 237853,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11422,11 +11467,11 @@
                 }
               },
               {
-                "id": "4f5167fb-693b-4c8b-9f13-5d410cd41122",
+                "id": "7cc9c8d0-2a5a-4811-a523-cfd310682b67",
                 "position": 8,
                 "number": "8",
                 "title": "High Life",
-                "length": 202040,
+                "length": 201866,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11464,11 +11509,11 @@
                 }
               },
               {
-                "id": "d9359a08-5620-4f3c-b88b-7bcde23e9568",
+                "id": "be02acbe-1f5f-4fa3-8f2f-a71f66728699",
                 "position": 9,
                 "number": "9",
                 "title": "Something About Us",
-                "length": 231000,
+                "length": 230986,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11507,11 +11552,11 @@
                 }
               },
               {
-                "id": "595c74c8-beff-4c13-80f4-de9911da406d",
+                "id": "4e234fd7-3071-4854-bdeb-0b069b07079f",
                 "position": 10,
                 "number": "10",
                 "title": "Voyager",
-                "length": 227893,
+                "length": 227920,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11549,11 +11594,11 @@
                 }
               },
               {
-                "id": "344089a7-69d9-4cfb-ad7b-27ca89a63eb5",
+                "id": "df900c86-3f88-4dfe-827a-6b693a360545",
                 "position": 11,
                 "number": "11",
                 "title": "Veridis Quo",
-                "length": 344933,
+                "length": 344946,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11591,11 +11636,11 @@
                 }
               },
               {
-                "id": "04de7daa-44de-47f1-a802-f614e7565778",
+                "id": "b9ce2c3b-4c35-41e9-874f-ec4f63e046f7",
                 "position": 12,
                 "number": "12",
                 "title": "Short Circuit",
-                "length": 206733,
+                "length": 206666,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11633,11 +11678,11 @@
                 }
               },
               {
-                "id": "8119031f-93ad-4a9c-8ed4-c9a99a83c589",
+                "id": "d9602dd2-7ebc-4ecf-8ffb-349da4280300",
                 "position": 13,
                 "number": "13",
                 "title": "Face to Face",
-                "length": 240133,
+                "length": 240173,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11675,11 +11720,11 @@
                 }
               },
               {
-                "id": "6b31f52b-3b31-49d6-af37-c49e99b77188",
+                "id": "6b10913e-4059-4881-a7c6-6dc5e8e0e432",
                 "position": 14,
                 "number": "14",
                 "title": "Too Long",
-                "length": 600333,
+                "length": 604106,
                 "artist-credit": [
                   {
                     "name": "Daft Punk",
@@ -11721,50 +11766,6 @@
         ]
       },
       "detailed": true
-    },
-    {
-      "release": {
-        "id": "488477d8-10b4-47fe-a482-549f011406a5",
-        "title": "Discovery",
-        "date": "2021",
-        "country": "XE",
-        "status": "Official",
-        "barcode": "0190296610424",
-        "score": 100,
-        "packaging": "Jewel Case",
-        "artist-credit": [
-          {
-            "name": "Daft Punk",
-            "artist": {
-              "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
-              "name": "Daft Punk",
-              "sort-name": "Daft Punk",
-              "disambiguation": "French electronic duo"
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": "0190296610424",
-            "label": {
-              "id": "3b0a155a-ce07-4e15-816b-2398cb4f0680",
-              "name": "ADA France"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "48117b90-a16e-34ca-a514-19c702df1158",
-          "title": "Discovery",
-          "primary-type": "Album"
-        },
-        "media": [
-          {
-            "format": "CD",
-            "track-count": 14
-          }
-        ]
-      },
-      "detailed": false
     },
     {
       "release": {
@@ -13357,21 +13358,21 @@
   "lookedUp": [
     "d073287b-d1bd-4f11-a933-a4386f8cf701",
     "0bf152ba-ac90-45d6-9e08-59d712eb2cb5",
+    "6cd30d99-4923-4d5e-8e51-9d87506976f1",
     "44e85a85-77d7-3e2e-8416-65a27d2aef68",
     "5ad66522-edce-3a77-b5fa-7956ee879239",
+    "c80cdcf0-0b8d-4c40-bbbb-54b286fd9a21",
     "6b6628a6-59a2-4284-86fc-8f2d24cb7b7e",
+    "69b198ff-fbaa-492a-bd2e-55f7aef7c29e",
+    "a1be7f50-6fbb-4251-8de3-3bb54d168d7f",
+    "488477d8-10b4-47fe-a482-549f011406a5",
     "098060d4-ba3c-469d-88b0-08642261c7ab",
     "30e45d86-707d-4042-9df5-93724557aadb",
     "51467269-3122-3d7e-92b2-0f0a694d30c1",
     "bd3bb36e-16c8-438f-850e-dfbf4d1478f0",
     "5654ace8-fd02-4471-a14c-bd6781cf2277",
-    "69b198ff-fbaa-492a-bd2e-55f7aef7c29e",
-    "ac7518c6-b630-4761-99c7-6a94cc35a594",
-    "ab5ca495-8983-41b9-86b4-46a981d173be",
-    "6cd30d99-4923-4d5e-8e51-9d87506976f1",
-    "c80cdcf0-0b8d-4c40-bbbb-54b286fd9a21",
     "8343b377-ea18-4d64-b5f6-ffaf55d8f55b",
-    "8d28a4da-8077-4cae-a0a1-2d16c4923775",
-    "a1be7f50-6fbb-4251-8de3-3bb54d168d7f"
+    "ac7518c6-b630-4761-99c7-6a94cc35a594",
+    "8d28a4da-8077-4cae-a0a1-2d16c4923775"
   ]
 }

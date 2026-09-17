@@ -1,7 +1,7 @@
 {
   "name": "pure-heroine",
   "kind": "album",
-  "recordedAt": "2026-09-08T13:51:19.936Z",
+  "recordedAt": "2026-09-17T09:50:24.880Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_k3ckSBQqo8bkgLY4h8dkRc4ky0NFdY3To",
     "album": "Pure Heroine",
@@ -754,6 +754,479 @@
       }
     },
     {
+      "key": "release/002022bb-276c-455a-8cb9-2848b77c37b8?inc=releaseFull",
+      "payload": {
+        "id": "002022bb-276c-455a-8cb9-2848b77c37b8",
+        "title": "Pure Heroine",
+        "disambiguation": "",
+        "date": "2014-01-07",
+        "country": "XW",
+        "status": "Official",
+        "barcode": "00602537672424",
+        "packaging": null,
+        "quality": "normal",
+        "cover-art-archive": {
+          "count": 1,
+          "darkened": false,
+          "front": true,
+          "artwork": true,
+          "back": false
+        },
+        "artist-credit": [
+          {
+            "name": "Lorde",
+            "joinphrase": "",
+            "artist": {
+              "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+              "name": "Lorde",
+              "sort-name": "Lorde",
+              "disambiguation": "New Zealand singer‐songwriter"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "590538e9-b183-4163-ab5a-171fb021ed12",
+              "name": "Universal Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "8e8a1db7-1d43-44d3-9796-fd69f12730cb",
+          "title": "Pure Heroine",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2013-09-27",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Lorde",
+              "joinphrase": "",
+              "artist": {
+                "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                "name": "Lorde",
+                "sort-name": "Lorde",
+                "disambiguation": "New Zealand singer‐songwriter"
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 10,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "15b945d1-e781-49ac-b295-a96808ae4700",
+                "position": 1,
+                "number": "1",
+                "title": "Tennis Court",
+                "length": 200000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3b083303-7c3e-4bf3-8457-6eb417f581f5",
+                  "title": "Tennis Court",
+                  "disambiguation": "",
+                  "length": 198907,
+                  "video": false,
+                  "isrcs": ["NZUM71300023"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0fc8cc71-7a44-4206-9203-59554d3e5b1f",
+                "position": 2,
+                "number": "2",
+                "title": "400 Lux",
+                "length": 234286,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "5a475783-6a69-4644-bf12-918524174117",
+                  "title": "400 Lux",
+                  "disambiguation": "",
+                  "length": 234286,
+                  "video": false,
+                  "isrcs": ["NZUM71300121"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "d986fb9b-64f0-4c45-8d81-38ddbc6a6999",
+                "position": 3,
+                "number": "3",
+                "title": "Royals",
+                "length": 190185,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "04cccd2b-bbac-4309-a367-94325fd0ef93",
+                  "title": "Royals",
+                  "disambiguation": "",
+                  "length": 190000,
+                  "video": false,
+                  "isrcs": ["NZUM71200031"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "3a206f61-34ea-45b1-b99a-288793aafe67",
+                "position": 4,
+                "number": "4",
+                "title": "Ribs",
+                "length": 258969,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "808e54ee-0ab6-48b8-8297-61e8016b8b5c",
+                  "title": "Ribs",
+                  "disambiguation": "",
+                  "length": 258969,
+                  "video": false,
+                  "isrcs": ["NZUM71300122"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cd68dfb7-9fff-4be9-b77a-4b878cebddcd",
+                "position": 5,
+                "number": "5",
+                "title": "Buzzcut Season",
+                "length": 246755,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bcaec4d1-fdac-496c-a44d-76d62bf15e4b",
+                  "title": "Buzzcut Season",
+                  "disambiguation": "",
+                  "length": 246755,
+                  "video": false,
+                  "isrcs": ["NZUM71300123"],
+                  "first-release-date": "2013-09-26",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "2accb469-34cd-4737-bc6e-e38570645190",
+                "position": 6,
+                "number": "6",
+                "title": "Team",
+                "length": 193059,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9e0ced3f-b8eb-43be-93a3-d21fb6acf086",
+                  "title": "Team",
+                  "disambiguation": "",
+                  "length": 193058,
+                  "video": false,
+                  "isrcs": ["NZUM71300124"],
+                  "first-release-date": "2013-09-13",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1f36db0f-5196-4fd7-91ae-e8d2e454a7bf",
+                "position": 7,
+                "number": "7",
+                "title": "Glory and Gore",
+                "length": 210738,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b5445d44-0fe4-4cc0-b1de-ad9d1bba4bd6",
+                  "title": "Glory and Gore",
+                  "disambiguation": "",
+                  "length": 210738,
+                  "video": false,
+                  "isrcs": ["NZUM71300125"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b8c3cba1-3737-45da-9cc1-a37fe2042074",
+                "position": 8,
+                "number": "8",
+                "title": "Still Sane",
+                "length": 188133,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b851a4f9-0de3-4c98-8c4c-0d14c1743eda",
+                  "title": "Still Sane",
+                  "disambiguation": "",
+                  "length": 188133,
+                  "video": false,
+                  "isrcs": ["NZUM71300126"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "30262805-34ba-4268-90c8-ab93afd4c7f9",
+                "position": 9,
+                "number": "9",
+                "title": "White Teeth Teens",
+                "length": 216000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "876dd206-a33e-4e46-86f5-8cad26433c0c",
+                  "title": "White Teeth Teens",
+                  "disambiguation": "",
+                  "length": 216600,
+                  "video": false,
+                  "isrcs": ["NZUM71300127"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "e14a647a-efed-4818-83a6-e9b503805154",
+                "position": 10,
+                "number": "10",
+                "title": "A World Alone",
+                "length": 295000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "f09d3918-83a8-430b-b65b-e3fd22376c45",
+                  "title": "A World Alone",
+                  "disambiguation": "",
+                  "length": 294222,
+                  "video": false,
+                  "isrcs": ["NZUM71300128"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "key": "release/f546b766-4b04-4781-b058-3d5e7dabc37d?inc=releaseFull",
       "payload": {
         "id": "f546b766-4b04-4781-b058-3d5e7dabc37d",
@@ -766,11 +1239,11 @@
         "packaging": "None",
         "quality": "normal",
         "cover-art-archive": {
-          "back": false,
-          "artwork": false,
           "front": false,
           "count": 0,
-          "darkened": false
+          "darkened": false,
+          "back": false,
+          "artwork": false
         },
         "artist-credit": [
           {
@@ -1247,9 +1720,9 @@
         "quality": "normal",
         "cover-art-archive": {
           "darkened": false,
-          "back": true,
-          "artwork": true,
           "front": true,
+          "artwork": true,
+          "back": true,
           "count": 22
         },
         "artist-credit": [
@@ -1707,23 +2180,23 @@
       }
     },
     {
-      "key": "release/002022bb-276c-455a-8cb9-2848b77c37b8?inc=releaseFull",
+      "key": "release/ffbe3099-9d1d-4bf2-b59d-c8e9aa93926a?inc=releaseFull",
       "payload": {
-        "id": "002022bb-276c-455a-8cb9-2848b77c37b8",
+        "id": "ffbe3099-9d1d-4bf2-b59d-c8e9aa93926a",
         "title": "Pure Heroine",
         "disambiguation": "",
-        "date": "2014-01-07",
-        "country": "XW",
+        "date": "2013-09-27",
+        "country": null,
         "status": "Official",
-        "barcode": "00602537672424",
-        "packaging": null,
+        "barcode": "00602537518982",
+        "packaging": "None",
         "quality": "normal",
         "cover-art-archive": {
-          "artwork": true,
+          "darkened": false,
           "back": false,
-          "front": true,
           "count": 1,
-          "darkened": false
+          "front": true,
+          "artwork": true
         },
         "artist-credit": [
           {
@@ -1741,8 +2214,8 @@
           {
             "catalog-number": null,
             "label": {
-              "id": "590538e9-b183-4163-ab5a-171fb021ed12",
-              "name": "Universal Records"
+              "id": "6bab409c-56b7-493b-a2ca-9ef58ff2b5a8",
+              "name": "Universal Music New Zealand"
             }
           }
         ],
@@ -1775,11 +2248,11 @@
             "track-offset": 0,
             "tracks": [
               {
-                "id": "15b945d1-e781-49ac-b295-a96808ae4700",
+                "id": "0a53a2de-e0fb-4574-bb81-a965d361fd65",
                 "position": 1,
                 "number": "1",
                 "title": "Tennis Court",
-                "length": 200000,
+                "length": 198907,
                 "artist-credit": [
                   {
                     "name": "Lorde",
@@ -1815,7 +2288,7 @@
                 }
               },
               {
-                "id": "0fc8cc71-7a44-4206-9203-59554d3e5b1f",
+                "id": "74b87038-96dd-4b96-94bc-587bf35cead9",
                 "position": 2,
                 "number": "2",
                 "title": "400 Lux",
@@ -1855,7 +2328,7 @@
                 }
               },
               {
-                "id": "d986fb9b-64f0-4c45-8d81-38ddbc6a6999",
+                "id": "3648ba4e-d647-4b34-9d75-45f5f54841a1",
                 "position": 3,
                 "number": "3",
                 "title": "Royals",
@@ -1895,7 +2368,7 @@
                 }
               },
               {
-                "id": "3a206f61-34ea-45b1-b99a-288793aafe67",
+                "id": "c87e4a52-b743-41a8-be44-6fdc3b6e59ab",
                 "position": 4,
                 "number": "4",
                 "title": "Ribs",
@@ -1935,7 +2408,7 @@
                 }
               },
               {
-                "id": "cd68dfb7-9fff-4be9-b77a-4b878cebddcd",
+                "id": "664b375e-4cd3-49b4-8dd8-1e274817cffb",
                 "position": 5,
                 "number": "5",
                 "title": "Buzzcut Season",
@@ -1975,7 +2448,7 @@
                 }
               },
               {
-                "id": "2accb469-34cd-4737-bc6e-e38570645190",
+                "id": "434ebb4f-1f1d-49ee-b6db-1034c171308e",
                 "position": 6,
                 "number": "6",
                 "title": "Team",
@@ -2015,7 +2488,7 @@
                 }
               },
               {
-                "id": "1f36db0f-5196-4fd7-91ae-e8d2e454a7bf",
+                "id": "576c7113-8e4c-4064-894a-8100daaa4e13",
                 "position": 7,
                 "number": "7",
                 "title": "Glory and Gore",
@@ -2055,7 +2528,7 @@
                 }
               },
               {
-                "id": "b8c3cba1-3737-45da-9cc1-a37fe2042074",
+                "id": "00782ad3-2c41-4323-910f-8b88326db82c",
                 "position": 8,
                 "number": "8",
                 "title": "Still Sane",
@@ -2095,11 +2568,11 @@
                 }
               },
               {
-                "id": "30262805-34ba-4268-90c8-ab93afd4c7f9",
+                "id": "425dd8de-e1c4-4131-ae1c-63c809095f87",
                 "position": 9,
                 "number": "9",
                 "title": "White Teeth Teens",
-                "length": 216000,
+                "length": 216600,
                 "artist-credit": [
                   {
                     "name": "Lorde",
@@ -2135,11 +2608,11 @@
                 }
               },
               {
-                "id": "e14a647a-efed-4818-83a6-e9b503805154",
+                "id": "e905bc2a-c00d-4672-a1c5-090c28090811",
                 "position": 10,
                 "number": "10",
                 "title": "A World Alone",
-                "length": 295000,
+                "length": 294222,
                 "artist-credit": [
                   {
                     "name": "Lorde",
@@ -2192,11 +2665,11 @@
         "packaging": "Jewel Case",
         "quality": "normal",
         "cover-art-archive": {
-          "darkened": false,
-          "count": 12,
           "front": true,
-          "artwork": true,
-          "back": true
+          "count": 12,
+          "darkened": false,
+          "back": true,
+          "artwork": true
         },
         "artist-credit": [
           {
@@ -2672,11 +3145,11 @@
         "packaging": "Jewel Case",
         "quality": "normal",
         "cover-art-archive": {
-          "darkened": false,
-          "back": false,
           "artwork": true,
           "front": true,
-          "count": 1
+          "count": 1,
+          "back": false,
+          "darkened": false
         },
         "artist-credit": [
           {
@@ -3145,11 +3618,11 @@
         "packaging": "Jewel Case",
         "quality": "normal",
         "cover-art-archive": {
-          "front": false,
+          "artwork": false,
+          "back": false,
           "count": 0,
           "darkened": false,
-          "back": false,
-          "artwork": false
+          "front": false
         },
         "artist-credit": [
           {
@@ -3618,11 +4091,11 @@
         "packaging": null,
         "quality": "normal",
         "cover-art-archive": {
-          "artwork": true,
-          "back": false,
-          "front": true,
+          "darkened": false,
           "count": 2,
-          "darkened": false
+          "front": true,
+          "artwork": true,
+          "back": false
         },
         "artist-credit": [
           {
@@ -4079,6 +4552,486 @@
       }
     },
     {
+      "key": "release/89dfec35-f2aa-404b-b306-b8999d7e5aec?inc=releaseFull",
+      "payload": {
+        "id": "89dfec35-f2aa-404b-b306-b8999d7e5aec",
+        "title": "Pure Heroine",
+        "disambiguation": "",
+        "date": "",
+        "country": "CA",
+        "status": "Official",
+        "barcode": "602537737284",
+        "packaging": "Cardboard/Paper Sleeve",
+        "quality": "normal",
+        "cover-art-archive": {
+          "back": false,
+          "artwork": true,
+          "darkened": false,
+          "front": true,
+          "count": 1
+        },
+        "artist-credit": [
+          {
+            "name": "Lorde",
+            "joinphrase": "",
+            "artist": {
+              "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+              "name": "Lorde",
+              "sort-name": "Lorde",
+              "disambiguation": "New Zealand singer‐songwriter"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "B0020177-02",
+            "label": {
+              "id": "124c5a9d-73df-4973-bff8-5ebe98cc8168",
+              "name": "Lava"
+            }
+          },
+          {
+            "catalog-number": "B0020177-02",
+            "label": {
+              "id": "e0ecd909-0477-485f-80dc-3c27ea4837ca",
+              "name": "Republic Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "8e8a1db7-1d43-44d3-9796-fd69f12730cb",
+          "title": "Pure Heroine",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2013-09-27",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Lorde",
+              "joinphrase": "",
+              "artist": {
+                "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                "name": "Lorde",
+                "sort-name": "Lorde",
+                "disambiguation": "New Zealand singer‐songwriter"
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "CD",
+            "title": "",
+            "track-count": 10,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "06aec50a-79ba-44b7-9493-17d0c8e4ba17",
+                "position": 1,
+                "number": "1",
+                "title": "Tennis Court",
+                "length": 198786,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3b083303-7c3e-4bf3-8457-6eb417f581f5",
+                  "title": "Tennis Court",
+                  "disambiguation": "",
+                  "length": 198907,
+                  "video": false,
+                  "isrcs": ["NZUM71300023"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "4e988f7c-7ed5-485f-b325-01352334d3ce",
+                "position": 2,
+                "number": "2",
+                "title": "400 Lux",
+                "length": 234360,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "5a475783-6a69-4644-bf12-918524174117",
+                  "title": "400 Lux",
+                  "disambiguation": "",
+                  "length": 234286,
+                  "video": false,
+                  "isrcs": ["NZUM71300121"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "296f9066-ff63-42c7-acb1-b78ee916a07f",
+                "position": 3,
+                "number": "3",
+                "title": "Royals",
+                "length": 190146,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "04cccd2b-bbac-4309-a367-94325fd0ef93",
+                  "title": "Royals",
+                  "disambiguation": "",
+                  "length": 190000,
+                  "video": false,
+                  "isrcs": ["NZUM71200031"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "eb4bc6f0-4278-41cf-9d65-10b59aee0479",
+                "position": 4,
+                "number": "4",
+                "title": "Ribs",
+                "length": 258973,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "808e54ee-0ab6-48b8-8297-61e8016b8b5c",
+                  "title": "Ribs",
+                  "disambiguation": "",
+                  "length": 258969,
+                  "video": false,
+                  "isrcs": ["NZUM71300122"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "6463cceb-46f0-41c7-9071-d38b27950f7c",
+                "position": 5,
+                "number": "5",
+                "title": "Buzzcut Season",
+                "length": 246733,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bcaec4d1-fdac-496c-a44d-76d62bf15e4b",
+                  "title": "Buzzcut Season",
+                  "disambiguation": "",
+                  "length": 246755,
+                  "video": false,
+                  "isrcs": ["NZUM71300123"],
+                  "first-release-date": "2013-09-26",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "66ff5192-c747-4951-b27f-ba0be4213629",
+                "position": 6,
+                "number": "6",
+                "title": "Team",
+                "length": 193040,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9e0ced3f-b8eb-43be-93a3-d21fb6acf086",
+                  "title": "Team",
+                  "disambiguation": "",
+                  "length": 193058,
+                  "video": false,
+                  "isrcs": ["NZUM71300124"],
+                  "first-release-date": "2013-09-13",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "8718d8d6-4072-4e13-977f-a6d1160fb58c",
+                "position": 7,
+                "number": "7",
+                "title": "Glory and Gore",
+                "length": 210706,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b5445d44-0fe4-4cc0-b1de-ad9d1bba4bd6",
+                  "title": "Glory and Gore",
+                  "disambiguation": "",
+                  "length": 210738,
+                  "video": false,
+                  "isrcs": ["NZUM71300125"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bc7fc853-0b29-4346-a029-87dbd679f2b8",
+                "position": 8,
+                "number": "8",
+                "title": "Still Sane",
+                "length": 188106,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b851a4f9-0de3-4c98-8c4c-0d14c1743eda",
+                  "title": "Still Sane",
+                  "disambiguation": "",
+                  "length": 188133,
+                  "video": false,
+                  "isrcs": ["NZUM71300126"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "92fec02b-4c9f-49a5-ac1f-08cdc3219f08",
+                "position": 9,
+                "number": "9",
+                "title": "White Teeth Teens",
+                "length": 216586,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "876dd206-a33e-4e46-86f5-8cad26433c0c",
+                  "title": "White Teeth Teens",
+                  "disambiguation": "",
+                  "length": 216600,
+                  "video": false,
+                  "isrcs": ["NZUM71300127"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "12f394e8-fadd-4c4b-926e-c6e1ad03cfcf",
+                "position": 10,
+                "number": "10",
+                "title": "A World Alone",
+                "length": 294560,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "f09d3918-83a8-430b-b65b-e3fd22376c45",
+                  "title": "A World Alone",
+                  "disambiguation": "",
+                  "length": 294222,
+                  "video": false,
+                  "isrcs": ["NZUM71300128"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "key": "release/5f62ee6d-c5a7-4455-bfff-60e085d98f8a?inc=releaseFull",
       "payload": {
         "id": "5f62ee6d-c5a7-4455-bfff-60e085d98f8a",
@@ -4092,10 +5045,10 @@
         "quality": "normal",
         "cover-art-archive": {
           "count": 1,
-          "back": false,
-          "darkened": false,
+          "front": true,
           "artwork": true,
-          "front": true
+          "darkened": false,
+          "back": false
         },
         "artist-credit": [
           {
@@ -4552,6 +5505,479 @@
       }
     },
     {
+      "key": "release/1c989e5c-3eb2-4075-b2ba-c98bcbc80047?inc=releaseFull",
+      "payload": {
+        "id": "1c989e5c-3eb2-4075-b2ba-c98bcbc80047",
+        "title": "Pure Heroine",
+        "disambiguation": "Dolby Atmos mix",
+        "date": "2021-12-01",
+        "country": null,
+        "status": "Official",
+        "barcode": "00602445298488",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "darkened": false,
+          "back": false,
+          "count": 1,
+          "artwork": true,
+          "front": true
+        },
+        "artist-credit": [
+          {
+            "name": "Lorde",
+            "joinphrase": "",
+            "artist": {
+              "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+              "name": "Lorde",
+              "sort-name": "Lorde",
+              "disambiguation": "New Zealand singer‐songwriter"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "6bab409c-56b7-493b-a2ca-9ef58ff2b5a8",
+              "name": "Universal Music New Zealand"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "8e8a1db7-1d43-44d3-9796-fd69f12730cb",
+          "title": "Pure Heroine",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2013-09-27",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Lorde",
+              "joinphrase": "",
+              "artist": {
+                "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                "name": "Lorde",
+                "sort-name": "Lorde",
+                "disambiguation": "New Zealand singer‐songwriter"
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 10,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "18f5d300-6d5f-4c5e-889b-08732f6d46b6",
+                "position": 1,
+                "number": "1",
+                "title": "Tennis Court",
+                "length": 199000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b105f993-6c00-4cd2-8039-9a19ed9c7338",
+                  "title": "Tennis Court",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 199000,
+                  "video": false,
+                  "isrcs": ["NZUM72100627"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "161bf9da-f0ac-4cec-9279-df1a19993ab4",
+                "position": 2,
+                "number": "2",
+                "title": "400 Lux",
+                "length": 234000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "ea8a83c5-d593-42ae-b576-6568349008ce",
+                  "title": "400 Lux",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 234000,
+                  "video": false,
+                  "isrcs": ["NZUM72100628"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "be6bd44a-ec8d-43d9-9b2c-5a28b4691e8d",
+                "position": 3,
+                "number": "3",
+                "title": "Royals",
+                "length": 190000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "696c64f4-fe01-4e33-ae83-7ffb8881fede",
+                  "title": "Royals",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 190000,
+                  "video": false,
+                  "isrcs": ["NZUM72100629"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "56a617ba-40cb-41a6-a055-22a636746533",
+                "position": 4,
+                "number": "4",
+                "title": "Ribs",
+                "length": 259000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "711b498d-28ab-4776-b7e7-3d90d75d640a",
+                  "title": "Ribs",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 259000,
+                  "video": false,
+                  "isrcs": ["NZUM72100630"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "19c9a1cd-a7b8-4a14-bfc3-d521f65c4ad8",
+                "position": 5,
+                "number": "5",
+                "title": "Buzzcut Season",
+                "length": 247000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "731e2841-1be1-4e7a-ac0d-33e4860cbcc4",
+                  "title": "Buzzcut Season",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 247000,
+                  "video": false,
+                  "isrcs": ["NZUM72100631"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "af2b1b41-62fc-4257-aefe-aa70775d5367",
+                "position": 6,
+                "number": "6",
+                "title": "Team",
+                "length": 193000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "16a9deab-1e54-4fa1-a57f-ffcefb6f86d5",
+                  "title": "Team",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 193000,
+                  "video": false,
+                  "isrcs": ["NZUM72100632"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "39cd810f-d193-40eb-8463-749c4631ed25",
+                "position": 7,
+                "number": "7",
+                "title": "Glory and Gore",
+                "length": 211000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "74ae2d8c-c82e-49d0-a454-e6ae27fa5c92",
+                  "title": "Glory and Gore",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 211000,
+                  "video": false,
+                  "isrcs": ["NZUM72100633"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "43ba5848-a9b3-496f-a5c4-cba9d36002c7",
+                "position": 8,
+                "number": "8",
+                "title": "Still Sane",
+                "length": 188000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "38a51162-0d92-4ee8-a3bf-a0f9a52dc1e4",
+                  "title": "Still Sane",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 188000,
+                  "video": false,
+                  "isrcs": ["NZUM72100634"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "dd394146-318a-4efc-b693-84186616bffd",
+                "position": 9,
+                "number": "9",
+                "title": "White Teeth Teens",
+                "length": 217000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "172cc9c9-3725-452e-81fa-b26f7c3c6c31",
+                  "title": "White Teeth Teens",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 217000,
+                  "video": false,
+                  "isrcs": ["NZUM72100635"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "5676ae55-f28a-4955-acea-ef06dc87846e",
+                "position": 10,
+                "number": "10",
+                "title": "A World Alone",
+                "length": 294000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "068e6a44-d7db-4c68-9405-5402c9992bc1",
+                  "title": "A World Alone",
+                  "disambiguation": "Dolby Atmos mix",
+                  "length": 294000,
+                  "video": false,
+                  "isrcs": ["NZUM72100636"],
+                  "first-release-date": "2021-12-01",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "key": "release/385c6b5b-e4dd-4737-97fa-4d7174469040?inc=releaseFull",
       "payload": {
         "id": "385c6b5b-e4dd-4737-97fa-4d7174469040",
@@ -4565,10 +5991,10 @@
         "quality": "normal",
         "cover-art-archive": {
           "artwork": true,
+          "back": false,
           "count": 1,
-          "front": true,
           "darkened": false,
-          "back": false
+          "front": true
         },
         "artist-credit": [
           {
@@ -5145,23 +6571,616 @@
       }
     },
     {
-      "key": "release/ffbe3099-9d1d-4bf2-b59d-c8e9aa93926a?inc=releaseFull",
+      "key": "release/491dd8ee-2b66-4510-b457-919b39058fe6?inc=releaseFull",
       "payload": {
-        "id": "ffbe3099-9d1d-4bf2-b59d-c8e9aa93926a",
+        "id": "491dd8ee-2b66-4510-b457-919b39058fe6",
         "title": "Pure Heroine",
         "disambiguation": "",
-        "date": "2013-09-27",
-        "country": null,
+        "date": "2014-02-19",
+        "country": "JP",
         "status": "Official",
-        "barcode": "00602537518982",
+        "barcode": "4988005809452",
+        "packaging": "Jewel Case",
+        "quality": "normal",
+        "cover-art-archive": {
+          "count": 20,
+          "darkened": false,
+          "front": true,
+          "artwork": true,
+          "back": true
+        },
+        "artist-credit": [
+          {
+            "name": "Lorde",
+            "joinphrase": "",
+            "artist": {
+              "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+              "name": "Lorde",
+              "sort-name": "Lorde",
+              "disambiguation": "New Zealand singer‐songwriter"
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": "UICO-1262",
+            "label": {
+              "id": "6bab409c-56b7-493b-a2ca-9ef58ff2b5a8",
+              "name": "Universal Music New Zealand"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "8e8a1db7-1d43-44d3-9796-fd69f12730cb",
+          "title": "Pure Heroine",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2013-09-27",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Lorde",
+              "joinphrase": "",
+              "artist": {
+                "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                "name": "Lorde",
+                "sort-name": "Lorde",
+                "disambiguation": "New Zealand singer‐songwriter"
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "CD",
+            "title": "",
+            "track-count": 13,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "dcb651f3-e686-4c6f-b48e-89ff60f525ed",
+                "position": 1,
+                "number": "1",
+                "title": "Tennis Court",
+                "length": 198907,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3b083303-7c3e-4bf3-8457-6eb417f581f5",
+                  "title": "Tennis Court",
+                  "disambiguation": "",
+                  "length": 198907,
+                  "video": false,
+                  "isrcs": ["NZUM71300023"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b058a315-39f0-47e9-b041-9f1c973fa1d4",
+                "position": 2,
+                "number": "2",
+                "title": "400 Lux",
+                "length": 234286,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "5a475783-6a69-4644-bf12-918524174117",
+                  "title": "400 Lux",
+                  "disambiguation": "",
+                  "length": 234286,
+                  "video": false,
+                  "isrcs": ["NZUM71300121"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "8f51c5c2-0e38-4dc9-b398-efb3abccee4e",
+                "position": 3,
+                "number": "3",
+                "title": "Royals",
+                "length": 190185,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "04cccd2b-bbac-4309-a367-94325fd0ef93",
+                  "title": "Royals",
+                  "disambiguation": "",
+                  "length": 190000,
+                  "video": false,
+                  "isrcs": ["NZUM71200031"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "ad3b93f5-7e81-4d43-b048-78291fffdd8a",
+                "position": 4,
+                "number": "4",
+                "title": "Ribs",
+                "length": 258969,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "808e54ee-0ab6-48b8-8297-61e8016b8b5c",
+                  "title": "Ribs",
+                  "disambiguation": "",
+                  "length": 258969,
+                  "video": false,
+                  "isrcs": ["NZUM71300122"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "e4114f80-e2f5-4d06-a898-0a741c926e4d",
+                "position": 5,
+                "number": "5",
+                "title": "Buzzcut Season",
+                "length": 246755,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bcaec4d1-fdac-496c-a44d-76d62bf15e4b",
+                  "title": "Buzzcut Season",
+                  "disambiguation": "",
+                  "length": 246755,
+                  "video": false,
+                  "isrcs": ["NZUM71300123"],
+                  "first-release-date": "2013-09-26",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b8872c27-f599-4c42-9873-888702eafe41",
+                "position": 6,
+                "number": "6",
+                "title": "Team",
+                "length": 193059,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9e0ced3f-b8eb-43be-93a3-d21fb6acf086",
+                  "title": "Team",
+                  "disambiguation": "",
+                  "length": 193058,
+                  "video": false,
+                  "isrcs": ["NZUM71300124"],
+                  "first-release-date": "2013-09-13",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "22e8fcbf-1c5a-44f0-9ef0-ffbd53993c14",
+                "position": 7,
+                "number": "7",
+                "title": "Glory and Gore",
+                "length": 210738,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b5445d44-0fe4-4cc0-b1de-ad9d1bba4bd6",
+                  "title": "Glory and Gore",
+                  "disambiguation": "",
+                  "length": 210738,
+                  "video": false,
+                  "isrcs": ["NZUM71300125"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c148348d-71d3-434f-a9c1-d5b5a731b933",
+                "position": 8,
+                "number": "8",
+                "title": "Still Sane",
+                "length": 188133,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "b851a4f9-0de3-4c98-8c4c-0d14c1743eda",
+                  "title": "Still Sane",
+                  "disambiguation": "",
+                  "length": 188133,
+                  "video": false,
+                  "isrcs": ["NZUM71300126"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "7e8f1d41-c1c1-428e-a5d0-e9597b16084e",
+                "position": 9,
+                "number": "9",
+                "title": "White Teeth Teens",
+                "length": 216600,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "876dd206-a33e-4e46-86f5-8cad26433c0c",
+                  "title": "White Teeth Teens",
+                  "disambiguation": "",
+                  "length": 216600,
+                  "video": false,
+                  "isrcs": ["NZUM71300127"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "ecf5cae8-ade4-4af7-938a-721f272c2b8c",
+                "position": 10,
+                "number": "10",
+                "title": "A World Alone",
+                "length": 294222,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "f09d3918-83a8-430b-b65b-e3fd22376c45",
+                  "title": "A World Alone",
+                  "disambiguation": "",
+                  "length": 294222,
+                  "video": false,
+                  "isrcs": ["NZUM71300128"],
+                  "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "22417456-d960-43de-b82d-375e4362d60f",
+                "position": 11,
+                "number": "11",
+                "title": "Bravado",
+                "length": 221000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "0b7f2c82-9629-4d19-8268-4b79f8bb7304",
+                  "title": "Bravado",
+                  "disambiguation": "",
+                  "length": 221408,
+                  "video": false,
+                  "isrcs": ["NZUM71200030"],
+                  "first-release-date": "2012-11-21",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1ee2479d-776e-42d1-bf04-6de3950eb00f",
+                "position": 12,
+                "number": "12",
+                "title": "Swingin Party",
+                "length": 222000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8fab59c5-42c3-4137-9250-8af2980d6203",
+                  "title": "Swingin Party",
+                  "disambiguation": "",
+                  "length": 222000,
+                  "video": false,
+                  "isrcs": ["NZUM71300024"],
+                  "first-release-date": "2012",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "37c26bba-b861-4f65-80fc-a838dc42b3c4",
+                "position": 13,
+                "number": "13",
+                "title": "Bravado (Fffrrannno remix)",
+                "length": 222000,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "a9e44959-d060-4f47-a434-1db824c11ed5",
+                  "title": "Bravado (Fffrrannno remix)",
+                  "disambiguation": "",
+                  "length": 221865,
+                  "video": false,
+                  "isrcs": ["NZUM71300003"],
+                  "first-release-date": "2013-03-08",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/c7ab830a-8260-4db5-a1b3-8573765dd7e6?inc=releaseFull",
+      "payload": {
+        "id": "c7ab830a-8260-4db5-a1b3-8573765dd7e6",
+        "title": "Pure Heroine (extended)",
+        "disambiguation": "",
+        "date": "2013-12-16",
+        "country": "XW",
+        "status": "Official",
+        "barcode": "602537654604",
         "packaging": "None",
         "quality": "normal",
         "cover-art-archive": {
-          "count": 1,
           "artwork": true,
+          "darkened": false,
+          "count": 1,
           "front": true,
-          "back": false,
-          "darkened": false
+          "back": false
         },
         "artist-credit": [
           {
@@ -5209,11 +7228,11 @@
             "position": 1,
             "format": "Digital Media",
             "title": "",
-            "track-count": 10,
+            "track-count": 15,
             "track-offset": 0,
             "tracks": [
               {
-                "id": "0a53a2de-e0fb-4574-bb81-a965d361fd65",
+                "id": "ac4c4a25-36bf-452d-8e10-7ee08875510f",
                 "position": 1,
                 "number": "1",
                 "title": "Tennis Court",
@@ -5253,7 +7272,7 @@
                 }
               },
               {
-                "id": "74b87038-96dd-4b96-94bc-587bf35cead9",
+                "id": "5f3ec2e5-6bf1-4d61-bc47-616c229b69bf",
                 "position": 2,
                 "number": "2",
                 "title": "400 Lux",
@@ -5293,7 +7312,7 @@
                 }
               },
               {
-                "id": "3648ba4e-d647-4b34-9d75-45f5f54841a1",
+                "id": "54146339-adc3-4b39-a72c-3704c2194988",
                 "position": 3,
                 "number": "3",
                 "title": "Royals",
@@ -5333,7 +7352,7 @@
                 }
               },
               {
-                "id": "c87e4a52-b743-41a8-be44-6fdc3b6e59ab",
+                "id": "abc3339a-35b1-4379-8ab0-7fdc06887429",
                 "position": 4,
                 "number": "4",
                 "title": "Ribs",
@@ -5373,7 +7392,7 @@
                 }
               },
               {
-                "id": "664b375e-4cd3-49b4-8dd8-1e274817cffb",
+                "id": "d06fb8de-90b3-4915-a826-f466f933c114",
                 "position": 5,
                 "number": "5",
                 "title": "Buzzcut Season",
@@ -5413,11 +7432,11 @@
                 }
               },
               {
-                "id": "434ebb4f-1f1d-49ee-b6db-1034c171308e",
+                "id": "6d38fd5d-e6cc-48c6-8a85-f9b88c22c386",
                 "position": 6,
                 "number": "6",
                 "title": "Team",
-                "length": 193059,
+                "length": 193058,
                 "artist-credit": [
                   {
                     "name": "Lorde",
@@ -5453,11 +7472,11 @@
                 }
               },
               {
-                "id": "576c7113-8e4c-4064-894a-8100daaa4e13",
+                "id": "64fb81f2-0b90-4d6d-a985-c4144e01f591",
                 "position": 7,
                 "number": "7",
                 "title": "Glory and Gore",
-                "length": 210738,
+                "length": 210737,
                 "artist-credit": [
                   {
                     "name": "Lorde",
@@ -5493,7 +7512,7 @@
                 }
               },
               {
-                "id": "00782ad3-2c41-4323-910f-8b88326db82c",
+                "id": "509afa8f-e596-4161-8b66-1ebd52733704",
                 "position": 8,
                 "number": "8",
                 "title": "Still Sane",
@@ -5533,7 +7552,7 @@
                 }
               },
               {
-                "id": "425dd8de-e1c4-4131-ae1c-63c809095f87",
+                "id": "5e936a9c-b871-4b0c-a854-90306ffd7021",
                 "position": 9,
                 "number": "9",
                 "title": "White Teeth Teens",
@@ -5573,7 +7592,7 @@
                 }
               },
               {
-                "id": "e905bc2a-c00d-4672-a1c5-090c28090811",
+                "id": "23e30794-6424-427c-8e70-5a6d9dda6dff",
                 "position": 10,
                 "number": "10",
                 "title": "A World Alone",
@@ -5598,6 +7617,206 @@
                   "video": false,
                   "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "5a075ef0-7352-4085-9202-7105c76f4639",
+                "position": 11,
+                "number": "11",
+                "title": "Bravado",
+                "length": 221408,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "0b7f2c82-9629-4d19-8268-4b79f8bb7304",
+                  "title": "Bravado",
+                  "disambiguation": "",
+                  "length": 221408,
+                  "video": false,
+                  "isrcs": ["NZUM71200030"],
+                  "first-release-date": "2012-11-21",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "405a0bc9-ce33-41c7-a99b-cc8c98c3a420",
+                "position": 12,
+                "number": "12",
+                "title": "Million Dollar Bills",
+                "length": 138210,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "ca9aa801-31b6-41c0-9d4d-82450e2ad8e7",
+                  "title": "Million Dollar Bills",
+                  "disambiguation": "",
+                  "length": 138210,
+                  "video": false,
+                  "isrcs": ["NZUM71200033"],
+                  "first-release-date": "2012-11-21",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0f787c4f-71b0-43e0-9f03-ada8f4183b14",
+                "position": 13,
+                "number": "13",
+                "title": "The Love Club",
+                "length": 201433,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c68dc76c-13cc-48a5-9859-200e1dfa4650",
+                  "title": "The Love Club",
+                  "disambiguation": "",
+                  "length": 201433,
+                  "video": false,
+                  "isrcs": ["NZUM71200034"],
+                  "first-release-date": "2012-11-21",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "14243b3b-5e43-4c9e-832f-8b230b95d11a",
+                "position": 14,
+                "number": "14",
+                "title": "Biting Down",
+                "length": 213665,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "bf37db65-2d85-4861-a742-515f20659470",
+                  "title": "Biting Down",
+                  "disambiguation": "",
+                  "length": 213665,
+                  "video": false,
+                  "isrcs": ["NZUM71200032"],
+                  "first-release-date": "2012-11-21",
+                  "artist-credit": [
+                    {
+                      "name": "Lorde",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                        "name": "Lorde",
+                        "sort-name": "Lorde",
+                        "disambiguation": "New Zealand singer‐songwriter"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b5113f07-1d7d-49be-8fdc-59d7a8a84a41",
+                "position": 15,
+                "number": "15",
+                "title": "Swingin Party",
+                "length": 222362,
+                "artist-credit": [
+                  {
+                    "name": "Lorde",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "8e494408-8620-4c6a-82c2-c2ca4a1e4f12",
+                      "name": "Lorde",
+                      "sort-name": "Lorde",
+                      "disambiguation": "New Zealand singer‐songwriter"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8fab59c5-42c3-4137-9250-8af2980d6203",
+                  "title": "Swingin Party",
+                  "disambiguation": "",
+                  "length": 222000,
+                  "video": false,
+                  "isrcs": ["NZUM71300024"],
+                  "first-release-date": "2012",
                   "artist-credit": [
                     {
                       "name": "Lorde",

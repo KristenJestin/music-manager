@@ -175,7 +175,8 @@
     "artist": "Rise Against",
     "year": 2008,
     "label": "Geffen Records",
-    "releasedOn": "2008-10-07"
+    "releasedOn": "2008-10-07",
+    "edition": []
   },
   "candidates": [
     {
@@ -11778,18 +11779,18 @@
   "lookedUp": [
     "b5ae03f1-0980-4c67-ae20-e9635b69f404",
     "dce4c1a8-e5f7-4173-aa05-df008cfa99b7",
+    "46a691d9-67f7-42c1-bc91-7689b0a7fade",
     "954f8d9c-b667-4f3b-a6e0-1e00da7e2371",
-    "dd33e659-88b0-4862-951a-80c700919282",
     "20ccb88a-e148-419a-9eb9-35804e96d666",
+    "a882f73c-83ac-410f-bf98-7d60cc2c1ee3",
+    "dd33e659-88b0-4862-951a-80c700919282",
     "f272d4ed-88c0-41c7-bb82-0736209c917e",
     "e58575b5-514e-4abb-9847-a6bb9cfa3fdc",
-    "a882f73c-83ac-410f-bf98-7d60cc2c1ee3",
+    "a114380b-4976-366d-b925-865b27b3cd76",
+    "205f2019-fc18-477a-971c-ecc37aa216fc",
     "2f7f5126-bc98-442e-924d-53ed912a93a0",
     "8378cdd0-ccdc-367e-9a8e-26b73f949417",
     "f55d9405-806c-3f98-8228-c3d60d9fb5b3",
-    "46a691d9-67f7-42c1-bc91-7689b0a7fade",
-    "a114380b-4976-366d-b925-865b27b3cd76",
-    "205f2019-fc18-477a-971c-ecc37aa216fc",
     "18b44577-59f2-4f99-8dea-5ecb79a161de"
   ]
 }
