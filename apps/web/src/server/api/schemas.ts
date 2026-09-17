@@ -260,9 +260,15 @@ export const batchResultSchema = z
 /**
  * `POST /imports/{id}/confirm-best`.
  *
- * Three fields, because the server already has everything else. The mapping is built from the
- * chosen candidate's own `fitLines`, which is the assignment the matching engine computed to
- * score it — so there is nothing here for a caller to get wrong.
+ * Four fields, because the server already has everything else. The mapping is built from the
+ * chosen candidate's own `fitLines` (an album) or its own borrow release (a single), which is in
+ * both cases the assignment the matching engine computed to score it — so there is nothing here
+ * for a caller to get wrong.
+ *
+ * `minCoverage` and `minMargin` are the two bars, and exactly one of them applies to any given
+ * import: which one is decided by what the source turned out to be, and the answer says so in
+ * `kind`. Sending both is normal — a caller looping over a batch does not know which of its ids
+ * resolved to a single.
  */
 export const confirmBestSchema = z
   .object({
@@ -274,8 +280,22 @@ export const confirmBestSchema = z
       .openapi({
         example: DEFAULT_MIN_COVERAGE,
         description:
-          "Mapped videos ÷ videos in the import. Below it the call is a 409 and the import is " +
-          "left waiting, untouched.",
+          "**Albums only.** Mapped videos ÷ videos in the import. Below it the call is a 409 " +
+          "and the import is left waiting, untouched.",
+      }),
+    minMargin: z
+      .number()
+      .min(0)
+      .max(1)
+      .optional()
+      .openapi({
+        example: 0.04,
+        description:
+          "**Singles only.** How far ahead of the runner-up the chosen recording has to score. " +
+          "Defaults to this installation's `matchAmbiguityMargin` — the same gap under which " +
+          "the `match` step already refuses to decide and opens an `ambiguous_recording` " +
+          "notice. Duration, title and artist agreement are checked too, against the engine's " +
+          "own tolerances, and are not tunable from here.",
       }),
     preferType: z
       .enum(["album", "any"])
@@ -322,19 +342,41 @@ export const importSchema = z
  * Flat, like `POST /imports` is since this change: an envelope on one route and none on the
  * next is the inconsistency that made a client write `payload.import.id` in one place and
  * `payload.id` in another.
+ *
+ * **`kind` is the discriminator, and the fields of the other branch are `null`.** That is the
+ * shape `GET /imports/{id}/candidates` already uses (`releases: []` against `recordings: []`),
+ * and it is chosen over two response schemas for the same reason the endpoint is one endpoint:
+ * a caller looping over a batch reads `kind` once rather than branching on the URL it called.
  */
 export const confirmBestResultSchema = importSchema
   .extend({
+    kind: z
+      .enum(["album", "single"])
+      .openapi({ description: "Which bar decided it: coverage (album) or the margin (single)." }),
     chosenTitle: z.string(),
     chosenArtist: z.string(),
-    /** `Album`, `EP`, `Single`… — what `preferType` breaks ties on. */
+    /** `Album`, `EP`, `Single`… — the release's type, or the borrow release's on a single. */
     chosenType: z.string().nullable(),
     chosenScore: z.number(),
-    coverage: z.number().openapi({ description: "Mapped videos ÷ videos in the import." }),
-    minCoverage: z.number(),
-    preferType: z.enum(["album", "any"]),
+    /** The recording MBID. `null` on an album, where `releaseMbid` is the identifier. */
+    recordingMbid: z.string().nullable(),
+    coverage: z
+      .number()
+      .nullable()
+      .openapi({ description: "Album only: mapped videos ÷ videos in the import." }),
+    minCoverage: z.number().nullable(),
+    preferType: z.enum(["album", "any"]).nullable(),
+    videos: z.number().int().nullable(),
+    margin: z
+      .number()
+      .nullable()
+      .openapi({ description: "Single only: the chosen recording's lead over the runner-up." }),
+    minMargin: z.number().nullable(),
+    durationDelta: z
+      .number()
+      .nullable()
+      .openapi({ description: "Single only: video − recording, in seconds." }),
     candidatesConsidered: z.number().int(),
-    videos: z.number().int(),
     mapped: z.number().int().nullable(),
     extras: z.number().int().nullable(),
     uncovered: z.number().int(),
@@ -342,6 +384,33 @@ export const confirmBestResultSchema = importSchema
     confirmedBy: z.string(),
   })
   .openapi("ConfirmBestResult");
+
+/**
+ * What `POST /imports/{id}/bump` did to the queue, next to the import it did it to.
+ *
+ * Reported rather than implied, because the four actions are four different situations and only
+ * one of them means "it will now be picked up sooner". See `reprioritiseImport`.
+ */
+export const bumpResultSchema = z
+  .object({
+    action: z.enum(["reprioritised", "sent", "running", "none"]),
+    queue: z.string().nullable(),
+    priority: z.number().int(),
+    updated: z.number().int(),
+    removed: z.number().int(),
+    messages: z.number().int().openapi({
+      description: "Unfinished import-level messages this import holds. Never above 1.",
+    }),
+    trackMessages: z
+      .number()
+      .int()
+      .openapi({
+        description:
+          "Unfinished `track.step` messages. Counted, never touched: one per track per step is " +
+          "what the pipelined tail is made of.",
+      }),
+  })
+  .openapi("BumpResult");
 
 export const importDetailSchema = importSchema
   .extend({

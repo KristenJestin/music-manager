@@ -83,6 +83,22 @@ async function waitingImport(): Promise<string> {
   return created.job.id;
 }
 
+/**
+ * The same, for a one-video source: `fixture://skinny-love`, Birdy's cover of Bon Iver.
+ *
+ * The recording ranking for it is the one the cassette records, and it is decisive by a wide
+ * margin (about 0.15 over the runner-up, durations one second apart, title and artist both at
+ * 1) — which is exactly the shape a single that *should* be confirmed automatically has.
+ */
+async function waitingSingle(): Promise<string> {
+  const created = await imports.createFromUrl("fixture://skinny-love", { db: db() });
+  await db()
+    .update(schema.imports)
+    .set({ status: "awaiting_review" })
+    .where(eq(schema.imports.id, created.job.id));
+  return created.job.id;
+}
+
 describe.skipIf(unavailable !== null)("the bulk-import service against a real stack", () => {
   beforeAll(async () => {
     const admin = postgres(BASE_URL, { max: 1, onnotice: () => undefined });
@@ -114,12 +130,16 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
       const importId = await waitingImport();
       const outcome = await confirmBest({ importId, confirmedBy: "test", db: db() });
 
-      expect(outcome.chosen.releaseMbid).toMatch(/[0-9a-f-]{36}/);
+      expect(outcome.kind).toBe("album");
+      if (outcome.chosen.kind !== "release") throw new Error("an album must choose a release");
+      expect(outcome.chosen.mbid).toMatch(/[0-9a-f-]{36}/);
       expect(outcome.chosen.videos).toBe(DISCOVERY_VIDEOS);
       // Fourteen tracks out of fifteen videos: comfortably over the 0.8 default.
       expect(outcome.chosen.coverage).toBeGreaterThanOrEqual(0.8);
       expect(outcome.minCoverage).toBe(0.8);
       expect(outcome.preferType).toBe("album");
+      // The single's knob is reported as inapplicable rather than as a number nobody used.
+      expect(outcome.minMargin).toBeNull();
       expect(outcome.candidatesConsidered).toBeGreaterThan(0);
       expect(outcome.queued).toBe(true);
 
@@ -245,6 +265,119 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
 
       expect((failure as InstanceType<typeof MMError>).code).toBe("NOT_FOUND");
     });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* confirm-best on a single: the two sides of the margin bar         */
+  /* ---------------------------------------------------------------- */
+
+  describe("confirm-best on a single", () => {
+    it("confirms the recording when it is decisive, and files it under its borrow release", async () => {
+      const importId = await waitingSingle();
+      const outcome = await confirmBest({ importId, confirmedBy: "test", db: db() });
+
+      expect(outcome.kind).toBe("single");
+      if (outcome.chosen.kind !== "recording") throw new Error("a single must choose a recording");
+      const chosen = outcome.chosen;
+
+      // The criterion, as reported: a real margin, agreeing durations, agreeing title and artist.
+      expect(chosen.mbid).toMatch(/[0-9a-f-]{36}/);
+      expect(chosen.margin).not.toBeNull();
+      expect(chosen.margin ?? 0).toBeGreaterThanOrEqual(outcome.minMargin ?? 0);
+      expect(Math.abs(chosen.durationDelta ?? 99)).toBeLessThanOrEqual(2);
+      expect(chosen.titleAgreement).toBeGreaterThanOrEqual(0.87);
+      expect(chosen.artistAgreement).toBeGreaterThanOrEqual(0.87);
+      // The album bar is reported as inapplicable, not as a number that happened to pass.
+      expect(outcome.minCoverage).toBeNull();
+      expect(outcome.preferType).toBeNull();
+
+      // It is filed somewhere real — that is what makes the track taggable at all.
+      expect(chosen.releaseMbid).toMatch(/[0-9a-f-]{36}/);
+      expect(chosen.releaseTitle).not.toBe("");
+      expect(outcome.mapped).toBe(1);
+      expect(outcome.queued).toBe(true);
+    }, 120_000);
+
+    it("writes the recording MBID onto the one row, with no uncovered-tracks noise", async () => {
+      const importId = await waitingSingle();
+      const outcome = await confirmBest({ importId, confirmedBy: "test", db: db() });
+
+      const rows = await db()
+        .select()
+        .from(schema.importTracks)
+        .where(eq(schema.importTracks.importId, importId));
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.role).toBe("mapped");
+      expect(rows[0]?.recordingMbid).toBe(
+        outcome.chosen.kind === "recording" ? outcome.chosen.mbid : null,
+      );
+      expect(rows[0]?.trackPosition).not.toBeNull();
+
+      /*
+       * The borrow release is a thirteen-track album this import wants exactly one song from.
+       * Reporting the other twelve as "uncovered" would be a question nobody asked — see the
+       * note on `trackTotal` in `confirmBestRecording`.
+       */
+      expect(outcome.uncovered).toBe(0);
+    }, 120_000);
+
+    it("records a decisions row signed with `confirmedBy`, like the album path", async () => {
+      const importId = await waitingSingle();
+      await confirmBest({ importId, confirmedBy: "agent-one", db: db() });
+      await jobs.runStep(importId, "confirm", { db: db() });
+
+      const [decision] = await db()
+        .select()
+        .from(schema.decisions)
+        .where(and(eq(schema.decisions.importId, importId), eq(schema.decisions.kind, "release")))
+        .orderBy(desc(schema.decisions.createdAt))
+        .limit(1);
+
+      expect(decision?.decidedBy).toBe("agent-one");
+    }, 120_000);
+
+    it("refuses a thin margin with a 409 naming every condition it missed", async () => {
+      const importId = await waitingSingle();
+      // No ranking can put a full point between the top two: this is the bar being real.
+      const failure = await confirmBest({
+        importId,
+        minMargin: 1,
+        confirmedBy: "test",
+        db: db(),
+      }).catch((error: unknown) => MMError.from(error));
+
+      expect(failure).toBeInstanceOf(MMError);
+      const error = failure as InstanceType<typeof MMError>;
+      expect(error.code).toBe("AWAITING_CONFIRM");
+      expect(error.status).toBe(409);
+      expect(error.details?.["recordingMbid"]).toMatch(/[0-9a-f-]{36}/);
+      expect(error.details?.["minMargin"]).toBe(1);
+      expect(typeof error.details?.["margin"]).toBe("number");
+      // The refusal has to be actionable on its own: which condition, in words.
+      expect(Array.isArray(error.details?.["failures"])).toBe(true);
+      expect(error.message).toMatch(/margin/i);
+    }, 120_000);
+
+    it("leaves a refused single waiting, with no mapping, no release and no decision", async () => {
+      const importId = await waitingSingle();
+      await confirmBest({ importId, minMargin: 1, confirmedBy: "test", db: db() }).catch(
+        () => undefined,
+      );
+
+      const job = await imports.getImport(importId, db());
+      expect(job?.status).toBe("awaiting_review");
+      const options = job?.options as { mapping?: unknown; autoConfirm?: unknown };
+      expect(options.mapping).toBeUndefined();
+      expect(options.autoConfirm).not.toBe(true);
+      expect(job?.releaseMbid).toBeNull();
+
+      const [decision] = await db()
+        .select()
+        .from(schema.decisions)
+        .where(eq(schema.decisions.importId, importId))
+        .limit(1);
+      expect(decision).toBeUndefined();
+    }, 120_000);
   });
 
   /* ---------------------------------------------------------------- */

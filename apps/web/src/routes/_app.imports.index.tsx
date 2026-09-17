@@ -10,6 +10,7 @@ import { PageHeader } from "#/components/page-header.tsx";
 import { Pager } from "#/components/pager.tsx";
 import { PipelineDots } from "#/components/pipeline-dots.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
+import { RetryMenu } from "#/components/retry-menu.tsx";
 import { ImportStatusBadge, ToneBadge } from "#/components/status-badge.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
 import { cn } from "cn";
@@ -274,20 +275,23 @@ function Jobs() {
       actions: true,
       cell: (entry) => (
         <div className="flex justify-end gap-1.5">
+          {/* The same menu as the job page, and deliberately so: a person who learned that the
+              chevron is where "Match again" lives must not have to open a row to find it. It
+              stops the click itself, so pressing it does not also navigate into the row. */}
           {entry.job.status === "failed" ? (
-            <Button
+            <RetryMenu
+              job={entry.job}
               size="xs"
-              variant="outline"
-              onClick={(event) => {
-                event.stopPropagation();
+              onRetry={(step) => {
                 act(
-                  async () => await retryJob({ data: { id: entry.job.id } }),
-                  "Retrying the job.",
+                  async () =>
+                    await retryJob({
+                      data: { id: entry.job.id, ...(step === undefined ? {} : { step }) },
+                    }),
+                  step === undefined ? "Retrying the job." : `Retrying from ${step}.`,
                 );
               }}
-            >
-              Retry
-            </Button>
+            />
           ) : null}
           {entry.openItems > 0 ? (
             <Button

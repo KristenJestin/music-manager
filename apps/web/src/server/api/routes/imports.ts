@@ -27,6 +27,7 @@ import {
   bumpImport,
   cancelImport,
   countImports,
+  forgetMapping,
   listImports,
   pauseImport,
   requeueUpstreamFailures,
@@ -39,11 +40,13 @@ import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
+import { forgetsMapping } from "#/server/services/retry-plan.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
   batchImportSchema,
   batchResultSchema,
+  bumpResultSchema,
   candidatesSchema,
   confirmBestResultSchema,
   confirmBestSchema,
@@ -463,27 +466,37 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       method: "post",
       path: "/{id}/confirm-best",
       tags: [TAG],
-      summary: "Confirm the candidate that maps the most videos, without building a mapping",
+      summary: "Confirm the engine's best candidate, without building a mapping",
       description:
         "`confirm-mapping` for a caller that has nothing to add. It reads the same ranked " +
-        "candidates `GET /imports/{id}/candidates` returns, picks the release that binds the " +
-        "most of this import's videos, and builds the video → recording mapping from that " +
-        "candidate's own `fitLines` — the assignment the matching engine computed in order to " +
-        "score it. Nothing is recomputed here, so the mapping cannot disagree with the score " +
-        "it was chosen on, and there is no `recordingMbid` for a client to omit.\n\n" +
-        "**`minCoverage` is a real gate.** Coverage is mapped videos ÷ videos in the import. " +
-        "Below the bar the answer is a **409** naming the best candidate, its release, its " +
-        "type and the coverage it reached — and the import is left exactly where it was, " +
-        "waiting for a human. That is what makes this safe to run over three hundred imports " +
-        "in a loop.\n\n" +
-        '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single ' +
-        "that maps the same number of videos. It is a tie-break, not a weight: it never " +
-        "promotes a candidate that maps fewer.\n\n" +
+        "candidates `GET /imports/{id}/candidates` returns and confirms the engine's own best " +
+        "answer, building the mapping from that candidate's own evidence. Nothing is " +
+        "recomputed here, so the mapping cannot disagree with the score it was chosen on, and " +
+        "there is no `recordingMbid` for a client to omit.\n\n" +
+        "**Two criteria, one endpoint, chosen by what the import is** — `kind` in the answer " +
+        "says which one ran. A caller looping over the ids `POST /imports/batch` returned does " +
+        "not know which of them the `resolve` step made a single, and should not have to.\n\n" +
+        "**An album is decided on coverage.** The release that binds the most of this import's " +
+        "videos wins, the mapping comes from its `fitLines`, and `minCoverage` (mapped videos " +
+        '÷ videos in the import) is the bar. `preferType: "album"` breaks a tie in favour of ' +
+        "an Album over an EP or a Single that maps the same number of videos; it is a " +
+        "tie-break, not a weight, and never promotes a candidate that maps fewer.\n\n" +
+        "**A single is decided on the margin.** One video is ranked against *recordings*, so " +
+        "there is no tracklist and coverage would be 1 whatever was chosen. The bar is instead " +
+        "four conditions that mean something for one song, all read from thresholds the engine " +
+        "already uses: the chosen recording's lead over the runner-up is at least `minMargin` " +
+        "(default: this installation's `matchAmbiguityMargin`, the same gap under which " +
+        "`match` itself refuses to decide); the durations agree within the ± 2 s tolerance; " +
+        "the title and the artist both agree at or above `titleMatchThreshold`. A missing " +
+        "duration on either side fails the check rather than skipping it. The release the " +
+        "track is filed under is the engine's own borrow release.\n\n" +
+        "**Both bars are real gates.** Below either one the answer is a **409** naming the " +
+        "candidate and every condition it missed — and the import is left exactly where it " +
+        "was, waiting for a human. That is what makes this safe to run over three hundred " +
+        "imports in a loop.\n\n" +
         "The confirmation is automatic but **signed**: `confirmedBy` is written to " +
         "`decisions.decidedBy`, exactly as `autoConfirm` is on the other routes, so the audit " +
-        'trail can still answer "which of my albums did nobody look at?".\n\n' +
-        "A single (one video, ranked against recordings rather than releases) is refused with " +
-        "a 400: there is no tracklist to cover, so the bar would mean nothing.",
+        'trail can still answer "which of my albums did nobody look at?".',
       middleware: [requireScope("imports:write")] as const,
       request: {
         params: z.object({ id: idParam }),
@@ -497,8 +510,9 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         409: {
           content: { "application/json": { schema: errorSchema } },
           description:
-            "Nothing cleared `minCoverage`. `error.details` names the best candidate and its " +
-            "coverage; the import is untouched.",
+            "Nothing cleared the bar. `error.details` names the best candidate and either its " +
+            "coverage (album) or its margin, duration delta and agreements plus a `failures` " +
+            "list (single); the import is untouched.",
         },
         ...FAILURES,
       },
@@ -509,24 +523,45 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       const outcome = await confirmBest({
         importId: id,
         minCoverage: body.minCoverage,
+        ...(body.minMargin === undefined ? {} : { minMargin: body.minMargin }),
         preferType: body.preferType,
         confirmedBy: body.confirmedBy,
         db: db(),
         source: "api confirm-best",
       });
       const fresh = await getImport(id, db());
+      const chosen = outcome.chosen;
+      // The branch's own fields, and `null` for the other's — see `confirmBestResultSchema`.
+      const perKind =
+        chosen.kind === "release"
+          ? {
+              chosenType: chosen.primaryType,
+              recordingMbid: null,
+              coverage: chosen.coverage,
+              videos: chosen.videos,
+              margin: null,
+              durationDelta: null,
+            }
+          : {
+              chosenType: chosen.releaseType,
+              recordingMbid: chosen.mbid,
+              coverage: null,
+              videos: null,
+              margin: chosen.margin,
+              durationDelta: chosen.durationDelta,
+            };
       return c.json(
         {
           ...toImport(fresh as Import),
-          chosenTitle: outcome.chosen.title,
-          chosenArtist: outcome.chosen.artist,
-          chosenType: outcome.chosen.primaryType,
-          chosenScore: outcome.chosen.score,
-          coverage: outcome.chosen.coverage,
+          kind: outcome.kind,
+          chosenTitle: chosen.title,
+          chosenArtist: chosen.artist,
+          chosenScore: chosen.score,
+          ...perKind,
           minCoverage: outcome.minCoverage,
           preferType: outcome.preferType,
+          minMargin: outcome.minMargin,
           candidatesConsidered: outcome.candidatesConsidered,
-          videos: outcome.chosen.videos,
           mapped: outcome.mapped,
           extras: outcome.extras,
           uncovered: outcome.uncovered,
@@ -602,6 +637,15 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       path: "/{id}/retry",
       tags: [TAG],
       summary: "Re-run one step",
+      description:
+        "Rewinds the import to `step` and puts it back on the queue; the worker runs it.\n\n" +
+        "**`resolve` and `match` discard the confirmed mapping.** The `match` step applies a " +
+        "supplied mapping verbatim when `imports.options` carries one, so a rewind that kept " +
+        "it would re-apply the very mapping you are asking to replace. The confirmed release, " +
+        "the per-video mapping, the signature that opened the confirmation gate and the Inbox " +
+        "items the old match raised all go; the `decisions` rows stay, because they are the " +
+        "audit trail and not the answer. `forgotMapping` in the response says whether it " +
+        "happened. Every other step keeps the mapping and rewinds only the tail.",
       middleware: [requireScope("imports:write")] as const,
       request: {
         params: z.object({ id: idParam }),
@@ -611,7 +655,11 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         200: {
           content: {
             "application/json": {
-              schema: z.object({ import: importSchema, status: z.string() }),
+              schema: z.object({
+                import: importSchema,
+                status: z.string(),
+                forgotMapping: z.boolean(),
+              }),
             },
           },
           description: "Retried",
@@ -629,26 +677,78 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         });
       }
       if ((await getImport(id, db())) === null) throw notFound(id);
+      // A re-match discards the confirmed mapping, here exactly as in the Console and the CLI:
+      // `matchStep` applies `options.mapping` verbatim when it is there, so leaving it would
+      // make `--step match` re-apply the very mapping the caller is asking to replace.
+      const forgotMapping = forgetsMapping(step as StepName);
+      if (forgotMapping) await forgetMapping(id, db());
       // Rewind, then queue. Running the step here would put a second downloader in the web
       // process, next to the worker's — see `rewindTo` and owner review C3.
       await rewindTo(id, step as StepName, db());
       await enqueue(id, "api retry", step as StepName);
       const fresh = await getImport(id, db());
-      return c.json({ import: toImport(fresh as Import), status: "queued" }, 200);
+      return c.json({ import: toImport(fresh as Import), status: "queued", forgotMapping }, 200);
     },
   );
 
-  // Three routes with one body. Each verb is wrapped rather than referenced directly, because
-  // the three service functions take different second arguments (a reason, an increment, the
-  // database) and a shared loop must not care.
+  /* ---- bump ---- */
+  //
+  // Its own route rather than a third entry in the loop below, because its answer is no longer
+  // "here is the import": a bump now reports what it did to the *message* on the queue, and that
+  // is the only way a caller can tell "moved to the front" from "the worker already has it".
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/{id}/bump",
+      tags: [TAG],
+      summary: "Move an import to the front of the queue",
+      description:
+        "Raises `imports.priority` **and** moves the message the import already has on a " +
+        "pg-boss queue, which is the half that used to be missing: nothing read the column " +
+        "when enqueuing, so a bumped import kept the priority it was sent with and did not " +
+        "move.\n\n" +
+        "`bump.action` says which of four things happened. `reprioritised` — the waiting " +
+        "message was edited in place. `sent` — the import held no message at all, so one was " +
+        "created (checked against pg-boss's own ledger first, because `singletonKey` " +
+        "deduplicates nothing on a `standard` queue and sending blindly is how an import ends " +
+        "up with two). `running` — a worker is already executing the step, so the message " +
+        "cannot move and the new priority applies to whatever is queued next. `none` — the " +
+        "import is finished, cancelled or waiting for a human, and a bump is not a way to " +
+        "restart it.\n\n" +
+        "`bump.messages` is how many unfinished messages the import holds afterwards, and it " +
+        "is never more than one; `bump.removed` counts duplicates cleared on the way past.",
+      middleware: [requireScope("imports:write")] as const,
+      request: { params: z.object({ id: idParam }) },
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: z.object({ import: importSchema, bump: bumpResultSchema }),
+            },
+          },
+          description: "Bumped",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const id = c.req.valid("param").id;
+      if ((await getImport(id, db())) === null) throw notFound(id);
+      const result = await bumpImport(id, 10, db());
+      const fresh = await getImport(id, db());
+      return c.json(
+        { import: toImport(fresh as Import), bump: { ...result.queue, priority: result.priority } },
+        200,
+      );
+    },
+  );
+
+  // Two routes with one body. Each verb is wrapped rather than referenced directly, because the
+  // service functions take different second arguments (a reason, the database) and a shared loop
+  // must not care.
   const controls: readonly [string, string, (id: string) => Promise<unknown>][] = [
     ["cancel", "Cancel an import", async (id) => await cancelImport(id, db())],
     ["pause", "Pause an import", async (id) => await pauseImport(id, "paused via the API", db())],
-    [
-      "bump",
-      "Move an import to the front of the queue",
-      async (id) => await bumpImport(id, 10, db()),
-    ],
   ];
   for (const [path, summary, act] of controls) {
     app.openapi(

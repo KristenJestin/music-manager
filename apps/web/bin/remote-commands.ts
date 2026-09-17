@@ -236,33 +236,54 @@ async function importBatch(api: ApiClient, args: RemoteArgs, urls: string[]): Pr
 async function cmdConfirmBest(api: ApiClient, args: RemoteArgs): Promise<number> {
   const id = args.positional[1];
   if (id === undefined) {
-    throw new Error("usage: mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]");
+    throw new Error(
+      "usage: mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]",
+    );
   }
   const coverage = flagString(args, "min-coverage");
+  const margin = flagString(args, "min-margin");
   const prefer = flagString(args, "prefer");
   const payload = await api.post<
     ImportRow & {
+      kind: "album" | "single";
       chosenTitle: string;
       chosenArtist: string;
       chosenType: string | null;
-      coverage: number;
+      recordingMbid: string | null;
+      coverage: number | null;
+      margin: number | null;
+      minMargin: number | null;
+      durationDelta: number | null;
       mapped: number | null;
       extras: number | null;
       uncovered: number;
     }
   >(`/imports/${id}/confirm-best`, {
     ...(coverage === undefined ? {} : { minCoverage: Number(coverage) }),
+    ...(margin === undefined ? {} : { minMargin: Number(margin) }),
     ...(prefer === undefined ? {} : { preferType: prefer }),
     confirmedBy: "cli confirm-best",
   });
 
   if (asJson(args)) return dump(payload);
-  line(`confirmed ${payload.id}`);
-  line(
-    `  release  ${payload.chosenArtist} — ${payload.chosenTitle}` +
-      ` (${payload.chosenType ?? "?"})  ${payload.releaseMbid ?? "-"}`,
-  );
-  line(`  coverage ${String(Math.round(payload.coverage * 100))} %`);
+  line(`confirmed ${payload.id} (${payload.kind})`);
+  if (payload.kind === "single") {
+    line(
+      `  recording ${payload.chosenArtist} — ${payload.chosenTitle}  ${payload.recordingMbid ?? "-"}`,
+    );
+    line(`  filed as  ${payload.chosenType ?? "release"}  ${payload.releaseMbid ?? "-"}`);
+    line(
+      `  margin   ${payload.margin === null ? "no runner-up" : String(payload.margin)}` +
+        ` over ${String(payload.minMargin ?? 0)}` +
+        `, duration ${payload.durationDelta === null ? "?" : `${String(payload.durationDelta)} s`}`,
+    );
+  } else {
+    line(
+      `  release  ${payload.chosenArtist} — ${payload.chosenTitle}` +
+        ` (${payload.chosenType ?? "?"})  ${payload.releaseMbid ?? "-"}`,
+    );
+    line(`  coverage ${String(Math.round((payload.coverage ?? 0) * 100))} %`);
+  }
   line(
     `  mapped   ${String(payload.mapped ?? 0)} track(s), ` +
       `${String(payload.extras ?? 0)} extra, ${String(payload.uncovered)} uncovered`,
@@ -337,9 +358,21 @@ async function cmdControl(
 ): Promise<number> {
   const id = args.positional[1];
   if (id === undefined) throw new Error(`usage: mm ${verb} <id>`);
-  const payload = await api.post<{ import: ImportRow }>(`/imports/${id}/${verb}`);
+  const payload = await api.post<{
+    import: ImportRow;
+    /** `bump` only: what happened to the message on the queue, not just to the row. */
+    bump?: { action: string; queue: string | null; priority: number; messages: number };
+  }>(`/imports/${id}/${verb}`);
   if (asJson(args)) return dump(payload);
   line(`${verb}: ${payload.import.id} is now ${payload.import.status}`);
+  // Printed because "priority 10" on its own is exactly what the broken bump used to say.
+  if (payload.bump !== undefined) {
+    line(
+      `  priority ${String(payload.bump.priority)} · queue ${payload.bump.action}` +
+        `${payload.bump.queue === null ? "" : ` on ${payload.bump.queue}`}` +
+        ` · ${String(payload.bump.messages)} message(s)`,
+    );
+  }
   return 0;
 }
 
@@ -614,7 +647,7 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
   mm whoami                          which key this is, and what it may do
   mm import <url> [--release <mbid>] [--yes] [--force] [--follow] [--next]
   mm import --from-file <path>       one URL per line, '#' comments; 100 per HTTP call
-  mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]
+  mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
   mm jobs [--status <s>] [--limit n] [--offset n]
   mm job <id> [--follow]
   mm retry <id> --step <step>
