@@ -126,6 +126,38 @@ export function yearScore(
   return unit(1 - distance * 0.2);
 }
 
+/**
+ * The year of a **release**, judged against a year that describes the **record**.
+ *
+ * The hint is an album year: the ℗ line of the auto-generated description, YouTube Music's
+ * `release_year` tag. A release's own `date` is the date of *that pressing*. Scoring one
+ * against the other treats a re-pressing as a contradiction, and that is what it did: the 2014
+ * worldwide digital *Appeal to Reason* — the master YouTube actually streams, and the edition
+ * that fits the owner's playlist exactly — scored **zero** on year against a ℗ 2008, six years
+ * of decay at 0.2 a year, and lost by less than the 0.04 that cost it.
+ *
+ * So the release is allowed the **better** of its own date and its release group's first
+ * release date. The consequences are exactly the two that should follow:
+ *
+ *  - between two pressings of **one** record the signal now says nothing, because the group
+ *    date is the same for both. That is right — `year` is evidence about *which record this
+ *    is*, and the pressings are all the same record. `format`, `country` and the cover already
+ *    carry the preference between pressings, and for a YouTube Music source the later digital
+ *    re-issue is usually the *better* answer, not the worse one;
+ *  - between two **different** records — a 2001 album and its 2019 live re-recording, filed in
+ *    their own groups with their own first dates — it says as much as it ever did.
+ */
+export function releaseYearScore(
+  sourceYear: number | null | undefined,
+  releaseYear: number | null,
+  groupFirstYear: number | null,
+): number {
+  if (releaseYear === null && groupFirstYear === null) return yearScore(sourceYear, null);
+  const own = releaseYear === null ? 0 : yearScore(sourceYear, releaseYear);
+  const group = groupFirstYear === null ? 0 : yearScore(sourceYear, groupFirstYear);
+  return Math.max(own, group);
+}
+
 /* ------------------------------------------------------------------ */
 /* format, country, status                                             */
 /* ------------------------------------------------------------------ */
@@ -165,6 +197,43 @@ export function countryScore(country: string | null, preferences: MatchingPrefer
     return unit(1 - (rank / span) * 0.3);
   }
   return MAJOR_MARKETS.has(code) ? 0.45 : 0.3;
+}
+
+/* ------------------------------------------------------------------ */
+/* exactness — the symmetric fit                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How exactly a release and a listing fit each other: `bound / max(videos, tracks)`.
+ *
+ * The intersection over the union of the 1:1 assignment, and the one number that is 1 only
+ * when **nothing is left over on either side**. The two directions we already had are each
+ * blind in one way, and neither is blind in this one:
+ *
+ *  - `durations` = covered tracks ÷ tracks — blind to the videos a release would drop;
+ *  - `coverage`  = bound videos ÷ videos  — blind to the tracks it would leave unclaimed.
+ *
+ * The owner's *Appeal to Reason* is the case they cannot settle between them. Fourteen videos,
+ * two editions: the fifteen-track one places all fourteen and leaves a live bonus track
+ * unclaimed, the fourteen-track one places all fourteen and leaves nothing. `coverage` is 1.0
+ * for both — every video found a home — and only `durations` says anything at all, at a third
+ * of the distance. Here the first is `14/15` and the second `1`.
+ *
+ * Symmetric by construction: `max(videos, tracks)` is the same denominator whichever side the
+ * orphan is on, so an edition with one track too many and a playlist with one video too many
+ * are marked down identically. That is deliberate — neither is worse than the other, and an
+ * asymmetry here would just be `trackCount`'s, restated on a signal that can see the titles.
+ *
+ * `null` when there is nothing to compare, which the blend then drops from its denominator.
+ */
+export function exactnessScore(
+  bound: number,
+  videoCount: number,
+  trackCount: number,
+): number | null {
+  const span = Math.max(videoCount, trackCount);
+  if (span === 0) return null;
+  return unit(bound / span);
 }
 
 /* ------------------------------------------------------------------ */

@@ -2,7 +2,7 @@
  * `releaseCandidates.score` — rank the MusicBrainz releases that could be the album behind a
  * playlist (`docs/04-pipeline-et-matching.md` § Release (album)).
  *
- * Twelve signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
+ * Thirteen signals, all in [0, 1], blended with the weights of `config.ts`, then reduced by named
  * penalties. The one that decides between two pressings of the same record is the **tracklist
  * fit**: how many of the release's tracks a video actually lands on, and by how much on
  * average. Title and artist put a candidate in the list; the fit is what tells a fourteen-track
@@ -36,6 +36,7 @@ import {
   coverArtScore,
   creditName,
   disambiguationPenalties,
+  exactnessScore,
   flattenTracks,
   formatScore,
   labelScore,
@@ -50,8 +51,8 @@ import {
   trackTotal,
   typeScore,
   unit,
+  releaseYearScore,
   yearOf,
-  yearScore,
 } from "./signals.ts";
 import type {
   FitLine,
@@ -103,6 +104,7 @@ function tracklistFit(
   leftOver: number;
   signal: number | null;
   coverage: number | null;
+  exactness: number | null;
   meanAbsDelta: number | null;
   lines: readonly FitLine[];
 } {
@@ -118,6 +120,7 @@ function tracklistFit(
       leftOver: 0,
       signal: null,
       coverage: null,
+      exactness: null,
       meanAbsDelta: null,
       lines: [],
     };
@@ -131,6 +134,7 @@ function tracklistFit(
     leftOver: result.extraVideos.length,
     signal: result.fitOf === 0 ? null : unit(result.fit / result.fitOf),
     coverage: videoCount === 0 ? null : unit(result.bound / videoCount),
+    exactness: exactnessScore(result.bound, videoCount, tracks.length),
     meanAbsDelta: result.meanAbsDelta,
     // The same assignment, narrowed to what a card can show without a second lookup.
     lines: result.lines.map((line) => ({
@@ -189,30 +193,38 @@ function coveragePenalties(coverage: number | null, config: MatchingConfig): Pen
   ];
 }
 
-/** Blend the twelve signals, dropping the ones that do not exist for this candidate. */
-function blendRelease(
+/** The thirteen signals, paired with their weights, `null` where this candidate has none. */
+function releaseParts(
   signals: ReleaseSignals,
-  fitSignal: number | null,
-  coverageSignal: number | null,
-  coverArtSignal: number | null,
-  typeSignal: number | null,
+  unknown: {
+    fit: number | null;
+    coverage: number | null;
+    exactness: number | null;
+    coverArt: number | null;
+    type: number | null;
+  },
   config: MatchingConfig,
-): number {
+): readonly (readonly [number, number | null])[] {
   const w = config.weights.release;
-  const parts: readonly (readonly [number, number | null])[] = [
+  return [
     [w.title, signals.title],
     [w.artist, signals.artist],
-    [w.durations, fitSignal],
-    [w.coverage, coverageSignal],
+    [w.durations, unknown.fit],
+    [w.coverage, unknown.coverage],
+    [w.exactness, unknown.exactness],
     [w.trackCount, signals.trackCount],
     [w.year, signals.year],
     [w.label, signals.label],
     [w.format, signals.format],
     [w.status, signals.status],
     [w.country, signals.country],
-    [w.coverArt, coverArtSignal],
-    [w.type, typeSignal],
+    [w.coverArt, unknown.coverArt],
+    [w.type, unknown.type],
   ];
+}
+
+/** Blend the thirteen signals, dropping the ones that do not exist for this candidate. */
+function blend(parts: readonly (readonly [number, number | null])[]): number {
   let weighted = 0;
   let total = 0;
   for (const [weight, value] of parts) {
@@ -221,6 +233,64 @@ function blendRelease(
     total += weight;
   }
   return total === 0 ? 0 : unit(weighted / total);
+}
+
+/**
+ * The best score a candidate could still reach, given what is already known about it.
+ *
+ * The bound the adaptive exploration branches on, and it has to be a bound on **everything a
+ * lookup could change**, not merely on the tracklist. Getting that wrong is silent and total:
+ * a candidate whose ceiling under-states it is never opened, so it never gets the chance to
+ * win, which is the exact bug this machinery exists to fix. *Appeal to Reason* found it the
+ * first time — a release search carries no `first-release-date` for the release group, so the
+ * 2014 pressing of a 2008 record scored zero on year while unopened, came out at 0.960 against
+ * a leader at 0.967, and was bounded away one lookup short of the answer it turns into.
+ *
+ * So four things are treated as attainable:
+ *
+ *  - the **fit family** (`durations`, `coverage`, `exactness`), bounded by the track count the
+ *    search result *does* carry: `min(videos, tracks)` is the most the 1:1 assignment could
+ *    ever bind, so a fifteen-track pressing facing fourteen videos cannot exceed `14/15`
+ *    whatever its tracklist turns out to be. That is what keeps the bound tight;
+ *  - the **cover**, at 1: a search says nothing about the Cover Art Archive;
+ *  - the **year**, at 1 when the release group's first date is missing, because the lookup
+ *    supplies it and it may well agree;
+ *  - the **label**, at 1 when the search result names none.
+ *
+ * Everything else — title, artist, country, format, status, type, and every penalty the
+ * disambiguation comment already earns — is genuinely known from the search result and enters
+ * at its real value. A candidate whose tracklist is already read has nothing left unknown at
+ * all, so its ceiling is its score.
+ */
+function ceilingOf(
+  signals: ReleaseSignals,
+  typeSignal: number | null,
+  videoCount: number,
+  trackCount: number,
+  attainable: { readonly year: number; readonly label: number },
+  knownPenalties: readonly Penalty[],
+  config: MatchingConfig,
+): number {
+  const span = Math.max(videoCount, trackCount);
+  const maxBound = Math.min(videoCount, trackCount);
+  const bestCoverage = videoCount === 0 ? null : unit(maxBound / videoCount);
+  const best = blend(
+    releaseParts(
+      { ...signals, year: attainable.year, label: attainable.label },
+      {
+        fit: trackCount === 0 ? null : unit(maxBound / trackCount),
+        coverage: bestCoverage,
+        exactness: span === 0 ? null : unit(maxBound / span),
+        coverArt: 1,
+        type: typeSignal,
+      },
+      config,
+    ),
+  );
+  // The coverage deduction is bounded by the track count too: a one-track single facing eleven
+  // videos owes the whole of it before anybody reads its tracklist.
+  const penalties = [...coveragePenalties(bestCoverage, config), ...knownPenalties];
+  return unit(best - totalPenalty(penalties));
 }
 
 /** The plain-English case for (and against) one candidate. */
@@ -271,6 +341,17 @@ function explain(
       why.push(
         `${String(candidate.leftOver)} video${candidate.leftOver === 1 ? "" : "s"} would be left over — this release does not have ${candidate.leftOver === 1 ? "that song" : "those songs"}`,
       );
+    }
+    /*
+     * The sentence the sixth owner review is about, and the reason `exactness` exists.
+     *
+     * "14 of your 14 videos would find a track here" was true of the fifteen-track edition
+     * *and* of the fourteen-track one, and a reader comparing two cards had no way to see
+     * that one of them left a track behind and the other left nothing anywhere. This says the
+     * whole of it in one line, and only when it is true of both directions at once.
+     */
+    if (candidate.uncovered === 0 && candidate.leftOver === 0) {
+      why.push("Exact fit: no track of this release and none of your videos is left over");
     }
   }
 
@@ -388,6 +469,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       leftOver,
       signal: fitSignal,
       coverage: coverageSignal,
+      exactness: exactnessSignal,
       meanAbsDelta,
       lines: fitLines,
     } = tracklistFit(input, candidate, config);
@@ -402,8 +484,9 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       trackCount: round3(trackCountScore(videoCount, tracks, config.thresholds.trackSurplusCost)),
       durations: round3(fitSignal ?? 0),
       coverage: round3(coverageSignal ?? 0),
+      exactness: round3(exactnessSignal ?? 0),
       year: round3(
-        yearScore(sourceYear, yearOf(release.date) ?? yearOf(group?.["first-release-date"])),
+        releaseYearScore(sourceYear, yearOf(release.date), yearOf(group?.["first-release-date"])),
       ),
       label: round3(labelScore(input.hints.label, label)),
       format: round3(formatScore(format, config.preferences)),
@@ -413,8 +496,8 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       type: round3(typeSignal ?? 0),
     };
 
-    const penalties: Penalty[] = [
-      ...coveragePenalties(coverageSignal, config),
+    /** The deductions a search result already earns, before any tracklist is read. */
+    const knownPenalties: Penalty[] = [
       ...disambiguationPenalties(release.disambiguation, config.preferences),
       ...secondaryTypePenalties(group?.["secondary-types"], group?.["primary-type"]),
       ...titleKeywordPenalties(
@@ -423,16 +506,46 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
         group?.["secondary-types"],
       ),
     ];
+    const penalties: Penalty[] = [...coveragePenalties(coverageSignal, config), ...knownPenalties];
 
-    const blended = blendRelease(
-      signals,
-      fitSignal,
-      coverageSignal,
-      coverArtSignal,
-      typeSignal,
-      config,
+    const blended = blend(
+      releaseParts(
+        signals,
+        {
+          fit: fitSignal,
+          coverage: coverageSignal,
+          exactness: exactnessSignal,
+          coverArt: coverArtSignal,
+          type: typeSignal,
+        },
+        config,
+      ),
     );
     const finalScore = unit(blended - totalPenalty(penalties));
+    /*
+     * A read tracklist leaves nothing unknown, so its ceiling *is* its score. Saying that here
+     * rather than recomputing keeps the two numbers from ever disagreeing by a rounding.
+     */
+    const ceiling =
+      fitSignal === null
+        ? ceilingOf(
+            signals,
+            typeSignal,
+            videoCount,
+            tracks,
+            {
+              // A release *search* result carries no `first-release-date` for its group and
+              // often no label at all; the lookup supplies both, and both may agree.
+              year:
+                yearOf(group?.["first-release-date"]) === null && sourceYear != null
+                  ? 1
+                  : signals.year,
+              label: label === null ? 1 : signals.label,
+            },
+            knownPenalties,
+            config,
+          )
+        : finalScore;
 
     const candidateOut: ReleaseCandidate = {
       id: release.id ?? "",
@@ -457,6 +570,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       uncovered,
       leftOver,
       videos: videoCount,
+      ceiling: round3(ceiling),
       durDelta: meanAbsDelta,
       fitLines,
       signals,

@@ -2,7 +2,7 @@
  * The signals behind a score.
  *
  * `docs/decisions.md` 002: the algorithm proposes and explains, it never chooses. A score on
- * its own is an opinion; the nine little squares next to it are the argument. Each one is a
+ * its own is an opinion; the little squares next to it are the argument. Each one is a
  * named signal in [0, 1], coloured on a red→green ramp, and titled with its exact value —
  * so "why is this 74%?" is answered by hovering rather than by reading the source.
  */
@@ -14,6 +14,8 @@ const SIGNAL_LABELS: Record<string, string> = {
   title: "Title",
   artist: "Artist",
   trackCount: "Tracks",
+  coverage: "Coverage",
+  exactness: "Exactness",
   coverArt: "Cover art",
   type: "Release type",
   durations: "Durations",
