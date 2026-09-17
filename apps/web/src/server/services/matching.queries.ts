@@ -309,8 +309,14 @@ export async function searchReleases(input: SearchInput): Promise<{
 
   /*
    * The release search stays as the fallback, not as the first question. A record whose group
-   * MusicBrainz files under another name — the case `releaseGroupQueryWide` exists for in the
-   * matcher — still has to be findable by hand.
+   * MusicBrainz files under another name still has to be findable by hand.
+   *
+   * It keeps the artist clause, and that is not an accident. `releaseGroupQueryWide` — the
+   * artist-less retry the matcher used to run here — is gone from `matching/lucene.ts`, and its
+   * own comment says why: `release:"Bewitched"` alone returns a hundred and forty-two records
+   * by four different artists, and the engine imported one of them unasked. The matcher widens
+   * by loosening the *credit* (first-credited name, base title, then the tracks) and never by
+   * dropping it; a hand search must not be the one door left open onto the old behaviour.
    */
   if (releases.length === 0) {
     const direct = lucene.releaseQuery({ album: terms.title, artist: terms.artist });

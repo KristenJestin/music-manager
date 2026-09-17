@@ -44,6 +44,7 @@ import {
   type InboxStatusFilter,
 } from "#/lib/inbox-filters.ts";
 import { INBOX_TYPES, type InboxStatus, type InboxType } from "#/server/db/schema/enums.vocab.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export interface ReviewToolbarProps {
   readonly params: InboxSearch;
@@ -71,6 +72,15 @@ const label = (type: "all" | InboxType): string => {
 
 export function ReviewToolbar({ params, byType, byStatus }: ReviewToolbarProps) {
   const navigate = useNavigate();
+  /*
+   * `/review` draws this toolbar **for real** in its pending component as well as in its
+   * settled one (`ReviewScreenSkeleton`), so a navigation that re-suspends the loader — a type
+   * chip, a sort, a page — has both copies mounted at once. `review-search` and the
+   * `review-types` chips come out scoped already, because `SearchInput` and `PresetGroup` call
+   * this hook themselves; these two Selects write their identifier here and would otherwise be
+   * the two that name two elements at a time.
+   */
+  const scoped = useTestId();
 
   /** Every control resets the page: "page 4" of a set with one page is an empty queue. */
   const to = (patch: Partial<InboxSearch>): { to: "/review"; search: InboxSearch } => ({
@@ -113,7 +123,7 @@ export function ReviewToolbar({ params, byType, byStatus }: ReviewToolbarProps) 
       >
         <SelectTrigger
           size="sm"
-          data-testid="review-status"
+          data-testid={scoped("review-status")}
           aria-label="Filter by status"
           className="max-w-36 border-line bg-surface-1 text-xs"
         >
@@ -145,7 +155,7 @@ export function ReviewToolbar({ params, byType, byStatus }: ReviewToolbarProps) 
       >
         <SelectTrigger
           size="sm"
-          data-testid="review-sort"
+          data-testid={scoped("review-sort")}
           aria-label="Sort the review queue"
           className="max-w-36 border-line bg-surface-1 text-xs"
         >

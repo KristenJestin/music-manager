@@ -57,6 +57,7 @@ import { createFromUrl, getImport } from "#/server/services/imports.ts";
 import { setImportOptions } from "#/server/services/console.queries.ts";
 import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { rankFor, videosOf } from "#/server/services/matching.queries.ts";
+import type { AlbumMatch } from "#/server/services/matching.service.ts";
 import { configFromSettings } from "#/server/services/matching.service.ts";
 import { runStep } from "#/server/services/jobs/index.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -500,7 +501,7 @@ export async function confirmBest(input: ConfirmBestInput): Promise<ConfirmBestR
 
   return result.kind === "single"
     ? await confirmBestRecording(context, result.ranking)
-    : await confirmBestRelease(context, result.ranking.candidates);
+    : await confirmBestRelease(context, result);
 }
 
 /** Everything both branches need, gathered once by `confirmBest`. */
@@ -524,9 +525,10 @@ interface ConfirmContext {
  */
 async function confirmBestRelease(
   context: ConfirmContext,
-  candidates: readonly ReleaseCandidate[],
+  result: AlbumMatch,
 ): Promise<ConfirmBestResult> {
   const { job, rows, input } = context;
+  const candidates = result.ranking.candidates;
   const minCoverage = input.minCoverage ?? DEFAULT_MIN_COVERAGE;
   const preferType = input.preferType ?? "album";
 

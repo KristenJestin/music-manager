@@ -41,16 +41,27 @@ test.describe("wizard step 2 does not hold an HTTP request open", () => {
 
     const waiting = page.locator('[data-waiting="musicbrainz"]');
     await expect(waiting).toBeVisible({ timeout: 120_000 });
-    await expect(page.getByTestId("pending-title")).toContainText("Searching MusicBrainz");
-    await expect(page.getByTestId("pending-counters")).toContainText("searches");
+    /*
+     * The identifiers *inside* the panel are read with the `-pending` suffix allowed, for the
+     * same reason the panel itself is found by `data-waiting`. The router's copy sits in a
+     * `PendingTree` and the settled one does not, so its ids are suffixed
+     * (`components/pending-tree.tsx`) — and a bare name here would be asserting on the same
+     * race one level down. Scoped to the panel already found, so it is still this title and no
+     * other; the assertion itself is unchanged.
+     */
+    await expect(waiting.getByTestId(/^pending-title(-pending)?$/)).toContainText(
+      "Searching MusicBrainz",
+    );
+    await expect(waiting.getByTestId(/^pending-counters(-pending)?$/)).toContainText("searches");
 
     /* ---- 2. the estimate is arithmetic, not a constant --------------------- */
 
     // It used to say "about ten seconds" whatever the plan was — wrong for the owner's twelve
     // lookups, and silent about the limit being shared with everything else running.
-    await expect(page.getByTestId("pending-estimate")).toContainText("one request per second");
-    await expect(page.getByTestId("pending-estimate")).not.toContainText("about ten seconds");
-    await expect(page.getByTestId("pending-estimate")).toContainText("shared");
+    const estimate = waiting.getByTestId(/^pending-estimate(-pending)?$/);
+    await expect(estimate).toContainText("one request per second");
+    await expect(estimate).not.toContainText("about ten seconds");
+    await expect(estimate).toContainText("shared");
 
     /* ---- 3. nobody has to press anything: the candidates arrive ------------ */
 

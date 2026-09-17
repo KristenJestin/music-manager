@@ -329,9 +329,10 @@ function filingOf(settings: Settings): CandidatesView["filing"] {
 /**
  * A view with no candidates in it, which is two different sentences and one set of fields.
  *
- * `filing` travels even here. The path preview is a property of the *settings*, not of the
- * candidate list, and step 2 renders the frame before it has a list to put in it; a blank view
- * that dropped it would make the preview flicker in from empty on every pending poll.
+ * `filing` travels even here, and not because a blank screen has a path to preview. It is a
+ * property of the *settings* rather than of the candidate list, so there is no view of this
+ * import for which the answer is unknown; making it optional on two of the four states would
+ * push a `?? null` into every reader for a case that cannot arise.
  */
 function blankCandidates(
   job: Import,
@@ -620,6 +621,13 @@ export interface SearchResultView {
  * So the resolution is a *read*: one gated lookup, no writes, no side effects, called as the
  * field changes. `null` means the string holds no MusicBrainz reference at all, which is the
  * page's signal that this is free text and belongs in a search.
+ *
+ * It stays inside its own request, where `fetchCandidates` above no longer does. Five lookups
+ * is the ceiling and only an id that names nothing reaches it — a pasted *address* claims its
+ * entity, so the ordinary case is one — which is five seconds against MusicBrainz's one request
+ * a second, comfortably inside the 240 s idle timeout `server/http/abort.ts` now sets. And it
+ * writes nothing: there is no half-finished state for a background run to protect, and a reload
+ * that loses the answer simply asks the question again.
  */
 export const resolvePastedRef = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])

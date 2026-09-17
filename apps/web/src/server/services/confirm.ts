@@ -88,6 +88,16 @@ export interface ConfirmOutcome {
  * `match` runs **here**, synchronously, rather than on the worker: it is the step that
  * *applies* a supplied mapping, there is no MusicBrainz call left to make, and running it now
  * is what lets the caller's response say "14 mapped, 1 extra" instead of "queued".
+ *
+ * It is deliberately **not** put behind `services/match-runs.ts`, which exists for the other
+ * kind of match. That registry answers the wizard's step 2 — a search whose cost is ten to
+ * fourteen MusicBrainz requests, whose progress the screen follows on `/api/match-progress`,
+ * and whose "not yet" the `CandidatesView.pending` field is there to carry. Nothing of that
+ * applies here: `options.mapping` is set before the step runs, so `matchStep` takes
+ * `applySupplied` and spends at most one lookup for the release group. Routing it through the
+ * registry would buy a round trip and cost `confirm-mapping` its counts — `POST`
+ * `/api/v1/imports/{id}/confirm-mapping`, MCP's `confirm_mapping` and the wizard's Start
+ * button all answer with `mapped` and `extras`, and a background run has none to give.
  */
 export async function confirmSupplied(
   input: ConfirmSuppliedInput,

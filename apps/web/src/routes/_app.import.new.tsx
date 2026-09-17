@@ -30,6 +30,7 @@ import { ToneBadge } from "#/components/status-badge.tsx";
 import { RecordingCandidateCard } from "#/components/candidate-card.tsx";
 import { ReleaseGroupCard } from "#/components/candidate-group.tsx";
 import { useToast } from "#/components/shell/shell-context.tsx";
+import { PendingTree, useTestId } from "#/components/pending-tree.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 import { useMatchProgress, type MatchProgressSnapshot } from "#/hooks/use-match-progress.ts";
 import { cn } from "cn";
@@ -341,6 +342,15 @@ function MatchPanel({
 }) {
   const done = (progress?.searches ?? 0) + (progress?.lookups ?? 0);
   const planned = Math.max(1, (progress?.searchesPlanned ?? 4) + (progress?.lookupsPlanned ?? 6));
+  /*
+   * This panel is drawn by both of the route's trees — `WizardPending` is the router's
+   * fallback, `WizardMatching` is the settled page reporting a match that runs beside the
+   * request — and a re-suspend keeps both mounted. `testId` on the root already tells them
+   * apart; everything below it did not, so `pending-title` and its five neighbours named two
+   * elements at once, which is exactly what `components/pending-tree.tsx` exists to stop. The
+   * settled copy keeps the bare name and the fallback's is suffixed `-pending`.
+   */
+  const scoped = useTestId();
 
   return (
     /*
@@ -370,10 +380,10 @@ function MatchPanel({
       <section className="rounded-xl border border-line bg-surface-1 px-6 py-10">
         <div className="mx-auto flex max-w-md flex-col items-center gap-3.5 text-center">
           <LoaderCircle className="size-7 animate-spin text-primary" aria-hidden="true" />
-          <h2 className="text-sm font-semibold" data-testid="pending-title">
+          <h2 className="text-sm font-semibold" data-testid={scoped("pending-title")}>
             {matching ? "Searching MusicBrainz…" : "Reading the source…"}
           </h2>
-          <p className="text-xs text-fg-2" data-testid="pending-label">
+          <p className="text-xs text-fg-2" data-testid={scoped("pending-label")}>
             {progress?.label ??
               (matching
                 ? "One release-group search, one release search per group, then one tracklist lookup per candidate — one request per second."
@@ -388,12 +398,12 @@ function MatchPanel({
                 label="MusicBrainz requests done"
                 className="w-full"
               />
-              <p className="font-mono text-2xs text-fg-2" data-testid="pending-counters">
-                <span data-testid="pending-searches">
+              <p className="font-mono text-2xs text-fg-2" data-testid={scoped("pending-counters")}>
+                <span data-testid={scoped("pending-searches")}>
                   {progress?.searches ?? 0}/{progress?.searchesPlanned ?? 4}
                 </span>{" "}
                 searches, {""}
-                <span data-testid="pending-lookups">
+                <span data-testid={scoped("pending-lookups")}>
                   {progress?.lookups ?? 0}/{progress?.lookupsPlanned ?? 6}
                 </span>{" "}
                 tracklist lookups
@@ -401,7 +411,7 @@ function MatchPanel({
             </div>
           ) : null}
 
-          <p className="text-2xs text-fg-3" data-testid="pending-estimate">
+          <p className="text-2xs text-fg-3" data-testid={scoped("pending-estimate")}>
             {matching
               ? matchEstimate(progress)
               : "Nothing is downloaded and nothing is written until you press Start."}
@@ -417,13 +427,17 @@ function WizardPending() {
   const params = Route.useSearch();
   const matching = params.step >= 2 && params.importId !== undefined;
   const progress = useMatchProgress(matching ? (params.importId ?? null) : null);
+  // `PendingTree`, which every other page gets from `SkeletonPage`: this is the one pending
+  // component that draws a real panel instead of a skeleton, so it has to say so itself.
   return (
-    <MatchPanel
-      step={params.step}
-      matching={matching}
-      progress={progress}
-      testId="wizard-pending"
-    />
+    <PendingTree>
+      <MatchPanel
+        step={params.step}
+        matching={matching}
+        progress={progress}
+        testId="wizard-pending"
+      />
+    </PendingTree>
   );
 }
 

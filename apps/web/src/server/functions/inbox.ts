@@ -935,12 +935,12 @@ export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT
  * says *Expanded Edition* / *Deluxe* / *Bonus Track Version* and MusicBrainz never published
  * that edition — while the base title returns twelve of them.
  *
- * **The stripping itself is not implemented here.** It is `stripEditionQualifier`, a marked
- * placeholder in `lib/edition-qualifier.ts` standing in for the automatic fallback branch
- * `fix-matching-exactness` is building in `packages/domain/src/normalize/`; when that lands,
- * that module becomes a one-line re-export and this function is untouched. What *is* here is
- * the wiring: an explicit album title on the import, which `match` prefers over the hint it
- * derives from the videos' own tags.
+ * **The stripping itself is not implemented here.** It is `stripEditionQualifier` in
+ * `packages/domain/src/normalize/title.ts`, reached through `lib/edition-qualifier.ts` — the
+ * same function the matcher's own base-title rung uses, so this button offers exactly the
+ * search `match` would otherwise have had to guess at. What *is* here is the wiring: an
+ * explicit album title on the import, which `match` prefers over the hint it derives from the
+ * videos' own tags.
  */
 export const searchWithoutQualifier = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])

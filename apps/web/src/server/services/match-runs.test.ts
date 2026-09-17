@@ -28,6 +28,10 @@ function ranking(queries: readonly string[] = ["q"]): MatchResult {
     budget: { searches: 1, lookups: 0 },
     planned: { searches: 2, lookups: 6 },
     queries,
+    // The artist gate `fix-matching-exactness` put on every match result. The registry does
+    // not read it — it hands the ranking back whole — but the type is not optional and a
+    // fixture that omitted it would be claiming a shape no match ever produces.
+    artist: { wanted: null, carried: true, carriedBy: 0 },
   } as MatchResult;
 }
 

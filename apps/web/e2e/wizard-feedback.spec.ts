@@ -69,8 +69,18 @@ test.describe("owner review, lot A", () => {
      */
     const pending = page.locator('[data-waiting="musicbrainz"]');
     await expect(pending).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("pending-title")).toContainText("Searching MusicBrainz");
-    await expect(page.getByTestId("pending-counters")).toContainText("searches");
+    /*
+     * The identifiers *inside* the panel are read with the `-pending` suffix allowed, for the
+     * same reason the panel itself is found by `data-waiting`. The router's copy sits in a
+     * `PendingTree` and the settled one does not, so its ids are suffixed
+     * (`components/pending-tree.tsx`) — and a bare name here would be asserting on the same
+     * race one level down. Scoped to the panel already found, so it is still this title and no
+     * other; the assertion itself is unchanged.
+     */
+    await expect(pending.getByTestId(/^pending-title(-pending)?$/)).toContainText(
+      "Searching MusicBrainz",
+    );
+    await expect(pending.getByTestId(/^pending-counters(-pending)?$/)).toContainText("searches");
     await page.screenshot({ path: join(SHOTS, "A5-pending-musicbrainz.png") });
 
     await page.waitForURL(/step=2/, { timeout: 150_000 });
