@@ -210,6 +210,16 @@ export function parseMbid(input: string): string | null {
  */
 const MANUAL_GROUPS = 3;
 
+/**
+ * …and how many when the search **is** the artist.
+ *
+ * Typing only an artist is a different question — "what has this band put out?" — and three
+ * answers is not a catalogue. It is still bounded, because each group costs a second through
+ * the one-per-second gate and somebody is watching the page; six is the most that stays under
+ * ten seconds on a cold cache.
+ */
+const MANUAL_ARTIST_GROUPS = 6;
+
 export interface SearchInput extends RankingInput {
   /**
    * The title, or — when `artist` is absent — the whole typed string.
@@ -217,6 +227,11 @@ export interface SearchInput extends RankingInput {
    * It used to be the whole typed string *always*, and it went into one field:
    * `releaseQuery({ album: query })`. So `bewitched Laufey` asked MusicBrainz for a release
    * literally titled "bewitched Laufey" and came back empty over a record it obviously has.
+   *
+   * **Empty is legal when `artist` is not.** That is the artist-only search: `lucene`'s
+   * `clause()` has always dropped an empty value rather than emitting `release:""`, so an empty
+   * title simply leaves the artist clause standing on its own, and "list this band's records"
+   * needs no new query builder — only a caller allowed to ask for it.
    */
   readonly query: string;
   /**
@@ -292,7 +307,7 @@ export async function searchReleases(input: SearchInput): Promise<{
     input.settings.matchSearchLimit,
   );
   const groupIds = (groupFound?.["release-groups"] ?? [])
-    .slice(0, MANUAL_GROUPS)
+    .slice(0, terms.title === "" ? MANUAL_ARTIST_GROUPS : MANUAL_GROUPS)
     .map((group) => group.id)
     .filter((id): id is string => typeof id === "string" && id !== "");
 

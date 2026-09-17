@@ -1667,7 +1667,8 @@ function StepMatch({
   }
 
   const runSearch = async (title: string, artist: string): Promise<void> => {
-    if (title.trim() === "") return;
+    // Either field alone is a search; only both empty is nothing to ask.
+    if (title.trim() === "" && artist.trim() === "") return;
     const found = await onSearch(title, artist);
     setManual(found);
     setHandPicked(null);
