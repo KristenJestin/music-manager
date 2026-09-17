@@ -286,7 +286,10 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
       ...(hinted === null
         ? {}
         : {
-            options: { ...ctx.job.options, releaseMbid: hinted },
+            // `releaseMbidFromTags` marks it as an inference rather than an assertion, which is
+            // what lets `match` fall back to the files' own tags if MusicBrainz cannot produce
+            // the release — where a release somebody *typed* would rightly block and ask.
+            options: { ...ctx.job.options, releaseMbid: hinted, releaseMbidFromTags: true },
           }),
       updatedAt: new Date(),
     })

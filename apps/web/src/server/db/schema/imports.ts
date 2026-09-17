@@ -68,6 +68,18 @@ export interface ImportOptions {
   readonly releaseMbid?: string;
 
   /**
+   * `releaseMbid` above came from the **files**, not from a person.
+   *
+   * A folder import whose files agree on a `MUSICBRAINZ_ALBUMID` gets it pinned automatically
+   * (`resolve`), because that tag is the record their owner already decided this was. But it is
+   * an inference, and the difference shows exactly once: when MusicBrainz cannot produce the
+   * release. A pin somebody typed means *block and ask* — they asserted something and were
+   * wrong, or the source is down. A pin read off a tag means *carry on without MusicBrainz*,
+   * which is the whole point of the fallback. Without this flag the two are the same string.
+   */
+  readonly releaseMbidFromTags?: boolean;
+
+  /**
    * Search MusicBrainz under **this** album title instead of the one the source advertises.
    *
    * The hints `match` computes take the album from a majority of the videos' own YouTube Music

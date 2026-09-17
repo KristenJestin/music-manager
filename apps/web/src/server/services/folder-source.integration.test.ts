@@ -87,7 +87,7 @@ const { resolveSourceFolder } = await import("./adopt.ts");
 const settings = await import("./settings.ts");
 const { toolbox } = await import("#/server/toolbox/client.ts");
 const { pathMap } = await import("#/server/paths.ts");
-const { buildFixtureSource, FIXTURE_ALBUM, FIXTURE_ARTIST, FIXTURE_TRACKS } =
+const { buildFixtureSource, fixtureTags, FIXTURE_ALBUM, FIXTURE_ARTIST, FIXTURE_TRACKS } =
   await import("../../../../../fixtures/folder/build-source.ts");
 
 resetServerEnv();
@@ -341,4 +341,63 @@ describe.skipIf(unavailable !== null)("importing a folder", () => {
     expect(existsSync(album)).toBe(true);
     expect(resolveSourceFolder(album, [LIBRARY_HOST])).toBe(resolve(album));
   });
+
+  /* ---------------------------------------------------------------- */
+  /* 4 · what the files already know                                    */
+  /* ---------------------------------------------------------------- */
+
+  it("pins the release the files agree on, and marks it as read rather than asserted", async () => {
+    const source = join(LIBRARY_HOST, ".sources", "already-tagged");
+    rmSync(source, { recursive: true, force: true });
+    mkdirSync(source, { recursive: true });
+    const { copyFileSync } = await import("node:fs");
+    const known = "b84ee12a-09ef-421b-82de-0441a926375b";
+    for (const track of FIXTURE_TRACKS.slice(0, 3)) {
+      copyFileSync(join(album, track.file), join(source, track.file));
+      await tag(`${LIBRARY_CONTAINER}/.sources/already-tagged/${track.file}`, [
+        ...fixtureTags(track),
+        { key: "MUSICBRAINZ_ALBUMID", value: known },
+      ]);
+    }
+
+    const listing = await listFolder(source, {
+      paths,
+      settings: await settings.loadSettings(db()),
+      toolbox: toolbox(),
+    });
+    expect(listing.releaseMbidHint).toBe(known);
+
+    const created = await imports.createImport(source, { db: db() });
+    const [row] = await db()
+      .select()
+      .from(schema.imports)
+      .where(eq(schema.imports.id, created.job.id));
+    expect(row?.options.releaseMbid).toBe(known);
+    // Marked as an inference: MusicBrainz not producing it must fall back to the files' own
+    // tags, where a release somebody *typed* would rightly block and ask.
+    expect(row?.options.releaseMbidFromTags).toBe(true);
+    rmSync(source, { recursive: true, force: true });
+  }, 120_000);
 });
+
+/** `POST /tag` on a file of the fixture folder, the way `build-source.ts` writes them. */
+async function tag(
+  containerPath: string,
+  tags: readonly { key: string; value: string }[],
+): Promise<void> {
+  const response = await fetch(`${TOOLBOX_URL}/tag`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      path: containerPath,
+      format: "auto",
+      tags,
+      pictures: [],
+      lyrics_lrc: null,
+      sidecar_lrc: false,
+      clear: true,
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error(`/tag failed: HTTP ${String(response.status)}`);
+}

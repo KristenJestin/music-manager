@@ -373,10 +373,25 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
  *
  * `options.untaggedFallback` overrides it in either direction, because a person importing a
  * folder they *know* is on MusicBrainz would rather be asked than filed under a wrong title.
+ *
+ * **A release a person pinned switches it off.** `--release <mbid>` is somebody saying *this is
+ * the record*; quietly importing it as untagged because MusicBrainz was unreachable, or because
+ * the id was mistyped, would answer a different question from the one that was asked and file
+ * the album under a title they never chose. The right answer there is the one that has always
+ * been right — block, and let the Inbox ask.
+ *
+ * A release the **files** claimed is not that (`options.releaseMbidFromTags`). Nobody asserted
+ * it, `resolve` read it off a majority of `MUSICBRAINZ_ALBUMID` tags, and MusicBrainz not
+ * having it any more is precisely the situation the fallback exists for.
  */
 function wantsUntaggedFallback(job: StepContext["job"]): boolean {
   const stated = job.options.untaggedFallback;
-  return stated ?? isFolderSource(job.url);
+  if (stated !== undefined) return stated;
+  const pinnedByHand =
+    (job.options.releaseMbid !== undefined || job.releaseMbid !== null) &&
+    job.options.releaseMbidFromTags !== true;
+  if (pinnedByHand) return false;
+  return isFolderSource(job.url);
 }
 
 /**
