@@ -1062,7 +1062,20 @@ export async function tracksAdrift(options: {
     .from(libraryTracks)
     .innerJoin(importTracks, eq(libraryTracks.importTrackId, importTracks.id))
     .innerJoin(imports, eq(importTracks.importId, imports.id))
-    .innerJoin(metadataDocuments, eq(metadataDocuments.libraryTrackId, libraryTracks.id))
+    /*
+     * Joined on `import_track_id`, not on `library_track_id`, and the difference is one row
+     * per file rather than several.
+     *
+     * `metadata_documents.library_track_id` is stamped by `place`, and importing the same
+     * album twice — which is a supported, tested thing to do, and what "already present (14
+     * track(s))" is about — leaves **two** document rows pointing at the same
+     * `library_tracks` row. Joining on it counted every file twice: the offline end-to-end run
+     * reported four files adrift on an album where exactly two were. `import_track_id` carries
+     * a unique index and `library_tracks.import_track_id` names the one video this file
+     * actually came from — which is also the row `retagOne` rebuilds from, so this is the
+     * document that will be re-projected rather than merely one that could be.
+     */
+    .innerJoin(metadataDocuments, eq(metadataDocuments.importTrackId, libraryTracks.importTrackId))
     .where(and(scope, isNull(libraryTracks.missingAt)))
     .orderBy(libraryTracks.albumId, libraryTracks.discNumber, libraryTracks.trackNumber);
 

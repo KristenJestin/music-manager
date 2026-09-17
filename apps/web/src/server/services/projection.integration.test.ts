@@ -258,6 +258,47 @@ describe.skipIf(unavailable !== null)("the projection invariant, against a real 
     expect(adrift[0]?.reason).toBe("document");
   });
 
+  it("counts files, not document rows, when an album has been imported twice", async () => {
+    const seed = await seedAlbum("PB");
+    await reMatch(seed);
+
+    /*
+     * Importing the same album again is supported and tested — "already present (14 track(s))"
+     * — and `place` stamps `library_track_id` on the *second* import's documents too, so one
+     * file ends up with two document rows pointing at it. A catch-up joined on
+     * `library_track_id` counted each file twice: the offline end-to-end run reported four
+     * files adrift on an album where exactly two were. A warning that overstates itself is a
+     * warning nobody reads twice.
+     */
+    const second = `${seed.importId}_again`;
+    await db().insert(schema.imports).values({ id: second, url: "fixture://again", kind: "album" });
+    for (const [index, trackId] of seed.trackIds.entries()) {
+      const importTrackId = `itr_PBb${String(index)}`;
+      await db()
+        .insert(schema.importTracks)
+        .values({
+          id: importTrackId,
+          importId: second,
+          position: index + 1,
+          videoId: `vidPBb${String(index)}`,
+          url: `https://youtu.be/vidPBb${String(index)}`,
+          sourceTitle: `Track ${String(index + 1)}`,
+          role: "mapped",
+        });
+      await db()
+        .insert(schema.metadataDocuments)
+        .values({
+          id: `doc_PBb${String(index)}`,
+          importTrackId,
+          libraryTrackId: trackId,
+          document: document() as unknown as Record<string, unknown>,
+          tagSchemaVersion: TAG_SCHEMA_VERSION,
+        });
+    }
+
+    expect(await tracksAdrift({ db: db(), albumId: seed.albumId })).toHaveLength(2);
+  });
+
   /* ---- 2 · a write that changes nothing queues nothing ---- */
 
   it("writing an identical document queues nothing", async () => {

@@ -727,6 +727,156 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
+  section("8 · the files follow the database (AGENTS.md's first guiding fact)");
+  /* ---------------------------------------------------------------- */
+  //
+  // *The database is the source of truth for metadata; files are a regenerable projection of
+  // it.* The owner found 175 files out of 4 344 where that was false, and — worse — a re-tag
+  // that refused to repair them: `mm retag --album <id>` answered "Nothing to do — every file
+  // in scope already carries that projection" over twelve files that plainly carried the
+  // previous edition's `MUSICBRAINZ_RELEASETRACKID` and no `ASIN` at all.
+  //
+  // Everything below is asserted by **reading the tags back out of the file** through the
+  // toolbox. Reading the database back would prove nothing: the database was never the thing
+  // that was wrong.
+
+  const album = await sql<{ id: string; import_id: string }[]>`
+    select a.id, t.import_id
+      from library_albums a
+      join library_tracks t on t.album_id = a.id
+     where a.folder like ${"Daft Punk/Discovery%"}
+     limit 1`;
+  const albumId = album[0]?.id ?? "";
+  const albumImport = album[0]?.import_id ?? "";
+  check(albumId !== "", "found the placed Discovery album", albumId);
+
+  const FILE_1 = "Daft Punk/Discovery (2001)/01 - One More Time.opus";
+  const FILE_2 = "Daft Punk/Discovery (2001)/02 - Aerodynamic.opus";
+
+  /** The release-track id the database holds for the video behind one file. */
+  const dbTrackMbid = async (path: string): Promise<string> => {
+    const rows = await sql<{ track_mbid: string | null }[]>`
+      select it.track_mbid
+        from library_tracks lt
+        join import_tracks it on it.id = lt.import_track_id
+       where lt.path = ${path}
+       limit 1`;
+    return rows[0]?.track_mbid ?? "";
+  };
+
+  const beforeFile1 = (await probe(FILE_1)).tags["MUSICBRAINZ_RELEASETRACKID"] ?? "";
+  const beforeFile2 = (await probe(FILE_2)).tags["MUSICBRAINZ_RELEASETRACKID"] ?? "";
+  check(
+    beforeFile1 !== "" && beforeFile2 !== "" && beforeFile1 !== beforeFile2,
+    "the two files start with different release-track ids",
+  );
+  check(
+    beforeFile1 === (await dbTrackMbid(FILE_1)),
+    "and the database agrees with them, to begin with",
+  );
+
+  /*
+   * The defect, reproduced on the rows a confirmation writes and on no others.
+   *
+   * `applySupplied` (`services/jobs/steps/match.ts`) writes exactly this when a different
+   * edition is confirmed for an album whose files are already placed: the video → track
+   * binding moves, and nothing else happens. `place` and `tag` will not catch up — a track in
+   * state `done` is terminal in `machine.ts`, so re-queueing the import re-runs nothing over a
+   * file that is already filed. That is the whole of the bug, and swapping two bindings makes
+   * it visible in a single tag both halves of this test can read.
+   */
+  await sql`
+    update import_tracks a
+       set track_position = b.track_position,
+           track_mbid     = b.track_mbid,
+           recording_mbid = b.recording_mbid,
+           track_title    = b.track_title
+      from import_tracks b
+     where a.import_id = ${albumImport} and b.import_id = ${albumImport}
+       and a.track_position in (1, 2) and b.track_position in (1, 2)
+       and a.track_position <> b.track_position`;
+
+  const swapped1 = await dbTrackMbid(FILE_1);
+  check(
+    swapped1 === beforeFile2,
+    "the database now binds file 1 to the other release track; the file does not know",
+  );
+
+  /*
+   * What the owner ran, and what it used to answer. `behind` compares
+   * `library_tracks.tag_schema_version` with the current one and nothing else, so a file whose
+   * schema version is current is invisible to it however wrong its contents are.
+   */
+  const defaultRun = await mm("retag", "--album", albumId, "--dry-run");
+  check(
+    defaultRun.includes("Nothing to do") && defaultRun.includes("older projection version"),
+    "the default selection still finds nothing — and now says which question it asked",
+    defaultRun.split("\n").slice(-2).join(" ").trim(),
+  );
+
+  /*
+   * Exactly two, on a fourteen-track album. The count matters as much as the repair: an album
+   * imported twice has two `metadata_documents` rows per file, and a catch-up that joined them
+   * on `library_track_id` reported four files adrift where two were — a warning that overstates
+   * itself is a warning nobody reads twice.
+   */
+  const adriftRun = await mm("retag", "--album", albumId, "--adrift");
+  check(
+    /\b2 file\(s\) to projection/.test(adriftRun),
+    "`mm retag --adrift` selects exactly the two files that disagree, out of fourteen",
+    adriftRun.split("\n")[0] ?? "",
+  );
+  check(
+    /done: 2\/2 file\(s\), 2 changed, 0 failed/.test(adriftRun),
+    "and rewrites both of them",
+    adriftRun.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  const afterFile1 = await probe(FILE_1);
+  const afterFile2 = await probe(FILE_2);
+  check(
+    (afterFile1.tags["MUSICBRAINZ_RELEASETRACKID"] ?? "") === (await dbTrackMbid(FILE_1)),
+    "the file now carries the release-track id the database holds",
+    afterFile1.tags["MUSICBRAINZ_RELEASETRACKID"] ?? "(absent)",
+  );
+  check(
+    (afterFile2.tags["MUSICBRAINZ_RELEASETRACKID"] ?? "") === (await dbTrackMbid(FILE_2)),
+    "and so does the other one",
+    afterFile2.tags["MUSICBRAINZ_RELEASETRACKID"] ?? "(absent)",
+  );
+  check(
+    (afterFile1.tags["MUSICBRAINZ_RELEASETRACKID"] ?? "") !== beforeFile1,
+    "which is not the id it had before — the re-tag really rewrote the block",
+  );
+
+  const settled = await mm("retag", "--album", albumId, "--adrift");
+  check(
+    settled.includes("already matches the database"),
+    "running it again finds nothing: a re-tag does not leave work behind itself",
+    settled.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  /* ---- and back, so the library this suite leaves behind is correct ---- */
+
+  await sql`
+    update import_tracks a
+       set track_position = b.track_position,
+           track_mbid     = b.track_mbid,
+           recording_mbid = b.recording_mbid,
+           track_title    = b.track_title
+      from import_tracks b
+     where a.import_id = ${albumImport} and b.import_id = ${albumImport}
+       and a.track_position in (1, 2) and b.track_position in (1, 2)
+       and a.track_position <> b.track_position`;
+  await mm("retag", "--album", albumId, "--adrift");
+  const restored = (await probe(FILE_1)).tags["MUSICBRAINZ_RELEASETRACKID"] ?? "";
+  check(
+    restored === beforeFile1,
+    "the round trip is reversible: the album is back to what it was",
+    restored,
+  );
+
+  /* ---------------------------------------------------------------- */
   section("summary");
   /* ---------------------------------------------------------------- */
 
