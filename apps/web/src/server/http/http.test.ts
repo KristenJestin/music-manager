@@ -18,6 +18,13 @@ import {
   tooManyRequests,
 } from "#/server/http/rate-limit.ts";
 import { accessLine, enabled, levelFor, logLevel } from "#/server/http/log.ts";
+import {
+  CLIENT_CLOSED,
+  DEFAULT_REQUEST_TIMEOUT_S,
+  extendRequestTimeout,
+  isClientAbort,
+  requestTimeoutSeconds,
+} from "#/server/http/abort.ts";
 
 afterEach(() => {
   resetRateLimits();
@@ -206,5 +213,130 @@ describe("the access log", () => {
     expect(enabled("warn", "info")).toBe(false);
     expect(enabled("warn", "error")).toBe(true);
     expect(enabled("silent", "error")).toBe(false);
+  });
+});
+
+/*
+ * ------------------------------------------------------------------
+ * the client that went away
+ * ------------------------------------------------------------------
+ *
+ * `server/http/abort.ts` carries the reproduction; these are the decisions it encodes. The
+ * entry itself is still not imported here — what it contributes is the order, and every
+ * judgement it makes is one of the four functions below.
+ */
+describe("isClientAbort", () => {
+  it("believes the request's own signal before anything else", () => {
+    const controller = new AbortController();
+    const request = new Request("http://localhost/x", { signal: controller.signal });
+    expect(isClientAbort(new Error("anything"), request)).toBe(false);
+    controller.abort();
+    // Not a string match: the signal is what Bun flips when it reclaims the connection, and it
+    // is true even when the error that surfaced says nothing about aborting.
+    expect(isClientAbort(new Error("anything"), request)).toBe(true);
+  });
+
+  it("recognises what Bun throws when a handler writes to a closed socket", () => {
+    // The exact shape out of the owner's production log: a DOMException, code 20, with the
+    // message Bun uses. Reconstructed rather than provoked, so the test costs no seconds.
+    const domException = Object.assign(new Error("The connection was closed."), {
+      name: "AbortError",
+      code: 20,
+    });
+    expect(isClientAbort(domException)).toBe(true);
+  });
+
+  it("recognises Node's family of the same event", () => {
+    expect(isClientAbort(Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }))).toBe(
+      true,
+    );
+    expect(isClientAbort(Object.assign(new Error("write EPIPE"), { code: "EPIPE" }))).toBe(true);
+    expect(isClientAbort(Object.assign(new Error("gone"), { code: "ABORT_ERR" }))).toBe(true);
+    expect(isClientAbort(new Error("socket hang up"))).toBe(true);
+  });
+
+  it("follows a cause chain, because an abort is usually rethrown wrapped", () => {
+    const wrapped = new Error("Failed to render the route", {
+      cause: Object.assign(new Error("The connection was closed."), { name: "AbortError" }),
+    });
+    expect(isClientAbort(wrapped)).toBe(true);
+  });
+
+  it("does not mistake a real failure for a disconnection", () => {
+    // The cost of a false positive is a genuine 500 filed at `info` and never noticed.
+    expect(isClientAbort(new TypeError("x is not a function"))).toBe(false);
+    expect(isClientAbort(new Error("Invariant failed"))).toBe(false);
+    expect(isClientAbort(new Error("musicbrainz answered HTTP 503"))).toBe(false);
+    expect(isClientAbort(null)).toBe(false);
+    expect(isClientAbort(undefined)).toBe(false);
+    expect(isClientAbort("the connection was closed")).toBe(false);
+  });
+});
+
+describe("the request timeout", () => {
+  it("defaults to four minutes, well above Bun's ten-second idle default", () => {
+    expect(requestTimeoutSeconds({})).toBe(DEFAULT_REQUEST_TIMEOUT_S);
+    expect(DEFAULT_REQUEST_TIMEOUT_S).toBeGreaterThan(10);
+  });
+
+  it("reads MM_REQUEST_TIMEOUT_S, and refuses what Bun would silently clamp", () => {
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: "30" })).toBe(30);
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: " 90 " })).toBe(90);
+    // Above Bun's 255 s ceiling, zero, negative and nonsense all fall back rather than throw:
+    // the request path must not be where a typo in `.env` first shows up.
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: "900" })).toBe(DEFAULT_REQUEST_TIMEOUT_S);
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: "0" })).toBe(DEFAULT_REQUEST_TIMEOUT_S);
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: "-1" })).toBe(DEFAULT_REQUEST_TIMEOUT_S);
+    expect(requestTimeoutSeconds({ MM_REQUEST_TIMEOUT_S: "soon" })).toBe(DEFAULT_REQUEST_TIMEOUT_S);
+  });
+
+  it("raises the ceiling through srvx's handle, and says nothing on a runtime without one", () => {
+    const calls: { seconds: number }[] = [];
+    const onBun = Object.assign(new Request("http://localhost/x"), {
+      runtime: {
+        bun: {
+          server: {
+            timeout: (_request: Request, seconds: number) => {
+              calls.push({ seconds });
+            },
+          },
+        },
+      },
+    });
+    expect(extendRequestTimeout(onBun, 240)).toBe(true);
+    expect(calls).toEqual([{ seconds: 240 }]);
+
+    // Node under `vite dev` has no such lever, and that is not a failure — it also has no
+    // ten-second idle timeout, which is why this bug never appeared in development.
+    expect(extendRequestTimeout(new Request("http://localhost/x"), 240)).toBe(false);
+  });
+
+  it("never lets a failure to raise the ceiling become an error of its own", () => {
+    const hostile = Object.assign(new Request("http://localhost/x"), {
+      runtime: {
+        bun: {
+          server: {
+            timeout: () => {
+              throw new Error("no");
+            },
+          },
+        },
+      },
+    });
+    expect(extendRequestTimeout(hostile, 240)).toBe(false);
+  });
+});
+
+describe("a disconnection in the access log", () => {
+  it("is info, not error — a client that hung up is not this server's error rate", () => {
+    expect(levelFor({ method: "GET", path: "/_serverFn/abc", status: CLIENT_CLOSED, ms: 11316 })).toBe(
+      "info",
+    );
+    // …and it is still a line, because it is how an operator sees that something is slow.
+    const line = accessLine(
+      { method: "GET", path: "/_serverFn/abc", status: CLIENT_CLOSED, ms: 11316 },
+      new Date("2026-09-17T12:00:00.000Z"),
+    );
+    expect(JSON.parse(line)).toMatchObject({ level: "info", status: 499, ms: 11316 });
   });
 });
