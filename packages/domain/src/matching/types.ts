@@ -321,7 +321,8 @@ export interface ReleaseCandidate {
   readonly safe: boolean;
   /**
    * False when the tracklist was never looked up, so `fit` is unknown rather than zero.
-   * Only the first N candidates are looked up (`docs/04`: the fit needs one lookup each).
+   * A candidate is opened only while it could still win (`docs/04` § Exploration adaptative);
+   * the fit needs one lookup each, so the ones that could not are left unread.
    */
   readonly detailed: boolean;
 }

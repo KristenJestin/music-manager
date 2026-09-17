@@ -14,10 +14,12 @@
  * fits its own tracklist 1/1 while dropping ten of your eleven videos, which is how one came to
  * be preselected at 94 % (decision 152).
  *
- * The fit costs one lookup per candidate, so only the first N candidates get one (the service
- * decides N, default 6). A candidate without a tracklist is marked `detailed: false` and its
- * fit signal is dropped from the denominator rather than counted as zero — an un-looked-up
- * release must rank *below* the examined ones without being slandered.
+ * The fit costs one lookup per candidate, so not every candidate gets one: the service opens
+ * them while an unopened one could still win and stops on its own (`exploreReleases`, and
+ * `ceiling` below, which is the bound it branches on). A candidate without a tracklist is
+ * marked `detailed: false` and its fit signal is dropped from the denominator rather than
+ * counted as zero — an un-looked-up release must rank *below* the examined ones without being
+ * slandered.
  *
  * That same lookup answers a second question for free, and decision 167 is about spending it:
  * a release lookup carries `cover-art-archive`, so **whether this pressing has a front cover**
@@ -315,7 +317,7 @@ function explain(
 
   if (fitSignal === null) {
     why.push(
-      "Tracklist not fetched, so the fit is unknown (only the first candidates are looked up)",
+      "Tracklist not fetched, so the fit is unknown — nothing it could still score would have won",
     );
   } else {
     why.push(
