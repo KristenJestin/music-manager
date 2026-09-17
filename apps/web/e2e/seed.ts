@@ -139,3 +139,35 @@ export async function readDecisions(
     await sql.end();
   }
 }
+
+/**
+ * Empty `inbox_dismissals`.
+ *
+ * `clearSeededInbox` cannot reach it, and that is the whole point of the table: the memory is
+ * keyed on the *subject*, so deleting the row that asked the question is precisely what does
+ * not delete the answer. The whole table goes rather than a prefix of it, because the counter
+ * on the page counts everything hidden and a spec that asserts on it has to start from a
+ * number it knows — and because this runs against `mm_web_e2e_<run>`, a database
+ * `scripts/e2e-web.ts` creates for this run alone and drops again after it.
+ */
+export async function clearInboxDismissals(): Promise<void> {
+  const sql = connect();
+  try {
+    await sql`delete from inbox_dismissals`;
+  } finally {
+    await sql.end();
+  }
+}
+
+/** What is hidden right now, so a spec can assert on the memory as well as on the page. */
+export async function readDismissals(): Promise<{ subject: string; label: string }[]> {
+  const sql = connect();
+  try {
+    const rows = await sql<{ subject: string; label: string }[]>`
+      select subject, label from inbox_dismissals order by subject
+    `;
+    return rows.map((row) => ({ subject: row.subject, label: row.label }));
+  } finally {
+    await sql.end();
+  }
+}

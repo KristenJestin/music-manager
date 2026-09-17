@@ -91,7 +91,9 @@ export function duplicateSubject(
   recordingMbid: string,
   albumIds: readonly (string | null)[],
 ): string {
-  const albums = [...albumIds].map((id) => id ?? "-").sort((left, right) => left.localeCompare(right));
+  const albums = [...albumIds]
+    .map((id) => id ?? "-")
+    .sort((left, right) => left.localeCompare(right));
   return `duplicate:${recordingMbid}|${albums.join(",")}`;
 }
 

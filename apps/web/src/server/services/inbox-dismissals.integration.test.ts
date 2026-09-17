@@ -101,9 +101,7 @@ async function openItems(type: InboxType): Promise<InboxRow[]> {
 }
 
 async function countItems(): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(schema.inboxItems);
+  const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(schema.inboxItems);
   return row?.count ?? 0;
 }
 
@@ -232,9 +230,7 @@ describe.skipIf(unavailable !== null)("the loop the owner hit", () => {
     expect(await countItems()).toBe(settled);
 
     const open = await openItems("duplicate_recording");
-    expect(open.map((item) => item.payload["subject"])).not.toContain(
-      `recording:${SHIP_TO_WRECK}`,
-    );
+    expect(open.map((item) => item.payload["subject"])).not.toContain(`recording:${SHIP_TO_WRECK}`);
   });
 
   it("still asks about the pair nobody answered", async () => {
@@ -301,9 +297,7 @@ describe.skipIf(unavailable !== null)("the loop the owner hit", () => {
     expect(open.map((item) => item.payload["subject"])).toContain(`recording:${SHIP_TO_WRECK}`);
 
     // Hide it again, so the orphan tests below start from the state the owner left behind.
-    const [ship] = open.filter(
-      (item) => item.payload["subject"] === `recording:${SHIP_TO_WRECK}`,
-    );
+    const [ship] = open.filter((item) => item.payload["subject"] === `recording:${SHIP_TO_WRECK}`);
     await keepBoth(ship!);
   });
 });

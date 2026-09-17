@@ -28,13 +28,7 @@ import { silencesSubject } from "./inbox.resolution.ts";
 
 describe("which answers stop the asking", () => {
   it("treats “dismiss” and every card's own affirmative as final", () => {
-    for (const action of [
-      "dismiss",
-      "ignore",
-      "keep_all",
-      "accept_partial",
-      "accept_navidrome",
-    ]) {
+    for (const action of ["dismiss", "ignore", "keep_all", "accept_partial", "accept_navidrome"]) {
       expect(silencesSubject({ action }), action).toBe(true);
     }
   });
@@ -150,11 +144,7 @@ describe("orphan_files", () => {
       type: "orphan_files",
       title: "3 file(s) in the library are not in the database",
       payload: {
-        orphans: [
-          { path: "Loose/a.opus" },
-          { path: "Loose/b.opus" },
-          { path: "Loose/c.opus" },
-        ],
+        orphans: [{ path: "Loose/a.opus" }, { path: "Loose/b.opus" }, { path: "Loose/c.opus" }],
         total: 3,
       },
     });
@@ -188,7 +178,9 @@ describe("verify_mismatch", () => {
       { name: "date", written: "2011", read: "2011-10-28" },
       { name: "albumartist", written: "Florence + The Machine", read: "Florence" },
     ];
-    expect(verifyMismatchSubject(album, two)).toBe(verifyMismatchSubject(album, [...two].reverse()));
+    expect(verifyMismatchSubject(album, two)).toBe(
+      verifyMismatchSubject(album, [...two].reverse()),
+    );
   });
 
   it("comes back when the values change, because the values are in the key", () => {
@@ -255,7 +247,9 @@ describe("a payload written before this existed", () => {
       [],
     );
     expect(dismissalSubjectsOf({ type: "verify_mismatch", title: "old", payload: {} })).toEqual([]);
-    expect(dismissalSubjectsOf({ type: "album_incomplete", title: "old", payload: {} })).toEqual([]);
+    expect(dismissalSubjectsOf({ type: "album_incomplete", title: "old", payload: {} })).toEqual(
+      [],
+    );
   });
 
   it("still keys a duplicate group that predates `albumId` on its files", () => {
