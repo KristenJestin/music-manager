@@ -340,6 +340,46 @@ describe("fromYouTubeEntry", () => {
     expect(plain.fields?.["comment"]).toBeDefined();
     expect(plain.fields?.["copyright"]).toBeUndefined();
   });
+
+  /**
+   * An adopted file is a file that never came from YouTube, and §2.6's job is to say where
+   * audio came from. `COMMENT` is the field a person reads, so `COMMENT` is what changes.
+   */
+  describe("when the file was adopted from disk", () => {
+    const adoptedPatch = fromYouTubeEntry(video, {
+      fetchedAt: at,
+      appVersion: "2.0.0",
+      importedOn: "2026-09-05",
+      ytdlpVersion: "yt-dlp 2026.08.31",
+      adopted: { originalName: "03 Digital Love.flac", adoptedOn: "2026-09-17" },
+    });
+    const adopted = (name: string): unknown => adoptedPatch.fields?.[name]?.value;
+
+    it("says so, and names both the file and the video it is not from", () => {
+      expect(adopted("comment")).toBe(
+        'Adopted local file "03 Digital Love.flac" on 2026-09-17 · not downloaded from ' +
+          "youtu.be/FGBhQbmPwH8 · imported 2026-09-05 by Music Manager 2.0.0",
+      );
+      // The prefix `Source:` is what `migration/v1/reconcile.ts` and `services/repair.ts`
+      // read a video id out of, and an adopted file must not answer to it.
+      expect(String(adopted("comment")).startsWith("Source:")).toBe(false);
+    });
+
+    it("keeps the source URL, which is the track's identity and not a claim about the bytes", () => {
+      expect(adopted("musicmanager_sourceurl")).toBe("https://www.youtube.com/watch?v=FGBhQbmPwH8");
+    });
+
+    it("writes the file's own name, and refuses to invent an encoder", () => {
+      expect(adopted("originalfilename")).toBe("03 Digital Love.flac");
+      expect(adopted("encodedby")).toBeUndefined();
+      expect(adoptedPatch.na?.["encodedby"]?.reason).toContain("adopted from disk");
+      expect(adoptedPatch.na?.["encodersettings"]?.reason).toContain("adopted from disk");
+    });
+
+    it("still reads the description for the musical metadata", () => {
+      expect(adopted("copyright")).toContain("℗ 2001 Daft Life Ltd.");
+    });
+  });
 });
 
 describe("fromApp", () => {
