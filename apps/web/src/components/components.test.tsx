@@ -481,11 +481,20 @@ describe("ReviewCard", () => {
       },
     ],
     source: null,
+    noCandidate: false,
     editionBaseTitle: null,
   };
 
   it("opens with the preselected answer chosen", () => {
-    render(<ReviewCard card={card} busy={false} onConfirm={vi.fn()} />);
+    render(
+      <ReviewCard
+        card={card}
+        busy={false}
+        onConfirm={vi.fn()}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
     const chosen = screen
       .getAllByTestId("review-option")
       .find((option) => option.getAttribute("aria-checked") === "true");
@@ -494,7 +503,15 @@ describe("ReviewCard", () => {
 
   it("confirms the preselection on Enter — the whole point of the queue", () => {
     const onConfirm = vi.fn();
-    render(<ReviewCard card={card} busy={false} onConfirm={onConfirm} />);
+    render(
+      <ReviewCard
+        card={card}
+        busy={false}
+        onConfirm={onConfirm}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
     fireEvent.keyDown(window, { key: "Enter" });
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onConfirm.mock.calls[0]?.[0]).toMatchObject({ id: "partial" });
@@ -502,7 +519,15 @@ describe("ReviewCard", () => {
 
   it("confirms whatever was picked instead, once it is picked", () => {
     const onConfirm = vi.fn();
-    render(<ReviewCard card={card} busy={false} onConfirm={onConfirm} />);
+    render(
+      <ReviewCard
+        card={card}
+        busy={false}
+        onConfirm={onConfirm}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getAllByTestId("review-option")[1] as HTMLElement);
     fireEvent.keyDown(window, { key: "Enter" });
     expect(onConfirm.mock.calls[0]?.[0]).toMatchObject({ id: "cancel" });
@@ -510,13 +535,29 @@ describe("ReviewCard", () => {
 
   it("ignores Enter while a decision is already being saved", () => {
     const onConfirm = vi.fn();
-    render(<ReviewCard card={card} busy onConfirm={onConfirm} />);
+    render(
+      <ReviewCard
+        card={card}
+        busy
+        onConfirm={onConfirm}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
     fireEvent.keyDown(window, { key: "Enter" });
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it("lists the uncovered positions a supplied mapping reported", () => {
-    render(<ReviewCard card={card} busy={false} onConfirm={vi.fn()} />);
+    render(
+      <ReviewCard
+        card={card}
+        busy={false}
+        onConfirm={vi.fn()}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
     expect(screen.getByText("06")).toBeTruthy();
     expect(screen.getByText("09")).toBeTruthy();
   });

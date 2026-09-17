@@ -11,6 +11,8 @@
  * `server/services/inbox.ts` re-exports `INBOX_SORTS`, so the service keeps one spelling and
  * nothing is duplicated.
  */
+import { z } from "zod";
+import { INBOX_TYPES } from "#/server/db/schema/enums.vocab.ts";
 
 /**
  * How the queue is ordered.
@@ -48,3 +50,24 @@ export const INBOX_STATUS_LABELS: Readonly<Record<InboxStatusFilter, string>> = 
 
 /** How many items one page of the queue holds. */
 export const INBOX_PAGE_SIZE = 50;
+
+/**
+ * What `/review` and `/review/$id` accept in their query string.
+ *
+ * One schema for both, because they are one page opened on a different item and a filter that
+ * survived the first and not the second would be a queue that forgets what you were looking at
+ * every time you answered something.
+ *
+ * `type` has no default on purpose: absent means "every type", which is a different statement
+ * from any of the fourteen and does not deserve a fifteenth word.
+ */
+export const inboxSearchSchema = z.object({
+  type: z.enum(INBOX_TYPES).optional(),
+  status: z.enum(INBOX_STATUS_FILTERS).default("open"),
+  q: z.string().default(""),
+  sort: z.enum(INBOX_SORTS).default("recent"),
+  /** Zero-based, in the URL: a reload and a shared link land on the same page. */
+  page: z.number().int().min(0).default(0),
+});
+
+export type InboxSearch = z.infer<typeof inboxSearchSchema>;

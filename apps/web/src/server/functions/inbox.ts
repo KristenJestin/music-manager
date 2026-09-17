@@ -71,6 +71,15 @@ export interface InboxCard {
    */
   readonly source: AlbumSourceLink | null;
   /**
+   * True on the one card the matcher could offer nothing to choose between.
+   *
+   * It is the card that used to say "Cancel this import" and nothing else, and it is the only
+   * one that accepts a pasted release id or a qualifier-free search. Decided here, from the
+   * payload, so the component does not have to infer "no candidate" from the shape of the
+   * options list.
+   */
+  readonly noCandidate: boolean;
+  /**
    * The album title with its edition qualifier removed, when it has one.
    *
    * Only ever set on a candidateless `ambiguous_release`, which is the one card that offers to
@@ -600,12 +609,14 @@ async function lookup(id: string): Promise<InboxItem | null> {
 /** Everything the decision card needs that is not on the item row itself. */
 async function cardFor(item: InboxItem): Promise<InboxCard> {
   const job = item.importId === null ? null : await getImport(item.importId, db());
+  const noCandidate = offersQualifierSearch(item);
   return {
     item,
     job,
     options: optionsFor(item),
     source: await sourceLinkFor(item, job),
-    editionBaseTitle: offersQualifierSearch(item) ? editionBaseTitle(job?.title) : null,
+    noCandidate,
+    editionBaseTitle: noCandidate ? editionBaseTitle(job?.title) : null,
   };
 }
 
@@ -820,7 +831,10 @@ export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT
             "NOT_FOUND",
             `MusicBrainz does not know a release with id ${releaseMbid}.`,
             {
-              hint: "Open musicbrainz.org/release/" + releaseMbid + " to check it. A release group id or a recording id looks the same and is not the same thing.",
+              hint:
+                "Open musicbrainz.org/release/" +
+                releaseMbid +
+                " to check it. A release group id or a recording id looks the same and is not the same thing.",
               action: "Check the id",
               status: 404,
             },

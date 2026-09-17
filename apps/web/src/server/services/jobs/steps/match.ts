@@ -371,8 +371,7 @@ async function matchOneAlbum(
    * than another fallback — a fallback would still lose to the majority.
    */
   const stated = ctx.job.options.albumTitle?.trim();
-  const hints =
-    stated === undefined || stated === "" ? derived : { ...derived, album: stated };
+  const hints = stated === undefined || stated === "" ? derived : { ...derived, album: stated };
   const result = await matchAlbum(gateway, { videos, hints }, ctx.settings);
   const pinned = ctx.job.options.releaseMbid;
 

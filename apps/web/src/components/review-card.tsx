@@ -10,11 +10,14 @@
  * a preselection; a global Enter handler would fire on every page and mean nothing on most.
  */
 import { useEffect, useState } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check, CirclePlay, ExternalLink, ListVideo, Scissors, Sparkles } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
+import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { Kbd } from "#/components/kbd.tsx";
+import { MbLink } from "#/components/mb-link.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { humanise, mmss } from "#/lib/format.ts";
@@ -24,6 +27,10 @@ export interface ReviewCardProps {
   readonly card: InboxCard;
   readonly busy: boolean;
   readonly onConfirm: (option: InboxOption) => void;
+  /** Relaunch the import pinned to a release the reader pasted. */
+  readonly onPin: (release: string) => void;
+  /** Relaunch the search under the album title without its edition qualifier. */
+  readonly onDropQualifier: () => void;
 }
 
 /**
@@ -90,6 +97,24 @@ function fingerprintSides(payload: Record<string, unknown>): {
   };
 }
 
+/**
+ * The MusicBrainz entity an answer names, when it names one.
+ *
+ * An `ambiguous_release` option *is* a release id and an `ambiguous_recording` option *is* a
+ * recording id — that is what `optionsFor` writes into `value`, and what a `decisions` row
+ * ends up carrying. Reading it back here is how the card links to the record instead of
+ * describing it in four fields and leaving the reader to search for it.
+ */
+function mbEntityOf(option: InboxOption): { kind: "release" | "recording"; mbid: string } | null {
+  const release = option.value["releaseMbid"];
+  const recording = option.value["recordingMbid"];
+  if (typeof recording === "string" && recording !== "") {
+    return { kind: "recording", mbid: recording };
+  }
+  if (typeof release === "string" && release !== "") return { kind: "release", mbid: release };
+  return null;
+}
+
 function extraVideos(payload: Record<string, unknown>): { title: string }[] {
   const raw = payload["videos"];
   if (!Array.isArray(raw)) return [];
@@ -99,7 +124,134 @@ function extraVideos(payload: Record<string, unknown>): { title: string }[] {
   });
 }
 
-export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
+/**
+ * The link back to where the audio is.
+ *
+ * The review screen contained not one link, though the payload has carried the address all
+ * along — and deciding between two editions means listening to the video, which is the natural
+ * gesture and was impossible without copying an id by hand. New tab, always: the queue is a
+ * place you stay in, and a decision you navigated away from is a decision you retake.
+ */
+function SourceLink({ link }: { readonly link: NonNullable<InboxCard["source"]> }) {
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noreferrer"
+      data-testid="review-source"
+      data-source-kind={link.kind}
+      title={link.label}
+      className="inline-flex items-center gap-1 rounded-md border border-line bg-background px-2 py-0.5 text-2xs text-fg-2 hover:border-primary hover:text-primary"
+    >
+      {link.kind === "playlist" ? (
+        <ListVideo className="size-3" aria-hidden="true" />
+      ) : (
+        <CirclePlay className="size-3" aria-hidden="true" />
+      )}
+      {link.kind === "playlist" ? "Source playlist" : "Source video"}
+      <ExternalLink className="size-3" aria-hidden="true" />
+      <span className="sr-only">(opens YouTube in a new tab)</span>
+    </a>
+  );
+}
+
+/**
+ * What a card with nothing to choose between offers instead of "Cancel this import".
+ *
+ * Both buttons relaunch the *same* import through the same door the pipeline already has —
+ * `imports.options.releaseMbid`, the field `mm import --release <mbid>` writes, and a stated
+ * album title the matcher prefers over the one it derives from the videos' tags. Neither is a
+ * second way of importing something.
+ *
+ * The field is a plain `<input>` and Enter inside it submits *this* form and nothing else: the
+ * card's global Enter handler ignores keystrokes whose target is an input, which is what keeps
+ * "Enter accepts the preselection" from meaning "Enter cancels this import" while somebody is
+ * typing an id into it.
+ */
+function NoCandidatePanel({
+  card,
+  busy,
+  onPin,
+  onDropQualifier,
+}: {
+  readonly card: InboxCard;
+  readonly busy: boolean;
+  readonly onPin: (release: string) => void;
+  readonly onDropQualifier: () => void;
+}) {
+  const [pasted, setPasted] = useState("");
+  const base = card.editionBaseTitle;
+
+  return (
+    <div
+      data-testid="no-candidate-panel"
+      className="flex flex-col gap-2.5 rounded-md border border-line bg-background p-3"
+    >
+      <Callout tone="info">
+        MusicBrainz returned nothing for this title. Either name the release yourself, or search
+        again without the edition the source added to it.
+      </Callout>
+
+      <form
+        className="flex flex-wrap items-end gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!busy && pasted.trim() !== "") onPin(pasted);
+        }}
+      >
+        <label className="flex min-w-56 grow flex-col gap-1">
+          <span className="text-2xs font-semibold tracking-wider text-fg-2 uppercase">
+            MusicBrainz release id
+          </span>
+          <Input
+            data-testid="pin-release-input"
+            value={pasted}
+            disabled={busy}
+            placeholder="0cbe4a8e-… or https://musicbrainz.org/release/…"
+            onChange={(event) => {
+              setPasted(event.target.value);
+            }}
+          />
+        </label>
+        <Button
+          type="submit"
+          data-testid="pin-release-submit"
+          disabled={busy || pasted.trim() === ""}
+        >
+          <Check className="size-4" aria-hidden="true" />
+          {busy ? "Saving…" : "Import this release"}
+        </Button>
+      </form>
+      <p className="text-2xs text-fg-3">
+        The id or the whole musicbrainz.org address — both are read. The import restarts at{" "}
+        <code className="font-mono">match</code>, pinned to it.
+      </p>
+
+      {base === null ? (
+        <p data-testid="drop-qualifier-absent" className="text-2xs text-fg-3">
+          This title carries no edition qualifier to drop.
+        </p>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            data-testid="drop-qualifier"
+            disabled={busy}
+            onClick={onDropQualifier}
+          >
+            <Scissors className="size-4" aria-hidden="true" />
+            Search without the edition qualifier
+          </Button>
+          <span className="text-2xs text-fg-2">
+            searches for <span className="font-medium text-fg-1">“{base}”</span>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: ReviewCardProps) {
   const { item, options } = card;
   /*
    * The preselection is the initial state, not an effect.
@@ -148,8 +300,21 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
           {card.job === null ? null : (
             <span className="font-mono text-2xs text-fg-3">job {card.job.id}</span>
           )}
+          {card.source === null ? null : <SourceLink link={card.source} />}
+          {card.job?.releaseMbid == null ? null : (
+            <MbLink kind="release" mbid={card.job.releaseMbid} truncate />
+          )}
         </div>
         {item.summary === null ? null : <p className="text-fg-1">{item.summary}</p>}
+
+        {card.noCandidate ? (
+          <NoCandidatePanel
+            card={card}
+            busy={busy}
+            onPin={onPin}
+            onDropQualifier={onDropQualifier}
+          />
+        ) : null}
 
         {uncovered.length === 0 ? null : (
           <div className="rounded-md border border-line bg-background p-3">
@@ -181,9 +346,14 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
                 Mapping — what you confirmed
               </h3>
               <div className="text-xs font-medium">{sides.expected.title}</div>
-              <div className="font-mono text-2xs text-fg-3">
-                {sides.expected.recordingMbid ?? "no recording MBID"}
-              </div>
+              {/* The id was printed as bare text on both sides, which is the "copy an id by
+                  hand" the review screen was full of. `MbLink` is the Console's one answer to
+                  "how do we link to musicbrainz.org". */}
+              <MbLink
+                kind="recording"
+                mbid={sides.expected.recordingMbid}
+                missing="no recording MBID"
+              />
             </div>
             <div className="rounded-md border border-line bg-background p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-2xs font-semibold tracking-wider text-fg-2 uppercase">
@@ -195,9 +365,11 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
                 )}
               </h3>
               <div className="text-xs font-medium">{sides.heard.title}</div>
-              <div className="font-mono text-2xs text-fg-3">
-                {sides.heard.recordingMbid ?? "no recording MBID"}
-              </div>
+              <MbLink
+                kind="recording"
+                mbid={sides.heard.recordingMbid}
+                missing="no recording MBID"
+              />
             </div>
           </div>
         )}
@@ -216,47 +388,66 @@ export function ReviewCard({ card, busy, onConfirm }: ReviewCardProps) {
         )}
 
         <div className="flex flex-col gap-1.5" role="radiogroup" aria-label="Answers">
-          {options.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              role="radio"
-              aria-checked={chosen === option.id}
-              data-testid="review-option"
-              data-option-id={option.id}
-              onClick={() => {
-                setChosen(option.id);
-              }}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md border border-line bg-background px-2.5 py-2 text-left",
-                chosen === option.id && "border-primary bg-primary-soft",
-              )}
-            >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "grid size-3.5 shrink-0 place-items-center rounded-full border border-line-strong",
-                  chosen === option.id && "border-primary",
+          {options.map((option) => {
+            const entity = mbEntityOf(option);
+            return (
+              <div key={option.id} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={chosen === option.id}
+                  data-testid="review-option"
+                  data-option-id={option.id}
+                  onClick={() => {
+                    setChosen(option.id);
+                  }}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-md border border-line bg-background px-2.5 py-2 text-left",
+                    chosen === option.id && "border-primary bg-primary-soft",
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "grid size-3.5 shrink-0 place-items-center rounded-full border border-line-strong",
+                      chosen === option.id && "border-primary",
+                    )}
+                  >
+                    {chosen === option.id ? (
+                      <span className="size-1.5 rounded-full bg-primary" />
+                    ) : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block">{option.label}</span>
+                    {option.detail === undefined || option.detail === "" ? null : (
+                      <span className="block text-2xs text-fg-2">{option.detail}</span>
+                    )}
+                  </span>
+                  {option.score === undefined ? null : <ScoreBar value={option.score} />}
+                  {option.preselected ? (
+                    <ToneBadge tone="primary">
+                      <Sparkles className="size-3" aria-hidden="true" /> preselected
+                    </ToneBadge>
+                  ) : null}
+                </button>
+                {/*
+              Beside the radio, never inside it: an anchor nested in a button is neither valid
+              markup nor reachable by keyboard. A candidate is a MusicBrainz release, and
+              choosing between two pressings is the one decision that genuinely needs the
+              record in front of you.
+            */}
+                {entity === null ? null : (
+                  <MbLink
+                    kind={entity.kind}
+                    mbid={entity.mbid}
+                    truncate
+                    data-testid="review-option-mb"
+                    className="shrink-0"
+                  />
                 )}
-              >
-                {chosen === option.id ? (
-                  <span className="size-1.5 rounded-full bg-primary" />
-                ) : null}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block">{option.label}</span>
-                {option.detail === undefined || option.detail === "" ? null : (
-                  <span className="block text-2xs text-fg-2">{option.detail}</span>
-                )}
-              </span>
-              {option.score === undefined ? null : <ScoreBar value={option.score} />}
-              {option.preselected ? (
-                <ToneBadge tone="primary">
-                  <Sparkles className="size-3" aria-hidden="true" /> preselected
-                </ToneBadge>
-              ) : null}
-            </button>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex justify-end gap-2">
