@@ -242,6 +242,31 @@ export async function shellReady(page: Page): Promise<void> {
 }
 
 /**
+ * Paste text into the page, the way the browser delivers it.
+ *
+ * Playwright cannot write the OS clipboard, and a bare ⌘V pastes nothing. The shell listens
+ * for the `paste` **event** rather than the keystroke — precisely so that the clipboard's
+ * contents are in hand — so dispatching that event with a `DataTransfer` is the same input
+ * the real gesture produces, minus the part the browser owns.
+ *
+ * It is also the only way a spec reaches the wizard's `?url=` loader from *inside* the app:
+ * a `page.goto` of that URL is a document request, and the server answers it only once the
+ * resolve has finished. Paste, Enter is a client-side navigation, so the pending screen is
+ * drawn — which is the screen `wizard-wait.spec.ts` is about.
+ */
+export async function pasteIntoPage(page: Page, text: string): Promise<void> {
+  await shellReady(page);
+  await page.evaluate((pasted: string) => {
+    const data = new DataTransfer();
+    data.setData("text/plain", pasted);
+    document.body.dispatchEvent(
+      new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }),
+    );
+  }, text);
+  await expect(page.getByTestId("palette-input")).toHaveValue(text, { timeout: 30_000 });
+}
+
+/**
  * Press a key that the *window* listens for.
  *
  * `page.keyboard.press` dispatches to whatever the page considers focused, and after a

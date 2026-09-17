@@ -8,7 +8,20 @@
  * the one the wizard performs on `imports.options`, and it is here rather than in
  * `imports.service` because it belongs to the wizard, not to the pipeline.
  */
-import { and, count, desc, eq, getTableColumns, gt, inArray, lt, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  inArray,
+  lt,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
@@ -329,11 +342,47 @@ export interface WorkerCurrent {
   readonly holdsSlot: boolean;
 }
 
+/**
+ * One import waiting for the worker, in the order the worker will take it.
+ *
+ * Deliberately thinner than `WorkerCurrent`: a job that has not been picked up has no
+ * progress to report, and a bar at nought is a claim about something that has not happened.
+ */
+export interface WorkerWaiting {
+  readonly importId: string;
+  readonly title: string;
+  /**
+   * The source it was opened for.
+   *
+   * Carried so that a screen can recognise *its own* import in the list without knowing its
+   * id yet — which is exactly the wizard's position while the URL it just pasted is being
+   * resolved: the row is already `running`, and telling the reader they are queued behind
+   * themselves is the one thing worse than telling them nothing.
+   */
+  readonly url: string;
+  readonly artist: string | null;
+  /** The step it will run next, which for a queued import is where it stopped. */
+  readonly step: string;
+  /** When it was opened — the tiebreaker the worker itself orders on, said out loud. */
+  readonly createdAt: string;
+}
+
 export interface WorkerSnapshot {
   readonly current: WorkerCurrent | null;
   /** Imports waiting for the worker, not counting the one it is on. */
   readonly queued: number;
+  /**
+   * The head of that queue, named and in order — at most `WAITING_SHOWN` of them.
+   *
+   * `queued` stays the true depth; this is the part a screen can list. The order is the one
+   * `resumableImports` and `queueStanding` already apply — priority, then age — because a
+   * list in any other order is a different queue, drawn confidently.
+   */
+  readonly waiting: readonly WorkerWaiting[];
 }
+
+/** How many of the waiting imports are named. Beyond this, `queued` still counts them. */
+const WAITING_SHOWN = 5;
 
 /** How recently an import must have moved to be worth naming when no download is in flight. */
 const RECENTLY_MOVED_MS = 60_000;
@@ -400,7 +449,38 @@ export async function workerSnapshot(db: Database = defaultDb()): Promise<Worker
     .where(inArray(imports.status, [...WAITING_ON_WORKER]));
   const queued = Math.max(0, Number(waiting?.total ?? 0) - (job === null ? 0 : 1));
 
-  if (job === null) return { current: null, queued };
+  /*
+   * The same population as the count above, named, less the one the worker is on, in the
+   * worker's own order. Bounded, so a hundred queued imports cost the shell five rows rather
+   * than a hundred — the count beside them is still the whole truth.
+   */
+  const ahead = await db
+    .select({
+      id: imports.id,
+      title: imports.title,
+      url: imports.url,
+      artist: imports.artist,
+      step: imports.step,
+      createdAt: imports.createdAt,
+    })
+    .from(imports)
+    .where(
+      job === null
+        ? inArray(imports.status, [...WAITING_ON_WORKER])
+        : and(inArray(imports.status, [...WAITING_ON_WORKER]), ne(imports.id, job.id)),
+    )
+    .orderBy(desc(imports.priority), asc(imports.createdAt))
+    .limit(WAITING_SHOWN);
+  const queue: WorkerWaiting[] = ahead.map((row) => ({
+    importId: row.id,
+    title: row.title ?? row.url,
+    url: row.url,
+    artist: row.artist,
+    step: row.step,
+    createdAt: row.createdAt.toISOString(),
+  }));
+
+  if (job === null) return { current: null, queued, waiting: queue };
 
   const [tally] = await db
     .select({
@@ -422,6 +502,7 @@ export async function workerSnapshot(db: Database = defaultDb()): Promise<Worker
       holdsSlot,
     },
     queued,
+    waiting: queue,
   };
 }
 
