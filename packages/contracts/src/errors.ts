@@ -22,6 +22,29 @@ export const MM_ERROR_CODES = [
   "YTDLP_AGE",
   "YTDLP_PRIVATE",
   "YTDLP_UNAVAILABLE",
+  /*
+   * The three shades of "the playlist did not come back", which used to be one.
+   *
+   * Every one of them reached the owner as `YTDLP_UNAVAILABLE` — *"This video is not
+   * available"* — because whichever video failed first threw, and the extraction reported that
+   * video's message as the playlist's verdict. Twenty live albums were filed as vanished on
+   * the strength of it. Three codes because there are three different things to go and do:
+   * find the album somewhere else, hand the app a session that can see it, or accept the
+   * nineteen entries that did come back.
+   */
+  /** The playlist itself is gone: deleted, or the id is wrong. Nothing came back. */
+  "PLAYLIST_UNAVAILABLE",
+  /** The playlist is there and this session may not list it. Cookies are the fix. */
+  "PLAYLIST_PRIVATE",
+  /**
+   * The playlist answered; one of the videos **inside** it did not.
+   *
+   * Normally not a failure at all — it is an `ExtractGap` in `ExtractResult.unreadable` and
+   * the other entries come back — so the code is mostly read off a gap rather than off an
+   * error. It *is* the error in the one case where nothing survived: every entry unreadable,
+   * which is a playlist of dead videos and not an empty playlist.
+   */
+  "PLAYLIST_ENTRY_UNAVAILABLE",
   "FFMPEG_MISSING",
   /** yt-dlp handed back a container no tagger can write to — a `.webm`, typically. */
   "DOWNLOAD_CONTAINER",
