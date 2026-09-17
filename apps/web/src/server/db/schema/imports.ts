@@ -68,6 +68,18 @@ export interface ImportOptions {
   readonly releaseMbid?: string;
 
   /**
+   * `releaseMbid` above came from the **files**, not from a person.
+   *
+   * A folder import whose files agree on a `MUSICBRAINZ_ALBUMID` gets it pinned automatically
+   * (`resolve`), because that tag is the record their owner already decided this was. But it is
+   * an inference, and the difference shows exactly once: when MusicBrainz cannot produce the
+   * release. A pin somebody typed means *block and ask* — they asserted something and were
+   * wrong, or the source is down. A pin read off a tag means *carry on without MusicBrainz*,
+   * which is the whole point of the fallback. Without this flag the two are the same string.
+   */
+  readonly releaseMbidFromTags?: boolean;
+
+  /**
    * Search MusicBrainz under **this** album title instead of the one the source advertises.
    *
    * The hints `match` computes take the album from a majority of the videos' own YouTube Music
@@ -80,6 +92,23 @@ export interface ImportOptions {
    * that rule ends up saying.
    */
   readonly albumTitle?: string;
+
+  /**
+   * When MusicBrainz has nothing, import from the source's own tags instead of asking.
+   *
+   * Absent means "decide by the source": **on for a folder, off for a URL**, and the asymmetry
+   * is the whole of it. A YouTube listing that matches nothing has no usable metadata to fall
+   * back on — a video title, a channel name, four tags YouTube Music inferred — so blocking and
+   * asking a human is right, and has been since P03. A folder's files carry real tags written
+   * by Picard or by this application's own v1, so "MusicBrainz does not know this record" is a
+   * fact about a bootleg or a live set rather than a reason to stop.
+   *
+   * Setting it explicitly overrides that in either direction: `false` on a folder somebody
+   * knows is on MusicBrainz and would rather be asked about, `true` on a URL they have given up
+   * on. It selects the `untagged` path that already exists (`match`, `SuppliedMapping` with
+   * `releaseMbid: null`); it does not add a second one.
+   */
+  readonly untaggedFallback?: boolean;
 
   /**
    * The watched source that opened this import, when one did.

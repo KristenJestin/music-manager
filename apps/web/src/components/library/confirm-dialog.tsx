@@ -57,7 +57,13 @@ export function ConfirmDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         {consequence === undefined ? null : (
-          <div className="rounded-md border border-line bg-surface-2 px-3 py-2 text-xs text-fg-1">
+          /*
+           * The consequence scrolls rather than being cut off. A dialog that lists what it is
+           * about to do to sixteen files and then shows eight of them, clipped at the right
+           * edge, is asking for a decision it has hidden half of — which is the opposite of
+           * what this box is for. `overscroll-contain` keeps the wheel inside it.
+           */
+          <div className="max-h-64 overflow-auto overscroll-contain rounded-md border border-line bg-surface-2 px-3 py-2 text-xs text-fg-1">
             {consequence}
           </div>
         )}

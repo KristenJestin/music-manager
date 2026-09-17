@@ -134,7 +134,7 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
     writeFileSync(join(OUTSIDE, "not-really.mp3"), "this is a text file wearing a hat\n");
 
     // Up to `download`, and no further: the whole point is that the file arrives instead.
-    const created = await imports.createFromUrl("fixture://discovery", {
+    const created = await imports.createImport("fixture://discovery", {
       autoConfirm: true,
       confirmedBy: "test",
       // ReplayGain is an album-wide rsgain pass and this test never completes an album.
@@ -244,7 +244,7 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
   });
 
   it("refuses an import that has not been confirmed yet", async () => {
-    const fresh = await imports.createFromUrl("fixture://skinny-love", { db: db() });
+    const fresh = await imports.createImport("fixture://skinny-love", { db: db() });
     const [video] = await db()
       .select()
       .from(schema.importTracks)

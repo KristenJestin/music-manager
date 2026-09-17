@@ -82,7 +82,7 @@ resetServerEnv();
 
 /** An import of the fixture album, matched and confirmed — the state a retry acts on. */
 async function confirmedImport(): Promise<string> {
-  const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+  const created = await imports.createImport("fixture://discovery", { db: db() });
   await db()
     .update(schema.imports)
     .set({ status: "awaiting_review" })

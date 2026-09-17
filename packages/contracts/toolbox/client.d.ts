@@ -188,6 +188,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/probe/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Probe Batch
+         * @description The same, for a list of files, in one request and in the order they were given.
+         *
+         *     What a folder import costs: one call instead of one per track. A file ffprobe cannot read
+         *     answers in its own entry — the listing of the other two hundred is worth more than the
+         *     refusal of one.
+         */
+        post: operations["probeBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/replaygain": {
         parameters: {
             query?: never;
@@ -670,6 +694,58 @@ export interface components {
             path: string;
             /** Size */
             size: number;
+        };
+        /**
+         * ProbeBatchItem
+         * @description One file's answer. Exactly one of ``result`` and ``error`` is set.
+         */
+        ProbeBatchItem: {
+            error?: components["schemas"]["ErrorBody"] | null;
+            /** Path */
+            path: string;
+            result?: components["schemas"]["ProbeResult"] | null;
+        };
+        /**
+         * ProbeBatchRequest
+         * @description ``POST /probe/batch`` — the same question as ``/probe``, asked about a whole folder.
+         *
+         *     It exists because of one number. An existing library handed to this application is 273
+         *     tracks, and asking 273 times over HTTP "what is in this file" is a minute of round trips
+         *     added to a step somebody is watching.
+         *
+         *     The **walk stays on the orchestrator's side**: it owns ``adoptSourceRoots``, and it is the
+         *     only side that can ``realpath`` a host path and compare it with that allow-list. So this
+         *     endpoint takes a list of paths and never a directory — it must not become a way to learn
+         *     what is on a disk the caller was not allowed to list.
+         */
+        ProbeBatchRequest: {
+            /**
+             * Paths
+             * @description Absolute paths, as this container sees them, in the order the answers are wanted. At most 500 per call; a longer list is split by the caller.
+             */
+            paths: string[];
+        };
+        /**
+         * ProbeBatchResult
+         * @description One entry per requested path, **in the order they were requested**.
+         *
+         *     A file ffprobe cannot read is reported in its own entry rather than failing the request: a
+         *     folder of two hundred tracks with one corrupt file must still list the other hundred and
+         *     ninety-nine, and it is the caller who decides whether one refusal is fatal.
+         */
+        ProbeBatchResult: {
+            /**
+             * Failed
+             * @description How many could not be read; each carries its own error.
+             */
+            failed: number;
+            /** Files */
+            files: components["schemas"]["ProbeBatchItem"][];
+            /**
+             * Ok
+             * @description How many of them ffprobe could read.
+             */
+            ok: number;
         };
         /** ProbeRequest */
         ProbeRequest: {
@@ -1308,6 +1384,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description A catalogued toolbox error. */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    probeBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProbeBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProbeBatchResult"];
                 };
             };
             /** @description A catalogued toolbox error. */

@@ -12,8 +12,11 @@ from typing import Annotated, Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from toolbox.errors import ErrorBody
+
 __all__ = [
     "DEFAULT_FORMAT",
+    "MAX_PROBE_BATCH",
     "ArtworkRequest",
     "ArtworkResult",
     "CookiesTestRequest",
@@ -30,6 +33,9 @@ __all__ = [
     "Picture",
     "PlaceRequest",
     "PlaceResult",
+    "ProbeBatchItem",
+    "ProbeBatchRequest",
+    "ProbeBatchResult",
     "ProbeRequest",
     "ProbeResult",
     "ProbeStream",
@@ -54,6 +60,14 @@ __all__ = [
 #: Default yt-dlp format selector. Opus first — that is itag 251 on YouTube, which the
 #: downloader then remuxes into `.opus` by stream copy, so nothing is ever re-encoded.
 DEFAULT_FORMAT: Final[str] = "bestaudio[acodec=opus]/bestaudio/best"
+
+#: How many files one `POST /probe/batch` may ask about.
+#:
+#: The number that set it is the owner's: twenty vanished playlists are 273 tracks, and the
+#: point of the endpoint is that a folder of that size is *one* request. 500 leaves room above
+#: the largest album anyone has while keeping a single request bounded — a caller with more
+#: splits the list, which is one extra round trip rather than three hundred.
+MAX_PROBE_BATCH: Final[int] = 500
 
 # --------------------------------------------------------------------------------------
 # Shared building blocks
@@ -273,6 +287,50 @@ class ProbeResult(BaseModel):
         description="Every tag ffprobe reports, container and stream level, keys upper-cased.",
     )
     has_picture: bool = False
+
+
+class ProbeBatchRequest(Strict):
+    """``POST /probe/batch`` — the same question as ``/probe``, asked about a whole folder.
+
+    It exists because of one number. An existing library handed to this application is 273
+    tracks, and asking 273 times over HTTP "what is in this file" is a minute of round trips
+    added to a step somebody is watching.
+
+    The **walk stays on the orchestrator's side**: it owns ``adoptSourceRoots``, and it is the
+    only side that can ``realpath`` a host path and compare it with that allow-list. So this
+    endpoint takes a list of paths and never a directory — it must not become a way to learn
+    what is on a disk the caller was not allowed to list.
+    """
+
+    paths: list[str] = Field(
+        min_length=1,
+        max_length=MAX_PROBE_BATCH,
+        description=(
+            "Absolute paths, as this container sees them, in the order the answers are "
+            f"wanted. At most {MAX_PROBE_BATCH} per call; a longer list is split by the caller."
+        ),
+    )
+
+
+class ProbeBatchItem(BaseModel):
+    """One file's answer. Exactly one of ``result`` and ``error`` is set."""
+
+    path: str
+    result: ProbeResult | None = None
+    error: ErrorBody | None = None
+
+
+class ProbeBatchResult(BaseModel):
+    """One entry per requested path, **in the order they were requested**.
+
+    A file ffprobe cannot read is reported in its own entry rather than failing the request: a
+    folder of two hundred tracks with one corrupt file must still list the other hundred and
+    ninety-nine, and it is the caller who decides whether one refusal is fatal.
+    """
+
+    files: list[ProbeBatchItem]
+    ok: int = Field(description="How many of them ffprobe could read.")
+    failed: int = Field(description="How many could not be read; each carries its own error.")
 
 
 # --------------------------------------------------------------------------------------

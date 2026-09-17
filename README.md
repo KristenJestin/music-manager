@@ -48,6 +48,11 @@ Everything the Console does is reachable over HTTP.
 - A CLI: `bun run mm -- import <url>`, plus `jobs`, `job`, `retry`, `inbox`, `match`, `library`,
   `retag`, `scan`, `verify`, `discover`, `settings`. Bulk work has its own two verbs:
   `mm import --from-file <list.txt>` and `mm confirm-best <id>`.
+- **A folder is a source too.** `mm import <folder>` lists a folder of audio files the way a
+  playlist is listed — each file an entry with its title, its exact duration and its existing
+  tags — matches them like videos, and then _adopts_ each file instead of downloading it. That
+  is the answer for a playlist that has vanished from YouTube, an album behind an age check, or
+  a library that is already on the disk. `docs/deploy.md` § 5 sexies.
 
 ## Discover
 

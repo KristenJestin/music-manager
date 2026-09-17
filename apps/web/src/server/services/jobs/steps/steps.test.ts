@@ -132,6 +132,22 @@ describe("compareFingerprint", () => {
     expect(verdict.reason).toContain("CHVRCHES - Clearest Blue");
   });
 
+  it("contradicts nothing when the import has no MusicBrainz release at all", () => {
+    // The *other* reason a track can have no recording id: "import without MusicBrainz", where
+    // there is no release either. Nothing was claimed, so AcoustID recognising the audio as
+    // something else is information rather than a disagreement — and a folder of 273 files
+    // would otherwise raise 273 questions with no possible answer.
+    const verdict = compareFingerprint(
+      { candidates: [{ recording_mbid: "rec-9", score: 0.99, title: "Wonderland", artist: null }] },
+      { recordingMbid: null, title: "Ouverture", sourceTitle: "A-side.opus", untagged: true },
+      options,
+    );
+    expect(verdict.agrees).toBe(true);
+    expect(verdict.reason).toContain("nothing to contradict");
+    // The candidate is still reported: the fingerprint is the useful part and it is kept.
+    expect(verdict.candidateMbid).toBe("rec-9");
+  });
+
   it("says nothing when AcoustID answered nothing — silence is not a contradiction", () => {
     expect(
       compareFingerprint({ candidates: null }, { recordingMbid: "rec-1", title: "x" }, options)

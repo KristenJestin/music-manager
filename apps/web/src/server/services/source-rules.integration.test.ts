@@ -166,7 +166,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
 
   describe("off by default", () => {
     it("changes nothing: a bare video still imports", async () => {
-      const created = await imports.createFromUrl(bareOne("off=1"), { db: db() });
+      const created = await imports.createImport(bareOne("off=1"), { db: db() });
       expect(created.job.status).not.toBe("failed");
       const rows = await db()
         .select()
@@ -188,7 +188,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
     it("is refused, with the typed error naming the rule", async () => {
       await withRules({ officialUploadsOnly: true }, async () => {
         const url = bareOne("single=1");
-        await expect(imports.createFromUrl(url, { db: db() })).rejects.toThrow(
+        await expect(imports.createImport(url, { db: db() })).rejects.toThrow(
           /Provided to YouTube by/,
         );
 
@@ -211,7 +211,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
       await withRules({ requireAlbum: true }, async () => {
         const url = bareOne("album=1");
         const failure = await imports
-          .createFromUrl(url, { db: db() })
+          .createImport(url, { db: db() })
           .then(() => null)
           .catch((error: unknown) => MMError.from(error));
         expect(failure?.code).toBe("SOURCE_NO_ALBUM");
@@ -221,7 +221,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
 
     it("passes both rules when the description carries the line and the album", async () => {
       await withRules({ officialUploadsOnly: true, requireAlbum: true }, async () => {
-        const created = await imports.createFromUrl("fixture://skinny-love?rules=1", {
+        const created = await imports.createImport("fixture://skinny-love?rules=1", {
           db: db(),
         });
         expect(created.job.status).not.toBe("failed");
@@ -235,7 +235,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
   describe("inside a playlist", () => {
     it("skips the refused entries, keeps the rest, and says why in the journal", async () => {
       await withRules({ officialUploadsOnly: true }, async () => {
-        const created = await imports.createFromUrl("fixture://mixed-playlist", {
+        const created = await imports.createImport("fixture://mixed-playlist", {
           db: db(),
           resolveNow: false,
         });
@@ -282,7 +282,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
       // The playlist is the album. Every entry of `fixture://watched` has a null album tag and
       // no description, and none of them is refused for it.
       await withRules({ requireAlbum: true }, async () => {
-        const created = await imports.createFromUrl(`${BARE_LIST}&inplaylist=1`, { db: db() });
+        const created = await imports.createImport(`${BARE_LIST}&inplaylist=1`, { db: db() });
         const rows = await db()
           .select()
           .from(schema.importTracks)
@@ -293,7 +293,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
 
     it("fails the step when the rules refuse every entry", async () => {
       await withRules({ officialUploadsOnly: true }, async () => {
-        const created = await imports.createFromUrl(`${BARE_LIST}&none=1`, {
+        const created = await imports.createImport(`${BARE_LIST}&none=1`, {
           db: db(),
           resolveNow: false,
         });
@@ -306,7 +306,7 @@ describe.skipIf(unavailable !== null)("the admission rules against a real stack"
 
     it("leaves an official playlist entirely alone", async () => {
       await withRules({ officialUploadsOnly: true }, async () => {
-        const created = await imports.createFromUrl("fixture://discovery?rules=1", { db: db() });
+        const created = await imports.createImport("fixture://discovery?rules=1", { db: db() });
         const rows = await db()
           .select()
           .from(schema.importTracks)

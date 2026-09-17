@@ -18,7 +18,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { pauseImport } from "#/server/services/jobs/index.ts";
 import { rankFor } from "#/server/services/matching.queries.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
@@ -142,7 +142,7 @@ export const discoverImport = createServerFn({ method: "POST", strict: STRICT })
         });
       }
 
-      const created = await createFromUrl(source.url, { db: db() });
+      const created = await createImport(source.url, { db: db() });
       await pauseImport(created.job.id, "Waiting for the import wizard (from Discover).", db());
       await markImported(data.itemId, created.job.id, db());
 
@@ -193,7 +193,7 @@ export const importReleaseGroup = createServerFn({ method: "POST", strict: STRIC
         });
       }
 
-      const created = await createFromUrl(source.url, { db: db() });
+      const created = await createImport(source.url, { db: db() });
       await pauseImport(created.job.id, "Waiting for the import wizard (from an artist).", db());
       const release = await preselectFor(created.job.id, data.releaseGroupMbid);
       return {

@@ -83,6 +83,16 @@ export const MM_ERROR_CODES = [
   "ADOPT_PATH_REFUSED",
   /** The import or the track is not at a point where adopting a file means anything. */
   "ADOPT_NOT_READY",
+  /**
+   * `mm import <folder>` was pointed at a folder that holds nothing the tagger can read.
+   *
+   * Its own code rather than `INVALID_INPUT`, on the rule above: the fix is its own sentence,
+   * and there are only two of them — "you meant the folder one level down", which is what a
+   * folder of album folders looks like, or "convert these first", which is what a folder of
+   * `.wav` or `.wma` looks like. The `details` carry what was actually seen, because a listing
+   * that refused everything has to say what it refused.
+   */
+  "FOLDER_NO_AUDIO",
   /* --- the public API (P08) --- */
   /**
    * Authenticated, but the credential does not carry the scope this route needs.

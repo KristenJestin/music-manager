@@ -1329,8 +1329,10 @@ function StepSource({
                 </Button>
               </span>
               <span className="text-2xs text-fg-3">
-                Accepted: youtube.com/watch, youtu.be, music.youtube.com playlist or album, and{" "}
-                <code>fixture://…</code> in fixtures mode.
+                Accepted: youtube.com/watch, youtu.be, music.youtube.com playlist or album,{" "}
+                <code>fixture://…</code> in fixtures mode, and the absolute path of a folder of
+                audio files on the server — each file becomes an entry and is adopted rather than
+                downloaded.
               </span>
             </label>
           </div>
