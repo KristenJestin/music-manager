@@ -4,10 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   creditCarriesArtist,
+  editionTokensIn,
   hasEditionQualifier,
   normalizeArtist,
   normalizeTitle,
   primaryArtist,
+  sourceEdition,
   splitArtistCredit,
   stripArtistPrefix,
   stripEditionQualifier,
@@ -336,5 +338,53 @@ describe("creditCarriesArtist", () => {
     expect(creditCarriesArtist(null, "Laura Fygi")).toBe(true);
     // But a candidate with no credit at all carries no artist.
     expect(creditCarriesArtist("Laufey", "")).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* which edition the source is asking for                              */
+/* ------------------------------------------------------------------ */
+
+describe("sourceEdition", () => {
+  it("reads the qualifier a playlist title announces", () => {
+    expect(sourceEdition("The Heist (Deluxe Edition)")).toEqual(["deluxe"]);
+    expect(sourceEdition("Let Go (Expanded Edition)")).toEqual(["expanded"]);
+    expect(sourceEdition("Nevermind [20th Anniversary Edition]")).toEqual(["anniversary"]);
+    expect(sourceEdition("Nirvana (Bonus Track Version)")).toEqual(["bonus"]);
+    expect(sourceEdition("Abbey Road - Remastered")).toEqual(["remaster"]);
+    expect(sourceEdition("MTV Unplugged (Live)")).toEqual(["live"]);
+  });
+
+  it("says nothing when the album simply has a name", () => {
+    expect(sourceEdition("Discovery")).toEqual([]);
+    expect(sourceEdition("Appeal to Reason")).toEqual([]);
+    // The record is *called* Deluxe; it is not asking for a deluxe edition of itself.
+    expect(sourceEdition("Deluxe")).toEqual([]);
+    expect(sourceEdition("Live Through This")).toEqual([]);
+    expect(sourceEdition("Hotel Deluxe")).toEqual([]);
+    expect(sourceEdition(null)).toEqual([]);
+  });
+
+  it("reads more than one, and agrees with what the query strips", () => {
+    expect(sourceEdition("Album (Deluxe Edition) [Remastered]").sort()).toEqual([
+      "deluxe",
+      "remaster",
+    ]);
+    // One extraction, two consumers: what the query drops is what the scorer is told to want.
+    expect(stripEditionQualifier("The Heist (Deluxe Edition)")).toBe("The Heist");
+    expect(sourceEdition("The Heist (Deluxe Edition)")).toEqual(["deluxe"]);
+  });
+});
+
+describe("editionTokensIn", () => {
+  it("canonicalises the spellings MusicBrainz writes an edition in", () => {
+    expect(editionTokensIn("deluxe edition")).toEqual(["deluxe"]);
+    expect(editionTokensIn("Japan edition, bonus track")).toEqual(["bonus"]);
+    expect(editionTokensIn("20th anniversary remastered edition").sort()).toEqual([
+      "anniversary",
+      "remaster",
+    ]);
+    expect(editionTokensIn("limited edition digipak")).toEqual([]);
+    expect(editionTokensIn("")).toEqual([]);
   });
 });

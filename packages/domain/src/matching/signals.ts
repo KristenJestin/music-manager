@@ -11,7 +11,12 @@
  * conversion and why it happened).
  */
 
-import { normalizeArtist, normalizeTitle, titleSimilarity } from "../normalize/title.ts";
+import {
+  editionTokensIn,
+  normalizeArtist,
+  normalizeTitle,
+  titleSimilarity,
+} from "../normalize/title.ts";
 import type { MbArtistCreditEntry, MbRelease } from "../metadata/resolvers/musicbrainz-types.ts";
 import type { MatchTrack, MatchingPreferences, MatchingThresholds, Penalty } from "./types.ts";
 
@@ -410,22 +415,71 @@ const UNKNOWN_DISAMBIGUATION_PENALTY = 0.03;
 export function disambiguationPenalties(
   disambiguation: string | null | undefined,
   preferences: MatchingPreferences,
+  edition: EditionRequest = NO_EDITION,
 ): Penalty[] {
   const comment = (disambiguation ?? "").trim().toLowerCase();
-  if (comment === "") return [];
+  const wanted = new Set(edition.wanted);
+  /*
+   * What this pressing says it is, read from **both** places an edition is written: the
+   * disambiguation comment, and the release's own title. MusicBrainz uses them
+   * interchangeably — "The Heist" + comment "deluxe edition" and "Nevermind (20th Anniversary
+   * Edition)" with no comment at all are the same fact stated in two columns.
+   */
+  const carries = new Set([
+    ...editionTokensIn(comment),
+    ...editionTokensIn(edition.candidateTitle),
+  ]);
+  const agrees = [...wanted].some((token) => carries.has(token));
 
+  const found: Penalty[] = [];
+  const explicit = explicitPenalty(comment, preferences);
+
+  /*
+   * The deductions, **relative to what the source asked for**.
+   *
+   * A deluxe pressing is the wrong answer for a playlist of the standard album, and that is
+   * what this list has always been for. It is exactly the wrong answer for a playlist titled
+   * "The Heist (Deluxe Edition)" — eighteen videos, eighteen tracks, mean Δ 0.3 s, and the
+   * only correct candidate marked down twenty points to 76 %. So:
+   *
+   *  - the source asked for nothing → every qualifier is a mark against the pressing, which is
+   *    the behaviour this list has always had;
+   *  - the source asked for *this* qualifier → no deduction at all. There is no bonus either,
+   *    because a score is a blend plus named deductions and a bonus would break that; the
+   *    reward is that every other pressing pays the line below;
+   *  - the source asked and this pressing does not say it → a deduction for being the **wrong
+   *    edition**, at half what carrying an unasked-for qualifier costs. Half, because "does not
+   *    say it is deluxe" is weaker evidence than "says it is live": plenty of correct pressings
+   *    carry no comment, and MusicBrainz often has no edition the playlist announces at all;
+   *  - the source asked for one qualifier and this pressing carries a *different* one → the
+   *    ordinary deduction. "Remaster" is not satisfied by "live".
+   *
+   * Only the worst line counts, as before: a comment reading "deluxe edition, remastered" is
+   * one problem stated twice, and adding the deductions would bury a pressing for a fact.
+   */
   let worst: Penalty | null = null;
+  const consider = (penalty: Penalty): void => {
+    if (worst === null || penalty.amount > worst.amount) worst = penalty;
+  };
+
   for (const [term, amount] of DISAMBIGUATION_PENALTIES) {
     if (!comment.includes(term)) continue;
-    if (worst === null || amount > worst.amount) {
-      worst = { reason: `Disambiguation contains “${term}”`, amount };
-    }
+    // A qualifier the source itself announced is not a mark against anything.
+    if (wanted.size > 0 && editionTokensIn(term).some((token) => wanted.has(token))) continue;
+    consider({ reason: `Disambiguation contains “${term}”`, amount });
   }
 
-  const explicit = explicitPenalty(comment, preferences);
-  const found: Penalty[] = [];
+  if (wanted.size > 0 && !agrees) {
+    const asked = [...wanted];
+    const cost = Math.max(...asked.map((token) => EDITION_REQUEST_COST[token] ?? 0.1)) * 0.5;
+    consider({
+      reason: `The source asks for the ${asked.join(" / ")} edition and this pressing does not say it is one`,
+      amount: round3(cost),
+    });
+  }
+
   if (worst !== null) found.push(worst);
-  else if (explicit === null) {
+  else if (comment !== "" && explicit === null && wanted.size === 0) {
     found.push({
       reason: `Disambiguation “${comment}” sets this pressing apart`,
       amount: UNKNOWN_DISAMBIGUATION_PENALTY,
@@ -434,6 +488,35 @@ export function disambiguationPenalties(
   if (explicit !== null) found.push(explicit);
   return found;
 }
+
+/** What the source announced, and what this candidate calls itself. See `sourceEdition`. */
+export interface EditionRequest {
+  /** Canonical edition tokens read off the source's own title (`normalize/title.ts`). */
+  readonly wanted: readonly string[];
+  /** The candidate release's title, where MusicBrainz half the time writes the edition. */
+  readonly candidateTitle: string;
+}
+
+export const NO_EDITION: EditionRequest = { wanted: [], candidateTitle: "" };
+
+/** What *missing* each announced edition costs, before the half-weight is applied. */
+const EDITION_REQUEST_COST: Readonly<Record<string, number>> = {
+  deluxe: 0.2,
+  expanded: 0.18,
+  "box set": 0.2,
+  anniversary: 0.16,
+  bonus: 0.12,
+  live: 0.2,
+  demo: 0.18,
+  remix: 0.16,
+  instrumental: 0.2,
+  karaoke: 0.2,
+  acoustic: 0.16,
+  remaster: 0.1,
+  reissue: 0.1,
+  special: 0.1,
+  mono: 0.1,
+};
 
 /**
  * The explicit/clean pair. v1 preferred explicit, then a release with no comment at all, then
@@ -487,17 +570,22 @@ export function titleKeywordPenalties(
   title: string,
   primaryType: string | null | undefined,
   secondary: readonly string[] | undefined,
+  wantedEdition: readonly string[] = [],
 ): Penalty[] {
   const lowered = title.toLowerCase();
   const known = new Set(
     [primaryType ?? "", ...(secondary ?? [])].map((t) => t.trim().toLowerCase()),
   );
+  const wanted = new Set(wantedEdition);
   const out: Penalty[] = [];
   for (const [term, amount] of TITLE_KEYWORD_PENALTIES) {
     if (!lowered.includes(term)) continue;
     // Already declared by the release group: not a surprise, so not a penalty.
     if (known.has(term) || (term === "greatest hits" && known.has("compilation"))) continue;
     if (term === "best of" && known.has("compilation")) continue;
+    // Nor is it a surprise when the source asked for it: a playlist called "… (Live)" is not
+    // penalised for finding a release with "Live" in its name.
+    if (editionTokensIn(term).some((token) => wanted.has(token))) continue;
     out.push({ reason: `Title contains “${term}”`, amount });
   }
   return out;

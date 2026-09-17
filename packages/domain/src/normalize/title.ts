@@ -264,6 +264,80 @@ export function hasEditionQualifier(raw: string): boolean {
   return stripEditionQualifier(raw) !== raw.trim();
 }
 
+/**
+ * The vocabulary of editions, as canonical tokens.
+ *
+ * One word per *kind* of edition, with the spellings that mean it. Both sides of the comparison
+ * are reduced to these tokens, which is what lets "Deluxe Edition" on a YouTube playlist and
+ * "deluxe edition" in a MusicBrainz disambiguation be recognised as the same request, and
+ * "Live" as a different one.
+ *
+ * Wider than `EDITION_QUALIFIERS` above on purpose: that list decides what is *noise in a
+ * search query*, and "Live" is not noise — `Unplugged (Live)` is a record MusicBrainz files
+ * under that name. This list decides what the source is *asking for*, and a live album asks for
+ * a live release.
+ */
+const EDITION_TOKENS: readonly (readonly [string, readonly string[]])[] = [
+  ["deluxe", ["deluxe"]],
+  ["expanded", ["expanded"]],
+  ["anniversary", ["anniversary"]],
+  ["bonus", ["bonus track", "bonus tracks", "bonus edition", "bonus version"]],
+  ["special", ["special edition"]],
+  ["box set", ["box set", "boxset"]],
+  ["remaster", ["remaster", "remastered"]],
+  ["reissue", ["reissue", "re-issue"]],
+  ["live", ["live"]],
+  ["acoustic", ["acoustic", "unplugged"]],
+  ["instrumental", ["instrumental"]],
+  ["demo", ["demo"]],
+  ["remix", ["remix", "remixes"]],
+  ["karaoke", ["karaoke"]],
+  ["mono", ["mono"]],
+];
+
+/** Every edition token a free string mentions, deduplicated, in vocabulary order. */
+export function editionTokensIn(raw: string | null | undefined): string[] {
+  const lowered = (raw ?? "").toLowerCase();
+  if (lowered.trim() === "") return [];
+  const out: string[] = [];
+  for (const [token, spellings] of EDITION_TOKENS) {
+    if (spellings.some((spelling) => lowered.includes(spelling))) out.push(token);
+  }
+  return out;
+}
+
+/** A trailing `(…)`, `[…]` or `- …` segment, peeled one at a time from the end. */
+const TRAILING_SEGMENT = /\s*(?:[([]([^()[\]]*)[)\]]|[-–—:,]\s*([^-–—:,()[\]]*))\s*$/;
+
+/**
+ * Which edition the **source** is asking for, read off its own title.
+ *
+ * The other half of `stripEditionQualifier`, and the reason the two live next to each other:
+ * one extraction, two consumers. The search query drops the qualifier because MusicBrainz does
+ * not publish it; the **scorer** keeps it, because it says which pressing of the record the
+ * person actually wants. A playlist titled "The Heist (Deluxe Edition)" is not a playlist that
+ * should be marked down twenty points for choosing the deluxe edition — that penalty exists
+ * for the *opposite* case, and applying it unconditionally punished the only right answer.
+ *
+ * Only **trailing bracketed or separated segments** are read, and that is what keeps it from
+ * firing on a record's real name: *Deluxe* by Harmonia announces nothing, and neither does
+ * *Live Through This* — but "MTV Unplugged (Live)" and "Abbey Road - Remastered" do.
+ */
+export function sourceEdition(raw: string | null | undefined): string[] {
+  let rest = (raw ?? "").trim();
+  const found = new Set<string>();
+  for (let guard = 0; guard < 4; guard += 1) {
+    const match = TRAILING_SEGMENT.exec(rest);
+    if (match === null) break;
+    const segment = (match[1] ?? match[2] ?? "").trim();
+    const head = rest.slice(0, match.index).trim();
+    if (head === "") break; // the whole title is the segment: it is the name, not a qualifier
+    for (const token of editionTokensIn(segment)) found.add(token);
+    rest = head;
+  }
+  return [...found];
+}
+
 /* ------------------------------------------------------------------ */
 /* composite artist credits                                            */
 /* ------------------------------------------------------------------ */

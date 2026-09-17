@@ -951,3 +951,160 @@ describe("the release-type preference", () => {
     expect(scoreOf(off, "single")).toBe(scoreOf(off, "album"));
   });
 });
+
+/* ------------------------------------------------------------------ */
+/* the disambiguation penalties, relative to what the source asked for */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The fifth defect of the sixth owner review, and it pulls the opposite way to the fourth.
+ *
+ * "Deluxe", "remaster" and "live" in a release's comment have always been deductions, and they
+ * are right to be when the source is the standard album. Applied *unconditionally* they punish
+ * the only correct candidate the moment the source announces itself: the owner's "The Heist
+ * (Deluxe Edition)", eighteen videos, matched the eighteen-track deluxe pressing 18/18 at a
+ * mean Δ of 0.3 s and scored **76 %** because of one line — `Disambiguation contains "deluxe"
+ * (−20 %)`. Without it, 96 %.
+ *
+ * Both directions are asserted here, and the mismatch between two different qualifiers with
+ * them, because a rule that only fires one way is half a rule.
+ */
+describe("a disambiguation penalty is relative to what the source announced", () => {
+  const VIDEOS: readonly MatchVideo[] = Array.from({ length: 12 }, (_, index) => ({
+    id: `v${String(index + 1)}`,
+    index,
+    title: `Song ${String(index + 1)}`,
+    durationSeconds: 200 + index,
+  }));
+  const tracks = VIDEOS.map(
+    (video) => [video.title, video.durationSeconds ?? 0] as readonly [string, number],
+  );
+
+  /** One pressing: the same twelve tracks, differing only in what it calls itself. */
+  const pressing = (
+    id: string,
+    disambiguation: string,
+    extra: readonly (readonly [string, number])[] = [],
+  ): ReleaseCandidateInput => ({
+    detailed: true,
+    release: {
+      id,
+      title: "Record",
+      disambiguation,
+      date: "2012-01-01",
+      country: "XW",
+      status: "Official",
+      "cover-art-archive": { artwork: true, front: true, count: 1 },
+      "artist-credit": [{ name: "Someone" }],
+      "release-group": {
+        id: "rg-record",
+        title: "Record",
+        "primary-type": "Album",
+        "first-release-date": "2012-01-01",
+      },
+      media: [
+        {
+          position: 1,
+          format: "Digital Media",
+          "track-count": tracks.length + extra.length,
+          tracks: [...tracks, ...extra].map(([title, seconds], index) => ({
+            id: `${id}-t${String(index + 1)}`,
+            position: index + 1,
+            title,
+            length: seconds * 1000,
+          })),
+        },
+      ],
+    },
+  });
+
+  const rank = (album: string, candidates: readonly ReleaseCandidateInput[]) =>
+    releaseCandidates.score({
+      videos: VIDEOS,
+      hints: { album, artist: "Someone", year: 2012, edition: undefined },
+      candidates,
+    });
+
+  it("stops penalising the deluxe pressing when the source announces deluxe", () => {
+    const ranking = rank("Record (Deluxe Edition)", [
+      pressing("standard", ""),
+      pressing("deluxe", "deluxe edition"),
+    ]);
+    const deluxe = ranking.candidates.find((candidate) => candidate.id === "deluxe");
+    expect(deluxe?.penalties.map((penalty) => penalty.reason).join(" | ")).not.toMatch(/deluxe/i);
+    expect(ranking.preselected?.id).toBe("deluxe");
+    // And the standard pressing is the one that now owes something, for being the wrong edition.
+    const standard = ranking.candidates.find((candidate) => candidate.id === "standard");
+    expect(standard?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /asks for the deluxe edition and this pressing does not say it is one/,
+    );
+  });
+
+  it("still prefers the standard pressing when the source announces nothing", () => {
+    const ranking = rank("Record", [
+      pressing("deluxe", "deluxe edition"),
+      pressing("standard", ""),
+    ]);
+    expect(ranking.preselected?.id).toBe("standard");
+    const deluxe = ranking.candidates.find((candidate) => candidate.id === "deluxe");
+    expect(deluxe?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “deluxe”/,
+    );
+  });
+
+  it("is not satisfied by a different qualifier", () => {
+    // "Remaster" asked for, "live" offered: two different things, and the deduction stands.
+    const ranking = rank("Record (Remastered)", [
+      pressing("live", "live"),
+      pressing("remaster", "remastered"),
+    ]);
+    expect(ranking.preselected?.id).toBe("remaster");
+    const live = ranking.candidates.find((candidate) => candidate.id === "live");
+    expect(live?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “live”/,
+    );
+  });
+
+  it("reads the edition off the release's title as well as its comment", () => {
+    // MusicBrainz writes it in either column; "Record (Deluxe Edition)" with no comment at all
+    // is the same statement as a comment saying "deluxe edition".
+    const titled: ReleaseCandidateInput = {
+      ...pressing("titled", ""),
+      release: { ...pressing("titled", "").release, title: "Record (Deluxe Edition)" },
+    };
+    const ranking = rank("Record (Deluxe Edition)", [pressing("standard", ""), titled]);
+    const chosen = ranking.candidates.find((candidate) => candidate.id === "titled");
+    expect(chosen?.penalties).toHaveLength(0);
+    expect(ranking.preselected?.id).toBe("titled");
+  });
+
+  it("does not let the rule outweigh a real tracklist fit", () => {
+    /*
+     * The guard against over-correcting. A "deluxe" pressing that is *not* the record — two of
+     * the twelve videos land nowhere — still loses to a standard pressing that fits, even
+     * though the source asked for deluxe. Editions are a tie-break between pressings of one
+     * record; the fit decides which record it is, and it always outranks this.
+     */
+    const wrongDeluxe: ReleaseCandidateInput = {
+      detailed: true,
+      release: {
+        ...pressing("wrong-deluxe", "deluxe edition").release,
+        media: [
+          {
+            position: 1,
+            format: "Digital Media",
+            "track-count": 4,
+            tracks: tracks.slice(0, 4).map(([title, seconds], index) => ({
+              id: `wrong-${String(index)}`,
+              position: index + 1,
+              title,
+              length: seconds * 1000,
+            })),
+          },
+        ],
+      },
+    };
+    const ranking = rank("Record (Deluxe Edition)", [wrongDeluxe, pressing("standard", "")]);
+    expect(ranking.preselected?.id).toBe("standard");
+  });
+});

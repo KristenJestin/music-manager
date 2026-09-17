@@ -66,6 +66,16 @@ export interface AlbumHints {
   readonly year?: number | null;
   readonly label?: string | null;
   readonly releasedOn?: string | null;
+  /**
+   * Which **edition** the source announced, as canonical tokens ("deluxe", "live", …).
+   *
+   * Read off the source's own title by `sourceEdition`, and it is the same extraction the
+   * search query uses to *drop* the qualifier — one extraction, two consumers. The query drops
+   * it because MusicBrainz does not publish it; the scorer keeps it, because it says which
+   * pressing of the record the person actually wants, and a playlist called "The Heist (Deluxe
+   * Edition)" must not be marked down twenty points for choosing the deluxe edition.
+   */
+  readonly edition?: readonly string[];
 }
 
 /** One track of a candidate release, flattened across media into tracklist order. */

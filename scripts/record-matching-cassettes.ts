@@ -31,11 +31,19 @@ import {
   lucene,
   releaseCandidates,
   releaseGroups,
+  titleScore,
   type MatchVideo,
 } from "../packages/domain/src/matching/index.ts";
+import {
+  creditCarriesArtist,
+  primaryArtist,
+  stripArtistPrefix,
+  stripEditionQualifier,
+} from "../packages/domain/src/normalize/title.ts";
 import type {
   MbRecording,
   MbRelease,
+  MbReleaseGroup,
 } from "../packages/domain/src/metadata/resolvers/musicbrainz-types.ts";
 import { prune } from "./prune-musicbrainz.ts";
 import { repoRoot } from "./lib.ts";
@@ -354,6 +362,190 @@ const PURE_HEROINE: AlbumScenario = {
   ),
 };
 
+/**
+ * The sixth owner review's counter-example: an edition that fits *exactly*, ranked twelfth.
+ *
+ * Fourteen videos of the YouTube Music album playlist for *Appeal to Reason*. MusicBrainz has
+ * the release group fourteen times over, and two of those pressings are the whole case:
+ *
+ *  - `b5ae03f1-0980-4c67-ae20-e9635b69f404` — XW, 2008-10, Digital Media, **fifteen** tracks,
+ *    the fifteenth being "Prayer of the Refugee (live)". It places all fourteen videos and
+ *    leaves that live bonus track claimed by nobody. It is the one the engine used to choose.
+ *  - `46a691d9-67f7-42c1-bc91-7689b0a7fade` — XW, 2014-09-12, Digital Media, Geffen,
+ *    **fourteen** tracks ending on "Elective Amnesia (single version)". It fits the playlist
+ *    exactly, in order, with no orphan on either side — and it is the digital master YouTube
+ *    actually serves. On metadata alone it ranked **twelfth**, so the six-lookup plan never
+ *    read its tracklist and it sat at "0 videos matched".
+ *
+ * Both halves of this repository's answer are recorded here: the adaptive exploration has to
+ * reach the twelfth candidate, and `exactness` has to prefer it once it is read.
+ *
+ * The video durations are the 2014 master's, because that is the one YouTube Music streams;
+ * the 2008 edition is within the ±2 s tolerance on all fourteen, which is exactly why the fit
+ * alone could never separate the two.
+ */
+const RISE_AGAINST: AlbumScenario = {
+  name: "rise-against",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_appeal-to-reason",
+    album: "Appeal to Reason",
+    artist: "Rise Against",
+    year: 2008,
+    label: "Geffen Records",
+    note: "14 videos. A 15-track edition places all of them and leaves a live bonus track over; a 14-track edition fits exactly and ranked twelfth (owner review 6).",
+  },
+  videos: albumVideos(
+    [
+      ["Collapse (Post-Amerika)", 199],
+      ["Long Forgotten Sons", 242],
+      ["Re-Education (Through Labor)", 222],
+      ["The Dirt Whispered", 189],
+      ["Kotov Syndrome", 185],
+      ["From Heads Unworthy", 222],
+      ["The Strength to Go On", 207],
+      ["Audience of One", 245],
+      ["Entertainment", 215],
+      ["Hero of War", 253],
+      ["Savior", 242],
+      ["Hairline Fracture", 243],
+      ["Whereabouts Unknown", 242],
+      ["Elective Amnesia", 236],
+    ],
+    {
+      album: "Appeal to Reason",
+      artist: "Rise Against",
+      year: 2008,
+      uploader: "Rise Against - Topic",
+      label: "Geffen Records",
+      releasedOn: "2008-10-07",
+    },
+  ),
+};
+
+/**
+ * The sixth owner review's worst case: somebody else's album, imported under a plausible name.
+ *
+ * Fourteen videos of Laufey's *Bewitched*, credited by YouTube to "**Laufey, Spencer
+ * Stewart**" — the artist and her producer, in one string, which is what YouTube Music does
+ * and what MusicBrainz has never heard of. `releasegroup:"Bewitched" AND artist:"Laufey,
+ * Spencer Stewart"` really does answer `count: 0`; the version this scenario exists to bury
+ * then asked `release:"Bewitched"` alone, got a hundred and forty-two records by everybody who
+ * ever used the word, and imported **Laura Fygi's** 1993 album — twelve tracks, seven of the
+ * fourteen videos placed, score 0.537 — while its own card said "Artist mismatch".
+ *
+ * Two rules have to hold on this recording, and between them they are the fix:
+ *
+ *  - the first rung of the ladder asks for the **first credited artist**, "Laufey", which
+ *    MusicBrainz answers with three release groups, one of them the album;
+ *  - nothing credited to anyone else can win, and if the whole list ever were somebody else's,
+ *    the artist gate refuses instead of preselecting.
+ */
+const BEWITCHED: AlbumScenario = {
+  name: "bewitched",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_bewitched",
+    album: "Bewitched",
+    artist: "Laufey, Spencer Stewart",
+    year: 2023,
+    label: "AWAL Recordings America",
+    note: "14 videos credited to the artist AND her producer. The composite credit finds nothing; the engine used to drop the artist and import Laura Fygi's 1993 album (owner review 6, D1/D2).",
+  },
+  videos: albumVideos(
+    [
+      ["Dreamer", 210],
+      ["Second Best", 204],
+      ["Haunted", 200],
+      ["Must Be Love", 184],
+      ["While You Were Sleeping", 177],
+      ["Lovesick", 225],
+      ["California and Me", 216],
+      ["Nocturne (interlude)", 144],
+      ["Promise", 234],
+      ["From the Start", 169],
+      ["Misty", 209],
+      ["Serendipity", 219],
+      ["Letter to My 13 Year Old Self", 262],
+      ["Bewitched", 246],
+    ],
+    {
+      album: "Bewitched",
+      artist: "Laufey, Spencer Stewart",
+      year: 2023,
+      uploader: "Laufey - Topic",
+      label: "AWAL Recordings America",
+      releasedOn: "2023-09-08",
+    },
+  ),
+};
+
+/**
+ * Three of the sixth review's defects in one playlist, which is why it is worth its requests.
+ *
+ * The owner's source is a YouTube Music album titled, verbatim, **"The Heist (Deluxe
+ * Edition)"** by **Macklemore & Ryan Lewis**, eighteen videos. Every rung of the ladder and
+ * both halves of the penalty rule are exercised by that one string:
+ *
+ *  - `artist:"Macklemore & Ryan Lewis"` answers nothing — MusicBrainz files the record under
+ *    exactly that credit and its search index still will not answer the phrase — while
+ *    `artist:"Macklemore"`, the first credited name, answers with one release group. The
+ *    owner's library holds this album attributed to **Crockett**, which is what the artist-less
+ *    retry proposed;
+ *  - `releasegroup:"The Heist (Deluxe Edition)"` answers nothing either, because MusicBrainz
+ *    names the *record* and puts the edition in a disambiguation. So the base-title rung is the
+ *    one that finds it, and this is the scenario that proves it against the real index;
+ *  - and then the deluxe pressing — eighteen tracks, eighteen videos, mean Δ 0.3 s, a perfect
+ *    match — used to be marked down twenty points for the word "deluxe" in its comment, to
+ *    76 %, because the penalty was absolute. The source *announced* deluxe. It is the only
+ *    right answer and it was the only one being punished.
+ *
+ * Recorded next to *Bewitched* because "&" and "," are different code paths in
+ * `splitArtistCredit` and only one of them would have been exercised otherwise.
+ */
+const THE_HEIST: AlbumScenario = {
+  name: "the-heist",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_the-heist-deluxe",
+    album: "The Heist (Deluxe Edition)",
+    artist: "Macklemore & Ryan Lewis",
+    year: 2012,
+    label: "Macklemore LLC",
+    note: "18 videos, a duo credit MusicBrainz will not answer as a phrase, and a title carrying the edition. The deluxe pressing is the right answer and used to be the only one penalised (owner review 6, D1/D2/D5).",
+  },
+  videos: albumVideos(
+    [
+      ["Ten Thousand Hours", 250],
+      ["Can't Hold Us", 258],
+      ["Thrift Shop", 237],
+      ["Thin Line", 256],
+      ["Same Love", 320],
+      ["Make the Money", 225],
+      ["Neon Cathedral", 274],
+      ["BomBom", 296],
+      ["White Walls", 220],
+      ["Jimmy Iovine", 233],
+      ["Wing$", 300],
+      ["A Wake", 226],
+      ["Gold", 252],
+      ["Starting Over", 251],
+      ["Cowboy Boots", 258],
+      ["Castle", 258],
+      ["My Oh My", 257],
+      ["Victory Lap", 214],
+    ],
+    {
+      album: "The Heist (Deluxe Edition)",
+      artist: "Macklemore & Ryan Lewis",
+      year: 2012,
+      uploader: "Macklemore & Ryan Lewis - Topic",
+      label: "Macklemore LLC",
+      releasedOn: "2012-10-09",
+    },
+  ),
+};
+
 const SCENARIOS: readonly Scenario[] = [
   DISCOVERY,
   SKINNY_LOVE,
@@ -361,6 +553,9 @@ const SCENARIOS: readonly Scenario[] = [
   FORMIDABLE,
   BAD_IDEAS,
   PURE_HEROINE,
+  RISE_AGAINST,
+  BEWITCHED,
+  THE_HEIST,
 ];
 
 /* ------------------------------------------------------------------ */
@@ -427,12 +622,41 @@ async function get<T>(path: string, query: Record<string, string>): Promise<T> {
 
     const body = await response.text();
     const retryable = response.status === 503 || response.status === 429 || response.status >= 500;
-    if (!retryable || attempt >= 6) {
+    if (!retryable || attempt >= MAX_ATTEMPTS) {
       throw new Error(`MusicBrainz answered ${String(response.status)} for ${path} — ${body}`);
     }
     console.log(`  ${String(response.status)} on ${path}, retrying in ${String(backoff / 1000)}s…`);
     await new Promise((r) => setTimeout(r, backoff));
-    backoff = Math.min(backoff * 2, 30_000);
+    backoff = Math.min(backoff * 2, 60_000);
+  }
+}
+
+/**
+ * How many times one document is asked for before the run gives up on it.
+ *
+ * Twelve rather than six, and the reason is the whole of `PartialRecording` below: a scenario
+ * is a few dozen documents at one a second, and MusicBrainz's load-shedder goes through busy
+ * spells measured in minutes. Six attempts capped at thirty seconds is about a minute and a
+ * half of patience, which is less than one of those spells, so an afternoon of recording
+ * became an afternoon of restarting from zero.
+ */
+const MAX_ATTEMPTS = 12;
+
+/**
+ * A run that ran out of patience, carrying everything it had already fetched.
+ *
+ * Recording is all-or-nothing per scenario, which is right — a half-scored fixture is worse
+ * than none — but *throwing away the documents* is not. They cost a second each and they are
+ * immutable; the next run reads them back through `existingCassette` and resumes. So the
+ * partial entries travel with the failure and `main` writes them before re-raising.
+ */
+class PartialRecording extends Error {
+  readonly entries: readonly CassetteEntry[];
+
+  constructor(entries: readonly CassetteEntry[], cause: unknown) {
+    super(`interrupted after ${String(entries.length)} document(s)`, { cause });
+    this.name = "PartialRecording";
+    this.entries = entries;
   }
 }
 
@@ -454,12 +678,14 @@ interface SearchResult {
 const SEARCH_LIMIT = 25;
 
 /**
- * How many lookups are recorded, against the six a match spends.
+ * How many lookups are recorded, against the ceiling a match is allowed.
  *
- * The margin is not slack in the budget — the service still stops at `matchLookupLimit`. It is
- * insurance for the replay: the six a match picks are decided by a pre-score, and a pre-score
- * shifts when a duration is corrected or a preference is changed. Recording ten means such a
- * change moves the ranking instead of breaking every cassette test at once.
+ * The margin is not slack in the budget — the service stops when its branch and bound says
+ * stop, well short of `matchLookupLimit` on every scenario here. It is insurance for the
+ * replay: the ones a match opens are chosen by an attainable score, and that shifts when a
+ * duration is corrected or a weight is moved, so recording four more than the ceiling means
+ * such a change *moves a ranking* instead of breaking every cassette test at once with
+ * "no document for …".
  */
 const RECORDED_LOOKUPS = DEFAULT_LOOKUP_LIMIT + 4;
 
@@ -480,8 +706,8 @@ const RECORDED_LOOKUPS = DEFAULT_LOOKUP_LIMIT + 4;
 async function recordAlbum(
   scenario: AlbumScenario,
   known: ReadonlyMap<string, unknown> = new Map(),
+  entries: CassetteEntry[] = [],
 ): Promise<{ entries: CassetteEntry[]; fixture: unknown }> {
-  const entries: CassetteEntry[] = [];
   const written = new Set<string>();
   // Derived exactly as `match` and `mm match` derive them. Deriving them differently here is
   // what made the first recording unreplayable: a label read in one place and left null in the
@@ -499,7 +725,7 @@ async function recordAlbum(
   }
 
   async function searchDocument(
-    entity: "release" | "release-group",
+    entity: "release" | "release-group" | "recording",
     query: string,
   ): Promise<SearchResult> {
     return await document<SearchResult>(
@@ -509,16 +735,78 @@ async function recordAlbum(
     );
   }
 
-  // 1 — the release groups, narrow then (only if empty) wide, as the service asks them.
-  const narrow = lucene.releaseGroupQuery(scenario.source.album, scenario.source.artist);
-  let found = await searchDocument("release-group", narrow);
-  let rawGroups = found["release-groups"] ?? [];
+  /*
+   * 1 — the release groups, down the same ladder `findReleaseGroups` climbs.
+   *
+   * First credited artist, then the whole credit, then the base title — and never the title on
+   * its own, which is the rung the sixth owner review had removed. The recording-convergence
+   * rung below it is recorded too, because a scenario that needs it (Laufey's *Bewitched*) has
+   * to replay through it rather than around it.
+   */
+  const album = scenario.source.album;
+  const credit = scenario.source.artist;
+  const primary = primaryArtist(credit);
+  const base = stripEditionQualifier(album);
+
+  const rungs = [lucene.releaseGroupQuery(album, primary ?? credit)];
+  if (primary !== null) rungs.push(lucene.releaseGroupQuery(album, credit));
+  if (base !== album) rungs.push(lucene.releaseGroupQuery(base, primary ?? credit));
+
+  let rawGroups: readonly { id?: string; title?: string }[] = [];
+  for (const rung of rungs) {
+    const answer = await searchDocument("release-group", rung);
+    rawGroups = answer["release-groups"] ?? [];
+    if (rawGroups.length > 0) break;
+  }
+
   if (rawGroups.length === 0) {
-    found = await searchDocument(
-      "release-group",
-      lucene.releaseGroupQueryWide(scenario.source.album),
-    );
-    rawGroups = found["release-groups"] ?? [];
+    // The last rung: the album through its tracks. Four searches, the longest videos first,
+    // exactly as `convergeThroughRecordings` picks them.
+    const sample = [...scenario.videos]
+      .sort((a, b) => (b.durationSeconds ?? 0) - (a.durationSeconds ?? 0) || a.index - b.index)
+      .slice(0, 4);
+    // The same filter `convergeThroughRecordings` applies: only recordings that carry the
+    // credit vote, only groups bearing the album's name are counted, and a group needs two
+    // distinct tracks to name it. A cassette that recorded a looser answer would replay a
+    // ranking the service never computes.
+    const converged = new Map<string, { voters: Set<number>; group: MbReleaseGroup }>();
+    for (const video of sample) {
+      const answer = await searchDocument(
+        "recording",
+        lucene.recordingQuery({
+          title: stripArtistPrefix(video.ytTrack ?? video.title, primary ?? credit),
+          artist: primary ?? credit,
+          durationSeconds: video.durationSeconds,
+        }),
+      );
+      const seenHere = new Set<string>();
+      for (const recording of answer.recordings ?? []) {
+        const credited = recording["artist-credit"] ?? [];
+        const name = credited
+          .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
+          .join("")
+          .trim();
+        if (!creditCarriesArtist(credit, name)) continue;
+        for (const release of (recording as { releases?: readonly MbRelease[] }).releases ?? []) {
+          const group = release["release-group"];
+          const id = group?.id;
+          if (group === undefined || id === undefined || seenHere.has(id)) continue;
+          const title = group.title ?? release.title ?? "";
+          if (titleScore(album, title) < 0.87 && titleScore(base, title) < 0.87) continue;
+          seenHere.add(id);
+          const entry = converged.get(id) ?? {
+            voters: new Set<number>(),
+            group: { ...group, "artist-credit": credited } as MbReleaseGroup,
+          };
+          entry.voters.add(video.index);
+          converged.set(id, entry);
+        }
+      }
+    }
+    rawGroups = [...converged.values()]
+      .filter((entry) => entry.voters.size >= 2)
+      .sort((a, b) => b.voters.size - a.voters.size)
+      .map((entry) => entry.group);
   }
 
   const scoredGroups = releaseGroups.searchScore(rawGroups, hints, scenario.videos.length);
@@ -590,8 +878,8 @@ async function recordAlbum(
 async function recordSingle(
   scenario: SingleScenario,
   known: ReadonlyMap<string, unknown> = new Map(),
+  entries: CassetteEntry[] = [],
 ): Promise<{ entries: CassetteEntry[]; fixture: unknown }> {
-  const entries: CassetteEntry[] = [];
   const written = new Set<string>();
 
   /**
@@ -721,10 +1009,40 @@ async function main(): Promise<void> {
      */
     const previous = existingCassette(scenario.name);
     const known = process.argv.includes("--refresh") ? new Map<string, unknown>() : previous;
-    const { entries, fixture } =
-      scenario.kind === "album"
-        ? await recordAlbum(scenario, known)
-        : await recordSingle(scenario, known);
+    const gathered: CassetteEntry[] = [];
+    let entries: CassetteEntry[];
+    let fixture: unknown;
+    try {
+      ({ entries, fixture } =
+        scenario.kind === "album"
+          ? await recordAlbum(scenario, known, gathered)
+          : await recordSingle(scenario, known, gathered));
+    } catch (error) {
+      /*
+       * Keep what was fetched, then re-raise.
+       *
+       * Every document here cost a second and none of them will ever change under this key, so
+       * a run that MusicBrainz's load-shedder interrupts must not make the next one start from
+       * zero — `existingCassette` reads exactly this file back as `known`. The *fixture* is
+       * deliberately not written: it is derived from the whole set, and half of one would be a
+       * ranking nobody recorded.
+       */
+      if (!dry && gathered.length > 0) {
+        writeJson(join(CASSETTE_DIR, `${scenario.name}.json`), {
+          name: scenario.name,
+          kind: scenario.kind,
+          recordedAt,
+          source: scenario.source,
+          videos: scenario.kind === "album" ? scenario.videos : [scenario.video],
+          entries: gathered,
+          partial: true,
+        });
+        console.log(
+          `  interrupted — ${String(gathered.length)} document(s) kept; run it again to resume`,
+        );
+      }
+      throw new PartialRecording(gathered, error);
+    }
 
     const cassette = {
       name: scenario.name,

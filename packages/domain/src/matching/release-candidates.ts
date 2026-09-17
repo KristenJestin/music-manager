@@ -56,6 +56,7 @@ import {
   releaseYearScore,
   yearOf,
 } from "./signals.ts";
+import { sourceEdition } from "../normalize/title.ts";
 import type {
   FitLine,
   MatchingConfig,
@@ -455,6 +456,16 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
   const sourceArtists = [input.hints.artist, ...input.videos.map((v) => v.ytArtist ?? v.uploader)];
   const sourceYear =
     input.hints.year ?? input.videos.find((v) => v.ytReleaseYear != null)?.ytReleaseYear ?? null;
+  /*
+   * Which edition the source announced — "deluxe", "live", nothing at all.
+   *
+   * Falls back to reading the album hint here rather than requiring the caller to have run
+   * `albumHints`: the wizard's hand search and the pinned-release path build hints of their
+   * own, and an edition that is announced in the title must not depend on which door the
+   * ranking came through.
+   */
+  const wantedEdition =
+    input.hints.edition ?? (sourceAlbum === "" ? [] : sourceEdition(sourceAlbum));
 
   const scored = input.candidates.map((candidate) => {
     const release = candidate.release;
@@ -500,12 +511,16 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
 
     /** The deductions a search result already earns, before any tracklist is read. */
     const knownPenalties: Penalty[] = [
-      ...disambiguationPenalties(release.disambiguation, config.preferences),
+      ...disambiguationPenalties(release.disambiguation, config.preferences, {
+        wanted: wantedEdition,
+        candidateTitle: release.title ?? "",
+      }),
       ...secondaryTypePenalties(group?.["secondary-types"], group?.["primary-type"]),
       ...titleKeywordPenalties(
         release.title ?? "",
         group?.["primary-type"],
         group?.["secondary-types"],
+        wantedEdition,
       ),
     ];
     const penalties: Penalty[] = [...coveragePenalties(coverageSignal, config), ...knownPenalties];
