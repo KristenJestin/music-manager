@@ -704,6 +704,30 @@ function JobPage() {
           ) : null}
         </Callout>
       )}
+      {/*
+        The source listed more than it handed over.
+
+        Its own callout rather than a line in the journal alone, because the journal scrolls
+        and this is a permanent property of the import: the album is short, on purpose, and
+        for a reason nobody here can fix. Not `danger` — the import is fine and the tracks it
+        does hold are real — and not silent, which is what it used to be.
+      */}
+      {job.unreadable.length === 0 ? null : (
+        <Callout tone="warn" className="mb-3.5" data-testid="job-unreadable">
+          <b>
+            {tracks.length} of {tracks.length + job.unreadable.length} entries
+          </b>{" "}
+          — {job.unreadable.length} could not be read from the source. The rest were imported.
+          <ul className="mt-1.5 font-mono text-2xs opacity-80">
+            {job.unreadable.map((gap, at) => (
+              <li key={`${String(gap.position ?? at)}:${gap.id ?? ""}`}>
+                {gap.position === null ? "entry" : `entry ${String(gap.position)}`}
+                {gap.id === null ? "" : ` (${gap.id})`} — {gap.reason ?? gap.code}
+              </li>
+            ))}
+          </ul>
+        </Callout>
+      )}
       {inbox.map((item) => (
         <Callout key={item.id} tone="warn" className="mb-3.5">
           <b>{item.title}</b> {item.summary ?? ""}{" "}

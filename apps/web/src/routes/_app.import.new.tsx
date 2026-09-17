@@ -1346,8 +1346,10 @@ function StepSource({
               <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
                 <h2 className="text-sm font-semibold">What we found on YouTube</h2>
                 <span className="text-xs text-fg-2" data-testid="source-count">
-                  {source.videos.length} {source.videos.length === 1 ? "video" : "videos"} ·{" "}
-                  {mmss(source.totalSeconds)} total
+                  {source.unreadable.length === 0
+                    ? `${String(source.videos.length)} ${source.videos.length === 1 ? "video" : "videos"}`
+                    : `${String(source.videos.length)} of ${String(source.videos.length + source.unreadable.length)} entries`}{" "}
+                  · {mmss(source.totalSeconds)} total
                 </span>
               </header>
               <div className="px-3.5 py-3">
@@ -2228,6 +2230,32 @@ function StepOptions({
                     label: "Release",
                     value: `${releaseTitle} by ${releaseArtist}${year === null ? "" : ` (${String(year)})`}`,
                   },
+                  /*
+                   * The gap in the listing, said before Start rather than discovered after it.
+                   *
+                   * Absent when there is none — a row reading "0 could not be read" on every
+                   * healthy album is noise, and noise is what a warning has to not be. When it
+                   * is there it names the first one, because "one of them is private" and
+                   * "one of them was deleted" are different news.
+                   */
+                  ...(source === null || source.unreadable.length === 0
+                    ? []
+                    : [
+                        {
+                          label: "Source listing",
+                          value: (
+                            <span data-testid="summary-unreadable" className="text-warn">
+                              {source.videos.length} of{" "}
+                              {source.videos.length + source.unreadable.length} entries;{" "}
+                              {source.unreadable.length} could not be read
+                              {source.unreadable[0]?.reason === null ||
+                              source.unreadable[0]?.reason === undefined
+                                ? ""
+                                : ` — ${source.unreadable[0].reason}`}
+                            </span>
+                          ),
+                        },
+                      ]),
                   {
                     label: "Tracks",
                     value: (
