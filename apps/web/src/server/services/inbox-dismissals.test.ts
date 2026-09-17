@@ -15,6 +15,7 @@
  * of a memory that is written and never read.
  */
 import { describe, expect, it } from "vitest";
+import { MMError } from "@mm/contracts";
 import {
   albumIncompleteSubject,
   DISMISSIBLE_TYPES,
@@ -24,7 +25,7 @@ import {
   orphanSubject,
   verifyMismatchSubject,
 } from "./inbox-dismissals.ts";
-import { silencesSubject } from "./inbox.resolution.ts";
+import { planResolution, silencesSubject } from "./inbox.resolution.ts";
 
 describe("which answers stop the asking", () => {
   it("treats “dismiss” and every card's own affirmative as final", () => {
@@ -40,6 +41,59 @@ describe("which answers stop the asking", () => {
   it("silences nothing on an answer that is a choice rather than a verb", () => {
     expect(silencesSubject({ releaseMbid: "rel-1" })).toBe(false);
     expect(silencesSubject({ accepted: true })).toBe(false);
+  });
+
+  /*
+   * The resolution `closeSupersededItems` writes when a step stops raising a question it
+   * raised last time. Nobody answered it, so nothing may be remembered: a step that has
+   * changed its mind must not be read as a person saying "and stop asking". It carries no
+   * `action` at all, which is what makes that true, and this is where that is written down.
+   */
+  it("reads a question the step stopped asking as nobody's answer", () => {
+    expect(
+      silencesSubject({ closedBy: "re-run", reason: "the step that raised it no longer does" }),
+    ).toBe(false);
+  });
+});
+
+/**
+ * The two lists live in two modules and answer two questions, and one contains the other.
+ *
+ * `SILENCING_ACTIONS` is a strict subset of `CLOSING_ACTIONS`, and nothing but this says so.
+ * A verb added to the silencing list and forgotten in the closing one would be refused by
+ * `planResolution` before `resolveInboxItem` ever reached the memory — the card would become
+ * unanswerable rather than quiet, and the refusal that `inbox.resolution.ts` exists to keep
+ * would be firing on a verb this application does offer.
+ */
+describe("a silencing answer against the plan that has to carry it", () => {
+  it("plans every silencing verb as a close, on every type a scan rebuilds", () => {
+    for (const action of ["dismiss", "ignore", "keep_all", "accept_partial", "accept_navidrome"]) {
+      expect(silencesSubject({ action }), action).toBe(true);
+      for (const type of DISMISSIBLE_TYPES) {
+        expect(planResolution({ type }, { action }), `${type} / ${action}`).toEqual({
+          kind: "none",
+        });
+      }
+    }
+  });
+
+  it("plans “snooze” the same way, and remembers nothing", () => {
+    for (const type of DISMISSIBLE_TYPES) {
+      expect(planResolution({ type }, { action: "snooze" }), type).toEqual({ kind: "none" });
+    }
+    expect(silencesSubject({ action: "snooze" })).toBe(false);
+  });
+
+  /*
+   * The refusal `inbox.resolution.ts` exists to protect, restated against the new branch of
+   * the same switch: a verb neither list knows throws, and it throws *before* anything is
+   * remembered, so an unknown answer can neither close the item nor silence its subject.
+   */
+  it("still refuses a verb nothing carries out, on a dismissible type too", () => {
+    for (const type of DISMISSIBLE_TYPES) {
+      expect(() => planResolution({ type }, { action: "teleport" }), type).toThrow(MMError);
+    }
+    expect(silencesSubject({ action: "teleport" })).toBe(false);
   });
 });
 
