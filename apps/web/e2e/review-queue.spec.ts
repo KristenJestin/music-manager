@@ -65,10 +65,19 @@ function bulk(): SeededItem[] {
 
 const TOTAL = Object.values(COUNTS).reduce((sum, n) => sum + n, 0);
 
-/** Cancel the job on screen when it is still cancellable, and say nothing when it is not. */
+/**
+ * Cancel the job on screen if it is still cancellable — best effort, on purpose.
+ *
+ * Tidying up, not an assertion. The job page is live: it re-reads itself on every journal line,
+ * and the fixture download skips every recording the library already holds, so the button can
+ * be there when the click is aimed and gone by the time it lands. Failing the test for that
+ * would be failing it for the thing having finished early.
+ */
 async function stopIfRunning(page: Page): Promise<void> {
-  const cancel = page.getByTestId("job-cancel");
-  if ((await cancel.count()) > 0) await cancel.click();
+  await page
+    .getByTestId("job-cancel")
+    .click({ timeout: 5_000 })
+    .catch(() => undefined);
 }
 
 test.describe("the review queue at three hundred items", () => {

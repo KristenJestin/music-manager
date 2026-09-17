@@ -510,6 +510,7 @@ export function RecordingCandidateCard({
       data-candidate-id={candidate.id}
       data-selected={selected}
       data-preselected={candidate.preselected}
+      data-by-hand={byHand}
       role="radio"
       aria-checked={selected}
       tabIndex={0}
