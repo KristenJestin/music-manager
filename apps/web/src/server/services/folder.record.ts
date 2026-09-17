@@ -8,13 +8,18 @@
  * this record is the part of it that is *about the file rather than about the music*: where it
  * was, what container it is in, and every tag it already carried.
  *
- * Two readers, which is why it is a record and not four loose keys:
+ * One reader today and one reason to keep the rest:
  *
  *  - **`download`** reads `path` and adopts the file instead of fetching a byte
  *    (`services/jobs/steps/download.ts`). That is the whole of "each file is adopted rather
  *    than downloaded";
- *  - **anything rebuilding the document** reads `tags`, which is the source's own metadata and
- *    therefore what the `untagged` fallback has to work from when MusicBrainz knows nothing.
+ *  - **`tags` is the file's own metadata, whole.** Nothing reads it yet: the four fields the
+ *    matcher and the document need — `track`, `artist`, `album`, `release_year` — are projected
+ *    onto the entry itself by `folder-source.ts`, so `toMatchVideo` and `fromYouTubeEntry` need
+ *    no branch. It is kept anyway for the reason the yt-dlp payload is kept whole: an existing
+ *    library's files carry ISRC, MUSICBRAINZ ids, the composer and the publisher, and a rebuild
+ *    in a year must be able to see what this listing saw. Throwing them away here would make
+ *    them unrecoverable without re-reading a disk that may be gone.
  *
  * A sibling key of `mm_adoption`, not a replacement for it. `mm_adoption` says *the bytes were
  * taken over from disk*, and `adopt.ts` writes it when it actually copies them; this one says
