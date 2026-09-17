@@ -638,10 +638,20 @@ async function pinAndRematch(
   const job = await getImport(importId, db);
   if (job === null) return false;
 
+  /*
+   * **The answer is an assertion, so `releaseMbidFromTags` goes.**
+   *
+   * `resolve` writes that flag when a folder's files agree on a `MUSICBRAINZ_ALBUMID`, and
+   * `match` reads it as "nobody asserted this" — which is what lets a folder import fall back
+   * to the files' own tags when MusicBrainz cannot produce the release
+   * (`wantsUntaggedFallback`). A person answering this card *has* asserted it. Leaving the flag
+   * behind would let the re-match give up on the very release they just chose and file the
+   * album untagged instead, which is the same shape of bug as dropping the answer outright.
+   */
   if (plan.kind === "pin-release") {
     await setImportOptions(
       importId,
-      { releaseMbid: plan.releaseMbid },
+      { releaseMbid: plan.releaseMbid, releaseMbidFromTags: false },
       { releaseMbid: plan.releaseMbid },
       db,
     );
@@ -650,7 +660,11 @@ async function pinAndRematch(
     if (mapping === null) return false;
     await setImportOptions(
       importId,
-      { mapping, ...(mapping.releaseMbid === null ? {} : { releaseMbid: mapping.releaseMbid }) },
+      {
+        mapping,
+        releaseMbidFromTags: false,
+        ...(mapping.releaseMbid === null ? {} : { releaseMbid: mapping.releaseMbid }),
+      },
       { ...(mapping.releaseMbid === null ? {} : { releaseMbid: mapping.releaseMbid }) },
       db,
     );

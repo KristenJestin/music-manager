@@ -507,6 +507,7 @@ describe("exactnessRefusal", () => {
   const exact = {
     kind: "album" as const,
     answered: false,
+    untagged: false,
     videos: 14,
     bound: 14,
     tracks: 14,
@@ -543,6 +544,24 @@ describe("exactnessRefusal", () => {
   });
 
   /**
+   * A folder MusicBrainz cannot identify, which `match`'s untagged fallback imports from the
+   * files' own tags. There is no release behind it, so there is no fit to be inexact: the row
+   * records no `uncovered` count, and reading that as "I cannot tell" would park every folder
+   * import of an unregistered record in the review queue for a question nobody can answer.
+   *
+   * A folder MusicBrainz *can* identify is not this: it takes the ordinary path, records the
+   * counts, and is judged by the four conditions like any other source.
+   */
+  it("exempts an import that has no MusicBrainz release at all", () => {
+    expect(
+      exactnessRefusal({ ...exact, untagged: true, bound: null, tracks: null, videos: null }),
+    ).toBeNull();
+    expect(exactnessRefusal({ ...exact, untagged: false, bound: null })).toMatch(
+      /no tracklist fit/,
+    );
+  });
+
+  /**
    * A single covers no tracklist — the release it is filed under is context, which is why the
    * wizard sends `trackTotal: 0` for one. The artist condition still applies.
    */
@@ -561,6 +580,7 @@ describe("autoAcceptDecision, composed with the exactness rule", () => {
   const exact = {
     kind: "album" as const,
     answered: false,
+    untagged: false,
     videos: 14,
     bound: 14,
     tracks: 14,

@@ -657,6 +657,11 @@ async function confirmBestRelease(
   const exact = exactnessRefusal({
     kind: "album",
     answered: false,
+    // `confirm-best` is by definition about a MusicBrainz release: it has just ranked the
+    // candidates and is about to commit one. "Import without MusicBrainz" is a different
+    // request and has a different door — `confirm-mapping` with `releaseMbid: null`, or the
+    // untagged fallback `match` applies to a folder on its own.
+    untagged: false,
     videos: rows.length,
     bound: best.mapped,
     tracks: best.candidate.tracks,

@@ -94,6 +94,7 @@ async function matchShape(ctx: StepContext): Promise<MatchShape | null> {
   return {
     kind: kind === "album" || kind === "single" ? kind : null,
     answered: data["supplied"] === true || data["pinned"] === true,
+    untagged: data["untagged"] === true,
     videos: mapped === null || extras === null ? null : mapped + extras,
     bound: mapped,
     tracks: mapped === null || uncovered === null ? null : mapped + uncovered,
@@ -112,6 +113,13 @@ export interface MatchShape {
   readonly kind: "album" | "single" | null;
   /** Somebody named the release or the whole mapping; the engine did not choose. */
   readonly answered: boolean;
+  /**
+   * There is no MusicBrainz release behind this import at all.
+   *
+   * `match` wrote `releaseMbid: null` — "import without MusicBrainz" — because the CLI asked
+   * for it or because the untagged fallback took a folder MusicBrainz cannot identify.
+   */
+  readonly untagged: boolean;
   /** Videos in the source: the ones bound plus the ones left over. */
   readonly videos: number | null;
   /** Videos bound to a track of the chosen release. */
@@ -138,18 +146,40 @@ export interface MatchShape {
  * (13), *The Family Jewels* (13), *Night Candy* (4), *Ceremonials* (15). One was chosen anyway
  * and imported without a question. A parked import beats a wrong album that looks finished.
  *
- * Two exemptions, both of them a person:
+ * Three exemptions. Two of them are a person, and the third is an import with no release for
+ * the four conditions to be about:
  *
  *  - **`answered`** — a pinned release (`--release`) or a supplied mapping (the wizard,
  *    `confirm-mapping`, MCP). Somebody named the answer after seeing the counts; this rule
  *    exists to ask somebody, and there is nobody left to ask;
  *  - **a single** — one video against a recording. "Uncovered tracks" is meaningless for it:
  *    the release it is filed under is context, not a tracklist to cover, which is why the
- *    wizard sends `trackTotal: 0` for one. The artist condition still applies.
+ *    wizard sends `trackTotal: 0` for one. The artist condition still applies;
+ *  - **`untagged`** — "import without MusicBrainz", which is what the untagged fallback makes
+ *    of a folder MusicBrainz cannot identify. See the note on the guard itself.
  */
 export function exactnessRefusal(shape: MatchShape | null): string | null {
   if (shape === null) return "the match step recorded nothing to judge";
   if (shape.answered) return null;
+
+  /*
+   * **An import with no release is not an inexact match; it is a different question.**
+   *
+   * All four conditions below compare the source against *the release that was chosen*, and an
+   * untagged import chose none: `match` wrote `releaseMbid: null` and built the document from
+   * the source's own tags. A folder import is the case that makes this matter — the files are
+   * the tracklist, they are all bound, nothing is left over on either side, and there is no
+   * record for them to fail to cover. Blocking it would refuse the one shape of import where
+   * there is genuinely nothing to ask a person about.
+   *
+   * It is not a waiver of the rule. The gate exists to stop the engine filing an album under a
+   * release **nobody vetted**, and an untagged import files it under no release at all: the
+   * album carries the `untagged` flag in the library precisely so it can be found and finished
+   * later. A folder MusicBrainz *can* identify takes the ordinary path and is judged by the
+   * four conditions like anything else — pointing at a folder is consent to import those
+   * files, not consent to a release the matcher guessed for them.
+   */
+  if (shape.untagged) return null;
 
   if (shape.artistCarried === false) {
     return "no candidate is credited to the artist the source names";
