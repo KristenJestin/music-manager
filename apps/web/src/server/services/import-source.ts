@@ -91,7 +91,27 @@ export function parseImportSource(raw: string): ImportSource {
     return { kind: "folder", url: folderUrl(path), path };
   }
 
-  if (WINDOWS_ABSOLUTE.test(trimmed) || trimmed.startsWith("/") || trimmed.startsWith("\\\\")) {
+  /*
+   * A UNC share is refused, and refused *here*, rather than mangled.
+   *
+   * `\\nas\musique` has no `file://` form this module round-trips: the two leading slashes are
+   * the authority, and `file://nas/musique` is exactly the shape `pathFromFileUrl` rejects
+   * below because it cannot mean anything outside Windows. Storing it anyway would give
+   * `file:///nas/musique`, which re-reads as the local directory `\nas\musique` — a different
+   * folder, silently. Mapping the share to a drive letter costs one command and makes every
+   * path in the product mean one thing.
+   */
+  if (trimmed.startsWith("\\\\") || trimmed.startsWith("//")) {
+    throw new MMError("INVALID_INPUT", `“${trimmed}” is a network share, not a local folder.`, {
+      hint:
+        "Map it to a drive letter (`net use Z: \\\\nas\\musique`) or mount it, and give that " +
+        "path instead. A UNC path has no unambiguous `file://` form, and storing one would " +
+        "quietly name a different folder when it was read back.",
+      action: "Map the share",
+    });
+  }
+
+  if (WINDOWS_ABSOLUTE.test(trimmed) || trimmed.startsWith("/")) {
     const path = resolvePath(trimmed);
     return { kind: "folder", url: folderUrl(path), path };
   }

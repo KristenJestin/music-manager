@@ -322,6 +322,10 @@ describe.skipIf(unavailable !== null)("importing a folder", () => {
     expect(refused?.code).toBe("INVALID_INPUT");
     expect(refused?.hint ?? "").toMatch(/absolute/i);
     expect(() => parseImportSource("")).toThrow();
+    // A UNC share has no `file://` form this round-trips, so it is refused rather than turned
+    // into `file:///nas/musique` — which reads back as the *local* directory `\nas\musique`.
+    expect(() => parseImportSource("\\\\nas\\musique")).toThrow(/network share/i);
+    expect(() => parseImportSource("//nas/musique")).toThrow(/network share/i);
     // A URL is still a URL.
     expect(parseImportSource("https://youtu.be/abc").kind).toBe("remote");
     expect(parseImportSource("fixture://discovery").kind).toBe("remote");
