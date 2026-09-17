@@ -260,18 +260,6 @@ export async function dismissedSubjects(db: Database = defaultDb()): Promise<Rea
   return new Set(rows.map((row) => row.subject));
 }
 
-/** The hidden subjects of one type only — what a single raiser actually consults. */
-export async function dismissedSubjectsOfType(
-  type: InboxType,
-  db: Database = defaultDb(),
-): Promise<ReadonlySet<string>> {
-  const rows = await db
-    .select({ subject: inboxDismissals.subject })
-    .from(inboxDismissals)
-    .where(eq(inboxDismissals.type, type));
-  return new Set(rows.map((row) => row.subject));
-}
-
 /** True when this exact question has already been answered "and stop asking". */
 export async function isDismissed(subject: string, db: Database = defaultDb()): Promise<boolean> {
   const [row] = await db
