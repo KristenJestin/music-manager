@@ -36,6 +36,7 @@ import {
 import { type NavidromeClient } from "#/server/integrations/navidrome/client.ts";
 import type { SubsonicAlbum, SubsonicSong } from "#/server/integrations/navidrome/types.ts";
 import { closeLibraryItem, openLibraryItem } from "#/server/services/library-inbox.ts";
+import { verifyMismatchSubject } from "#/server/services/inbox-dismissals.ts";
 import { navidromeClient } from "#/server/services/navidrome.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 
@@ -595,10 +596,19 @@ async function raiseOrClearInbox(
   const wrong = verification.fields.filter(
     (entry) => entry.required && entry.status === "mismatch",
   );
+  /*
+   * The dismissal key carries the *values*, not just the album and the field names.
+   *
+   * "Accept what Navidrome reports" is an answer about what it reported. Re-tag the album, or
+   * let the server start reading something else back, and the key no longer matches, so the
+   * question returns — which is the difference between a memory and a gag.
+   */
+  const subject = verifyMismatchSubject(album.id, wrong);
   await openLibraryItem(
     {
       type: "verify_mismatch",
       subject: album.id,
+      dismissSubjects: [subject],
       title: `${album.albumArtist} — ${album.title}: ${String(wrong.length)} required field(s) read back wrong`,
       summary: wrong
         .map((entry) => `${entry.name}: wrote ${entry.written}, read ${entry.read}`)

@@ -19,6 +19,7 @@ import { INBOX_TYPES, type InboxType } from "#/server/db/schema/enums.ts";
 import {
   importTracks,
   type Import,
+  type InboxDismissal,
   type InboxItem,
   type InboxStatus,
 } from "#/server/db/schema/index.ts";
@@ -36,6 +37,11 @@ import {
   resolveInboxItem,
   type InboxFilter,
 } from "#/server/services/inbox.ts";
+import {
+  forgetInboxDismissal,
+  forgetInboxDismissals,
+  listInboxDismissals,
+} from "#/server/services/inbox-dismissals.ts";
 import { setImportOptions } from "#/server/services/console.queries.ts";
 import { pinnedRelease } from "#/server/services/matching.queries.ts";
 import { resolveMbRef } from "#/server/services/mb-resolve.ts";
@@ -574,7 +580,22 @@ export interface InboxListPayload {
   readonly byType: Record<InboxType, number>;
   /** One number per status, with the *status* filter lifted; the select reads these. */
   readonly byStatus: Record<InboxStatus, number>;
+  /**
+   * What has been hidden for good, so the page can show it and take it back.
+   *
+   * On the list payload rather than behind a button of its own for the reason Discover's
+   * count is on its view: a memory nobody can see is a memory nobody trusts, and a dismissal
+   * taken by mistake has to be undoable without a database client. Capped, with the true
+   * total beside it — the cap is a rendering limit, not a lie about how many there are.
+   */
+  readonly dismissals: {
+    readonly rows: readonly InboxDismissal[];
+    readonly total: number;
+  };
 }
+
+/** How many hidden subjects the Review page lists before it stops drawing rows. */
+const DISMISSAL_LIST_LIMIT = 100;
 
 const typeFilter = z.enum(INBOX_TYPES);
 
@@ -622,14 +643,22 @@ export const fetchInbox = createServerFn({ method: "GET", strict: STRICT })
       };
       const offset = data.page * INBOX_PAGE_SIZE;
 
-      const [items, total, byType, byStatus] = await Promise.all([
+      const [items, total, byType, byStatus, dismissals] = await Promise.all([
         listInbox({ ...filter, limit: INBOX_PAGE_SIZE, offset }, db()),
         countInbox(filter, db()),
         countInboxByType(filter, db()),
         countInboxByStatus(filter, db()),
+        listInboxDismissals({ limit: DISMISSAL_LIST_LIMIT }, db()),
       ]);
 
-      const page = { total, page: data.page, pageSize: INBOX_PAGE_SIZE, byType, byStatus };
+      const page = {
+        total,
+        page: data.page,
+        pageSize: INBOX_PAGE_SIZE,
+        byType,
+        byStatus,
+        dismissals,
+      };
 
       /*
        * The open card may be an item this page does not hold — a deep link, or the item that
@@ -973,6 +1002,40 @@ export const searchWithoutQualifier = createServerFn({ method: "POST", strict: S
       );
 
       return { importId: job.id, pinned: base, nextId: await nextOpenId() };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Un-hide a subject, or all of them: the way back from "stop asking".
+ *
+ * Deleting the memory is the whole undo — the next scan, verify or Discover sync walks the
+ * same library and, finding nothing that says otherwise, raises the question again. Nothing
+ * is resurrected here, because the item that carried the question is gone and rebuilding it
+ * from a row that describes a library of some weeks ago would be a fiction.
+ */
+export const askInboxAgain = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z
+      .object({ subject: z.string().min(1).optional(), all: z.boolean().default(false) })
+      .refine((value) => value.all || value.subject !== undefined, {
+        message: "Give a `subject`, or `all: true`.",
+      }),
+  )
+  .handler(async ({ data }): Promise<{ readonly forgotten: number }> => {
+    try {
+      if (data.all) return { forgotten: await forgetInboxDismissals({}, db()) };
+      const subject = data.subject ?? "";
+      const removed = await forgetInboxDismissal(subject, db());
+      if (!removed) {
+        throw new MMError("NOT_FOUND", `Nothing hidden under ${subject}.`, {
+          status: 404,
+          hint: "It may already have been un-hidden; reload the review queue.",
+        });
+      }
+      return { forgotten: 1 };
     } catch (error) {
       return toFailure(error);
     }

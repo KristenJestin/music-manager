@@ -1,5 +1,5 @@
 {
-  "id": "d449d088-506d-40e4-8008-8349ccd4adb2",
+  "id": "00d299a2-ea79-4956-961a-1bd4530b0acf",
   "prevId": "fbb5704d-e20e-4dad-bd5a-458f62091e21",
   "version": "7",
   "dialect": "postgresql",
@@ -425,13 +425,6 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
-        },
-        "unreadable": {
-          "name": "unreadable",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
         },
         "upstream_attempts": {
           "name": "upstream_attempts",
@@ -1690,6 +1683,61 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inbox_dismissals": {
+      "name": "inbox_dismissals",
+      "schema": "",
+      "columns": {
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "inbox_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inbox_dismissals_type_idx": {
+          "name": "inbox_dismissals_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

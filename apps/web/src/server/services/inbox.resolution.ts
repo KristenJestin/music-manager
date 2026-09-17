@@ -17,6 +17,11 @@
  *  - **nothing is handled by falling through.** Every verb this Inbox can produce is named in
  *    one of the two lists below, and an answer that is in neither — a new option someone adds
  *    to `optionsFor` and forgets to wire — is an `INVALID_INPUT`, loudly, on the first click.
+ *
+ * A third list, `SILENCING_ACTIONS`, is a strict subset of the closing ones and answers a
+ * different question: which of them mean "and stop asking" rather than "not now". It exists
+ * because a scan rebuilds its items from scratch, so a verb read as merely closing is a verb
+ * that gets asked again tomorrow (`services/inbox-dismissals.ts`).
  */
 import { MMError } from "@mm/contracts";
 import type { InboxType } from "#/server/db/schema/enums.vocab.ts";
@@ -56,6 +61,43 @@ const CLOSING_ACTIONS: ReadonlySet<string> = new Set([
   "keep-mapping",
   "cookies_renewed",
 ]);
+
+/**
+ * The closing verbs that also mean **"and stop asking"**, as opposed to "not now".
+ *
+ * `snooze` is the one deliberately missing from this list, and the omission is the whole
+ * distinction: "Later" leaves the question to be asked again, which is exactly right for a
+ * question you have not answered yet. Everything below *is* an answer.
+ *
+ *  - `dismiss` and `ignore` say so in the general case — they are what a batch "reject" sends;
+ *  - `keep_all`, `accept_partial` and `accept_navidrome` are the same sentence in the words of
+ *    one card: "these two copies are both meant to be there", "this album is as complete as it
+ *    will ever be", "that field is simply not indexed". The owner pressed *Keep both copies*
+ *    eleven times and the scan asked eleven times more, so treating the affirmative verb of a
+ *    scan card as anything but final was the bug.
+ *
+ * What it silences is a *subject*, and only for the types a scan rebuilds — see
+ * `services/inbox-dismissals.ts`, which owns the key and therefore owns what expires.
+ */
+const SILENCING_ACTIONS: ReadonlySet<string> = new Set([
+  "dismiss",
+  "ignore",
+  "keep_all",
+  "accept_partial",
+  "accept_navidrome",
+]);
+
+/**
+ * Does this answer mean "and do not raise this again"?
+ *
+ * Pure, and separate from `planResolution` for the reason `planResolution` is separate from
+ * `resolveInboxItem`: it is decided before anything is written, and it is unit-testable
+ * without a database.
+ */
+export function silencesSubject(resolution: Record<string, unknown>): boolean {
+  const action = text(resolution["action"]);
+  return action !== null && SILENCING_ACTIONS.has(action);
+}
 
 /**
  * Verbs the *Console* carries out by navigating somewhere, not by resolving the item.

@@ -27,7 +27,8 @@ import {
   type InboxType,
   type StepName,
 } from "#/server/db/schema/index.ts";
-import { planResolution, type ResolutionPlan } from "./inbox.resolution.ts";
+import { planResolution, silencesSubject, type ResolutionPlan } from "./inbox.resolution.ts";
+import { dismissalSubjectsOf, rememberDismissals } from "./inbox-dismissals.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { INBOX_SORTS, type InboxSort } from "#/lib/inbox-filters.ts";
 import { newId } from "#/server/ids.ts";
@@ -348,6 +349,18 @@ export async function resolveInboxItem(
   }
 
   const plan = planResolution(item, options.resolution);
+
+  /*
+   * The memory is written before the row is closed, and on the *subject* rather than the row.
+   *
+   * That ordering is not cosmetic: the item is about to become history, and the thing that
+   * has to survive it is the answer. Nothing happens here for a "Later" (`snooze`) or for a
+   * type a scan does not rebuild — `dismissalSubjectsOf` returns nothing for those — so this
+   * is a no-op on every import-scoped question.
+   */
+  if (silencesSubject(options.resolution)) {
+    await rememberDismissals(item.type, dismissalSubjectsOf(item), db);
+  }
 
   const [updated] = await db
     .update(inboxItems)

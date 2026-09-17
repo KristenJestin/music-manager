@@ -6,8 +6,9 @@
  */
 import { useState } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { Inbox, SearchX } from "lucide-react";
+import { ChevronDown, EyeOff, Inbox, SearchX } from "lucide-react";
 import { cn } from "cn";
+import { Button } from "#/components/ui/button.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
 import { Pager } from "#/components/pager.tsx";
@@ -27,6 +28,7 @@ import { humanise } from "#/lib/format.ts";
 import type { InboxSearch } from "#/lib/inbox-filters.ts";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import {
+  askInboxAgain,
   pinReleaseForItem,
   resolveItem,
   searchWithoutQualifier,
@@ -97,7 +99,7 @@ export function ReviewScreen({
   readonly payload: InboxListPayload;
   readonly params: InboxSearch;
 }) {
-  const { items, card, total, page, pageSize, byType, byStatus } = payload;
+  const { items, card, total, page, pageSize, byType, byStatus, dismissals } = payload;
   const router = useRouter();
   const navigate = useNavigate();
   const toast = useToast();
@@ -258,6 +260,126 @@ export function ReviewScreen({
           )}
         </div>
       )}
+
+      <HiddenQuestions dismissals={dismissals} />
     </>
+  );
+}
+
+/**
+ * What you have hidden for good, and the way back.
+ *
+ * Outside the `items.length === 0` branch on purpose: an empty queue is exactly the state
+ * somebody who has been dismissing things is in, and that is the moment the list has to be
+ * reachable. Without it a dismissal taken by mistake is unrecoverable, because the memory is
+ * keyed on a subject nobody can type — see `services/inbox-dismissals.ts`.
+ *
+ * The mirror of Discover's "N suggestion(s) hidden for good · Show them again", with one
+ * difference the Inbox needs and Discover does not: the rows are listed one by one and each
+ * can be taken back on its own. Eleven duplicates were dismissed here; putting all eleven
+ * back to correct one of them is the unrecoverable state again, wearing the other hat.
+ */
+function HiddenQuestions({ dismissals }: { readonly dismissals: InboxListPayload["dismissals"] }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  if (dismissals.total === 0) return null;
+
+  const forget = (subject: string | null): void => {
+    if (busy) return;
+    setBusy(true);
+    void askInboxAgain({ data: subject === null ? { all: true } : { subject } }).then(
+      (result) => {
+        setBusy(false);
+        toast(
+          result.forgotten === 1
+            ? "It will be raised again by the next scan."
+            : `${String(result.forgotten)} question(s) will be raised again by the next scan.`,
+          "ok",
+        );
+        void router.invalidate();
+      },
+      (error: unknown) => {
+        setBusy(false);
+        toast(error instanceof Error ? error.message : "Could not un-hide that.", "danger");
+      },
+    );
+  };
+
+  return (
+    <section
+      data-testid="review-dismissals"
+      className="mt-4 overflow-hidden rounded-xl border border-line bg-surface-1"
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        data-testid="review-dismissals-toggle"
+        className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-xs text-fg-2 hover:bg-surface-2"
+        onClick={() => {
+          setOpen((shown) => !shown);
+        }}
+      >
+        <span className="flex items-center gap-2">
+          <EyeOff className="size-3.5 text-fg-3" aria-hidden="true" />
+          {dismissals.total} question(s) hidden for good. The scan will not raise them again.
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-fg-3 transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open ? (
+        <div className="border-t border-line">
+          {dismissals.rows.map((row) => (
+            <div
+              key={row.subject}
+              data-testid="review-dismissal"
+              className="flex items-center gap-2 border-b border-line px-3.5 py-2 last:border-b-0"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs">{row.label}</span>
+                {/* The key itself, because it is what makes the memory expire or not, and a
+                    person deciding whether to un-hide something deserves to see it. */}
+                <span className="block truncate text-3xs text-fg-3">{row.subject}</span>
+              </span>
+              <ToneBadge tone="muted">{humanise(row.type)}</ToneBadge>
+              <Button
+                size="xs"
+                variant="ghost"
+                disabled={busy}
+                data-testid="review-dismissal-unhide"
+                onClick={() => {
+                  forget(row.subject);
+                }}
+              >
+                Ask again
+              </Button>
+            </div>
+          ))}
+          {dismissals.total > dismissals.rows.length ? (
+            <p className="px-3.5 py-2 text-2xs text-fg-3">
+              {dismissals.rows.length} of {dismissals.total} shown.
+            </p>
+          ) : null}
+          <div className="flex justify-end border-t border-line px-3.5 py-2">
+            <Button
+              size="xs"
+              variant="outline"
+              disabled={busy}
+              data-testid="review-dismissals-forget"
+              onClick={() => {
+                forget(null);
+              }}
+            >
+              Ask about all of them again
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }

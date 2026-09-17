@@ -1,1 +1,0 @@
-ALTER TABLE "imports" ADD COLUMN "unreadable" jsonb DEFAULT '[]'::jsonb NOT NULL;
