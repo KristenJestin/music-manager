@@ -22,6 +22,8 @@ export type ExtractResult = components["schemas"]["ExtractResult"];
 export type ExtractEntry = components["schemas"]["ExtractEntry"];
 export type FingerprintResult = components["schemas"]["FingerprintResult"];
 export type ProbeResult = components["schemas"]["ProbeResult"];
+export type ProbeBatchResult = components["schemas"]["ProbeBatchResult"];
+export type ProbeBatchItem = components["schemas"]["ProbeBatchItem"];
 export type TagRequest = components["schemas"]["TagRequest"];
 export type TagResult = components["schemas"]["TagResult"];
 export type ReplayGainResult = components["schemas"]["ReplayGainResult"];
@@ -226,6 +228,24 @@ export class ToolboxClient {
     return await this.call("POST /probe", async () => {
       const result = await this.http.POST("/probe", { body: { path }, signal: this.signal() });
       return this.unwrap(result, "POST /probe");
+    });
+  }
+
+  /**
+   * Probe many files in one request — what listing a folder costs.
+   *
+   * The caller splits its own list at `MAX_PROBE_BATCH`, because it is the caller that knows
+   * what a partial answer means for it. The answers come back **in the order they were sent**,
+   * and a file ffprobe could not read carries an `error` instead of a `result` rather than
+   * failing the whole call: one unreadable track must not cost the listing of the other 272.
+   */
+  async probeBatch(paths: readonly string[]): Promise<ProbeBatchResult> {
+    return await this.call("POST /probe/batch", async () => {
+      const result = await this.http.POST("/probe/batch", {
+        body: { paths: [...paths] },
+        signal: this.signal(),
+      });
+      return this.unwrap(result, "POST /probe/batch");
     });
   }
 

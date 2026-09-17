@@ -9,14 +9,24 @@ Vorbis is case-insensitive and ID3/MP4 report their own casing.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, cast
 
 from toolbox.errors import ErrorCode, ToolboxError
-from toolbox.models import ProbeResult, ProbeStream
+from toolbox.models import ProbeBatchItem, ProbeBatchResult, ProbeResult, ProbeStream
 from toolbox.subprocesses import run_tool
 
-__all__ = ["probe"]
+__all__ = ["probe", "probe_batch"]
+
+#: How many ffprobe processes run at once inside one batch.
+#:
+#: ffprobe on a tagged audio file is a few milliseconds of work and a process spawn, so the
+#: cost is almost entirely the fork; a handful in flight hides it without turning a folder
+#: listing into a fork bomb on a machine that is also downloading. Deliberately unrelated to
+#: the *download* slot, which is single because YouTube rate-limits us — nobody rate-limits
+#: reading our own disk.
+_BATCH_WORKERS = 8
 
 _ARGS = ("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams")
 
@@ -106,3 +116,28 @@ def probe(path_str: str) -> ProbeResult:
         tags=tags,
         has_picture=has_picture,
     )
+
+
+def _one(path_str: str) -> ProbeBatchItem:
+    """Probe one file of a batch, turning any failure into that file's own entry."""
+    try:
+        return ProbeBatchItem(path=path_str, result=probe(path_str))
+    except ToolboxError as error:
+        return ProbeBatchItem(path=path_str, error=error.body())
+    except Exception as error:  # pragma: no cover - a spawn failure, not an ffprobe verdict
+        return ProbeBatchItem(
+            path=path_str,
+            error=ToolboxError(ErrorCode.UNKNOWN, str(error) or type(error).__name__).body(),
+        )
+
+
+def probe_batch(paths: list[str]) -> ProbeBatchResult:
+    """Probe every path, in parallel, and answer in the order they were given.
+
+    Order is part of the contract: the caller sent a folder listing and expects to line the
+    answers up with it by index rather than by re-matching strings it already normalised.
+    """
+    with ThreadPoolExecutor(max_workers=min(_BATCH_WORKERS, len(paths))) as pool:
+        files = list(pool.map(_one, paths))
+    ok = sum(1 for item in files if item.result is not None)
+    return ProbeBatchResult(files=files, ok=ok, failed=len(files) - ok)
