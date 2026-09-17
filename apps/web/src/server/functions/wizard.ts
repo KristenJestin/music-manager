@@ -181,7 +181,7 @@ function toSourceView(
  * Paste a URL, get a source.
  *
  * `createFromUrl` runs `resolve` in this process — that is P03's deliberate choice and the
- * reason the paste box answers in a second rather than after a worker poll.
+ * reason a pasted link answers in a second rather than after a worker poll.
  *
  * It then **parks the job**, and that is not optional. `createFromUrl` leaves the import in
  * `pending`/`running` at `match`, and a running worker's `resumableImports()` picks up exactly
@@ -193,10 +193,27 @@ function toSourceView(
  */
 export const resolveSource = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ url: z.string().trim().min(1) }))
+  .inputValidator(
+    z.object({
+      url: z.string().trim().min(1),
+      /**
+       * The release this import is pinned to, chosen **before** the URL was known.
+       *
+       * That is the command palette's order of events: you paste a MusicBrainz release, ⌘K
+       * offers "start an import pinned to this", and the URL is the thing still missing. It is
+       * the same door the CLI's `--release` uses — `imports.options.releaseMbid`, which
+       * `match` honours by looking the release up by MBID rather than by taking the
+       * preselection. Nothing new decides anything.
+       */
+      releaseMbid: z.string().trim().min(1).max(64).optional(),
+    }),
+  )
   .handler(async ({ data }): Promise<SourceView> => {
     try {
-      const created = await createFromUrl(data.url, { db: db() });
+      const created = await createFromUrl(data.url, {
+        db: db(),
+        ...(data.releaseMbid === undefined ? {} : { releaseMbid: data.releaseMbid }),
+      });
       await pauseImport(created.job.id, "Waiting for the import wizard.", db());
       const { rows } = await videosOf(created.job.id, db());
       return toSourceView({ ...created.job, status: "paused" }, rows, created.duplicates);
@@ -434,13 +451,62 @@ async function candidatesView(
       recordings: result.ranking.candidates.slice(0, SHOWN),
     };
   }
+  const shown = result.ranking.candidates.slice(0, SHOWN);
+  const releases = await withPinned(job, shown);
   return {
     ...common,
+    // A pin is a decision already taken, so it wins over what the matcher preferred. It is the
+    // same rule `match` applies to `options.releaseMbid` (`jobs/steps/match.ts`): falling back
+    // to the preselection would silently import a different record from the one asked for.
+    preselectedId: pinOf(job) ?? common.preselectedId,
     kind: "album",
-    releases: result.ranking.candidates.slice(0, SHOWN),
-    groups: result.groups.groups.slice(0, SHOWN_GROUPS),
+    releases,
+    /*
+     * The groups come from the ranking, as they always have — regrouping the twelve shown
+     * would silently change what "12 releases" on a card counts. The one exception is a pin
+     * the search never returned: it is not in the ranking, so it is not in any group either,
+     * and step 2 draws groups. Regrouping then is what puts a card under the selection.
+     */
+    groups:
+      releases === shown
+        ? result.groups.groups.slice(0, SHOWN_GROUPS)
+        : releaseGroups.group(releases).groups.slice(0, SHOWN_GROUPS),
     recordings: [],
   };
+}
+
+/** The release this import was pinned to before it had a source, or `null`. */
+function pinOf(job: Import): string | null {
+  const pinned = job.options.releaseMbid;
+  return pinned === undefined || pinned === "" ? null : pinned;
+}
+
+/**
+ * The pinned release, in the list, whether or not the search found it.
+ *
+ * A pin the search never returned is the case that matters — it is exactly why somebody
+ * reached for it. Step 2 would otherwise open on a highlighted id with no card under it, which
+ * reads as "nothing was chosen". `pinnedRelease` is the wizard's existing escape hatch: one
+ * lookup by MBID, scored by the same engine as every other candidate, so the number on the
+ * pinned card means what the numbers beside it mean.
+ *
+ * A failure here is not fatal. The pin still travels to `match` in `options.releaseMbid`, so
+ * losing the *card* costs a picture and not the decision.
+ */
+async function withPinned(
+  job: Import,
+  candidates: readonly ReleaseCandidate[],
+): Promise<readonly ReleaseCandidate[]> {
+  const pinned = pinOf(job);
+  if (pinned === null) return candidates;
+  if (candidates.some((candidate) => candidate.id === pinned)) return candidates;
+  try {
+    const settings = await loadSettings(db());
+    const { candidate } = await pinnedRelease({ job, settings, db: db(), releaseMbid: pinned });
+    return [candidate, ...candidates].slice(0, SHOWN);
+  } catch {
+    return candidates;
+  }
 }
 
 /**

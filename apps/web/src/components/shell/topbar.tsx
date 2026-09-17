@@ -1,13 +1,15 @@
 /**
- * The topbar: where you are, the paste box, and the two overlays.
+ * The topbar: where you are, the way in, and the two overlays.
  *
- * The paste box is the app's front door. Pressing Enter in it goes straight to the wizard with
- * the URL already in the query string, so importing an album is *paste, Enter* from any page —
- * which is the interaction the whole product exists for.
+ * The way in used to be an input that accepted a YouTube URL and nothing else. It is a button
+ * onto the command palette now, because the string somebody has in the clipboard is as often a
+ * MusicBrainz link, an album name or an artist — and a box that answers "no results" to three
+ * of the four is a box you have to know the rules of before you can use it. The palette
+ * decides what the string is; this is one of its three doors, with ⌘K and ⌘V.
  */
-import { useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, Command as CommandIcon, MonitorPlay } from "lucide-react";
+import { type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { Bell, Command as CommandIcon, Search } from "lucide-react";
 import { cn } from "cn";
 import { Kbd } from "#/components/kbd.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
@@ -21,10 +23,8 @@ export interface Crumb {
 }
 
 export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
-  const navigate = useNavigate();
   const testId = useTestId();
-  const { setPaletteOpen, setDrawerOpen, data } = useShell();
-  const [url, setUrl] = useState("");
+  const { openPalette, setDrawerOpen, data } = useShell();
   /*
    * The two overlay buttons are pure React state, so a click before hydration does exactly
    * nothing — silently. `useHydrated` is the pattern the forms already use for this: the
@@ -33,14 +33,6 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
    * waiting for. The E2E suite met the untreated version as a drawer that never opened.
    */
   const hydrated = useHydrated();
-
-  const submit = (event: FormEvent): void => {
-    event.preventDefault();
-    const trimmed = url.trim();
-    if (trimmed === "") return;
-    setUrl("");
-    void navigate({ to: "/import/new", search: { url: trimmed } });
-  };
 
   return (
     <header className="sticky top-0 z-20 flex h-topbar items-center gap-3 border-b border-line bg-background/85 px-4 backdrop-blur-md">
@@ -65,35 +57,43 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         })}
       </nav>
 
-      <form onSubmit={submit} className="ml-auto">
-        <label
-          className={cn(
-            "flex h-8 w-urlbox items-center gap-1.5 rounded-md border border-line-strong bg-surface-2 pr-1.5 pl-2.5",
-            "focus-within:border-primary",
-          )}
-        >
-          <MonitorPlay className="size-4 shrink-0 text-fg-3" aria-hidden="true" />
-          <span className="sr-only">Paste a YouTube URL to import</span>
-          <input
-            data-testid={testId("url-paste")}
-            value={url}
-            onChange={(event) => {
-              setUrl(event.target.value);
-            }}
-            placeholder="Paste a YouTube URL to import…"
-            className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-fg-3"
-          />
-          {/*
-           * The Apple command glyph on a Windows machine is a rune, not a hint (owner review
-           * A4/B9). `CommandIcon` is already imported for the palette button; the modifier is
-           * spelled out for everyone else.
-           */}
-          <Kbd>
-            <CommandIcon className="inline size-3 align-middle" aria-hidden="true" />
-            <span className="sr-only">Command or Control</span> K
-          </Kbd>
-        </label>
-      </form>
+      {/*
+        The front door, and it is a *button* now.
+
+        It was an input that took one thing — a YouTube URL — and answered "no" to everything
+        else somebody might have in the clipboard: a MusicBrainz link, an album name, an
+        artist. One box that accepts one syntax is a box you have to already know the rules
+        of. Pressing this opens the palette, which decides what the string is and offers the
+        right things; ⌘K opens the same palette, and ⌘V anywhere on the page opens it with the
+        clipboard already in it (`app-shell.tsx`). So pasting a link is still paste-then-Enter
+        and never costs a gesture more than it used to.
+      */}
+      <button
+        type="button"
+        data-testid={testId("open-palette")}
+        disabled={!hydrated}
+        onClick={() => {
+          openPalette();
+        }}
+        className={cn(
+          "ml-auto flex h-8 w-urlbox items-center gap-1.5 rounded-md border border-line-strong bg-surface-2 pr-1.5 pl-2.5 text-left",
+          "hover:border-primary disabled:opacity-60",
+        )}
+      >
+        <Search className="size-4 shrink-0 text-fg-3" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-xs text-fg-3">
+          Search, or paste a link or an MBID…
+        </span>
+        {/*
+         * The Apple command glyph on a Windows machine is a rune, not a hint (owner review
+         * A4/B9), so the modifier is spelled out for everyone whose keyboard does not have
+         * that key. The glyph stays for everyone whose does.
+         */}
+        <Kbd>
+          <CommandIcon className="inline size-3 align-middle" aria-hidden="true" />
+          <span className="sr-only">Command or Control</span> K
+        </Kbd>
+      </button>
 
       <button
         type="button"
@@ -110,19 +110,6 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         {(data?.needsReview ?? 0) > 0 ? (
           <span className="absolute top-1 right-1 size-1.5 rounded-full bg-danger" />
         ) : null}
-      </button>
-      <button
-        type="button"
-        title="Command palette"
-        aria-label="Command palette"
-        data-testid={testId("open-palette")}
-        disabled={!hydrated}
-        onClick={() => {
-          setPaletteOpen(true);
-        }}
-        className="grid size-7.5 place-items-center rounded-md border border-transparent text-fg-2 hover:border-line hover:bg-surface-2 hover:text-foreground"
-      >
-        <CommandIcon className="size-4" aria-hidden="true" />
       </button>
     </header>
   );

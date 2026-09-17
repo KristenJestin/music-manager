@@ -39,11 +39,18 @@ import {
   type MbRecording,
   type MbWork,
   type MbEntityName,
+  type MbRef,
 } from "@mm/domain";
 import { parseMbRef, MB_ENTITY_NOUN } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import type { Import } from "#/server/db/schema/index.ts";
-import { lookupArtist, lookupReleaseGroup, lookupWork } from "#/server/integrations/musicbrainz.ts";
+import {
+  lookupArtist,
+  lookupRecording,
+  lookupRelease,
+  lookupReleaseGroup,
+  lookupWork,
+} from "#/server/integrations/musicbrainz.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import { cassetteNameOf } from "#/server/services/matching.cassettes.ts";
 import { gatewayForUrl } from "#/server/services/matching.queries.ts";
@@ -134,6 +141,36 @@ export interface Lookups {
   work(mbid: string): Promise<MbWork | null>;
 }
 
+/**
+ * The same five lookups with **no import behind them**.
+ *
+ * `lookupsFor` below needs a job, because a `fixture://` import has to replay its cassette.
+ * The command palette has no job — somebody pasted an id into ⌘K before deciding what to do
+ * with it — so it takes the plain client for all five, through the same one-per-second gate
+ * and the same raw cache. `offline` is `MM_FIXTURES` at the call site, which is what keeps
+ * fixtures mode from reaching a socket.
+ */
+export function directLookups(db: Database, signal?: AbortSignal, offline = false): Lookups {
+  const ctx = async () => await sourceContextFor(db, signal, offline);
+  const quietly = async <T>(run: () => Promise<T | null>): Promise<T | null> => {
+    try {
+      return await run();
+    } catch {
+      return null;
+    }
+  };
+  return {
+    release: async (mbid) =>
+      await quietly(async () => (await lookupRelease(await ctx(), mbid)).data),
+    recording: async (mbid) =>
+      await quietly(async () => (await lookupRecording(await ctx(), mbid)).data),
+    releaseGroup: async (mbid) =>
+      await quietly(async () => (await lookupReleaseGroup(await ctx(), mbid)).data),
+    artist: async (mbid) => await quietly(async () => (await lookupArtist(await ctx(), mbid)).data),
+    work: async (mbid) => await quietly(async () => (await lookupWork(await ctx(), mbid)).data),
+  };
+}
+
 async function lookupsFor(job: Import, db: Database, signal?: AbortSignal): Promise<Lookups> {
   const gateway = await gatewayForUrl(job.url, db, signal);
   /*
@@ -171,7 +208,10 @@ async function lookupsFor(job: Import, db: Database, signal?: AbortSignal): Prom
  * is still right most of the time; the difference is that being wrong now costs a second
  * lookup instead of a wrong sentence.
  */
-function order(claimed: MbEntityName | null, single: boolean): readonly MbEntityName[] {
+export function entityOrder(
+  claimed: MbEntityName | null,
+  single: boolean,
+): readonly MbEntityName[] {
   const natural: readonly MbEntityName[] = single
     ? ["recording", "release", "release-group", "artist", "work"]
     : ["release", "release-group", "recording", "artist", "work"];
@@ -203,10 +243,8 @@ export async function resolveMbRef(
   const db = options.db ?? defaultDb();
   const lookups = options.lookups ?? (await lookupsFor(options.job, db, options.signal));
 
-  for (const entity of order(ref.claimed, options.single)) {
-    const found = await tryEntity(entity, ref.mbid, lookups, options);
-    if (found !== null) return found;
-  }
+  const found = await identify(ref, lookups, entityOrder(ref.claimed, options.single));
+  if (found !== null) return describe(found, ref.mbid, options);
 
   return {
     mbid: ref.mbid,
@@ -229,12 +267,76 @@ export async function resolveMbRef(
   };
 }
 
-async function tryEntity(
-  entity: MbEntityName,
-  mbid: string,
+/**
+ * **What it is**, with the document that proved it — the half that has no opinion.
+ *
+ * `ResolvedRef` answers "what happens if I press the button", which only means something for
+ * an import that already exists. The command palette asks the question one step earlier: an
+ * id pasted into ⌘K has no job behind it, and the affordances it offers (pin an import to this
+ * release, show the tracks that match this recording) are not the wizard's. So the lookup loop
+ * lives here, on its own, and both callers take it.
+ */
+export type MbEntityDoc =
+  | { readonly entity: "recording"; readonly doc: MbRecording }
+  | { readonly entity: "release"; readonly doc: MbRelease }
+  | { readonly entity: "release-group"; readonly doc: MbReleaseGroup }
+  | { readonly entity: "artist"; readonly doc: MbArtist }
+  | { readonly entity: "work"; readonly doc: MbWork };
+
+export interface IdentifiedRef {
+  readonly ref: MbRef;
+  /** `null` when none of the five lookups knows the id — which is a fact, not a failure. */
+  readonly found: MbEntityDoc | null;
+}
+
+/**
+ * Parse a pasted string and ask MusicBrainz which of the five entities it names.
+ *
+ * `null` means the string holds no MusicBrainz reference at all, which is the caller's signal
+ * that this is free text and belongs in a search.
+ */
+export async function identifyMbRef(
+  input: string,
+  options: { readonly lookups: Lookups; readonly single?: boolean },
+): Promise<IdentifiedRef | null> {
+  const ref = parseMbRef(input);
+  if (ref === null) return null;
+  return {
+    ref,
+    found: await identify(ref, options.lookups, entityOrder(ref.claimed, options.single ?? false)),
+  };
+}
+
+/** The loop: try the likeliest entity first, stop at the first document that comes back. */
+async function identify(
+  ref: MbRef,
   lookups: Lookups,
-  options: ResolveInput,
-): Promise<ResolvedRef | null> {
+  tries: readonly MbEntityName[],
+): Promise<MbEntityDoc | null> {
+  for (const entity of tries) {
+    if (entity === "recording") {
+      const doc = await lookups.recording(ref.mbid);
+      if (doc !== null) return { entity, doc };
+    } else if (entity === "release") {
+      const doc = await lookups.release(ref.mbid);
+      if (doc !== null) return { entity, doc };
+    } else if (entity === "release-group") {
+      const doc = await lookups.releaseGroup(ref.mbid);
+      if (doc !== null) return { entity, doc };
+    } else if (entity === "artist") {
+      const doc = await lookups.artist(ref.mbid);
+      if (doc !== null) return { entity, doc };
+    } else if (entity === "work") {
+      const doc = await lookups.work(ref.mbid);
+      if (doc !== null) return { entity, doc };
+    }
+  }
+  return null;
+}
+
+/** What the wizard can do with an identified reference, for the import it was pasted on. */
+function describe(identified: MbEntityDoc, mbid: string, options: ResolveInput): ResolvedRef {
+  const entity = identified.entity;
   const base = {
     mbid,
     entity,
@@ -247,9 +349,8 @@ async function tryEntity(
     searchText: null as string | null,
   };
 
-  if (entity === "recording") {
-    const found = await lookups.recording(mbid);
-    if (found === null) return null;
+  if (identified.entity === "recording") {
+    const found = identified.doc;
     const releases = (found as { releases?: readonly MbRelease[] }).releases ?? [];
     const first = releases[0];
     return {
@@ -282,9 +383,8 @@ async function tryEntity(
     };
   }
 
-  if (entity === "release") {
-    const found = await lookups.release(mbid);
-    if (found === null) return null;
+  if (identified.entity === "release") {
+    const found = identified.doc;
     const tracks = flattenTracks(found);
     const common = {
       ...base,
@@ -327,9 +427,8 @@ async function tryEntity(
     };
   }
 
-  if (entity === "release-group") {
-    const found = await lookups.releaseGroup(mbid);
-    if (found === null) return null;
+  if (identified.entity === "release-group") {
+    const found = identified.doc;
     /*
      * `MbReleaseGroup` is typed for the fields the *document* resolvers read, and a lookup
      * carries more than that — the credits and the releases among them. Read through a narrow
@@ -362,9 +461,8 @@ async function tryEntity(
     };
   }
 
-  if (entity === "artist") {
-    const found = await lookups.artist(mbid);
-    if (found === null) return null;
+  if (identified.entity === "artist") {
+    const found = identified.doc;
     return {
       ...base,
       title: found.name ?? "unknown artist",
@@ -379,8 +477,7 @@ async function tryEntity(
     };
   }
 
-  const found = await lookups.work(mbid);
-  if (found === null) return null;
+  const found = identified.doc;
   return {
     ...base,
     title: found.title ?? "unknown work",
