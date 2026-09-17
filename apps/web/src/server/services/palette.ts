@@ -393,8 +393,11 @@ function countTracks(release: MbRelease): number {
  *
  * `releaseGroupFull` does not carry the group's releases — widening that preset would drag
  * every edition of every record through the cache that `tag` shares — so the editions come
- * from the release search the matcher already uses for the same question,
- * `rgid:<id> AND status:Official`. Same query string, therefore the same cache entry.
+ * from the release search the matcher already runs for the same question, built by the same
+ * `lucene.releaseQuery` and therefore the same clause: `rgid:<id> AND status:Official`.
+ *
+ * The *first* official edition, and only as a starting point: step 2 of the wizard opens on
+ * the whole group with this one selected, so changing it is a click rather than a restart.
  *
  * Behind a press, never a keystroke: it is a second request through the one-per-second gate.
  */
