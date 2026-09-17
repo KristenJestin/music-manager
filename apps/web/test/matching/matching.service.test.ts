@@ -457,18 +457,60 @@ describe("Bewitched — the artist and her producer, in one credit", () => {
   });
 });
 
-describe("The Heist — a duo credit MusicBrainz will not answer as a phrase", () => {
-  it("falls back to “Macklemore” and files the album under the duo", async () => {
+describe("The Heist (Deluxe Edition) — a duo credit, an edition, and eighteen tracks", () => {
+  it("asks for the first credited name and then for the base title", async () => {
+    /*
+     * Three rungs in one source string. `artist:"Macklemore & Ryan Lewis"` answers nothing —
+     * MusicBrainz files the record under exactly that credit and still will not answer the
+     * phrase — and `releasegroup:"The Heist (Deluxe Edition)"` answers nothing either, because
+     * MusicBrainz names the *record* and puts the edition in a comment. The base title with
+     * the first credited name is the question that finds it.
+     */
     const recorded = cassette("the-heist");
     const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
 
-    expect(result.queries[0]).toBe('releasegroup:"The Heist" AND artist:"Macklemore"');
-    expect(result.ranking.preselected?.artist).toMatch(/macklemore/i);
-    expect(result.artist.carried).toBe(true);
+    expect(result.queries[0]).toBe(
+      'releasegroup:"The Heist (Deluxe Edition)" AND artist:"Macklemore"',
+    );
+    expect(result.queries).toContain('releasegroup:"The Heist" AND artist:"Macklemore"');
+    expect(result.fallback?.kind).toBe("base-title");
+    for (const query of result.queries) expect(query).toMatch(/artist:|^rgid:/);
+  });
+
+  it("preselects the deluxe pressing, and does not penalise it for being deluxe", async () => {
+    /*
+     * The owner's screenshot: eighteen videos, eighteen tracks, mean Δ 0.3 s, and 76 % because
+     * of `Disambiguation contains "deluxe" (−20 %)`. The source *announced* deluxe.
+     */
+    const recorded = cassette("the-heist");
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+    const chosen = result.ranking.preselected;
+
+    expect(chosen?.tracks).toBe(18);
+    expect(chosen?.artist).toMatch(/macklemore/i);
+    expect(chosen?.uncovered).toBe(0);
+    expect(chosen?.leftOver).toBe(0);
+    expect(chosen?.signals.exactness).toBe(1);
+    expect(chosen?.penalties.map((penalty) => penalty.reason).join(" | ")).not.toMatch(/deluxe/i);
+    expect(chosen?.score).toBeGreaterThan(0.9);
     // The owner's library has this album filed under "Crockett". Nothing like it may win.
+    expect(result.artist.carried).toBe(true);
     for (const candidate of result.ranking.candidates) {
-      expect(candidate.artist).toMatch(/macklemore/i);
+      expect(candidate.artist, candidate.title).toMatch(/macklemore/i);
     }
+  });
+
+  it("marks a standard pressing down for not being the edition asked for", async () => {
+    const recorded = cassette("the-heist");
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+    const standard = result.ranking.candidates.find(
+      (candidate) => candidate.detailed && candidate.tracks === 15,
+    );
+    expect(standard, "a fifteen-track pressing was read").toBeDefined();
+    expect(standard?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /asks for the deluxe edition and this pressing does not say it is one/,
+    );
+    expect(standard?.score).toBeLessThan(result.ranking.preselected?.score ?? 0);
   });
 });
 
