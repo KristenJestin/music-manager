@@ -466,6 +466,39 @@ describe("Skinny Love — one video, many covers", () => {
     expect(borrow?.preferred).toBe(true);
   });
 
+  /*
+   * MusicBrainz lists a release once per medium the recording sits on, so a track on two discs
+   * of one edition comes back twice. The owner saw the same album offered twice, rendering the
+   * same path under both — two rows he could not tell apart in the control that exists to tell
+   * options apart.
+   */
+  it("offers each release once, however many media carry the recording", () => {
+    for (const candidate of ranking.candidates) {
+      const ids = candidate.releases.map((release) => release.id);
+      expect(new Set(ids).size, `${candidate.title} repeats a release`).toBe(ids.length);
+    }
+  });
+
+  it("collapses a release MusicBrainz listed twice, and borrows the same one", () => {
+    // The raw fixture input, with every release repeated — which is what a recording sitting
+    // on two media of one edition looks like coming back from MusicBrainz.
+    const input = fixture.candidates[0];
+    if (input === undefined) throw new Error("no candidate in the fixture");
+    const once = recordingCandidates.chooseBorrowRelease(input, DEFAULT_CONFIG, null);
+    const twice = recordingCandidates.chooseBorrowRelease(
+      { ...input, releases: [...(input.releases ?? []), ...(input.releases ?? [])] },
+      DEFAULT_CONFIG,
+      null,
+    );
+    expect(twice.releases.map((release) => release.id)).toEqual(
+      once.releases.map((release) => release.id),
+    );
+    expect(twice.borrow?.id).toBe(once.borrow?.id);
+    expect(twice.releases.filter((release) => release.preferred)).toHaveLength(
+      once.releases.length === 0 ? 0 : 1,
+    );
+  });
+
   it("keeps every Bon Iver recording under 0.4", () => {
     const bonIver = ranking.candidates.filter((candidate) => /bon iver/i.test(candidate.artist));
     expect(bonIver.length).toBeGreaterThan(0);

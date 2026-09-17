@@ -177,7 +177,29 @@ export function chooseBorrowRelease(
   );
   described.sort((a, b) => b.rank - a.rank || a.borrow.id.localeCompare(b.borrow.id));
 
-  const releases = described.map((entry, index) => ({ ...entry.borrow, preferred: index === 0 }));
+  /*
+   * One release, one option.
+   *
+   * MusicBrainz lists a release once per *medium* the recording sits on, so a track that
+   * appears on two discs of one edition — or twice on one disc, which compilations do — comes
+   * back as two entries of the same release. The owner saw "Adrénaline — Album, 2020, FR"
+   * twice, with the same rendered path under both: two rows that cannot be told apart and
+   * cannot be chosen between, in the one control whose whole job is telling options apart.
+   *
+   * Keyed on the release id, and the first wins because the list is already sorted by rank —
+   * so the survivor is the better-placed of the two, not an arbitrary one. A genuinely
+   * different position on the same release is not a different *album context*: it supplies the
+   * same folder and the same `ALBUM` tags, which is what this control chooses.
+   */
+  const byRelease = new Map<string, (typeof described)[number]>();
+  for (const entry of described) {
+    if (!byRelease.has(entry.borrow.id)) byRelease.set(entry.borrow.id, entry);
+  }
+
+  const releases = [...byRelease.values()].map((entry, index) => ({
+    ...entry.borrow,
+    preferred: index === 0,
+  }));
   return { releases, borrow: releases[0] ?? null };
 }
 
