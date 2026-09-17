@@ -357,9 +357,22 @@ describe("Pure Heroine — ten videos, and two pressings that fit identically", 
   });
 
   it("keeps “not looked up” apart from “has none”", () => {
-    const shallow = ranking.candidates.filter((c) => !c.detailed);
-    expect(shallow.length).toBeGreaterThan(0);
-    for (const candidate of shallow) expect(candidate.coverArt).toBeNull();
+    /*
+     * `null` is "we never asked", and it must not read as "there is none": MusicBrainz sends
+     * the `cover-art-archive` block on lookups only. The unread candidate is built here rather
+     * than fished out of the fixture, because how many the *recorder* happened to leave unread
+     * is an accident of a budget and this is a property of the scorer.
+     */
+    const unread = releaseCandidates.score({
+      ...fixture,
+      candidates: fixture.candidates.map((candidate) => ({
+        release: stripTracklist(candidate.release),
+        detailed: false,
+      })),
+    });
+    expect(unread.candidates.length).toBeGreaterThan(0);
+    for (const candidate of unread.candidates) expect(candidate.coverArt).toBeNull();
+    // And a pressing that *was* read, and genuinely has no image, says so as a zero.
     expect(ranking.candidates.find((c) => c.id === US_2013)?.coverArt).toEqual({
       available: false,
       front: false,
