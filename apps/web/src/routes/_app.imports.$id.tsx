@@ -40,6 +40,7 @@ import {
 import { useJobEvents } from "#/hooks/use-job-events.ts";
 import { cn } from "cn";
 import { dateTime, mmss, pct, short, timeUntil } from "#/lib/format.ts";
+import { isWebUrl } from "#/lib/source-url.ts";
 import type { ImportStatus } from "#/server/db/schema/enums.vocab.ts";
 import type { JobDetailTrack } from "#/server/services/console.queries.ts";
 import {
@@ -232,9 +233,29 @@ function JobPage() {
       // Capped (owner review F1): the table moved to its own full-width row (below), but
       // "full width" is still not "unlimited" — a column with no cap sizes to its longest
       // title, and one long video title is enough to push the total past the viewport again.
+      // The title is the link to **its own** video. The page linked the playlist and nothing
+      // else, so hearing the track a decision is about meant copying a video id by hand; the
+      // address was in `import_tracks.raw.webpage_url` the whole time. `isWebUrl` is
+      // `lib/source-url.ts`'s judgement, so `fixture://…` and a bare v1 id stay plain text
+      // rather than becoming a link that goes nowhere.
       cell: (track) => (
         <div className="max-w-36 min-w-0" title={track.sourceTitle}>
-          <div className="truncate">{track.sourceTitle}</div>
+          {isWebUrl(track.sourceUrl) ? (
+            <a
+              href={track.sourceUrl ?? ""}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="track-source"
+              title={`Open “${track.sourceTitle}” on YouTube`}
+              className="flex min-w-0 items-center gap-1 hover:text-primary"
+            >
+              <span className="truncate">{track.sourceTitle}</span>
+              <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+              <span className="sr-only">(opens YouTube in a new tab)</span>
+            </a>
+          ) : (
+            <div className="truncate">{track.sourceTitle}</div>
+          )}
           <div className="font-mono text-2xs text-fg-2">{mmss(track.sourceDuration)}</div>
         </div>
       ),

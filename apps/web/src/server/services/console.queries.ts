@@ -437,7 +437,20 @@ export async function workerSnapshot(db: Database = defaultDb()): Promise<Worker
  * of which the page, `/api/v1` or MCP ever read. Only the first entry's is wanted, for the
  * thumbnail, and `jobDetail` fetches that one row on its own.
  */
-export type JobDetailTrack = Omit<ImportTrack, "raw">;
+export type JobDetailTrack = Omit<ImportTrack, "raw"> & {
+  /**
+   * `raw.webpage_url` — the one field of the yt-dlp entry the page has any use for.
+   *
+   * An import's page linked the playlist and not one of its videos, so listening to the track
+   * a question is about meant copying an id by hand. The field is the same one
+   * `lib/source-url.ts`'s `webpageUrlOf` reads; it is extracted **in SQL** here rather than in
+   * TypeScript for the reason `withoutRaw` exists at all — `raw` is several kilobytes per
+   * track of thumbnails and formats, and a hundred-track playlist must not ship all of it to
+   * learn a hundred URLs. `isWebUrl`, the half of the judgement that matters to a link, is
+   * still the shared one and is applied on the page.
+   */
+  readonly sourceUrl: string | null;
+};
 
 /**
  * Every column of `import_tracks` except `raw`, derived from the table rather than typed out.
@@ -470,7 +483,10 @@ export async function jobDetail(
 
   const [tracks, stepRows, items, [first]] = await Promise.all([
     db
-      .select(withoutRaw)
+      .select({
+        ...withoutRaw,
+        sourceUrl: sql<string | null>`${importTracks.raw} ->> 'webpage_url'`,
+      })
       .from(importTracks)
       .where(eq(importTracks.importId, importId))
       .orderBy(importTracks.position),
