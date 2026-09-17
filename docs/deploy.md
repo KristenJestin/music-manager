@@ -779,6 +779,11 @@ Quelques conséquences qui se voient :
 - **`--release <mbid>` épingle la sortie**, exactement comme pour une URL. Et si les fichiers
   portent déjà tous le même `MUSICBRAINZ_ALBUMID` — ce qui est le cas d'une bibliothèque taguée
   par Picard ou par la v1 — il est utilisé tout seul, sauf si vous avez passé `--release`.
+  Les deux ne se comportent pas pareil quand MusicBrainz ne rend pas la sortie : un identifiant
+  que **vous** avez écrit est une affirmation, donc l'import s'arrête et pose la question ; un
+  identifiant **lu dans les fichiers** est une déduction, donc l'import continue sans
+  MusicBrainz. C'est exactement la différence entre « je me suis trompé » et « ce disque n'y
+  est plus ».
 - **Si MusicBrainz ne connaît pas l'album**, l'import ne s'arrête pas et ne pose pas de
   question : il se rabat sur les tags des fichiers, par le chemin « import sans MusicBrainz »
   qui existe déjà. L'album est classé `untagged` dans la bibliothèque, donc retrouvable et
