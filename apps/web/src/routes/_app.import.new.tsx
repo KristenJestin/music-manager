@@ -25,6 +25,7 @@ import { KeyValueList } from "#/components/key-value.tsx";
 import { MappingRow } from "#/components/mapping-row.tsx";
 import { MbSearchPanel } from "#/components/mb-search-panel.tsx";
 import { ProgressBar } from "#/components/progress-bar.tsx";
+import { SlotQueue } from "#/components/slot-queue.tsx";
 import { Stepper } from "#/components/stepper.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
@@ -364,12 +365,18 @@ function MatchPanel({
   step,
   matching,
   progress,
+  importId,
+  sourceUrl,
   testId,
 }: {
   readonly step: number;
   /** False on step 1: the wait is yt-dlp's, and MusicBrainz has nothing to do with it. */
   readonly matching: boolean;
   readonly progress: MatchProgressSnapshot | null;
+  /** The import being waited on, when the URL already names one. */
+  readonly importId: string | null;
+  /** The URL being resolved, which names that import before its id is known. */
+  readonly sourceUrl: string | null;
   readonly testId: string;
 }) {
   const done = (progress?.searches ?? 0) + (progress?.lookups ?? 0);
@@ -422,6 +429,16 @@ function MatchPanel({
                 : "Asking YouTube what is behind this link.")}
           </p>
 
+          {/*
+           * While the source is being read, what the installation is *otherwise* doing —
+           * the download holding the single slot and the imports behind it, each a link.
+           * Not drawn during the match: that wait has its own counters above, and the
+           * download slot has nothing to do with a MusicBrainz request.
+           */}
+          {matching ? null : (
+            <SlotQueue importId={importId} sourceUrl={sourceUrl} waitingOn="the source" />
+          )}
+
           {matching ? (
             <div className="flex w-full flex-col gap-1.5">
               <ProgressBar
@@ -467,6 +484,8 @@ function WizardPending() {
         step={params.step}
         matching={matching}
         progress={progress}
+        importId={params.importId ?? null}
+        sourceUrl={params.url ?? null}
         testId="wizard-pending"
       />
     </PendingTree>
@@ -529,7 +548,16 @@ function WizardMatching({ importId, step }: { readonly importId: string; readonl
     };
   }, [pollable, router]);
 
-  return <MatchPanel step={step} matching progress={progress} testId="wizard-matching" />;
+  return (
+    <MatchPanel
+      step={step}
+      matching
+      progress={progress}
+      importId={importId}
+      sourceUrl={null}
+      testId="wizard-matching"
+    />
+  );
 }
 
 /** The fallback cadence for a stream that never arrived. Not the normal way out. */
