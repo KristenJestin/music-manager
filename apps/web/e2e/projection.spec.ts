@@ -53,7 +53,11 @@ test.describe("files behind the database", () => {
     /* ---- one button, and it is the runner the Quality page already has ---- */
 
     await callout.getByTestId("album-adrift-retag").click();
-    await expect(page.getByText(/Re-tag queued for 2 file\(s\)/)).toBeVisible({ timeout: 30_000 });
+    // Scoped to the toaster: the activity feed prints `createRun`'s own journal line, which says
+    // "Re-tag queued: 2 file(s)" — near enough to this sentence to fail strict mode.
+    await expect(
+      page.getByTestId("toaster").getByText(/Re-tag queued for 2 file\(s\)/),
+    ).toBeVisible({ timeout: 30_000 });
 
     /* ---- and the state clears itself once the worker has been round ---- */
 
