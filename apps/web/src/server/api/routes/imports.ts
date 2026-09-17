@@ -23,6 +23,7 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportStatus, StepName } from "#/server/db/schema/index.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
+import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
   bumpImport,
   cancelImport,
@@ -60,6 +61,8 @@ import {
   pageFields,
   pageInfo,
   retryStepSchema,
+  adoptFileSchema,
+  adoptFileResultSchema,
 } from "#/server/api/schemas.ts";
 
 /** `low | normal | next` as the priority column stores it. Same three as the wizard. */
@@ -592,6 +595,95 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         },
         200,
       );
+    },
+  );
+
+  /* ---- adopt a local file as one track's source ---- */
+  //
+  // Declared before `/{id}/retry` for the same reason `retry-failed-upstream` is: Hono matches
+  // in declaration order, and a `/{id}/…` route declared first would swallow anything deeper.
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/{id}/tracks/{trackId}/file",
+      tags: [TAG],
+      summary: "Adopt a local file as this track's source",
+      description:
+        "Gives one track a file you already have, instead of downloading it. For a video that " +
+        "has been deleted, a video behind an age check, and for taking over an existing " +
+        "library track by track.\n\n" +
+        "**The bytes arrive one of two ways**, chosen by `source`:\n\n" +
+        "- `path` — an absolute path *on the server*. The honest answer when the files are " +
+        "already on the machine. It is resolved through `realpath` and refused with **403 " +
+        "`ADOPT_PATH_REFUSED`** unless it lands inside the library or inside one of the " +
+        "directories the `adoptSourceRoots` setting lists. That list is **empty by default**: " +
+        "until an operator names a folder in Settings, this route will not read anything " +
+        "outside the library.\n" +
+        "- `upload` — the file's bytes, base64, up to 64 MB. The honest answer for a browser " +
+        "or for a caller with no shell on the machine.\n\n" +
+        "The file lands in `<library>/.mm-work/<import>/<trackId><ext>`, which is where " +
+        "`place` expects to find it and what `download` probes for, so **the download slot is " +
+        "never spent**. The track resumes at the step *after* `download` — `fingerprint`, " +
+        "then `tag`, then `place` — on the per-track queue.\n\n" +
+        '**The document says so.** The track\'s `COMMENT` becomes *Adopted local file "…" · ' +
+        "not downloaded from youtu.be/…* instead of *Source: youtu.be/…*, `ORIGINALFILENAME` " +
+        "becomes the file's own name, and `ENCODEDBY` is n/a — nothing of ours encoded it. " +
+        "`MUSICMANAGER_SOURCEURL` still carries the video's URL, because that is the track's " +
+        "identity and not a claim about where the audio came from.\n\n" +
+        "**Refusals**, each with its own code so the fix is unambiguous: `ADOPT_UNSUPPORTED` " +
+        "(a container the tagger cannot write to), `ADOPT_NOT_AUDIO` (ffprobe found no audio " +
+        "stream), `ADOPT_CONFLICT` (the track already has a file — retry it first), " +
+        "`ADOPT_PATH_REFUSED` (outside the allow-list) and `ADOPT_NOT_READY` (the import is " +
+        "cancelled, or has not been confirmed, or this video is not bound to a track).",
+      middleware: [requireScope("imports:write")] as const,
+      request: {
+        params: z.object({ id: idParam, trackId: idParam }),
+        body: { content: { "application/json": { schema: adoptFileSchema } }, required: true },
+      },
+      responses: {
+        ...FAILURES,
+        200: {
+          content: { "application/json": { schema: adoptFileResultSchema } },
+          description: "Adopted; the track carries on from `fingerprint`",
+        },
+        // Overrides the shared 403, which only knows about a missing scope: on this route the
+        // interesting refusal is the allow-list, and a reader must not be told to fix a key.
+        403: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "Missing scope, or `ADOPT_PATH_REFUSED`: the path is outside the allow-list",
+        },
+        409: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "`ADOPT_CONFLICT` or `ADOPT_NOT_READY`",
+        },
+        413: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "The upload is larger than 64 MB. Adopt it by path instead.",
+        },
+        415: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "`ADOPT_UNSUPPORTED` or `ADOPT_NOT_AUDIO`",
+        },
+      },
+    }),
+    async (c) => {
+      const { id, trackId } = c.req.valid("param");
+      const body = c.req.valid("json");
+      const result = await adoptTrackFile({
+        importId: id,
+        trackId,
+        source:
+          body.source === "path"
+            ? { kind: "path", path: body.path }
+            : {
+                kind: "upload",
+                filename: body.filename,
+                bytes: new Uint8Array(Buffer.from(body.content, "base64")),
+              },
+        adoptedBy: "api",
+        db: db(),
+      });
+      return c.json(result, 200);
     },
   );
 

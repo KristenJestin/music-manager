@@ -351,6 +351,7 @@ test.describe("the MCP server", () => {
       "confirm_mapping",
       "confirm_best",
       "create_imports",
+      "adopt_track_file",
       "list_inbox",
       "resolve_inbox",
       "search_library",
