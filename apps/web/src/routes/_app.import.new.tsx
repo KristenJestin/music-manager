@@ -435,7 +435,8 @@ function WizardPending() {
  *  - a slow poll, for the case where the stream never arrives at all. Server-Sent Events go
  *    through most proxies and not all of them, and a wizard that hangs for ever because a
  *    buffering proxy ate the frames would be a worse bug than the one being fixed. Four
- *    seconds is cheap: the loader it re-runs is a database read and an offline ranking.
+ *    seconds is cheap: while a run is in flight the loader it re-runs is two database reads and
+ *    a `Map` lookup — `fetchCandidates` answers `pending` before it touches anything else.
  *
  * Re-running the loader is safe however often it happens: `fetchCandidates` answers `pending`
  * for as long as the run is in flight and never starts a second one (`match-runs.ts`).
