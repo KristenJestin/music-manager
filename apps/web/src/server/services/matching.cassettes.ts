@@ -1,5 +1,5 @@
 /**
- * Recorded MusicBrainz traffic for the four matching scenarios.
+ * Recorded MusicBrainz traffic for the matching scenarios.
  *
  * A cassette is not a mock. It is the set of `(key, payload)` documents one real match
  * touches, under the exact keys `integrations/musicbrainz.ts` computes for them. Replaying one
@@ -15,7 +15,7 @@
  * would quietly degrade P04's document build. The document side has recordings of its own.
  *
  * Recorded once, at one request per second, by `bun run scripts/record-matching-cassettes.ts`,
- * which records four more lookups than a match spends so a shifted pre-score still replays.
+ * which records four more lookups than a match may spend so a shifted ranking still replays.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

@@ -47,6 +47,7 @@ const WORKER_BEAT_MS = 30_000;
 const SCHEDULE_POLL_MS = 60_000;
 
 import { enqueueScan, handleScan, handleYtdlpUpdate, type ScanJob } from "./handlers/scan.ts";
+import { handleVerifyLibrary, type VerifyJob } from "./handlers/verify.ts";
 import { deliver as deliverWebhook } from "#/server/services/webhooks.ts";
 import {
   createBoss,
@@ -202,20 +203,47 @@ export async function startWorker(): Promise<Worker> {
     log("closed stale empty re-tag run(s)", { count: closedEmptyRuns });
   }
 
+  // Read once, and before the first consumer is registered: both pacing numbers are
+  // `boss.work` options, and `boss.work` starts polling the instant it returns.
+  const pacing = await loadSettings(db());
+
   /* ---- import.step: advance a job up to (but not into) the download queue ---- */
+  //
+  // `localConcurrency` is a setting here for the same reason it is one on `track.step`: it is
+  // a judgement about *this* machine and about how patient MusicBrainz is feeling, not a rule
+  // of the design. The rule of the design is one queue below this one — `download` stays at
+  // `localConcurrency: 1` on a `singleton` queue, and nothing in this block may change that.
+  //
+  // **One preparation at a time per import, whatever the concurrency.** `import.step` is a
+  // `standard` queue, and on pg-boss 12 a `standard` queue puts no unique index behind
+  // `singletonKey` (see `queues.ts` § `importsWithLiveJobs`): two sends for one import are two
+  // rows. At `localConcurrency: 1` that was harmless — the second ran after the first. Above
+  // one they would run *together*, two `runImport` calls advancing one job through the same
+  // steps, which is how you get two `match` passes writing two mappings. One process consumes
+  // this queue, so a set of ids is the whole of the exclusion, exactly as on `track.step`.
+  const preparing = new Set<string>();
   await boss.work<ImportStepJob>(
     QUEUES.importStep,
-    { localConcurrency: 1, pollingIntervalSeconds: 1 },
+    { localConcurrency: pacing.importStepConcurrency, pollingIntervalSeconds: 1 },
     async (jobs: Job<ImportStepJob>[]) => {
       for (const job of jobs) {
         const { importId } = job.data;
-        log("import.step", { importId, jobId: job.id });
-        const outcome = await runImport(importId, {
-          db: db(),
-          signal: shutdown.signal,
-          stopBefore: QUEUES.download,
-        });
-        await follow(boss, outcome, 0);
+        if (preparing.has(importId)) {
+          log("import.step already in flight", { importId, jobId: job.id });
+          continue;
+        }
+        preparing.add(importId);
+        try {
+          log("import.step", { importId, jobId: job.id });
+          const outcome = await runImport(importId, {
+            db: db(),
+            signal: shutdown.signal,
+            stopBefore: QUEUES.download,
+          });
+          await follow(boss, outcome, 0);
+        } finally {
+          preparing.delete(importId);
+        }
       }
     },
   );
@@ -313,8 +341,8 @@ export async function startWorker(): Promise<Worker> {
   //
   // `localConcurrency` is a setting because it is a judgement about *this* machine: these steps
   // are fpcalc, mutagen and a rename, so they are cheap, but they all go through the one
-  // toolbox container and a number that is too high only moves the queue inside it.
-  const pacing = await loadSettings(db());
+  // toolbox container and a number that is too high only moves the queue inside it. `pacing`
+  // was read above, before the first consumer was registered.
   //
   // **One step at a time per track, whatever the concurrency.** The database guard
   // (`hasPassed`) refuses a step a track has already been through, but two *concurrent* runs of
@@ -411,6 +439,22 @@ export async function startWorker(): Promise<Worker> {
     },
   );
 
+  /* ---- verify: read the whole library back from Navidrome (P07) ---- */
+  //
+  // `singleton`, five-second polling, one at a time: a rescan wait of up to four minutes and
+  // then six or seven Subsonic calls per album is not something to run twice at once. It used
+  // to run inside the HTTP request the "Verify library" button made, which is what this moves.
+  await boss.work<VerifyJob>(
+    QUEUES.verify,
+    { localConcurrency: 1, pollingIntervalSeconds: 5 },
+    async (jobs: Job<VerifyJob>[]) => {
+      for (const job of jobs) {
+        log("verify.library", { jobId: job.id, trigger: job.data.trigger });
+        await handleVerifyLibrary(job, { db: db(), signal: shutdown.signal, log });
+      }
+    },
+  );
+
   /* ---- the two crons P07b owns ---- */
   await boss.work("cron.scan", { localConcurrency: 1 }, async () => {
     await enqueueScan(boss, { trigger: "cron" });
@@ -440,6 +484,7 @@ export async function startWorker(): Promise<Worker> {
   const HANDLED = new Set<string>([
     QUEUES.retag,
     QUEUES.scan,
+    QUEUES.verify,
     QUEUES.webhook,
     "cron.refresh-sources",
     "cron.scan",

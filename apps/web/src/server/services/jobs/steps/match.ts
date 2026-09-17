@@ -51,6 +51,7 @@ import {
 import { cassetteNameOf, loadCassette } from "#/server/services/matching.cassettes.ts";
 import {
   configFromSettings,
+  describeFallback,
   matchAlbum,
   matchSingle,
   type MatchBudget,
@@ -376,6 +377,22 @@ async function matchOneAlbum(
   const pinned = ctx.job.options.releaseMbid;
 
   /*
+   * The search fell back, so the journal says so and to what.
+   *
+   * A fallback that only ever shows up as "it worked this time" is a fallback nobody can
+   * audit. Somebody looking at a questionable import has to be able to read that MusicBrainz
+   * was asked a different question from the one the playlist's title implies — the base title
+   * instead of "Let Go (Expanded Edition)", the first credited name instead of the whole
+   * "Laufey, Spencer Stewart", or four of the tracks instead of the album at all.
+   */
+  if (result.fallback !== null) {
+    await ctx.say("match.fallback", describeFallback(result.fallback), {
+      level: "info",
+      data: { fallback: result.fallback, queries: result.queries },
+    });
+  }
+
+  /*
    * `--release <mbid>` pins the release. The mapping is still computed — against that one.
    *
    * A pin the search never returned is the case that matters: it is exactly why somebody
@@ -407,6 +424,112 @@ async function matchOneAlbum(
   }
 
   const chosen = pinnedCandidate ?? result.ranking.preselected;
+
+  /*
+   * **Nothing here is by the artist the source names.** Refuse, and ask.
+   *
+   * The first defect of the sixth owner review, and the only one that put somebody else's
+   * record in the library: a fourteen-video *Bewitched* credited "Laufey, Spencer Stewart"
+   * matched to Laura Fygi's 1993 album, seven of fourteen videos placed, 0.537, and imported.
+   * Nothing gated it — `safeThreshold` only *marks* a candidate and `confidentFloor` only
+   * styles a mapping line, while `--yes` and fixtures mode open `confirm` unconditionally. The
+   * only score gate in the codebase belongs to watched sources, and this import was not one.
+   *
+   * So the refusal has to happen **here**, at `match`, where blocking is what stops the
+   * pipeline: an `awaiting_review` job never reaches `confirm`, so there is no gate left for
+   * `--yes` to open. And it is a refusal rather than a bigger penalty because no penalty can
+   * be both large enough to stop this and small enough to let the ordinary case through, where
+   * MusicBrainz credits a record to a name YouTube spells differently.
+   *
+   * Pinned releases are exempt: `--release <mbid>` is a person saying which record it is, and
+   * this rule exists to ask a person.
+   */
+  if (!result.artist.carried && pinned === undefined) {
+    await openInboxItem(
+      {
+        type: "ambiguous_release",
+        importId: ctx.job.id,
+        title: `No release of “${hints.album ?? ctx.job.url}” is credited to ${result.artist.wanted ?? "this artist"}`,
+        summary:
+          `MusicBrainz returned ${String(result.ranking.candidates.length)} release(s) with this title and ` +
+          `none of them is by ${result.artist.wanted ?? "the credited artist"}` +
+          `${chosen === null || chosen === undefined ? "" : ` — the best is “${chosen.title}” by ${chosen.artist}`}. ` +
+          "Pick one with `mm import --release <mbid>`, or reject this import.",
+        payload: {
+          url: ctx.job.url,
+          wantedArtist: result.artist.wanted,
+          queries: result.queries,
+          fallback: result.fallback,
+          videos: videos.length,
+          candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+        },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `No candidate is credited to ${result.artist.wanted ?? "the source artist"}: the Inbox is asking.`,
+      data: {
+        budget: result.budget,
+        queries: result.queries,
+        wantedArtist: result.artist.wanted,
+        candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+      },
+    };
+  }
+
+  /*
+   * A preselection this weak is not a preselection. Ask.
+   *
+   * The other half of the sixth owner review's first defect, and the answer to "what gated a
+   * 0.537 import?" — **nothing did**. `safeThreshold` (0.95) only *marks* a candidate and
+   * `docs/04` says in as many words that it does not skip the confirmation; `confidentFloor`
+   * (0.90) styles a mapping line; `matchBindingFloor` (0.35) judges one video against one
+   * track. The only score gate in the codebase belonged to watched sources, and this import
+   * was not one — `--yes` and fixtures mode open `confirm` without reading a score at all.
+   *
+   * So there is a floor now, and it lives at `match` for the same reason the artist rule does:
+   * a blocked job never reaches the gate that ignores scores. 0.6 is where "this is the
+   * record" stops and "this has a similar name" begins — every preselection in the recorded
+   * corpus is above 0.92, and the album that started this was at 0.537. It is a *question*,
+   * not a refusal: the Inbox item carries the candidate as its preselected answer, so somebody
+   * who disagrees is one click from the same import.
+   */
+  const floor = ctx.settings.matchPreselectionFloor;
+  if (chosen !== null && chosen !== undefined && chosen.score < floor && pinned === undefined) {
+    await openInboxItem(
+      {
+        type: "ambiguous_release",
+        importId: ctx.job.id,
+        title: `Nothing convincing for “${hints.album ?? ctx.job.url}”`,
+        summary:
+          `The best candidate, ${describe(chosen)}, scores ${String(chosen.score)} — under the ` +
+          `${String(floor)} below which the matcher is naming a resemblance rather than a record. ` +
+          `It would import ${String(videos.length - chosen.leftOver)} of your ${String(videos.length)} videos.`,
+        payload: {
+          url: ctx.job.url,
+          score: chosen.score,
+          floor,
+          queries: result.queries,
+          candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+        },
+        preselected: { releaseMbid: chosen.id },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `The best candidate scores ${String(chosen.score)}, under ${String(floor)}: the Inbox is asking.`,
+      data: {
+        budget: result.budget,
+        queries: result.queries,
+        score: chosen.score,
+        candidates: keep<ReleaseCandidate>(result.ranking.candidates),
+      },
+    };
+  }
 
   if (chosen === null || chosen === undefined) {
     await openInboxItem(
@@ -589,6 +712,39 @@ async function matchOneRecording(
 
   const result = await matchSingle(gateway, { video }, ctx.settings);
   const chosen = result.ranking.preselected;
+
+  /*
+   * The same artist gate as the album path, and this is where the wide recording search — the
+   * one query left in this repository that names no artist — stops being dangerous. It exists
+   * to *surface* the same-titled recordings by other people so the ranking can be seen
+   * rejecting them; if the whole list turns out to be other people's, there is nothing left to
+   * reject them in favour of, and that is a question for a person rather than a preselection.
+   */
+  if (!result.artist.carried) {
+    await openInboxItem(
+      {
+        type: "ambiguous_recording",
+        importId: ctx.job.id,
+        trackId: row.id,
+        title: `No recording of “${video.title}” is credited to ${result.artist.wanted ?? "this artist"}`,
+        summary:
+          `Every candidate MusicBrainz returned is by somebody else` +
+          `${chosen === null ? "" : ` — the best is “${chosen.title}” by ${chosen.artist}`}.`,
+        payload: {
+          wantedArtist: result.artist.wanted,
+          queries: result.queries,
+          candidates: keep<RecordingCandidate>(result.ranking.candidates),
+        },
+      },
+      ctx.db,
+    );
+    return {
+      status: "blocked",
+      blockedAs: "awaiting_review",
+      message: `No recording is credited to ${result.artist.wanted ?? "the source artist"}: the Inbox is asking.`,
+      data: { budget: result.budget, queries: result.queries },
+    };
+  }
 
   if (chosen === null || chosen.borrow === null) {
     await openInboxItem(

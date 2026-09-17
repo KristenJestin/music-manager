@@ -12,13 +12,19 @@
  * resolver is free to read as either. Two spellings that differ by an extension, one of which
  * silently turns a directory into an entry point, is not a distinction worth relying on.
  *
- * Three things happen around the framework's own handler:
+ * Four things happen around the framework's own handler:
  *
  *  1. **Rate limiting**, before any work: `/api/auth/sign-in/*` and `/login` get ten attempts
  *     per five minutes, `/api/**` and `/mcp` six hundred a minute. A refused request costs a
  *     `Map` lookup, no database round-trip and no router.
- *  2. **Security headers** on the way out, on every response including redirects and errors.
- *  3. **One JSON access line per request**, with the server's own duration in milliseconds —
+ *  2. **The connection's idle ceiling**, raised from Bun's ten-second default before the
+ *     handler is entered, and **the client's disconnection**, caught after it. `server/http/
+ *     abort.ts` is the whole story, including the reproduction; the short version is that the
+ *     production runtime closes a connection on which nothing has moved for ten seconds, which
+ *     is less than the floor of several honest operations, and that the abort escaping as a
+ *     500 was the error the owner saw on `/import/new`.
+ *  3. **Security headers** on the way out, on every response including redirects and errors.
+ *  4. **One JSON access line per request**, with the server's own duration in milliseconds —
  *     which is how the SSR budget is measured in production rather than guessed at.
  *
  * This file is server-only by construction: it is the entry the server bundle is built from and
@@ -28,6 +34,13 @@
 import { createStartHandler, defaultStreamHandler } from "@tanstack/react-start/server";
 import type { RequestHandler } from "@tanstack/react-start/server";
 import type { Register } from "@tanstack/react-router";
+import {
+  CLIENT_CLOSED,
+  clientClosedResponse,
+  extendRequestTimeout,
+  isClientAbort,
+  requestTimeoutSeconds,
+} from "#/server/http/abort.ts";
 import { logAccess, logLevel } from "#/server/http/log.ts";
 import {
   bucketFor,
@@ -51,6 +64,7 @@ const handler = createStartHandler(defaultStreamHandler);
 const behindProxy = process.env["MM_BEHIND_PROXY"] === "1";
 const limits = rateLimitConfig(process.env);
 const level = logLevel(process.env);
+const timeoutSeconds = requestTimeoutSeconds(process.env);
 
 export type ServerEntry = { fetch: RequestHandler<Register> };
 
@@ -59,6 +73,14 @@ export default {
     const started = Date.now();
     const url = new URL(request.url);
     let response: Response;
+
+    /*
+     * Before anything else, because the ten seconds start when the connection does.
+     *
+     * A no-op on Node (`vite dev`), which has no such lever and no such timeout — which is
+     * also why this bug was invisible in development and only ever bit in production.
+     */
+    extendRequestTimeout(request, timeoutSeconds);
 
     const bucket = bucketFor(request.method, url.pathname);
     if (bucket !== null) {
@@ -75,7 +97,47 @@ export default {
       }
     }
 
-    response = await handler(request, options as never);
+    try {
+      response = await handler(request, options as never);
+    } catch (error) {
+      /*
+       * The client went away. That is not a 500, and it is not this server's fault.
+       *
+       * Rethrowing would reach Nitro's error handler, which answers 500 into a socket that is
+       * already closed — so nobody reads it — and logs it at `error`, so it is counted against
+       * the installation for ever. Answering `499` and logging at `info` records the same fact
+       * without either consequence. Anything that is *not* a disconnection still throws: a bug
+       * swallowed here would be a bug that never appears anywhere.
+       */
+      if (!isClientAbort(error, request)) throw error;
+      logAccess(level, {
+        method: request.method,
+        path: url.pathname,
+        status: CLIENT_CLOSED,
+        ms: Date.now() - started,
+      });
+      return withSecurityHeaders(clientClosedResponse(), { behindProxy });
+    }
+
+    /*
+     * The same fact, arriving by the other door.
+     *
+     * Nitro catches what escapes a route and answers 500 itself, so an abort does not always
+     * reach the `catch` above — sometimes it has already been turned into a response by the
+     * time we see it. The owner's production line is exactly that shape: `status: 500,
+     * ms: 11316`, with the `AbortError` printed just above it by the framework's own handler.
+     * A 5xx on a request whose signal is aborted is a disconnection whichever route it took.
+     */
+    if (response.status >= 500 && request.signal.aborted) {
+      logAccess(level, {
+        method: request.method,
+        path: url.pathname,
+        status: CLIENT_CLOSED,
+        ms: Date.now() - started,
+      });
+      return withSecurityHeaders(clientClosedResponse(), { behindProxy });
+    }
+
     logAccess(level, {
       method: request.method,
       path: url.pathname,

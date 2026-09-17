@@ -20,8 +20,14 @@ import {
   enqueueDownload,
   enqueueImportStep,
   enqueueWebhookDelivery,
+  reprioritiseImport,
   stopBoss,
+  enqueueTrackStep,
+  type BumpOutcome,
+  type TrackStepJob,
 } from "#/worker/queues.ts";
+
+export type { BumpOutcome } from "#/worker/queues.ts";
 
 /**
  * Ask for a library scan (P07b).
@@ -59,6 +65,27 @@ export async function enqueueWatchedSourceScan(
     await ensureQueues(boss);
     const { enqueueWatchedScan } = await import("#/worker/handlers/watched-sources.ts");
     return await enqueueWatchedScan(boss, job);
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Ask the worker to read the whole library back from Navidrome (P07).
+ *
+ * The dynamic import is the same trick as `enqueueWatchedSourceScan` above, and it earns more
+ * here than anywhere: `handlers/verify.ts` pulls in `services/verify.ts`, which pulls in the
+ * Subsonic client, and the web process wants none of that for the sake of one queue name.
+ */
+export async function enqueueLibraryVerify(
+  job: { trigger?: string; rescan?: boolean } = {},
+): Promise<string | null> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    const { enqueueVerify } = await import("#/worker/handlers/verify.ts");
+    return await enqueueVerify(boss, job);
   } finally {
     await stopBoss(boss);
   }
@@ -144,6 +171,50 @@ export async function enqueueAll(
       else await enqueueImportStep(boss, { importId: job.importId, reason, step: job.step });
     }
     return jobs.length;
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Move an import's queued message to its new priority, from the web process.
+ *
+ * The thinking is all in `reprioritiseImport`; this is the short-lived producer around it, like
+ * every other function here. `send` says whether an import that holds *no* message should be
+ * given one — which is a question about the import's status, so the caller answers it.
+ */
+export async function bumpQueuedImport(
+  importId: string,
+  priority: number,
+  options: { readonly send: boolean; readonly reason: string; readonly step?: string },
+): Promise<BumpOutcome> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    return await reprioritiseImport(boss, importId, priority, options);
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Ask for one track to carry on from the step it is due next — the `track.step` queue.
+ *
+ * The one caller is `services/adopt.ts`, and that is the whole reason this exists: adopting a
+ * file puts a track at exactly the point `download` would have left it, so what has to happen
+ * next is what `download`'s `onTrackDownloaded` hook does inside the worker — announce the
+ * track on the per-track queue and let `fingerprint`, `tag` and `place` follow. The web
+ * process cannot call that hook (it is a closure over the worker's `boss`), so it sends the
+ * same message the hook would have sent, with the same `singletonKey`: a duplicate collapses
+ * into the message already waiting rather than running a step twice.
+ */
+export async function enqueueTrack(job: TrackStepJob): Promise<void> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    await enqueueTrackStep(boss, job);
   } finally {
     await stopBoss(boss);
   }

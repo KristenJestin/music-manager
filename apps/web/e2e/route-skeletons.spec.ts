@@ -154,16 +154,18 @@ test.describe("what the skeleton says, and to whom", () => {
     await navLink(page, "Albums").click();
     await expect(skeleton(page)).toHaveAttribute("data-skeleton", "library-albums");
 
-    // The controls, for real: focusable, typable, clickable — not placeholders.
-    const search = page.getByTestId("library-search");
+    // `-pending` because this is the *second* copy of the page's toolbar and the settled page
+    // keeps the plain identifier — see `src/components/pending-tree.tsx`. This spec is the one
+    // place that names it, because this spec is about the pending state itself.
+    const search = page.getByTestId("library-search-pending");
     await expect(search).toBeVisible();
     await expect(search).toBeEditable();
-    await expect(page.getByTestId("filter-add")).toBeEnabled();
-    await expect(page.getByTestId("library-sort")).toBeVisible();
-    await expect(page.getByTestId("library-profile")).toBeVisible();
+    await expect(page.getByTestId("filter-add-pending")).toBeEnabled();
+    await expect(page.getByTestId("library-sort-pending")).toBeVisible();
+    await expect(page.getByTestId("library-profile-pending")).toBeVisible();
 
     // The presets are still links, and still say which one the URL is on.
-    const all = page.getByTestId("library-filters-all");
+    const all = page.getByTestId("library-filters-all-pending");
     await expect(all).toHaveAttribute("href", /\/library/);
     await expect(all).toHaveAttribute("data-active", "true");
     // The count is the only thing missing, and it says so with a dash.
@@ -174,8 +176,51 @@ test.describe("what the skeleton says, and to whom", () => {
 
     await fast();
     await expect(page.getByTestId("album-grid")).toBeVisible();
-    // And then the number lands in the slot the dash was holding.
-    await expect(all).toContainText(/\d/);
+    // And then the number lands in the slot the dash was holding — on the settled toolbar,
+    // which is the one every other spec in this suite names.
+    await expect(page.getByTestId("library-filters-all")).toContainText(/\d/);
+    await expect(all).toHaveCount(0);
+  });
+
+  /**
+   * The defect the split introduced: for a moment, *two* toolbars.
+   *
+   * `pendingComponent` is a `Suspense` fallback, so a boundary that has already shown content
+   * and suspends again keeps its settled children mounted — hidden — under the fallback. Both
+   * trees render the page's real controls, so `library-search` named two elements at once and
+   * `quality.spec.ts`, `library-filters.spec.ts` and `missing-files.spec.ts` failed on it under
+   * load with `strict mode violation: resolved to 2 elements`.
+   *
+   * A preset click is the cheapest way to make it happen on purpose: it changes the loader's
+   * deps, which is what a re-suspend needs, where a click on the sidebar only mounts a boundary
+   * for the first time and can never overlap.
+   */
+  test("a second navigation inside one page leaves one toolbar, not two", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/library");
+    await expect(page.getByTestId("album-grid").or(page.getByTestId("library-empty"))).toBeVisible({
+      timeout: 60_000,
+    });
+
+    const fast = await slowLoaders(page);
+    await page.getByTestId("library-filters-untagged").click();
+    await expect(skeleton(page)).toHaveAttribute("data-skeleton", "library-albums");
+
+    // Both trees are in the document at this instant, and every identifier still names one
+    // element. That is the whole property, and it is what keeps the other specs stable.
+    for (const id of ["library-search", "library-filters", "filter-add", "library-sort"]) {
+      await expect(page.getByTestId(id), `${id} must name one element`).toHaveCount(1);
+    }
+
+    // The copy on screen is the pending one — it is built from the URL, so it is the one that
+    // is already right — and the settled copy React is holding is hidden, not clickable and
+    // not in the accessibility tree.
+    await expect(page.getByTestId("library-search-pending")).toBeVisible();
+    await expect(page.getByTestId("library-search")).toBeHidden();
+
+    await fast();
+    await expect(page.getByTestId("library-search")).toBeVisible();
+    await expect(page.getByTestId("library-search-pending")).toHaveCount(0);
   });
 
   /**

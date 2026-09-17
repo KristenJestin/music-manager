@@ -64,6 +64,24 @@ describe("the default configuration", () => {
     for (const [, weight] of others) expect(release.durations).toBeGreaterThan(weight);
   });
 
+  it("pays for exactness out of the two signals that each answer half of its question", () => {
+    /*
+     * `exactness` is 0.09, and where it came from is the argument for it. `coverage` went
+     * 0.20 → 0.14 and `trackCount` 0.09 → 0.06: the first counts the videos a release would
+     * drop and is blind to the tracks it would leave unclaimed, the second compares two
+     * cardinalities and never looks at *which* tracks were claimed. Exactness is the question
+     * both of them half-answer, asked once and answered off the real assignment, so it is paid
+     * for by both and by nothing else. `durations` is untouched — it is still the signal that
+     * separates two pressings — and so are title and artist.
+     */
+    const release = DEFAULT_WEIGHTS.release;
+    expect(release.exactness).toBe(0.09);
+    expect(release.coverage + release.exactness + release.trackCount).toBeCloseTo(0.29, 10);
+    expect(release.durations).toBe(0.26);
+    expect(release.exactness).toBeLessThan(release.durations);
+    expect(release.exactness).toBeLessThan(release.coverage);
+  });
+
   it("puts coverage second, ahead of title and artist (decision 152)", () => {
     // The fit still decides between two pressings of one record; coverage is what stops a
     // one-track single from looking perfect while importing one video of eleven, and it has
@@ -339,9 +357,22 @@ describe("Pure Heroine — ten videos, and two pressings that fit identically", 
   });
 
   it("keeps “not looked up” apart from “has none”", () => {
-    const shallow = ranking.candidates.filter((c) => !c.detailed);
-    expect(shallow.length).toBeGreaterThan(0);
-    for (const candidate of shallow) expect(candidate.coverArt).toBeNull();
+    /*
+     * `null` is "we never asked", and it must not read as "there is none": MusicBrainz sends
+     * the `cover-art-archive` block on lookups only. The unread candidate is built here rather
+     * than fished out of the fixture, because how many the *recorder* happened to leave unread
+     * is an accident of a budget and this is a property of the scorer.
+     */
+    const unread = releaseCandidates.score({
+      ...fixture,
+      candidates: fixture.candidates.map((candidate) => ({
+        release: stripTracklist(candidate.release),
+        detailed: false,
+      })),
+    });
+    expect(unread.candidates.length).toBeGreaterThan(0);
+    for (const candidate of unread.candidates) expect(candidate.coverArt).toBeNull();
+    // And a pressing that *was* read, and genuinely has no image, says so as a zero.
     expect(ranking.candidates.find((c) => c.id === US_2013)?.coverArt).toEqual({
       available: false,
       front: false,
@@ -541,6 +572,255 @@ describe("the 1:1 assignment", () => {
 });
 
 /* ------------------------------------------------------------------ */
+/* Appeal to Reason — exactness                                        */
+/* ------------------------------------------------------------------ */
+
+describe("Appeal to Reason — fourteen videos and two editions that place all of them", () => {
+  const fixture = album("rise-against");
+  const ranking = releaseCandidates.score(fixture);
+  /** XW, 2014-09-12, Digital Media, Geffen — fourteen tracks, and the playlist is fourteen. */
+  const XW_2014 = "46a691d9-67f7-42c1-bc91-7689b0a7fade";
+  /** XW, 2008-10, Digital Media — fifteen tracks, the last "Prayer of the Refugee (live)". */
+  const XW_2008 = "b5ae03f1-0980-4c67-ae20-e9635b69f404";
+  /** CA, 2008-10-07, Digital Media — thirteen tracks, no "Elective Amnesia". */
+  const CA_2008 = "dd33e659-88b0-4862-951a-80c700919282";
+
+  it("preselects the edition that leaves nothing over on either side", () => {
+    expect(ranking.preselected?.id).toBe(XW_2014);
+    expect(ranking.preselected?.tracks).toBe(14);
+    expect(ranking.preselected?.uncovered).toBe(0);
+    expect(ranking.preselected?.leftOver).toBe(0);
+    expect(ranking.preselected?.why.join(" | ")).toMatch(/Exact fit/);
+  });
+
+  it("is the only candidate the three fit signals all agree on", () => {
+    /*
+     * The whole case for a third fit signal, in three numbers off real MusicBrainz data.
+     *
+     *   `durations`  covered tracks ÷ tracks   — blind to the videos a release drops
+     *   `coverage`   bound videos  ÷ videos    — blind to the tracks it leaves unclaimed
+     *   `exactness`  bound         ÷ max       — blind to neither
+     *
+     * The fifteen-track edition places every video (coverage 1.0) and keeps a live bonus track
+     * nobody asked for. The thirteen-track edition covers its own tracklist perfectly
+     * (durations 1.0) and drops a video. Each of the two older signals calls one of them
+     * perfect; only `exactness` refuses both, and only the fourteen-track edition scores 1.
+     */
+    const exact = ranking.candidates.find((c) => c.id === XW_2014);
+    const fifteen = ranking.candidates.find((c) => c.id === XW_2008);
+    const thirteen = ranking.candidates.find((c) => c.id === CA_2008);
+
+    expect(fifteen?.signals.coverage).toBe(1);
+    expect(fifteen?.signals.exactness).toBeLessThan(1);
+    expect(thirteen?.signals.durations).toBe(1);
+    expect(thirteen?.signals.exactness).toBeLessThan(1);
+
+    expect(exact?.signals.durations).toBe(1);
+    expect(exact?.signals.coverage).toBe(1);
+    expect(exact?.signals.exactness).toBe(1);
+    expect(exact?.score).toBeGreaterThan(fifteen?.score ?? 1);
+    expect(exact?.score).toBeGreaterThan(thirteen?.score ?? 1);
+  });
+
+  it("no longer reads a 2014 re-pressing of a 2008 record as a wrong year", () => {
+    /*
+     * What had to move before `exactness` could be heard at all. The hint is an *album* year —
+     * the ℗ line of the description — and the 2014 worldwide digital master scored zero
+     * against it, six years of decay, which is more than the whole fit family could make up on
+     * a one-track shortfall. A release is now allowed the better of its own date and its
+     * release group's first, so the signal separates *records* and not pressings of one.
+     */
+    for (const id of [XW_2014, XW_2008, CA_2008]) {
+      expect(ranking.candidates.find((c) => c.id === id)?.signals.year, id).toBe(1);
+    }
+  });
+
+  it("does not call it an ambiguity: the runner-up gains nothing", () => {
+    expect(ranking.ambiguous).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* exactness is a weight, not a veto                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The control the sixth owner review asks for in the same breath as the fix.
+ *
+ * "A genuine fifteen-track edition must still win when the playlist really is missing one."
+ * So: fourteen videos, and two candidates built to differ in exactly the way that matters.
+ * Everything else — title, artist, year, country, format, cover — is identical, which is the
+ * only way the size of one signal can be read at all.
+ */
+describe("exactness as a weight rather than a veto", () => {
+  const VIDEOS: readonly MatchVideo[] = Array.from({ length: 14 }, (_, index) => ({
+    id: `v${String(index + 1)}`,
+    index,
+    title: `Song ${String(index + 1)}`,
+    durationSeconds: 200 + index,
+  }));
+  const HINTS: AlbumHints = { album: "Record", artist: "Someone", year: 2020 };
+
+  /** A release carrying the given titles, at the given lengths. Nothing else varies. */
+  const edition = (
+    id: string,
+    tracks: readonly (readonly [string, number])[],
+  ): ReleaseCandidateInput => ({
+    detailed: true,
+    release: {
+      id,
+      title: "Record",
+      date: "2020-01-01",
+      country: "XW",
+      status: "Official",
+      "cover-art-archive": { artwork: true, front: true, count: 1 },
+      "artist-credit": [{ name: "Someone" }],
+      "release-group": {
+        id: "rg-record",
+        title: "Record",
+        "primary-type": "Album",
+        "first-release-date": "2020-01-01",
+      },
+      media: [
+        {
+          position: 1,
+          format: "Digital Media",
+          "track-count": tracks.length,
+          tracks: tracks.map(([title, seconds], index) => ({
+            id: `${id}-t${String(index + 1)}`,
+            position: index + 1,
+            title,
+            length: seconds * 1000,
+          })),
+        },
+      ],
+    },
+  });
+
+  const fourteen = VIDEOS.map(
+    (video) => [video.title, video.durationSeconds ?? 0] as readonly [string, number],
+  );
+
+  it("prefers the edition with no bonus track when the playlist is complete", () => {
+    // The owner's case, in the abstract: both place all fourteen videos, one keeps a track.
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [
+        edition("fifteen", [...fourteen, ["Bonus", 300]]),
+        edition("fourteen", fourteen),
+      ],
+    });
+    expect(ranking.preselected?.id).toBe("fourteen");
+    expect(ranking.candidates.find((c) => c.id === "fifteen")?.signals.exactness).toBeCloseTo(
+      14 / 15,
+      3,
+    );
+  });
+
+  it("still lets the fifteen-track edition win when the playlist is genuinely missing one", () => {
+    /*
+     * The same fifteen-track edition, now against a fourteen-track one whose tracklist is not
+     * the playlist's: it has thirteen of these songs and one nobody has a video for. So the
+     * fifteen-track candidate leaves one track over and the fourteen-track one leaves a track
+     * *and* a video over — and `exactness` says so, 14/15 against 13/14, without any of this
+     * needing to be a refusal.
+     */
+    const ranking = releaseCandidates.score({
+      videos: VIDEOS,
+      hints: HINTS,
+      candidates: [
+        edition("fifteen", [...fourteen, ["Bonus", 300]]),
+        edition("fourteen", [...fourteen.slice(0, 13), ["Something Else", 400]]),
+      ],
+    });
+    expect(ranking.preselected?.id).toBe("fifteen");
+    expect(ranking.preselected?.uncovered).toBe(1);
+    expect(ranking.candidates.find((c) => c.id === "fourteen")?.leftOver).toBe(1);
+  });
+
+  it("weighs no more than its own weight, so it reorders editions and not records", () => {
+    const candidates = [
+      edition("fifteen", [...fourteen, ["Bonus", 300]]),
+      edition("fourteen", fourteen),
+    ];
+    const on = releaseCandidates.score({ videos: VIDEOS, hints: HINTS, candidates });
+    const off = releaseCandidates.score(
+      { videos: VIDEOS, hints: HINTS, candidates },
+      { weights: { release: { exactness: 0 } } },
+    );
+    const scoreOf = (ranking: typeof on, id: string): number =>
+      ranking.candidates.find((candidate) => candidate.id === id)?.score ?? 0;
+    expect(Math.abs(scoreOf(on, "fifteen") - scoreOf(off, "fifteen"))).toBeLessThanOrEqual(
+      DEFAULT_WEIGHTS.release.exactness + 0.001,
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the ceiling the adaptive exploration branches on                    */
+/* ------------------------------------------------------------------ */
+
+describe("the ceiling on an unopened candidate", () => {
+  const fixture = album("rise-against");
+
+  it("is the score itself once the tracklist has been read", () => {
+    const ranking = releaseCandidates.score(fixture);
+    for (const candidate of ranking.candidates) {
+      if (!candidate.detailed) continue;
+      expect(candidate.ceiling, candidate.id).toBe(candidate.score);
+    }
+  });
+
+  it("is never below what the candidate turns out to score once opened", () => {
+    /*
+     * The property the whole branch and bound rests on, checked against real data: a candidate
+     * is opened only while its ceiling beats the best complete score, so a ceiling that
+     * *under*-states a candidate silently hides it for ever. This is exactly how the first
+     * version of it lost *Appeal to Reason* by one lookup — a release search carries no
+     * `first-release-date`, so the 2014 pressing of a 2008 record was bounded away at 0.960
+     * against a leader at 0.967 and would have scored 1.0 the moment it was read.
+     */
+    const shallow = releaseCandidates.score({
+      ...fixture,
+      candidates: fixture.candidates.map((candidate) => ({
+        release: stripTracklist(candidate.release),
+        detailed: false,
+      })),
+    });
+    const opened = releaseCandidates.score(fixture);
+    for (const candidate of shallow.candidates) {
+      const real = opened.candidates.find((other) => other.id === candidate.id);
+      expect(real).toBeDefined();
+      expect(candidate.ceiling, `${candidate.id} (${candidate.title})`).toBeGreaterThanOrEqual(
+        real?.score ?? 0,
+      );
+    }
+  });
+});
+
+/** A release as a *search result* sees it: track counts, no tracklist, no cover block. */
+function stripTracklist(release: MbRelease): MbRelease {
+  const { ["cover-art-archive"]: _cover, ...rest } = release;
+  const group = release["release-group"];
+  return {
+    ...rest,
+    ...(group === undefined
+      ? {}
+      : {
+          "release-group": Object.fromEntries(
+            Object.entries(group).filter(([key]) => key !== "first-release-date"),
+          ) as typeof group,
+        }),
+    media: (release.media ?? []).map((medium) => ({
+      position: medium.position,
+      ...(medium.format === undefined ? {} : { format: medium.format }),
+      "track-count": medium["track-count"] ?? medium.tracks?.length ?? 0,
+    })),
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* the release-type preference                                         */
 /* ------------------------------------------------------------------ */
 
@@ -682,5 +962,197 @@ describe("the release-type preference", () => {
     // With the weight at zero the two are indistinguishable, which is what "only the type
     // differs" means and what makes the assertions above about the weight and nothing else.
     expect(scoreOf(off, "single")).toBe(scoreOf(off, "album"));
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the disambiguation penalties, relative to what the source asked for */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The fifth defect of the sixth owner review, and it pulls the opposite way to the fourth.
+ *
+ * "Deluxe", "remaster" and "live" in a release's comment have always been deductions, and they
+ * are right to be when the source is the standard album. Applied *unconditionally* they punish
+ * the only correct candidate the moment the source announces itself: the owner's "The Heist
+ * (Deluxe Edition)", eighteen videos, matched the eighteen-track deluxe pressing 18/18 at a
+ * mean Δ of 0.3 s and scored **76 %** because of one line — `Disambiguation contains "deluxe"
+ * (−20 %)`. Without it, 96 %.
+ *
+ * Both directions are asserted here, and the mismatch between two different qualifiers with
+ * them, because a rule that only fires one way is half a rule.
+ */
+describe("a disambiguation penalty is relative to what the source announced", () => {
+  const VIDEOS: readonly MatchVideo[] = Array.from({ length: 12 }, (_, index) => ({
+    id: `v${String(index + 1)}`,
+    index,
+    title: `Song ${String(index + 1)}`,
+    durationSeconds: 200 + index,
+  }));
+  const tracks = VIDEOS.map(
+    (video) => [video.title, video.durationSeconds ?? 0] as readonly [string, number],
+  );
+
+  /** One pressing: the same twelve tracks, differing only in what it calls itself. */
+  const pressing = (
+    id: string,
+    disambiguation: string,
+    extra: readonly (readonly [string, number])[] = [],
+  ): ReleaseCandidateInput => ({
+    detailed: true,
+    release: {
+      id,
+      title: "Record",
+      disambiguation,
+      date: "2012-01-01",
+      country: "XW",
+      status: "Official",
+      "cover-art-archive": { artwork: true, front: true, count: 1 },
+      "artist-credit": [{ name: "Someone" }],
+      "release-group": {
+        id: "rg-record",
+        title: "Record",
+        "primary-type": "Album",
+        "first-release-date": "2012-01-01",
+      },
+      media: [
+        {
+          position: 1,
+          format: "Digital Media",
+          "track-count": tracks.length + extra.length,
+          tracks: [...tracks, ...extra].map(([title, seconds], index) => ({
+            id: `${id}-t${String(index + 1)}`,
+            position: index + 1,
+            title,
+            length: seconds * 1000,
+          })),
+        },
+      ],
+    },
+  });
+
+  const rank = (album: string, candidates: readonly ReleaseCandidateInput[]) =>
+    releaseCandidates.score({
+      videos: VIDEOS,
+      hints: { album, artist: "Someone", year: 2012, edition: undefined },
+      candidates,
+    });
+
+  it("stops penalising the deluxe pressing when the source announces deluxe", () => {
+    const ranking = rank("Record (Deluxe Edition)", [
+      pressing("standard", ""),
+      pressing("deluxe", "deluxe edition"),
+    ]);
+    const deluxe = ranking.candidates.find((candidate) => candidate.id === "deluxe");
+    expect(deluxe?.penalties.map((penalty) => penalty.reason).join(" | ")).not.toMatch(/deluxe/i);
+    expect(ranking.preselected?.id).toBe("deluxe");
+    // And the standard pressing is the one that now owes something, for being the wrong edition.
+    const standard = ranking.candidates.find((candidate) => candidate.id === "standard");
+    expect(standard?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /asks for the deluxe edition and this pressing does not say it is one/,
+    );
+  });
+
+  it("still prefers the standard pressing when the source announces nothing", () => {
+    const ranking = rank("Record", [
+      pressing("deluxe", "deluxe edition"),
+      pressing("standard", ""),
+    ]);
+    expect(ranking.preselected?.id).toBe("standard");
+    const deluxe = ranking.candidates.find((candidate) => candidate.id === "deluxe");
+    expect(deluxe?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “deluxe”/,
+    );
+  });
+
+  it("does not charge a “deluxe edition” for containing the letters of “edit”", () => {
+    /*
+     * The list matched by raw substring, so every "deluxe edition", "special edition" and
+     * "limited edition" quietly owed eight points for the word "edition". It never showed,
+     * because "deluxe" costs 0.20 and only the worst line counts — until the rule above
+     * stopped charging for "deluxe" when the source asked for it, and the eight points
+     * surfaced on the one candidate this review is about. The terms are words now.
+     */
+    const ranking = rank("Record (Deluxe Edition)", [pressing("deluxe", "deluxe edition")]);
+    expect(ranking.candidates[0]?.penalties).toEqual([]);
+    // And the term still means what it meant: a different mix of the same song.
+    const radio = rank("Record", [pressing("radio", "radio edit")]);
+    expect(radio.candidates[0]?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “radio edit”/,
+    );
+  });
+
+  it("is not satisfied by a different qualifier", () => {
+    // "Remaster" asked for, "live" offered: two different things, and the deduction stands.
+    const ranking = rank("Record (Remastered)", [
+      pressing("live", "live"),
+      pressing("remaster", "remastered"),
+    ]);
+    expect(ranking.preselected?.id).toBe("remaster");
+    const live = ranking.candidates.find((candidate) => candidate.id === "live");
+    expect(live?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “live”/,
+    );
+  });
+
+  it("charges a qualifier written in the title, when the source asked for nothing", () => {
+    // MusicBrainz writes the edition in either column, so both are read *and* both are
+    // charged. "live" and "remix" are excluded here because `titleKeywordPenalties` owns
+    // them, and one word must not be charged twice.
+    const titled: ReleaseCandidateInput = {
+      ...pressing("titled", ""),
+      release: { ...pressing("titled", "").release, title: "Record (Deluxe Edition)" },
+    };
+    const ranking = rank("Record", [titled, pressing("standard", "")]);
+    expect(ranking.preselected?.id).toBe("standard");
+    expect(
+      ranking.candidates
+        .find((candidate) => candidate.id === "titled")
+        ?.penalties.map((p) => p.reason)
+        .join(" | "),
+    ).toMatch(/Title contains “deluxe”/);
+  });
+
+  it("reads the edition off the release's title as well as its comment", () => {
+    // MusicBrainz writes it in either column; "Record (Deluxe Edition)" with no comment at all
+    // is the same statement as a comment saying "deluxe edition".
+    const titled: ReleaseCandidateInput = {
+      ...pressing("titled", ""),
+      release: { ...pressing("titled", "").release, title: "Record (Deluxe Edition)" },
+    };
+    const ranking = rank("Record (Deluxe Edition)", [pressing("standard", ""), titled]);
+    const chosen = ranking.candidates.find((candidate) => candidate.id === "titled");
+    expect(chosen?.penalties).toHaveLength(0);
+    expect(ranking.preselected?.id).toBe("titled");
+  });
+
+  it("does not let the rule outweigh a real tracklist fit", () => {
+    /*
+     * The guard against over-correcting. A "deluxe" pressing that is *not* the record — two of
+     * the twelve videos land nowhere — still loses to a standard pressing that fits, even
+     * though the source asked for deluxe. Editions are a tie-break between pressings of one
+     * record; the fit decides which record it is, and it always outranks this.
+     */
+    const wrongDeluxe: ReleaseCandidateInput = {
+      detailed: true,
+      release: {
+        ...pressing("wrong-deluxe", "deluxe edition").release,
+        media: [
+          {
+            position: 1,
+            format: "Digital Media",
+            "track-count": 4,
+            tracks: tracks.slice(0, 4).map(([title, seconds], index) => ({
+              id: `wrong-${String(index)}`,
+              position: index + 1,
+              title,
+              length: seconds * 1000,
+            })),
+          },
+        ],
+      },
+    };
+    const ranking = rank("Record (Deluxe Edition)", [wrongDeluxe, pressing("standard", "")]);
+    expect(ranking.preselected?.id).toBe("standard");
   });
 });

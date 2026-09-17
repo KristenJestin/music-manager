@@ -100,3 +100,39 @@ export function toToolbox(map: PathMap, absolute: string): string {
 export function workFolder(map: PathMap, importId: string): string {
   return `${map.workDir}/${importId}`;
 }
+
+/**
+ * Containers `tag` can actually write to — the same list as the toolbox's `TAGGABLE_SUFFIXES`.
+ *
+ * It lives here, next to the path helpers, because two callers need the *same* answer and a
+ * second copy of the list is a way for them to disagree. `download` uses it to decide whether
+ * a file left behind by an earlier run counts as "already downloaded" — a `.webm` from a
+ * pre-remux download must not, or every retry walks back into `TAG_WRITE_FAILED — Unsupported
+ * container '.webm'`. `adopt` uses it to refuse a file before copying a byte of it, for
+ * exactly the same reason: the pipeline would carry it as far as `tag` and break there,
+ * having already told the owner the file was accepted.
+ */
+export const TAGGABLE_SUFFIXES: ReadonlySet<string> = new Set([
+  ".opus",
+  ".ogg",
+  ".oga",
+  ".flac",
+  ".mp3",
+  ".mp2",
+  ".m4a",
+  ".mp4",
+  ".m4b",
+  ".aac",
+]);
+
+/** The lower-cased extension of a path, `.opus`, or `""` when it has none. */
+export function suffixOf(value: string): string {
+  const base = toPosix(value).split("/").pop() ?? "";
+  const dot = base.lastIndexOf(".");
+  return dot <= 0 ? "" : base.slice(dot).toLowerCase();
+}
+
+/** True when a file with this name is one the toolbox could write tags to. */
+export function taggable(value: string): boolean {
+  return TAGGABLE_SUFFIXES.has(suffixOf(value));
+}

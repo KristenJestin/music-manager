@@ -11,7 +11,12 @@
  * conversion and why it happened).
  */
 
-import { normalizeArtist, normalizeTitle, titleSimilarity } from "../normalize/title.ts";
+import {
+  editionTokensIn,
+  normalizeArtist,
+  normalizeTitle,
+  titleSimilarity,
+} from "../normalize/title.ts";
 import type { MbArtistCreditEntry, MbRelease } from "../metadata/resolvers/musicbrainz-types.ts";
 import type { MatchTrack, MatchingPreferences, MatchingThresholds, Penalty } from "./types.ts";
 
@@ -126,6 +131,38 @@ export function yearScore(
   return unit(1 - distance * 0.2);
 }
 
+/**
+ * The year of a **release**, judged against a year that describes the **record**.
+ *
+ * The hint is an album year: the ℗ line of the auto-generated description, YouTube Music's
+ * `release_year` tag. A release's own `date` is the date of *that pressing*. Scoring one
+ * against the other treats a re-pressing as a contradiction, and that is what it did: the 2014
+ * worldwide digital *Appeal to Reason* — the master YouTube actually streams, and the edition
+ * that fits the owner's playlist exactly — scored **zero** on year against a ℗ 2008, six years
+ * of decay at 0.2 a year, and lost by less than the 0.04 that cost it.
+ *
+ * So the release is allowed the **better** of its own date and its release group's first
+ * release date. The consequences are exactly the two that should follow:
+ *
+ *  - between two pressings of **one** record the signal now says nothing, because the group
+ *    date is the same for both. That is right — `year` is evidence about *which record this
+ *    is*, and the pressings are all the same record. `format`, `country` and the cover already
+ *    carry the preference between pressings, and for a YouTube Music source the later digital
+ *    re-issue is usually the *better* answer, not the worse one;
+ *  - between two **different** records — a 2001 album and its 2019 live re-recording, filed in
+ *    their own groups with their own first dates — it says as much as it ever did.
+ */
+export function releaseYearScore(
+  sourceYear: number | null | undefined,
+  releaseYear: number | null,
+  groupFirstYear: number | null,
+): number {
+  if (releaseYear === null && groupFirstYear === null) return yearScore(sourceYear, null);
+  const own = releaseYear === null ? 0 : yearScore(sourceYear, releaseYear);
+  const group = groupFirstYear === null ? 0 : yearScore(sourceYear, groupFirstYear);
+  return Math.max(own, group);
+}
+
 /* ------------------------------------------------------------------ */
 /* format, country, status                                             */
 /* ------------------------------------------------------------------ */
@@ -165,6 +202,43 @@ export function countryScore(country: string | null, preferences: MatchingPrefer
     return unit(1 - (rank / span) * 0.3);
   }
   return MAJOR_MARKETS.has(code) ? 0.45 : 0.3;
+}
+
+/* ------------------------------------------------------------------ */
+/* exactness — the symmetric fit                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How exactly a release and a listing fit each other: `bound / max(videos, tracks)`.
+ *
+ * The intersection over the union of the 1:1 assignment, and the one number that is 1 only
+ * when **nothing is left over on either side**. The two directions we already had are each
+ * blind in one way, and neither is blind in this one:
+ *
+ *  - `durations` = covered tracks ÷ tracks — blind to the videos a release would drop;
+ *  - `coverage`  = bound videos ÷ videos  — blind to the tracks it would leave unclaimed.
+ *
+ * The owner's *Appeal to Reason* is the case they cannot settle between them. Fourteen videos,
+ * two editions: the fifteen-track one places all fourteen and leaves a live bonus track
+ * unclaimed, the fourteen-track one places all fourteen and leaves nothing. `coverage` is 1.0
+ * for both — every video found a home — and only `durations` says anything at all, at a third
+ * of the distance. Here the first is `14/15` and the second `1`.
+ *
+ * Symmetric by construction: `max(videos, tracks)` is the same denominator whichever side the
+ * orphan is on, so an edition with one track too many and a playlist with one video too many
+ * are marked down identically. That is deliberate — neither is worse than the other, and an
+ * asymmetry here would just be `trackCount`'s, restated on a signal that can see the titles.
+ *
+ * `null` when there is nothing to compare, which the blend then drops from its denominator.
+ */
+export function exactnessScore(
+  bound: number,
+  videoCount: number,
+  trackCount: number,
+): number | null {
+  const span = Math.max(videoCount, trackCount);
+  if (span === 0) return null;
+  return unit(bound / span);
 }
 
 /* ------------------------------------------------------------------ */
@@ -302,7 +376,19 @@ const DISAMBIGUATION_PENALTIES: readonly (readonly [string, number])[] = [
   ["karaoke", 0.2],
   ["commentary", 0.2],
   ["video version", 0.14],
-  ["edit", 0.08],
+  /*
+   * "radio edit", never a bare "edit".
+   *
+   * It used to be `["edit", 0.08]` matched as a substring, so *every* "deluxe edition",
+   * "special edition" and "limited edition" quietly owed eight points for containing the
+   * letters. It never showed, because "deluxe" costs 0.20 and only the worst line counts — and
+   * then the edition rule below stopped charging for "deluxe" when the source asked for it,
+   * and an eight-point deduction for the word "edition" surfaced on the one candidate this
+   * whole review is about. The term meant a *different mix*; these are the two ways it is
+   * actually written.
+   */
+  ["radio edit", 0.08],
+  ["single edit", 0.08],
   // A different master or pressing of the same performance: mild.
   ["remaster", 0.1],
   ["reissue", 0.1],
@@ -318,6 +404,24 @@ const DISAMBIGUATION_PENALTIES: readonly (readonly [string, number])[] = [
   ["vellum", 0.03],
   ["exclusive", 0.05],
 ];
+
+/**
+ * Does this comment or title *mention* a term, as a word rather than as letters?
+ *
+ * v1 matched these lists by raw substring and so did the first port of them, which is how
+ * "live" matched "delivery", "import" matched "important" and "edit" matched "edition". The
+ * boundary is only required at the **start** of the term, because MusicBrainz writes
+ * "remastered" where the list says "remaster" and "remixes" where it says "remix".
+ */
+function mentions(haystack: string, term: string): boolean {
+  const text = haystack.toLowerCase();
+  const needle = term.toLowerCase();
+  for (let at = text.indexOf(needle); at !== -1; at = text.indexOf(needle, at + 1)) {
+    const before = at === 0 ? "" : text[at - 1];
+    if (before === undefined || before === "" || !/[a-z0-9]/.test(before)) return true;
+  }
+  return false;
+}
 
 /** v1's `GetSecondaryTypePenalty`, rescaled from −75/−60/−50/−40/−10. */
 const SECONDARY_TYPE_PENALTIES: Readonly<Record<string, number>> = {
@@ -341,22 +445,85 @@ const UNKNOWN_DISAMBIGUATION_PENALTY = 0.03;
 export function disambiguationPenalties(
   disambiguation: string | null | undefined,
   preferences: MatchingPreferences,
+  edition: EditionRequest = NO_EDITION,
 ): Penalty[] {
   const comment = (disambiguation ?? "").trim().toLowerCase();
-  if (comment === "") return [];
+  const wanted = new Set(edition.wanted);
+  /*
+   * What this pressing says it is, read from **both** places an edition is written: the
+   * disambiguation comment, and the release's own title. MusicBrainz uses them
+   * interchangeably — "The Heist" + comment "deluxe edition" and "Nevermind (20th Anniversary
+   * Edition)" with no comment at all are the same fact stated in two columns.
+   */
+  const carries = new Set([
+    ...editionTokensIn(comment),
+    ...editionTokensIn(edition.candidateTitle),
+  ]);
+  const agrees = [...wanted].some((token) => carries.has(token));
 
+  const found: Penalty[] = [];
+  const explicit = explicitPenalty(comment, preferences);
+
+  /*
+   * The deductions, **relative to what the source asked for**.
+   *
+   * A deluxe pressing is the wrong answer for a playlist of the standard album, and that is
+   * what this list has always been for. It is exactly the wrong answer for a playlist titled
+   * "The Heist (Deluxe Edition)" — eighteen videos, eighteen tracks, mean Δ 0.3 s, and the
+   * only correct candidate marked down twenty points to 76 %. So:
+   *
+   *  - the source asked for nothing → every qualifier is a mark against the pressing, which is
+   *    the behaviour this list has always had;
+   *  - the source asked for *this* qualifier → no deduction at all. There is no bonus either,
+   *    because a score is a blend plus named deductions and a bonus would break that; the
+   *    reward is that every other pressing pays the line below;
+   *  - the source asked and this pressing does not say it → a deduction for being the **wrong
+   *    edition**, at half what carrying an unasked-for qualifier costs. Half, because "does not
+   *    say it is deluxe" is weaker evidence than "says it is live": plenty of correct pressings
+   *    carry no comment, and MusicBrainz often has no edition the playlist announces at all;
+   *  - the source asked for one qualifier and this pressing carries a *different* one → the
+   *    ordinary deduction. "Remaster" is not satisfied by "live".
+   *
+   * Only the worst line counts, as before: a comment reading "deluxe edition, remastered" is
+   * one problem stated twice, and adding the deductions would bury a pressing for a fact.
+   */
   let worst: Penalty | null = null;
+  const consider = (penalty: Penalty): void => {
+    if (worst === null || penalty.amount > worst.amount) worst = penalty;
+  };
+
+  /*
+   * Both columns, charged as well as read.
+   *
+   * "Nevermind (20th Anniversary Edition)" with an empty comment is the same statement as a
+   * comment reading "anniversary edition", so a qualifier in the *title* earns the same
+   * deduction — except for the four terms `titleKeywordPenalties` already owns ("live",
+   * "remix", "best of", "greatest hits"), which would otherwise be charged twice for one word.
+   */
+  const titleOwned = new Set(TITLE_KEYWORD_PENALTIES.map(([term]) => term));
   for (const [term, amount] of DISAMBIGUATION_PENALTIES) {
-    if (!comment.includes(term)) continue;
-    if (worst === null || amount > worst.amount) {
-      worst = { reason: `Disambiguation contains “${term}”`, amount };
-    }
+    const inComment = mentions(comment, term);
+    const inTitle = !titleOwned.has(term) && mentions(edition.candidateTitle, term);
+    if (!inComment && !inTitle) continue;
+    // A qualifier the source itself announced is not a mark against anything.
+    if (wanted.size > 0 && editionTokensIn(term).some((token) => wanted.has(token))) continue;
+    consider({
+      reason: inComment ? `Disambiguation contains “${term}”` : `Title contains “${term}”`,
+      amount,
+    });
   }
 
-  const explicit = explicitPenalty(comment, preferences);
-  const found: Penalty[] = [];
+  if (wanted.size > 0 && !agrees) {
+    const asked = [...wanted];
+    const cost = Math.max(...asked.map((token) => EDITION_REQUEST_COST[token] ?? 0.1)) * 0.5;
+    consider({
+      reason: `The source asks for the ${asked.join(" / ")} edition and this pressing does not say it is one`,
+      amount: round3(cost),
+    });
+  }
+
   if (worst !== null) found.push(worst);
-  else if (explicit === null) {
+  else if (comment !== "" && explicit === null && wanted.size === 0) {
     found.push({
       reason: `Disambiguation “${comment}” sets this pressing apart`,
       amount: UNKNOWN_DISAMBIGUATION_PENALTY,
@@ -365,6 +532,35 @@ export function disambiguationPenalties(
   if (explicit !== null) found.push(explicit);
   return found;
 }
+
+/** What the source announced, and what this candidate calls itself. See `sourceEdition`. */
+export interface EditionRequest {
+  /** Canonical edition tokens read off the source's own title (`normalize/title.ts`). */
+  readonly wanted: readonly string[];
+  /** The candidate release's title, where MusicBrainz half the time writes the edition. */
+  readonly candidateTitle: string;
+}
+
+export const NO_EDITION: EditionRequest = { wanted: [], candidateTitle: "" };
+
+/** What *missing* each announced edition costs, before the half-weight is applied. */
+const EDITION_REQUEST_COST: Readonly<Record<string, number>> = {
+  deluxe: 0.2,
+  expanded: 0.18,
+  "box set": 0.2,
+  anniversary: 0.16,
+  bonus: 0.12,
+  live: 0.2,
+  demo: 0.18,
+  remix: 0.16,
+  instrumental: 0.2,
+  karaoke: 0.2,
+  acoustic: 0.16,
+  remaster: 0.1,
+  reissue: 0.1,
+  special: 0.1,
+  mono: 0.1,
+};
 
 /**
  * The explicit/clean pair. v1 preferred explicit, then a release with no comment at all, then
@@ -418,17 +614,22 @@ export function titleKeywordPenalties(
   title: string,
   primaryType: string | null | undefined,
   secondary: readonly string[] | undefined,
+  wantedEdition: readonly string[] = [],
 ): Penalty[] {
   const lowered = title.toLowerCase();
   const known = new Set(
     [primaryType ?? "", ...(secondary ?? [])].map((t) => t.trim().toLowerCase()),
   );
+  const wanted = new Set(wantedEdition);
   const out: Penalty[] = [];
   for (const [term, amount] of TITLE_KEYWORD_PENALTIES) {
-    if (!lowered.includes(term)) continue;
+    if (!mentions(lowered, term)) continue;
     // Already declared by the release group: not a surprise, so not a penalty.
     if (known.has(term) || (term === "greatest hits" && known.has("compilation"))) continue;
     if (term === "best of" && known.has("compilation")) continue;
+    // Nor is it a surprise when the source asked for it: a playlist called "… (Live)" is not
+    // penalised for finding a release with "Live" in its name.
+    if (editionTokensIn(term).some((token) => wanted.has(token))) continue;
     out.push({ reason: `Title contains “${term}”`, amount });
   }
   return out;

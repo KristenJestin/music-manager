@@ -497,9 +497,19 @@ function DownloaderPanel({
           size="xs"
           disabled={busy !== null || !navidrome.configured}
           onClick={() => {
+            /*
+             * Queued, not awaited.
+             *
+             * This used to await the whole read-back — a Navidrome rescan wait of up to four
+             * minutes and then six or seven Subsonic calls per album, inside the button's own
+             * HTTP request. The counts it reported are now the `verify.done` line in the
+             * journal below, which is where a quarter of an hour of progress belongs.
+             */
             act("verify", async () => {
-              const report = await verifyAll({ data: {} });
-              return `Read back ${String(report.verified)} album(s): ${String(report.clean)} clean, ${String(report.withMismatch)} with a mismatch, ${String(report.notFound)} not indexed.`;
+              const queued = await verifyAll({ data: {} });
+              return queued.queued
+                ? `Reading ${String(queued.total)} album(s) back from Navidrome. The worker reports each one in the log below.`
+                : "The read-back could not be queued.";
             });
           }}
           data-testid="verify-library"

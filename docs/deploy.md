@@ -11,6 +11,8 @@ test de P10 (`orchestration/reports/P10-build-1.md`).
 - [5. yt-dlp seul](#5-yt-dlp-seul)
 - [5 bis. Les sources surveillées](#5-bis-les-sources-surveillées)
 - [5 ter. Cookies YouTube (vidéos avec restriction d'âge)](#5-ter-cookies-youtube-vidéos-avec-restriction-dâge)
+- [5 quater. Le rythme de préparation](#5-quater-le-rythme-de-préparation)
+- [5 quinquies. Adopter un fichier local comme source d'une piste](#5-quinquies-adopter-un-fichier-local-comme-source-dune-piste)
 - [6. Sauvegarde et restauration](#6-sauvegarde-et-restauration)
 - [7. Journaux](#7-journaux)
 - [8. Navidrome](#8-navidrome)
@@ -112,6 +114,20 @@ le travail du proxy. Trois choses, et une seule est piégeuse :
    peut écrire est pire que ne pas les avoir.
 3. **Le proxy doit poser `X-Forwarded-Proto`, `X-Forwarded-Host` et `X-Forwarded-For`.** Caddy
    et Traefik le font tout seuls ; nginx demande de l'écrire.
+
+**Et une quatrième, qui n'est pas un piège du proxy.** Une page qui meurt au bout d'une dizaine
+de secondes avec un panneau d'erreur n'accuse pas le proxy : le défaut coupable est celui du
+serveur lui-même (`MM_REQUEST_TIMEOUT_S`, §7). Le proxy n'entre en jeu qu'au-delà, et seulement
+pour deux réglages, qu'il ne faut toucher que si les journaux de `web` montrent une requête
+terminée en `200` alors que le navigateur, lui, n'a rien reçu :
+
+- **nginx** : `proxy_read_timeout` (défaut 60 s) — déjà à `3600s` dans l'exemple ci-dessous, à
+  cause du SSE.
+- **Traefik** : `respondingTimeouts.readTimeout` (défaut 60 s) s'applique à la lecture de la
+  _requête_, pas à l'attente de la réponse ; `writeTimeout` vaut `0` (aucune limite) par défaut
+  et c'est celui qui compterait. Une installation Traefik par défaut, y compris celle que
+  Dokploy déploie, ne coupe donc pas une réponse lente : il n'y a rien à y changer.
+- **Caddy** : aucune limite de ce genre par défaut.
 
 ### Caddy
 
@@ -498,6 +514,219 @@ frais.
 > secrets. Traitez chaque archive de sauvegarde avec la même prudence que `.env` dès qu'un jar
 > collé est en usage.
 
+Si le jar ne passe pas, ou si vous ne voulez pas en installer un, la vidéo n'est pas perdue
+pour autant : le §5 quinquies explique comment donner directement le fichier à la piste.
+
+---
+
+## 5 quater. Le rythme de préparation
+
+Avant qu'un seul octet d'audio ne soit téléchargé, un import traverse trois étapes —
+`resolve` (yt-dlp lit la source), `match` (MusicBrainz) et `confirm`. C'est la **préparation**,
+et elle a sa propre file : `import.step`.
+
+Le réglage `importStepConcurrency` dit combien d'imports peuvent être préparés en même temps.
+Il vaut **4** par défaut, entre 1 et 8.
+
+> **Le créneau de téléchargement, lui, reste à un.** C'est la règle sur laquelle tout le reste
+> repose : une file `download` en politique `singleton`, un seul consommateur, et un toolbox qui
+> répond `409 LOCKED` à un second appelant. `importStepConcurrency` ne s'en approche pas, et
+> aucun réglage ne l'ouvre.
+
+### Ce que ça change, et ce que ça ne change pas
+
+Sur quelques centaines d'imports mis en file d'un coup, la valeur 1 — celle qui était codée en
+dur — préparait environ quatre imports par minute : le dernier d'un lot de 380 attendait donc
+près de deux heures avant que son téléchargement puisse seulement commencer.
+
+Monter la concurrence **n'accélère pas linéairement**, et il vaut mieux savoir pourquoi avant
+de mettre 8 : `match` est essentiellement du MusicBrainz, et MusicBrainz, c'est **une requête
+par seconde pour l'installation entière**, tous processus confondus
+(`apps/web/src/server/integrations/rate-gate.ts`). Les préparations parallèles font la queue
+devant ce portillon ; ce qu'elles se recouvrent réellement, c'est l'extraction yt-dlp, le
+travail en base et l'attente des unes pendant que les autres parlent.
+
+Mesures faites sur la machine de développement (24 imports de l'album de 15 vidéos du jeu de
+fixtures, réponses MusicBrainz déjà en cache) :
+
+| `importStepConcurrency` | 24 imports préparés en | débit   |
+| ----------------------- | ---------------------- | ------- |
+| 1                       | 23,9 s                 | 60/min  |
+| 2                       | 12,0 s                 | 120/min |
+| 4                       | 6,2 s                  | 232/min |
+| 8                       | 3,5 s                  | 415/min |
+
+Et la mesure qui plafonne tout le reste : un `match` d'album de 15 vidéos émet **exactement 10
+requêtes MusicBrainz** (relevé dans `job_steps.result.budget`, n = 24, min = max = 10). Cache
+froid, cela fait **10 secondes par import qu'aucune concurrence n'enlève**. Un lot de 380
+albums inconnus met donc environ une heure à se préparer quoi qu'on mette ici, contre une
+heure trente à concurrence 1 ; c'est un gain d'un facteur 1,5, pas de 4. Le facteur 4, on
+l'obtient sur le cas courant — un import en masse qui revisite les mêmes artistes et les mêmes
+groupes de sortie, où le cache répond et où il ne reste que le travail local.
+
+**4 est donc le compromis :** il prend l'essentiel du gain quand le cache est chaud, et
+au-delà on ne fait qu'ajouter des `resolve` simultanés sur un seul conteneur toolbox pour
+attendre au même portillon. Montez à 6 ou 8 si votre cache MusicBrainz est déjà bien rempli et
+que la machine a les cœurs ; redescendez à 1 ou 2 si le toolbox est à l'étroit.
+
+```bash
+docker compose exec web bun run mm -- settings set importStepConcurrency 6
+docker compose restart worker    # la valeur est lue au démarrage du worker
+```
+
+Le réglage voisin `localStepConcurrency` (défaut 3) gouverne l'autre moitié du pipeline —
+empreinte, tags et classement, par piste. Les deux sont indépendants.
+
+---
+
+## 5 quinquies. Adopter un fichier local comme source d'une piste
+
+Trois situations où le téléchargement ne se produira pas, et où le fichier existe pourtant :
+
+- **la vidéo a été supprimée.** Le listing de la playlist la nomme encore, MusicBrainz connaît
+  encore l'enregistrement, et il ne manque que l'audio — que vous avez, depuis un rip ou une
+  sauvegarde. Le toolbox répond `YTDLP_UNAVAILABLE` ou `YTDLP_PRIVATE`.
+- **la vidéo est derrière un contrôle d'âge** (`YTDLP_AGE`) et le jar de cookies du §5 ter ne
+  passe pas, ou vous ne voulez pas en installer un.
+- **vous reprenez une bibliothèque existante.** Les fichiers sont déjà sur la machine ; tout
+  l'intérêt est qu'ils ne soient pas re-téléchargés.
+
+Adopter un fichier, c'est le donner à **une piste précise d'un import déjà confirmé**. Le
+fichier est déposé là où `download` l'aurait déposé, la piste reprend à l'étape suivante —
+empreinte, tags, classement — et **aucun octet n'est téléchargé pour cette piste** : l'étape
+`download` relit le disque avant de décider, trouve le fichier et le compte comme réutilisé.
+
+> **Un import déjà en échec est rouvert.** Quand la piste ratée avait fait conclure l'album
+> `Failed`, l'adoption remet l'import en file — sinon rien ne bougerait, le pipeline refusant
+> par construction de travailler sur un job terminé. Cette reprise **retente aussi les autres
+> vidéos mortes du même album**, ce qui après une intervention humaine est le bon défaut, mais
+> coûte quelques minutes de tentatives yt-dlp. La réponse de l'API le dit : `reopened: true`.
+
+> Ce n'est pas la reprise d'une bibliothèque v1 entière : celle-là, c'est
+> `docs/migration-v1.md`, et elle fait bien davantage (décisions, pochettes, regroupement).
+> Cette procédure-ci est piste par piste.
+
+### Par où arrivent les octets
+
+Deux formes, et le même contrôle pour tout le reste :
+
+| Forme              | Quand                                                                                                                            | Ce qui voyage                            |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **Chemin serveur** | Le fichier est déjà sur la machine qui fait tourner Music Manager : reprise de bibliothèque, montage NAS, dossier déposé en SSH. | Rien. Le fichier est copié sur place.    |
+| **Téléversement**  | Le fichier est sur votre poste. C'est la forme de la Console.                                                                    | Le fichier, en base64, 64 Mo au maximum. |
+
+### Ouvrir un dossier à la lecture : `adoptSourceRoots`
+
+**Un chemin arrivant dans un corps de requête HTTP est une primitive de lecture de fichier.**
+Sans garde-fou, `{"path": "/etc/shadow"}` copierait ce fichier dans la bibliothèque sous un nom
+en `.opus` et le tagueur le relirait. Le réglage `adoptSourceRoots` est ce garde-fou : il liste
+les répertoires absolus dont un chemin peut être accepté. **Il est vide par défaut**, et vide
+veut dire « la bibliothèque, et rien d'autre ».
+
+Le chemin est résolu avant d'être comparé — `..` est réduit, et les liens symboliques sont
+suivis (`realpath`), de sorte qu'un lien posé dans un dossier autorisé ne peut pas pointer en
+dehors. Un chemin refusé répond `ADOPT_PATH_REFUSED` (403).
+
+```bash
+docker compose exec web bun run mm -- settings set adoptSourceRoots '["/srv/ancienne-bibliotheque"]'
+docker compose exec web bun run mm -- settings get adoptSourceRoots
+```
+
+Le chemin est celui que **le serveur** voit, pas celui de votre poste. Le téléversement n'est
+pas concerné : il n'ouvre aucun chemin.
+
+### Depuis la Console
+
+1. Ouvrez l'import : **Jobs → l'import → tableau Tracks**.
+2. Sur la ligne de la piste en échec (badge `Failed`, code d'erreur en dessous), deux boutons :
+   **Retry track**, et à côté l'icône **« Adopt a local file »**.
+3. La boîte de dialogue propose **Upload a file** (le fichier est sur votre poste) ou **A path
+   on the server** (il est déjà sur la machine).
+4. Validez. La piste repasse en `downloaded`, l'erreur est effacée, et l'empreinte démarre.
+
+### Depuis l'API
+
+```bash
+# le fichier est déjà sur le serveur
+curl -sS -X POST "$MM_URL/api/v1/imports/imp_01.../tracks/itr_01.../file" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d '{"source":"path","path":"/srv/ancienne-bibliotheque/Daft Punk/Discovery/03.flac"}'
+
+# le fichier est ici
+curl -sS -X POST "$MM_URL/api/v1/imports/imp_01.../tracks/itr_01.../file" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d "$(jq -n --arg n '03.flac' --arg c "$(base64 -w0 03.flac)" \
+        '{source:"upload",filename:$n,content:$c}')"
+```
+
+La réponse donne le chemin retenu, la taille, le codec lu par ffprobe et l'étape suivante :
+
+```json
+{
+  "path": ".mm-work/imp_01.../itr_01....flac",
+  "bytes": 41234567,
+  "codec": "flac",
+  "via": "path",
+  "originalName": "03.flac",
+  "nextStep": "fingerprint",
+  "queued": true,
+  "reopened": false
+}
+```
+
+Les identifiants de pistes (`itr_…`) se lisent dans `GET /api/v1/imports/{id}`, champ `tracks`.
+
+### Depuis le CLI, et depuis un agent
+
+```bash
+# sur le serveur : par chemin
+bun run mm -- adopt imp_01... itr_01... --file '/srv/ancienne-bibliotheque/.../03.flac'
+
+# à distance : --file téléverse depuis cette machine-ci
+bun run mm -- --url https://music.exemple.fr --token mm_… \
+  adopt imp_01... itr_01... --file './03.flac'
+# …ou --server-path pour un fichier déjà présent là-bas
+```
+
+Un agent MCP dispose du même outil, `adopt_track_file`.
+
+### Ce que les tags diront
+
+Le document de métadonnées dit la vérité sur la provenance, et il continue de la dire après un
+re-tag : la trace est écrite dans `import_tracks.raw`, d'où le document est reconstruit.
+
+| Champ                    | Fichier téléchargé                                   | Fichier adopté                                                                                                |
+| ------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `COMMENT`                | `Source: youtu.be/… · imported … by Music Manager …` | `Adopted local file "03.flac" on 2026-09-17 · not downloaded from youtu.be/… · imported … by Music Manager …` |
+| `ORIGINALFILENAME`       | `<id vidéo>.<ext>`                                   | le nom du fichier adopté                                                                                      |
+| `ENCODEDBY`              | la version de yt-dlp                                 | n/a — « the file was adopted from disk, not downloaded »                                                      |
+| `MUSICMANAGER_SOURCEURL` | l'URL de la vidéo                                    | **inchangé** : l'URL de la vidéo                                                                              |
+
+`MUSICMANAGER_SOURCEURL` reste l'URL de la vidéo à dessein. C'est l'**identité** de la piste —
+ce sur quoi la reprise v1, le scan de bibliothèque et le re-tag se recalent — et non une
+affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en toutes lettres.
+
+### Les refus, et ce qu'ils demandent
+
+| Code                       | Ce qui s'est passé                                                                     | Quoi faire                                                                                                                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADOPT_UNSUPPORTED` (415)  | Le conteneur n'est pas de ceux où le tagueur sait écrire.                              | Convertir vers `.opus .ogg .oga .flac .mp3 .mp2 .m4a .mp4 .m4b .aac`. Un `.webm` se remuxe en `.opus` par copie de flux, sans perte : `ffmpeg -i in.webm -c copy out.opus`. |
+| `ADOPT_NOT_AUDIO` (415)    | ffprobe n'a trouvé aucun flux audio.                                                   | Vérifier le fichier : une pochette, une vidéo ou une archive renommée passent l'extension, pas celle-ci. Rien n'est conservé.                                               |
+| `ADOPT_CONFLICT` (409)     | La piste a déjà un fichier, dans le répertoire de travail ou dans la bibliothèque.     | **Retry track** d'abord : c'est ce qui efface le fichier existant.                                                                                                          |
+| `ADOPT_PATH_REFUSED` (403) | Le chemin est hors bibliothèque et hors `adoptSourceRoots`.                            | Ajouter le dossier au réglage, ou téléverser le fichier.                                                                                                                    |
+| `ADOPT_NOT_READY` (409)    | L'import est annulé, ou pas encore confirmé, ou cette vidéo n'est liée à aucune piste. | Confirmer la sortie et le mapping d'abord : sans enregistrement MusicBrainz lié, il n'y a rien à quoi rattacher le fichier.                                                 |
+| `413`                      | Le téléversement dépasse 64 Mo.                                                        | Poser le fichier sur le serveur et l'adopter par chemin.                                                                                                                    |
+
+### Reprendre une bibliothèque existante, piste par piste
+
+1. Créez les imports depuis les URL YouTube correspondantes (`mm import --from-file`) et
+   confirmez-les (`mm confirm-best`) : c'est ce qui apporte les métadonnées MusicBrainz.
+2. Ouvrez le dossier source : `mm settings set adoptSourceRoots '["/srv/ancienne"]'`.
+3. Pour chaque piste, `mm adopt <import> <piste> --file <chemin>` — ou bouclez sur
+   `GET /api/v1/imports/{id}` depuis un agent.
+4. Aucun octet n'est téléchargé pour ces pistes, et le créneau unique reste libre pour les
+   albums qui, eux, en ont besoin.
+
 ---
 
 ## 6. Sauvegarde et restauration
@@ -599,6 +828,40 @@ docker compose -f docker-compose.prod.yml logs --since 1h --no-log-prefix web \
 `MM_LOG_LEVEL` (`debug` · `info` · `warn` · `error` · `silent`) vaut pour les trois services.
 Une réponse 5xx est journalisée en `error` quel que soit le niveau, et les fichiers de build en
 `debug` — sinon vingt lignes utiles disparaissent sous deux cents lignes d'assets.
+
+**Le statut `499`.** Il n'existe pas dans la norme HTTP : c'est la convention de nginx pour
+« le client a fermé la connexion ». Rien n'est jamais envoyé sous ce code — la socket est
+partie, c'est tout son sens — mais la ligne est écrite, en `info`, avec le chemin et la durée :
+
+```json
+{ "level": "info", "msg": "request", "path": "/_serverFn/…", "status": 499, "ms": 11316 }
+```
+
+Un rechargement au milieu d'un chargement, un onglet fermé, une page quittée : cela arrive, ce
+n'est pas une panne de ce serveur, et cela ne doit donc pas peser sur son taux d'erreur. Si ces
+lignes se multiplient sur un même chemin, ce n'est pas le réseau qu'il faut regarder mais la
+durée : quelque chose y est plus lent que la patience de la connexion.
+
+### `MM_REQUEST_TIMEOUT_S` — la patience d'une connexion
+
+L'image de production tourne sur le preset **bun** de Nitro, c'est-à-dire sur `Bun.serve()`, et
+le défaut de son `idleTimeout` est de **dix secondes** : une connexion sur laquelle aucun octet
+n'a circulé depuis dix secondes est fermée par le serveur lui-même. Or une server function
+calcule d'abord et n'écrit son corps qu'à la fin — elle est donc inactive pendant toute sa
+durée. Tout ce qui dépassait dix secondes était tué en vol, l'`AbortError` remontait en 500, et
+la page affichait un panneau d'erreur pour un travail qui se déroulait normalement.
+
+L'application relève désormais ce plafond requête par requête. `MM_REQUEST_TIMEOUT_S` vaut
+`240` par défaut ; Bun ramène silencieusement toute valeur supérieure à 255, et l'application
+refuse donc ce qui sort de la plage plutôt que de faire semblant. Ne le baissez que si vous
+savez que chaque page répond plus vite que la valeur choisie.
+
+Ce réglage est un plancher de correction, pas un permis : les traitements réellement longs —
+l'appariement MusicBrainz de l'assistant d'import, la relecture Navidrome de toute la
+bibliothèque, le re-tag, le scan — passent par la file d'attente et le worker, et rendent la
+main immédiatement. `bun run dev` n'est pas concerné : le serveur de développement rend le SSR
+sous Node, qui n'a pas cette limite (c'est aussi pourquoi le défaut de dix secondes n'était
+visible qu'en production).
 
 **Rotation.** Elle est dans le fichier compose (`json-file`, 10 Mo × 3 par service) : sans elle,
 un conteneur qui journalise une exception en boucle remplit le disque. Pour envoyer les
@@ -713,6 +976,15 @@ Chaque import reprend aussi une ligne de journal qui dit laquelle des trois rais
 concerne, visible sur sa page. Le même balayage repasse toutes les deux minutes, pour le cas
 d'un message perdu par un handler mort en vol ; il ne regarde que les lignes qui n'ont pas bougé
 depuis dix minutes et ne remet jamais en file un import qui détient déjà un message.
+
+**Une piste reste en `Failed` et ne se rattrapera jamais.** Regardez son code d'erreur.
+`YTDLP_UNAVAILABLE` et `YTDLP_PRIVATE` disent que la vidéo n'existe plus : aucun Retry ne la
+fera revenir. `YTDLP_AGE` et `YTDLP_BOT_CHECK` demandent un jar de cookies (§5 ter), et s'il ne
+passe pas, la voie de sortie est la même dans les trois cas — donner directement le fichier à
+la piste, §5 quinquies.
+
+**Un lot de plusieurs centaines d'imports met des heures avant le premier téléchargement.**
+C'est la préparation, pas le téléchargement. Voir §5 quater et `importStepConcurrency`.
 
 **Tout échoue en `422` sur le toolbox.** Les deux images ne viennent pas du même commit. Voir
 §4 ; Tools affiche la comparaison des hash de contrat.

@@ -10,6 +10,7 @@ import { X } from "lucide-react";
 import { cn } from "cn";
 import { timeAgo } from "#/lib/format.ts";
 import { useShell } from "#/components/shell/shell-context.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 const DOT: Record<string, string> = {
   info: "bg-info",
@@ -18,13 +19,14 @@ const DOT: Record<string, string> = {
 };
 
 export function ActivityDrawer() {
+  const testId = useTestId();
   const { drawerOpen, setDrawerOpen, data } = useShell();
   const events = data?.activity ?? [];
   const now = new Date();
 
   return (
     <aside
-      data-testid="activity-drawer"
+      data-testid={testId("activity-drawer")}
       aria-hidden={!drawerOpen}
       className={cn(
         "fixed inset-y-0 right-0 z-40 flex w-drawer flex-col border-l border-line bg-surface-1 transition-transform duration-200",

@@ -5,6 +5,7 @@ import {
   ArrowUpNarrowWide,
   Check,
   ExternalLink,
+  FileUp,
   Fingerprint,
   Inbox,
   Pause,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
+import { AdoptFileDialog, type AdoptFileChoice } from "#/components/adopt-file-dialog.tsx";
 import { ConfigureLink } from "#/components/configure-link.tsx";
 import { Cover, coverArtFront, SLOT_SIZES } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
@@ -21,6 +23,7 @@ import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
 import { MbLink } from "#/components/mb-link.tsx";
 import { isPipelineStep, pipelineCount, PipelineStepper } from "#/components/pipeline-dots.tsx";
+import { RetryMenu } from "#/components/retry-menu.tsx";
 import {
   ImportStatusBadge,
   scoreTone,
@@ -53,6 +56,7 @@ import {
   pauseJob,
   retryJob,
   retryTrack,
+  adoptTrackFile,
 } from "#/server/functions/jobs.ts";
 
 /**
@@ -204,6 +208,36 @@ function JobPage() {
         toast(error instanceof Error ? error.message : "That did not work.", "danger");
       },
     );
+  };
+
+  /**
+   * The track whose "Adopt a file" dialog is open, if any.
+   *
+   * On the row and not in a page-level menu: the need is felt one line at a time — one video
+   * of fourteen that came back `YTDLP_AGE` or `YTDLP_UNAVAILABLE` — and the owner is already
+   * looking at the row that says so.
+   */
+  const [adopting, setAdopting] = useState<JobDetailTrack | null>(null);
+
+  const adopt = (choice: AdoptFileChoice): void => {
+    const track = adopting;
+    if (track === null) return;
+    act(
+      `adopt:${track.id}`,
+      async () =>
+        await adoptTrackFile({
+          data: {
+            id: job.id,
+            trackId: track.id,
+            source:
+              choice.kind === "path"
+                ? { kind: "path", path: choice.path }
+                : { kind: "upload", filename: choice.filename, content: choice.content },
+          },
+        }),
+      "File adopted; the track carries on from here.",
+    );
+    setAdopting(null);
   };
 
   /** True while the worker owns this job: retrying now would only queue a second run. */
@@ -392,6 +426,26 @@ function JobPage() {
                 <RotateCcw className="size-3" aria-hidden="true" /> Retry track
               </Button>
             ) : null}
+            {/* The other answer to a download that will not happen: the file itself.
+                Icon-only, because this column is width-pinned (D4) and "Retry track" is
+                already in it — and because the two are the same offer seen from two sides,
+                "try again" and "stop trying". Offered on exactly the same condition, so a
+                track never shows one without the other. */}
+            {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
+              <Button
+                size="icon-sm"
+                variant="outline"
+                data-testid="track-adopt"
+                aria-label={`Adopt a local file for ${track.sourceTitle}`}
+                title="Adopt a local file — for a deleted video, an age check, or a library you already have"
+                disabled={busy !== null}
+                onClick={() => {
+                  setAdopting(track);
+                }}
+              >
+                <FileUp className="size-3" aria-hidden="true" />
+              </Button>
+            ) : null}
           </div>
           <TrackProgress activity={activity.get(track.id)} />
           {/* The API has carried `tracks[].error` since MCP-FIX-1; the page never showed it,
@@ -506,19 +560,31 @@ function JobPage() {
               A `done` job keeps the button on purpose. Retrying one re-runs `verify` — the
               resume point of a job whose every step finished — which is exactly "check this
               album again", and the one gesture that repairs a file deleted from under the
-              library (C6). A cancelled job is the only one with nothing to offer. */}
+              library (C6). A cancelled job is the only one with nothing to offer.
+
+              The chevron is where the *other* steps live. `retryJob` has taken a step all
+              along; a finished album could only ever be retried from `verify`, so a re-match
+              meant `mm retry --step match` in a terminal. `RetryMenu` offers the steps this
+              import has actually reached, says what each one redoes, and confirms the two that
+              throw the confirmed mapping away. */}
           {job.status === "cancelled" ? null : (
-            <Button
-              data-testid="job-retry"
+            <RetryMenu
+              job={job}
               disabled={busy !== null || running}
-              title={running ? "The worker is running this job." : undefined}
-              onClick={() => {
-                act("retry", async () => await retryJob({ data: { id: job.id } }), "Queued.");
+              busy={busy === "retry"}
+              label={busy === "retry" ? "Queueing…" : running ? "Running…" : "Retry"}
+              {...(running ? { title: "The worker is running this job." } : {})}
+              onRetry={(step) => {
+                act(
+                  "retry",
+                  async () =>
+                    await retryJob({
+                      data: { id: job.id, ...(step === undefined ? {} : { step }) },
+                    }),
+                  step === undefined ? "Queued." : `Queued from ${step}.`,
+                );
               }}
-            >
-              <RotateCcw className="size-4" aria-hidden="true" />{" "}
-              {busy === "retry" ? "Queueing…" : running ? "Running…" : "Retry"}
-            </Button>
+            />
           )}
           {inbox.length > 0 ? (
             <Button
@@ -662,6 +728,20 @@ function JobPage() {
           empty="No videos resolved yet."
         />
       </section>
+
+      {/* One dialog for the whole table rather than one per row: only one can be open, and a
+          fourteen-track album would otherwise mount fourteen file inputs nobody asked for. */}
+      {adopting === null ? null : (
+        <AdoptFileDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAdopting(null);
+          }}
+          trackTitle={adopting.trackTitle ?? adopting.sourceTitle}
+          busy={busy === `adopt:${adopting.id}`}
+          onAdopt={adopt}
+        />
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="rounded-xl border border-line bg-surface-1">

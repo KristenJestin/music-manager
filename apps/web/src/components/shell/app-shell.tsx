@@ -20,6 +20,7 @@ import { Sidebar } from "#/components/shell/sidebar.tsx";
 import { Toaster } from "#/components/shell/toaster.tsx";
 import { Topbar, type Crumb } from "#/components/shell/topbar.tsx";
 import { useShell } from "#/components/shell/shell-context.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 /** True when the keystroke belongs to whatever the user is typing into. */
 function isTyping(target: EventTarget | null): boolean {
@@ -36,6 +37,7 @@ export function AppShell({
   readonly children: ReactNode;
 }) {
   const navigate = useNavigate();
+  const testId = useTestId();
   const { setPaletteOpen, setDrawerOpen, paletteOpen } = useShell();
   // The bar is fixed to the bottom of the viewport, so the page has to stop above it or the
   // last row of every table sits underneath it and cannot be clicked.
@@ -80,7 +82,7 @@ export function AppShell({
   }, [navigate, setPaletteOpen, setDrawerOpen, paletteOpen]);
 
   return (
-    <div data-testid="app-shell" className="shell-grid min-h-screen">
+    <div data-testid={testId("app-shell")} className="shell-grid min-h-screen">
       <Sidebar />
       <Topbar crumbs={crumbs} />
       <main className={cn("min-w-0 px-6 pt-5", playing ? "pb-32" : "pb-16")}>{children}</main>

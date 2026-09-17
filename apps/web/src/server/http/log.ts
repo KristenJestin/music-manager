@@ -12,8 +12,10 @@
  * ("< 300 ms") is measurable in production from the logs alone rather than from a stopwatch on
  * the far side of a proxy.
  *
- * No imports, so the server entry can use it before anything else is loaded.
+ * Pure, and its one import is pure too, so the server entry can use it before anything else is
+ * loaded and a test can exercise it without a router, a database or an environment.
  */
+import { CLIENT_CLOSED } from "#/server/http/abort.ts";
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
 
@@ -44,6 +46,17 @@ export interface AccessLine {
  * line someone is grepping for.
  */
 export function levelFor(line: AccessLine): LogLevel {
+  /*
+   * A client that hung up is `info`, and that is the point of the status existing.
+   *
+   * Before this, a request whose connection Bun reclaimed at ten seconds escaped as an
+   * `AbortError`, was turned into a 500 by the framework, and was logged at `error` with the
+   * duration of the work that had just been thrown away. Three of those a day is an error rate
+   * that means nothing, on a page that is behaving exactly as designed. The disconnection is
+   * still worth a line — it is how an operator sees that something is taking too long — but it
+   * is not a failure of this server, so it is not filed as one.
+   */
+  if (line.status === CLIENT_CLOSED) return "info";
   if (line.status >= 500) return "error";
   if (line.status >= 400) return "warn";
   if (line.path.startsWith("/_build/") || line.path.startsWith("/@")) return "debug";

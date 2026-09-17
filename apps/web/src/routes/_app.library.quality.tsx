@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/u
 import { Callout } from "#/components/callout.tsx";
 import { Cover } from "#/components/cover.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 import { Pager } from "#/components/pager.tsx";
 import { ScoreBar } from "#/components/score-bar.tsx";
 import { StatTile } from "#/components/stat-tile.tsx";
@@ -133,6 +134,9 @@ function QualityToolbar({
 }): ReactNode {
   const params = Route.useSearch();
   const navigate = useNavigate();
+  // The profile select is the one identifier this component writes itself; the presets come
+  // from `FilterToolbar`. `pending-tree.tsx` says why it cannot be a literal.
+  const testId = useTestId();
 
   const options: readonly ProfileOption[] =
     profiles ?? PROFILE_IDS.map((id) => ({ id, name: id, status: "" }));
@@ -168,7 +172,7 @@ function QualityToolbar({
       >
         <SelectTrigger
           size="sm"
-          data-testid="quality-profile"
+          data-testid={testId("quality-profile")}
           aria-label="Scoring profile"
           className="max-w-36 border-line bg-surface-1 text-xs"
         >

@@ -59,8 +59,8 @@ describe("the tool table", () => {
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    // 26 + `create_imports` and `confirm_best`, the two bulk-import doors.
-    expect(tools.length).toBe(28);
+    // 26 + `create_imports` and `confirm_best`, the two bulk-import doors, + `adopt_track_file`.
+    expect(tools.length).toBe(29);
   });
 });
 
@@ -80,17 +80,35 @@ describe("confirm_best and create_imports — the bulk-import doors", () => {
     expect(parsed.preferType).toBe("album");
   });
 
-  it("confirm_best refuses a coverage outside [0, 1]", () => {
+  it("confirm_best refuses a coverage or a margin outside [0, 1]", () => {
     expect(parse("confirm_best", { importId: "i", minCoverage: 1.5 }).success).toBe(false);
     expect(parse("confirm_best", { importId: "i", minCoverage: -0.1 }).success).toBe(false);
+    expect(parse("confirm_best", { importId: "i", minMargin: 1.5 }).success).toBe(false);
+    expect(parse("confirm_best", { importId: "i", minMargin: -0.1 }).success).toBe(false);
   });
 
-  it("confirm_best says what happens under the bar, and who signs the decision", () => {
+  /*
+   * `minMargin` has no default in the schema on purpose: the default is this installation's
+   * `matchAmbiguityMargin`, which the server reads at call time. A literal here would be a
+   * second copy of a setting, and the two would drift the first time somebody tuned one.
+   */
+  it("confirm_best takes an optional minMargin and leaves its default to the server", () => {
+    const parsed = z.object(schemaOf("confirm_best")).parse({ importId: "imp_1" }) as {
+      minMargin?: number;
+    };
+    expect(parsed.minMargin).toBeUndefined();
+    expect(parse("confirm_best", { importId: "i", minMargin: 0.1 }).success).toBe(true);
+  });
+
+  it("confirm_best says what happens under either bar, and who signs the decision", () => {
     const text = byName.get("confirm_best")?.description ?? "";
     // The whole reason it is safe to loop over three hundred imports.
     expect(text).toContain("minCoverage");
     expect(text.toLowerCase()).toContain("nothing is confirmed");
     expect(text).toContain("decidedBy: mcp");
+    // A single no longer has to be told apart by the caller: the tool says so.
+    expect(text).toContain("minMargin");
+    expect(text).toContain("kind");
   });
 
   it("create_imports caps the list and says a bad URL loses only itself", () => {

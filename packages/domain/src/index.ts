@@ -137,9 +137,14 @@ export type {
 
 /* ---- normalisation (docs 04, §Algorithme de présélection) ---- */
 export {
+  creditCarriesArtist,
+  hasEditionQualifier,
   normalizeArtist,
   normalizeTitle,
+  primaryArtist,
+  splitArtistCredit,
   stripArtistPrefix,
+  stripEditionQualifier,
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./normalize/title.ts";

@@ -64,6 +64,7 @@ const candidate: ReleaseCandidate = {
   uncovered: 0,
   leftOver: 1,
   videos: 15,
+  ceiling: 0.97,
   durDelta: 0.619,
   signals: {
     title: 1,
@@ -71,6 +72,7 @@ const candidate: ReleaseCandidate = {
     trackCount: 0.9,
     durations: 0.93,
     coverage: 0.933,
+    exactness: 0.933,
     year: 1,
     label: 0.4,
     format: 1,

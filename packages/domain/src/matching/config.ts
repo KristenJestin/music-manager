@@ -71,8 +71,9 @@ const RELEASE_WEIGHTS = {
   title: 0.13,
   artist: 0.13,
   durations: 0.26,
-  coverage: 0.2,
-  trackCount: 0.09,
+  coverage: 0.14,
+  exactness: 0.09,
+  trackCount: 0.06,
   year: 0.04,
   label: 0.01,
   format: 0.03,
@@ -182,8 +183,39 @@ export const DEFAULT_CONFIG: MatchingConfig = {
   preferences: DEFAULT_PREFERENCES,
 };
 
-/** How many candidates get a tracklist lookup, so the fit can be computed for them. */
-export const DEFAULT_LOOKUP_LIMIT = 6;
+/**
+ * The **ceiling** on tracklist lookups for one album match — not the plan.
+ *
+ * It was the plan, and that was the second defect of the sixth owner review: a fixed six, spent
+ * top-down on the pre-score, decided on its own whether the right album was ever examined.
+ * *Appeal to Reason*'s fourteen-track edition ranked twelfth on metadata alone, so its
+ * tracklist was never read and it stayed at "0 videos matched" for ever, whatever it would
+ * have scored. A number should not be the thing that decides that.
+ *
+ * What replaces it is a branch and bound (`matching.service.ts`): candidates are opened while
+ * an unopened one's `ceiling` — the best it could still reach if everything unknown about it
+ * turned out perfect — is strictly greater than the best *complete* score so far. That
+ * terminates on its own, and on the recorded scenarios it costs **fewer** requests than the
+ * flat six did, because a clear leader stops it after the per-group reservations.
+ *
+ * This is the absolute stop behind that, for the pathological record MusicBrainz presses two
+ * dozen times with no signal separating the pressings. Fourteen, because that is the size of
+ * *Appeal to Reason*'s release group: the ceiling has to be able to reach the last candidate
+ * of a real album, or it is the old bug with a longer leash. At one request per second it is
+ * fourteen seconds, and it is reached by nothing in the test corpus.
+ */
+export const DEFAULT_LOOKUP_LIMIT = 14;
+
+/**
+ * How many recordings get a lookup on the **single** path, whatever the album ceiling is.
+ *
+ * A recording is looked up to learn which releases it appears on — the borrow ladder — and
+ * there is no branch and bound there to stop early: every lookup in the list is spent. So the
+ * album ceiling must not be read as a recording plan, or raising it to reach a buried pressing
+ * would make every single import eight seconds slower for nothing. Lowering `matchLookupLimit`
+ * still lowers this one; raising it does not raise it.
+ */
+export const DEFAULT_RECORDING_LOOKUP_LIMIT = 6;
 
 /**
  * How many release *groups* get a release search of their own (decision 151).

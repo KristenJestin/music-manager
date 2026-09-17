@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { MMError } from "@mm/contracts";
-import { failureLabel, isSourceOutage, readFailure } from "./errors.ts";
+import { describeFailure, failureLabel, isSourceOutage, readFailure } from "./errors.ts";
 
 /** What a rejected server function looks like on the client: an `Error` carrying `mm`. */
 function wire(body: Record<string, unknown>, message = "boom"): Error {
@@ -126,5 +126,104 @@ describe("failureLabel", () => {
 
   it("is just the code when the failure never crossed HTTP", () => {
     expect(failureLabel(readFailure(new MMError("CANCELLED", "stopped")))).toBe("CANCELLED");
+  });
+});
+
+/*
+ * ------------------------------------------------------------------
+ * the five things the error screen can be looking at
+ * ------------------------------------------------------------------
+ *
+ * One case per branch of `ErrorScreen`, tested on the pure function that decides what it says.
+ * The panel itself is exercised in `error-screen.test.tsx`; what belongs here is the *sentence*,
+ * because the bug the owner reported was a sentence: "This page could not be loaded / Invariant
+ * failed / UNKNOWN" is three lines of which none tells a reader anything.
+ */
+describe("describeFailure", () => {
+  it("quotes an MMError and changes nothing about it", () => {
+    const failure = readFailure(
+      wire({
+        code: "SOURCE_UNAVAILABLE",
+        message: "musicbrainz answered HTTP 503.",
+        hint: "The service is down or throttling us.",
+        action: "Retry later",
+        status: 503,
+      }),
+    );
+    expect(failure.kind).toBe("typed");
+    expect(describeFailure(failure)).toEqual({
+      message: "musicbrainz answered HTTP 503.",
+      hint: "The service is down or throttling us.",
+      action: "Retry later",
+      label: "SOURCE_UNAVAILABLE (HTTP 503)",
+    });
+  });
+
+  it("recognises an abort, and says the connection closed rather than nothing", () => {
+    /*
+     * The client's half of the owner's bug. The request was killed at ten seconds by the
+     * server's idle timeout; what reaches the browser is an abort with no code and no status.
+     */
+    const aborted = Object.assign(new Error("The user aborted a request."), {
+      name: "AbortError",
+    });
+    const failure = readFailure(aborted);
+    const copy = describeFailure(failure);
+    expect(failure.kind).toBe("aborted");
+    expect(copy.message).toBe("The connection closed before the server answered.");
+    expect(copy.label).toBe("Connection interrupted");
+    expect(copy.action).toBe("Try again");
+    expect(copy.hint).toContain("asking again is safe");
+    // Transient, so the panel is a warning and the reassurance under Retry is the right one.
+    expect(failure.transient).toBe(true);
+  });
+
+  it("recognises what every engine calls a dead connection, by its own words", () => {
+    // Chromium, Firefox, Safari and undici each word it differently and none gives a code.
+    for (const message of [
+      "Failed to fetch",
+      "NetworkError when attempting to fetch resource.",
+      "Load failed",
+      "fetch failed",
+    ]) {
+      expect(readFailure(new TypeError(message)).kind).toBe("offline");
+    }
+    const copy = describeFailure(readFailure(new TypeError("Failed to fetch")));
+    expect(copy.message).toBe("Music Manager could not be reached.");
+    expect(copy.label).toBe("Network unavailable");
+    expect(copy.hint).toContain("still running");
+  });
+
+  it("says the server failed when a 5xx arrives with nothing else", () => {
+    const failure = readFailure(Object.assign(new Error("Invariant failed"), { status: 500 }));
+    const copy = describeFailure(failure);
+    expect(failure.kind).toBe("server");
+    expect(copy.message).toBe("The server failed while loading this page.");
+    expect(copy.label).toBe("Server error (HTTP 500)");
+    expect(copy.hint).toContain("not in this browser");
+  });
+
+  it("never shows a person the word UNKNOWN", () => {
+    /*
+     * Verbatim what the owner read. `tiny-invariant` strips its message in a production build,
+     * so the router's assertion arrives saying only that an assertion failed — and the decoder,
+     * finding no code, printed its own placeholder in the slot meant for one.
+     */
+    const failure = readFailure(new Error("Invariant failed"));
+    const copy = describeFailure(failure);
+    expect(failure.kind).toBe("unknown");
+    expect(copy.message).toBe("This page's data could not be read.");
+    // The machine-readable code is still UNKNOWN; what changed is that nothing prints it.
+    expect(failure.code).toBe("UNKNOWN");
+    expect(copy.label).toBeNull();
+    expect(copy.hint).toContain("journal");
+  });
+
+  it("keeps a plain Error's message when the message actually says something", () => {
+    // "Bun is not defined" is a real clue and the reader should keep it; only the empty
+    // formulas are replaced.
+    const copy = describeFailure(readFailure(new Error("Bun is not defined")));
+    expect(copy.message).toBe("Bun is not defined");
+    expect(copy.label).toBeNull();
   });
 });

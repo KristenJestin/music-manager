@@ -44,6 +44,7 @@ import { retryLastFailed } from "#/server/functions/jobs.ts";
 import { runYtdlpUpdate, startScan } from "#/server/functions/tools.ts";
 import { verifyAll } from "#/server/functions/verify.ts";
 import { scanWatchedSourceNow } from "#/server/functions/watched-sources.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
@@ -90,6 +91,7 @@ interface PaletteAction {
 
 export function CommandPalette() {
   const navigate = useNavigate();
+  const testId = useTestId();
   const { paletteOpen, setPaletteOpen, toast } = useShell();
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
@@ -134,8 +136,12 @@ export function CommandPalette() {
       label: "Verify library in Navidrome",
       icon: ShieldCheck,
       run: async () => {
-        const report = await verifyAll({ data: {} });
-        return `${String(report.verified)} album(s) compared, ${String(report.withMismatch)} with a mismatch.`;
+        // Queued, not awaited: the read-back is minutes of Subsonic calls and lives in the
+        // worker now. The counts arrive as the `verify.done` line in the journal.
+        const queued = await verifyAll({ data: {} });
+        return queued.queued
+          ? `Reading ${String(queued.total)} album(s) back from Navidrome. Tools has the log.`
+          : "The read-back could not be queued.";
       },
     },
     {
@@ -188,7 +194,7 @@ export function CommandPalette() {
       */}
       <Command>
         <CommandInput
-          data-testid="palette-input"
+          data-testid={testId("palette-input")}
           value={query}
           onValueChange={setQuery}
           placeholder="Paste a YouTube URL, or type a page name…"
@@ -234,7 +240,7 @@ export function CommandPalette() {
                 key={action.id}
                 value={action.label}
                 disabled={busy}
-                data-testid={`palette-action-${action.id}`}
+                data-testid={testId(`palette-action-${action.id}`)}
                 onSelect={() => {
                   act(action);
                 }}

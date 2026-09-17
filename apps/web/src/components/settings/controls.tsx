@@ -15,6 +15,7 @@ import { Label } from "#/components/ui/label.tsx";
 import { Switch } from "#/components/ui/switch.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 /** Label on the left, control on the right, help text under the label. */
 export function FormRow({
@@ -94,13 +95,16 @@ export function Toggle({
   readonly testId?: string;
 }) {
   const id = useId();
+  // `/sources` renders a `Toggle` in its pending tree as well as in the page, so the id has to
+  // be the settled one only in the settled tree (`components/pending-tree.tsx`).
+  const scoped = useTestId();
   const control = (
     <Switch
       id={id}
       size="sm"
       checked={checked}
       aria-label={label}
-      data-testid={testId}
+      data-testid={scoped(testId)}
       onCheckedChange={onChange}
     />
   );

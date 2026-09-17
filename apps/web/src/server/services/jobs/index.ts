@@ -22,6 +22,7 @@ import { hostPath } from "#/server/paths.ts";
 import {
   importTracks,
   imports,
+  inboxItems,
   jobSteps,
   libraryTracks,
   type Import,
@@ -33,6 +34,7 @@ import {
 import { newId } from "#/server/ids.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeItemsOf, openInboxItem } from "#/server/services/inbox.ts";
+import { bumpQueuedImport, type BumpOutcome } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
   isTerminal,
@@ -685,6 +687,88 @@ export async function requeueUpstreamFailures(
 /* ------------------------------------------------------------------ */
 
 /**
+ * Throw away the confirmed mapping, so the next `match` really matches.
+ *
+ * `rewindTo` moves the *step* rows and nothing else, which is right for every retry but one.
+ * `matchStep` begins by reading a supplied mapping out of `imports.options` and applying it
+ * verbatim — the escape hatch `confirm-mapping`, `confirm-best` and `mm import --mapping` all
+ * write through — so rewinding to `match` on a confirmed import would re-apply the very mapping
+ * somebody asked to be rid of. "Match again" would then be a button that spent a step and
+ * changed nothing, which is worse than not offering it.
+ *
+ * Four things go, and they go together because clearing only some of them is a re-match that
+ * silently keeps half of the old answer:
+ *
+ *  - the **supplied mapping and the pinned release** in `options`, which is what `match` reads;
+ *  - `autoConfirm` and `confirmedBy`, because the confirmation was *of that mapping* — leaving
+ *    the gate open would wave the new one through under the old signature, and
+ *    `decisions.decidedBy` would name somebody who never saw it;
+ *  - `imports.release_mbid` and the per-row mapping columns, so nothing downstream can read a
+ *    recording id belonging to a release that is no longer chosen;
+ *  - the open Inbox items the old match raised. `extra_videos` and `uncovered_tracks` are
+ *    statements about a mapping that no longer exists, and an `ambiguous_*` question about a
+ *    ranking that is about to be recomputed. They are dismissed, not resolved: nobody answered
+ *    them.
+ *
+ * **`decisions` rows are deliberately kept.** They are the audit trail — "who confirmed this,
+ * and when" stays true even once the answer has been replaced. A new confirmation writes a new
+ * row next to it.
+ */
+export async function forgetMapping(importId: string, db: Database = defaultDb()): Promise<void> {
+  const job = await requireImport(importId, db);
+  const options = { ...(job.options as Record<string, unknown>) };
+  for (const key of ["mapping", "releaseMbid", "autoConfirm", "confirmedBy"]) delete options[key];
+
+  await db
+    .update(imports)
+    .set({
+      options: options as typeof imports.$inferInsert.options,
+      releaseMbid: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(imports.id, importId));
+
+  await db
+    .update(importTracks)
+    .set({
+      role: "unmatched",
+      trackMbid: null,
+      recordingMbid: null,
+      trackTitle: null,
+      trackPosition: null,
+      mediumPosition: null,
+      confidence: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(importTracks.importId, importId));
+
+  await db
+    .update(inboxItems)
+    .set({ status: "dismissed", resolvedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(inboxItems.importId, importId),
+        eq(inboxItems.status, "open"),
+        inArray(inboxItems.type, [
+          "ambiguous_release",
+          "ambiguous_recording",
+          "uncovered_tracks",
+          "extra_videos",
+        ]),
+      ),
+    );
+
+  await emit(
+    {
+      importId,
+      type: "import.status",
+      message: "The confirmed release and the video → track mapping were discarded.",
+    },
+    db,
+  );
+}
+
+/**
  * Rewind the rows to `step`. **Nothing is executed.**
  *
  * This is the half of "retry" that is safe to call from an HTTP request, and splitting it out
@@ -865,20 +949,89 @@ export async function cancelImport(importId: string, db: Database = defaultDb())
   await emit({ importId, level: "warn", type: "import.cancelled", message: "Cancelled." }, db);
 }
 
-/** Raise a job's priority so the queue takes it first. */
+/** What a bump did: to the row, and to the message the import already had on a queue. */
+export interface BumpResult {
+  readonly priority: number;
+  readonly queue: BumpOutcome;
+}
+
+/**
+ * Which statuses belong on a queue at all.
+ *
+ * The same rule `resumableImports` encodes, asked of one row: a `done`, `cancelled` or `failed`
+ * import has nothing to run, and `awaiting_confirm` / `awaiting_review` / a pause the *owner*
+ * asked for are all waiting on a person. Bumping any of them raises the priority for whenever
+ * they do move again, and sends nothing — a bump is not a way to restart something somebody
+ * deliberately stopped.
+ */
+function belongsOnQueue(job: Import): boolean {
+  if (job.status === "paused") return job.pausedBy === "worker";
+  return job.status === "pending" || job.status === "running" || job.status === "waiting_upstream";
+}
+
+/**
+ * Move an import to the front of the queue — the row **and** the message.
+ *
+ * It used to be the row alone: `imports.priority += by`, a journal line, done. Nothing read that
+ * column when enqueuing (`enqueueImportStep` takes a priority from its caller, and only the
+ * resume sweep ever passed one), so the message already sitting on `import.step` kept the 0 it
+ * was sent with and the import did not move. Ten of the owner's did not move.
+ *
+ * Both halves are now written, and they mean different things: the **column** is the durable
+ * record, read by the resume sweep the next time a message has to be created; the **message** is
+ * the thing pg-boss is about to fetch, and `reprioritiseImport` edits it in place. The journal
+ * line says which of the four things actually happened, because "Priority raised to 10" was true
+ * and useless — it is exactly what the broken version printed.
+ */
 export async function bumpImport(
   importId: string,
   by = 10,
   db: Database = defaultDb(),
-): Promise<number> {
+): Promise<BumpResult> {
   const job = await requireImport(importId, db);
   const priority = job.priority + by;
   await db.update(imports).set({ priority, updatedAt: new Date() }).where(eq(imports.id, importId));
+
+  const queue = await bumpQueuedImport(importId, priority, {
+    send: belongsOnQueue(job),
+    reason: "bump",
+    step: job.step,
+  });
+
   await emit(
-    { importId, type: "import.status", message: `Priority raised to ${String(priority)}.` },
+    {
+      importId,
+      type: "import.status",
+      message: `Priority raised to ${String(priority)}: ${bumpSentence(queue)}`,
+      data: { ...queue, priority },
+    },
     db,
   );
-  return priority;
+  return { priority, queue };
+}
+
+/** The half of the journal line that says what bump did to the queue, and not just to the row. */
+function bumpSentence(outcome: BumpOutcome): string {
+  const removed =
+    outcome.removed === 0
+      ? ""
+      : ` ${String(outcome.removed)} duplicate message(s) on the same import were removed.`;
+  switch (outcome.action) {
+    case "reprioritised":
+      return `the message waiting on ${outcome.queue ?? "the queue"} was re-prioritised.${removed}`;
+    case "sent":
+      return `nothing was on a queue, so one message was sent to ${outcome.queue ?? "the queue"}.${removed}`;
+    case "running":
+      return (
+        `the worker is already running this import` +
+        (outcome.trackMessages > 0
+          ? ` (${String(outcome.trackMessages)} track step(s) in flight)`
+          : "") +
+        `, so its message could not move; the new priority applies to whatever is queued next.${removed}`
+      );
+    case "none":
+      return `nothing is on a queue and this import is not waiting for one, so the priority applies to whatever is queued next.${removed}`;
+  }
 }
 
 /**

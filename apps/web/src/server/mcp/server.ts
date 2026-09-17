@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-eight tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-nine tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-eight, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-nine, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-eight of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-nine of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -45,6 +45,7 @@ import {
   DEFAULT_MIN_COVERAGE,
   MAX_BATCH_URLS,
 } from "#/server/services/imports.bulk.ts";
+import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
   createWatchedSource,
   getWatchedSource,
@@ -366,7 +367,7 @@ interface ToolSpec {
  * `get_scan_report` from the second, `refresh_album` from the third, and `create_imports` and
  * `confirm_best` from the bulk-import session that drove 375 playlists through here by hand.
  *
- * A table rather than twenty-eight `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-nine `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -706,27 +707,36 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
     {
       name: "confirm_best",
       scope: "imports:write",
-      title: "Confirm the candidate that maps the most videos",
+      title: "Confirm the engine's best candidate",
       description:
         "`confirm_mapping` for a caller that has nothing to add. It reads the same ranked " +
-        "candidates `get_candidates` returns, picks the release that binds the most of this " +
-        "import's videos, and builds the mapping from that candidate's own `fitLines` — the " +
-        "assignment the matching engine computed in order to score it. **There is nothing here " +
-        "for you to get wrong:** no `bindings` to rebuild, no `position` to line up, no " +
+        "candidates `get_candidates` returns and confirms the engine's own best answer, " +
+        "building the mapping from that candidate's own evidence. **There is nothing here for " +
+        "you to get wrong:** no `bindings` to rebuild, no `position` to line up, no " +
         "`recordingMbid` to omit and have `fingerprint` disagree with thirteen times.\n\n" +
-        "**`minCoverage` is a real gate.** Coverage is mapped videos ÷ videos in the import, " +
-        "and it defaults to 0.8. Below the bar nothing is confirmed: the tool fails naming the " +
-        "best candidate, its release, its type and the coverage it reached, and the import is " +
-        "left exactly where it was, waiting for a human. That is what makes this safe to run " +
-        "over three hundred imports in a loop — the ones it will not decide are still there " +
-        "afterwards.\n\n" +
+        "**Two criteria, one tool, chosen by what the import is.** `kind` in the answer says " +
+        "which one ran. Loop this over every id `create_imports` gave you; you do not have to " +
+        "know in advance which of them resolved to a single.\n\n" +
+        "**An album is decided on coverage** — `minCoverage` is mapped videos ÷ videos in the " +
+        "import, and defaults to 0.8 — and the mapping comes from the winning release's " +
+        "`fitLines`. " +
         '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single that ' +
-        "maps the same number of videos. It is a tie-break and never promotes a candidate that " +
-        "maps fewer.\n\n" +
+        "maps the same number of videos; it never promotes a candidate that maps fewer.\n\n" +
+        "**A single is decided on the margin.** One video is ranked against *recordings*, so " +
+        "there is no tracklist and coverage would be 1 whatever was chosen. The bar is four " +
+        "conditions instead, all read from thresholds the engine already uses: the chosen " +
+        "recording leads the runner-up by at least `minMargin` (default: the installation's " +
+        "`matchAmbiguityMargin`, the same gap under which `match` itself refuses to decide and " +
+        "opens an `ambiguous_recording` item); the durations agree within ± 2 s; the title and " +
+        "the artist both agree at or above `titleMatchThreshold`. A missing duration on either " +
+        "side fails the check rather than skipping it, and the artist condition is what stops " +
+        "a cover of the right length being confirmed as the original.\n\n" +
+        "**Both bars are real gates.** Below either one nothing is confirmed: the tool fails " +
+        "naming the candidate and every condition it missed, and the import is left exactly " +
+        "where it was, waiting for a human. That is what makes this safe to run over three " +
+        "hundred imports in a loop — the ones it will not decide are still there afterwards.\n\n" +
         "The confirmation is automatic but **signed**: the decision is logged with " +
-        "`decidedBy: mcp`, like every other gate this server opens.\n\n" +
-        "A single — one video, ranked against recordings rather than releases — is refused: " +
-        "there is no tracklist to cover, so use `get_candidates` and `confirm_mapping`.",
+        "`decidedBy: mcp`, like every other gate this server opens.",
       inputSchema: {
         importId: z.string().min(1),
         minCoverage: z
@@ -734,21 +744,124 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           .min(0)
           .max(1)
           .default(DEFAULT_MIN_COVERAGE)
-          .describe("Mapped videos ÷ videos in the import. Below it, nothing is confirmed."),
+          .describe(
+            "Albums only. Mapped videos ÷ videos in the import; below it, nothing is confirmed.",
+          ),
+        minMargin: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe(
+            "Singles only. How far ahead of the runner-up the chosen recording must score. " +
+              "Defaults to the installation's ambiguity margin.",
+          ),
         preferType: z
           .enum(["album", "any"])
           .default("album")
           .describe("`album` prefers an Album over an EP or Single of equal coverage."),
       },
-      run: async (args: { importId: string; minCoverage: number; preferType: "album" | "any" }) =>
+      run: async (args: {
+        importId: string;
+        minCoverage: number;
+        minMargin?: number;
+        preferType: "album" | "any";
+      }) =>
         await confirmBest({
           importId: args.importId,
           minCoverage: args.minCoverage,
+          ...(args.minMargin === undefined ? {} : { minMargin: args.minMargin }),
           preferType: args.preferType,
           confirmedBy: "mcp",
           db: db(),
           source: "mcp confirm_best",
         }),
+    },
+    {
+      name: "adopt_track_file",
+      scope: "imports:write",
+      title: "Adopt a local file as one track's source",
+      description:
+        "Gives one track a file that already exists, instead of downloading it. This is the " +
+        "answer for a video that has been **deleted**, for a video behind an **age check** " +
+        "that no cookie jar gets past, and for **taking over an existing library** track by " +
+        "track.\n\n" +
+        "**Two ways for the bytes to arrive**, and you almost always want the first:\n\n" +
+        "- `path` — an absolute path *on the server running this application*. Not on your " +
+        "machine. It is resolved through `realpath` and refused unless it lands inside the " +
+        "library or inside a directory the operator listed in the `adoptSourceRoots` setting, " +
+        "which is **empty by default**. A refusal here is `ADOPT_PATH_REFUSED` and it is not " +
+        "something you can work around: ask the operator to add the folder.\n" +
+        "- `content` — the file's bytes, base64, up to 64 MB, with `filename` for its name. " +
+        "Use it when you hold the bytes and the server cannot see them.\n\n" +
+        "Give exactly one of `path` and `content`.\n\n" +
+        "The file lands where `download` would have put it, so **the single download slot is " +
+        "never spent**, and the track resumes at `fingerprint` → `tag` → `place`.\n\n" +
+        '**The tags say it was adopted.** `COMMENT` becomes *Adopted local file "…" · not ' +
+        "downloaded from youtu.be/…*, `ORIGINALFILENAME` becomes the file's own name, and " +
+        "`ENCODEDBY` is n/a. Do not describe an adopted file as downloaded.\n\n" +
+        "Refusals, each with its own code: `ADOPT_UNSUPPORTED` (a container the tagger cannot " +
+        "write — convert it), `ADOPT_NOT_AUDIO` (ffprobe found no audio stream), " +
+        "`ADOPT_CONFLICT` (the track already has a file — `retry_step` it first), " +
+        "`ADOPT_PATH_REFUSED`, `ADOPT_NOT_READY` (the import is cancelled, or not yet " +
+        "confirmed, or this video is not bound to a track).",
+      inputSchema: {
+        importId: z.string().min(1),
+        trackId: z.string().min(1).describe("An `import_tracks` id, as `get_import` lists it."),
+        path: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Absolute path on the server. Mutually exclusive with `content`."),
+        filename: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("The file's own name. Required with `content`, ignored with `path`."),
+        content: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("The file's bytes, base64, 64 MB at most. Mutually exclusive with `path`."),
+      },
+      run: async (args: {
+        importId: string;
+        trackId: string;
+        path?: string;
+        filename?: string;
+        content?: string;
+      }) => {
+        // The schema cannot state "exactly one of these two" in a way the MCP SDK renders
+        // usefully, so it is stated here — and as a refusal, not as a preference, because
+        // silently ignoring one of two supplied sources is how an agent uploads a file and
+        // believes it adopted a different one.
+        if ((args.path === undefined) === (args.content === undefined)) {
+          throw new MMError("INVALID_INPUT", "Give exactly one of `path` and `content`.", {
+            hint: "`path` for a file already on the server, `content` (with `filename`) to upload one.",
+            status: 400,
+          });
+        }
+        if (args.content !== undefined && args.filename === undefined) {
+          throw new MMError("INVALID_INPUT", "`content` needs `filename`.", {
+            hint: "The extension decides whether the tagger can write to the file at all.",
+            status: 400,
+          });
+        }
+        return await adoptTrackFile({
+          importId: args.importId,
+          trackId: args.trackId,
+          source:
+            args.path === undefined
+              ? {
+                  kind: "upload",
+                  filename: args.filename ?? "adopted",
+                  bytes: new Uint8Array(Buffer.from(args.content ?? "", "base64")),
+                }
+              : { kind: "path", path: args.path },
+          adoptedBy: "mcp",
+          db: db(),
+        });
+      },
     },
     {
       name: "get_candidates",

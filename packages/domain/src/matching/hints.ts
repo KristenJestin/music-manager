@@ -19,7 +19,7 @@
  */
 
 import { parseYouTubeDescription } from "../normalize/youtube-description.ts";
-import { stripReleaseTypePrefix } from "../normalize/title.ts";
+import { sourceEdition, stripReleaseTypePrefix } from "../normalize/title.ts";
 import type { AlbumHints, MatchVideo } from "./types.ts";
 
 /** The most frequent non-empty value, or `null`. Ties go to the first seen, for determinism. */
@@ -86,5 +86,24 @@ export function albumHints(videos: readonly MatchVideo[], fallback: HintFallback
     // the original imprint — which is why `labelScore` treats a mismatch so gently.
     label: parsed?.label ?? null,
     releasedOn: parsed?.releasedOn ?? null,
+    /*
+     * Which edition the source announced, from **every** name it goes by.
+     *
+     * The YouTube Music `album` tag, the album line of the auto-generated description and the
+     * playlist's own title do not always agree about the qualifier — one says "The Heist", the
+     * next "The Heist (Deluxe Edition)" — and the announcement is worth having wherever it was
+     * made, so the three are read together rather than in order of trust. It is a *union*
+     * because a qualifier appearing anywhere is a statement, while its absence from one of the
+     * three is not a denial.
+     */
+    edition: [
+      ...new Set(
+        [
+          majority(videos.map((video) => video.ytAlbum)),
+          parsed?.album ?? null,
+          fallbackAlbum,
+        ].flatMap((name) => (name == null ? [] : sourceEdition(name))),
+      ),
+    ],
   };
 }
