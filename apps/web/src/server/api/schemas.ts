@@ -16,11 +16,7 @@ import { z } from "@hono/zod-openapi";
 import { NOTIFIABLE_EVENTS, STEP_NAMES } from "@mm/contracts";
 // The import-status vocabulary, from the import-free module the `pgEnum` is built from — so
 // the query filter and the column can never name different sets.
-import {
-  IMPORT_STATUSES,
-  INBOX_TYPES,
-  RETAG_SELECTIONS,
-} from "#/server/db/schema/enums.vocab.ts";
+import { IMPORT_STATUSES, INBOX_TYPES, RETAG_SELECTIONS } from "#/server/db/schema/enums.vocab.ts";
 // The batch cap and the coverage bar belong to the service that enforces them; restating them
 // here would be a second copy to keep in step with the OpenAPI text that quotes them.
 import { DEFAULT_MIN_COVERAGE, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";

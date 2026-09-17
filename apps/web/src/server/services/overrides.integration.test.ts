@@ -57,7 +57,8 @@ const { resetServerEnv } = await import("#/server/env.ts");
 const { db } = await import("#/server/db/client.ts");
 const { eq } = await import("drizzle-orm");
 const schema = await import("#/server/db/schema/index.ts");
-const { field, TAG_SCHEMA_VERSION } = await import("@mm/domain");
+const { field, projectDocument, TAG_SCHEMA_VERSION } = await import("@mm/domain");
+const { projectionHash } = await import("./jobs/steps/tag.ts");
 
 const { overrideAlbumFields, overrideTrackFields } = await import("./overrides.ts");
 const { rebuild } = await import("./documents.ts");
@@ -140,15 +141,21 @@ async function seedAlbum(suffix: string): Promise<{
       importId,
       importTrackId,
     });
+    const seeded = document({ title: `Track ${String(position)}`, tracknumber: position });
     await database.insert(schema.metadataDocuments).values({
       id: `doc_${suffix}${String(position)}`,
       importTrackId,
       libraryTrackId: trackId,
-      document: document({
-        title: `Track ${String(position)}`,
-        tracknumber: position,
-      }) as unknown as Record<string, unknown>,
+      document: seeded as unknown as Record<string, unknown>,
       tagSchemaVersion: TAG_SCHEMA_VERSION,
+      /*
+       * The hash of what the file holds, exactly as the `tag` step stamps it after mutagen has
+       * written and read the block back. Seeding it is what makes this fixture a *placed*
+       * track rather than a row nobody ever wrote a file for — and it is what lets the
+       * override's re-tag be tested honestly: the run is opened because the new document no
+       * longer projects to this hash, not because the override always opens one.
+       */
+      projectionHash: projectionHash(projectDocument(seeded, "vorbis")),
     });
     trackIds.push(trackId);
     importTrackIds.push(importTrackId);

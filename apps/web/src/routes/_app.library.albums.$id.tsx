@@ -489,9 +489,7 @@ function Album() {
         <Callout tone="warn" className="mb-3" data-testid="album-adrift">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <strong>
-                {album.adrift.count} file(s) are behind the database
-              </strong>
+              <strong>{album.adrift.count} file(s) are behind the database</strong>
               {": "}
               {adriftExplanation(album.adrift.reasons)} The re-tag rebuilds each document from the
               raw cache and rewrites the tag block — offline, no re-download, the audio stream is
