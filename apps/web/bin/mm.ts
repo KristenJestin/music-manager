@@ -64,6 +64,7 @@ import {
   forgetMapping,
   listImports,
   pauseImport,
+  requeueFailuresAt,
   requeueUpstreamFailures,
   rewindTo,
   stepsOf,
@@ -505,8 +506,66 @@ async function cmdRetryFailedUpstream(args: Args): Promise<number> {
   return 0;
 }
 
+/**
+ * `mm retry --failed-step resolve` — every import that died on one step, in one command.
+ *
+ * The companion to `--failed-upstream`, and not a widening of it. That flag selects on
+ * `wasKilledByASource`: a 429, a 5xx, a timeout — failures that pass. The twenty album
+ * playlists this was written for failed on `resolve` under `YTDLP_UNAVAILABLE`, which is a 404
+ * about a video that really is gone, and `classifyFailure` calls that a defect for good
+ * reasons that should not be relaxed. What changed is not the classification but the code
+ * underneath: the extraction no longer throws away nineteen good entries to report the
+ * twentieth, so those twenty are worth asking again.
+ *
+ * The selector is therefore the *step*, which is the operator's own question — "re-read every
+ * source that would not read" — and stays true whatever each row's reason was.
+ */
+async function cmdRetryFailedStep(args: Args, step: string): Promise<number> {
+  if (!(STEP_ORDER as readonly string[]).includes(step)) {
+    throw new MMError("INVALID_INPUT", `Unknown step "${step}". One of: ${STEP_ORDER.join(", ")}.`);
+  }
+  const dryRun = flagBoolean(args, "dry-run");
+  const limitFlag = flagString(args, "limit");
+  const limit = limitFlag === undefined ? undefined : Number(limitFlag);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+    throw new MMError("INVALID_INPUT", `--limit wants a positive integer, got "${limitFlag}".`);
+  }
+
+  const planned = await requeueFailuresAt(
+    step as StepName,
+    { dryRun, ...(limit === undefined ? {} : { limit }) },
+    db(),
+  );
+  if (planned.length === 0) {
+    line(`no import is failed at ${step}; nothing to requeue`);
+    return 0;
+  }
+
+  line("ID                               CODE                       TITLE");
+  for (const job of planned) {
+    line(job.id.padEnd(32), job.code.padEnd(26), job.title ?? job.url);
+  }
+
+  if (dryRun) {
+    line("");
+    line(`${String(planned.length)} import(s) would be requeued (--dry-run: nothing was touched)`);
+    return 0;
+  }
+
+  const queued = await enqueueAll(
+    planned.map((job) => ({ importId: job.id, step: step as StepName })),
+    `retry --failed-step ${step}`,
+  );
+  line("");
+  line(`${String(queued)} import(s) rewound to ${step} and queued for the worker`);
+  // Idempotent: they are no longer `failed`, so running it again selects nothing.
+  return 0;
+}
+
 async function cmdRetry(args: Args): Promise<number> {
   if (flagBoolean(args, "failed-upstream")) return await cmdRetryFailedUpstream(args);
+  const failedStep = flagString(args, "failed-step");
+  if (failedStep !== undefined) return await cmdRetryFailedStep(args, failedStep);
 
   const id = args.positional[1];
   const step = flagString(args, "step");
@@ -514,7 +573,8 @@ async function cmdRetry(args: Args): Promise<number> {
     throw new MMError(
       "INVALID_INPUT",
       `usage: mm retry <id> --step <${STEP_ORDER.join("|")}>\n` +
-        "       mm retry --failed-upstream [--dry-run] [--limit N]",
+        `       mm retry --failed-upstream [--dry-run] [--limit N]\n` +
+        `       mm retry --failed-step <${STEP_ORDER.join("|")}> [--dry-run] [--limit N]`,
     );
   }
   if (!(STEP_ORDER as readonly string[]).includes(step)) {
@@ -1585,6 +1645,9 @@ const USAGE = `mm — Music Manager
   mm job <id> [--follow]
   mm retry <id> --step <${STEP_ORDER.join("|")}>
   mm retry --failed-upstream [--dry-run] [--limit N]   every import a source killed, at once
+  mm retry --failed-step <step> [--dry-run] [--limit N]   every import that died on one
+                                          step: --failed-step resolve re-reads every
+                                          source that would not read
   mm adopt <id> <track id> --file <path>   give one track a file you already have
                                           (deleted video, age check, an existing library)
   mm inbox list [--all]
