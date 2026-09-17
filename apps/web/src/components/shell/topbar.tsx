@@ -86,8 +86,8 @@ export function Topbar({ crumbs }: { readonly crumbs: readonly Crumb[] }) {
         </span>
         {/*
          * The Apple command glyph on a Windows machine is a rune, not a hint (owner review
-         * A4/B9). `CommandIcon` is already imported for the palette button; the modifier is
-         * spelled out for everyone else.
+         * A4/B9), so the modifier is spelled out for everyone whose keyboard does not have
+         * that key. The glyph stays for everyone whose does.
          */}
         <Kbd>
           <CommandIcon className="inline size-3 align-middle" aria-hidden="true" />

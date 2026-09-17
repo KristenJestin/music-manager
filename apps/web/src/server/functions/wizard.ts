@@ -451,7 +451,8 @@ async function candidatesView(
       recordings: result.ranking.candidates.slice(0, SHOWN),
     };
   }
-  const releases = await withPinned(job, result.ranking.candidates.slice(0, SHOWN));
+  const shown = result.ranking.candidates.slice(0, SHOWN);
+  const releases = await withPinned(job, shown);
   return {
     ...common,
     // A pin is a decision already taken, so it wins over what the matcher preferred. It is the
@@ -460,7 +461,16 @@ async function candidatesView(
     preselectedId: pinOf(job) ?? common.preselectedId,
     kind: "album",
     releases,
-    groups: releaseGroups.group(releases).groups.slice(0, SHOWN_GROUPS),
+    /*
+     * The groups come from the ranking, as they always have — regrouping the twelve shown
+     * would silently change what "12 releases" on a card counts. The one exception is a pin
+     * the search never returned: it is not in the ranking, so it is not in any group either,
+     * and step 2 draws groups. Regrouping then is what puts a card under the selection.
+     */
+    groups:
+      releases === shown
+        ? result.groups.groups.slice(0, SHOWN_GROUPS)
+        : releaseGroups.group(releases).groups.slice(0, SHOWN_GROUPS),
     recordings: [],
   };
 }
