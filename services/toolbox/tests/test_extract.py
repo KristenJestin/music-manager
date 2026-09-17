@@ -450,6 +450,8 @@ def test_a_gap_a_fixture_cannot_have_is_an_error(fixture_client: TestClient):
 def test_an_ordinary_fixture_reports_no_gap(fixture_client: TestClient):
     payload = fixture_client.post("/extract", json={"url": "fixture://discovery"}).json()
     assert payload["unreadable"] == []
+
+
 def test_extractslow_holds_one_extraction_open_without_touching_the_others():
     """`?extractslow=<ms>` is the sibling of `?slow=`, for the other slow thing a source is.
 
