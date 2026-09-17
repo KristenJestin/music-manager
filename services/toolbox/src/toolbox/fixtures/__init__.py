@@ -25,6 +25,10 @@ Recognised URLs:
                                       fetched and must not fail the scan
 ``fixture://watched?snapshot=2``      the same playlist today, one video longer — which is
                                       how the watched-source diff is exercised offline
+``fixture://discovery?gap=14``        the same album with entry 14 unreadable: fourteen
+                                      entries and one :class:`ExtractGap`, which is the
+                                      owner's twenty playlists reproduced offline. Works on
+                                      any fixture and any entry.
 ``fixture://<name>#<n>``              entry ``n`` of that fixture, for `/download`
 ===================================== ====================================================
 
@@ -45,6 +49,7 @@ from typing import Any, Final, cast
 
 from toolbox.errors import ErrorCode, ToolboxError
 from toolbox.models import (
+    ExtractGap,
     ExtractResult,
     FingerprintCandidate,
     FingerprintResult,
@@ -132,6 +137,59 @@ def _snapshot(result: ExtractResult, payload: dict[str, Any], ref: FixtureRef) -
     return result.model_copy(update={"entries": result.entries[:size]})
 
 
+#: The sentence YouTube gives for the commonest dead entry, so the recorded gap carries the
+#: same words a real one would and the Console has something real to render.
+GAP_REASON: Final[str] = "Private video. Sign in if you've been granted access to this video"
+
+
+def _gap_index(ref: FixtureRef, entries: int) -> int | None:
+    """The entry ``?gap=n`` takes out of the listing, or ``None``.
+
+    Its own switch rather than its own recording: "one entry of this playlist cannot be read"
+    is a *thing that happens to* a listing, not a different listing, and a recording per
+    combination is how a fixtures directory stops being readable. Out of range is an error, so
+    a scenario that silently stopped reproducing the bug cannot pass as a green test.
+    """
+    wanted = ref.params.get("gap")
+    if wanted is None:
+        return None
+    if not wanted.isdigit() or int(wanted) >= entries:
+        raise ToolboxError(
+            ErrorCode.FIXTURE_UNKNOWN,
+            f"Fixture '{ref.name}' cannot lose entry '{wanted}': it has {entries}.",
+            details={"requested": ref.canonical, "entries": entries},
+        )
+    return int(wanted)
+
+
+def _with_gap(result: ExtractResult, ref: FixtureRef) -> ExtractResult:
+    """Drop one entry and report it, exactly as a live `ignoreerrors` extraction would.
+
+    **The survivors are renumbered.** `index` is our own zero-based numbering of what came
+    back, so fourteen entries are 0…13 whichever one went missing, and the position the entry
+    *held in the playlist* is what the gap carries. A fixture that left a hole in `index`
+    would be reproducing a shape production never produces.
+    """
+    index = _gap_index(ref, len(result.entries))
+    if index is None:
+        return result
+    lost = result.entries[index]
+    kept = [entry for entry in result.entries if entry.index != index]
+    return result.model_copy(
+        update={
+            "entries": [entry.model_copy(update={"index": n}) for n, entry in enumerate(kept)],
+            "unreadable": [
+                ExtractGap(
+                    position=index + 1,
+                    id=lost.id,
+                    reason=GAP_REASON,
+                    code=ErrorCode.YTDLP_PRIVATE,
+                )
+            ],
+        }
+    )
+
+
 def _flatten(result: ExtractResult) -> ExtractResult:
     """What `/extract?flat=true` answers: the listing, without the per-video payload.
 
@@ -164,7 +222,9 @@ def extract(url: str, *, flat: bool = False) -> ExtractResult:
     """The recorded `/extract` answer for a fixture URL."""
     ref = require_ref(url)
     payload = load(ref.name)
-    result = _snapshot(ExtractResult.model_validate(payload["extract"]), payload, ref)
+    result = _with_gap(
+        _snapshot(ExtractResult.model_validate(payload["extract"]), payload, ref), ref
+    )
     if flat and ref.index is None:
         return _flatten(result)
     if ref.index is not None:
@@ -186,14 +246,22 @@ def extract(url: str, *, flat: bool = False) -> ExtractResult:
 
 
 def select_entry(url: str) -> dict[str, Any]:
-    """The single entry a `/download` fixture URL points at (defaults to the first)."""
+    """The single entry a `/download` fixture URL points at (defaults to the first).
+
+    Selected **by position in what came back**, not by the recorded `index`, because those are
+    the same number until a gap is asked for and `?gap=n` renumbers the survivors — and the
+    orchestrator addresses a fixture entry with the `index` it was handed. Matching on the
+    recorded value would download entry 6 for the row that says 5.
+    """
     ref = require_ref(url)
     payload = load(ref.name)
     entries = cast(list[dict[str, Any]], payload["extract"]["entries"])
+    dropped = _gap_index(ref, len(entries))
+    if dropped is not None:
+        entries = [entry for entry in entries if int(entry["index"]) != dropped]
     index = ref.index or 0
-    for entry in entries:
-        if int(entry["index"]) == index:
-            return entry
+    if 0 <= index < len(entries):
+        return entries[index]
     raise ToolboxError(
         ErrorCode.FIXTURE_UNKNOWN,
         f"Fixture '{ref.name}' has no entry #{index}.",

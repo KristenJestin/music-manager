@@ -741,8 +741,10 @@ Adopter un fichier (§ 5 quinquies) exige **un import déjà confirmé, avec ses
 situations n'en ont pas et ne peuvent pas en avoir, parce qu'elles échouent à l'étape `resolve`,
 avant qu'une seule ligne de piste existe :
 
-- **une playlist qui a disparu de YouTube** (« The playlist does not exist »). Le listage
-  échoue avant d'avoir énuméré quoi que ce soit ;
+- **une playlist qui a disparu de YouTube** (`PLAYLIST_UNAVAILABLE`, « The playlist does not
+  exist »). Le listage échoue avant d'avoir énuméré quoi que ce soit — à ne pas confondre avec
+  une playlist bien vivante dont une entrée est morte, qui s'importe normalement en signalant
+  le trou (§ 8, « Un album entier échoue alors que la playlist existe toujours ») ;
 - **un album derrière une vérification d'âge**, qui échoue de la même façon ;
 - **une bibliothèque existante**, dont les fichiers sont simplement déjà sur le disque.
 
@@ -1227,6 +1229,43 @@ La sélection ne retient que les échecs dus à une source — un 404 ou une ré
 jamais repris, il attend un humain. L'opération est idempotente : les jobs relancés ne sont plus
 `failed`, donc un second appel ne reprend rien. Équivalents : `POST
 /api/v1/imports/retry-failed-upstream` et le bouton « Retry source failures » de la page Jobs.
+
+**Un album entier échoue alors que la playlist existe toujours.** C'était le défaut du
+17 septembre 2026, et il valait vingt albums à lui seul. yt-dlp s'arrêtait à la première entrée
+illisible d'une playlist et jetait avec elle toutes celles qu'il avait déjà lues, si bien qu'une
+playlist de vingt titres dont une vidéo était devenue privée répondait « zéro entrée » sous le
+message de cette vidéo-là : `YTDLP_UNAVAILABLE`, « This video is not available ». Vingt playlists
+bien vivantes ont ainsi été classées « disparues de YouTube ».
+
+Le listage tolère maintenant le trou. Ce qui n'a pas pu être lu est **compté et nommé** au lieu
+d'être fatal : le journal de l'import dit « 19 of 20 entries; 1 could not be read », l'assistant
+le dit avant Start, et la page de l'import le redit ensuite. Et les trois cas que ce message
+confondait ont chacun leur code :
+
+| Code                         | Ce qui s'est passé                                       | Quoi faire                                                       |
+| ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
+| `PLAYLIST_UNAVAILABLE` (404) | La playlist elle-même n'existe plus.                     | Trouver l'album ailleurs, ou § 5 sexies (`mm import <dossier>`). |
+| `PLAYLIST_PRIVATE` (403)     | La playlist existe et cette session ne peut pas la lire. | Fournir un jar de cookies (§ 5 ter).                             |
+| `YTDLP_*` sur une vidéo      | L'URL désignait **une** vidéo, et c'est elle qui manque. | Inchangé : § 5 quinquies, adopter le fichier.                    |
+
+`PLAYLIST_ENTRY_UNAVAILABLE` est le quatrième, et il n'est presque jamais une erreur : c'est le
+code porté par chaque entrée manquante d'une playlist qui, elle, a répondu. Il ne devient fatal
+que si **aucune** entrée n'a pu être lue.
+
+**Reprendre les imports tombés sur une playlist partielle.** `--failed-upstream` ne les
+sélectionne pas, et c'est voulu : il ne retient que les refus d'une source (429, 5xx, délai), et
+une vidéo supprimée est un 404 franc. Le bon sélecteur est l'**étape** :
+
+```bash
+docker compose -f docker-compose.prod.yml exec web mm retry --failed-step resolve --dry-run
+docker compose -f docker-compose.prod.yml exec web mm retry --failed-step resolve
+```
+
+Cela relit la source de chaque import resté en échec sur `resolve`. Ceux dont la playlist avait
+seulement perdu une entrée repartent avec les autres ; ceux dont la playlist a vraiment disparu
+échouent de nouveau, mais cette fois sous `PLAYLIST_UNAVAILABLE`, qui dit la vérité. Idempotent
+comme l'autre : les imports relancés ne sont plus `failed`. `--limit N` pour n'en essayer que
+quelques-uns d'abord.
 
 **`MB_CONTACT_MISSING` sur un import.** `MM_MB_CONTACT` (ou le réglage `mbContact`) est vide.
 MusicBrainz compte les requêtes par User-Agent ; sans contact, toutes les installations de cette

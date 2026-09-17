@@ -377,7 +377,10 @@ thing: the single download slot.
   and `fixture://discovery?fp=mismatch` for a fingerprint disagreement. `#n` selects one entry.
   `fixture://watched?snapshot=1|2` is the same listing at two points in time, one video apart —
   what the watched-source diff is exercised against; `flat: true` on `/extract` answers the
-  listing only, as production does.
+  listing only, as production does. `?gap=<n>` takes entry `n` out of any fixture's listing and
+  reports it in `ExtractResult.unreadable`, which is what a live extraction does when one video
+  of a playlist cannot be read — `/extract` runs with `ignoreerrors` on, so a dead entry is a
+  counted gap and never the end of the call. One dead _video_ URL is still an error.
   `/download` copies a bundled five-second Opus sample; `MM_TOOLBOX_FIXTURE_DELAY_MS` paces it,
   and `?slow=<ms>` (capped at 2 s a slice) paces one import only — that is how a browser test
   catches a track _while_ it is downloading without slowing every other spec down.

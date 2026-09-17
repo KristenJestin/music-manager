@@ -89,6 +89,20 @@ export interface SourceView {
   readonly title: string | null;
   readonly uploader: string | null;
   readonly videos: readonly SourceVideo[];
+  /**
+   * The entries the source listed and `resolve` could not read — usually empty.
+   *
+   * `videos.length + unreadable.length` is what the playlist claimed to hold, which is what
+   * step 4 says out loud before Start. It exists because the wizard's own count is otherwise
+   * indistinguishable from a complete album: the owner would have pressed Start on nineteen
+   * tracks believing there were nineteen.
+   */
+  readonly unreadable: readonly {
+    readonly position: number | null;
+    readonly videoId: string | null;
+    readonly reason: string | null;
+    readonly code: string;
+  }[];
   readonly totalSeconds: number;
   /**
    * What the source looks like: the first video's thumbnail.
@@ -159,6 +173,12 @@ function toSourceView(
     title: job.title,
     uploader: job.artist,
     videos,
+    unreadable: job.unreadable.map((gap) => ({
+      position: gap.position,
+      videoId: gap.id,
+      reason: gap.reason,
+      code: gap.code,
+    })),
     totalSeconds: rows.reduce((sum, row) => sum + (row.sourceDuration ?? 0), 0),
     thumbnail: videos.find((video) => video.thumbnail !== null)?.thumbnail ?? null,
     hints: {

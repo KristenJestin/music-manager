@@ -27,6 +27,7 @@ __all__ = [
     "classify_message",
     "classify_ytdlp_error",
     "spec_for",
+    "strip_ytdlp_prefix",
 ]
 
 
@@ -40,6 +41,13 @@ class ErrorCode(StrEnum):
     YTDLP_UNAVAILABLE = "YTDLP_UNAVAILABLE"
     YTDLP_AGE = "YTDLP_AGE"
     YTDLP_PRIVATE = "YTDLP_PRIVATE"
+    #: The three shades of "this playlist did not come back", which used to collapse into
+    #: `YTDLP_UNAVAILABLE` — "This video is not available" — whichever of them had happened.
+    #: That is the sentence that made twenty live playlists look dead: one entry inside them
+    #: was gone, and the whole call reported the entry's own failure as the playlist's.
+    PLAYLIST_UNAVAILABLE = "PLAYLIST_UNAVAILABLE"
+    PLAYLIST_PRIVATE = "PLAYLIST_PRIVATE"
+    PLAYLIST_ENTRY_UNAVAILABLE = "PLAYLIST_ENTRY_UNAVAILABLE"
     FFMPEG_MISSING = "FFMPEG_MISSING"
     DOWNLOAD_CONTAINER = "DOWNLOAD_CONTAINER"
     TAG_WRITE_FAILED = "TAG_WRITE_FAILED"
@@ -115,6 +123,39 @@ ERROR_CATALOG: Final[tuple[ErrorSpec, ...]] = (
         action="Configure cookies",
         status=403,
         patterns=("age-restricted", "age restricted", "confirm your age", "inappropriate"),
+    ),
+    ErrorSpec(
+        code=ErrorCode.PLAYLIST_PRIVATE,
+        message="This playlist is private.",
+        hint="The playlist exists but only its owner can list it.",
+        action="Configure cookies",
+        status=403,
+        patterns=(
+            "this playlist is private",
+            "playlist is private",
+            "sign in to view this playlist",
+            "this playlist type is unviewable",
+        ),
+    ),
+    ErrorSpec(
+        code=ErrorCode.PLAYLIST_UNAVAILABLE,
+        message="This playlist no longer exists.",
+        hint="The playlist itself was deleted, or the id is wrong.",
+        action="Find alternative",
+        status=404,
+        patterns=(
+            "the playlist does not exist",
+            "playlist does not exist",
+            "playlist unavailable",
+            "this playlist is unavailable",
+        ),
+    ),
+    ErrorSpec(
+        code=ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
+        message="An entry of this playlist could not be read.",
+        hint="The playlist is fine; one of the videos inside it is gone, private or blocked.",
+        action="Import what came back",
+        status=404,
     ),
     ErrorSpec(
         code=ErrorCode.YTDLP_PRIVATE,
@@ -203,6 +244,16 @@ def spec_for(code: ErrorCode) -> ErrorSpec:
     return _BY_CODE[code]
 
 
+def strip_ytdlp_prefix(message: str) -> str:
+    """``ERROR: [youtube] dQw4w9WgXcQ: Private video`` → ``Private video``.
+
+    Public because two callers need the same sentence: this module, turning an exception into
+    a body, and :class:`toolbox.ytdlp.ExtractionLog`, turning a failure yt-dlp *swallowed* into
+    the reason attached to one gap in a playlist.
+    """
+    return _YTDLP_PREFIX.sub("", message.strip()).strip()
+
+
 def classify_message(message: str) -> ErrorCode:
     """Map a raw yt-dlp (or ffmpeg) message onto a catalog code."""
     haystack = message.casefold()
@@ -261,6 +312,6 @@ def classify_ytdlp_error(exc: BaseException, **details: Any) -> ToolboxError:
     """
     raw = str(exc).strip()
     code = classify_message(raw)
-    message = _YTDLP_PREFIX.sub("", raw).strip() or spec_for(code).message
+    message = strip_ytdlp_prefix(raw) or spec_for(code).message
     payload: dict[str, Any] = {"exception": type(exc).__name__, **details}
     return ToolboxError(code, message, details=payload)

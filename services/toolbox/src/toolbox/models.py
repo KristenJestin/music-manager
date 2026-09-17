@@ -12,7 +12,7 @@ from typing import Annotated, Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from toolbox.errors import ErrorBody
+from toolbox.errors import ErrorBody, ErrorCode
 
 __all__ = [
     "DEFAULT_FORMAT",
@@ -23,6 +23,7 @@ __all__ = [
     "CookiesTestResult",
     "DownloadRequest",
     "ExtractEntry",
+    "ExtractGap",
     "ExtractRequest",
     "ExtractResult",
     "FingerprintCandidate",
@@ -219,12 +220,60 @@ class ExtractEntry(BaseModel):
     )
 
 
+class ExtractGap(BaseModel):
+    """One entry the source listed and yt-dlp could not read **at all**.
+
+    Distinct from `ExtractEntry.unavailable`, and the difference is what is known rather than
+    what is wrong. An unavailable *entry* came back — it has an id, a title, a position — and
+    merely cannot be fetched; a gap came back as nothing, so all that can be said about it is
+    where it was and, when yt-dlp named them, which video it was and why it failed.
+
+    It exists because the alternative was silence. `ignoreerrors` is what stops one dead video
+    from cancelling the extraction of the nineteen beside it, and without this list the price
+    of that would be an import that quietly holds nineteen tracks where twenty were asked for.
+    """
+
+    position: int | None = Field(
+        default=None,
+        description=(
+            "One-based position in the playlist, as yt-dlp numbered it. `None` only when the "
+            "source stated a count larger than the list it handed over, which says a gap "
+            "exists without saying where."
+        ),
+    )
+    id: str | None = Field(
+        default=None,
+        description="The video id, when the failure yt-dlp logged named one.",
+    )
+    reason: str | None = Field(
+        default=None,
+        description="yt-dlp's own sentence, stripped of its `ERROR:` and extractor prefixes.",
+    )
+    code: ErrorCode = Field(
+        default=ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
+        description=(
+            "`reason` mapped onto the catalogue, so the Console decodes a gap with the same "
+            "table it decodes a failure with. Defaults to `PLAYLIST_ENTRY_UNAVAILABLE`, which "
+            "is the one thing always known: the playlist answered and this entry did not."
+        ),
+    )
+
+
 class ExtractResult(BaseModel):
     kind: Literal["video", "playlist"]
     title: str | None = None
     uploader: str | None = None
     id: str | None = None
     entries: list[ExtractEntry]
+    unreadable: list[ExtractGap] = Field(
+        default_factory=list[ExtractGap],
+        description=(
+            "The entries that were listed and could not be read. `len(entries) + "
+            "len(unreadable)` is what the source said the playlist holds, so a caller can say "
+            "'19 of 20 entries; 1 could not be read' without a second request. Always empty "
+            "for a single video: there the failure is the call's, and it is raised."
+        ),
+    )
 
 
 class ExtractRequest(YtdlpOptions):

@@ -495,7 +495,7 @@ export interface components {
          * @description Every failure mode the toolbox knows how to name.
          * @enum {string}
          */
-        ErrorCode: "YTDLP_BOT_CHECK" | "YTDLP_403" | "YTDLP_FORMAT" | "YTDLP_NSIG" | "YTDLP_UNAVAILABLE" | "YTDLP_AGE" | "YTDLP_PRIVATE" | "FFMPEG_MISSING" | "DOWNLOAD_CONTAINER" | "TAG_WRITE_FAILED" | "PLACE_CONFLICT" | "LOCKED" | "FIXTURE_UNKNOWN" | "UNKNOWN";
+        ErrorCode: "YTDLP_BOT_CHECK" | "YTDLP_403" | "YTDLP_FORMAT" | "YTDLP_NSIG" | "YTDLP_UNAVAILABLE" | "YTDLP_AGE" | "YTDLP_PRIVATE" | "PLAYLIST_UNAVAILABLE" | "PLAYLIST_PRIVATE" | "PLAYLIST_ENTRY_UNAVAILABLE" | "FFMPEG_MISSING" | "DOWNLOAD_CONTAINER" | "TAG_WRITE_FAILED" | "PLACE_CONFLICT" | "LOCKED" | "FIXTURE_UNKNOWN" | "UNKNOWN";
         /**
          * ExtractEntry
          * @description One video. `track`/`artist`/`album`/`release_year` are YouTube Music's own tags.
@@ -541,6 +541,41 @@ export interface components {
             uploader?: string | null;
             /** Webpage Url */
             webpage_url?: string | null;
+        };
+        /**
+         * ExtractGap
+         * @description One entry the source listed and yt-dlp could not read **at all**.
+         *
+         *     Distinct from `ExtractEntry.unavailable`, and the difference is what is known rather than
+         *     what is wrong. An unavailable *entry* came back — it has an id, a title, a position — and
+         *     merely cannot be fetched; a gap came back as nothing, so all that can be said about it is
+         *     where it was and, when yt-dlp named them, which video it was and why it failed.
+         *
+         *     It exists because the alternative was silence. `ignoreerrors` is what stops one dead video
+         *     from cancelling the extraction of the nineteen beside it, and without this list the price
+         *     of that would be an import that quietly holds nineteen tracks where twenty were asked for.
+         */
+        ExtractGap: {
+            /**
+             * @description `reason` mapped onto the catalogue, so the Console decodes a gap with the same table it decodes a failure with. Defaults to `PLAYLIST_ENTRY_UNAVAILABLE`, which is the one thing always known: the playlist answered and this entry did not.
+             * @default PLAYLIST_ENTRY_UNAVAILABLE
+             */
+            code: components["schemas"]["ErrorCode"];
+            /**
+             * Id
+             * @description The video id, when the failure yt-dlp logged named one.
+             */
+            id?: string | null;
+            /**
+             * Position
+             * @description One-based position in the playlist, as yt-dlp numbered it. `None` only when the source stated a count larger than the list it handed over, which says a gap exists without saying where.
+             */
+            position?: number | null;
+            /**
+             * Reason
+             * @description yt-dlp's own sentence, stripped of its `ERROR:` and extractor prefixes.
+             */
+            reason?: string | null;
         };
         /** ExtractRequest */
         ExtractRequest: {
@@ -588,6 +623,11 @@ export interface components {
             kind: "video" | "playlist";
             /** Title */
             title?: string | null;
+            /**
+             * Unreadable
+             * @description The entries that were listed and could not be read. `len(entries) + len(unreadable)` is what the source said the playlist holds, so a caller can say '19 of 20 entries; 1 could not be read' without a second request. Always empty for a single video: there the failure is the call's, and it is raised.
+             */
+            unreadable?: components["schemas"]["ExtractGap"][];
             /** Uploader */
             uploader?: string | null;
         };

@@ -25,6 +25,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { StepName } from "#/server/db/schema/enums.vocab.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../../../..");
@@ -303,5 +304,82 @@ describe.skipIf(unavailable !== null)("retrying from a chosen step", () => {
     // It has not downloaded anything, so nothing past `download` is on the menu.
     expect(offered).not.toContain("place");
     expect(offered).not.toContain("verify");
+  }, 120_000);
+
+  /*
+   * `mm retry --failed-step resolve` — the command the twenty are waiting for.
+   *
+   * The selector is deliberately not `classifyFailure`'s: a dead entry is a 404 and a
+   * `defect`, so `--failed-upstream` cannot see these rows and must not be widened until it
+   * can. What selects them is `(status = 'failed', step = 'resolve')` — *where* they stopped,
+   * which is the operator's own question — and the three properties below are what make the
+   * command safe to type twice.
+   *
+   * It is asserted here rather than in the CLI because the flag is one of three doors into
+   * `requeueFailuresAt`, and the room is what can be wrong.
+   */
+  async function failedAt(step: StepName, code: string): Promise<string> {
+    const created = await imports.createImport("fixture://discovery", { db: db() });
+    await db()
+      .update(schema.imports)
+      .set({
+        status: "failed",
+        step,
+        error: { code, message: `${code} on ${step}`, status: 404 },
+        finishedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.imports.id, created.job.id));
+    return created.job.id;
+  }
+
+  it("selects on the step, not on the reason, and leaves the other steps alone", async () => {
+    const atResolve = await failedAt("resolve", "PLAYLIST_UNAVAILABLE");
+    const atDownload = await failedAt("download", "YTDLP_UNAVAILABLE");
+    const healthy = await confirmedImport();
+
+    const found = await jobs.failuresAt("resolve", db());
+    const ids = found.map((row) => row.id);
+
+    expect(ids).toContain(atResolve);
+    // A different step is a different question, whatever the code says.
+    expect(ids).not.toContain(atDownload);
+    // And an import that is not `failed` is never requeued by a bulk command.
+    expect(ids).not.toContain(healthy);
+    // The reason travels with the row, so `--dry-run` can print it before anything moves.
+    expect(found.find((row) => row.id === atResolve)?.code).toBe("PLAYLIST_UNAVAILABLE");
+  }, 120_000);
+
+  it("--dry-run prints the selection and touches nothing", async () => {
+    const id = await failedAt("resolve", "PLAYLIST_UNAVAILABLE");
+
+    const planned = await jobs.requeueFailuresAt("resolve", { dryRun: true }, db());
+    expect(planned.map((row) => row.id)).toContain(id);
+
+    const job = await imports.getImport(id, db());
+    expect(job?.status).toBe("failed");
+    expect(job?.step).toBe("resolve");
+  }, 120_000);
+
+  /*
+   * Idempotent by construction: the rows stop being `failed` the moment they are requeued, so
+   * running the command twice does not queue forty jobs for twenty playlists. A playlist that
+   * really is gone fails again under its own code and is selected once more only because a
+   * human typed the command again — `classifyFailure` calls that 404 a defect, so nothing
+   * puts it back on the queue on its own (`jobs/upstream.test.ts`).
+   */
+  it("rewinds what it selected, and selects nothing the second time", async () => {
+    const id = await failedAt("resolve", "PLAYLIST_UNAVAILABLE");
+
+    const requeued = await jobs.requeueFailuresAt("resolve", {}, db());
+    expect(requeued.map((row) => row.id)).toContain(id);
+
+    const job = await imports.getImport(id, db());
+    expect(job?.step).toBe("resolve");
+    expect(job?.status).toBe("running");
+    expect(job?.error).toBeNull();
+
+    const again = await jobs.failuresAt("resolve", db());
+    expect(again.map((row) => row.id)).not.toContain(id);
   }, 120_000);
 });

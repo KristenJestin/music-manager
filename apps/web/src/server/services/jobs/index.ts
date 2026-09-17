@@ -35,6 +35,7 @@ import { newId } from "#/server/ids.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeItemsOf, openInboxItem } from "#/server/services/inbox.ts";
 import { bumpQueuedImport, type BumpOutcome } from "#/server/services/queue.ts";
+import { forgetsMapping } from "#/server/services/retry-plan.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
   isTerminal,
@@ -680,6 +681,80 @@ export async function requeueUpstreamFailures(
     if (options.dryRun !== true) await rewindTo(failure.id, restartAt, db);
   }
   return planned;
+}
+
+/* ------------------------------------------------------------------ */
+/* the imports that died on one step                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Every `failed` import that stopped on `step`, rewound to it and put back on the line.
+ *
+ * It exists because of the twenty. Twenty of the owner's album playlists are `failed` at
+ * `resolve` under `YTDLP_UNAVAILABLE` — "This video is not available" — and every one of them
+ * is a live playlist that lost a single entry: the extraction refused to tolerate it and threw
+ * the other nineteen away with it. Now that it tolerates it, they are twenty imports that
+ * would succeed if anything asked them to run again.
+ *
+ * **`mm retry --failed-upstream` is the wrong instrument, and deliberately so.** It selects on
+ * `wasKilledByASource`, which asks "did a server refuse us?" — a 429, a 5xx, a timeout. A dead
+ * video is a 404 about a thing that is genuinely gone; `classifyFailure` calls it a `defect`
+ * and is right to. Widening that rule to cover this would make every genuinely broken import
+ * retry itself forever, which is the behaviour it was written to prevent.
+ *
+ * So the selector here is not about *why* it failed but about *where*: the step is the
+ * operator's question ("re-read all the sources that would not read"), and the answer stays
+ * true whatever the reason was. `--dry-run` prints it and touches nothing.
+ *
+ * Rewind only, like every other requeue in this file (owner review C3): the caller owns the
+ * queue and puts all of them on it with one producer.
+ */
+export interface FailedImport {
+  readonly id: string;
+  readonly url: string;
+  readonly title: string | null;
+  readonly step: StepName;
+  readonly code: string;
+  readonly message: string;
+  readonly failedAt: Date | null;
+}
+
+export async function failuresAt(
+  step: StepName,
+  db: Database = defaultDb(),
+  options: { limit?: number } = {},
+): Promise<FailedImport[]> {
+  const rows = await db
+    .select()
+    .from(imports)
+    .where(and(eq(imports.status, "failed"), eq(imports.step, step)))
+    .orderBy(asc(imports.createdAt))
+    .limit(options.limit ?? Number.MAX_SAFE_INTEGER);
+  return rows.map((row) => ({
+    id: row.id,
+    url: row.url,
+    title: row.title,
+    step: row.step,
+    code: row.error?.code ?? "UNKNOWN",
+    message: row.error?.message ?? "",
+    failedAt: row.finishedAt,
+  }));
+}
+
+export async function requeueFailuresAt(
+  step: StepName,
+  options: { limit?: number; dryRun?: boolean } = {},
+  db: Database = defaultDb(),
+): Promise<FailedImport[]> {
+  const found = await failuresAt(step, db, options);
+  if (options.dryRun === true) return found;
+  for (const failure of found) {
+    // Same rule as `mm retry <id> --step`: rewinding to `resolve` or `match` has to forget the
+    // confirmed mapping, or the re-read is indexed against a listing that no longer exists.
+    if (forgetsMapping(step)) await forgetMapping(failure.id, db);
+    await rewindTo(failure.id, step, db);
+  }
+  return found;
 }
 
 /* ------------------------------------------------------------------ */

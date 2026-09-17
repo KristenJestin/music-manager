@@ -44,6 +44,29 @@ export interface StoredError {
   readonly status?: number;
 }
 
+/**
+ * One entry the source listed and `resolve` could not read at all.
+ *
+ * Field for field `ExtractGap` of the toolbox contract, restated here rather than imported for
+ * the same reason `StoredError` is: this module stays free of everything but Drizzle.
+ *
+ * It is a **column rather than a journal line** because the journal is a log and this is a
+ * fact about the import that three surfaces have to keep reading — the wizard before Start,
+ * the album page afterwards, `/api/v1`. An import that holds nineteen tracks where the source
+ * listed twenty has to be able to say so for as long as it exists, not only while somebody
+ * happened to be watching the step run.
+ */
+export interface SourceGap {
+  /** One-based position in the listing. Null when the source counted it without placing it. */
+  readonly position: number | null;
+  /** The video id, when the failure named one. */
+  readonly id: string | null;
+  /** The source's own sentence — "Private video. Sign in if you've been granted access". */
+  readonly reason: string | null;
+  /** The same catalogue the Console decodes a failure with: `YTDLP_PRIVATE`, and friends. */
+  readonly code: string;
+}
+
 /** Per-import switches. Defaults come from `settings`; these are the overrides for this job. */
 export interface ImportOptions {
   /** Run `fingerprint` and compare it to the mapping. */
@@ -158,6 +181,14 @@ export const imports = pgTable(
     /** Priority for the queue; `mm bump` raises it. Higher runs first. */
     priority: integer("priority").notNull().default(0),
     error: jsonb("error").$type<StoredError>(),
+    /**
+     * What the source listed and `resolve` could not read. Empty for every healthy import.
+     *
+     * Written by `resolve` and by nothing else, so it always describes the listing the rows
+     * beside it were built from. `import_tracks` holds what came back; this holds what did
+     * not, and the pair is the "19 of 20" every surface quotes.
+     */
+    unreadable: jsonb("unreadable").$type<SourceGap[]>().notNull().default([]),
     /**
      * How many times a source has refused this import for a reason that was about the source.
      *
