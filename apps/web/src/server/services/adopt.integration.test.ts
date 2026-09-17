@@ -269,6 +269,17 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
   /* ------------------------------------------------------------------ */
 
   it("puts the file where `download` would have left it, and clears the failure", async () => {
+    /*
+     * The import has given up, which is what actually happens: one video of fourteen comes back
+     * `YTDLP_AGE`, `settleImport` concludes the album `failed`, and from then on `runTrackStep`
+     * refuses every message it is sent. Without the re-open this whole feature is a file copied
+     * into a directory and nothing else, so the state is set here on purpose.
+     */
+    await db()
+      .update(schema.imports)
+      .set({ status: "failed", error: { code: "STEP_FAILED", message: "1 download failed" } })
+      .where(eq(schema.imports.id, importId));
+
     const result = await adoptTrackFile({
       importId,
       trackId,
@@ -278,6 +289,12 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
       // The worker is not running in this test; the steps are driven by hand below.
       queue: false,
     });
+
+    // The import is back on the line — `runTrackStep` would refuse a `failed` job outright.
+    expect(result.reopened).toBe(true);
+    const [job] = await db().select().from(schema.imports).where(eq(schema.imports.id, importId));
+    expect(job?.status).toBe("running");
+    expect(job?.error).toBeNull();
 
     expect(result.path).toBe(`.mm-work/${importId}/${trackId}.opus`);
     expect(result.codec).toBe("opus");

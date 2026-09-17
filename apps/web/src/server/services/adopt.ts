@@ -44,8 +44,11 @@
  *
  * The track resumes at the step **after** `download`: its state becomes `downloaded` and the
  * next per-track step (`fingerprint`, normally) goes on the `track.step` queue, which is
- * precisely what `download`'s `onTrackDownloaded` hook does for a file it fetched itself. The
- * download queue is not touched, and its single slot is not spent.
+ * precisely what `download`'s `onTrackDownloaded` hook does for a file it fetched itself.
+ * **No byte is downloaded for this track, ever** — `fileReady` sees the file and `download`
+ * counts it as reused. An import that had already given up is a second case, handled at the
+ * end of `adoptTrackFile`: it has to be re-opened first, or the per-track message would be
+ * consumed and skipped by a `runTrackStep` that refuses terminal jobs.
  *
  * And the document tells the truth about it: `import_tracks.raw` gains an `mm_adoption` record
  * (`./adopt.record.ts`) which `services/documents.ts` reads on every build and rebuild, so
@@ -78,12 +81,13 @@ import {
   type PathMap,
 } from "#/server/paths.ts";
 import { emit } from "#/server/services/events.ts";
-import { enqueueTrack } from "#/server/services/queue.ts";
+import { enqueue, enqueueTrack } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { ADOPTION_KEY, type Adoption } from "#/server/services/adopt.record.ts";
 import { requireImport, resolvePaths } from "#/server/services/jobs/context.ts";
-import { isBefore } from "#/server/services/jobs/machine.ts";
+import { isBefore, isTerminal } from "#/server/services/jobs/machine.ts";
+import { rewindTo } from "#/server/services/jobs/index.ts";
 import { nextStepOfTrack, syncLocalSteps } from "#/server/services/jobs/pipeline.ts";
 
 /**
@@ -136,6 +140,12 @@ export interface AdoptResult {
   /** The step this track will run next, or `null` when there is nothing left for it. */
   readonly nextStep: "fingerprint" | "tag" | "place" | null;
   readonly queued: boolean;
+  /**
+   * True when the import had already given up — `failed`, `done` or `paused` — and was put
+   * back on the line. See the comment at the end of `adoptTrackFile`. (`cancelled` never
+   * reaches here: it is refused as `ADOPT_NOT_READY`.)
+   */
+  readonly reopened: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -499,15 +509,51 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
     db,
   );
 
+  /*
+   * Re-open the import, when it had already given up.
+   *
+   * This is the case the whole feature exists for, and it is the one that quietly does nothing
+   * without these lines. One video of fourteen comes back `YTDLP_AGE`; `settleImport` concludes
+   * the album `failed` and writes `failed` on the `download` step row. Handing that import a
+   * file and putting a `track.step` message on the queue would achieve exactly nothing:
+   * `runTrackStep` refuses on a terminal or paused job — deliberately, because a queue message
+   * is a statement about the past — and the message would be consumed and skipped.
+   *
+   * So a finished import is rewound to `download` and put back on the download queue, which is
+   * precisely what "Retry track" does, and for the same reason: `download` is the step that
+   * decides what each track needs. **It will not download this one.** It re-reads the
+   * filesystem rather than trusting the row (`fileReady`), finds the file that has just been
+   * adopted, counts it as reused and announces it on the per-track queue — the same hand-off a
+   * file it fetched itself gets. What it *will* do is try the album's other dead videos again,
+   * which after a person has intervened is the right default and is how the `download` step row
+   * comes to say something true again.
+   *
+   * An import that is still running is left alone: the per-track message is enough, `download`
+   * is still walking the tracklist, and rewinding it underneath itself would be a second
+   * downloader (owner review C3).
+   */
+  const reopen = isTerminal(job.status) || job.status === "paused";
+  // Before `syncLocalSteps`, because `rewindTo` blanks the step rows from `download` onwards
+  // and the projection of the track states has to be the last word on the three it owns.
+  // `queue` does not gate it: re-opening is a change to the rows, not a message, and a caller
+  // driving the steps itself still needs the import to have stopped being `failed`.
+  if (reopen) await rewindTo(job.id, "download", db);
+
   // The three pipelined `job_steps` rows are derived from the track states, so the Console's
   // progress and the API's `queuePosition` are wrong until this runs.
   await syncLocalSteps(db, job.id);
 
   const nextStep = await nextStepOfTrack(db, track.id);
+
   let queued = false;
-  if (options.queue !== false && nextStep !== null) {
-    await enqueueTrack({ importId: job.id, trackId: track.id, step: nextStep });
-    queued = true;
+  if (options.queue !== false) {
+    if (reopen) {
+      await enqueue(job.id, `adopted a local file for ${track.sourceTitle}`, "download");
+      queued = true;
+    } else if (nextStep !== null) {
+      await enqueueTrack({ importId: job.id, trackId: track.id, step: nextStep });
+      queued = true;
+    }
   }
 
   return {
@@ -522,5 +568,6 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
     originalName,
     nextStep,
     queued,
+    reopened: reopen,
   };
 }

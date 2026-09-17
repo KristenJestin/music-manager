@@ -453,8 +453,17 @@ export const adoptFileResultSchema = z
     originalName: z.string(),
     /** The step the track runs next — `fingerprint` unless the options turned it off. */
     nextStep: z.string().nullable(),
-    /** True when the track was put back on the per-track queue. */
+    /** True when the track was put back on the queue. */
     queued: z.boolean(),
+    /**
+     * True when the import had already given up and was re-opened by this call.
+     *
+     * An import whose download step failed is `failed`, and a per-track message would be
+     * skipped by a runner that refuses terminal jobs. Such an import is rewound to `download`
+     * and re-queued instead — which does **not** re-download this track (the file is there and
+     * `download` reuses it) but does try the album's other failures again.
+     */
+    reopened: z.boolean(),
   })
   .openapi("AdoptFileResult");
 

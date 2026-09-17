@@ -579,7 +579,14 @@ Trois situations où le téléchargement ne se produira pas, et où le fichier e
 
 Adopter un fichier, c'est le donner à **une piste précise d'un import déjà confirmé**. Le
 fichier est déposé là où `download` l'aurait déposé, la piste reprend à l'étape suivante —
-empreinte, tags, classement — et **le créneau de téléchargement unique n'est jamais consommé**.
+empreinte, tags, classement — et **aucun octet n'est téléchargé pour cette piste** : l'étape
+`download` relit le disque avant de décider, trouve le fichier et le compte comme réutilisé.
+
+> **Un import déjà en échec est rouvert.** Quand la piste ratée avait fait conclure l'album
+> `Failed`, l'adoption remet l'import en file — sinon rien ne bougerait, le pipeline refusant
+> par construction de travailler sur un job terminé. Cette reprise **retente aussi les autres
+> vidéos mortes du même album**, ce qui après une intervention humaine est le bon défaut, mais
+> coûte quelques minutes de tentatives yt-dlp. La réponse de l'API le dit : `reopened: true`.
 
 > Ce n'est pas la reprise d'une bibliothèque v1 entière : celle-là, c'est
 > `docs/migration-v1.md`, et elle fait bien davantage (décisions, pochettes, regroupement).
@@ -648,7 +655,8 @@ La réponse donne le chemin retenu, la taille, le codec lu par ffprobe et l'éta
   "via": "path",
   "originalName": "03.flac",
   "nextStep": "fingerprint",
-  "queued": true
+  "queued": true,
+  "reopened": false
 }
 ```
 
@@ -702,8 +710,8 @@ affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en t
 2. Ouvrez le dossier source : `mm settings set adoptSourceRoots '["/srv/ancienne"]'`.
 3. Pour chaque piste, `mm adopt <import> <piste> --file <chemin>` — ou bouclez sur
    `GET /api/v1/imports/{id}` depuis un agent.
-4. Rien n'est téléchargé, et le créneau unique reste libre pour les albums qui, eux, en ont
-   besoin.
+4. Aucun octet n'est téléchargé pour ces pistes, et le créneau unique reste libre pour les
+   albums qui, eux, en ont besoin.
 
 ---
 
