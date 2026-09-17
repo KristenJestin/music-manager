@@ -425,6 +425,29 @@ export function emptyReason(selection: RetagSelection): string {
 }
 
 /**
+ * The sentence a run that finished without touching a single file owes the person who ran it.
+ *
+ * `createRun` says `emptyReason` when the *plan* is empty, and that path was fine. This is the
+ * other one, and it was silent: a run that plans N files and then selects none of them on its
+ * first batch — because `scopeTargets` re-derives the set, and the world may have moved, or the
+ * selection may never have been able to see what the caller meant — finished `done` and printed
+ * `done: 0/1 file(s), 0 changed, 0 failed`. Which reads as success. "0 changed" is not a
+ * finding, it is the absence of one, and a run reporting it without saying *why it looked at
+ * nothing* trains the operator to believe a repair happened.
+ *
+ * `null` the moment one file was processed — a run that looked at four files and changed none of
+ * them genuinely did its job, and `0 changed` is then the whole truth.
+ */
+export function emptyRunNote(
+  run: Pick<RetagRun, "done" | "dryRun" | "selection" | "status">,
+): string | null {
+  if (run.done > 0) return null;
+  // A run somebody stopped looked at nothing for a reason of its own, and it is not this one.
+  if (run.status !== "done") return null;
+  return `No file was selected — ${emptyReason(run.selection)}`;
+}
+
+/**
  * Sweep away pre-existing `pending` runs with nothing in scope.
  *
  * `createRun` now closes an empty run on arrival (above), but a run opened before that fix
@@ -868,10 +891,22 @@ async function scopeTargets(
      * one: a run opened at v2 must finish at v2 even if somebody bumps the projection to v3
      * halfway through it. `planRetag`'s `behind` reads the current version, so it cannot be
      * used here — this is the one selection whose meaning is frozen at the run row.
+     *
+     * Except for a `track` scope, where `planRetag` returns the named row for every selection
+     * and this must agree with it. **Naming one file is the selection.** Disagreeing here was a
+     * bug with the same shape as the `library`/`all` one above and a worse face: `mm retag
+     * --track <id>` planned the file, opened a run with `total = 1`, filtered it away because
+     * the file carried the current schema version — which a hand-edited file always does — and
+     * finished `done: 0/1 file(s), 0 changed`. Success, over an empty set, on the one command
+     * whose whole argument was *this file*.
      */
-    selected = (await planRetag({ ...plan, selection: "all" })).filter(
-      (track) => track.tagSchemaVersion === null || track.tagSchemaVersion < run.schemaVersion,
-    );
+    selected =
+      run.scope === "track"
+        ? await planRetag({ ...plan, selection: "all" })
+        : (await planRetag({ ...plan, selection: "all" })).filter(
+            (track) =>
+              track.tagSchemaVersion === null || track.tagSchemaVersion < run.schemaVersion,
+          );
   } else {
     // Straight from `planRetag`, not scope-wide-then-filtered: a library-wide adrift run would
     // otherwise re-project every document in the library **twice** on every batch of 25.
@@ -948,12 +983,18 @@ async function finish(
 
   const rescan = await rescanIfWritten(row, status, db, settings);
 
+  const counts = `${row.dryRun ? "Dry run" : "Re-tag"} ${status}: ${String(row.done)}/${String(row.total)} file(s), ${String(row.changed)} changed, ${String(row.failed)} failed.`;
+  const note = emptyRunNote(row);
+
   await emit(
     {
       type: status === "done" ? "retag.done" : `retag.${status}`,
-      level: status === "done" ? "info" : "warn",
-      message: `${row.dryRun ? "Dry run" : "Re-tag"} ${status}: ${String(row.done)}/${String(row.total)} file(s), ${String(row.changed)} changed, ${String(row.failed)} failed.`,
+      // A run that touched nothing is not an error, and it is not an "info" either: somebody
+      // asked for a repair and none happened. `warn` is what puts it in front of them.
+      level: status === "done" && note === null ? "info" : "warn",
+      message: note === null ? counts : `${counts} ${note}`,
       data: {
+        ...(note === null ? {} : { emptyReason: note }),
         runId: row.id,
         done: row.done,
         total: row.total,
