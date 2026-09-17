@@ -132,14 +132,20 @@ async function startServer(mode: Mode): Promise<Spawned> {
   });
   running = child;
   const printed: string[] = [];
+  // A chunk is not a line: a pipe may split one in half, and half a JSON object parses as
+  // nothing. Only what is followed by a newline is a whole line.
+  let rest = "";
 
   await new Promise<void>((ready, fail) => {
     const timer = setTimeout(() => {
       fail(new Error("the spawned Bun never said it was listening"));
     }, 20_000);
     child.stdout?.on("data", (chunk: Buffer) => {
-      printed.push(...chunk.toString().split("\n").filter(Boolean));
-      if (chunk.toString().includes("ready")) {
+      rest += chunk.toString();
+      const lines = rest.split("\n");
+      rest = lines.pop() ?? "";
+      printed.push(...lines.filter((line) => line.trim() !== ""));
+      if (printed.some((line) => line.includes("ready"))) {
         clearTimeout(timer);
         ready();
       }
