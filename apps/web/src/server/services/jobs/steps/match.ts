@@ -991,6 +991,18 @@ export function uncoveredTracks(
   supplied: Pick<SuppliedMapping, "tracks" | "trackTotal">,
   tracklist: readonly MatchTrack[] | null,
 ): UncoveredCell[] {
+  /*
+   * **`trackTotal` still decides whether the question is asked at all**, and the tracklist only
+   * decides what the answer is.
+   *
+   * Absent means "there is no tracklist to cover, do not check": `confirm-best` omits it for a
+   * single deliberately, and `0` is what the wizard's single path sends. Both mean the release
+   * is the album this recording is *filed under*, not a record to be covered — and reading the
+   * media instead would report the ten other tracks of that album as missing, which is the
+   * notice those two callers went out of their way to avoid.
+   */
+  if (supplied.trackTotal === undefined || supplied.trackTotal === 0) return [];
+
   const key = (medium: number | undefined, position: number): string =>
     `${String(medium ?? 1)}:${String(position)}`;
   const covered = new Set(
@@ -1009,7 +1021,6 @@ export function uncoveredTracks(
       }));
   }
 
-  if (supplied.trackTotal === undefined) return [];
   if (supplied.tracks.some((entry) => (entry.mediumPosition ?? 1) !== 1)) return [];
   return Array.from({ length: supplied.trackTotal }, (_, index) => index + 1)
     .filter((position) => !covered.has(key(1, position)))

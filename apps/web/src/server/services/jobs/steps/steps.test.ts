@@ -406,6 +406,21 @@ describe("uncoveredTracks", () => {
     expect(uncovered.some((cell) => cell.mediumPosition === 1)).toBe(false);
   });
 
+  /**
+   * A single covers no tracklist: the release it is filed under is the album it is *borrowed
+   * from*, and reading its media would report the thirteen other tracks as missing. That is
+   * the notice `confirm-best` (no `trackTotal`) and the wizard's single path (`trackTotal: 0`)
+   * both go out of their way to avoid, and having a real tracklist to hand must not undo it.
+   */
+  it("asks nothing when the caller says there is no tracklist to cover", () => {
+    const tracks = flattenTracks(twoDiscRelease());
+    const one = [
+      { position: 0, trackPosition: 2, mediumPosition: 1, recordingMbid: null, trackTitle: "x" },
+    ];
+    expect(uncoveredTracks({ tracks: one }, tracks)).toEqual([]);
+    expect(uncoveredTracks({ tracks: one, trackTotal: 0 }, tracks)).toEqual([]);
+  });
+
   it("still reports a real gap on a single-disc record", () => {
     const supplied = {
       tracks: [
