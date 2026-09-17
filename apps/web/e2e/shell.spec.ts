@@ -11,13 +11,17 @@ test.describe("the shell", () => {
     await signIn(page);
   });
 
-  test("the paste box takes a URL straight into the wizard", async ({ page }) => {
-    // `typeInto`, not `fill`: the paste box is a Base UI input and does not see a value set
-    // through the native setter (see helpers.ts). Its Enter handler reads React state.
-    await typeInto(page.getByTestId("url-paste"), "fixture://discovery");
-    await page.getByTestId("url-paste").press("Enter");
-    await page.waitForURL(/\/import\/new/, { timeout: 120_000 });
-    await expect(page.getByTestId("source-count")).toBeVisible({ timeout: 120_000 });
+  /**
+   * The top bar is a button now, and the URL it used to take goes through the palette.
+   *
+   * The interaction being protected is the same one it always was — paste a link, press
+   * Enter, land in the wizard — and `palette.spec.ts` drives every door onto it. What this
+   * asserts is that the bar itself still opens the thing that does it.
+   */
+  test("the top bar opens the palette", async ({ page }) => {
+    await shellReady(page);
+    await page.getByTestId("open-palette").click();
+    await expect(page.getByTestId("palette-input")).toBeVisible();
   });
 
   test("N opens the wizard and R opens the review queue", async ({ page }) => {
@@ -30,11 +34,19 @@ test.describe("the shell", () => {
     await page.waitForURL(/\/review/, { timeout: 60_000 });
   });
 
+  /**
+   * The field being typed into is the palette's own, which is the case that matters now: the
+   * top bar no longer has an input, and `R` inside ⌘K must type an `r` rather than navigating
+   * away from the search you are in the middle of.
+   */
   test("a shortcut does not fire while you are typing into a field", async ({ page }) => {
-    await typeInto(page.getByTestId("url-paste"), "no");
-    await page.getByTestId("url-paste").press("r");
+    await shellReady(page);
+    await pressGlobal(page, "ControlOrMeta+k");
+    await typeInto(page.getByTestId("palette-input"), "no");
+    await page.getByTestId("palette-input").press("r");
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByTestId("url-paste")).toHaveValue("nor");
+    await expect(page.getByTestId("palette-input")).toHaveValue("nor");
+    await pressGlobal(page, "Escape");
   });
 
   test("⌘K opens the palette, Escape closes it", async ({ page }) => {

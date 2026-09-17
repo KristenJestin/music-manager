@@ -33,7 +33,7 @@ import {
   trackSearchCondition,
 } from "#/server/services/library-filter.sql.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
-import { directLookups, identifyMbRef } from "#/server/services/mb-resolve.ts";
+import { directLookups, identifyMbRef, type Lookups } from "#/server/services/mb-resolve.ts";
 
 /* ------------------------------------------------------------------ */
 /* the library, locally                                                */
@@ -237,10 +237,22 @@ function credited(doc: { readonly "artist-credit"?: unknown }): string | null {
  */
 export async function paletteRef(
   input: string,
-  options: { readonly db?: Database; readonly signal?: AbortSignal } = {},
+  options: {
+    readonly db?: Database;
+    readonly signal?: AbortSignal;
+    /**
+     * The lookups, supplied — the same seam `resolveMbRef` has, for the same reason.
+     *
+     * Every interesting case here is "what does ⌘K offer for a pasted *release group*", and
+     * proving five branches with five recorded cassettes would be five cassettes to maintain
+     * and no more certainty. The production caller never passes this.
+     */
+    readonly lookups?: Lookups;
+  } = {},
 ): Promise<PaletteRef | null> {
-  const db = options.db ?? defaultDb();
-  const lookups = directLookups(db, options.signal, serverEnv().MM_FIXTURES);
+  const lookups =
+    options.lookups ??
+    directLookups(options.db ?? defaultDb(), options.signal, serverEnv().MM_FIXTURES);
   const identified = await identifyMbRef(input, { lookups });
   if (identified === null) return null;
 
