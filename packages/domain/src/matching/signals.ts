@@ -18,7 +18,13 @@ import {
   titleSimilarity,
 } from "../normalize/title.ts";
 import type { MbArtistCreditEntry, MbRelease } from "../metadata/resolvers/musicbrainz-types.ts";
-import type { MatchTrack, MatchingPreferences, MatchingThresholds, Penalty } from "./types.ts";
+import type {
+  MatchTrack,
+  MatchingPreferences,
+  MatchingThresholds,
+  Penalty,
+  ReleaseMedium,
+} from "./types.ts";
 
 /* ------------------------------------------------------------------ */
 /* small numeric helpers                                               */
@@ -698,6 +704,32 @@ export function yearOf(date: string | null | undefined): number | null {
 /** The first medium's format — what v1 scored, and what a one-disc release always has. */
 export function mainFormat(release: MbRelease): string | null {
   return release.media?.[0]?.format ?? null;
+}
+
+/**
+ * The discs, with the format and the track count of each.
+ *
+ * A release *search* result already carries `media[].format` and `media[].track-count` — no
+ * tracklist, but the shape of the thing — so this is known for every candidate, including the
+ * ones the exploration never opened.
+ */
+export function mediaOf(release: MbRelease): ReleaseMedium[] {
+  return (release.media ?? []).map((medium, index) => ({
+    position: medium.position ?? index + 1,
+    format: medium.format ?? null,
+    trackCount: medium["track-count"] ?? medium.tracks?.length ?? 0,
+  }));
+}
+
+/** The first catalogue number MusicBrainz lists for the release. */
+export function mainCatalogNumber(release: MbRelease): string | null {
+  for (const info of release["label-info"] ?? []) {
+    // `== null` and not `!== undefined`: MusicBrainz sends an explicit `null` here for a label
+    // entry with no catalogue number, which a strict `undefined` check walks straight into.
+    const number = info["catalog-number"];
+    if (number != null && number.trim() !== "") return number.trim();
+  }
+  return null;
 }
 
 /** The first label's name. */

@@ -38,7 +38,7 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportKind, ImportTrack } from "#/server/db/schema/index.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { pauseImport } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf } from "#/server/services/console.queries.ts";
@@ -180,10 +180,10 @@ function toSourceView(
 /**
  * Paste a URL, get a source.
  *
- * `createFromUrl` runs `resolve` in this process — that is P03's deliberate choice and the
+ * `createImport` runs `resolve` in this process — that is P03's deliberate choice and the
  * reason the paste box answers in a second rather than after a worker poll.
  *
- * It then **parks the job**, and that is not optional. `createFromUrl` leaves the import in
+ * It then **parks the job**, and that is not optional. `createImport` leaves the import in
  * `pending`/`running` at `match`, and a running worker's `resumableImports()` picks up exactly
  * those: without this, opening the wizard would start the import the wizard exists to let you
  * configure — the worker would match, auto-confirm and download while you were still looking
@@ -193,10 +193,27 @@ function toSourceView(
  */
 export const resolveSource = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ url: z.string().trim().min(1) }))
+  .inputValidator(
+    z.object({
+      url: z.string().trim().min(1),
+      /**
+       * The release this import is pinned to, chosen **before** the URL was known.
+       *
+       * That is the command palette's order of events: you paste a MusicBrainz release, ⌘K
+       * offers "start an import pinned to this", and the URL is the thing still missing. It is
+       * the same door the CLI's `--release` uses — `imports.options.releaseMbid`, which
+       * `match` honours by looking the release up by MBID rather than by taking the
+       * preselection. Nothing new decides anything.
+       */
+      releaseMbid: z.string().trim().min(1).max(64).optional(),
+    }),
+  )
   .handler(async ({ data }): Promise<SourceView> => {
     try {
-      const created = await createFromUrl(data.url, { db: db() });
+      const created = await createImport(data.url, {
+        db: db(),
+        ...(data.releaseMbid === undefined ? {} : { releaseMbid: data.releaseMbid }),
+      });
       await pauseImport(created.job.id, "Waiting for the import wizard.", db());
       const { rows } = await videosOf(created.job.id, db());
       return toSourceView({ ...created.job, status: "paused" }, rows, created.duplicates);
@@ -217,7 +234,7 @@ export const fetchSource = createServerFn({ method: "GET", strict: STRICT })
       }
       const { rows } = await videosOf(job.id, db());
       // Asked again on every visit: the wizard redirects away from the URL it resolved, so the
-      // answer `createFromUrl` gave is long gone by the time step 1 renders.
+      // answer `createImport` gave is long gone by the time step 1 renders.
       const duplicates = await duplicatesOf(job.url, job.id, db());
       return toSourceView(job, rows, duplicates);
     } catch (error) {
@@ -434,13 +451,62 @@ async function candidatesView(
       recordings: result.ranking.candidates.slice(0, SHOWN),
     };
   }
+  const shown = result.ranking.candidates.slice(0, SHOWN);
+  const releases = await withPinned(job, shown);
   return {
     ...common,
+    // A pin is a decision already taken, so it wins over what the matcher preferred. It is the
+    // same rule `match` applies to `options.releaseMbid` (`jobs/steps/match.ts`): falling back
+    // to the preselection would silently import a different record from the one asked for.
+    preselectedId: pinOf(job) ?? common.preselectedId,
     kind: "album",
-    releases: result.ranking.candidates.slice(0, SHOWN),
-    groups: result.groups.groups.slice(0, SHOWN_GROUPS),
+    releases,
+    /*
+     * The groups come from the ranking, as they always have — regrouping the twelve shown
+     * would silently change what "12 releases" on a card counts. The one exception is a pin
+     * the search never returned: it is not in the ranking, so it is not in any group either,
+     * and step 2 draws groups. Regrouping then is what puts a card under the selection.
+     */
+    groups:
+      releases === shown
+        ? result.groups.groups.slice(0, SHOWN_GROUPS)
+        : releaseGroups.group(releases).groups.slice(0, SHOWN_GROUPS),
     recordings: [],
   };
+}
+
+/** The release this import was pinned to before it had a source, or `null`. */
+function pinOf(job: Import): string | null {
+  const pinned = job.options.releaseMbid;
+  return pinned === undefined || pinned === "" ? null : pinned;
+}
+
+/**
+ * The pinned release, in the list, whether or not the search found it.
+ *
+ * A pin the search never returned is the case that matters — it is exactly why somebody
+ * reached for it. Step 2 would otherwise open on a highlighted id with no card under it, which
+ * reads as "nothing was chosen". `pinnedRelease` is the wizard's existing escape hatch: one
+ * lookup by MBID, scored by the same engine as every other candidate, so the number on the
+ * pinned card means what the numbers beside it mean.
+ *
+ * A failure here is not fatal. The pin still travels to `match` in `options.releaseMbid`, so
+ * losing the *card* costs a picture and not the decision.
+ */
+async function withPinned(
+  job: Import,
+  candidates: readonly ReleaseCandidate[],
+): Promise<readonly ReleaseCandidate[]> {
+  const pinned = pinOf(job);
+  if (pinned === null) return candidates;
+  if (candidates.some((candidate) => candidate.id === pinned)) return candidates;
+  try {
+    const settings = await loadSettings(db());
+    const { candidate } = await pinnedRelease({ job, settings, db: db(), releaseMbid: pinned });
+    return [candidate, ...candidates].slice(0, SHOWN);
+  } catch {
+    return candidates;
+  }
 }
 
 /**
@@ -723,11 +789,21 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
         };
       }
 
-      // `editions-of-group` and `search-artist`: both are a search, run against the pipeline's
-      // own scorer so a hand-found candidate's number means what every other number means.
-      const query = ref.searchText ?? ref.title ?? ref.mbid;
+      /*
+       * `editions-of-group` and `search-artist`: both are a search, run against the pipeline's
+       * own scorer so a hand-found candidate's number means what every other number means.
+       *
+       * They differ in *which field* the text belongs in, and putting an artist's name in the
+       * title field was the same bug as `bewitched Laufey`: pasting an artist id asked
+       * MusicBrainz for a release literally titled "Daft Punk". An artist id is now the
+       * artist-only search it always meant.
+       */
+      const text = ref.searchText ?? ref.title ?? ref.mbid;
+      const artistOnly = ref.action === "search-artist";
+      const query = artistOnly ? "" : text;
+      const artist = artistOnly ? text : null;
       if (single) {
-        const found = await searchRecordings({ job, settings, db: db(), query });
+        const found = await searchRecordings({ job, settings, db: db(), query, artist });
         return {
           view: {
             kind: "single",
@@ -740,7 +816,7 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
           selectId: found.candidates[0]?.id ?? null,
         };
       }
-      const found = await searchReleases({ job, settings, db: db(), query });
+      const found = await searchReleases({ job, settings, db: db(), query, artist });
       return {
         view: {
           kind: "album",
@@ -764,6 +840,12 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
  * mean" — and because an MBID pasted into the search box should just work rather than being a
  * different field you have to notice.
  *
+ * **Either field alone is a search.** A title with no artist always was; an artist with no
+ * title was not, and typing one produced nothing at all — which is precisely what somebody who
+ * knows the band and not the exact album title has to type. It now searches that artist's
+ * release groups (or, on a single, their recordings), and the empty-result message names what
+ * was searched either way.
+ *
  * It follows the import's **kind**, which it did not before: a single searched releases, and
  * step 2 of a single renders recordings, so the box and the paste field were two visible,
  * inert controls on exactly the screen where the matcher had just proposed the wrong thing
@@ -772,12 +854,25 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
 export const searchCandidates = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(
-    z.object({
-      importId: z.string().min(1),
-      query: z.string().trim().min(1),
-      /** The wizard's second field. Absent means "split the query and say what you split". */
-      artist: z.string().trim().optional(),
-    }),
+    z
+      .object({
+        importId: z.string().min(1),
+        /**
+         * The title — **or nothing at all**, when an artist is given.
+         *
+         * An artist on its own is a search: "I know the band, not which record", which is the
+         * thing somebody does before they can type a title. The refinement below is what makes
+         * it legal, and it is the *only* thing that had to change on this side; the Lucene
+         * builder already drops an empty clause.
+         */
+        query: z.string().trim().default(""),
+        /** The wizard's second field. Absent means "split the query and say what you split". */
+        artist: z.string().trim().optional(),
+      })
+      .refine((data) => data.query !== "" || (data.artist ?? "") !== "", {
+        message: "Give a title, an artist, or both.",
+        path: ["query"],
+      }),
   )
   .handler(async ({ data }): Promise<SearchResultView> => {
     try {

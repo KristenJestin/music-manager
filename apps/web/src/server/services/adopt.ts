@@ -196,12 +196,73 @@ export function adoptRoots(paths: PathMap, settings: Settings): readonly string[
  * they mistyped a name they are allowed to read is the whole value of the distinction.
  */
 export function resolveSourcePath(candidate: string, roots: readonly string[]): string {
+  const real = resolveAllowed(candidate, roots, "file");
+  const stat = statSync(real);
+  if (!stat.isFile()) {
+    throw new MMError("INVALID_INPUT", `\`${candidate}\` is not a file.`, { status: 400 });
+  }
+  if (stat.size === 0) {
+    throw new MMError("INVALID_INPUT", `\`${candidate}\` is empty.`, { status: 400 });
+  }
+  return real;
+}
+
+/**
+ * The same door, for a **folder** — `mm import <folder>` and the API and MCP equivalents.
+ *
+ * `adoptSourceRoots` applies to a folder exactly as it applies to a single adopted file, and
+ * on purpose: a folder outside the allow-list is refused with the same `ADOPT_PATH_REFUSED`,
+ * by the same `realpath`-then-contain test, in the same function. The validation is not
+ * weakened because a folder is bigger than a file — it is *more* important there, since one
+ * accepted path then licenses everything the listing finds under it.
+ *
+ * Two things a caller must know. `resolveAllowed` returns the **real** path, so every file
+ * listed under it is already inside an allowed root by construction and no per-file check can
+ * disagree with the folder-level one. And the listing is deliberately non-recursive
+ * (`listFolder`), so an allowed root does not become a licence to walk a whole disk.
+ */
+export function resolveSourceFolder(candidate: string, roots: readonly string[]): string {
+  const real = resolveAllowed(candidate, roots, "folder");
+  if (!statSync(real).isDirectory()) {
+    throw new MMError("INVALID_INPUT", `\`${candidate}\` is not a folder.`, {
+      hint: "Import a folder of audio files; a single file is adopted onto a track instead.",
+      status: 400,
+    });
+  }
+  return real;
+}
+
+/**
+ * The allow-list itself: resolve, realpath, contain — or refuse. Nothing else.
+ *
+ * Three things happen here and all three matter:
+ *
+ *  1. **`resolve`**, so `..` is collapsed before anything is compared. Comparing the string as
+ *     it arrived would let `<allowed>/../../etc/passwd` pass a prefix test.
+ *  2. **`realpath`**, so a symlink inside an allowed folder cannot point out of it. This is
+ *     the check a prefix test on the *given* path misses entirely, and it is the one an
+ *     attacker with write access to an allowed folder would reach for.
+ *  3. the containment test runs on the **real** path, against the **real** roots, so a root
+ *     that is itself a symlink still works.
+ *
+ * A path that does not exist is a 404 and not a 403: the difference is already observable
+ * (the allow-list is the operator's own configuration), and telling them "no such file" when
+ * they mistyped a name they are allowed to read is the whole value of the distinction.
+ */
+function resolveAllowed(
+  candidate: string,
+  roots: readonly string[],
+  what: "file" | "folder",
+): string {
   if (candidate.trim() === "" || candidate.includes("\0")) {
     throw new MMError("INVALID_INPUT", "The path is empty.", { status: 400 });
   }
   if (!isAbsolute(candidate)) {
     throw new MMError("INVALID_INPUT", `\`${candidate}\` is not an absolute path.`, {
-      hint: "Give the full path as this server sees it, for example D:\\Musique\\album\\03.flac.",
+      hint:
+        what === "folder"
+          ? "Give the full path as this server sees it, for example D:\\Musique\\album."
+          : "Give the full path as this server sees it, for example D:\\Musique\\album\\03.flac.",
       status: 400,
     });
   }
@@ -228,7 +289,7 @@ export function resolveSourcePath(candidate: string, roots: readonly string[]): 
     for (const root of roots) {
       try {
         if (within(resolvePath(candidate), realpathSync.native(root))) {
-          throw notFound(`No such file: ${candidate}`);
+          throw notFound(`No such ${what}: ${candidate}`);
         }
       } catch (error) {
         if (error instanceof MMError) throw error;
@@ -246,15 +307,7 @@ export function resolveSourcePath(candidate: string, roots: readonly string[]): 
       // request: the other roots may well be right.
       continue;
     }
-    if (!within(real, realRoot)) continue;
-    const stat = statSync(real);
-    if (!stat.isFile()) {
-      throw new MMError("INVALID_INPUT", `\`${candidate}\` is not a file.`, { status: 400 });
-    }
-    if (stat.size === 0) {
-      throw new MMError("INVALID_INPUT", `\`${candidate}\` is empty.`, { status: 400 });
-    }
-    return real;
+    if (within(real, realRoot)) return real;
   }
   throw refused();
 }

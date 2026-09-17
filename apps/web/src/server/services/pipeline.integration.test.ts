@@ -248,7 +248,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     async function failOne(): Promise<string> {
       // A fixture URL the toolbox has never heard of: `resolve` fails with a decoded error
       // rather than throwing something shapeless.
-      const created = await imports.createFromUrl(`fixture://no-such-fixture-${newSuffix()}`, {
+      const created = await imports.createImport(`fixture://no-such-fixture-${newSuffix()}`, {
         resolveNow: false,
       });
       const result = await jobs.runStep(created.job.id, "resolve");
@@ -349,7 +349,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     let importId = "";
 
     it("resolves fifteen videos as soon as the import is created", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         autoConfirm: true,
         confirmedBy: "cli --yes",
       });
@@ -483,7 +483,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     }, 300_000);
 
     it("is idempotent: the same import again downloads nothing", async () => {
-      const again = await imports.createFromUrl("fixture://discovery", {
+      const again = await imports.createImport("fixture://discovery", {
         autoConfirm: true,
         confirmedBy: "cli --yes",
       });
@@ -519,7 +519,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
         { setBy: "test" },
       );
       try {
-        const again = await imports.createFromUrl("fixture://discovery", {
+        const again = await imports.createImport("fixture://discovery", {
           autoConfirm: true,
           confirmedBy: "cli --yes",
           force: true,
@@ -614,7 +614,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       process.env["MM_FIXTURES"] = "0";
       resetServerEnv();
       try {
-        const created = await imports.createFromUrl("fixture://discovery", { autoConfirm: false });
+        const created = await imports.createImport("fixture://discovery", { autoConfirm: false });
         const outcome = await jobs.runImport(created.job.id);
         expect(outcome.status).toBe("awaiting_confirm");
         expect(outcome.step).toBe("confirm");
@@ -643,7 +643,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
   describe("answering a card whose answer is a choice", () => {
     /** An import parked on an `ambiguous_recording`, exactly as `matchOneRecording` parks one. */
     async function askedWhichRecording(): Promise<{ importId: string; itemId: string }> {
-      const created = await imports.createFromUrl("fixture://skinny-love");
+      const created = await imports.createImport("fixture://skinny-love");
       const importId = created.job.id;
       await db()
         .update(schema.imports)
@@ -729,7 +729,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     }, 120_000);
 
     it("pins the release an `ambiguous_release` card offers", async () => {
-      const created = await imports.createFromUrl("fixture://discovery");
+      const created = await imports.createImport("fixture://discovery");
       const importId = created.job.id;
       await db()
         .update(schema.imports)
@@ -764,7 +764,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
      * did fourteen times over.
      */
     it("refuses an answer no branch handles, and leaves the item open", async () => {
-      const created = await imports.createFromUrl("fixture://discovery");
+      const created = await imports.createImport("fixture://discovery");
       const item = await inbox.openInboxItem({
         type: "ambiguous_release",
         importId: created.job.id,
@@ -805,7 +805,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     const VINYL = "ac7518c6-b630-4761-99c7-6a94cc35a594";
 
     async function suppliedOverTwoDiscs(cover: "all" | "all but disc 2 track 3"): Promise<string> {
-      const created = await imports.createFromUrl("fixture://discovery");
+      const created = await imports.createImport("fixture://discovery");
       const importId = created.job.id;
       const rows = await db()
         .select()
@@ -888,7 +888,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
    */
   describe("re-running `match` closes what it disproves", () => {
     async function matchedImport(): Promise<string> {
-      const created = await imports.createFromUrl("fixture://discovery");
+      const created = await imports.createImport("fixture://discovery");
       await jobs.runStep(created.job.id, "match", { db: db() });
       return created.job.id;
     }

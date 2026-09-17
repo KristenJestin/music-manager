@@ -21,7 +21,13 @@ from toolbox import fingerprint as fp_module
 from toolbox import probe as probe_module
 from toolbox.artwork import prepare
 from toolbox.errors import ErrorCode
-from toolbox.models import ArtworkRequest, FingerprintRequest, Tag, TagRequest
+from toolbox.models import (
+    MAX_PROBE_BATCH,
+    ArtworkRequest,
+    FingerprintRequest,
+    Tag,
+    TagRequest,
+)
 from toolbox.tagging import write_tags
 
 FFPROBE_JSON = {
@@ -89,6 +95,62 @@ def test_a_real_probe_sees_the_tags_that_were_written(opus_file: Path):
     assert result.tags["TITLE"] == "One More Time"
     assert result.tags["ARTIST"] == "Daft Punk"
     assert 4.5 < (result.duration or 0) < 5.5
+
+
+# --------------------------------------------------------------------------------------
+# /probe/batch
+# --------------------------------------------------------------------------------------
+
+
+def test_probe_batch_answers_in_the_order_it_was_asked(
+    tmp_path: Path, opus_file: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """A folder listing is lined up with the answers by index, so order is the contract."""
+    second = tmp_path / "second.opus"
+    second.write_bytes(opus_file.read_bytes())
+    third = tmp_path / "third.opus"
+    third.write_bytes(opus_file.read_bytes())
+    wanted = [str(third), str(opus_file), str(second)]
+
+    def fake_run_tool(_name: str, _args: Any, **__: Any) -> Any:
+        class Completed:
+            stdout = json.dumps(FFPROBE_JSON)
+
+        return Completed()
+
+    monkeypatch.setattr(probe_module, "run_tool", fake_run_tool)
+    result = probe_module.probe_batch(wanted)
+    assert [item.path for item in result.files] == wanted
+    assert result.ok == 3
+    assert result.failed == 0
+    assert all(item.result is not None and item.error is None for item in result.files)
+
+
+def test_probe_batch_reports_an_unreadable_file_without_losing_the_others(
+    client: TestClient, tmp_path: Path, opus_file: Path
+):
+    """One corrupt file in a folder of two hundred must not cost the hundred and ninety-nine."""
+    missing = tmp_path / "gone.opus"
+    response = client.post(
+        "/probe/batch", json={"paths": [str(opus_file), str(missing), str(opus_file)]}
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["failed"] == 1
+    assert payload["ok"] == 2
+    refused = payload["files"][1]
+    assert refused["result"] is None
+    assert refused["error"]["code"] == ErrorCode.UNKNOWN.value
+    assert "gone.opus" in refused["error"]["message"]
+
+
+def test_probe_batch_refuses_an_empty_list(client: TestClient):
+    assert client.post("/probe/batch", json={"paths": []}).status_code == 422
+
+
+def test_probe_batch_refuses_more_than_the_cap(client: TestClient):
+    paths = [f"/library/{index:04d}.opus" for index in range(MAX_PROBE_BATCH + 1)]
+    assert client.post("/probe/batch", json={"paths": paths}).status_code == 422
 
 
 # --------------------------------------------------------------------------------------

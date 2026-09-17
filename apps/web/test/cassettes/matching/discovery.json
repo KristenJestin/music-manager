@@ -13554,6 +13554,85 @@
           }
         ]
       }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Daft Punk\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-06T00:48:29.236Z",
+        "count": 4,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "48117b90-a16e-34ca-a514-19c702df1158",
+            "title": "Discovery",
+            "primary-type": "Album",
+            "first-release-date": "2001-02-26",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "be3df8a5-39cb-4a8c-bb17-a079b13faf74",
+            "title": "Re-Discovery",
+            "primary-type": "Album",
+            "secondary-types": ["Remix"],
+            "first-release-date": "2011-08-05",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
+            "title": "Homework / Discovery",
+            "primary-type": "Album",
+            "secondary-types": ["Compilation"],
+            "first-release-date": "2001-10-15",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "84216190-e46f-4cf1-8a28-76910183be38",
+            "title": "Discovery (Beta Version)",
+            "primary-type": "Album",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

@@ -110,7 +110,7 @@ describe.skipIf(unavailable !== null)("resume across place's rename window", () 
   });
 
   it("does not fetch a track whose file was filed but never recorded", async () => {
-    const created = await imports.createFromUrl(SOURCE, {
+    const created = await imports.createImport(SOURCE, {
       autoConfirm: true,
       confirmedBy: "cli --yes",
     });

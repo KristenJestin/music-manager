@@ -75,7 +75,7 @@ function refuse(message: string, hint: string): never {
 /* ------------------------------------------------------------------ */
 
 /** `%`, `_` and `\` are LIKE's own syntax; a title containing one is not a wildcard. */
-function likeLiteral(value: string): string {
+export function likeLiteral(value: string): string {
   return value.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 

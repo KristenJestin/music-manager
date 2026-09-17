@@ -133,6 +133,14 @@
   --container-form: 380px;
   /* The "Borrow album context from" selector of the single wizard, as in the prototype. */
   --container-borrow: 380px;
+  /*
+   * …and the menu it opens, which is wider than the closed control on purpose.
+   *
+   * Base UI sizes the popup to the trigger (`w-(--anchor-width)`), and eighteen options that
+   * differ by a catalogue number cannot be told apart through an ellipsis. The trigger shows
+   * one line and stays inside the card; the menu is where the choosing happens.
+   */
+  --container-borrow-menu: 560px;
 
   /*
    * Cover placeholders.

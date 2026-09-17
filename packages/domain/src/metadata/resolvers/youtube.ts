@@ -84,7 +84,18 @@ export function fromYouTubeEntry(
 
   /* ---- provenance you can grep (§2.6) ---- */
   const url = entry.webpage_url ?? (entry.id === undefined ? null : `https://youtu.be/${entry.id}`);
-  const shortUrl = entry.id === undefined ? url : `youtu.be/${entry.id}`;
+  /*
+   * `youtu.be/<id>` only when the entry really came from YouTube.
+   *
+   * A **folder import**'s entries are files: `webpage_url` is a `file://` URL and `id` is a
+   * digest of the file's name, so the old unconditional `youtu.be/${entry.id}` would have
+   * invented a video that does not exist and printed it in `COMMENT` — the one field a human
+   * reads to find out where their music came from. The id is still perfectly good as an
+   * identifier; it is simply not a YouTube one, and only `webpage_url` can say which.
+   */
+  const fromYouTube =
+    entry.webpage_url === undefined || /(?:youtube\.com|youtu\.be)\//i.test(entry.webpage_url);
+  const shortUrl = entry.id !== undefined && fromYouTube ? `youtu.be/${entry.id}` : url;
   const adopted = options.adopted;
 
   if (adopted !== undefined) {
@@ -104,7 +115,10 @@ export function fromYouTubeEntry(
     patch.set(
       "comment",
       `Adopted local file "${adopted.originalName}" on ${adopted.adoptedOn}` +
-        (shortUrl === null ? "" : ` · not downloaded from ${shortUrl}`) +
+        // "not downloaded from <a file on the same disk>" is a sentence about nothing. The
+        // clause exists to name the video the bytes are *not* from — which on a folder import
+        // there never was, because the file itself is the source.
+        (shortUrl === null || !fromYouTube ? "" : ` · not downloaded from ${shortUrl}`) +
         ` · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
       { confidence: 1 },
     );

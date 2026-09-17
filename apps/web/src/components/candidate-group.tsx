@@ -17,12 +17,14 @@
  *  - opening a group does not select anything. Selection stays what it was: a radio on a
  *    release card. Nothing on this screen commits (decision 002).
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronRight, Disc3, Layers } from "lucide-react";
 import type { ReleaseGroupCandidate } from "@mm/domain";
 import { cn } from "cn";
 import { ReleaseCandidateCard } from "#/components/candidate-card.tsx";
 import { Cover, coverArtFront } from "#/components/cover.tsx";
+import { MbLink } from "#/components/mb-link.tsx";
+import { distinguishing, groupSpread } from "#/components/release-facts.tsx";
 import { ToneBadge, scoreTone } from "#/components/status-badge.tsx";
 import { pct } from "#/lib/format.ts";
 
@@ -70,12 +72,20 @@ export function ReleaseGroupCard({
   const isOpen = open ?? (defaultOpen || holdsSelection || holdsHandPicked);
   const best = group.releases[0];
 
+  /*
+   * What its pressings differ on — computed once for the whole group and handed to every card
+   * in it, because that comparison is the thing no single card can make about itself.
+   */
+  const differs = useMemo(() => distinguishing(group.releases), [group.releases]);
+
   const years = group.year === null ? null : String(group.year);
   const facts = [
     group.primaryType,
     years,
     `${String(group.releases.length)} release${group.releases.length === 1 ? "" : "s"}`,
-    best === undefined ? null : `best: ${String(best.tracks)} tracks`,
+    // What the pressings inside actually span — countries, formats, track counts. "4 releases,
+    // best: 14 tracks" gave no reason to open a group or to leave it shut.
+    ...groupSpread(group.releases),
   ].filter((part): part is string => typeof part === "string" && part !== "");
 
   return (
@@ -89,65 +99,75 @@ export function ReleaseGroupCard({
         group.preselected && "border-primary-soft",
       )}
     >
-      <button
-        type="button"
-        data-testid="group-toggle"
-        aria-expanded={isOpen}
-        onClick={() => {
-          setOpen(!isOpen);
-        }}
-        className={cn(
-          "flex w-full cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left",
-          "transition-colors duration-100 hover:bg-surface-1",
-          "focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none",
-        )}
-      >
-        <ChevronRight
+      {/*
+        The toggle and the score column are siblings, not nested.
+        The group's MusicBrainz page belongs beside the score, and an anchor inside a button is
+        invalid HTML — the browser lifts it out and the two controls fight over the click. So
+        the button keeps the identity of the group, which is what you press to open it, and the
+        right-hand column keeps the number and the link.
+      */}
+      <div className="flex items-start gap-3 px-3 py-2.5">
+        <button
+          type="button"
+          data-testid="group-toggle"
+          aria-expanded={isOpen}
+          onClick={() => {
+            setOpen(!isOpen);
+          }}
           className={cn(
-            "mt-1 size-4 shrink-0 text-fg-2 transition-transform duration-150",
-            isOpen && "rotate-90",
+            "flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-lg text-left",
+            "transition-colors duration-100 hover:bg-surface-1",
+            "focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none",
           )}
-          aria-hidden="true"
-        />
-        {/* Same rule as the card: a pressing MusicBrainz says has no front is not requested,
+        >
+          <ChevronRight
+            className={cn(
+              "mt-1 size-4 shrink-0 text-fg-2 transition-transform duration-150",
+              isOpen && "rotate-90",
+            )}
+            aria-hidden="true"
+          />
+          {/* Same rule as the card: a pressing MusicBrainz says has no front is not requested,
             so a group header never spends a 404 to draw the gradient it already knows about. */}
-        <Cover
-          size="sm"
-          src={best?.coverArt?.front === false ? null : coverArtFront(best?.id)}
-          seed={group.id ?? group.title}
-          label={group.title}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            {group.title}
-            <span className="font-normal text-fg-2">by {group.artist}</span>
-            {group.preselected ? (
-              <ToneBadge tone="primary">
-                <Layers className="size-3" aria-hidden="true" /> best match
-              </ToneBadge>
-            ) : null}
-            {group.secondaryTypes.map((type) => (
-              <ToneBadge key={type} tone="danger">
-                {type}
-              </ToneBadge>
-            ))}
+          <Cover
+            size="sm"
+            src={best?.coverArt?.front === false ? null : coverArtFront(best?.id)}
+            seed={group.id ?? group.title}
+            label={group.title}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+              {group.title}
+              <span className="font-normal text-fg-2">by {group.artist}</span>
+              {group.preselected ? (
+                <ToneBadge tone="primary">
+                  <Layers className="size-3" aria-hidden="true" /> best match
+                </ToneBadge>
+              ) : null}
+              {group.secondaryTypes.map((type) => (
+                <ToneBadge key={type} tone="danger">
+                  {type}
+                </ToneBadge>
+              ))}
+            </div>
+            <div className="mt-0.5 flex flex-wrap gap-2.5 text-xs text-fg-2">
+              {facts.map((part, index) => (
+                <span key={`${part}-${String(index)}`}>{part}</span>
+              ))}
+            </div>
+            {isOpen ? null : (
+              <p data-testid="group-summary" className="mt-1 text-2xs text-fg-2">
+                {best === undefined
+                  ? "No release scored in this group."
+                  : `${best.title}${best.year === null ? "" : ` (${String(best.year)})`} — ` +
+                    (best.detailed
+                      ? `${String(best.videos - best.leftOver)} of your ${String(best.videos)} videos would find a track here`
+                      : "no tracklist was read for this group")}
+              </p>
+            )}
           </div>
-          <div className="mt-0.5 flex flex-wrap gap-2.5 text-xs text-fg-2">
-            {facts.map((part, index) => (
-              <span key={`${part}-${String(index)}`}>{part}</span>
-            ))}
-          </div>
-          {isOpen ? null : (
-            <p data-testid="group-summary" className="mt-1 text-2xs text-fg-2">
-              {best === undefined
-                ? "No release scored in this group."
-                : `${best.title}${best.year === null ? "" : ` (${String(best.year)})`} — ` +
-                  (best.detailed
-                    ? `${String(best.videos - best.leftOver)} of your ${String(best.videos)} videos would find a track here`
-                    : "no tracklist was read for this group")}
-            </p>
-          )}
-        </div>
+        </button>
+
         <div className="flex shrink-0 flex-col items-end gap-0.5">
           <span
             data-testid="group-score"
@@ -158,8 +178,16 @@ export function ReleaseGroupCard({
           <span className="flex items-center gap-1 text-3xs text-fg-3">
             <Disc3 className="size-3" aria-hidden="true" /> group score
           </span>
+          <MbLink
+            kind="release-group"
+            mbid={group.id}
+            truncate
+            data-testid="group-mb-link"
+            label="release group"
+            missing="no release group"
+          />
         </div>
-      </button>
+      </div>
 
       <div className={cn("disclosure", isOpen && "disclosure-open")}>
         <div className="disclosure-body">
@@ -174,6 +202,7 @@ export function ReleaseGroupCard({
                 selected={selected === candidate.id}
                 byHand={byHand === candidate.id}
                 onSelect={onSelect}
+                differs={differs}
               />
             ))}
           </div>

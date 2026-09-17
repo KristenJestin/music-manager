@@ -19,6 +19,7 @@ EXPECTED_OPERATIONS: dict[tuple[str, str], str] = {
     ("post", "/extract"): "extract",
     ("post", "/download"): "download",
     ("post", "/probe"): "probe",
+    ("post", "/probe/batch"): "probeBatch",
     ("post", "/fingerprint"): "fingerprint",
     ("post", "/tag"): "tag",
     ("post", "/replaygain"): "replaygain",

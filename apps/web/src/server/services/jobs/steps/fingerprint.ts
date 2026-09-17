@@ -53,6 +53,13 @@ export function compareFingerprint(
      * person would say instead, and it is always there.
      */
     sourceTitle?: string | null;
+    /**
+     * The import has no MusicBrainz release at all — "import without MusicBrainz".
+     *
+     * Read off `imports.release_mbid`, because that is the only thing that can tell an
+     * untagged import from a mapping confirmed without a recording id. See the branch below.
+     */
+    untagged?: boolean;
   },
   options: { minScore: number; titleThreshold: number },
 ): Verdict {
@@ -67,6 +74,39 @@ export function compareFingerprint(
       candidateTitle: null,
       score: null,
       reason: "no AcoustID candidate above the score floor",
+    };
+  }
+
+  /*
+   * **An import without MusicBrainz claims nothing, so nothing can contradict it.**
+   *
+   * This step asks one question — *does the audio match the recording we mapped it to?* — and
+   * an untagged import (`docs/04` § import sans MusicBrainz, `SuppliedMapping` with
+   * `releaseMbid: null`) has no such recording: there is no release, and `recording_mbid` is
+   * null on every row by design. Comparing AcoustID's answer with the *title* there turns
+   * "AcoustID recognises this as something" into a question with no possible answer, because
+   * there is no mapping to correct — and it raises one `fingerprint_mismatch` per track. On the
+   * owner's 273-track library that is 273 questions nobody can act on.
+   *
+   * **`untagged` and not "`recordingMbid` is null"**, and the difference matters. A track can
+   * have no recording id for two unrelated reasons: this one, and a mapping somebody confirmed
+   * against a real release without filling the id in — the case the test below calls "names the
+   * video rather than saying the mapping says “”". That second one *is* a claim: the release
+   * exists, the title came from it, and a disagreement is worth asking about. Only the import
+   * itself can tell the two apart, so the step reads `imports.release_mbid` and says which.
+   *
+   * The fingerprint is still computed and still stored on the row, which is the part that has
+   * value: it is what lets the track be identified later, when somebody does go looking for a
+   * release. What is dropped is only the *verdict*, and only when there was no claim to judge.
+   */
+  if (expected.untagged === true) {
+    const heard = candidates[0];
+    return {
+      agrees: true,
+      candidateMbid: heard?.recording_mbid ?? null,
+      candidateTitle: heard?.title ?? null,
+      score: heard?.score ?? null,
+      reason: "the track is bound to no recording, so there is nothing to contradict",
     };
   }
 
@@ -155,6 +195,13 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
   }
 
   const { accepted } = await mismatchItems(ctx);
+  /**
+   * "Import without MusicBrainz": no release on the job, so no recording behind any track.
+   *
+   * Read once, off the import rather than off each row, because that is the only place the
+   * distinction lives — see `compareFingerprint`.
+   */
+  const untagged = ctx.job.releaseMbid === null || ctx.job.releaseMbid === "";
   let checked = 0;
   let agreed = 0;
   const disagreements: ImportTrack[] = [];
@@ -197,6 +244,7 @@ export async function fingerprintStep(ctx: StepContext): Promise<StepResult> {
         recordingMbid: track.recordingMbid,
         title: track.trackTitle,
         sourceTitle: track.sourceTitle,
+        untagged,
       },
       {
         minScore: ctx.settings.fingerprintMinScore,

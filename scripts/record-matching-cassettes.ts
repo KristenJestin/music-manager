@@ -814,6 +814,19 @@ async function recordAlbum(
       .map((entry) => entry.group);
   }
 
+  /*
+   * The artist on its own, which is a search the wizard now offers.
+   *
+   * "I know the band, not which record" is what somebody types before they can type a title,
+   * and `searchReleases` answers it with `releaseGroupQuery("", artist)` — the same builder,
+   * with the title clause dropped. Recorded here so the Console's artist-only search replays
+   * offline like every other question the matcher can be asked.
+   *
+   * It is deliberately *after* the ladder: this is not a rung the matcher climbs, it is a
+   * question a person asks, and it must never change which groups the recorded match keeps.
+   */
+  await searchDocument("release-group", lucene.releaseGroupQuery("", primary ?? credit));
+
   const scoredGroups = releaseGroups.searchScore(rawGroups, hints, scenario.videos.length);
   // One more group than a match keeps, for the same reason as the four extra lookups: a
   // re-scored group must be able to move without breaking every cassette test at once.
@@ -944,10 +957,22 @@ async function recordSingle(
       durationSeconds: video.durationSeconds,
     });
     const wide = lucene.recordingQuery({ title });
+    /*
+     * The artist on its own — the single path's half of the wizard's artist-only search.
+     *
+     * `recordingQuery` drops the empty title clause, so this is `artist:"…"` and nothing else.
+     * It is recorded last and its results are merged like the other two, which means the
+     * lookups a person browsing an artist would need are on the cassette too.
+     */
+    const artistAlone = lucene.recordingQuery({
+      title: "",
+      artist: video.ytArtist ?? video.uploader ?? null,
+    });
 
     const merged: MbRecording[] = [];
     const seen = new Set<string>();
-    for (const query of [narrow, wide]) {
+    for (const query of [narrow, wide, artistAlone]) {
+      if (query === "") continue;
       const found = await document<SearchResult>(
         `search/recording?query=${query}&limit=${String(SEARCH_LIMIT)}&offset=0`,
         "recording",

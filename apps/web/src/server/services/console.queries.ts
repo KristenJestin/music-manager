@@ -648,7 +648,7 @@ export async function queueStanding(
 /**
  * Store what the wizard decided on the import, so `match` and the steps after it read it.
  *
- * Merged rather than replaced: `createFromUrl` already wrote whatever the paste box knew, and
+ * Merged rather than replaced: `createImport` already wrote whatever the paste box knew, and
  * a wizard that overwrote the whole object would silently drop it.
  */
 export async function setImportOptions(

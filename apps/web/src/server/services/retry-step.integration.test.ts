@@ -92,7 +92,7 @@ resetServerEnv();
  * engine's own proposal as the mapping, which is exactly what step 3 shows before Start.
  */
 async function confirmedImport(): Promise<string> {
-  const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+  const created = await imports.createImport("fixture://discovery", { db: db() });
   const id = created.job.id;
 
   const matched = await jobs.runStep(id, "match", { db: db() });

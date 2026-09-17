@@ -68,9 +68,17 @@ export function splitSearchTerms(input: string): SearchTerms {
   return { title: text, artist: null, guessed: false };
 }
 
-/** The split as one line, for saying out loud what was searched for. */
+/**
+ * The split as one line, for saying out loud what was searched for.
+ *
+ * Three shapes, because there are three searches: a title, a title by an artist, and — since
+ * an artist alone became a search of its own — *everything by* an artist. The empty-result
+ * message is built from this, so a wording that said `“” by “Laufey”` would be the same defect
+ * one field along.
+ */
 export function describeSearchTerms(terms: SearchTerms): string {
-  return terms.artist === null || terms.artist === ""
-    ? `“${terms.title}”`
-    : `“${terms.title}” by “${terms.artist}”`;
+  const artist = terms.artist ?? "";
+  if (artist === "") return `“${terms.title}”`;
+  if (terms.title.trim() === "") return `everything by “${artist}”`;
+  return `“${terms.title}” by “${artist}”`;
 }

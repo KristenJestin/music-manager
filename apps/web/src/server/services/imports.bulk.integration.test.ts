@@ -75,7 +75,7 @@ const DISCOVERY_VIDEOS = 15;
 
 /** An import of the fixture album, resolved and parked where a confirmation means something. */
 async function waitingImport(url = "fixture://discovery"): Promise<string> {
-  const created = await imports.createFromUrl(url, { db: db() });
+  const created = await imports.createImport(url, { db: db() });
   await db()
     .update(schema.imports)
     .set({ status: "awaiting_review" })
@@ -103,7 +103,7 @@ async function waitingExactImport(): Promise<string> {
  * 1) — which is exactly the shape a single that *should* be confirmed automatically has.
  */
 async function waitingSingle(): Promise<string> {
-  const created = await imports.createFromUrl("fixture://skinny-love", { db: db() });
+  const created = await imports.createImport("fixture://skinny-love", { db: db() });
   await db()
     .update(schema.imports)
     .set({ status: "awaiting_review" })
@@ -307,7 +307,7 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
     }, 120_000);
 
     it("an import with no videos is a 400, not a confirmation of nothing", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         db: db(),
         resolveNow: false,
       });
