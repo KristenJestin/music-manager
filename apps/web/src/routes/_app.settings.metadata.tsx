@@ -361,12 +361,12 @@ function MetadataSettings() {
           />
         </FormRow>
         <FormRow
-          label="Tracklist lookups"
-          help="How many release candidates get their tracklist fetched, which is what the fit is computed from. More costs one MusicBrainz request each, at one request per second."
+          label="Tracklist lookup ceiling"
+          help="The most release candidates a match may open, not the number it will. The matcher keeps opening candidates while an unopened one could still win and stops on its own, so an ordinary album costs one to four; this is the stop for a record MusicBrainz presses a dozen times. One request each, at one request per second."
         >
           <NumberField
             testId="setting-matchLookupLimit"
-            value={value("matchLookupLimit", 6)}
+            value={value("matchLookupLimit", 14)}
             step={1}
             onChange={(next) => {
               set("matchLookupLimit", next);
