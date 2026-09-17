@@ -836,33 +836,62 @@ async function recordAlbum(
     }
   }
 
-  // 3 — the N the engine would look up, decided by the engine itself.
-  const shallow = searchResults.map((release) => ({ release, detailed: false }));
-  const prescored = releaseCandidates.score({
-    videos: scenario.videos,
-    hints,
-    candidates: shallow,
-  });
-  const wanted: string[] = [];
-  const takenGroups = new Set<string>();
-  for (const candidate of prescored.candidates) {
-    if (candidate.id === "" || takenGroups.has(candidate.releaseGroupId ?? "")) continue;
-    takenGroups.add(candidate.releaseGroupId ?? "");
-    wanted.push(candidate.id);
-  }
-  for (const candidate of prescored.candidates) {
-    if (wanted.length >= RECORDED_LOOKUPS) break;
-    if (candidate.id === "" || wanted.includes(candidate.id)) continue;
-    wanted.push(candidate.id);
-  }
+  /*
+   * 3 — the lookups, **in the order the service opens them**, and four more.
+   *
+   * The order is the whole point and it used to be wrong. The recorder took the top N of the
+   * flat pre-score while `exploreReleases` opens by `ceiling` — the best a candidate could
+   * still reach — recomputed after every lookup. Those are different lists, so a cassette with
+   * eighteen documents could still be missing the fourteenth one a match asks for, and the
+   * failure reads "no document for release/…" rather than "the ranking moved".
+   *
+   * Mirroring the order makes the containment provable instead of likely: the service opens at
+   * most `matchLookupLimit` candidates from the head of this exact sequence, and the recorder
+   * writes down four more of it. What the recorder does *not* copy is the stopping — it never
+   * stops early, because its job is to leave room for a ranking to move.
+   */
+  const detailedById = new Map<string, MbRelease>();
+  const rank = () =>
+    releaseCandidates.score({
+      videos: scenario.videos,
+      hints,
+      candidates: searchResults.map((release) => {
+        const full = release.id === undefined ? undefined : detailedById.get(release.id);
+        return full === undefined
+          ? { release, detailed: false }
+          : { release: full, detailed: true };
+      }),
+    });
 
-  const detailed: MbRelease[] = [];
-  for (const mbid of wanted.slice(0, RECORDED_LOOKUPS)) {
+  const open = async (mbid: string): Promise<void> => {
     const full = await document<MbRelease>(`release/${mbid}?inc=releaseFull`, `release/${mbid}`, {
       inc: INC.releaseFull,
     });
-    detailed.push(full);
+    detailedById.set(mbid, full);
+  };
+
+  // One reserved for the best pressing of each group (decision 151), as the service does.
+  const seenGroups = new Set<string>();
+  for (const candidate of rank().candidates) {
+    if (candidate.id === "" || detailedById.size >= RECORDED_LOOKUPS) break;
+    const key = candidate.releaseGroupId ?? "";
+    if (seenGroups.has(key)) continue;
+    seenGroups.add(key);
+    await open(candidate.id);
   }
+
+  // Then by attainable score, recomputed each time — the branch and bound's own order.
+  while (detailedById.size < RECORDED_LOOKUPS) {
+    let next: { id: string; ceiling: number } | null = null;
+    for (const candidate of rank().candidates) {
+      if (candidate.detailed || candidate.id === "" || detailedById.has(candidate.id)) continue;
+      if (next === null || candidate.ceiling > next.ceiling) next = candidate;
+    }
+    if (next === null) break;
+    await open(next.id);
+  }
+
+  const detailed = [...detailedById.values()];
 
   const detailedIds = new Set(detailed.map((release) => release.id));
   const fixture = {

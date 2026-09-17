@@ -55,6 +55,7 @@ import {
   unit,
   releaseYearScore,
   yearOf,
+  yearScore,
 } from "./signals.ts";
 import { sourceEdition } from "../normalize/title.ts";
 import type {
@@ -632,12 +633,32 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
           ? 1
           : 0;
 
+  /*
+   * …and, before the cover, the pressing whose **own date** is the one the source named.
+   *
+   * `releaseYearScore` deliberately stopped treating a re-pressing as a contradiction — a 2014
+   * digital master of a 2008 record is the thing YouTube streams, and scoring it zero on year
+   * cost *Appeal to Reason* the edition that fits it exactly. But flattening the signal between
+   * pressings of one record threw away something true with it: at an exactly equal score and
+   * fit, the pressing dated the year the source announces is the one the source came from.
+   * Without this line the deeper exploration of the sixth review reached a 2014 American
+   * re-issue of *Discovery*, tied the 2001 French CD to the thousandth, and won the tie on
+   * having a picture — which is decision 167 answering a question nobody asked it.
+   *
+   * It sits *above* `withFront` and leaves decision 167 intact, because that tie-break only
+   * ever fires at a strictly equal score, and the 0.03 the cover is worth separates two
+   * pressings long before it gets there. *Pure Heroine* still preselects the pressing with the
+   * picture; it wins on score, not on a tie.
+   */
+  const ownYear = (candidate: ReleaseCandidate): number => yearScore(sourceYear, candidate.year);
+
   const ranked = [...scored].sort(
     (a, b) =>
       Number(b.detailed) - Number(a.detailed) ||
       b.score - a.score ||
       b.fit - a.fit ||
       a.fitOf - b.fitOf ||
+      ownYear(b) - ownYear(a) ||
       withFront(b) - withFront(a) ||
       a.id.localeCompare(b.id),
   );
