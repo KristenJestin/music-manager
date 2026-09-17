@@ -77,23 +77,31 @@ test.describe("the wizard's MusicBrainz box", () => {
     await expect(page.getByTestId("mb-search-submit")).toBeDisabled();
   });
 
-  test("reads the artist off a dash, and an empty answer says what it searched for", async ({
-    page,
-  }) => {
+  /**
+   * Title and artist as two fields, which is the fix for `bewitched Laufey`.
+   *
+   * The whole typed string used to go into `release:`, so a query with the artist in it matched
+   * nothing. Here the two clauses are separate and the search replays the album cassette's own
+   * release-group query — which is the other half of the change: the manual box now asks for a
+   * release **group**, the entity this list is made of, exactly as the matcher does.
+   *
+   * (The *empty* answer naming its query cannot be driven offline: a query a cassette does not
+   * hold is an error by design, not an empty result. `components.test.tsx` renders that state
+   * directly, and `search-terms.test.ts` pins the split.)
+   */
+  test("searches a title and an artist as two clauses, not one string", async ({ page }) => {
     await signIn(page);
-    const importId = await resolveSource(page, "fixture://skinny-love");
+    const importId = await resolveSource(page, "fixture://discovery");
     await page.goto(`/import/new?importId=${importId}&step=2`);
     await expect(page.getByTestId("candidate-list")).toBeVisible({ timeout: 150_000 });
 
-    // Free text with a separator: the artist goes in its own clause instead of being folded
-    // into the title, which is what made `bewitched Laufey` match nothing.
-    await typeInto(page.getByTestId("mb-search"), "Nobody At All - Nothing Like This");
+    await typeInto(page.getByTestId("mb-search"), "Discovery");
+    await typeInto(page.getByTestId("mb-search-artist"), "Daft Punk");
     await page.getByTestId("mb-search-submit").click();
 
-    const empty = page.getByTestId("mb-search-empty");
-    await expect(empty).toBeVisible({ timeout: 120_000 });
-    // The sentence that would have explained his bug instantly.
-    await expect(empty).toContainText("“Nothing Like This” by “Nobody At All”");
+    await expect(page.getByTestId("candidate-group").first()).toContainText("Discovery", {
+      timeout: 120_000,
+    });
   });
 
   test("resolves a pasted release on an album import as a pin", async ({ page }) => {

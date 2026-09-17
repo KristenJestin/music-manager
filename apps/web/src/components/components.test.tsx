@@ -17,6 +17,7 @@ import { DataTable } from "./data-table.tsx";
 import { KeyValueList } from "./key-value.tsx";
 import { LogViewer } from "./log-viewer.tsx";
 import { MappingRow } from "./mapping-row.tsx";
+import { MbSearchPanel } from "./mb-search-panel.tsx";
 import { PipelineDots, type StepRow } from "./pipeline-dots.tsx";
 import { STEPS } from "#/server/db/schema/enums.vocab.ts";
 import { ReleaseCandidateCard } from "./candidate-card.tsx";
@@ -1025,5 +1026,65 @@ describe("TrackProgress — the Status column keeps its shape (owner review D4)"
       expect(line.className).toContain("truncate");
       expect(line.className).toContain("min-w-0");
     }
+  });
+});
+
+describe("MbSearchPanel", () => {
+  const noop = async (): Promise<null> => await Promise.resolve(null);
+
+  const base = {
+    single: false,
+    busy: false,
+    defaultTitle: "",
+    defaultArtist: "",
+    onResolve: noop,
+    onApply: async (): Promise<void> => {
+      await Promise.resolve();
+    },
+    onSearch: async (): Promise<void> => {
+      await Promise.resolve();
+    },
+    terms: null,
+    empty: false,
+  };
+
+  /**
+   * The state that could not be driven from a browser test.
+   *
+   * A query a cassette does not hold is an *error* by design, not an empty result, so the
+   * offline suite cannot produce "MusicBrainz answered with nothing". It is rendered here
+   * instead, because the sentence is the whole point: "Nothing found for that" never said what
+   * had been searched for, and that omission is what hid the real bug — `bewitched Laufey` went
+   * into the album-title field whole.
+   */
+  it("reads back what it searched for when nothing matched", () => {
+    render(
+      <MbSearchPanel
+        {...base}
+        terms={{ title: "Bewitched", artist: "Laufey", guessed: true }}
+        empty
+      />,
+    );
+    const empty = screen.getByTestId("mb-search-empty");
+    expect(empty.textContent).toContain("“Bewitched” by “Laufey”");
+  });
+
+  it("shows a guessed split even when the search worked, so a wrong guess is correctable", () => {
+    render(
+      <MbSearchPanel {...base} terms={{ title: "Bewitched", artist: "Laufey", guessed: true }} />,
+    );
+    expect(screen.getByTestId("mb-search-terms").textContent).toContain("“Bewitched” by “Laufey”");
+  });
+
+  it("offers two fields for free text, and one for an id", () => {
+    render(<MbSearchPanel {...base} />);
+    expect(screen.getByTestId("mb-search-artist")).toBeTruthy();
+    cleanup();
+
+    // A second mount rather than a rerender: `defaultTitle` seeds the field once, which is what
+    // lets somebody type over a prefilled value without it being put back under them.
+    render(<MbSearchPanel {...base} defaultTitle="966e9be9-d8d0-46fa-a87b-2d07a963097b" />);
+    // An id names one thing; an artist clause beside it would be a contradiction.
+    expect(screen.queryByTestId("mb-search-artist")).toBeNull();
   });
 });

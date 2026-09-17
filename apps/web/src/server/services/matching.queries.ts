@@ -279,7 +279,17 @@ export async function searchReleases(input: SearchInput): Promise<{
    * what was missing was a caller that had one to give.
    */
   const groupQuery = lucene.releaseGroupQuery(terms.title, terms.artist);
-  const groupFound = await gateway.search("release-group", groupQuery, MANUAL_GROUPS);
+  /*
+   * `matchSearchLimit`, the same limit the matcher asks for — the *number of groups resolved*
+   * is what is capped, below, not the number asked for. Asking for a different page size would
+   * also make this a different request from the matcher's, so the two would never share a
+   * cached document (or a recorded cassette entry) for the same question.
+   */
+  const groupFound = await gateway.search(
+    "release-group",
+    groupQuery,
+    input.settings.matchSearchLimit,
+  );
   const groupIds = (groupFound?.["release-groups"] ?? [])
     .slice(0, MANUAL_GROUPS)
     .map((group) => group.id)
@@ -288,6 +298,8 @@ export async function searchReleases(input: SearchInput): Promise<{
   const releases: MbRelease[] = [];
   const queries: string[] = [groupQuery];
   for (const rgid of groupIds) {
+    // `releaseGroupId` takes the whole clause — `rgid:<id> AND status:Official` — which is
+    // exactly the second query `matchAlbum` runs, so the two share a cache entry.
     const byGroup = lucene.releaseQuery({ album: terms.title, releaseGroupId: rgid });
     queries.push(byGroup);
     const inGroup = await gateway.search("release", byGroup, input.settings.matchSearchLimit);
