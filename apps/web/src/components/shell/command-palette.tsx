@@ -223,6 +223,8 @@ export function CommandPalette() {
   const [mb, setMb] = useState<Answer<MbHits> | null>(null);
   /** The query MusicBrainz is being asked about right now — there is no automatic ask. */
   const [mbAsking, setMbAsking] = useState<string | null>(null);
+  /** Why the last MusicBrainz search failed, shown in the group it failed for. */
+  const [mbFailure, setMbFailure] = useState<string | null>(null);
 
   const trimmed = query.trim();
   const intent = intentOf(query);
@@ -303,6 +305,11 @@ export function CommandPalette() {
       },
       (error: unknown) => {
         setMbAsking(null);
+        // Both: a toast, because the message names the source and the query it refused
+        // (`OFFLINE_CACHE_MISS` prints the whole Lucene key), and a row, because a toast is
+        // gone in three seconds and the list has to stop claiming the search is still to come.
+        setMb({ for: asked, value: null });
+        setMbFailure(error instanceof Error ? error.message : "MusicBrainz could not be reached.");
         toast(
           error instanceof Error ? error.message : "MusicBrainz could not be reached.",
           "danger",
@@ -479,8 +486,13 @@ export function CommandPalette() {
       built.push(...libraryGroups());
     }
 
-    /* MusicBrainz, if you ask */
-    if (intent === "text" || intent === "reference") {
+    /*
+     * MusicBrainz in words, if you ask — and only for words.
+     *
+     * An id is already being looked up above, exactly, so offering to *search* for the id as a
+     * phrase would be a second row for a worse version of the same question.
+     */
+    if (intent === "text") {
       built.push(musicBrainzGroup());
     }
 
@@ -752,6 +764,22 @@ export function CommandPalette() {
         };
       }
       const mb = mbAnswer?.value ?? null;
+      if (mb === null && mbAnswer !== null) {
+        return {
+          heading: `MusicBrainz · “${trimmed}”`,
+          rows: [
+            {
+              key: "mb-failed",
+              icon: Globe,
+              label: "MusicBrainz could not be asked.",
+              detail: mbFailure,
+              enterHint: "Ask again",
+              testId: "palette-mb-failed",
+              run: askMusicBrainz,
+            },
+          ],
+        };
+      }
       if (mb === null) {
         return {
           heading: "MusicBrainz",
@@ -824,6 +852,7 @@ export function CommandPalette() {
     libraryAnswer,
     librarySearching,
     mbAnswer,
+    mbFailure,
     mbSearching,
     navigate,
     referenceAnswer,
