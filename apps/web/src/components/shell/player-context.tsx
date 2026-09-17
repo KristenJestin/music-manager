@@ -37,6 +37,7 @@ import {
 } from "#/lib/playback.ts";
 import { resolvePreview } from "#/server/functions/player.ts";
 import type { PlayableTrack } from "#/server/services/preview.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export type { PlayableTrack };
 
@@ -114,6 +115,7 @@ function storedVolume(): number {
 }
 
 export function PlayerProvider({ children }: { readonly children: ReactNode }) {
+  const testId = useTestId();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [queue, setQueue] = useState<readonly PlayableTrack[]>([]);
   const [index, setIndex] = useState(0);
@@ -402,7 +404,7 @@ export function PlayerProvider({ children }: { readonly children: ReactNode }) {
       */}
       <audio
         ref={audio}
-        data-testid="player-audio"
+        data-testid={testId("player-audio")}
         preload="metadata"
         className="hidden"
         onPlay={() => {
