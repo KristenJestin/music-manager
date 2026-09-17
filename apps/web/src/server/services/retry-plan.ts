@@ -24,9 +24,20 @@
  */
 import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.vocab.ts";
 
+/**
+ * Every step but `confirm`, which is a gate rather than work — see the module header.
+ *
+ * A type and not a comment, so `DESCRIPTIONS` below is exhaustive by the compiler's reckoning:
+ * a ninth step added to the pipeline and forgotten here is a build error, not a menu entry that
+ * renders `undefined`.
+ */
+export type RetryStep = Exclude<StepName, "confirm">;
+
+const isRetryStep = (step: StepName): step is RetryStep => step !== "confirm";
+
 /** One entry of the Retry menu. */
 export interface RetryOption {
-  readonly step: StepName;
+  readonly step: RetryStep;
   /** The menu row: what the step is called, as the pipeline calls it. */
   readonly label: string;
   /** What re-running from here will redo, in one sentence a person can act on. */
@@ -49,7 +60,7 @@ export interface RetryOption {
  * `tag` and `place` rewrite from the database, which is the source of truth for metadata; and
  * `verify` reads the library back and writes nothing to it at all.
  */
-const DESCRIPTIONS: Readonly<Record<Exclude<StepName, "confirm">, Omit<RetryOption, "step">>> = {
+const DESCRIPTIONS: Readonly<Record<RetryStep, Omit<RetryOption, "step">>> = {
   resolve: {
     label: "Re-read the source",
     detail:
@@ -113,7 +124,7 @@ const DESCRIPTIONS: Readonly<Record<Exclude<StepName, "confirm">, Omit<RetryOpti
 };
 
 /** The order the menu shows, which is the pipeline's own. */
-const OFFERED: readonly StepName[] = STEPS.filter((step): step is StepName => step !== "confirm");
+const OFFERED: readonly RetryStep[] = STEPS.filter(isRetryStep);
 
 /**
  * The steps this import can sensibly be retried from, in pipeline order.
@@ -131,7 +142,7 @@ export function retryOptionsFor(job: {
   const ceiling = STEPS.indexOf(job.step);
   return OFFERED.filter((step) => STEPS.indexOf(step) <= ceiling).map((step) => ({
     step,
-    ...DESCRIPTIONS[step as Exclude<StepName, "confirm">],
+    ...DESCRIPTIONS[step],
   }));
 }
 
