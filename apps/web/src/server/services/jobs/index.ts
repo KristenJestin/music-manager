@@ -33,6 +33,7 @@ import {
 import { newId } from "#/server/ids.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeItemsOf, openInboxItem } from "#/server/services/inbox.ts";
+import { bumpQueuedImport, type BumpOutcome } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
   isTerminal,
@@ -865,20 +866,82 @@ export async function cancelImport(importId: string, db: Database = defaultDb())
   await emit({ importId, level: "warn", type: "import.cancelled", message: "Cancelled." }, db);
 }
 
-/** Raise a job's priority so the queue takes it first. */
+/** What a bump did: to the row, and to the message the import already had on a queue. */
+export interface BumpResult {
+  readonly priority: number;
+  readonly queue: BumpOutcome;
+}
+
+/**
+ * Which statuses belong on a queue at all.
+ *
+ * The same rule `resumableImports` encodes, asked of one row: a `done`, `cancelled` or `failed`
+ * import has nothing to run, and `awaiting_confirm` / `awaiting_review` / a pause the *owner*
+ * asked for are all waiting on a person. Bumping any of them raises the priority for whenever
+ * they do move again, and sends nothing — a bump is not a way to restart something somebody
+ * deliberately stopped.
+ */
+function belongsOnQueue(job: Import): boolean {
+  if (job.status === "paused") return job.pausedBy === "worker";
+  return job.status === "pending" || job.status === "running" || job.status === "waiting_upstream";
+}
+
+/**
+ * Move an import to the front of the queue — the row **and** the message.
+ *
+ * It used to be the row alone: `imports.priority += by`, a journal line, done. Nothing read that
+ * column when enqueuing (`enqueueImportStep` takes a priority from its caller, and only the
+ * resume sweep ever passed one), so the message already sitting on `import.step` kept the 0 it
+ * was sent with and the import did not move. Ten of the owner's did not move.
+ *
+ * Both halves are now written, and they mean different things: the **column** is the durable
+ * record, read by the resume sweep the next time a message has to be created; the **message** is
+ * the thing pg-boss is about to fetch, and `reprioritiseImport` edits it in place. The journal
+ * line says which of the four things actually happened, because "Priority raised to 10" was true
+ * and useless — it is exactly what the broken version printed.
+ */
 export async function bumpImport(
   importId: string,
   by = 10,
   db: Database = defaultDb(),
-): Promise<number> {
+): Promise<BumpResult> {
   const job = await requireImport(importId, db);
   const priority = job.priority + by;
   await db.update(imports).set({ priority, updatedAt: new Date() }).where(eq(imports.id, importId));
+
+  const queue = await bumpQueuedImport(importId, priority, {
+    send: belongsOnQueue(job),
+    reason: "bump",
+  });
+
   await emit(
-    { importId, type: "import.status", message: `Priority raised to ${String(priority)}.` },
+    {
+      importId,
+      type: "import.status",
+      message: `Priority raised to ${String(priority)}: ${bumpSentence(queue)}`,
+      data: { ...queue, priority },
+    },
     db,
   );
-  return priority;
+  return { priority, queue };
+}
+
+/** The half of the journal line that says what bump did to the queue, and not just to the row. */
+function bumpSentence(outcome: BumpOutcome): string {
+  const removed =
+    outcome.removed === 0
+      ? ""
+      : ` ${String(outcome.removed)} duplicate message(s) on the same import were removed.`;
+  switch (outcome.action) {
+    case "reprioritised":
+      return `the message waiting on ${outcome.queue ?? "the queue"} was re-prioritised.${removed}`;
+    case "sent":
+      return `nothing was on a queue, so one message was sent to ${outcome.queue ?? "the queue"}.${removed}`;
+    case "running":
+      return `the worker is already running this import, so its message could not move; the new priority applies to whatever is queued next.${removed}`;
+    case "none":
+      return `nothing is on a queue and this import is not waiting for one, so the priority applies to whatever is queued next.${removed}`;
+  }
 }
 
 /**

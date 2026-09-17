@@ -227,6 +227,17 @@ export async function enqueueWebhookDelivery(
 export const IMPORT_QUEUES = [QUEUES.importStep, QUEUES.download, QUEUES.trackStep] as const;
 
 /**
+ * "Not finished", in pg-boss's own vocabulary.
+ *
+ * `state < 'completed'`: the `job_state` enum is ordered
+ * `created < retry < active < completed < cancelled < failed`, so this is `created`, `retry` and
+ * `active` — every state in which a message still means "something is going to happen". Written
+ * once because `importsWithLiveJobs` and `liveJobsOf` have to agree about it; a bump that read a
+ * different set from the sweep would be the same class of bug all over again.
+ */
+const NOT_FINISHED = sql`state < 'completed'`;
+
+/**
  * Which imports already have a message on one of the three import queues.
  *
  * This is the guard the reconciliation sweep needs and could not get from pg-boss. The
@@ -254,7 +265,7 @@ export async function importsWithLiveJobs(db: Database = defaultDb()): Promise<S
        IMPORT_QUEUES.map((name) => sql`${name}`),
        sql`, `,
      )})
-       and state < 'completed'
+       and ${NOT_FINISHED}
        and data->>'importId' is not null
   `);
   const live = new Set<string>();
@@ -262,6 +273,163 @@ export async function importsWithLiveJobs(db: Database = defaultDb()): Promise<S
     if (row.import_id !== null) live.add(row.import_id);
   }
   return live;
+}
+
+/** One unfinished pg-boss message for one import: which queue it is on, and how far it got. */
+export interface LiveJob {
+  readonly id: string;
+  readonly queue: string;
+  /** `created`, `retry` or `active`. Only `active` means a worker is holding it right now. */
+  readonly state: string;
+  readonly priority: number;
+}
+
+/**
+ * `importsWithLiveJobs`, narrowed to one import and keeping the rows rather than the ids.
+ *
+ * The sweep only needs to know *whether* an import holds a message. `bumpImport` needs to know
+ * *which* message and *what state it is in*, because the three answers are three different
+ * things to do: a `created` message can be re-prioritised, an `active` one is already being
+ * worked on and must not be touched, and a second copy of either is a duplicate to remove. Same
+ * predicate, same queues, same ledger — see the note above for why the ledger and not the
+ * `singletonKey`.
+ *
+ * Ordered the way pg-boss fetches: highest priority first, oldest first inside a priority. So
+ * `rows[0]` is the message that would actually be picked up next.
+ */
+export async function liveJobsOf(importId: string, db: Database = defaultDb()): Promise<LiveJob[]> {
+  const rows = await db.execute<{
+    id: string;
+    name: string;
+    state: string;
+    priority: number | string;
+  }>(sql`
+    select id::text as id, name, state::text as state, priority
+      from ${sql.raw(BOSS_SCHEMA)}.job
+     where name in (${sql.join(
+       IMPORT_QUEUES.map((name) => sql`${name}`),
+       sql`, `,
+     )})
+       and ${NOT_FINISHED}
+       and data->>'importId' = ${importId}
+     order by priority desc, created_on asc
+  `);
+  return rows.map((row) => ({
+    id: row.id,
+    queue: row.name,
+    state: row.state,
+    priority: Number(row.priority),
+  }));
+}
+
+/** What a bump did on pg-boss, in the words the journal and the API answer both use. */
+export type BumpAction = "reprioritised" | "sent" | "running" | "none";
+
+export interface BumpOutcome {
+  readonly action: BumpAction;
+  /** The queue the surviving message is on, or `null` when there is none. */
+  readonly queue: string | null;
+  readonly priority: number;
+  /** Messages whose priority was changed in place. */
+  readonly updated: number;
+  /** Duplicate messages deleted, so the import ends with exactly one. */
+  readonly removed: number;
+  /** Unfinished messages this import holds afterwards. Never more than one. */
+  readonly messages: number;
+}
+
+/**
+ * Make an import's *queued message* carry its new priority — the half of `bump` that was missing.
+ *
+ * `bumpImport` only ever incremented `imports.priority`, and nothing read that column when
+ * enqueuing: `enqueueImportStep` takes a priority from its caller and every caller but the resume
+ * sweep passed none. So ten "bumped" imports kept the priority 0 they were sent with and did not
+ * move. The row is still the durable record — the *next* enqueue reads it — but the message
+ * already on the queue has to be told, and that is this function.
+ *
+ * **pg-boss 12 can re-prioritise a created job**, so this is an edit and not a replace:
+ * `boss.update()` targets one job by id and only touches rows with `state < 'active'`. That
+ * matters more than it sounds — a delete-then-send would leave a window with no message at all,
+ * and a send-then-delete a window with two, and a bump is exactly the moment somebody is watching
+ * the queue.
+ *
+ * The three other answers are each a real state of the world, and each is reported rather than
+ * papered over:
+ *
+ *  - **`running`** — the message is `active`: a worker has it and is running the step. Its
+ *    priority decided nothing any more, and deleting or replacing the row under a running
+ *    handler is the boot-purge bug of `worker/index.ts` with a friendlier name. The row's new
+ *    priority governs whatever is enqueued next.
+ *  - **`sent`** — the import holds no message at all. That is the case the Console used to
+ *    handle by enqueuing unconditionally after every bump, which sent a *second* message to
+ *    every import that already had one: `singletonKey` deduplicates nothing on a `standard`
+ *    queue, and `download`'s `singleton` index only covers `state = active`. Asking the ledger
+ *    first is what makes "one import, one message" true instead of hoped for.
+ *  - **`none`** — no message, and the import has no business being on a queue (it is finished,
+ *    cancelled, or waiting for a human). The priority is recorded and nothing is sent.
+ *
+ * Duplicates that were already there are removed on the way past, keeping the message pg-boss
+ * would have fetched first — and never an `active` one, which is kept and left alone.
+ */
+export async function reprioritiseImport(
+  boss: PgBoss,
+  importId: string,
+  priority: number,
+  options: { readonly send: boolean; readonly reason: string; readonly db?: Database },
+): Promise<BumpOutcome> {
+  const db = options.db ?? defaultDb();
+  const live = await liveJobsOf(importId, db);
+
+  if (live.length === 0) {
+    if (!options.send) {
+      return { action: "none", queue: null, priority, updated: 0, removed: 0, messages: 0 };
+    }
+    await enqueueImportStep(boss, { importId, reason: options.reason }, { priority });
+    return {
+      action: "sent",
+      queue: QUEUES.importStep,
+      priority,
+      updated: 0,
+      removed: 0,
+      messages: 1,
+    };
+  }
+
+  // An `active` message wins the right to survive: it is the one being worked on.
+  const keep = live.find((job) => job.state === "active") ?? live[0];
+  if (keep === undefined) {
+    return { action: "none", queue: null, priority, updated: 0, removed: 0, messages: 0 };
+  }
+
+  let removed = 0;
+  for (const job of live) {
+    // Never an `active` row: `deleteJob` on a message a handler is holding is how the worker
+    // once deleted a job out from under itself.
+    if (job.id === keep.id || job.state === "active") continue;
+    await boss.deleteJob(job.queue, job.id);
+    removed += 1;
+  }
+
+  if (keep.state === "active") {
+    return {
+      action: "running",
+      queue: keep.queue,
+      priority,
+      updated: 0,
+      removed,
+      messages: live.length - removed,
+    };
+  }
+
+  const { updated } = await boss.update(keep.queue, undefined, { id: keep.id, priority });
+  return {
+    action: "reprioritised",
+    queue: keep.queue,
+    priority,
+    updated,
+    removed,
+    messages: live.length - removed,
+  };
 }
 
 /**

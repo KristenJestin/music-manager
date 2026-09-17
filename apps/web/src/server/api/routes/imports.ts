@@ -44,6 +44,7 @@ import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
   batchImportSchema,
   batchResultSchema,
+  bumpResultSchema,
   candidatesSchema,
   confirmBestResultSchema,
   confirmBestSchema,
@@ -670,17 +671,64 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
     },
   );
 
-  // Three routes with one body. Each verb is wrapped rather than referenced directly, because
-  // the three service functions take different second arguments (a reason, an increment, the
-  // database) and a shared loop must not care.
+  /* ---- bump ---- */
+  //
+  // Its own route rather than a third entry in the loop below, because its answer is no longer
+  // "here is the import": a bump now reports what it did to the *message* on the queue, and that
+  // is the only way a caller can tell "moved to the front" from "the worker already has it".
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/{id}/bump",
+      tags: [TAG],
+      summary: "Move an import to the front of the queue",
+      description:
+        "Raises `imports.priority` **and** moves the message the import already has on a " +
+        "pg-boss queue, which is the half that used to be missing: nothing read the column " +
+        "when enqueuing, so a bumped import kept the priority it was sent with and did not " +
+        "move.\n\n" +
+        "`bump.action` says which of four things happened. `reprioritised` — the waiting " +
+        "message was edited in place. `sent` — the import held no message at all, so one was " +
+        "created (checked against pg-boss's own ledger first, because `singletonKey` " +
+        "deduplicates nothing on a `standard` queue and sending blindly is how an import ends " +
+        "up with two). `running` — a worker is already executing the step, so the message " +
+        "cannot move and the new priority applies to whatever is queued next. `none` — the " +
+        "import is finished, cancelled or waiting for a human, and a bump is not a way to " +
+        "restart it.\n\n" +
+        "`bump.messages` is how many unfinished messages the import holds afterwards, and it " +
+        "is never more than one; `bump.removed` counts duplicates cleared on the way past.",
+      middleware: [requireScope("imports:write")] as const,
+      request: { params: z.object({ id: idParam }) },
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: z.object({ import: importSchema, bump: bumpResultSchema }),
+            },
+          },
+          description: "Bumped",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const id = c.req.valid("param").id;
+      if ((await getImport(id, db())) === null) throw notFound(id);
+      const result = await bumpImport(id, 10, db());
+      const fresh = await getImport(id, db());
+      return c.json(
+        { import: toImport(fresh as Import), bump: { ...result.queue, priority: result.priority } },
+        200,
+      );
+    },
+  );
+
+  // Two routes with one body. Each verb is wrapped rather than referenced directly, because the
+  // service functions take different second arguments (a reason, the database) and a shared loop
+  // must not care.
   const controls: readonly [string, string, (id: string) => Promise<unknown>][] = [
     ["cancel", "Cancel an import", async (id) => await cancelImport(id, db())],
     ["pause", "Pause an import", async (id) => await pauseImport(id, "paused via the API", db())],
-    [
-      "bump",
-      "Move an import to the front of the queue",
-      async (id) => await bumpImport(id, 10, db()),
-    ],
   ];
   for (const [path, summary, act] of controls) {
     app.openapi(

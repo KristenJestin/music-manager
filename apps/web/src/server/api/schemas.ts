@@ -385,6 +385,26 @@ export const confirmBestResultSchema = importSchema
   })
   .openapi("ConfirmBestResult");
 
+/**
+ * What `POST /imports/{id}/bump` did to the queue, next to the import it did it to.
+ *
+ * Reported rather than implied, because the four actions are four different situations and only
+ * one of them means "it will now be picked up sooner". See `reprioritiseImport`.
+ */
+export const bumpResultSchema = z
+  .object({
+    action: z.enum(["reprioritised", "sent", "running", "none"]),
+    queue: z.string().nullable(),
+    priority: z.number().int(),
+    updated: z.number().int(),
+    removed: z.number().int(),
+    messages: z
+      .number()
+      .int()
+      .openapi({ description: "Unfinished pg-boss messages this import holds. Never above 1." }),
+  })
+  .openapi("BumpResult");
+
 export const importDetailSchema = importSchema
   .extend({
     steps: z.array(

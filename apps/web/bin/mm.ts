@@ -1170,8 +1170,15 @@ async function cmdControl(args: Args, action: "cancel" | "pause" | "bump"): Prom
   if (action === "cancel") await cancelImport(id);
   if (action === "pause") await pauseImport(id, "paused from the CLI");
   if (action === "bump") {
-    const priority = await bumpImport(id);
+    const { priority, queue } = await bumpImport(id);
     line(`priority ${String(priority)}`);
+    // What happened on pg-boss, and not only in the row: `mm bump` used to print a number that
+    // was true and changed nothing.
+    line(`queue    ${queue.action}${queue.queue === null ? "" : ` on ${queue.queue}`}`);
+    line(
+      `         ${String(queue.messages)} message(s) for this import` +
+        (queue.removed === 0 ? "" : `, ${String(queue.removed)} duplicate(s) removed`),
+    );
   }
   await printJob(id);
   return 0;

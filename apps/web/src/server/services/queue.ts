@@ -20,8 +20,12 @@ import {
   enqueueDownload,
   enqueueImportStep,
   enqueueWebhookDelivery,
+  reprioritiseImport,
   stopBoss,
+  type BumpOutcome,
 } from "#/worker/queues.ts";
+
+export type { BumpOutcome } from "#/worker/queues.ts";
 
 /**
  * Ask for a library scan (P07b).
@@ -144,6 +148,28 @@ export async function enqueueAll(
       else await enqueueImportStep(boss, { importId: job.importId, reason, step: job.step });
     }
     return jobs.length;
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Move an import's queued message to its new priority, from the web process.
+ *
+ * The thinking is all in `reprioritiseImport`; this is the short-lived producer around it, like
+ * every other function here. `send` says whether an import that holds *no* message should be
+ * given one — which is a question about the import's status, so the caller answers it.
+ */
+export async function bumpQueuedImport(
+  importId: string,
+  priority: number,
+  options: { readonly send: boolean; readonly reason: string },
+): Promise<BumpOutcome> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    return await reprioritiseImport(boss, importId, priority, options);
   } finally {
     await stopBoss(boss);
   }

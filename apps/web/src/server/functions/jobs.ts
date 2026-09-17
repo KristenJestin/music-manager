@@ -25,6 +25,7 @@ import {
   resetTrack,
   resumeStepOf,
   rewindTo,
+  type BumpResult,
 } from "#/server/services/jobs/index.ts";
 import { pageInfo } from "#/server/api/paging.ts";
 import {
@@ -320,14 +321,21 @@ export const cancelJob = createServerFn({ method: "POST", strict: STRICT })
     }
   });
 
+/**
+ * Move an import up the queue.
+ *
+ * The `enqueue` that used to follow `bumpImport` here is **gone**, and its absence is the fix:
+ * it sent a message unconditionally, so every bump of an import that already had one left two.
+ * `bumpImport` now asks pg-boss's own ledger what the import holds and either edits that message
+ * or sends the first one — see `reprioritiseImport`. What it did comes back in `queue` and goes
+ * into the journal, so "bumped" is no longer a claim nobody can check.
+ */
 export const bumpJob = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ id: z.string().min(1), by: z.number().int().default(10) }))
-  .handler(async ({ data }): Promise<{ priority: number }> => {
+  .handler(async ({ data }): Promise<BumpResult> => {
     try {
-      const priority = await bumpImport(data.id, data.by, db());
-      await enqueue(data.id, "console bump");
-      return { priority };
+      return await bumpImport(data.id, data.by, db());
     } catch (error) {
       return toFailure(error);
     }
