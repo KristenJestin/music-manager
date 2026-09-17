@@ -768,6 +768,65 @@ describe("the release-group search ladder", () => {
 /* the artist gate                                                     */
 /* ------------------------------------------------------------------ */
 
+describe("the artist gate, through matchAlbum", () => {
+  it("reports `carried: false` when every candidate is by somebody else", async () => {
+    /*
+     * The wiring, not the rule: `artistVerdict` is unit-tested below, and what this proves is
+     * that a match hands the verdict out. The `match` step turns a `false` here into an
+     * `ambiguous_release` Inbox item and `awaiting_review`, which is what stops `--yes` and
+     * fixtures mode from confirming past it — they open `confirm`, and the job never gets
+     * there.
+     */
+    const videos = [
+      {
+        id: "v1",
+        index: 0,
+        title: "Dreamer",
+        durationSeconds: 210,
+        ytArtist: "Laufey",
+        ytAlbum: "Bewitched",
+      },
+      {
+        id: "v2",
+        index: 1,
+        title: "Promise",
+        durationSeconds: 234,
+        ytArtist: "Laufey",
+        ytAlbum: "Bewitched",
+      },
+    ];
+    const gateway = scriptedGateway({
+      searches: {
+        'releasegroup:"Bewitched" AND artist:"Laufey"': {
+          "release-groups": [
+            // The credit lives on the *release*, which is what `artistVerdict` reads; a group
+            // stub from a search carries no `artist-credit` field of its own.
+            { id: "rg-fygi", title: "Bewitched", "primary-type": "Album" },
+          ],
+        },
+        "rgid:rg-fygi AND status:Official": {
+          releases: [
+            {
+              id: "rel-fygi",
+              title: "Bewitched",
+              status: "Official",
+              "artist-credit": [{ name: "Laura Fygi" }],
+              "release-group": { id: "rg-fygi", title: "Bewitched", "primary-type": "Album" },
+              media: [{ position: 1, "track-count": 12 }],
+            },
+          ],
+        },
+      },
+    });
+
+    const result = await matchAlbum(gateway, { videos, hints: albumHints(videos) }, settings);
+    expect(result.ranking.candidates).toHaveLength(1);
+    expect(result.artist.carried).toBe(false);
+    expect(result.artist.wanted).toBe("Laufey");
+    expect(result.artist.carriedBy).toBe(0);
+  });
+});
+
 describe("artistVerdict", () => {
   it("refuses a list in which nothing is by the artist the source names", () => {
     const verdict = artistVerdict("Laufey, Spencer Stewart", [
