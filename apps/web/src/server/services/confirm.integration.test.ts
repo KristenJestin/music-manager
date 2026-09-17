@@ -59,13 +59,23 @@ process.env["MM_FIXTURES"] = "0";
 const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 const { drizzle } = await import("drizzle-orm/postgres-js");
 const { resetServerEnv } = await import("#/server/env.ts");
-const { db } = await import("#/server/db/client.ts");
+const { createDatabase } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
 const { confirmProposed } = await import("./confirm.ts");
 const { listInbox } = await import("./inbox.ts");
 const { runStep } = await import("./jobs/index.ts");
 
 resetServerEnv();
+
+/**
+ * Two connections, not the client default of ten.
+ *
+ * The postgres this runs against is shared — one server, one database per checkout, several
+ * agents at once — and a test file that opens a pool of ten for a handful of queries is how a
+ * suite starts failing with "sorry, too many clients already" in whichever file happened to be
+ * last.
+ */
+const database = createDatabase(TEST_URL, 2);
 
 const IMPORT_ID = "imp_confirmgate";
 const RELEASE = "0cbe4a8e-1111-4222-8333-444444444444";
@@ -82,7 +92,7 @@ beforeAll(async () => {
   await migrate(drizzle(client), { migrationsFolder: resolve(REPO_ROOT, "apps/web/drizzle") });
   await client.end();
 
-  await db().insert(schema.imports).values({
+  await database.insert(schema.imports).values({
     id: IMPORT_ID,
     url: "https://music.youtube.com/playlist?list=OLAK5uy_confirmgate",
     kind: "album",
@@ -93,7 +103,7 @@ beforeAll(async () => {
     releaseMbid: RELEASE,
     options: {},
   });
-  await db().insert(schema.importTracks).values({
+  await database.insert(schema.importTracks).values({
     id: "imt_confirmgate_1",
     importId: IMPORT_ID,
     position: 0,
@@ -112,11 +122,11 @@ beforeAll(async () => {
 
 describe.skipIf(unavailable !== null)("the confirmation gate", () => {
   it("raises an Inbox item when it blocks, so the review queue can see the import", async () => {
-    const result = await runStep(IMPORT_ID, "confirm", { db: db() });
+    const result = await runStep(IMPORT_ID, "confirm", { db: database });
     expect(result.status).toBe("blocked");
     expect(result.blockedAs).toBe("awaiting_confirm");
 
-    const open = await listInbox({ importId: IMPORT_ID, status: "open" }, db());
+    const open = await listInbox({ importId: IMPORT_ID, status: "open" }, database);
     const item = open.find((row) => row.type === "awaiting_confirm");
     expect(item, "confirm blocked without asking anybody").toBeDefined();
     expect(item?.title).toContain("Drive");
@@ -127,19 +137,19 @@ describe.skipIf(unavailable !== null)("the confirmation gate", () => {
   });
 
   it("re-opens the same question when the step runs again, never a second one", async () => {
-    await runStep(IMPORT_ID, "confirm", { db: db() });
-    const open = await listInbox({ importId: IMPORT_ID, status: "open" }, db());
+    await runStep(IMPORT_ID, "confirm", { db: database });
+    const open = await listInbox({ importId: IMPORT_ID, status: "open" }, database);
     expect(open.filter((row) => row.type === "awaiting_confirm")).toHaveLength(1);
   });
 
   it("refuses to confirm an import that is not waiting for one", async () => {
-    await expect(confirmProposed("imp_nothing_like_this", "console", db())).rejects.toThrow(
+    await expect(confirmProposed("imp_nothing_like_this", "console", database)).rejects.toThrow(
       /No import with id/,
     );
   });
 
   it("confirms from the Console, answers the item, and signs the decision", async () => {
-    const { job, mapped } = await confirmProposed(IMPORT_ID, "console", db());
+    const { job, mapped } = await confirmProposed(IMPORT_ID, "console", database);
     expect(mapped).toBe(1);
     expect(job.options.autoConfirm).toBe(true);
     // `assertSigned`: the gate may not be opened anonymously.
@@ -147,15 +157,15 @@ describe.skipIf(unavailable !== null)("the confirmation gate", () => {
 
     // The question is answered, so the review queue empties rather than keeping a card whose
     // import has already started.
-    const stillOpen = await listInbox({ importId: IMPORT_ID, status: "open" }, db());
+    const stillOpen = await listInbox({ importId: IMPORT_ID, status: "open" }, database);
     expect(stillOpen.some((row) => row.type === "awaiting_confirm")).toBe(false);
 
     // Running the step now goes through, because the gate is open — and that is where the
     // `decisions` row is written, by the same code the wizard, the API and `--yes` go through.
-    const result = await runStep(IMPORT_ID, "confirm", { db: db() });
+    const result = await runStep(IMPORT_ID, "confirm", { db: database });
     expect(result.status).toBe("done");
 
-    const [decision] = await db()
+    const [decision] = await database
       .select()
       .from(schema.decisions)
       .where(and(eq(schema.decisions.importId, IMPORT_ID), eq(schema.decisions.kind, "release")));

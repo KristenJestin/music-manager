@@ -45,6 +45,7 @@ import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import type { Import } from "#/server/db/schema/index.ts";
 import { lookupArtist, lookupReleaseGroup, lookupWork } from "#/server/integrations/musicbrainz.ts";
 import { sourceContextFor } from "#/server/services/matching.context.ts";
+import { cassetteNameOf } from "#/server/services/matching.cassettes.ts";
 import { gatewayForUrl } from "#/server/services/matching.queries.ts";
 
 /** What the Console can do with a reference, for the import it was pasted on. */
@@ -103,6 +104,15 @@ export interface ResolveInput {
   readonly videoSeconds: number | null;
   readonly db?: Database;
   readonly signal?: AbortSignal;
+  /**
+   * The lookups, supplied.
+   *
+   * The seam the dispatch is tested through. Every interesting case here is "what does a
+   * pasted *release* id do on a single", and answering that with a live MusicBrainz or a
+   * recorded cassette per branch would be six cassettes to prove five `if`s. The production
+   * callers never pass this.
+   */
+  readonly lookups?: Lookups;
 }
 
 /**
@@ -116,7 +126,7 @@ export interface ResolveInput {
  * trace — which is exactly what a cassette that does not hold an artist document should look
  * like.
  */
-interface Lookups {
+export interface Lookups {
   release(mbid: string): Promise<MbRelease | null>;
   recording(mbid: string): Promise<MbRecording | null>;
   releaseGroup(mbid: string): Promise<MbReleaseGroup | null>;
@@ -126,7 +136,15 @@ interface Lookups {
 
 async function lookupsFor(job: Import, db: Database, signal?: AbortSignal): Promise<Lookups> {
   const gateway = await gatewayForUrl(job.url, db, signal);
-  const ctx = async () => await sourceContextFor(db, signal);
+  /*
+   * **A `fixture://` import never leaves the process.** Its release and recording lookups
+   * replay a cassette, and the three that have no cassette must answer from the raw cache or
+   * not at all — `offline` is what says so. Without this, pasting an id into the wizard on a
+   * fixture import would reach real MusicBrainz, which is precisely the rule AGENTS.md states
+   * about fixtures mode staying fully offline.
+   */
+  const offline = cassetteNameOf(job.url) !== null;
+  const ctx = async () => await sourceContextFor(db, signal, offline);
   const quietly = async <T>(run: () => Promise<T | null>): Promise<T | null> => {
     try {
       return await run();
@@ -183,7 +201,7 @@ export async function resolveMbRef(
   if (ref === null) return null;
 
   const db = options.db ?? defaultDb();
-  const lookups = await lookupsFor(options.job, db, options.signal);
+  const lookups = options.lookups ?? (await lookupsFor(options.job, db, options.signal));
 
   for (const entity of order(ref.claimed, options.single)) {
     const found = await tryEntity(entity, ref.mbid, lookups, options);

@@ -55,11 +55,29 @@ process.env["MM_FIXTURES"] = "1";
 const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 const { drizzle } = await import("drizzle-orm/postgres-js");
 const { resetServerEnv } = await import("#/server/env.ts");
-const { db } = await import("#/server/db/client.ts");
+const { createDatabase } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
-const { countInbox, countInboxByStatus, countInboxByType, listInbox } = await import("./inbox.ts");
+const service = await import("./inbox.ts");
+type Filter = Parameters<typeof service.listInbox>[0];
 
 resetServerEnv();
+
+/**
+ * Two connections, not the client default of ten.
+ *
+ * The postgres this runs against is shared — one server, one database per checkout, several
+ * agents at once — and a test file that opens a pool of ten for a handful of queries is how a
+ * suite starts failing with "sorry, too many clients already" in whichever file happened to be
+ * last.
+ */
+const database = createDatabase(TEST_URL, 2);
+
+/** The four reads, bound to that pool rather than to the process-wide one. */
+const listInbox = async (filter: Filter) => await service.listInbox(filter, database);
+const countInbox = async (filter: Filter) => await service.countInbox(filter, database);
+const countInboxByType = async (filter: Filter) => await service.countInboxByType(filter, database);
+const countInboxByStatus = async (filter: Filter) =>
+  await service.countInboxByStatus(filter, database);
 
 /**
  * A queue shaped like the one that broke: 307 open items of which 168 are verification
@@ -126,7 +144,7 @@ beforeAll(async () => {
     });
   }
 
-  await db().insert(schema.inboxItems).values(rows);
+  await database.insert(schema.inboxItems).values(rows);
 }, 120_000);
 
 describe.skipIf(unavailable !== null)("the review queue's filter", () => {
