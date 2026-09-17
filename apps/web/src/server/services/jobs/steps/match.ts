@@ -16,9 +16,12 @@
  *    ambiguous recording parks the job in `awaiting_review`, because choosing wrongly there
  *    changes what gets downloaded. Uncovered tracks and extra videos raise an Inbox item and
  *    let the job continue: they are notices, and the album imports fine without them.
- *  - **It stays idempotent.** Re-running it re-searches (out of the cache, so free), re-scores
- *    deterministically, rewrites the same rows and re-opens the same Inbox items rather than
- *    piling up duplicates.
+ *  - **It stays idempotent, in both directions.** Re-running it re-searches (out of the cache,
+ *    so free), re-scores deterministically, rewrites the same rows, and refreshes the same
+ *    Inbox items rather than piling up duplicates — *and* closes the ones it no longer raises.
+ *    Only the second half is recent: `openInboxItem` never closed anything, so an album
+ *    re-matched onto a release that covers every track kept its "six tracks have no video"
+ *    flag for ever, and half a review queue was notices about mappings that no longer existed.
  *
  * The two escape hatches of P03 survive untouched and take priority, because they are what
  * lets somebody import a record the matcher gets wrong: `--mapping <file.json>` supplies the
