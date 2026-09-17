@@ -276,32 +276,22 @@ function Jobs() {
       cell: (entry) => (
         <div className="flex justify-end gap-1.5">
           {/* The same menu as the job page, and deliberately so: a person who learned that the
-              chevron is where "Match again" lives must not have to open a row to find it. The
-              click guards stop a menu interaction from also navigating into the row. */}
+              chevron is where "Match again" lives must not have to open a row to find it. It
+              stops the click itself, so pressing it does not also navigate into the row. */}
           {entry.job.status === "failed" ? (
-            <span
-              onClick={(event) => {
-                event.stopPropagation();
+            <RetryMenu
+              job={entry.job}
+              size="xs"
+              onRetry={(step) => {
+                act(
+                  async () =>
+                    await retryJob({
+                      data: { id: entry.job.id, ...(step === undefined ? {} : { step }) },
+                    }),
+                  step === undefined ? "Retrying the job." : `Retrying from ${step}.`,
+                );
               }}
-              onKeyDown={(event) => {
-                event.stopPropagation();
-              }}
-              role="presentation"
-            >
-              <RetryMenu
-                job={entry.job}
-                size="xs"
-                onRetry={(step) => {
-                  act(
-                    async () =>
-                      await retryJob({
-                        data: { id: entry.job.id, ...(step === undefined ? {} : { step }) },
-                      }),
-                    step === undefined ? "Retrying the job." : `Retrying from ${step}.`,
-                  );
-                }}
-              />
-            </span>
+            />
           ) : null}
           {entry.openItems > 0 ? (
             <Button

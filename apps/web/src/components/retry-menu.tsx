@@ -67,7 +67,17 @@ export function RetryMenu({
 
   return (
     <>
-      <div className="flex" data-testid="job-retry-control">
+      {/* The click stops here. On the jobs list the whole row navigates, and a chevron that
+          opened a menu *and* walked away from the page would be unusable. The popup itself is
+          portalled to the body, so a menu entry never bubbles through the row at all. */}
+      <div
+        className="flex"
+        data-testid="job-retry-control"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        role="presentation"
+      >
         <Button
           data-testid="job-retry"
           size={size}
