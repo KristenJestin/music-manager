@@ -154,6 +154,244 @@ export function stripReleaseTypePrefix(raw: string): string {
   return stripped === "" ? raw.trim() : stripped;
 }
 
+/* ------------------------------------------------------------------ */
+/* edition qualifiers                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The words a distributor adds to an album's name to say *which edition* this is.
+ *
+ * They are part of the string YouTube shows and, very often, of nothing MusicBrainz publishes:
+ * the owner has forty imports stuck on "The search came back empty" because the playlist is
+ * called "Let Go (Expanded Edition)", "Sunset on the Golden Age (Deluxe)" or "The Marshall
+ * Mathers LP2 (Deluxe)" and MusicBrainz files one release group per *record*, named after the
+ * record. Asking for the base title is the second question worth asking.
+ *
+ * Longest first, because the matcher strips the longest match and "Deluxe Edition" must not be
+ * left as a dangling "Edition" by a "Deluxe" that matched first.
+ */
+const EDITION_QUALIFIERS: readonly string[] = [
+  "bonus track version",
+  "bonus tracks version",
+  "anniversary edition",
+  "expanded edition",
+  "special edition",
+  "deluxe edition",
+  "deluxe version",
+  "expanded version",
+  "remastered edition",
+  "collector's edition",
+  "collectors edition",
+  "extended edition",
+  "platinum edition",
+  "ultimate edition",
+  "complete edition",
+  "bonus edition",
+  "bonus version",
+  "bonus tracks",
+  "remastered",
+  "remaster",
+  "expanded",
+  "deluxe",
+];
+
+/** A qualifier optionally prefixed by a year or an ordinal: "10th Anniversary Edition". */
+const QUALIFIER_PREFIX = String.raw`(?:\d{1,4}(?:st|nd|rd|th)?\s+)?`;
+
+/** The qualifier alternation, longest first, as one non-capturing group. */
+const QUALIFIER_BODY = EDITION_QUALIFIERS.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  .map((term) => term.replace(/ /g, String.raw`\s+`))
+  .join("|");
+
+/** `Title (Deluxe Edition)` / `Title [Bonus Track Version]` — the bracketed form. */
+const BRACKETED_QUALIFIER = new RegExp(
+  String.raw`\s*[([]\s*${QUALIFIER_PREFIX}(?:${QUALIFIER_BODY})\s*[)\]]\s*$`,
+  "i",
+);
+
+/** `Title - Deluxe Edition` / `Title: Expanded Edition` / `Title, Remastered`. */
+const SEPARATED_QUALIFIER = new RegExp(
+  String.raw`\s*[-–—:,]\s*${QUALIFIER_PREFIX}(?:${QUALIFIER_BODY})\s*$`,
+  "i",
+);
+
+/**
+ * `Title Deluxe Edition`, with nothing between them.
+ *
+ * Deliberately narrower than the two above: only qualifiers that are **two words or more** are
+ * stripped without a bracket or a separator to mark them. A bare trailing "Deluxe" or
+ * "Remastered" with no punctuation is left alone, because that is how "Hotel Deluxe" and
+ * "Songs Remastered" would lose a word of their real name. Two words ("Deluxe Edition",
+ * "Bonus Track Version") do not occur by accident at the end of an album title.
+ */
+const MULTIWORD_QUALIFIERS = EDITION_QUALIFIERS.filter((term) => term.includes(" "));
+const BARE_QUALIFIER = new RegExp(
+  String.raw`\s+${QUALIFIER_PREFIX}(?:${MULTIWORD_QUALIFIERS.map((t) => t.replace(/ /g, String.raw`\s+`)).join("|")})\s*$`,
+  "i",
+);
+
+/**
+ * The album title without the edition qualifier a distributor appended to it.
+ *
+ * Returns the input **unchanged** when there is no qualifier, and — the case that matters —
+ * when stripping one would leave nothing: an album genuinely called *Deluxe* (Harmonia, 1975)
+ * or *Remastered* keeps its name rather than losing it. The qualifier has to be at the *end*,
+ * so "Deluxe Corner" is never touched either.
+ *
+ * This is for the **search query only**. The original string stays the hint, the display name
+ * and the input to `titleKeywordPenalties` and `disambiguationPenalties`: stripping the title
+ * for a query must not disarm the deductions that "deluxe", "remaster" and "live" earn, which
+ * are computed against MusicBrainz's own title and comment, not against ours.
+ *
+ * Idempotent, and it strips more than one qualifier: "Album (Deluxe Edition) [Remastered]"
+ * comes back as "Album".
+ */
+export function stripEditionQualifier(raw: string): string {
+  let out = raw.trim();
+  for (;;) {
+    const next = out
+      .replace(BRACKETED_QUALIFIER, "")
+      .replace(SEPARATED_QUALIFIER, "")
+      .replace(BARE_QUALIFIER, "")
+      .trim();
+    if (next === out || next === "") return out;
+    out = next;
+  }
+}
+
+/** True when a title carries an edition qualifier worth asking MusicBrainz a second time for. */
+export function hasEditionQualifier(raw: string): boolean {
+  return stripEditionQualifier(raw) !== raw.trim();
+}
+
+/* ------------------------------------------------------------------ */
+/* composite artist credits                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The separators a credit uses to name more than one person.
+ *
+ * YouTube credits the artist *and whoever else the label listed* — a producer, a featured
+ * singer, a co-writer — in one string: "Laufey, Spencer Stewart". MusicBrainz credits the
+ * record to "Laufey", so `artist:"Laufey, Spencer Stewart"` returns nothing at all, and the
+ * engine used to answer that by dropping the artist clause entirely and ranking a hundred and
+ * forty-two homonyms. Splitting the credit is the right answer to the same problem: ask for
+ * the first name credited, which is the artist, and keep the whole string as a second attempt.
+ */
+const CREDIT_SEPARATORS =
+  /\s*(?:,|;|\/|&|\+|×|\b(?:x|and|et|feat|ft|featuring|with|vs|versus)\b\.?)\s*/i;
+
+/**
+ * Split a credit into the names it lists, in order, human spelling preserved.
+ *
+ * Returns `[]` for an empty credit and `[whole]` for a credit with no separator in it. The
+ * names are **not** normalised: the first of them goes into a Lucene phrase, and MusicBrainz
+ * indexes the spelling, not the comparison key.
+ */
+export function splitArtistCredit(raw: string | null | undefined): string[] {
+  if (raw == null) return [];
+  const cleaned = raw.replace(/\s*-\s*topic\s*$/i, "").trim();
+  if (cleaned === "") return [];
+  return cleaned
+    .split(CREDIT_SEPARATORS)
+    .map((part) => part.trim())
+    .filter((part) => part !== "");
+}
+
+/**
+ * The first name a credit lists — the artist, as opposed to everyone else on the line.
+ *
+ * `null` when there is nothing to take, and when the credit holds exactly one name, so a
+ * caller can ask "is there a narrower question than the whole credit?" and get a straight no.
+ */
+export function primaryArtist(raw: string | null | undefined): string | null {
+  const parts = splitArtistCredit(raw);
+  if (parts.length < 2) return null;
+  return parts[0] ?? null;
+}
+
+/**
+ * Does this MusicBrainz credit **carry** the artist the source names?
+ *
+ * The question the sixth owner review turns into a refusal: the engine chose Laura Fygi's
+ * *Bewitched* for a playlist credited "Laufey, Spencer Stewart", printed "Artist mismatch" on
+ * its own card, and imported it anyway. A disagreement this plain is not a deduction, it is a
+ * different record — but the comparison has to be generous, or a right answer gets refused for
+ * spelling.
+ *
+ * Generous in four stated ways, each of which is a real pair from the owner's library:
+ *
+ *  - **either credit may be a list.** "Laufey, Spencer Stewart" carries "Laufey"; "Daft Punk"
+ *    is carried by "Daft Punk feat. Julian Casablancas". One name in common is enough.
+ *  - **`&` and "and" are the same word**, and so are `feat.`, `ft.` and "featuring" — they are
+ *    all separators here, so "Simon & Garfunkel" and "Simon and Garfunkel" split identically.
+ *  - **accents, case, punctuation and a leading "The" do not count** (`normalizeArtist`).
+ *  - **one name containing the other counts**: "Macklemore" is carried by "Macklemore & Ryan
+ *    Lewis", and "Beyoncé Knowles" by "Beyoncé".
+ *
+ * And strict in the one way that matters: two names that merely *look* alike do not count.
+ * The comparison is exact on the normalised form or containment, never a fuzzy similarity —
+ * "Laufey" and "Laura Fygi" share four letters and a shape, and a similarity threshold low
+ * enough to forgive a spelling is low enough to accept them.
+ *
+ * `aliases` is what a MusicBrainz artist is *also* known as, when the caller has it. It is
+ * absent from the matching cassettes on purpose (`scripts/prune-musicbrainz.ts` strips them),
+ * so nothing may depend on it being there.
+ */
+export function creditCarriesArtist(
+  sourceCredit: string | null | undefined,
+  candidateCredit: string | null | undefined,
+  aliases: readonly string[] = [],
+): boolean {
+  const wanted = splitArtistCredit(sourceCredit)
+    .map(normalizeArtist)
+    .filter((n) => n !== "");
+  if (wanted.length === 0) return true; // the source names nobody: nothing to disagree with
+
+  const offered = new Set<string>();
+  for (const name of splitArtistCredit(candidateCredit)) {
+    const normalised = normalizeArtist(name);
+    if (normalised !== "") offered.add(normalised);
+  }
+  for (const alias of aliases) {
+    for (const name of splitArtistCredit(alias)) {
+      const normalised = normalizeArtist(name);
+      if (normalised !== "") offered.add(normalised);
+    }
+  }
+  if (offered.size === 0) return false;
+
+  for (const name of wanted) {
+    for (const candidate of offered) {
+      if (name === candidate) return true;
+      // Containment on whole words, so "Cary" is not carried by "Marc Cary" by accident of
+      // being a substring — and "Macklemore" still is carried by "Macklemore Ryan Lewis".
+      if (containsName(candidate, name) || containsName(name, candidate)) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * True when `haystack` contains `needle` as a whole run of words — and `needle` is long enough
+ * for that to mean something.
+ *
+ * Containment is what lets "Beyoncé" be carried by "Beyoncé Knowles"; the separators above
+ * already handle every credit that *lists* names, so this is only ever about a name and a
+ * fuller form of it. A short single word is the dangerous case and is refused: *Air* is a band,
+ * and it is not Air Supply; *Kiss* is a band, and it is not Kiss the Anus of a Black Cat. Two
+ * words, or one of six characters, is where a shared prefix stops being a coincidence.
+ */
+function containsName(haystack: string, needle: string): boolean {
+  const wanted = needle.split(" ");
+  if (needle === "" || (wanted.length < 2 && needle.length < 6)) return false;
+  const words = haystack.split(" ");
+  for (let i = 0; i + wanted.length <= words.length; i += 1) {
+    if (words.slice(i, i + wanted.length).join(" ") === needle) return true;
+  }
+  return false;
+}
+
 /**
  * Drop a leading "Artist - " from a video title, keeping the human spelling of the rest.
  *

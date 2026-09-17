@@ -3,9 +3,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  creditCarriesArtist,
+  hasEditionQualifier,
   normalizeArtist,
   normalizeTitle,
+  primaryArtist,
+  splitArtistCredit,
   stripArtistPrefix,
+  stripEditionQualifier,
   stripReleaseTypePrefix,
   titleSimilarity,
 } from "./title.ts";
@@ -182,5 +187,154 @@ describe("stripArtistPrefix", () => {
     expect(stripArtistPrefix("Jay-Z - 99 Problems", "Jay-Z")).toBe("99 Problems");
     expect(stripArtistPrefix("Non-Stop", "Hamilton")).toBe("Non-Stop");
     expect(stripArtistPrefix("Creep", "Radiohead")).toBe("Creep");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* edition qualifiers                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Forty of the owner's imports were stuck on "The search came back empty" because the playlist
+ * title carries an edition name MusicBrainz does not publish. Each form here is one of them.
+ */
+describe("stripEditionQualifier", () => {
+  it("drops a parenthesised qualifier", () => {
+    expect(stripEditionQualifier("Let Go (Expanded Edition)")).toBe("Let Go");
+    expect(stripEditionQualifier("Sunset on the Golden Age (Deluxe)")).toBe(
+      "Sunset on the Golden Age",
+    );
+    expect(stripEditionQualifier("Cats on Trees (Deluxe Edition)")).toBe("Cats on Trees");
+    expect(stripEditionQualifier("The Marshall Mathers LP2 (Deluxe)")).toBe(
+      "The Marshall Mathers LP2",
+    );
+    expect(stripEditionQualifier("Nirvana (Bonus Track Version)")).toBe("Nirvana");
+    expect(stripEditionQualifier("Thriller (Special Edition)")).toBe("Thriller");
+    expect(stripEditionQualifier("Kind of Blue (Remastered)")).toBe("Kind of Blue");
+  });
+
+  it("drops a bracketed one, and an anniversary with its ordinal", () => {
+    expect(stripEditionQualifier("Nevermind [20th Anniversary Edition]")).toBe("Nevermind");
+    expect(stripEditionQualifier("Doolittle [Bonus Track Version]")).toBe("Doolittle");
+  });
+
+  it("drops one introduced by a dash, a colon or a comma", () => {
+    expect(stripEditionQualifier("Abbey Road - Remastered")).toBe("Abbey Road");
+    expect(stripEditionQualifier("OK Computer — Special Edition")).toBe("OK Computer");
+    expect(stripEditionQualifier("Rumours: Deluxe Edition")).toBe("Rumours");
+    expect(stripEditionQualifier("Parachutes, Remastered")).toBe("Parachutes");
+  });
+
+  it("drops a bare qualifier only when it is unmistakably one", () => {
+    // Two words or more is the rule: "Deluxe Edition" is never the tail of a real album title.
+    expect(stripEditionQualifier("Back in Black Deluxe Edition")).toBe("Back in Black");
+    expect(stripEditionQualifier("Homework Bonus Track Version")).toBe("Homework");
+    // One bare word is not enough — see the next test for why.
+    expect(stripEditionQualifier("Hotel Deluxe")).toBe("Hotel Deluxe");
+    expect(stripEditionQualifier("Songs Remastered")).toBe("Songs Remastered");
+  });
+
+  it("leaves a title alone when “Deluxe” is the real name", () => {
+    // Harmonia's 1975 record is called *Deluxe*. Stripping would leave nothing, so it does not.
+    expect(stripEditionQualifier("Deluxe")).toBe("Deluxe");
+    expect(stripEditionQualifier("Remastered")).toBe("Remastered");
+    // And a qualifier word at the *front* is part of the name, never a qualifier.
+    expect(stripEditionQualifier("Deluxe Corner")).toBe("Deluxe Corner");
+  });
+
+  it("is idempotent and strips more than one", () => {
+    expect(stripEditionQualifier("Album (Deluxe Edition) [Remastered]")).toBe("Album");
+    expect(stripEditionQualifier(stripEditionQualifier("Let Go (Expanded Edition)"))).toBe(
+      "Let Go",
+    );
+    expect(stripEditionQualifier("Discovery")).toBe("Discovery");
+  });
+
+  it("says whether there was one at all", () => {
+    expect(hasEditionQualifier("Let Go (Expanded Edition)")).toBe(true);
+    expect(hasEditionQualifier("Let Go")).toBe(false);
+    expect(hasEditionQualifier("Deluxe")).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* composite artist credits                                            */
+/* ------------------------------------------------------------------ */
+
+describe("splitArtistCredit", () => {
+  it("splits on every separator YouTube uses to list more than one name", () => {
+    expect(splitArtistCredit("Laufey, Spencer Stewart")).toEqual(["Laufey", "Spencer Stewart"]);
+    expect(splitArtistCredit("Macklemore & Ryan Lewis")).toEqual(["Macklemore", "Ryan Lewis"]);
+    expect(splitArtistCredit("Daft Punk feat. Pharrell Williams")).toEqual([
+      "Daft Punk",
+      "Pharrell Williams",
+    ]);
+    expect(splitArtistCredit("Jay-Z ft. Alicia Keys")).toEqual(["Jay-Z", "Alicia Keys"]);
+    expect(splitArtistCredit("Simon and Garfunkel")).toEqual(["Simon", "Garfunkel"]);
+  });
+
+  it("drops the “- Topic” channel suffix and leaves a lone name alone", () => {
+    expect(splitArtistCredit("Daft Punk - Topic")).toEqual(["Daft Punk"]);
+    expect(splitArtistCredit("Laufey")).toEqual(["Laufey"]);
+    expect(splitArtistCredit("")).toEqual([]);
+    expect(splitArtistCredit(null)).toEqual([]);
+  });
+
+  it("names the first credited artist, and nobody when there is only one", () => {
+    expect(primaryArtist("Laufey, Spencer Stewart")).toBe("Laufey");
+    expect(primaryArtist("Macklemore & Ryan Lewis")).toBe("Macklemore");
+    expect(primaryArtist("Rise Against")).toBeNull();
+    expect(primaryArtist(null)).toBeNull();
+  });
+});
+
+/**
+ * The equality rule behind the refusal, stated in both directions.
+ *
+ * A *detected* artist disagreement stops an import and asks a person, so the comparison has to
+ * be generous enough never to refuse a right answer and strict enough to refuse "Laura Fygi"
+ * for "Laufey". Both halves are load-bearing and both are tested.
+ */
+describe("creditCarriesArtist", () => {
+  it("accepts a candidate that names the artist among others, and the reverse", () => {
+    expect(creditCarriesArtist("Laufey, Spencer Stewart", "Laufey")).toBe(true);
+    expect(creditCarriesArtist("Laufey", "Laufey, Spencer Stewart")).toBe(true);
+    expect(creditCarriesArtist("Daft Punk", "Daft Punk feat. Julian Casablancas")).toBe(true);
+    expect(creditCarriesArtist("Macklemore & Ryan Lewis", "Macklemore")).toBe(true);
+  });
+
+  it("treats “&” and “and” as the same word, and folds case and accents", () => {
+    expect(creditCarriesArtist("Simon and Garfunkel", "Simon & Garfunkel")).toBe(true);
+    expect(creditCarriesArtist("Beyoncé", "BEYONCE")).toBe(true);
+    expect(creditCarriesArtist("The Beatles", "Beatles")).toBe(true);
+  });
+
+  it("refuses the three the owner's library was filed under", () => {
+    expect(creditCarriesArtist("Laufey, Spencer Stewart", "Laura Fygi")).toBe(false);
+    expect(creditCarriesArtist("David Guetta", "Marc Cary")).toBe(false);
+    expect(creditCarriesArtist("Macklemore & Ryan Lewis", "Crockett")).toBe(false);
+  });
+
+  it("does not accept a name for merely looking like another", () => {
+    // No fuzzy similarity anywhere: "Laufey" and "Laura Fygi" share four letters and a shape,
+    // and a threshold low enough to forgive a spelling is low enough to accept them.
+    expect(creditCarriesArtist("Laufey", "Laura Fygi")).toBe(false);
+    expect(creditCarriesArtist("Lorde", "Lord Huron")).toBe(false);
+    expect(creditCarriesArtist("Air", "Air Supply")).toBe(false);
+  });
+
+  it("uses the aliases when the caller has them", () => {
+    // Stripped from the matching cassettes on purpose, so nothing may *depend* on them.
+    expect(creditCarriesArtist("Transistor Revolt", "Rise Against")).toBe(false);
+    expect(creditCarriesArtist("Transistor Revolt", "Rise Against", ["Transistor Revolt"])).toBe(
+      true,
+    );
+  });
+
+  it("agrees with anything when the source names nobody", () => {
+    expect(creditCarriesArtist("", "Laura Fygi")).toBe(true);
+    expect(creditCarriesArtist(null, "Laura Fygi")).toBe(true);
+    // But a candidate with no credit at all carries no artist.
+    expect(creditCarriesArtist("Laufey", "")).toBe(false);
   });
 });
