@@ -21,6 +21,7 @@ import { MMError } from "@mm/contracts";
 import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
 import { containerPath, hostPath, taggable, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
+import { adoptionOf } from "#/server/services/adopt.record.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
 import {
   aborted,
@@ -261,17 +262,29 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       continue;
     }
 
+    /*
+     * `--force` means "fetch it again from the source". An adopted file has no source to fetch
+     * again (`services/adopt.ts`): the operator supplied those bytes precisely because the
+     * video is gone, age-checked, or was never the point. Re-downloading would overwrite the
+     * one copy that exists with a failure — so `force` is honoured for everything except a
+     * track whose `raw` carries an adoption record.
+     */
+    const adopted = adoptionOf(track.raw) !== null;
     const ready = fileReady(ctx, track);
-    if (ready !== null && !force) {
+    if (ready !== null && (!force || adopted)) {
       await updateTrack(ctx, track.id, {
         downloadPath: ready,
         downloadedBytes: statSync(hostPath(ctx.paths, ready)).size,
         ...(track.state === "pending" ? { state: "downloaded" as const } : {}),
       });
-      await ctx.say("track.skipped", `${track.sourceTitle}: already downloaded`, {
-        trackId: track.id,
-        data: { reason: "already downloaded", path: ready },
-      });
+      await ctx.say(
+        "track.skipped",
+        `${track.sourceTitle}: ${adopted ? "adopted from a local file" : "already downloaded"}`,
+        {
+          trackId: track.id,
+          data: { reason: adopted ? "adopted" : "already downloaded", path: ready, adopted },
+        },
+      );
       reused += 1;
       await ctx.onTrackDownloaded?.(track.id);
       continue;
