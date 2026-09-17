@@ -404,16 +404,23 @@ async function findReleaseGroups(
   const primary = primaryArtist(credit);
   const base = stripEditionQualifier(album);
 
-  const rungs: { query: string; fallback: MatchFallback | null }[] = [
-    { query: lucene.releaseGroupQuery(album, primary ?? credit), fallback: null },
-  ];
-  if (primary !== null) {
-    rungs[0] = {
-      query: lucene.releaseGroupQuery(album, primary),
-      fallback: { kind: "primary-artist", from: credit, to: primary },
-    };
-    rungs.push({ query: lucene.releaseGroupQuery(album, credit), fallback: null });
-  }
+  /*
+   * The one search in this function that can end up with no artist clause is the one where the
+   * *source* names nobody — a hand-pasted playlist with no YouTube Music tags and no
+   * auto-generated description. There is no narrower question to ask then, and the artist gate
+   * has nothing to refuse either; what guards that case is `matchPreselectionFloor`, because a
+   * homonym with a different tracklist scores nowhere near it.
+   */
+  const rungs: { query: string; fallback: MatchFallback | null }[] =
+    primary === null
+      ? [{ query: lucene.releaseGroupQuery(album, credit), fallback: null }]
+      : [
+          {
+            query: lucene.releaseGroupQuery(album, primary),
+            fallback: { kind: "primary-artist", from: credit, to: primary },
+          },
+          { query: lucene.releaseGroupQuery(album, credit), fallback: null },
+        ];
   if (base !== album) {
     rungs.push({
       query: lucene.releaseGroupQuery(base, primary ?? credit),
