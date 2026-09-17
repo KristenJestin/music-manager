@@ -55,6 +55,7 @@ import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
+import { folderPathOf } from "#/server/services/import-source.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
@@ -325,11 +326,11 @@ async function cmdImport(args: Args): Promise<number> {
   const fromFile = flagString(args, "from-file");
   if (fromFile !== undefined) return await cmdImportBatch(args, fromFile);
 
-  const url = args.positional[1];
-  if (url === undefined) {
+  const source = args.positional[1];
+  if (source === undefined) {
     throw new MMError(
       "INVALID_INPUT",
-      "usage: mm import <url|fixture://…> | mm import --from-file <path>",
+      "usage: mm import <url|fixture://…|folder> | mm import --from-file <path>",
     );
   }
 
@@ -339,7 +340,7 @@ async function cmdImport(args: Args): Promise<number> {
       ? undefined
       : (JSON.parse(readFileSync(mappingFile, "utf8")) as never);
 
-  const created = await createImport(url, {
+  const created = await createImport(source, {
     ...(flagString(args, "release") === undefined
       ? {}
       : { releaseMbid: flagString(args, "release") }),
@@ -351,14 +352,26 @@ async function cmdImport(args: Args): Promise<number> {
     ...(flagBoolean(args, "yes") ? { confirmedBy: "cli --yes" } : {}),
     force: flagBoolean(args, "force"),
     ...(flagBoolean(args, "no-fingerprint") ? { fingerprint: false } : {}),
+    // Only when it was *said*. Absent means "decide by the source" — on for a folder, off for
+    // a URL — and writing the computed default here would freeze today's rule into the row.
+    ...(flagBoolean(args, "no-untagged")
+      ? { untaggedFallback: false }
+      : flagBoolean(args, "untagged")
+        ? { untaggedFallback: true }
+        : {}),
   });
 
+  const folder = folderPathOf(created.job.url);
   line(`import ${created.job.id}`);
-  line(`  url    ${created.job.url}`);
+  if (folder === null) line(`  url    ${created.job.url}`);
+  else line(`  folder ${folder}`);
   line(`  kind   ${created.job.kind}`);
   line(`  title  ${created.job.title ?? "-"}`);
   if (created.duplicates.length > 0) {
-    line(`  note   ${String(created.duplicates.length)} earlier import(s) of the same URL`);
+    line(
+      `  note   ${String(created.duplicates.length)} earlier import(s) of the same ` +
+        `${folder === null ? "URL" : "folder"}`,
+    );
   }
 
   const boss = createBoss({ producer: true });
@@ -1537,6 +1550,12 @@ async function cmdRelocate(args: Args): Promise<number> {
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
+  mm import <folder> [--release <mbid>] [--yes] [--follow]
+                                          an absolute folder of audio files: each file is an
+                                          entry, matched like a video and **adopted**, never
+                                          downloaded. The folder must be inside adoptSourceRoots.
+                                          --no-untagged asks instead of falling back to the
+                                          files' own tags when MusicBrainz has nothing.
   mm import --from-file <path> [--yes] [--force]   one URL per line, '#' comments; queued, not resolved
   mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
                                           confirm the engine's best candidate: an album on

@@ -192,6 +192,15 @@ export const importOptionsSchema = z
     replaygain: z.boolean().default(true),
     force: z.boolean().default(false),
     autoConfirm: z.boolean().default(false),
+    untaggedFallback: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          "When MusicBrainz has nothing, import from the source's own tags instead of parking " +
+          "the job in the review queue. Omitted means *decide by the source*: on for a folder, " +
+          "off for a URL — a folder's files carry real tags, a video title does not.",
+      }),
   })
   .openapi("ImportOptions");
 
@@ -200,7 +209,19 @@ export const createImportSchema = z
     url: z
       .string()
       .min(1)
-      .openapi({ example: "fixture://discovery", description: "A YouTube URL, or `fixture://…`." }),
+      .openapi({
+        example: "fixture://discovery",
+        description:
+          "The source. A YouTube URL, `fixture://…`, **or the absolute path of a folder of " +
+          "audio files** on the server (`/srv/musique/album`, `D:\\Musique\\album`, or the " +
+          "same thing as `file:///srv/musique/album`).\n\n" +
+          "A folder is listed the way a playlist is: each file becomes an entry with its " +
+          "title, its exact duration and its existing tags, matched like a video and then " +
+          "**adopted** — no byte is downloaded. The folder must be inside the library or " +
+          "inside a directory the operator listed in `adoptSourceRoots`, which is empty by " +
+          "default; anything else is `ADOPT_PATH_REFUSED` (403). The listing is not " +
+          "recursive: one folder is one release.",
+      }),
     releaseMbid: z
       .string()
       .nullish()

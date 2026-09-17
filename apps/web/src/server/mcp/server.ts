@@ -606,9 +606,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       scope: "imports:write",
       title: "Create an import",
       description:
-        "Queue a YouTube URL. Resolves the source immediately, then hands the job to the " +
-        "worker. Poll `get_import`, or set `autoConfirm` to let it run past the confirmation " +
-        "gate without asking.\n\n" +
+        "Queue a source: a YouTube URL, or **the absolute path of a folder of audio files on " +
+        "the server**. Resolves it immediately, then hands the job to the worker. Poll " +
+        "`get_import`, or set `autoConfirm` to let it run past the confirmation gate without " +
+        "asking.\n\n" +
+        "**A folder is listed the way a playlist is listed.** Each file becomes an entry with " +
+        "its title, its exact duration and its existing tags; matching runs on those entries " +
+        "exactly as on videos; and each file is then **adopted** rather than downloaded, so " +
+        "no byte is fetched and the single download slot is never taken. Use it for a source " +
+        "that cannot be resolved at all — a playlist that has vanished from YouTube, an album " +
+        "behind an age check — or to take over a library that is already on the disk. The " +
+        "folder must be inside the library or inside a directory the operator listed in " +
+        "`adoptSourceRoots` (empty by default); anything else is `ADOPT_PATH_REFUSED`. The " +
+        "listing is not recursive: one folder is one release, so point at the album folder " +
+        "and not at the library above it.\n\n" +
         "`fixture://…` URLs (`fixture://discovery`, `fixture://skinny-love`, " +
         "`fixture://currents`) are for **fixtures mode only**, and the trap is that they half " +
         "work outside it: the toolbox answers `extract` from its recordings whatever mode it " +
@@ -616,23 +627,41 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "`fixture://…` to yt-dlp, which cannot fetch it, and the job dies there. `get_status` " +
         "reports `toolbox.fixtures`; check it before reaching for one.",
       inputSchema: {
-        url: z.string().min(1).describe("A YouTube URL, or `fixture://…` in fixtures mode."),
+        url: z
+          .string()
+          .min(1)
+          .describe(
+            "A YouTube URL, `fixture://…` in fixtures mode, or an absolute folder path on " +
+              "the server (`/srv/musique/album`, `file:///srv/musique/album`).",
+          ),
         releaseMbid: z
           .uuid()
           .optional()
           .describe("Pin this MusicBrainz release instead of letting the matcher choose."),
         autoConfirm: z.boolean().default(false),
         force: z.boolean().default(false).describe("Re-import even if the tracks are present."),
+        untaggedFallback: z
+          .boolean()
+          .optional()
+          .describe(
+            "When MusicBrainz has nothing, import from the source's own tags instead of " +
+              "parking the job in the review queue. Omit it to decide by the source: on for " +
+              "a folder, off for a URL.",
+          ),
       },
       run: async (args: {
         url: string;
         releaseMbid?: string;
         autoConfirm: boolean;
         force: boolean;
+        untaggedFallback?: boolean;
       }) => {
         const created = await createImport(args.url, {
           db: db(),
           ...(args.releaseMbid === undefined ? {} : { releaseMbid: args.releaseMbid }),
+          ...(args.untaggedFallback === undefined
+            ? {}
+            : { untaggedFallback: args.untaggedFallback }),
           autoConfirm: args.autoConfirm,
           // The provenance fix reached `confirm_mapping` and stopped there, so an import
           // created *here* with `autoConfirm` was still logged as `cli --yes` in `decisions`.

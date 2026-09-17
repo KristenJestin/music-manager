@@ -192,6 +192,9 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         ...(options.replaygain === undefined ? {} : { replaygain: options.replaygain }),
         ...(options.force === undefined ? {} : { force: options.force }),
         ...(options.autoConfirm === undefined ? {} : { autoConfirm: options.autoConfirm }),
+        ...(options.untaggedFallback === undefined
+          ? {}
+          : { untaggedFallback: options.untaggedFallback }),
         // Whoever opens the confirmation gate signs it. `POST /imports` is `api`, even when
         // the `mm` CLI is what is talking to it in `--remote` mode: the audit trail records
         // the door the decision came through, and this is that door.
