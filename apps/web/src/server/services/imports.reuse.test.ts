@@ -26,6 +26,8 @@ function row(
     pausedBy: extra.pausedBy ?? (status === "paused" ? "user" : null),
     step: extra.step ?? "match",
     options: {},
+    // Added by the partial-playlist work: the entries a listing could not read.
+    unreadable: [],
     releaseMbid: null,
     releaseGroupMbid: null,
     title: null,
