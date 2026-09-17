@@ -61,7 +61,8 @@ import {
  *
  * Everything that decides *what the page shows* lives in the URL: which import, which step,
  * which release. That is not tidiness — it means a reload keeps your place, Back walks the
- * wizard, and the paste box on any page can deep-link straight into step 1 with a URL in hand.
+ * wizard, and ⌘K on any page can deep-link straight into step 1 with a URL — or with a release
+ * to pin — in hand.
  *
  * It also means the loader can do all the fetching. Each step's data is a function of the
  * search params, so there is not a single data-loading effect in this file: the router fetches,

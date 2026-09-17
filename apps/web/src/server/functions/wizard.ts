@@ -181,7 +181,7 @@ function toSourceView(
  * Paste a URL, get a source.
  *
  * `createFromUrl` runs `resolve` in this process — that is P03's deliberate choice and the
- * reason the paste box answers in a second rather than after a worker poll.
+ * reason a pasted link answers in a second rather than after a worker poll.
  *
  * It then **parks the job**, and that is not optional. `createFromUrl` leaves the import in
  * `pending`/`running` at `match`, and a running worker's `resumableImports()` picks up exactly
