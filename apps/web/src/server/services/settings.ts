@@ -781,6 +781,8 @@ export const SETTING_DEFINITIONS = {
    * operator saying, once, "this folder is mine and the app may read from it" — which is what
    * taking over an existing library needs, and it is a decision that belongs to a person with
    * access to Settings rather than to whoever holds an API key.
+   *
+   * The procedure, and the three cases it exists for, are in `docs/deploy.md` § 5 quinquies.
    */
   adoptSourceRoots: define(
     z.array(z.string().min(1)),
