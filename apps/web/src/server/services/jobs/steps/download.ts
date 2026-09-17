@@ -265,13 +265,6 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     }
 
     /*
-     * `--force` means "fetch it again from the source". An adopted file has no source to fetch
-     * again (`services/adopt.ts`): the operator supplied those bytes precisely because the
-     * video is gone, age-checked, or was never the point. Re-downloading would overwrite the
-     * one copy that exists with a failure — so `force` is honoured for everything except a
-     * track whose `raw` carries an adoption record.
-     */
-    /*
      * A folder import's track: **adopt the file, never fetch it.**
      *
      * This is where "each file is adopted rather than downloaded" actually happens, and it
@@ -294,7 +287,9 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     const fromFolder = folderFileOf(track.raw);
     if (fromFolder !== null && fileReady(ctx, track) === null) {
       try {
-        const result = await adoptTrackFile({
+        // It writes the row, the `mm_adoption` record and the `track.adopted` journal line
+        // itself; there is nothing left here to report.
+        await adoptTrackFile({
           importId: ctx.job.id,
           trackId: track.id,
           source: { kind: "path", path: fromFolder.path },
@@ -306,7 +301,6 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
         });
         reused += 1;
         await ctx.onTrackDownloaded?.(track.id);
-        void result;
       } catch (error) {
         const failure = MMError.from(error);
         await updateTrack(ctx, track.id, { attempts: 1, error: failure.toBody() });
@@ -321,6 +315,13 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       continue;
     }
 
+    /*
+     * `--force` means "fetch it again from the source". An adopted file has no source to fetch
+     * again (`services/adopt.ts`): the operator supplied those bytes precisely because the
+     * video is gone, age-checked, or was never the point. Re-downloading would overwrite the
+     * one copy that exists with a failure — so `force` is honoured for everything except a
+     * track whose `raw` carries an adoption record.
+     */
     const adopted = adoptionOf(track.raw) !== null;
     const ready = fileReady(ctx, track);
     if (ready !== null && (!force || adopted)) {
