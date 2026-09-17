@@ -79,11 +79,22 @@ test.describe("the review queue at three hundred items", () => {
   test("filters by type, and the chip, the pager and the rows say one number", async ({ page }) => {
     await seedInbox(bulk());
     await signIn(page);
-    await page.goto("/review");
+    /*
+     * Scoped to the seeded rows from the first navigation.
+     *
+     * The suite is serial and the specs before this one leave real Inbox items behind — an
+     * `extra_videos` here, an `uncovered_tracks` there — so an unscoped queue is 307 plus
+     * however many the run happened to produce, and every number below would be "about right".
+     * `?q=Seeded` is a filter the page already has, every seeded title carries the word, and no
+     * other spec's does; the counts are then exact, which is the only way a test about counts
+     * agreeing is worth anything. It also exercises the search and the type filter *together*,
+     * which is where a wrong predicate hides.
+     */
+    await page.goto("/review?q=Seeded");
 
     /* ---- the toolbar is there at all, which is the whole complaint ---------- */
 
-    await expect(page.getByTestId("review-search")).toBeVisible();
+    await expect(page.getByTestId("review-search")).toHaveValue("Seeded");
     await expect(page.getByTestId("review-status")).toBeVisible();
     await expect(page.getByTestId("review-sort")).toBeVisible();
 
@@ -129,7 +140,7 @@ test.describe("the review queue at three hundred items", () => {
 
     await typeInto(page.getByTestId("review-search"), "Seeded Record 7 (");
     await page.keyboard.press("Enter");
-    await page.waitForURL(/q=/);
+    await page.waitForURL(/Seeded\+Record/);
     const narrowed = page.getByTestId("review-list").getByRole("link");
     await expect(narrowed).toHaveCount(1);
     await expect(page.getByTestId("review-types-ambiguous_release")).toContainText("1");

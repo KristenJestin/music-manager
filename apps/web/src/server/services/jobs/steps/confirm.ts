@@ -226,12 +226,29 @@ async function closeConfirmItem(ctx: StepContext, decidedBy: string): Promise<vo
 export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   const mapped = await ctx.mappedTracks();
 
+  /**
+   * Somebody has said yes to this import, by name.
+   *
+   * `autoConfirm` on its own is not that — fixtures mode sets it, and a `--yes` inherited from
+   * a template would too — which is why the signature is what counts. `assertSigned` refuses
+   * an unsigned one at both of the two functions that can set it, so a value here names a real
+   * caller: `console`, `api`, `mcp`, `cli --yes`.
+   */
+  const signedBy = ctx.job.options.confirmedBy?.trim() ?? "";
+  const signed = ctx.job.options.autoConfirm === true && signedBy !== "";
+
   /*
    * An import nobody asked for by hand is decided by the source that opened it, and by
    * nothing else — not `--yes`, not fixtures mode. See `confirmForWatchedSource`.
+   *
+   * **Unless a person answered it.** The exception is about imports *nobody looked at*; once
+   * somebody presses Confirm on the job page, or answers the Inbox item this branch raised,
+   * the import has been looked at and the source's policy has nothing left to decide. Without
+   * this, the Console's Confirm button opened the gate and the step walked straight past it
+   * into `blocked` again — the button worked and the job never moved.
    */
   const watchedSourceId = ctx.job.options.watchedSourceId;
-  if (typeof watchedSourceId === "string" && watchedSourceId !== "") {
+  if (!signed && typeof watchedSourceId === "string" && watchedSourceId !== "") {
     return await confirmForWatchedSource(ctx, mapped, watchedSourceId);
   }
 
