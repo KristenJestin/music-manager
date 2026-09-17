@@ -19,6 +19,7 @@ import { NotFoundScreen } from "#/components/error-screen.tsx";
 import { KeyValueList } from "#/components/key-value.tsx";
 import { LogViewer } from "#/components/log-viewer.tsx";
 import { isPipelineStep, pipelineCount, PipelineStepper } from "#/components/pipeline-dots.tsx";
+import { RetryMenu } from "#/components/retry-menu.tsx";
 import {
   ImportStatusBadge,
   scoreTone,
@@ -437,19 +438,31 @@ function JobPage() {
               A `done` job keeps the button on purpose. Retrying one re-runs `verify` — the
               resume point of a job whose every step finished — which is exactly "check this
               album again", and the one gesture that repairs a file deleted from under the
-              library (C6). A cancelled job is the only one with nothing to offer. */}
+              library (C6). A cancelled job is the only one with nothing to offer.
+
+              The chevron is where the *other* steps live. `retryJob` has taken a step all
+              along; a finished album could only ever be retried from `verify`, so a re-match
+              meant `mm retry --step match` in a terminal. `RetryMenu` offers the steps this
+              import has actually reached, says what each one redoes, and confirms the two that
+              throw the confirmed mapping away. */}
           {job.status === "cancelled" ? null : (
-            <Button
-              data-testid="job-retry"
+            <RetryMenu
+              job={job}
               disabled={busy !== null || running}
-              title={running ? "The worker is running this job." : undefined}
-              onClick={() => {
-                act("retry", async () => await retryJob({ data: { id: job.id } }), "Queued.");
+              busy={busy === "retry"}
+              label={busy === "retry" ? "Queueing…" : running ? "Running…" : "Retry"}
+              {...(running ? { title: "The worker is running this job." } : {})}
+              onRetry={(step) => {
+                act(
+                  "retry",
+                  async () =>
+                    await retryJob({
+                      data: { id: job.id, ...(step === undefined ? {} : { step }) },
+                    }),
+                  step === undefined ? "Queued." : `Queued from ${step}.`,
+                );
               }}
-            >
-              <RotateCcw className="size-4" aria-hidden="true" />{" "}
-              {busy === "retry" ? "Queueing…" : running ? "Running…" : "Retry"}
-            </Button>
+            />
           )}
           {inbox.length > 0 ? (
             <Button

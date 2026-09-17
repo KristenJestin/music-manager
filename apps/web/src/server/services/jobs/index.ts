@@ -22,6 +22,7 @@ import { hostPath } from "#/server/paths.ts";
 import {
   importTracks,
   imports,
+  inboxItems,
   jobSteps,
   libraryTracks,
   type Import,
@@ -684,6 +685,88 @@ export async function requeueUpstreamFailures(
 /* ------------------------------------------------------------------ */
 /* controls                                                            */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Throw away the confirmed mapping, so the next `match` really matches.
+ *
+ * `rewindTo` moves the *step* rows and nothing else, which is right for every retry but one.
+ * `matchStep` begins by reading a supplied mapping out of `imports.options` and applying it
+ * verbatim — the escape hatch `confirm-mapping`, `confirm-best` and `mm import --mapping` all
+ * write through — so rewinding to `match` on a confirmed import would re-apply the very mapping
+ * somebody asked to be rid of. "Match again" would then be a button that spent a step and
+ * changed nothing, which is worse than not offering it.
+ *
+ * Four things go, and they go together because clearing only some of them is a re-match that
+ * silently keeps half of the old answer:
+ *
+ *  - the **supplied mapping and the pinned release** in `options`, which is what `match` reads;
+ *  - `autoConfirm` and `confirmedBy`, because the confirmation was *of that mapping* — leaving
+ *    the gate open would wave the new one through under the old signature, and
+ *    `decisions.decidedBy` would name somebody who never saw it;
+ *  - `imports.release_mbid` and the per-row mapping columns, so nothing downstream can read a
+ *    recording id belonging to a release that is no longer chosen;
+ *  - the open Inbox items the old match raised. `extra_videos` and `uncovered_tracks` are
+ *    statements about a mapping that no longer exists, and an `ambiguous_*` question about a
+ *    ranking that is about to be recomputed. They are dismissed, not resolved: nobody answered
+ *    them.
+ *
+ * **`decisions` rows are deliberately kept.** They are the audit trail — "who confirmed this,
+ * and when" stays true even once the answer has been replaced. A new confirmation writes a new
+ * row next to it.
+ */
+export async function forgetMapping(importId: string, db: Database = defaultDb()): Promise<void> {
+  const job = await requireImport(importId, db);
+  const options = { ...(job.options as Record<string, unknown>) };
+  for (const key of ["mapping", "releaseMbid", "autoConfirm", "confirmedBy"]) delete options[key];
+
+  await db
+    .update(imports)
+    .set({
+      options: options as typeof imports.$inferInsert.options,
+      releaseMbid: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(imports.id, importId));
+
+  await db
+    .update(importTracks)
+    .set({
+      role: "unmatched",
+      trackMbid: null,
+      recordingMbid: null,
+      trackTitle: null,
+      trackPosition: null,
+      mediumPosition: null,
+      confidence: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(importTracks.importId, importId));
+
+  await db
+    .update(inboxItems)
+    .set({ status: "dismissed", resolvedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(inboxItems.importId, importId),
+        eq(inboxItems.status, "open"),
+        inArray(inboxItems.type, [
+          "ambiguous_release",
+          "ambiguous_recording",
+          "uncovered_tracks",
+          "extra_videos",
+        ]),
+      ),
+    );
+
+  await emit(
+    {
+      importId,
+      type: "import.status",
+      message: "The confirmed release and the video → track mapping were discarded.",
+    },
+    db,
+  );
+}
 
 /**
  * Rewind the rows to `step`. **Nothing is executed.**

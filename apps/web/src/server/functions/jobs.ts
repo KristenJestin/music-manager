@@ -11,7 +11,7 @@
  * never show.
  */
 import { z } from "zod";
-import type { JobEventPayload } from "@mm/contracts";
+import { MMError, type JobEventPayload } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { STEPS, type ImportStatus, type StepName } from "#/server/db/schema/enums.ts";
 import { createServerFn } from "@tanstack/react-start";
@@ -20,6 +20,7 @@ import { readEvents, readLatestEvents } from "#/server/services/events.ts";
 import {
   bumpImport,
   cancelImport,
+  forgetMapping,
   pauseImport,
   requeueUpstreamFailures,
   resetTrack,
@@ -27,6 +28,8 @@ import {
   rewindTo,
   type BumpResult,
 } from "#/server/services/jobs/index.ts";
+import { requireImport } from "#/server/services/jobs/context.ts";
+import { forgetsMapping, retryOptionsFor } from "#/server/services/retry-plan.ts";
 import { pageInfo } from "#/server/api/paging.ts";
 import {
   countJobs,
@@ -184,18 +187,69 @@ export const fetchJobEvents = createServerFn({ method: "GET", strict: STRICT })
 
 const stepName = z.enum(STEPS);
 
+/**
+ * Retry an import, from its resume point or from a step the reader chose.
+ *
+ * The `step` parameter has been here since P03 and nothing in the Console ever sent one, so a
+ * finished album could only be retried from `verify` — the resume point of a job whose every step
+ * finished — and a re-match meant `mm retry --step match` in a terminal. The menu on the Retry
+ * button sends it now.
+ *
+ * A chosen step is **checked against `retryOptionsFor`**, the same list the menu drew, rather
+ * than against `STEPS`: `place` on an import that has never downloaded is a request the machine
+ * can honour and a person cannot have meant, and a 400 naming what is on offer is a better answer
+ * than a step that fails three seconds later for a reason nobody can read.
+ *
+ * `forgetMapping` is what makes "Match again" mean anything — see its own note.
+ */
 export const retryJob = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(z.object({ id: z.string().min(1), step: stepName.optional() }))
-  .handler(async ({ data }): Promise<{ step: StepName }> => {
+  .handler(async ({ data }): Promise<{ step: StepName; forgotMapping: boolean }> => {
     try {
-      const from = data.step ?? (await resumeStepOf(data.id, db()));
+      /*
+       * Only a *chosen* step discards anything.
+       *
+       * The plain Retry means "run it again as it is", and a job that failed at `match` with a
+       * supplied mapping is retried by re-applying that mapping — which is what it has always
+       * done and what somebody pressing a button with no menu open expects. "Match again" is the
+       * deliberate gesture, and the dialog says what it costs before it happens.
+       */
+      let from: StepName;
+      let chosen = false;
+      if (data.step === undefined) {
+        from = await resumeStepOf(data.id, db());
+      } else {
+        chosen = true;
+        const job = await requireImport(data.id, db());
+        const offered = retryOptionsFor(job);
+        if (!offered.some((option) => option.step === data.step)) {
+          throw new MMError(
+            "INVALID_INPUT",
+            `This import cannot be retried from \`${data.step}\`.`,
+            {
+              hint:
+                offered.length === 0
+                  ? "A cancelled import has no step to retry."
+                  : `It has reached ${job.step}. On offer: ${offered.map((o) => o.step).join(", ")}.`,
+              status: 400,
+            },
+          );
+        }
+        from = data.step;
+      }
+
+      // Before the rewind, not after: a worker that picked the job up between the two would
+      // otherwise run `match` against the mapping this retry exists to discard.
+      const forgotMapping = chosen && forgetsMapping(from);
+      if (forgotMapping) await forgetMapping(data.id, db());
+
       // Rewind the step rows without running anything here: the worker owns execution, and a
       // download started inside an HTTP request would die with the request — or, worse, race
       // the worker's own download for the toolbox's single slot (owner review C3).
       await rewindTo(data.id, from, db());
       await enqueue(data.id, "console retry", from);
-      return { step: from };
+      return { step: from, forgotMapping };
     } catch (error) {
       return toFailure(error);
     }
