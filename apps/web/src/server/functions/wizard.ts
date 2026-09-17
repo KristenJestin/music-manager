@@ -302,7 +302,21 @@ export const refetchSource = createServerFn({ method: "POST", strict: STRICT })
         );
       }
 
-      await runStep(job.id, "resolve", { db: db(), settings: await loadSettings(db()) });
+      const result = await runStep(job.id, "resolve", {
+        db: db(),
+        settings: await loadSettings(db()),
+      });
+      /*
+       * A re-fetch that failed is raised here rather than filed away.
+       *
+       * The job row keeps the typed error, as it always does — but whoever pressed the button
+       * is still looking at the screen, and parking the import on top of a failed `resolve`
+       * would leave a row that says `paused` over a step that says it could not read the
+       * source. The wizard's own error banner is the right place for it.
+       */
+      if (result.status === "failed" && result.error !== undefined) {
+        throw MMError.fromBody(result.error);
+      }
       // `resolve` leaves the job `pending` at `match`, which a running worker would pick up.
       await parkForWizard(job.id);
 
