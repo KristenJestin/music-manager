@@ -638,9 +638,32 @@ function UrlTestPanel({
         {result === null ? null : result.ok ? (
           <Callout tone="ok" data-testid="url-result">
             <div>
-              <b>{result.kind}</b> · {result.entries} entr{result.entries === 1 ? "y" : "ies"} ·{" "}
-              {result.durationMs} ms
+              <b>{result.kind}</b> ·{" "}
+              {result.unreadable.length === 0
+                ? `${String(result.entries)} ${result.entries === 1 ? "entry" : "entries"}`
+                : `${String(result.entries)} of ${String(result.listed)} entries`}{" "}
+              · {result.durationMs} ms
               {result.title === "" ? null : <> · {result.title}</>}
+              {/*
+               * The line this box could not say on 2026-09-17.
+               *
+               * It answered `entries: 0` and "This video is not available" for a playlist that
+               * was alive and had merely lost one of its twenty videos, because the extraction
+               * threw on the dead one. The extraction tolerates it now; saying nothing about
+               * it here would be the same mistake with a better count.
+               */}
+              {result.unreadable.length === 0 ? null : (
+                <div className="mt-0.5 text-warn" data-testid="url-unreadable">
+                  {result.unreadable.length} entr{result.unreadable.length === 1 ? "y" : "ies"}{" "}
+                  could not be read:{" "}
+                  {result.unreadable
+                    .map(
+                      (gap) =>
+                        `${gap.position === null ? "?" : `#${String(gap.position)}`} ${gap.reason ?? gap.code}`,
+                    )
+                    .join(" · ")}
+                </div>
+              )}
               {/*
                * "Is this an official upload?", answered before anything is imported.
                *

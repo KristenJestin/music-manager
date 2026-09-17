@@ -44,6 +44,7 @@ import {
   isOfficialUpload,
   sourceRulesOf,
 } from "#/server/services/source-rules.ts";
+import { gapsOf, listedCount } from "#/server/services/jobs/steps/resolve.ts";
 import {
   toolbox as defaultToolbox,
   type CookiesTestResult,
@@ -557,6 +558,22 @@ export interface UrlTest {
   readonly kind: string;
   readonly title: string;
   readonly entries: number;
+  /**
+   * What the source listed and could not be read. Empty for a healthy URL.
+   *
+   * This box is where the owner's twenty playlists were first misread: it answered
+   * `entries: 0` and "This video is not available" for an album that was perfectly alive and
+   * had merely lost one of its twenty videos. `entries` alone cannot tell "an empty playlist"
+   * from "a playlist we only half read", so the pair is reported.
+   */
+  readonly unreadable: readonly {
+    readonly position: number | null;
+    readonly id: string | null;
+    readonly reason: string | null;
+    readonly code: string;
+  }[];
+  /** `entries + unreadable.length` — the "of 20" in "19 of 20 entries". */
+  readonly listed: number;
   readonly durationMs: number;
   readonly sample: readonly {
     readonly title: string;
@@ -617,9 +634,11 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
     // the pipeline would answer a question nobody asked.
     const result = await box().extract(url, cookieJar(settings));
     const entries = result.entries;
+    const unreadable = gapsOf(result);
     const officialEntries = entries.filter((entry) => isOfficialUpload(entry)).length;
-    // The same "isolated" the `resolve` step decides, from the same fact: one entry is a video.
-    const isolated = result.kind === "video" || entries.length <= 1;
+    // The same "isolated" the `resolve` step decides, from the same fact — and counted the same
+    // way, gaps included, so the dry run cannot disagree with the import it is predicting.
+    const isolated = result.kind === "video" || listedCount(result) <= 1;
     const refused = entries
       .map((entry) => admit(entry, rules, { isolated }))
       .find((verdict) => !verdict.accept);
@@ -629,6 +648,8 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
       kind: result.kind,
       title: result.title ?? "",
       entries: entries.length,
+      unreadable,
+      listed: listedCount(result),
       durationMs: Date.now() - started,
       sample: entries.slice(0, 5).map((entry) => ({
         title: entry.title,
@@ -651,6 +672,8 @@ export async function testUrl(url: string, deps: ToolsDeps = {}): Promise<UrlTes
       kind: "",
       title: "",
       entries: 0,
+      unreadable: [],
+      listed: 0,
       durationMs: Date.now() - started,
       sample: [],
       official: false,

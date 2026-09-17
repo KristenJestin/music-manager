@@ -285,4 +285,34 @@ describe("testUrl", () => {
       action: "Configure cookies",
     });
   });
+
+  /*
+   * The box the owner used on 2026-09-17. It answered `entries: 0` and "This video is not
+   * available" for a twenty-track album that was alive and had lost one video, because the
+   * extraction threw on the dead entry. It now has to say both numbers: a count on its own
+   * cannot tell "an empty playlist" from "a playlist we only half read".
+   */
+  it("says how many entries the source listed, not only how many it read", async () => {
+    const result = await testUrl("https://music.youtube.com/playlist?list=OLAK5uy_x", {
+      settings: settings(),
+      toolbox: fakeToolbox({
+        extract: () =>
+          Promise.resolve({
+            kind: "playlist",
+            title: "Album - Discovery",
+            uploader: null,
+            entries: [{ id: "a", title: "One More Time", index: 0, duration: 320 }],
+            unreadable: [
+              { position: 2, id: "dead", reason: "Private video", code: "YTDLP_PRIVATE" },
+            ],
+          } as never),
+      }),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.entries).toBe(1);
+    expect(result.listed).toBe(2);
+    expect(result.unreadable).toEqual([
+      { position: 2, id: "dead", reason: "Private video", code: "YTDLP_PRIVATE" },
+    ]);
+  });
 });
