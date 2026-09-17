@@ -75,20 +75,67 @@ const { db } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
 const imports = await import("#/server/services/imports.ts");
 const jobs = await import("#/server/services/jobs/index.ts");
-const { confirmBest } = await import("./imports.bulk.ts");
+const { confirmSupplied } = await import("./confirm.ts");
 const { forgetsMapping, retryOptionsFor } = await import("./retry-plan.ts");
 
 resetServerEnv();
 
-/** An import of the fixture album, matched and confirmed — the state a retry acts on. */
+/**
+ * An import of the fixture album, matched and confirmed — the state a retry acts on.
+ *
+ * It used to be set up with `confirmBest`, and cannot be any more: the fixture album is
+ * fifteen videos for a fourteen-track release, and `confirm-best` is now refused on anything
+ * that is not an exact match (`exactnessRefusal`, `services/imports.bulk.ts`). That rule is
+ * about the engine deciding *alone*; these tests are about retrying an import somebody
+ * confirmed, so the setup now goes through the door a person goes through — `confirmSupplied`,
+ * which is the wizard's Start button and `POST /imports/{id}/confirm-mapping` — with the
+ * engine's own proposal as the mapping, which is exactly what step 3 shows before Start.
+ */
 async function confirmedImport(): Promise<string> {
   const created = await imports.createFromUrl("fixture://discovery", { db: db() });
-  await db()
-    .update(schema.imports)
-    .set({ status: "awaiting_review" })
-    .where(eq(schema.imports.id, created.job.id));
-  await confirmBest({ importId: created.job.id, confirmedBy: "test", db: db() });
-  return created.job.id;
+  const id = created.job.id;
+
+  const matched = await jobs.runStep(id, "match", { db: db() });
+  const data = (matched.data ?? {}) as {
+    releaseMbid?: string;
+    uncovered?: number;
+    mapping?: {
+      videoIndex: number;
+      trackN: number | null;
+      mediumPosition: number | null;
+      trackMbid: string | null;
+      recordingMbid: string | null;
+      trackTitle: string | null;
+      confidence: number;
+    }[];
+  };
+  const bound = (data.mapping ?? []).filter((line) => line.trackN !== null);
+
+  await confirmSupplied(
+    {
+      importId: id,
+      confirmedBy: "test",
+      mapping: {
+        releaseMbid: data.releaseMbid ?? null,
+        trackTotal: bound.length + (data.uncovered ?? 0),
+        tracks: bound.map((line) => ({
+          position: line.videoIndex,
+          trackPosition: line.trackN ?? 1,
+          mediumPosition: line.mediumPosition ?? 1,
+          recordingMbid: line.recordingMbid,
+          trackTitle: line.trackTitle ?? "",
+          confidence: line.confidence,
+          ...(line.trackMbid === null ? {} : { trackMbid: line.trackMbid }),
+        })),
+      },
+      options: { fingerprint: true, lyrics: true, replaygain: true, force: false },
+      priority: 0,
+      acknowledgedIn: "retry-step test",
+      reason: "retry-step test",
+    },
+    db(),
+  );
+  return id;
 }
 
 describe.skipIf(unavailable !== null)("retrying from a chosen step", () => {

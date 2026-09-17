@@ -63,6 +63,7 @@ import { runStep } from "#/server/services/jobs/index.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { enqueue, enqueueMany } from "#/server/services/queue.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
+import { exactnessRefusal } from "#/server/services/jobs/steps/confirm.ts";
 
 /* ------------------------------------------------------------------ */
 /* batch creation                                                      */
@@ -628,6 +629,58 @@ async function confirmBestRelease(
           mapped: best.mapped,
           videos: rows.length,
           minCoverage,
+        },
+        status: 409,
+      },
+    );
+  }
+
+  /*
+   * **The engine may confirm alone only on an exact match**, and this is the place it confirms
+   * alone.
+   *
+   * `docs/04` calls `confirm-best` "le seul chemin qui valide une release sans que personne ne
+   * lise la fiche", and the MCP header one file over names the session it was written for: 375
+   * playlists driven through this call by hand. Five of the fifteen albums the sixth owner
+   * review flags — *Smoke + Mirrors* (21 videos), *Random Access Memories (Drumless)* (13),
+   * *The Family Jewels* (13), *Night Candy* (4), *Ceremonials* (15) — have **no release of the
+   * right size in MusicBrainz at all**, and one was chosen for each of them anyway.
+   *
+   * It is the generalisation of the artist refusal just above: the artist gate is one of the
+   * four conditions `exactnessRefusal` checks, and the other three are the ones that would have
+   * stopped those five. `minCoverage` is **not** a waiver and never was one — it is a bar the
+   * caller may *raise*, and it only ever looked at one side of the fit: thirteen videos of
+   * which twelve bind on a thirteen-track release is 92 % coverage and one track of the record
+   * left silently empty. A caller that means "this inexact album, deliberately" has a door of
+   * its own, and it is `confirm-mapping`.
+   */
+  const exact = exactnessRefusal({
+    kind: "album",
+    answered: false,
+    videos: rows.length,
+    bound: best.mapped,
+    tracks: best.candidate.tracks,
+    artistCarried: result.artist.carried,
+  });
+  if (exact !== null) {
+    throw new MMError(
+      "AWAITING_CONFIRM",
+      `The best candidate, “${chosen.title}” by ${chosen.artist}, is not an exact match — ` +
+        `${exact}. Nothing was confirmed.`,
+      {
+        hint:
+          "The import is still waiting. Read `GET /api/v1/imports/{id}/candidates` and confirm " +
+          "the mapping you want with `confirm-mapping`; `minCoverage` cannot waive this.",
+        action: "Choose a release yourself",
+        details: {
+          importId: job.id,
+          releaseMbid: chosen.mbid,
+          title: chosen.title,
+          artist: chosen.artist,
+          videos: rows.length,
+          mapped: best.mapped,
+          tracks: best.candidate.tracks,
+          why: exact,
         },
         status: 409,
       },

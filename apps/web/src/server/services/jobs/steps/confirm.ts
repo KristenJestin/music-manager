@@ -68,17 +68,128 @@ async function matchVerdict(ctx: StepContext): Promise<MatchVerdict | null> {
 }
 
 /**
+ * Read the shape of the match off `job_steps`, the same row and for the same reason.
+ *
+ * Separate from `matchVerdict` because it must survive what that one refuses: a supplied
+ * mapping records no `safe`, and the answer for it here is "somebody answered", not "I cannot
+ * tell". Reading the row rather than recomputing is what makes the gate hold on a retry, a
+ * resume and an Inbox answer alike.
+ */
+async function matchShape(ctx: StepContext): Promise<MatchShape | null> {
+  const [row] = await ctx.db
+    .select({ result: jobSteps.result })
+    .from(jobSteps)
+    .where(and(eq(jobSteps.importId, ctx.job.id), eq(jobSteps.step, "match")))
+    .limit(1);
+  const data = row?.result;
+  if (data === null || data === undefined) return null;
+
+  const count = (key: string): number | null =>
+    typeof data[key] === "number" ? (data[key] as number) : null;
+  const mapped = count("mapped");
+  const extras = count("extras");
+  const uncovered = count("uncovered");
+  const kind = data["kind"];
+
+  return {
+    kind: kind === "album" || kind === "single" ? kind : null,
+    answered: data["supplied"] === true || data["pinned"] === true,
+    videos: mapped === null || extras === null ? null : mapped + extras,
+    bound: mapped,
+    tracks: mapped === null || uncovered === null ? null : mapped + uncovered,
+    artistCarried: typeof data["artistCarried"] === "boolean" ? data["artistCarried"] : null,
+  };
+}
+
+/**
+ * What `match` made of the source, as far as the exactness gate is concerned.
+ *
+ * Four numbers and a flag, all of them written by the step that knew them. `null` on any of
+ * them means the row does not say — an older import, a step that never ran — and that is
+ * treated as "I cannot tell", which is not "it is fine".
+ */
+export interface MatchShape {
+  readonly kind: "album" | "single" | null;
+  /** Somebody named the release or the whole mapping; the engine did not choose. */
+  readonly answered: boolean;
+  /** Videos in the source: the ones bound plus the ones left over. */
+  readonly videos: number | null;
+  /** Videos bound to a track of the chosen release. */
+  readonly bound: number | null;
+  /** Tracks on the chosen release: the ones covered plus the ones left empty. */
+  readonly tracks: number | null;
+  readonly artistCarried: boolean | null;
+}
+
+/**
+ * **The engine may confirm on its own only on an exact match.**
+ *
+ * Four conditions, and a sentence naming the first one that fails:
+ *
+ *  1. every video of the source is bound to a track;
+ *  2. no track of the release is left without a video;
+ *  3. no video is left over — which is (1) said from the other side, and kept separate
+ *     because the sentence a person needs to read is different;
+ *  4. the artist the source names is carried by the release that was chosen.
+ *
+ * It is the generalisation of the artist refusal that `match` already applies, and it exists
+ * for the five albums of the sixth owner review that **have no release of the right size in
+ * MusicBrainz at all** — *Smoke + Mirrors* (21 videos), *Random Access Memories (Drumless)*
+ * (13), *The Family Jewels* (13), *Night Candy* (4), *Ceremonials* (15). One was chosen anyway
+ * and imported without a question. A parked import beats a wrong album that looks finished.
+ *
+ * Two exemptions, both of them a person:
+ *
+ *  - **`answered`** — a pinned release (`--release`) or a supplied mapping (the wizard,
+ *    `confirm-mapping`, MCP). Somebody named the answer after seeing the counts; this rule
+ *    exists to ask somebody, and there is nobody left to ask;
+ *  - **a single** — one video against a recording. "Uncovered tracks" is meaningless for it:
+ *    the release it is filed under is context, not a tracklist to cover, which is why the
+ *    wizard sends `trackTotal: 0` for one. The artist condition still applies.
+ */
+export function exactnessRefusal(shape: MatchShape | null): string | null {
+  if (shape === null) return "the match step recorded nothing to judge";
+  if (shape.answered) return null;
+
+  if (shape.artistCarried === false) {
+    return "no candidate is credited to the artist the source names";
+  }
+
+  if (shape.kind === "single") return null;
+
+  const { videos, bound, tracks } = shape;
+  if (videos === null || bound === null || tracks === null) {
+    return "the match step recorded no tracklist fit to judge";
+  }
+  if (bound < videos) {
+    const left = videos - bound;
+    return `${String(left)} of your ${String(videos)} video(s) are on no track of this release`;
+  }
+  if (tracks > bound) {
+    const empty = tracks - bound;
+    return `${String(empty)} track(s) of this release have no video`;
+  }
+  return null;
+}
+
+/**
  * May this import be confirmed without anybody looking at it?
  *
- * Pure, and the whole of the exception `docs/04-pipeline-et-matching.md` grants: three
- * conditions that must all hold, and a sentence saying which one did not. A `null` verdict is
- * a `match` step that recorded nothing judgeable — a supplied mapping, a pinned release, an
- * older row — and it refuses, because "I cannot tell" is not "it is fine".
+ * Pure, and the whole of the exception `docs/04-pipeline-et-matching.md` grants. The three
+ * conditions it always had — the source opted in, the match is `safe`, unambiguous and above
+ * the bar — plus the exactness rule, which is **not** the watched source's own and is applied
+ * to every unattended confirmation alike. The order is deliberate: the permission first, so a
+ * source that never opted in is told that and not something about its tracklist.
+ *
+ * A `null` verdict is a `match` step that recorded nothing judgeable — a supplied mapping, a
+ * pinned release, an older row — and it refuses, because "I cannot tell" is not "it is fine".
  */
 export function autoAcceptDecision(input: {
   readonly allowed: boolean;
   readonly verdict: MatchVerdict | null;
   readonly threshold: number;
+  /** `undefined` on the older callers, which are only asking about the three score rules. */
+  readonly shape?: MatchShape | null;
 }): { readonly accept: boolean; readonly why: string } {
   const { allowed, verdict, threshold } = input;
   if (!allowed) return { accept: false, why: "auto-accept is off for this source" };
@@ -96,6 +207,10 @@ export function autoAcceptDecision(input: {
       accept: false,
       why: `the best candidate scored ${String(verdict.score)}, under ${String(threshold)}`,
     };
+  }
+  if (input.shape !== undefined) {
+    const refusal = exactnessRefusal(input.shape);
+    if (refusal !== null) return { accept: false, why: refusal };
   }
   return { accept: true, why: "" };
 }
@@ -122,10 +237,11 @@ async function confirmForWatchedSource(
   sourceId: string,
 ): Promise<StepResult> {
   const verdict = await matchVerdict(ctx);
+  const shape = await matchShape(ctx);
   const threshold =
     ctx.job.options.sourceAutoAcceptThreshold ?? ctx.settings.watchedSourcesAutoAcceptThreshold;
   const allowed = ctx.job.options.sourceAutoAccept === true;
-  const { accept, why } = autoAcceptDecision({ allowed, verdict, threshold });
+  const { accept, why } = autoAcceptDecision({ allowed, verdict, threshold, shape });
 
   if (accept) {
     await ctx.db.insert(decisions).values({
@@ -252,6 +368,21 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
     return await confirmForWatchedSource(ctx, mapped, watchedSourceId);
   }
 
+  /*
+   * **The exactness rule is not enforced here, and that is deliberate.**
+   *
+   * The two doors the engine confirms through *alone* are `confirm-best` — "le seul chemin qui
+   * valide une release sans que personne ne lise la fiche" (`docs/04`), and the one the owner's
+   * bulk session of 375 playlists went through — and a watched source's auto-accept. Both are
+   * gated by `exactnessRefusal`, in `services/imports.bulk.ts` and in `autoAcceptDecision`
+   * above.
+   *
+   * What reaches this line is a person: `--yes` is somebody typing a flag for one URL, a
+   * supplied mapping is somebody having read the counts, and fixtures mode exists to *stand in
+   * for* the person the offline run and the demo do not have. Refusing here would park the
+   * offline run on questions the real installation answers — the mirror image of the rule
+   * `confirmForWatchedSource` states about fixtures mode, one direction along.
+   */
   const automatic = ctx.job.options.autoConfirm === true || ctx.fixtures;
 
   if (!automatic) {
