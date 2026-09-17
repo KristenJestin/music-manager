@@ -509,7 +509,13 @@ function JobPage() {
           </div>
           <div className="mt-1 flex items-center gap-1.5 font-mono text-2xs text-fg-2">
             <span className="truncate">{job.url}</span>
-            {job.url.startsWith("fixture://") ? null : (
+            {/*
+              A `fixture://` source has nothing to open, and a `file://` one has nothing the
+              *browser* can open: it is a folder on the server, and every browser blocks a
+              `file://` link from a page for good reasons. An icon that does nothing when
+              clicked is worse than no icon.
+            */}
+            {job.url.startsWith("fixture://") || job.url.startsWith("file://") ? null : (
               <a href={job.url} target="_blank" rel="noreferrer" aria-label="Open the source">
                 <ExternalLink className="size-3" aria-hidden="true" />
               </a>

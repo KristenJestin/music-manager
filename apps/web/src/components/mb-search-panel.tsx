@@ -128,11 +128,24 @@ export function MbSearchPanel({
   const failure = isRef ? failed : null;
 
   const canApply = shown !== null && shown.action !== "none" && shown.actionLabel !== null;
-  const actionLabel = canApply ? (shown.actionLabel ?? "Use this") : "Search MusicBrainz";
+  /**
+   * An artist with no title is a search of its own: "I know the band, not which record".
+   *
+   * It is the thing somebody types *before* they can type a title, and it used to be inert —
+   * the button stayed disabled and typing an artist alone produced nothing at all. The button
+   * names it, because "Search MusicBrainz" over an empty title field does not say what it is
+   * about to search for.
+   */
+  const artistOnly = !isRef && title.trim() === "" && artist.trim() !== "";
+  const actionLabel = canApply
+    ? (shown.actionLabel ?? "Use this")
+    : artistOnly
+      ? `List ${single ? "recordings" : "records"} by this artist`
+      : "Search MusicBrainz";
   const disabled =
     busy ||
     busyResolving ||
-    title.trim() === "" ||
+    (title.trim() === "" && artist.trim() === "") ||
     (isRef && shown !== null && !canApply) ||
     (isRef && shown === null && failure === null);
 
@@ -271,10 +284,16 @@ export function MbSearchPanel({
             Searched {describe(terms)} — the artist was read off the dash. Use the two fields if
             that split is wrong.
           </p>
+        ) : artistOnly ? (
+          <p className="text-2xs text-fg-2" data-testid="mb-search-artist-only">
+            Searching everything by “{artist.trim()}” — leave the {single ? "track" : "album"} title
+            empty and this lists that artist’s {single ? "recordings" : "records"}.
+          </p>
         ) : (
           <p className={cn("text-2xs text-fg-3")}>
             An id or a musicbrainz.org link is looked up as you type, whatever kind it is; free text
-            searches {single ? "recordings" : "release groups"}.
+            searches {single ? "recordings" : "release groups"}. An artist on its own, with no
+            title, lists their {single ? "recordings" : "records"}.
           </p>
         )}
       </div>
@@ -282,8 +301,14 @@ export function MbSearchPanel({
   );
 }
 
+/**
+ * Mirrors `describeSearchTerms` in `@mm/domain`, and for the same reason it exists there: the
+ * empty answer has to read back **what was searched for**. An artist-only search that reported
+ * `“” by “Laufey”` would be the original defect with the fields swapped.
+ */
 function describe(terms: SearchTermsView): string {
-  return terms.artist === null || terms.artist === ""
-    ? `“${terms.title}”`
-    : `“${terms.title}” by “${terms.artist}”`;
+  const artist = terms.artist ?? "";
+  if (artist === "") return `“${terms.title}”`;
+  if (terms.title.trim() === "") return `everything by “${artist}”`;
+  return `“${terms.title}” by “${artist}”`;
 }

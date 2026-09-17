@@ -54,7 +54,8 @@ import type { StepName } from "#/server/db/schema/index.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
+import { folderPathOf } from "#/server/services/import-source.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
@@ -202,11 +203,16 @@ async function followImport(importId: string): Promise<number> {
 /* ------------------------------------------------------------------ */
 
 /**
- * `mm import --from-file <path>` — one line per URL, `#` comments and blank lines dropped.
+ * `mm import --from-file <path>` — one line per **source**, `#` comments and blanks dropped.
  *
  * The bulk form of the paste box. Nothing is resolved in this process: `createImportsBatch`
- * queues the rows and the worker resolves them, which is what makes three hundred URLs a
+ * queues the rows and the worker resolves them, which is what makes three hundred sources a
  * second's work here instead of an hour of extractions.
+ *
+ * A line may be a **folder path** as well as a URL — they go through the same
+ * `parseImportSource` — which is how twenty album folders are queued in one command. Note that
+ * a folder refused for its path or for holding no audio is reported on *its* line and costs
+ * the other nineteen nothing, because a batch resolves later and per row.
  */
 async function cmdImportBatch(args: Args, path: string): Promise<number> {
   const urls = readFileSync(path, "utf8")
@@ -326,11 +332,11 @@ async function cmdImport(args: Args): Promise<number> {
   const fromFile = flagString(args, "from-file");
   if (fromFile !== undefined) return await cmdImportBatch(args, fromFile);
 
-  const url = args.positional[1];
-  if (url === undefined) {
+  const source = args.positional[1];
+  if (source === undefined) {
     throw new MMError(
       "INVALID_INPUT",
-      "usage: mm import <url|fixture://…> | mm import --from-file <path>",
+      "usage: mm import <url|fixture://…|folder> | mm import --from-file <path>",
     );
   }
 
@@ -340,7 +346,7 @@ async function cmdImport(args: Args): Promise<number> {
       ? undefined
       : (JSON.parse(readFileSync(mappingFile, "utf8")) as never);
 
-  const created = await createFromUrl(url, {
+  const created = await createImport(source, {
     ...(flagString(args, "release") === undefined
       ? {}
       : { releaseMbid: flagString(args, "release") }),
@@ -352,14 +358,26 @@ async function cmdImport(args: Args): Promise<number> {
     ...(flagBoolean(args, "yes") ? { confirmedBy: "cli --yes" } : {}),
     force: flagBoolean(args, "force"),
     ...(flagBoolean(args, "no-fingerprint") ? { fingerprint: false } : {}),
+    // Only when it was *said*. Absent means "decide by the source" — on for a folder, off for
+    // a URL — and writing the computed default here would freeze today's rule into the row.
+    ...(flagBoolean(args, "no-untagged")
+      ? { untaggedFallback: false }
+      : flagBoolean(args, "untagged")
+        ? { untaggedFallback: true }
+        : {}),
   });
 
+  const folder = folderPathOf(created.job.url);
   line(`import ${created.job.id}`);
-  line(`  url    ${created.job.url}`);
+  if (folder === null) line(`  url    ${created.job.url}`);
+  else line(`  folder ${folder}`);
   line(`  kind   ${created.job.kind}`);
   line(`  title  ${created.job.title ?? "-"}`);
   if (created.duplicates.length > 0) {
-    line(`  note   ${String(created.duplicates.length)} earlier import(s) of the same URL`);
+    line(
+      `  note   ${String(created.duplicates.length)} earlier import(s) of the same ` +
+        `${folder === null ? "URL" : "folder"}`,
+    );
   }
 
   const boss = createBoss({ producer: true });
@@ -1551,7 +1569,14 @@ async function cmdRelocate(args: Args): Promise<number> {
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
-  mm import --from-file <path> [--yes] [--force]   one URL per line, '#' comments; queued, not resolved
+  mm import <folder> [--release <mbid>] [--yes] [--follow]
+                                          an absolute folder of audio files: each file is an
+                                          entry, matched like a video, then adopted rather than
+                                          downloaded. Must be inside adoptSourceRoots.
+                                          --no-untagged asks instead of falling back to the
+                                          files' own tags when MusicBrainz has nothing.
+  mm import --from-file <path> [--yes] [--force]   one source per line (URL or folder),
+                                          '#' comments; queued, not resolved
   mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
                                           confirm the engine's best candidate: an album on
                                           coverage, a single on its margin over the runner-up

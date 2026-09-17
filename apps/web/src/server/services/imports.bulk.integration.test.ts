@@ -74,13 +74,25 @@ resetServerEnv();
 const DISCOVERY_VIDEOS = 15;
 
 /** An import of the fixture album, resolved and parked where a confirmation means something. */
-async function waitingImport(): Promise<string> {
-  const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+async function waitingImport(url = "fixture://discovery"): Promise<string> {
+  const created = await imports.createImport(url, { db: db() });
   await db()
     .update(schema.imports)
     .set({ status: "awaiting_review" })
     .where(eq(schema.imports.id, created.job.id));
   return created.job.id;
+}
+
+/**
+ * The album that *is* an exact match: `fixture://currents`, thirteen videos for a thirteen-track
+ * release, nothing left over on either side.
+ *
+ * `confirm-best` is the one door the engine confirms through alone, so it is now refused on
+ * anything but an exact match (`exactnessRefusal`). Discovery — fifteen videos, fourteen tracks
+ * — is therefore the *refusal* fixture from here on, and this is the one that goes through.
+ */
+async function waitingExactImport(): Promise<string> {
+  return await waitingImport("fixture://currents");
 }
 
 /**
@@ -91,7 +103,7 @@ async function waitingImport(): Promise<string> {
  * 1) — which is exactly the shape a single that *should* be confirmed automatically has.
  */
 async function waitingSingle(): Promise<string> {
-  const created = await imports.createFromUrl("fixture://skinny-love", { db: db() });
+  const created = await imports.createImport("fixture://skinny-love", { db: db() });
   await db()
     .update(schema.imports)
     .set({ status: "awaiting_review" })
@@ -127,15 +139,14 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
 
   describe("confirm-best on an import that clears the bar", () => {
     it("picks a release, maps from the engine's own fit lines, and queues the job", async () => {
-      const importId = await waitingImport();
+      const importId = await waitingExactImport();
       const outcome = await confirmBest({ importId, confirmedBy: "test", db: db() });
 
       expect(outcome.kind).toBe("album");
       if (outcome.chosen.kind !== "release") throw new Error("an album must choose a release");
       expect(outcome.chosen.mbid).toMatch(/[0-9a-f-]{36}/);
-      expect(outcome.chosen.videos).toBe(DISCOVERY_VIDEOS);
-      // Fourteen tracks out of fifteen videos: comfortably over the 0.8 default.
-      expect(outcome.chosen.coverage).toBeGreaterThanOrEqual(0.8);
+      // Every video bound and every track covered: the only shape the engine may confirm alone.
+      expect(outcome.chosen.coverage).toBe(1);
       expect(outcome.minCoverage).toBe(0.8);
       expect(outcome.preferType).toBe("album");
       // The single's knob is reported as inapplicable rather than as a number nobody used.
@@ -156,7 +167,7 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
      * identifiers, so the rows do too — and nothing had to be typed for that to be true.
      */
     it("writes the MusicBrainz identifiers onto the rows, not nulls", async () => {
-      const importId = await waitingImport();
+      const importId = await waitingExactImport();
       await confirmBest({ importId, confirmedBy: "test", db: db() });
 
       const rows = await db()
@@ -177,7 +188,7 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
     }, 120_000);
 
     it("records a decisions row signed with `confirmedBy`, like the auto-confirm path", async () => {
-      const importId = await waitingImport();
+      const importId = await waitingExactImport();
       await confirmBest({ importId, confirmedBy: "agent-zero", db: db() });
       // `confirmBest` runs `match`; `confirm` is the next step and is what writes the row.
       await jobs.runStep(importId, "confirm", { db: db() });
@@ -198,6 +209,59 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
   /* ---------------------------------------------------------------- */
   /* confirm-best: the import that does not                            */
   /* ---------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------- */
+  /* confirm-best: the album that is not an exact match                */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * The third owner defect, at the one door the engine confirms through alone.
+   *
+   * `docs/04` calls `confirm-best` "le seul chemin qui valide une release sans que personne ne
+   * lise la fiche", and the MCP header names the session it was written for: 375 playlists
+   * driven through it by hand. Five of the fifteen albums the owner flagged have **no release
+   * of the right size in MusicBrainz at all**, and one was chosen for each of them anyway.
+   * Discovery is the same shape in miniature — fifteen videos, fourteen tracks, one left over.
+   */
+  describe("confirm-best on an album that is not an exact match", () => {
+    it("refuses rather than confirming a release that leaves a video on no track", async () => {
+      const importId = await waitingImport();
+      const failure = await confirmBest({ importId, confirmedBy: "test", db: db() }).catch(
+        (error: unknown) => MMError.from(error),
+      );
+
+      expect(failure).toBeInstanceOf(MMError);
+      const error = failure as InstanceType<typeof MMError>;
+      expect(error.code).toBe("AWAITING_CONFIRM");
+      expect(error.status).toBe(409);
+      expect(error.message).toMatch(/not an exact match/);
+      expect(error.details?.["videos"]).toBe(DISCOVERY_VIDEOS);
+      expect(error.details?.["why"]).toMatch(/video\(s\)/);
+    }, 120_000);
+
+    it("leaves the import waiting, untouched — a parked import beats a wrong album", async () => {
+      const importId = await waitingImport();
+      await confirmBest({ importId, confirmedBy: "test", db: db() }).catch(() => undefined);
+
+      const job = await imports.getImport(importId, db());
+      expect(job?.status).toBe("awaiting_review");
+      const options = job?.options as { mapping?: unknown; autoConfirm?: unknown };
+      expect(options.mapping).toBeUndefined();
+      expect(options.autoConfirm).not.toBe(true);
+    }, 120_000);
+
+    /** `minCoverage` is a bar the caller may raise; it was never a way to waive the rule. */
+    it("is not waived by a lower `minCoverage`", async () => {
+      const importId = await waitingImport();
+      const failure = await confirmBest({
+        importId,
+        minCoverage: 0.5,
+        confirmedBy: "test",
+        db: db(),
+      }).catch((error: unknown) => MMError.from(error));
+      expect((failure as InstanceType<typeof MMError>).message).toMatch(/not an exact match/);
+    }, 120_000);
+  });
 
   describe("confirm-best on an import that does not clear the bar", () => {
     it("refuses with a 409, names the best candidate and its coverage", async () => {
@@ -243,7 +307,7 @@ describe.skipIf(unavailable !== null)("the bulk-import service against a real st
     }, 120_000);
 
     it("an import with no videos is a 400, not a confirmation of nothing", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         db: db(),
         resolveNow: false,
       });

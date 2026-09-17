@@ -93,7 +93,7 @@ const outageUrl = (options: { status?: number; times?: number } = {}): string =>
 
 /** Create an import and run it until it stops. `--yes` so `confirm` is not the thing blocking. */
 async function start(url: string): Promise<string> {
-  const created = await imports.createFromUrl(url, { autoConfirm: true, confirmedBy: "test" });
+  const created = await imports.createImport(url, { autoConfirm: true, confirmedBy: "test" });
   return created.job.id;
 }
 

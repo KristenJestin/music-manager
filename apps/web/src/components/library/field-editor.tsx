@@ -233,6 +233,74 @@ export function FieldEditor({
   );
 }
 
+/** The longest prefix `from` and `to` share, cut at a path separator. */
+function commonFolder(moves: readonly { from: string; to: string }[]): string {
+  const first = moves[0];
+  if (first === undefined) return "";
+  let shared = "";
+  for (const move of moves) {
+    const parts = move.from.split("/");
+    parts.pop();
+    const folder = parts.join("/");
+    shared = shared === "" ? folder : sharedPrefix(shared, folder);
+  }
+  return shared;
+}
+
+/** The two folders' common head, never cutting mid-segment. */
+function sharedPrefix(left: string, right: string): string {
+  const a = left.split("/");
+  const b = right.split("/");
+  const out: string[] = [];
+  for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+    if (a[i] !== b[i]) break;
+    out.push(a[i] ?? "");
+  }
+  return out.join("/");
+}
+
+/**
+ * Every move, readable.
+ *
+ * Sixteen rows of `Artist/Album (2008)/01 - Title.opus → Artist/Album (2008)/01 - Title.opus`
+ * are sixteen copies of one fact — the *folder* changed — with the part that differs pushed off
+ * the right edge. So the folders are stated once, at the top, and each row is then only what a
+ * person still has to read. A row whose own name changes too still says both, wrapped rather
+ * than clipped, because a truncated path in a confirmation is a decision taken blind.
+ */
+function MoveList({ moves }: { readonly moves: readonly { from: string; to: string }[] }) {
+  const fromFolder = commonFolder(moves);
+  const toFolder = commonFolder(moves.map((move) => ({ from: move.to, to: move.to })));
+  const sameShape = fromFolder !== "" && toFolder !== "" && fromFolder !== toFolder;
+
+  return (
+    <div className="space-y-1.5">
+      {sameShape ? (
+        <p className="font-mono text-2xs break-all text-fg-2">
+          {fromFolder}/ <span className="text-fg-3">→</span> {toFolder}/
+        </p>
+      ) : null}
+      <ul className="space-y-0.5 font-mono text-2xs" data-testid="relocate-moves">
+        {moves.map((move) => {
+          const from = sameShape ? move.from.slice(fromFolder.length + 1) : move.from;
+          const to = sameShape ? move.to.slice(toFolder.length + 1) : move.to;
+          return (
+            <li key={move.from} className="break-all">
+              {from === to ? (
+                from
+              ) : (
+                <>
+                  {from} <span className="text-fg-3">→</span> {to}
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 /**
  * "You changed a name the path template uses. Move the files too?"
  *
@@ -268,16 +336,7 @@ export function RelocateOffer({
           moving them loses those tracks&apos; play counts and favourites.
         </>
       }
-      consequence={
-        <ul className="space-y-0.5 font-mono text-2xs">
-          {moves.slice(0, 8).map((move) => (
-            <li key={move.from} className="truncate">
-              {move.from} → {move.to}
-            </li>
-          ))}
-          {moves.length > 8 ? <li className="text-fg-3">…and {moves.length - 8} more</li> : null}
-        </ul>
-      }
+      consequence={<MoveList moves={moves} />}
       confirmLabel="Move the files"
       busy={busy}
       onConfirm={onConfirm}

@@ -878,6 +878,90 @@
         "title": "PlaceResult",
         "type": "object"
       },
+      "ProbeBatchItem": {
+        "description": "One file's answer. Exactly one of ``result`` and ``error`` is set.",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProbeResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ProbeBatchItem",
+        "type": "object"
+      },
+      "ProbeBatchRequest": {
+        "additionalProperties": false,
+        "description": "``POST /probe/batch`` — the same question as ``/probe``, asked about a whole folder.\n\nIt exists because of one number. An existing library handed to this application is 273\ntracks, and asking 273 times over HTTP \"what is in this file\" is a minute of round trips\nadded to a step somebody is watching.\n\nThe **walk stays on the orchestrator's side**: it owns ``adoptSourceRoots``, and it is the\nonly side that can ``realpath`` a host path and compare it with that allow-list. So this\nendpoint takes a list of paths and never a directory — it must not become a way to learn\nwhat is on a disk the caller was not allowed to list.",
+        "properties": {
+          "paths": {
+            "description": "Absolute paths, as this container sees them, in the order the answers are wanted. At most 500 per call; a longer list is split by the caller.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "title": "ProbeBatchRequest",
+        "type": "object"
+      },
+      "ProbeBatchResult": {
+        "description": "One entry per requested path, **in the order they were requested**.\n\nA file ffprobe cannot read is reported in its own entry rather than failing the request: a\nfolder of two hundred tracks with one corrupt file must still list the other hundred and\nninety-nine, and it is the caller who decides whether one refusal is fatal.",
+        "properties": {
+          "failed": {
+            "description": "How many could not be read; each carries its own error.",
+            "title": "Failed",
+            "type": "integer"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ProbeBatchItem"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "ok": {
+            "description": "How many of them ffprobe could read.",
+            "title": "Ok",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "files",
+          "ok",
+          "failed"
+        ],
+        "title": "ProbeBatchResult",
+        "type": "object"
+      },
       "ProbeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2182,6 +2266,58 @@
           }
         },
         "summary": "Probe",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/probe/batch": {
+      "post": {
+        "description": "The same, for a list of files, in one request and in the order they were given.\n\nWhat a folder import costs: one call instead of one per track. A file ffprobe cannot read\nanswers in its own entry — the listing of the other two hundred is worth more than the\nrefusal of one.",
+        "operationId": "probeBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeBatchResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "A catalogued toolbox error."
+          }
+        },
+        "summary": "Probe Batch",
         "tags": [
           "files"
         ]

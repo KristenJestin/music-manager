@@ -31,23 +31,59 @@ import {
   type SanitizeMode,
 } from "@mm/domain";
 import { cn } from "cn";
+import { MbLink } from "#/components/mb-link.tsx";
+import { borrowFacts, distinguishingBorrow, type FactKey } from "#/components/release-facts.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";
 import { useHydrated } from "#/hooks/use-hydrated.ts";
 
 /** Up to this many options are shown as a list; above it, a select. */
 const AS_LIST_UP_TO = 4;
 
-/** `Klangsberg — single, 2018, XW (track 1/1)`. */
+/** `Klangsberg — single, 2018, XW, Digital Media, track 1/1`. */
 export function borrowLabel(release: BorrowRelease): string {
   const parts = [
     release.type ?? "release",
     release.date === null ? null : release.date.slice(0, 4),
     release.country,
+    // The discs, because eighteen soundtrack variants include a 2 × CD and telling it from the
+    // single disc is half the question.
+    release.format === null
+      ? null
+      : release.mediumCount > 1
+        ? `${String(release.mediumCount)} × ${release.format}`
+        : release.format,
     release.trackPosition === null
       ? null
       : `track ${String(release.trackPosition)}${release.trackCount === null ? "" : `/${String(release.trackCount)}`}`,
   ].filter((part): part is string => typeof part === "string" && part !== "");
   return `${release.title} — ${parts.join(", ")}`;
+}
+
+/** The facts `borrowLabel` already prints, so the second line never repeats one. */
+const ON_THE_LABEL: readonly FactKey[] = ["date", "country", "discs", "tracks"];
+
+/** At most this many facts on the second line — the same reasoning as the card's row. */
+const DETAIL_FACTS = 4;
+
+/**
+ * The second line of an option: what tells *this* release from the other seventeen.
+ *
+ * The owner's screenshot is eighteen *Arcane: League of Legends* soundtrack variants, and the
+ * dropdown printed eighteen copies of one truncated title. The titles are identical because
+ * they genuinely are the same record; the catalogue number, the barcode, the country and the
+ * disambiguation comment are not, and those are already on every release document the borrow
+ * ladder scored. So the option says the same thing a candidate card's compact row says —
+ * `distinguishingBorrow` decides which facts, by the same rule.
+ *
+ * Empty when there is genuinely nothing to tell them apart, which is the only honest answer
+ * and never happens with eighteen of them.
+ */
+export function borrowDetail(release: BorrowRelease, differs: ReadonlySet<FactKey>): string {
+  return borrowFacts(release)
+    .filter((fact) => differs.has(fact.key) && !ON_THE_LABEL.includes(fact.key))
+    .slice(0, DETAIL_FACTS)
+    .map((fact) => (fact.raw === null ? fact.absent : fact.text))
+    .join(" · ");
 }
 
 /** Everything `renderPathTemplate` needs that does not come from the release being chosen. */
@@ -113,6 +149,11 @@ export function BorrowSelect({
   readonly filing?: FilingPreview | null;
 }) {
   const hydrated = useHydrated();
+  /*
+   * Which facts are not the same across these options — the same comparison the candidate
+   * cards make inside a release group, because this is the same question in a smaller box.
+   */
+  const differs = distinguishingBorrow(releases);
   const chosen =
     (value === null ? undefined : releases.find((release) => release.id === value)) ??
     releases.find((release) => release.preferred) ??
@@ -180,6 +221,14 @@ export function BorrowSelect({
                   </span>
                   {borrowLabel(release)}
                 </span>
+                {borrowDetail(release, differs) === "" ? null : (
+                  <span
+                    data-testid="borrow-detail"
+                    className="block truncate text-2xs text-primary"
+                  >
+                    {borrowDetail(release, differs)}
+                  </span>
+                )}
                 {/* The consequence, computed. This is what makes the fork readable: two albums
                     produce two visibly different paths rather than the same sentence twice. */}
                 <span
@@ -195,6 +244,17 @@ export function BorrowSelect({
             );
           })}
         </div>
+        {/* Outside the radios: an anchor inside a button is invalid HTML, and the option is the
+            button. */}
+        {chosen === null ? null : (
+          <MbLink
+            kind="release"
+            mbid={chosen.id}
+            truncate
+            label="release"
+            data-testid="borrow-mb"
+          />
+        )}
         {help}
       </div>
     );
@@ -224,10 +284,25 @@ export function BorrowSelect({
             {chosen === null ? "none" : borrowLabel(chosen)}
           </span>
         </SelectTrigger>
-        <SelectContent className="text-xs">
+        {/* Wider than the trigger: eighteen pressings that differ by a catalogue number cannot
+            be told apart through an ellipsis. */}
+        <SelectContent className="w-auto max-w-borrow-menu min-w-(--anchor-width) text-xs">
+          {/*
+            Two lines per option, not a truncated title.
+            Eighteen options whose first line is identical is a list of one option; the second
+            line is the catalogue number, the barcode, the country — whatever `differs` says is
+            not shared — so the list is scannable at the length it actually reaches.
+          */}
           {releases.map((release) => (
             <SelectItem key={release.id} value={release.id} className="text-xs">
-              {borrowLabel(release)}
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate">{borrowLabel(release)}</span>
+                {borrowDetail(release, differs) === "" ? null : (
+                  <span data-testid="borrow-detail" className="truncate text-2xs text-fg-2">
+                    {borrowDetail(release, differs)}
+                  </span>
+                )}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>
@@ -236,6 +311,11 @@ export function BorrowSelect({
         <span className="block truncate font-mono text-2xs text-fg-2" data-testid="borrow-path">
           {filing === null ? tagsFor(chosen) : pathFor(chosen, filing)}
         </span>
+      )}
+      {/* The chosen option's own page, so "which of the eighteen is this?" is one click and
+          not a guess. */}
+      {chosen === null ? null : (
+        <MbLink kind="release" mbid={chosen.id} truncate label="release" data-testid="borrow-mb" />
       )}
       {help}
     </label>

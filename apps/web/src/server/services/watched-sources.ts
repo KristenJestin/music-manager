@@ -15,7 +15,7 @@
  * folders' worth of album-scope guessing, twelve Inbox items. Grouping them would mean reading
  * each new video's YouTube Music `album` tag — which a flat listing does not carry, so it
  * costs a full extraction per new video — and then creating **an import whose source is a
- * subset of a listing**. That last part is the blocker: `createFromUrl` and `resolveStep` are
+ * subset of a listing**. That last part is the blocker: `createImport` and `resolveStep` are
  * built on "one URL is one listing", and an import over three videos of a playlist has no URL
  * to be created from. Inventing one (a synthetic `mm://group/…`, or a set of video ids on the
  * import row) is a change to the import model, not to this service.
@@ -50,7 +50,7 @@ import { newId } from "#/server/ids.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import type { ExtractEntry } from "#/server/toolbox/client.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
-import { createFromUrl } from "#/server/services/imports.ts";
+import { createImport } from "#/server/services/imports.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
   admit,
@@ -601,7 +601,7 @@ export async function scanSource(id: string, options: ScanOptions = {}): Promise
         continue;
       }
 
-      const created = await createFromUrl(url, {
+      const created = await createImport(url, {
         db,
         priority: WATCHED_IMPORT_PRIORITY,
         watchedSourceId: id,

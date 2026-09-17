@@ -37,6 +37,17 @@ export interface ShellContextValue {
   refresh(): void;
   readonly paletteOpen: boolean;
   setPaletteOpen(open: boolean): void;
+  /**
+   * What the palette should already be holding when it opens.
+   *
+   * The reason this is state rather than an argument is that ⌘V is caught on the *document*,
+   * far from the palette, and by then the text is in hand: a person who pastes a YouTube link
+   * into the Console must not then have to paste it a second time into a box. `null` is the
+   * ordinary ⌘K or a click on the bar, which opens empty.
+   */
+  readonly paletteSeed: string | null;
+  /** Open the palette, optionally with text already in it. */
+  openPalette(seed?: string | null): void;
   readonly drawerOpen: boolean;
   setDrawerOpen(open: boolean): void;
 }
@@ -62,6 +73,7 @@ export function ShellProvider({
   const [data, setData] = useState<ShellPayload | null>(initial);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteSeed, setPaletteSeed] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const nextToastId = useRef(1);
 
@@ -96,6 +108,15 @@ export function ShellProvider({
 
   const dismissToast = useCallback((id: number) => {
     toastManager.close(String(id));
+  }, []);
+
+  /*
+   * One function for both doors — ⌘K with nothing, ⌘V with the clipboard — so the palette has
+   * a single way in and the seed cannot be set without the palette being opened to read it.
+   */
+  const openPalette = useCallback((seed: string | null = null) => {
+    setPaletteSeed(seed);
+    setPaletteOpen(true);
   }, []);
 
   useEffect(() => {
@@ -136,10 +157,12 @@ export function ShellProvider({
       refresh,
       paletteOpen,
       setPaletteOpen,
+      paletteSeed,
+      openPalette,
       drawerOpen,
       setDrawerOpen,
     }),
-    [data, toasts, toast, dismissToast, refresh, paletteOpen, drawerOpen],
+    [data, toasts, toast, dismissToast, refresh, paletteOpen, paletteSeed, openPalette, drawerOpen],
   );
 
   /*

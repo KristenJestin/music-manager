@@ -20,12 +20,13 @@
 # ---------------------------------------------------------------------------
 # Where the data is
 # ---------------------------------------------------------------------------
-# Four volumes, named by default so a fresh installation needs no host directories:
+# Five volumes, named by default so a fresh installation needs no host directories:
 #
 #   pgdata   PostgreSQL. The database is the source of truth; files are a projection of it.
 #   library  the music. Shared read-write with the toolbox, read-only with Navidrome.
 #   cache    the toolbox's scratch space (TMPDIR): artwork crops, fingerprint scans.
 #   cookies  the YouTube cookies.txt for `cookiesMode: file`, read-only.
+#   adopt    an *existing* library `mm import <folder>` reads from, read-only. See `x-adopt`.
 #
 # To put any of them on a host path instead, set the matching `MM_*_PATH` in `.env` to an
 # absolute path: compose reads a value starting with `/` as a bind mount and a bare word as the
@@ -39,6 +40,37 @@
 # layer. `docs/deploy.md` § « Cookies YouTube » walks through both modes.
 
 name: music-manager
+
+# ---------------------------------------------------------------------------
+# x-adopt — an existing library, mounted read-only at /adopt
+# ---------------------------------------------------------------------------
+# `mm import <folder>` lists a folder of audio files and adopts each of them instead of
+# downloading it: a playlist that has vanished from YouTube, an album behind an age check, a
+# collection that is simply already on the disk. Three of this stack's containers have to see
+# that folder, and they have to see it **at the same path**:
+#
+#   web, worker  they walk it (`node:fs`) and copy each file into the work directory;
+#   toolbox      it runs ffprobe on every file to read its duration and its tags.
+#
+# Same path in all three, and the translation between them is the identity — which is why
+# there is no second `MM_TOOLBOX_*_ROOT` variable here the way there is for the library. A
+# path that meant `/adopt` in one container and `/srv/musique` in another would be a third
+# pair of roots to keep in step, for nothing.
+#
+# **Read-only, and permanently so.** Music Manager owns its own library and nothing else: it
+# reads these bytes, copies them, and writes the tags to *its* copy. The original is never
+# modified, never moved and never deleted, and `:ro` is what makes that a property of the
+# deployment rather than a promise in a comment.
+#
+# The mount is only half of it. `adoptSourceRoots` must then list `/adopt`, or every path
+# under it is refused with `ADOPT_PATH_REFUSED` — deliberately, because a path arriving in an
+# HTTP body and opened without a check is a file-read primitive. `docs/deploy.md`
+# § « Monter une bibliothèque existante » is the procedure, in French, in full.
+#
+# Left as a named volume by default so a fresh installation needs no host directory; set
+# `MM_ADOPT_PATH=/srv/ancienne-bibliotheque` in `.env` to point it at real music. The line is
+# repeated in the three services rather than hidden behind a YAML anchor: an anchor cannot
+# merge into a sequence, and three visible identical lines is exactly the invariant to see.
 
 x-logging: &logging
   # Without this, a container that logs a stack trace in a loop fills the disk. 3 × 10 MB per
@@ -92,6 +124,9 @@ services:
       # `cookiesMode: file` reads its cookies.txt from here. Read-only: the toolbox never
       # writes to it, only `yt-dlp`'s `cookiefile` option reads it per call.
       - ${MM_COOKIES_PATH:-cookies}:/data:ro
+      # An existing library, read-only, at the same path in web/worker/toolbox. ffprobe reads
+      # every file of a folder import from here. See the `x-adopt` block at the top.
+      - ${MM_ADOPT_PATH:-adopt}:/adopt:ro
     # Deliberately no `ports:`. The browser never talks to Python (`docs/06-stack.md`), and the
     # toolbox has no authentication of its own unless MM_TOOLBOX_TOKEN is set.
 
@@ -134,6 +169,9 @@ services:
       NODE_ENV: production
     volumes:
       - ${MM_LIBRARY_PATH:-library}:/library
+      # The same read-only mount as the toolbox, at the same path: `web` walks the folder and
+      # copies each file into the work directory. See the `x-adopt` block at the top.
+      - ${MM_ADOPT_PATH:-adopt}:/adopt:ro
     ports:
       # Bind to the loopback interface by default: the reverse proxy is on the same host, and
       # a self-hosted box should not answer plain HTTP from the internet. Set
@@ -167,6 +205,9 @@ services:
       MM_MIGRATE_ON_START: "0"
     volumes:
       - ${MM_LIBRARY_PATH:-library}:/library
+      # The worker is the process that actually runs `download`, so it is the one that reads
+      # the adopted bytes. Same path, same `:ro`. See the `x-adopt` block at the top.
+      - ${MM_ADOPT_PATH:-adopt}:/adopt:ro
 
   # ---------------------------------------------------------------------------
   # Navidrome — example only, deliberately commented out
@@ -202,4 +243,6 @@ volumes:
   library:
   cache:
   cookies:
+  # Empty by default. `MM_ADOPT_PATH=/srv/ancienne-bibliotheque` replaces it with a bind mount.
+  adopt:
   # navidrome:

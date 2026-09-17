@@ -138,7 +138,9 @@ describe("resolveMbRef", () => {
     });
     expect(found?.entity).toBe("artist");
     expect(found?.action).toBe("search-artist");
-    expect(found?.actionLabel).toBe("Search Laufey");
+    // The label says what the button does, and what it does is the artist-only search the
+    // wizard's own field now performs: list the catalogue, rather than search it for a title.
+    expect(found?.actionLabel).toBe("List Laufey’s recordings");
     expect(found?.searchText).toBe("Laufey");
   });
 

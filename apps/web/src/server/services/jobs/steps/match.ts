@@ -16,19 +16,23 @@
  *    ambiguous recording parks the job in `awaiting_review`, because choosing wrongly there
  *    changes what gets downloaded. Uncovered tracks and extra videos raise an Inbox item and
  *    let the job continue: they are notices, and the album imports fine without them.
- *  - **It stays idempotent.** Re-running it re-searches (out of the cache, so free), re-scores
- *    deterministically, rewrites the same rows and re-opens the same Inbox items rather than
- *    piling up duplicates.
+ *  - **It stays idempotent, in both directions.** Re-running it re-searches (out of the cache,
+ *    so free), re-scores deterministically, rewrites the same rows, and refreshes the same
+ *    Inbox items rather than piling up duplicates — *and* closes the ones it no longer raises.
+ *    Only the second half is recent: `openInboxItem` never closed anything, so an album
+ *    re-matched onto a release that covers every track kept its "six tracks have no video"
+ *    flag for ever, and half a review queue was notices about mappings that no longer existed.
  *
  * The two escape hatches of P03 survive untouched and take priority, because they are what
  * lets somebody import a record the matcher gets wrong: `--mapping <file.json>` supplies the
  * whole answer, and `--release <mbid>` pins the release and lets the mapping be computed
  * against it.
  */
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import type {
   MappingResult,
+  MatchTrack,
   MatchVideo,
   MbRelease,
   RecordingCandidate,
@@ -41,8 +45,14 @@ import {
   mapping as mappingEngine,
   yearOf,
 } from "@mm/domain";
-import { imports, type ImportTrack } from "#/server/db/schema/index.ts";
-import { openInboxItem } from "#/server/services/inbox.ts";
+import { imports, inboxItems, type ImportTrack, type InboxType } from "#/server/db/schema/index.ts";
+import { isFolderSource } from "#/server/services/import-source.ts";
+import {
+  closeSupersededItems,
+  openInboxItem,
+  type OpenInboxOptions,
+} from "#/server/services/inbox.ts";
+import type { Database } from "#/server/db/client.ts";
 import {
   cassetteGateway,
   liveGateway,
@@ -90,6 +100,29 @@ export interface SuppliedMapping {
     readonly trackTitle: string;
     readonly confidence?: number;
   }[];
+}
+
+/* ------------------------------------------------------------------ */
+/* the questions this step owns                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The four item types `match` raises, and therefore the four it is allowed to close.
+ *
+ * A `fingerprint_mismatch` or a `job_failed` on the same import belongs to another step and is
+ * left exactly where it is; so is anything a person has already answered.
+ */
+const MATCH_ITEMS: readonly InboxType[] = [
+  "ambiguous_release",
+  "ambiguous_recording",
+  "uncovered_tracks",
+  "extra_videos",
+];
+
+/** Open an item and remember that this run asked it. */
+async function raise(raised: Set<string>, options: OpenInboxOptions, db: Database): Promise<void> {
+  const item = await openInboxItem(options, db);
+  raised.add(item.id);
 }
 
 /** Where a supplied mapping is parked between `mm import --mapping` and this step. */
@@ -229,7 +262,8 @@ async function raiseNotices(
 ): Promise<void> {
   if (proposal.extraVideos.length > 0) {
     const count = proposal.extraVideos.length;
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "extra_videos",
         importId: ctx.job.id,
@@ -252,13 +286,29 @@ async function raiseNotices(
 
   if (proposal.uncoveredTracks.length > 0) {
     const count = proposal.uncoveredTracks.length;
-    await openInboxItem(
+    // Over the whole release, not over the uncovered subset: six gaps that all sit on disc 2
+    // still need to say so.
+    const discs = new Set<number>(proposal.uncoveredTracks.map((track) => track.mediumPosition));
+    for (const line of proposal.lines) {
+      if (line.mediumPosition !== null) discs.add(line.mediumPosition);
+    }
+    const multiDisc = discs.size > 1;
+    await raise(
+      ctx.raised,
       {
         type: "uncovered_tracks",
         importId: ctx.job.id,
         title: `${String(count)} track(s) of the release have no video`,
+        /*
+         * The disc is part of the name of a track. A two-disc record has two track 1s, so
+         * "1. High Life, 1. One More Time" reads as a duplicate rather than as two discs.
+         */
         summary: proposal.uncoveredTracks
-          .map((track) => `${String(track.position)}. ${track.title}`)
+          .map((track) =>
+            multiDisc
+              ? `${String(track.mediumPosition)}-${String(track.position)}. ${track.title}`
+              : `${String(track.position)}. ${track.title}`,
+          )
           .join(", "),
         payload: {
           releaseMbid,
@@ -321,7 +371,34 @@ function keep<T>(candidates: readonly T[]): T[] {
   return candidates.slice(0, KEPT_CANDIDATES);
 }
 
+/**
+ * Run the step, then **close the questions it no longer asks**.
+ *
+ * Re-matching used to accumulate: `openInboxItem` refreshed the item a step still wanted to
+ * raise and nothing ever closed the one it had stopped raising, so an album re-matched onto a
+ * release that covers every track kept its "6 track(s) of the release have no video" flag for
+ * ever. The owner re-matched fifteen albums and not one flag was re-evaluated.
+ *
+ * `closeItemsOf` was the only closing verb in this module and it is the wrong one here: it
+ * dismisses *everything* open on the import, which is right for a cancellation and would throw
+ * away a `fingerprint_mismatch` and a `job_failed` here. What this needs is the difference
+ * between what was open and what was just asked, over the four types this step owns — and only
+ * over `open` rows, so an item a person answered stays the record it is.
+ */
 export async function matchStep(ctx: StepContext): Promise<StepResult> {
+  const result = await runMatch(ctx);
+  const closed = await closeSupersededItems(ctx.job.id, MATCH_ITEMS, ctx.raised, ctx.db);
+  if (closed.length > 0) {
+    await ctx.say(
+      "inbox.closed",
+      `${String(closed.length)} review item(s) no longer hold and were closed.`,
+      { level: "info", data: { items: closed.map((item) => ({ id: item.id, type: item.type })) } },
+    );
+  }
+  return result;
+}
+
+async function runMatch(ctx: StepContext): Promise<StepResult> {
   const rows = await ctx.tracks();
   if (rows.length === 0) {
     return { status: "failed", message: "Nothing to match: the import has no videos." };
@@ -341,18 +418,137 @@ async function runMatch(ctx: StepContext, rows: readonly ImportTrack[]): Promise
 
   const videos = rows.map(toMatchVideo);
   const gateway = await gatewayFor(ctx);
-  if (gateway === null) {
-    return {
-      status: "blocked",
-      blockedAs: "awaiting_review",
-      message: `No recorded MusicBrainz data for ${ctx.job.url} in fixtures mode.`,
-      data: { url: ctx.job.url },
-    };
-  }
+  /*
+   * No gateway at all — fixtures mode with nothing recorded for this source.
+   *
+   * It goes through `untaggedFallback` like every other way of giving up, and it has to: this
+   * is precisely the shape "MusicBrainz knows nothing about this record" takes offline, and a
+   * folder import is the case where the files themselves know enough to carry on. Returning
+   * early here is what left the end-to-end folder run parked in `awaiting_review`.
+   */
+  const result: StepResult =
+    gateway === null
+      ? {
+          status: "blocked",
+          blockedAs: "awaiting_review",
+          message: `No recorded MusicBrainz data for ${ctx.job.url} in fixtures mode.`,
+          data: { url: ctx.job.url },
+        }
+      : ctx.job.kind === "single" || rows.length === 1
+        ? await matchOneRecording(ctx, rows, videos, gateway)
+        : await matchOneAlbum(ctx, rows, videos, gateway);
 
-  return ctx.job.kind === "single" || rows.length === 1
-    ? await matchOneRecording(ctx, rows, videos, gateway)
-    : await matchOneAlbum(ctx, rows, videos, gateway);
+  return (await untaggedFallback(ctx, rows, result)) ?? result;
+}
+
+/* ---- import without MusicBrainz, when MusicBrainz has nothing ---- */
+
+/**
+ * Is this import allowed to give up on MusicBrainz and build from the source's own tags?
+ *
+ * **On by default for a folder, off for everything else**, and the asymmetry is the point. A
+ * YouTube listing that matches nothing has *no* usable metadata to fall back on — a video
+ * title, a channel name, and four tags YouTube Music inferred — so blocking and asking a human
+ * is the right answer and has been since P03. A folder's files carry real tags, written by
+ * Picard or by this application's own v1: TITLE, ARTIST, ALBUM, TRACKNUMBER, DATE, often the
+ * MusicBrainz ids themselves. For those, "MusicBrainz does not know this record" is a fact
+ * about a bootleg, a live set or an unregistered artist, not a reason to stop.
+ *
+ * `options.untaggedFallback` overrides it in either direction, because a person importing a
+ * folder they *know* is on MusicBrainz would rather be asked than filed under a wrong title.
+ *
+ * **A release a person pinned switches it off.** `--release <mbid>` is somebody saying *this is
+ * the record*; quietly importing it as untagged because MusicBrainz was unreachable, or because
+ * the id was mistyped, would answer a different question from the one that was asked and file
+ * the album under a title they never chose. The right answer there is the one that has always
+ * been right — block, and let the Inbox ask.
+ *
+ * A release the **files** claimed is not that (`options.releaseMbidFromTags`). Nobody asserted
+ * it, `resolve` read it off a majority of `MUSICBRAINZ_ALBUMID` tags, and MusicBrainz not
+ * having it any more is precisely the situation the fallback exists for.
+ */
+function wantsUntaggedFallback(job: StepContext["job"]): boolean {
+  const stated = job.options.untaggedFallback;
+  if (stated !== undefined) return stated;
+  const pinnedByHand =
+    (job.options.releaseMbid !== undefined || job.releaseMbid !== null) &&
+    job.options.releaseMbidFromTags !== true;
+  if (pinnedByHand) return false;
+  return isFolderSource(job.url);
+}
+
+/**
+ * Turn "the Inbox is asking which release this is" into "import it without MusicBrainz".
+ *
+ * Intercepted here, once, rather than at each of the three places `matchOneAlbum` gives up —
+ * no candidate at all, nothing credited to the artist, nothing above the preselection floor.
+ * All three mean the same thing to a folder import ("MusicBrainz cannot tell me what this
+ * is"), and one interception cannot drift from another the way three guards would.
+ *
+ * The Inbox item the refusal opened is **dismissed, not resolved**: nobody answered it, and
+ * leaving it open would show a review queue entry for a job that has already moved on. This is
+ * the same distinction `forgetMapping` draws for the same items.
+ *
+ * What it then does is exactly the existing `untagged` path — a supplied mapping with
+ * `releaseMbid: null`, the source's own order, the album flagged `untagged` in the library so
+ * it can be found and finished later. Nothing new; the fallback has simply stopped being empty.
+ */
+async function untaggedFallback(
+  ctx: StepContext,
+  rows: readonly ImportTrack[],
+  result: StepResult,
+): Promise<StepResult | null> {
+  if (result.status !== "blocked" || result.blockedAs !== "awaiting_review") return null;
+  if (!wantsUntaggedFallback(ctx.job)) return null;
+
+  await ctx.db
+    .update(inboxItems)
+    .set({ status: "dismissed", resolvedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(inboxItems.importId, ctx.job.id),
+        eq(inboxItems.status, "open"),
+        inArray(inboxItems.type, ["ambiguous_release", "ambiguous_recording"]),
+      ),
+    );
+
+  const videos = rows.map(toMatchVideo);
+  const hints = albumHints(videos, {
+    album: ctx.job.title,
+    artist: ctx.job.artist,
+    year: ctx.job.year,
+  });
+  await ctx.say(
+    "match.untagged",
+    `MusicBrainz has nothing for this; importing from the source's own tags instead.`,
+    {
+      level: "warn",
+      data: { reason: result.message, album: hints.album ?? null, artist: hints.artist ?? null },
+    },
+  );
+
+  /*
+   * The source's own order, one track per entry, in the order `resolve` listed them.
+   *
+   * `trackPosition` is the *position in this import*, which for a folder is the tracklist the
+   * files already state (`folder-source.ts` orders by DISCNUMBER/TRACKNUMBER when every file
+   * carries one). `place` files an untagged album on (album, disc, track), so this is what
+   * decides the filenames — and it is the one thing that would be wrong if the folder were
+   * listed in an arbitrary order.
+   */
+  return await applySupplied(ctx, rows, {
+    releaseMbid: null,
+    ...(hints.album === undefined || hints.album === null ? {} : { album: hints.album }),
+    ...(hints.artist === undefined || hints.artist === null ? {} : { albumArtist: hints.artist }),
+    year: hints.year ?? null,
+    tracks: rows.map((row, index) => ({
+      position: row.position,
+      trackPosition: index + 1,
+      recordingMbid: null,
+      trackTitle: row.trackTitle ?? row.sourceTitle,
+      confidence: 1,
+    })),
+  });
 }
 
 /**
@@ -499,7 +695,8 @@ async function matchOneAlbum(
    * this rule exists to ask a person.
    */
   if (!result.artist.carried && pinned === undefined) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_release",
         importId: ctx.job.id,
@@ -552,7 +749,8 @@ async function matchOneAlbum(
    */
   const floor = ctx.settings.matchPreselectionFloor;
   if (chosen !== null && chosen !== undefined && chosen.score < floor && pinned === undefined) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_release",
         importId: ctx.job.id,
@@ -586,7 +784,8 @@ async function matchOneAlbum(
   }
 
   if (chosen === null || chosen === undefined) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_release",
         importId: ctx.job.id,
@@ -643,6 +842,15 @@ async function matchOneAlbum(
     extras,
     uncovered: proposal.uncoveredTracks.length,
     safe: chosen.safe,
+    /*
+     * Written down so `confirm` can read it off the row.
+     *
+     * The artist rule is enforced here, at `match`, and a blocked job never reaches `confirm`
+     * — but a job *pinned* past it does, and so does a row re-read after a retry. `confirm`'s
+     * own gate (`exactnessRefusal`) needs all four facts in one place, and the step that knew
+     * them is this one.
+     */
+    artistCarried: result.artist.carried,
     ambiguous: result.ranking.ambiguous,
     margin: result.ranking.margin,
     budget: result.budget satisfies MatchBudget,
@@ -655,7 +863,8 @@ async function matchOneAlbum(
   // preferring one would be a guess.
   if (result.ranking.ambiguous && pinned === undefined) {
     const runnerUp = result.ranking.candidates[1];
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_release",
         importId: ctx.job.id,
@@ -775,7 +984,8 @@ async function matchOneRecording(
    * reject them in favour of, and that is a question for a person rather than a preselection.
    */
   if (!result.artist.carried) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_recording",
         importId: ctx.job.id,
@@ -801,7 +1011,8 @@ async function matchOneRecording(
   }
 
   if (chosen === null || chosen.borrow === null) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_recording",
         importId: ctx.job.id,
@@ -844,6 +1055,7 @@ async function matchOneRecording(
     recordingMbid: chosen.id,
     releaseMbid: chosen.borrow.id,
     safe: chosen.safe,
+    artistCarried: result.artist.carried,
     ambiguous: result.ranking.ambiguous,
     margin: result.ranking.margin,
     budget: result.budget satisfies MatchBudget,
@@ -853,7 +1065,8 @@ async function matchOneRecording(
 
   if (result.ranking.ambiguous) {
     const runnerUp = result.ranking.candidates[1];
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "ambiguous_recording",
         importId: ctx.job.id,
@@ -902,27 +1115,120 @@ function clock(seconds: number | null): string {
  * has an opinion of its own.
  */
 /**
- * The release group of a release, from the caller if it said, from MusicBrainz otherwise.
+ * The release a supplied mapping names, as MusicBrainz has it.
  *
- * `undefined` means "still unknown", which `persistRelease` reads as "leave the column alone"
- * — an offline run, or a MusicBrainz that did not answer, must not erase a release group an
- * earlier `match` had found.
+ * One lookup, two consumers. It used to be fetched only for the release group; the *media* on
+ * the same document are what makes a supplied mapping's `uncovered_tracks` notice truthful on
+ * a multi-disc record, so fetching it once and reading both is strictly cheaper than the
+ * arithmetic it replaces. `null` on an offline run or a MusicBrainz that did not answer — a
+ * release group is worth one lookup, never a failed import.
  */
-async function releaseGroupOf(
+async function lookupSupplied(
   ctx: StepContext,
-  releaseMbid: string,
-  supplied: string | null | undefined,
-): Promise<string | undefined> {
-  if (supplied !== undefined && supplied !== null && supplied !== "") return supplied;
+  releaseMbid: string | null,
+): Promise<MbRelease | null> {
+  if (releaseMbid === null || releaseMbid === "") return null;
   try {
     const gateway = await gatewayFor(ctx);
-    if (gateway === null) return undefined;
-    const release = await gateway.lookupRelease(releaseMbid);
-    return release?.["release-group"]?.id ?? undefined;
+    if (gateway === null) return null;
+    return await gateway.lookupRelease(releaseMbid);
   } catch {
-    // A release group is worth one lookup, never a failed import.
-    return undefined;
+    return null;
   }
+}
+
+/** One release track a supplied mapping left with no video. */
+export interface UncoveredCell {
+  readonly position: number;
+  readonly mediumPosition: number;
+  readonly title: string | null;
+  readonly recordingMbid: string | null;
+  readonly lengthSeconds: number | null;
+}
+
+/**
+ * Which tracks of the release a supplied mapping did **not** cover.
+ *
+ * The key is `(mediumPosition, trackPosition)` and never `trackPosition` alone. That is the
+ * whole of the second owner defect: *Crèvecœur* is twelve tracks over two discs, numbered 1–6
+ * then 1–6, every one of them downloaded, tagged and filed — and the flat comparison saw six
+ * positions covered out of twelve and reported "Positions 7, 8, 9, 10, 11, 12" as missing.
+ * Six of his fifteen flagged albums were that sentence and nothing else.
+ *
+ * Two shapes of answer, in this order:
+ *
+ *  1. **the release's own tracklist**, when the lookup produced one. The grid is then a fact,
+ *     the report carries titles, and it is the same payload the matcher's own path writes;
+ *  2. **`trackTotal` on one medium**, when it did not — and only when every binding is on
+ *     medium 1. A mapping that spans two discs with no tracklist to check it against cannot be
+ *     keyed correctly, and a report nobody can key is worse than no report: it is exactly the
+ *     six phantom lines this function exists to stop.
+ */
+export function uncoveredTracks(
+  supplied: Pick<SuppliedMapping, "tracks" | "trackTotal">,
+  tracklist: readonly MatchTrack[] | null,
+): UncoveredCell[] {
+  /*
+   * **`trackTotal` still decides whether the question is asked at all**, and the tracklist only
+   * decides what the answer is.
+   *
+   * Absent means "there is no tracklist to cover, do not check": `confirm-best` omits it for a
+   * single deliberately, and `0` is what the wizard's single path sends. Both mean the release
+   * is the album this recording is *filed under*, not a record to be covered — and reading the
+   * media instead would report the ten other tracks of that album as missing, which is the
+   * notice those two callers went out of their way to avoid.
+   */
+  if (supplied.trackTotal === undefined || supplied.trackTotal === 0) return [];
+
+  const key = (medium: number | undefined, position: number): string =>
+    `${String(medium ?? 1)}:${String(position)}`;
+  const covered = new Set(
+    supplied.tracks.map((entry) => key(entry.mediumPosition, entry.trackPosition)),
+  );
+
+  if (tracklist !== null && tracklist.length > 0) {
+    return tracklist
+      .filter((track) => !covered.has(key(track.mediumPosition, track.position)))
+      .map((track) => ({
+        position: track.position,
+        mediumPosition: track.mediumPosition,
+        title: track.title,
+        recordingMbid: track.recordingMbid,
+        lengthSeconds: track.lengthSeconds,
+      }));
+  }
+
+  if (supplied.tracks.some((entry) => (entry.mediumPosition ?? 1) !== 1)) return [];
+  return Array.from({ length: supplied.trackTotal }, (_, index) => index + 1)
+    .filter((position) => !covered.has(key(1, position)))
+    .map((position) => ({
+      position,
+      mediumPosition: 1,
+      title: null,
+      recordingMbid: null,
+      lengthSeconds: null,
+    }));
+}
+
+/**
+ * "Positions 7, 8, 9" on one disc; "disc 2: 1, 2, 3" as soon as the *record* has two.
+ *
+ * A bare position is ambiguous the moment a record has a second medium, and the sentence the
+ * owner read — six positions that do not exist on his album — was ambiguous *and* wrong.
+ * `multiDisc` describes the release and not the gaps, because six gaps that all sit on disc 2
+ * still need to say which disc they sit on.
+ */
+export function describePositions(cells: readonly UncoveredCell[], multiDisc: boolean): string {
+  if (!multiDisc) return `Positions ${cells.map((cell) => cell.position).join(", ")}.`;
+  return [...new Set(cells.map((cell) => cell.mediumPosition))]
+    .sort((a, b) => a - b)
+    .map((disc) => {
+      const positions = cells
+        .filter((cell) => cell.mediumPosition === disc)
+        .map((cell) => cell.position);
+      return `disc ${String(disc)}: ${positions.join(", ")}`;
+    })
+    .join("; ");
 }
 
 async function applySupplied(
@@ -961,6 +1267,25 @@ async function applySupplied(
     mapped += 1;
   }
 
+  /*
+   * The release itself, read once for the two things that need it: its release group and its
+   * **media**. `null` when there is nothing to look up, or nothing answered.
+   *
+   * **Asked for only when it changes an answer**, because `confirmSupplied` runs this step
+   * inside the wizard's Start button — a server function, synchronous, with somebody watching
+   * (`CLAUDE.md`: a call that can take minutes belongs on a queue). The release group is
+   * already known when the caller supplied it, and the media only matter when the mapping
+   * spans more than one of them: on a single-disc record `trackTotal` and the positions are
+   * the whole grid, and reading the tracklist would buy nothing but the track titles. So this
+   * costs exactly what it cost before on every path that existed before it.
+   */
+  const statedGroup = supplied.releaseGroupMbid;
+  const knowsGroup = statedGroup !== undefined && statedGroup !== null && statedGroup !== "";
+  const spansDiscs = supplied.tracks.some((entry) => (entry.mediumPosition ?? 1) !== 1);
+  const release =
+    knowsGroup && !spansDiscs ? null : await lookupSupplied(ctx, supplied.releaseMbid);
+  const tracklist = release === null ? null : flattenTracks(release);
+
   if (supplied.releaseMbid === null) {
     // "Import without MusicBrainz": there is no release to persist, but the album and artist
     // the source claimed are still what the document and the folder name will be built from,
@@ -987,7 +1312,9 @@ async function applySupplied(
      * without one. The release lookup carries `release-groups` in its `inc` list already, so
      * this costs a cache hit in the ordinary case and one request in the worst.
      */
-    const group = await releaseGroupOf(ctx, supplied.releaseMbid, supplied.releaseGroupMbid);
+    const group = knowsGroup
+      ? (statedGroup ?? undefined)
+      : (release?.["release-group"]?.id ?? undefined);
     await persistRelease(ctx, {
       id: supplied.releaseMbid,
       ...(group === undefined ? {} : { releaseGroupId: group }),
@@ -999,7 +1326,8 @@ async function applySupplied(
 
   if (extras > 0) {
     const leftovers = rows.filter((row) => !byPosition.has(row.position));
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "extra_videos",
         importId: ctx.job.id,
@@ -1018,21 +1346,34 @@ async function applySupplied(
     );
   }
 
-  const covered = new Set(supplied.tracks.map((entry) => entry.trackPosition));
-  const uncovered =
-    supplied.trackTotal === undefined
-      ? []
-      : Array.from({ length: supplied.trackTotal }, (_, index) => index + 1).filter(
-          (position) => !covered.has(position),
-        );
+  const uncovered = uncoveredTracks(supplied, tracklist);
+  // The record's discs, not the gaps' — read from the tracklist when there is one, and from
+  // the mapping when there is not.
+  const discs = new Set<number>([
+    ...(tracklist ?? []).map((track) => track.mediumPosition),
+    ...supplied.tracks.map((entry) => entry.mediumPosition ?? 1),
+    ...uncovered.map((cell) => cell.mediumPosition),
+  ]);
   if (uncovered.length > 0) {
-    await openInboxItem(
+    await raise(
+      ctx.raised,
       {
         type: "uncovered_tracks",
         importId: ctx.job.id,
         title: `${String(uncovered.length)} track(s) of the release have no video`,
-        summary: `Positions ${uncovered.join(", ")}.`,
-        payload: { positions: uncovered, releaseMbid: supplied.releaseMbid },
+        summary: describePositions(uncovered, discs.size > 1),
+        payload: {
+          releaseMbid: supplied.releaseMbid,
+          tracks: uncovered.map((cell) => ({
+            position: cell.position,
+            mediumPosition: cell.mediumPosition,
+            title: cell.title,
+            recordingMbid: cell.recordingMbid,
+            lengthSeconds: cell.lengthSeconds,
+          })),
+          // The flat list the card used to read, kept for an item written before this change.
+          positions: uncovered.map((cell) => cell.position),
+        },
         preselected: { action: "import anyway" },
       },
       ctx.db,

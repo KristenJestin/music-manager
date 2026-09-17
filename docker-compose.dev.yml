@@ -90,6 +90,29 @@ services:
       # host. `cookiesMode: paste` needs none of this — that jar lives in the `settings`
       # table, on the `postgres-data` volume below, already durable.
       - ./.local/cookies:/data:ro
+      # An existing music library, for `mm import <folder>`.
+      #
+      # The toolbox runs ffprobe on every file of a folder import, so it has to *see* the
+      # folder. Inside `./.local/library` that is free — the mount above already covers it, and
+      # that is exactly where the fixtures build their source folder. A folder anywhere else is
+      # invisible to this container until it is mounted, and this is the mount:
+      #
+      #     MM_ADOPT_PATH=D:/Musique bun run stack:up
+      #
+      # In development the app runs on the *host*, so it reads the folder by its host path
+      # while the toolbox reads it by the container path — the same two-ended arrangement as
+      # `MM_LIBRARY_ROOT` / `MM_TOOLBOX_LIBRARY_ROOT`, and the reason the two are made equal in
+      # production (`docker-compose.prod.yml`, `x-adopt`). On Windows they cannot be, so a
+      # development folder import outside the library is a fixtures-only exercise.
+      #
+      # **Read-only, always.** Music Manager reads these bytes and copies them; it never writes
+      # to, moves or deletes the original, and `:ro` is what makes that a fact about the
+      # deployment rather than a promise in a comment. `adoptSourceRoots` must list the path
+      # too, or every file under it is refused with `ADOPT_PATH_REFUSED`.
+      #
+      # The default points back at the library, so the mount always exists and never surprises
+      # anyone who has not set the variable.
+      - ${MM_ADOPT_PATH:-./.local/library}:/adopt:ro
 
 volumes:
   postgres-data:

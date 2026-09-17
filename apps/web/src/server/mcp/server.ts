@@ -38,7 +38,7 @@ import { grants, MMError, type ApiPrincipal, type ApiScope } from "@mm/contracts
 import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import {
   confirmBest,
   createImportsBatch,
@@ -610,9 +610,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       scope: "imports:write",
       title: "Create an import",
       description:
-        "Queue a YouTube URL. Resolves the source immediately, then hands the job to the " +
-        "worker. Poll `get_import`, or set `autoConfirm` to let it run past the confirmation " +
-        "gate without asking.\n\n" +
+        "Queue a source: a YouTube URL, or **the absolute path of a folder of audio files on " +
+        "the server**. Resolves it immediately, then hands the job to the worker. Poll " +
+        "`get_import`, or set `autoConfirm` to let it run past the confirmation gate without " +
+        "asking.\n\n" +
+        "**A folder is listed the way a playlist is listed.** Each file becomes an entry with " +
+        "its title, its exact duration and its existing tags; matching runs on those entries " +
+        "exactly as on videos; and each file is then **adopted** rather than downloaded, so " +
+        "no byte is fetched and the single download slot is never taken. Use it for a source " +
+        "that cannot be resolved at all — a playlist that has vanished from YouTube, an album " +
+        "behind an age check — or to take over a library that is already on the disk. The " +
+        "folder must be inside the library or inside a directory the operator listed in " +
+        "`adoptSourceRoots` (empty by default); anything else is `ADOPT_PATH_REFUSED`. The " +
+        "listing is not recursive: one folder is one release, so point at the album folder " +
+        "and not at the library above it.\n\n" +
         "`fixture://…` URLs (`fixture://discovery`, `fixture://skinny-love`, " +
         "`fixture://currents`) are for **fixtures mode only**, and the trap is that they half " +
         "work outside it: the toolbox answers `extract` from its recordings whatever mode it " +
@@ -620,34 +631,52 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "`fixture://…` to yt-dlp, which cannot fetch it, and the job dies there. `get_status` " +
         "reports `toolbox.fixtures`; check it before reaching for one.",
       inputSchema: {
-        url: z.string().min(1).describe("A YouTube URL, or `fixture://…` in fixtures mode."),
+        url: z
+          .string()
+          .min(1)
+          .describe(
+            "A YouTube URL, `fixture://…` in fixtures mode, or an absolute folder path on " +
+              "the server (`/srv/musique/album`, `file:///srv/musique/album`).",
+          ),
         releaseMbid: z
           .uuid()
           .optional()
           .describe("Pin this MusicBrainz release instead of letting the matcher choose."),
         autoConfirm: z.boolean().default(false),
         force: z.boolean().default(false).describe("Re-import even if the tracks are present."),
+        untaggedFallback: z
+          .boolean()
+          .optional()
+          .describe(
+            "When MusicBrainz has nothing, import from the source's own tags instead of " +
+              "parking the job in the review queue. Omit it to decide by the source: on for " +
+              "a folder, off for a URL.",
+          ),
       },
       run: async (args: {
         url: string;
         releaseMbid?: string;
         autoConfirm: boolean;
         force: boolean;
+        untaggedFallback?: boolean;
       }) => {
-        const created = await createFromUrl(args.url, {
+        const created = await createImport(args.url, {
           db: db(),
           ...(args.releaseMbid === undefined ? {} : { releaseMbid: args.releaseMbid }),
+          ...(args.untaggedFallback === undefined
+            ? {}
+            : { untaggedFallback: args.untaggedFallback }),
           autoConfirm: args.autoConfirm,
           // The provenance fix reached `confirm_mapping` and stopped there, so an import
           // created *here* with `autoConfirm` was still logged as `cli --yes` in `decisions`.
-          // `createFromUrl` now refuses an unsigned `autoConfirm`, which is what stops the
+          // `createImport` now refuses an unsigned `autoConfirm`, which is what stops the
           // next caller inheriting the same silence.
           ...(args.autoConfirm ? { confirmedBy: "mcp" } : {}),
           force: args.force,
         });
         await enqueue(created.job.id, "mcp");
         /*
-         * `resolve` runs inside `createFromUrl`, so a URL that cannot be resolved comes back
+         * `resolve` runs inside `createImport`, so a URL that cannot be resolved comes back
          * as a *created* import in `failed` — and this tool used to answer `{status:"failed",
          * duplicates:[…]}`, which reads as "the duplicate is the problem" and needed a second
          * call to learn it was a 422 from the toolbox. The reason travels with the verdict.
@@ -721,9 +750,17 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "**Two criteria, one tool, chosen by what the import is.** `kind` in the answer says " +
         "which one ran. Loop this over every id `create_imports` gave you; you do not have to " +
         "know in advance which of them resolved to a single.\n\n" +
-        "**An album is decided on coverage** — `minCoverage` is mapped videos ÷ videos in the " +
-        "import, and defaults to 0.8 — and the mapping comes from the winning release's " +
-        "`fitLines`. " +
+        "**An album is decided on an exact match.** This is the only path that commits a " +
+        "release without a person reading the card, so it commits only when there is nothing " +
+        "left to ask: every video of the import bound to a track, no track of the release left " +
+        "without a video, and a candidate credited to the artist the source names. Anything " +
+        "else is a refusal naming the condition that failed, and the import is left waiting. " +
+        "Five albums of the owner's library were imported under the old rule with **no release " +
+        "of the right size in MusicBrainz at all**; a parked import beats a wrong album that " +
+        "looks finished.\n\n" +
+        "`minCoverage` (mapped videos ÷ videos, default 0.8) is a bar you may *raise* on top of " +
+        "that; it cannot waive it. A deliberately inexact album is `confirm_mapping`'s job. " +
+        "The mapping comes from the winning release's `fitLines`, and " +
         '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single that ' +
         "maps the same number of videos; it never promotes a candidate that maps fewer.\n\n" +
         "**A single is decided on the margin.** One video is ranked against *recordings*, so " +

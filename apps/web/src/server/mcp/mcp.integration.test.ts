@@ -124,7 +124,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
   describe("§1 confirm_mapping", () => {
     it("refuses an import that is not waiting for a decision", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         db: db(),
         resolveNow: false,
       });
@@ -153,7 +153,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     });
 
     it("names an unknown video position instead of silently binding nothing", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_review" })
@@ -170,7 +170,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 60_000);
 
     it("reports what the step did, not how many bindings it was sent", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_review" })
@@ -197,7 +197,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     /* ---- §2 — provenance ---- */
 
     it("logs the decision as `mcp`, not as `cli --yes`", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_review" })
@@ -240,7 +240,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 60_000);
 
     it("get_import exposes a per-track error and a job-level failedCount", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       const [first] = await db()
         .select()
         .from(schema.importTracks)
@@ -269,7 +269,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
   /* ---------------------------------------------------------------- */
 
   it("§13 clears a step's message when the step restarts", async () => {
-    const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+    const created = await imports.createImport("fixture://discovery", { db: db() });
     await db()
       .insert(schema.jobSteps)
       .values({
@@ -622,7 +622,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
   describe("B the mapping's identifiers are readable", () => {
     it("get_import carries recordingMbid, trackPosition and mediumPosition per track", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       const detail = (await call("get_import", { importId: created.job.id })) as {
         tracks: {
           position: number;
@@ -640,7 +640,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("get_candidates puts them on every fit line, so a faithful confirm is a copy", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       const result = (await call("get_candidates", {
         importId: created.job.id,
         detail: "full",
@@ -884,7 +884,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
   /* ---------------------------------------------------------------- */
 
   it("I resolve_inbox answers a whole import's items and re-queues it once", async () => {
-    const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+    const created = await imports.createImport("fixture://discovery", { db: db() });
     for (const index of [0, 1, 2]) {
       // An item is idempotent per (type, import, track), which is what stops a retried step
       // piling up questions — so three questions need three distinct tracks.
@@ -1141,7 +1141,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
     it("the REST create path is `api`", async () => {
       // The same options object `POST /api/v1/imports` builds, through the same service.
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         db: db(),
         autoConfirm: true,
         confirmedBy: "api",
@@ -1150,7 +1150,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("the Console wizard is `console`", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       // What `functions/wizard.ts` writes when step 3 is submitted.
       await consoleQueries.setImportOptions(
         created.job.id,
@@ -1162,7 +1162,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("the CLI's `--yes` is `cli --yes`", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         db: db(),
         autoConfirm: true,
         confirmedBy: "cli --yes",
@@ -1172,9 +1172,9 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
     it("refuses to open the gate at all without a signature", async () => {
       await expect(
-        imports.createFromUrl("fixture://discovery", { db: db(), autoConfirm: true }),
+        imports.createImport("fixture://discovery", { db: db(), autoConfirm: true }),
       ).rejects.toThrow(/confirmedBy/);
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await expect(
         consoleQueries.setImportOptions(created.job.id, { autoConfirm: true }, {}, db()),
       ).rejects.toThrow(/confirmedBy/);
@@ -1257,7 +1257,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     const GROUP = "48117b90-a16e-34ca-a514-19c702df1158";
 
     it("asks MusicBrainz for it when the caller did not supply one", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_review" })
@@ -1280,7 +1280,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("takes the caller's own value when there is one, without a lookup", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_review" })
@@ -1477,7 +1477,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
   describe("R3-5 get_candidates separates bound lines from extras", () => {
     it("`fitLines.map(…)` parses as `bindings` with no filtering", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       const answer = (await call("get_candidates", { importId: created.job.id })) as {
         candidates: {
           fitLines?: {
@@ -1522,7 +1522,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("keeps the default summary under 20 KB and says when it abbreviated", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       const answer = (await call("get_candidates", { importId: created.job.id })) as {
         truncated?: string[];
       };
@@ -1585,7 +1585,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
 
   describe("R3-7 minor observations", () => {
     it("a queued import shows the first unfinished step and its position", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       // The state the report described: the job says `running` / `download` because that is
       // the step it is *on*, while the step row says `pending`.
       await db()
@@ -1607,7 +1607,7 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     }, 120_000);
 
     it("an import waiting for a person has no queue position", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", { db: db() });
+      const created = await imports.createImport("fixture://discovery", { db: db() });
       await db()
         .update(schema.imports)
         .set({ status: "awaiting_confirm" })

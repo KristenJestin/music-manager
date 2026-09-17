@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { TrackDocument } from "@mm/domain";
+import type { MatchTrack, MbRelease, TrackDocument } from "@mm/domain";
+import { flattenTracks } from "@mm/domain";
 import type { ImportTrack } from "#/server/db/schema/index.ts";
 import type { ExtractResult } from "#/server/toolbox/client.ts";
+import { loadCassette } from "#/server/services/matching.cassettes.ts";
 import { classify } from "./resolve.ts";
-import { autoAcceptDecision } from "./confirm.ts";
+import { autoAcceptDecision, exactnessRefusal } from "./confirm.ts";
 import { compareFingerprint } from "./fingerprint.ts";
+import { describePositions, uncoveredTracks } from "./match.ts";
 import { pathInputFor } from "./place.ts";
 import { projectionHash, r128Gain } from "./tag.ts";
 
@@ -130,6 +133,22 @@ describe("compareFingerprint", () => {
     expect(verdict.agrees).toBe(false);
     expect(verdict.reason).not.toContain("“”");
     expect(verdict.reason).toContain("CHVRCHES - Clearest Blue");
+  });
+
+  it("contradicts nothing when the import has no MusicBrainz release at all", () => {
+    // The *other* reason a track can have no recording id: "import without MusicBrainz", where
+    // there is no release either. Nothing was claimed, so AcoustID recognising the audio as
+    // something else is information rather than a disagreement — and a folder of 273 files
+    // would otherwise raise 273 questions with no possible answer.
+    const verdict = compareFingerprint(
+      { candidates: [{ recording_mbid: "rec-9", score: 0.99, title: "Wonderland", artist: null }] },
+      { recordingMbid: null, title: "Ouverture", sourceTitle: "A-side.opus", untagged: true },
+      options,
+    );
+    expect(verdict.agrees).toBe(true);
+    expect(verdict.reason).toContain("nothing to contradict");
+    // The candidate is still reported: the fingerprint is the useful part and it is kept.
+    expect(verdict.candidateMbid).toBe("rec-9");
   });
 
   it("says nothing when AcoustID answered nothing — silence is not a contradiction", () => {
@@ -335,6 +354,268 @@ describe("autoAcceptDecision", () => {
   it("waits when the source never opted in, whatever the score says", () => {
     const decision = autoAcceptDecision({ allowed: false, verdict: safe, threshold: 0 });
     expect(decision.accept).toBe(false);
+    expect(decision.why).toContain("off for this source");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * Positions are `(medium, track)` — the second owner defect.
+ *
+ * *Crèvecœur* is twelve tracks over two discs, numbered 1–6 then 1–6. All twelve videos
+ * downloaded, tagged and filed, every step read 12/12, and the import raised "6 track(s) of the
+ * release have no video — Positions 7, 8, 9, 10, 11, 12": the covered set was `{1,2,3,4,5,6}`
+ * and the grid was `1..trackTotal`, flat. Six of the owner's fifteen flagged albums were that
+ * sentence and nothing else.
+ *
+ * The fixture is the two-disc *Discovery* vinyl the `discovery` cassette already carries
+ * (`ac7518c6…`, 7 + 7), so this is a real release rather than a hand-built one.
+ */
+describe("uncoveredTracks", () => {
+  const VINYL = "ac7518c6-b630-4761-99c7-6a94cc35a594";
+
+  function twoDiscRelease(): MbRelease {
+    const cassette = loadCassette("discovery");
+    const entry = cassette?.entries.find((row) => row.key.includes(VINYL));
+    if (entry === undefined) throw new Error(`the discovery cassette has no ${VINYL}`);
+    return entry.payload as MbRelease;
+  }
+
+  /** The mapping the wizard sends for a fully covered two-disc record. */
+  function everyTrack(tracks: readonly MatchTrack[]) {
+    return tracks.map((track, index) => ({
+      position: index,
+      trackPosition: track.position,
+      mediumPosition: track.mediumPosition,
+      recordingMbid: track.recordingMbid,
+      trackTitle: track.title,
+    }));
+  }
+
+  it("reports nothing when every track of every disc is covered", () => {
+    const tracks = flattenTracks(twoDiscRelease());
+    expect(tracks).toHaveLength(14);
+    // Two discs of seven: the positions repeat, which is the whole difficulty.
+    expect(tracks.filter((track) => track.position === 1)).toHaveLength(2);
+
+    const supplied = { tracks: everyTrack(tracks), trackTotal: tracks.length };
+    expect(uncoveredTracks(supplied, tracks)).toEqual([]);
+  });
+
+  it("names the disc of the track it really missed, not a flat position", () => {
+    const tracks = flattenTracks(twoDiscRelease());
+    const missing = tracks.find((track) => track.mediumPosition === 2 && track.position === 3);
+    const supplied = {
+      tracks: everyTrack(tracks).filter(
+        (line) => !(line.mediumPosition === 2 && line.trackPosition === 3),
+      ),
+      trackTotal: tracks.length,
+    };
+
+    const uncovered = uncoveredTracks(supplied, tracks);
+    expect(uncovered).toHaveLength(1);
+    expect(uncovered[0]?.mediumPosition).toBe(2);
+    expect(uncovered[0]?.position).toBe(3);
+    expect(uncovered[0]?.title).toBe(missing?.title);
+    // Disc 1 track 3 is covered and must not be dragged in by sharing a number with it.
+    expect(uncovered.some((cell) => cell.mediumPosition === 1)).toBe(false);
+  });
+
+  /**
+   * A single covers no tracklist: the release it is filed under is the album it is *borrowed
+   * from*, and reading its media would report the thirteen other tracks as missing. That is
+   * the notice `confirm-best` (no `trackTotal`) and the wizard's single path (`trackTotal: 0`)
+   * both go out of their way to avoid, and having a real tracklist to hand must not undo it.
+   */
+  it("asks nothing when the caller says there is no tracklist to cover", () => {
+    const tracks = flattenTracks(twoDiscRelease());
+    const one = [
+      { position: 0, trackPosition: 2, mediumPosition: 1, recordingMbid: null, trackTitle: "x" },
+    ];
+    expect(uncoveredTracks({ tracks: one }, tracks)).toEqual([]);
+    expect(uncoveredTracks({ tracks: one, trackTotal: 0 }, tracks)).toEqual([]);
+  });
+
+  it("still reports a real gap on a single-disc record", () => {
+    const supplied = {
+      tracks: [
+        { position: 0, trackPosition: 1, mediumPosition: 1, recordingMbid: null, trackTitle: "a" },
+        { position: 1, trackPosition: 3, mediumPosition: 1, recordingMbid: null, trackTitle: "c" },
+      ],
+      trackTotal: 3,
+    };
+    expect(uncoveredTracks(supplied, null).map((cell) => cell.position)).toEqual([2]);
+  });
+
+  /**
+   * No tracklist and a mapping that spans two discs: the layout is unknowable, so nothing is
+   * reported. A report nobody can key is worse than no report — it is the six phantom lines.
+   */
+  it("says nothing rather than guessing when it has no tracklist and more than one disc", () => {
+    const supplied = {
+      tracks: [
+        { position: 0, trackPosition: 1, mediumPosition: 1, recordingMbid: null, trackTitle: "a" },
+        { position: 1, trackPosition: 1, mediumPosition: 2, recordingMbid: null, trackTitle: "b" },
+      ],
+      trackTotal: 12,
+    };
+    expect(uncoveredTracks(supplied, null)).toEqual([]);
+  });
+});
+
+describe("describePositions", () => {
+  const cell = (mediumPosition: number, position: number) => ({
+    position,
+    mediumPosition,
+    title: null,
+    recordingMbid: null,
+    lengthSeconds: null,
+  });
+
+  it("names bare positions on a single-disc record", () => {
+    expect(describePositions([cell(1, 7), cell(1, 8)], false)).toBe("Positions 7, 8.");
+  });
+
+  it("names the disc as soon as there are two", () => {
+    expect(describePositions([cell(1, 6), cell(2, 1), cell(2, 2)], true)).toBe(
+      "disc 1: 6; disc 2: 1, 2",
+    );
+  });
+
+  /**
+   * The flag describes the *record*, not the gaps. Six positions that all sit on disc 2 are
+   * still six positions of a two-disc record, and "Positions 1, 2, 3" names six tracks of it.
+   */
+  it("names the disc even when every gap is on the same one", () => {
+    expect(describePositions([cell(2, 1), cell(2, 2)], true)).toBe("disc 2: 1, 2");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * The engine may confirm alone only on an exact match.
+ *
+ * The generalisation of the artist refusal `match` already applies: every video bound, no
+ * release track left uncovered, no video left over, and the source's artist carried. Five of
+ * the owner's fifteen flagged albums have no release of the right size in MusicBrainz at all —
+ * *Smoke + Mirrors* (21 videos), *Random Access Memories (Drumless)* (13), *The Family Jewels*
+ * (13), *Night Candy* (4), *Ceremonials* (15) — and one was chosen for each of them anyway.
+ */
+describe("exactnessRefusal", () => {
+  const exact = {
+    kind: "album" as const,
+    answered: false,
+    untagged: false,
+    videos: 14,
+    bound: 14,
+    tracks: 14,
+    artistCarried: true,
+  };
+
+  it("allows the one shape where nothing is left over on either side", () => {
+    expect(exactnessRefusal(exact)).toBeNull();
+  });
+
+  it("refuses a video the release has no track for", () => {
+    // `fixture://discovery`: fifteen videos, fourteen tracks, one radio edit left over.
+    expect(exactnessRefusal({ ...exact, videos: 15, bound: 14 })).toMatch(
+      /1 of your 15 video\(s\)/,
+    );
+  });
+
+  it("refuses a track of the release no video covers", () => {
+    expect(exactnessRefusal({ ...exact, tracks: 15 })).toMatch(/1 track\(s\).*no video/);
+  });
+
+  it("refuses when no candidate is credited to the artist the source names", () => {
+    expect(exactnessRefusal({ ...exact, artistCarried: false })).toMatch(/credited to the artist/);
+  });
+
+  it("refuses a match step that recorded nothing to judge", () => {
+    expect(exactnessRefusal(null)).toMatch(/nothing to judge/);
+    expect(exactnessRefusal({ ...exact, bound: null })).toMatch(/no tracklist fit/);
+  });
+
+  /** A pinned release and a supplied mapping are a person; there is nobody left to ask. */
+  it("exempts an answer somebody gave", () => {
+    expect(exactnessRefusal({ ...exact, answered: true, videos: 21, bound: 13 })).toBeNull();
+  });
+
+  /**
+   * A folder MusicBrainz cannot identify, which `match`'s untagged fallback imports from the
+   * files' own tags. There is no release behind it, so there is no fit to be inexact: the row
+   * records no `uncovered` count, and reading that as "I cannot tell" would park every folder
+   * import of an unregistered record in the review queue for a question nobody can answer.
+   *
+   * A folder MusicBrainz *can* identify is not this: it takes the ordinary path, records the
+   * counts, and is judged by the four conditions like any other source.
+   */
+  it("exempts an import that has no MusicBrainz release at all", () => {
+    expect(
+      exactnessRefusal({ ...exact, untagged: true, bound: null, tracks: null, videos: null }),
+    ).toBeNull();
+    expect(exactnessRefusal({ ...exact, untagged: false, bound: null })).toMatch(
+      /no tracklist fit/,
+    );
+  });
+
+  /**
+   * A single covers no tracklist — the release it is filed under is context, which is why the
+   * wizard sends `trackTotal: 0` for one. The artist condition still applies.
+   */
+  it("exempts a single from the tracklist conditions but not from the artist one", () => {
+    expect(
+      exactnessRefusal({ ...exact, kind: "single", videos: 1, bound: 1, tracks: 11 }),
+    ).toBeNull();
+    expect(
+      exactnessRefusal({ ...exact, kind: "single", videos: 1, bound: 1, artistCarried: false }),
+    ).toMatch(/credited to the artist/);
+  });
+});
+
+describe("autoAcceptDecision, composed with the exactness rule", () => {
+  const safe = { safe: true, ambiguous: false, score: 0.97 };
+  const exact = {
+    kind: "album" as const,
+    answered: false,
+    untagged: false,
+    videos: 14,
+    bound: 14,
+    tracks: 14,
+    artistCarried: true,
+  };
+
+  it("still accepts when the three score rules and the four exactness rules all hold", () => {
+    expect(
+      autoAcceptDecision({ allowed: true, verdict: safe, threshold: 0.95, shape: exact }).accept,
+    ).toBe(true);
+  });
+
+  /*
+   * The three gates compose in one order, and the order is the sentence a person reads: the
+   * source's permission, then its score bar, then exactness. A source that never opted in is
+   * told that, and not something about its tracklist.
+   */
+  it("refuses a high-scoring, unambiguous match that is not exact", () => {
+    const decision = autoAcceptDecision({
+      allowed: true,
+      verdict: safe,
+      threshold: 0.95,
+      shape: { ...exact, videos: 15, bound: 14 },
+    });
+    expect(decision.accept).toBe(false);
+    expect(decision.why).toMatch(/video\(s\)/);
+  });
+
+  it("names the permission before the tracklist when the source never opted in", () => {
+    const decision = autoAcceptDecision({
+      allowed: false,
+      verdict: safe,
+      threshold: 0.95,
+      shape: { ...exact, videos: 15, bound: 14 },
+    });
     expect(decision.why).toContain("off for this source");
   });
 });

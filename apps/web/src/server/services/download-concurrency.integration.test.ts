@@ -124,7 +124,7 @@ describe.skipIf(unavailable !== null)("the single download slot", () => {
   /* ---------------------------------------------------------------- */
 
   it("a Retry queues the job; it never downloads in the caller's process", async () => {
-    const created = await imports.createFromUrl(SOURCE, {
+    const created = await imports.createImport(SOURCE, {
       autoConfirm: true,
       confirmedBy: "cli --yes",
     });
@@ -212,7 +212,7 @@ describe.skipIf(unavailable !== null)("the single download slot", () => {
   it("serialises two jobs and a Retry fired at the same time, and fails none of them", async () => {
     const ids: string[] = [];
     for (const force of [false, true]) {
-      const created = await imports.createFromUrl(SOURCE, {
+      const created = await imports.createImport(SOURCE, {
         autoConfirm: true,
         confirmedBy: "cli --yes",
         force,

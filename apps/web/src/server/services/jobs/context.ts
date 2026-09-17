@@ -49,6 +49,16 @@ export interface StepContext {
    * unifying the album-scope fields — must ask `albumTracks()` and say so.
    */
   readonly trackScope: string | null;
+  /**
+   * The Inbox items **this run of this step** raised or refreshed.
+   *
+   * Fresh for every run, and filled by the step itself. It is what lets a step close the
+   * questions it asked last time and does not ask any more (`closeSupersededItems`):
+   * `openInboxItem` makes a step idempotent in one direction only, and nothing used to close
+   * the other, so an album re-matched onto a release that covers every track kept its
+   * "6 tracks have no video" flag for ever.
+   */
+  readonly raised: Set<string>;
   /** Append one line to the journal, already tagged with this import and this step. */
   say(
     type: string,
@@ -140,7 +150,10 @@ export async function makeContext(
       .select()
       .from(importTracks)
       .where(and(eq(importTracks.importId, importId), eq(importTracks.role, "mapped")))
-      .orderBy(asc(importTracks.trackPosition));
+      // Tracklist order is `(medium, position)`. Ordering on the position alone interleaves the
+      // two discs of a multi-disc record — 1, 1, 2, 2, 3, 3 — and every consumer of this list
+      // reads it as "the album, in order".
+      .orderBy(asc(importTracks.mediumPosition), asc(importTracks.trackPosition));
 
   return {
     db,
@@ -152,6 +165,7 @@ export async function makeContext(
     step,
     signal: options.signal,
     trackScope: scope,
+    raised: new Set<string>(),
     onTrackDownloaded: options.onTrackDownloaded,
     async say(type, message, extra = {}) {
       await emit(

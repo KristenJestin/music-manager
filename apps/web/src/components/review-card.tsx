@@ -42,6 +42,7 @@ export interface ReviewCardProps {
  */
 function uncoveredTracks(payload: Record<string, unknown>): {
   position: number;
+  mediumPosition: number;
   title: string;
   lengthSeconds: number | null;
 }[] {
@@ -51,6 +52,7 @@ function uncoveredTracks(payload: Record<string, unknown>): {
       const track = entry as Record<string, unknown>;
       return {
         position: typeof track["position"] === "number" ? track["position"] : 0,
+        mediumPosition: typeof track["mediumPosition"] === "number" ? track["mediumPosition"] : 1,
         title: typeof track["title"] === "string" ? track["title"] : "unknown track",
         lengthSeconds: typeof track["lengthSeconds"] === "number" ? track["lengthSeconds"] : null,
       };
@@ -60,7 +62,12 @@ function uncoveredTracks(payload: Record<string, unknown>): {
   if (!Array.isArray(positions)) return [];
   return positions
     .filter((position): position is number => typeof position === "number")
-    .map((position) => ({ position, title: "not covered by any video", lengthSeconds: null }));
+    .map((position) => ({
+      position,
+      mediumPosition: 1,
+      title: "not covered by any video",
+      lengthSeconds: null,
+    }));
 }
 
 /**
@@ -282,6 +289,7 @@ export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: Re
   }, [chosen, options, onConfirm, busy]);
 
   const uncovered = item.type === "uncovered_tracks" ? uncoveredTracks(item.payload) : [];
+  const uncoveredDiscs = new Set(uncovered.map((track) => track.mediumPosition)).size;
   const extras = item.type === "extra_videos" ? extraVideos(item.payload) : [];
   const sides = item.type === "fingerprint_mismatch" ? fingerprintSides(item.payload) : null;
 
@@ -324,8 +332,12 @@ export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: Re
             <table className="w-full text-xs">
               <tbody>
                 {uncovered.map((track) => (
-                  <tr key={`${String(track.position)}-${track.title}`}>
+                  <tr
+                    key={`${String(track.mediumPosition)}-${String(track.position)}-${track.title}`}
+                  >
                     <td className="py-0.5 pr-3 font-mono text-fg-3">
+                      {/* A position without its disc names two tracks on a two-disc record. */}
+                      {uncoveredDiscs > 1 ? `${String(track.mediumPosition)}-` : ""}
                       {String(track.position).padStart(2, "0")}
                     </td>
                     <td className="py-0.5">{track.title}</td>

@@ -212,7 +212,7 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
       const item = await getInboxItem(id, db());
       if (item === null) throw notFound(id);
 
-      const updated = await resolveInboxItem(
+      const { item: updated } = await resolveInboxItem(
         id,
         {
           resolution:

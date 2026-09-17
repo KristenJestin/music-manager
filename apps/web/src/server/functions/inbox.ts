@@ -736,7 +736,7 @@ export const resolveItem = createServerFn({ method: "POST", strict: STRICT })
       if (item === null) {
         throw new MMError("NOT_FOUND", `No Inbox item with id ${data.id}.`, { status: 404 });
       }
-      await resolveInboxItem(
+      const outcome = await resolveInboxItem(
         data.id,
         {
           resolution: data.choice,
@@ -746,7 +746,12 @@ export const resolveItem = createServerFn({ method: "POST", strict: STRICT })
         db(),
       );
 
-      let resumed = false;
+      /*
+       * The answer may have restarted the job itself — a chosen release or recording is pinned
+       * and re-matched by `applyResolution`. The toast reads this, so "the job resumes" is a
+       * report rather than a hope.
+       */
+      let resumed = outcome.resumed;
       if (item.importId !== null && !(await hasOpenItems(item.importId, db()))) {
         const job = await getImport(item.importId, db());
         if (

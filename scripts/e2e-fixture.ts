@@ -919,6 +919,159 @@ async function main(): Promise<void> {
     (engineerTags["ENGINEER"] ?? "") === "Robin Schmidt",
     "and the file says what the database says, without a second gesture",
     engineerTags["ENGINEER"] ?? "(absent)",
+  section("a folder of files, imported without downloading anything");
+  /* ---------------------------------------------------------------- */
+  //
+  // The case the owner has three times over and which no URL can express: twenty playlists
+  // that have vanished from YouTube, eight albums behind an age check, and a library that is
+  // simply already on the disk. All three fail at `resolve`, before a single track row exists,
+  // so adopting a file onto a track cannot help — there is no track.
+  //
+  // What is proved here, end to end, with the real worker, the real toolbox and the real CLI:
+  // folder → entries → match → adopt → tag → place, and **no download**. The last part is the
+  // one that has to be measured rather than assumed, so it is checked three ways: no
+  // `track.done` event (the journal line a fetched file writes), an `mm_adoption` record on
+  // every row, and the `COMMENT` read back out of a *placed* file with ffprobe.
+
+  const { buildFixtureSource, FIXTURE_ALBUM, FIXTURE_ARTIST, FIXTURE_TRACKS } =
+    await import("../fixtures/folder/build-source.ts");
+  // Inside this run's library, because ffprobe runs in the container and the container's only
+  // mount is the library. In production that is what `MM_ADOPT_PATH` provides; here the
+  // fixture folder is dot-prefixed so Navidrome's scanner never sees it.
+  const source = await buildFixtureSource({
+    libraryRoot: LIBRARY,
+    subdir: ".mm-folder-src",
+    toolboxUrl: TOOLBOX_URL,
+    containerRoot: TOOLBOX_LIBRARY_ROOT,
+  });
+  info(`built ${String(source.files)} tagged file(s) in ${source.album}`);
+
+  const folderOut = await mm("import", source.album, "--yes", "--follow");
+  const folderImport = await latestImport();
+  const folderJob = await waitFor(
+    folderImport,
+    (row) => row.status === "done" || row.status === "failed",
+    "the folder import to finish",
+  );
+  check(
+    folderJob.status === "done",
+    "a folder of audio files imports to done",
+    folderOut.slice(-300),
+  );
+
+  const folderRow = await sql<{ url: string; kind: string }[]>`
+    select url, kind from imports where id = ${folderImport}`;
+  check(
+    folderRow[0]?.kind === "album",
+    "the files agreeing on an album make it an `album` — no fifth kind was needed",
+    folderRow[0]?.kind ?? "(none)",
+  );
+  check(
+    (folderRow[0]?.url ?? "").startsWith("file:///"),
+    "the source is stored as a file:// URL, in the same column a playlist uses",
+    folderRow[0]?.url ?? "(none)",
+  );
+
+  // `track.done` on the **download** step is the line a fetched file writes — `tag` and `place`
+  // write one of their own for every track, adopted or not, so the step is part of the filter.
+  const downloadEvents = await sql<{ n: string }[]>`
+    select count(*)::text as n from job_events
+     where import_id = ${folderImport} and type = 'track.done' and step = 'download'`;
+  check(
+    Number(downloadEvents[0]?.n ?? "1") === 0,
+    "not one byte was downloaded: no download finished on this import",
+    `${downloadEvents[0]?.n ?? "?"} download(s)`,
+  );
+  const downloadedBytes = await sql<{ n: string }[]>`
+    select coalesce(sum(downloaded_bytes), 0)::text as n from import_tracks
+     where import_id = ${folderImport}`;
+  info(`${downloadedBytes[0]?.n ?? "?"} byte(s) accounted for, all of them copied from disk`);
+  const adoptedEvents = await sql<{ n: string }[]>`
+    select count(*)::text as n from job_events
+     where import_id = ${folderImport} and type = 'track.adopted'`;
+  check(
+    Number(adoptedEvents[0]?.n ?? "0") === FIXTURE_TRACKS.length,
+    `all ${String(FIXTURE_TRACKS.length)} files were adopted instead`,
+    `${adoptedEvents[0]?.n ?? "?"} adoption(s)`,
+  );
+
+  const adoptedRows = await sql<{ n: string }[]>`
+    select count(*)::text as n from import_tracks
+     where import_id = ${folderImport} and raw ? 'mm_adoption' and raw ? 'mm_file'`;
+  check(
+    Number(adoptedRows[0]?.n ?? "0") === FIXTURE_TRACKS.length,
+    "every row carries both its file record and its adoption record in `raw`",
+    `${adoptedRows[0]?.n ?? "?"} row(s)`,
+  );
+
+  const placed = await sql<{ path: string; track_number: number }[]>`
+    select t.path, t.track_number from library_tracks t
+      join library_albums a on a.id = t.album_id
+     where a.title = ${FIXTURE_ALBUM} order by t.track_number`;
+  check(
+    placed.length === FIXTURE_TRACKS.length,
+    `${String(FIXTURE_TRACKS.length)} tracks were filed into the library`,
+    `${String(placed.length)} filed`,
+  );
+  check(
+    placed.every((row, index) => row.track_number === index + 1),
+    "in the order the files' own track numbers state, not the order the directory was in",
+    placed.map((row) => String(row.track_number)).join(","),
+  );
+  for (const row of placed) {
+    check(existsSync(join(LIBRARY, row.path)), `${row.path} is on disk`);
+  }
+
+  // MusicBrainz has no recording of this album, so `match` fell back to the source's own tags —
+  // the `untagged` path that already existed for "import without MusicBrainz". An album with no
+  // `release_mbid` is exactly what the library's `untagged` chip selects.
+  const album = await sql<{ release_mbid: string | null; album_artist: string }[]>`
+    select release_mbid, album_artist from library_albums where title = ${FIXTURE_ALBUM}`;
+  check(
+    album.length === 1 && (album[0]?.release_mbid ?? "") === "",
+    "with nothing on MusicBrainz the album is filed `untagged`, from the files' own tags",
+    album[0]?.release_mbid ?? "(no release mbid — correct)",
+  );
+  check(
+    album[0]?.album_artist === FIXTURE_ARTIST,
+    "and it carries the artist the files claimed",
+    album[0]?.album_artist ?? "(none)",
+  );
+
+  const adoptedFile = placed[0]?.path ?? "";
+  if (adoptedFile !== "") {
+    const tags = await probe(adoptedFile);
+    check(
+      (tags.tags["COMMENT"] ?? "").startsWith("Adopted local file"),
+      "the placed file says so itself: COMMENT names the file it was adopted from",
+      tags.tags["COMMENT"] ?? "(no comment)",
+    );
+    check(
+      !(tags.tags["COMMENT"] ?? "").includes("youtu.be"),
+      "and it invents no YouTube video to say it was not downloaded from",
+      tags.tags["COMMENT"] ?? "",
+    );
+    check(
+      (tags.tags["ORIGINALFILENAME"] ?? "").endsWith(".opus"),
+      "ORIGINALFILENAME is the file's own name",
+      tags.tags["ORIGINALFILENAME"] ?? "(none)",
+    );
+  }
+
+  // The refusals, at the one door a person actually walks into: a folder with nothing in it.
+  // `capture` rather than `mm`, because this one is *expected* to exit non-zero and `mm` treats
+  // that as the end of the run.
+  const junk = await capture({
+    label: "mm import <junk>",
+    cmd: [bun, "run", "apps/web/bin/mm.ts", "import", source.junk],
+    env: childEnv,
+  });
+  const junkSaid = `${junk.stdout}${junk.stderr}`;
+  check(junk.code !== 0, "a folder with nothing importable exits non-zero", String(junk.code));
+  check(
+    junkSaid.includes("FOLDER_NO_AUDIO") || junkSaid.includes("nothing importable"),
+    "…and says so by name, listing what it did see",
+    junkSaid.split("\n").filter(Boolean).slice(-2).join(" ").slice(0, 200),
   );
 
   /* ---------------------------------------------------------------- */

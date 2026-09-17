@@ -88,8 +88,8 @@ function AppError({ error }: { readonly error: unknown }) {
  *
  * `PendingTree` because this is the shell a *second* time: the settled `_app` renders the same
  * `AppShell`, and React keeps a re-suspended boundary's settled children mounted while its
- * fallback is on screen. Wrapping it suffixes `app-shell`, `open-palette`, `url-paste` and the
- * rest down here, so a query for the chrome names the copy that is on screen and not both.
+ * fallback is on screen. Wrapping it suffixes `app-shell`, `open-palette`, `palette-input` and
+ * the rest down here, so a query for the chrome names the copy that is on screen and not both.
  * `components/pending-tree.tsx` is the argument in full.
  */
 function AppPending() {

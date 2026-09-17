@@ -46,6 +46,8 @@ from toolbox.models import (
     Health,
     PlaceRequest,
     PlaceResult,
+    ProbeBatchRequest,
+    ProbeBatchResult,
     ProbeRequest,
     ProbeResult,
     ReplayGainRequest,
@@ -235,6 +237,17 @@ def download(request: DownloadRequest) -> StreamingResponse:
 def probe(request: ProbeRequest) -> ProbeResult:
     """Everything ffprobe knows about a file, including every tag present."""
     return probe_module.probe(request.path)
+
+
+@app.post("/probe/batch", operation_id="probeBatch", tags=["files"], responses=ERROR_RESPONSES)
+def probe_batch(request: ProbeBatchRequest) -> ProbeBatchResult:
+    """The same, for a list of files, in one request and in the order they were given.
+
+    What a folder import costs: one call instead of one per track. A file ffprobe cannot read
+    answers in its own entry — the listing of the other two hundred is worth more than the
+    refusal of one.
+    """
+    return probe_module.probe_batch(request.paths)
 
 
 @app.post("/fingerprint", operation_id="fingerprint", tags=["files"], responses=ERROR_RESPONSES)

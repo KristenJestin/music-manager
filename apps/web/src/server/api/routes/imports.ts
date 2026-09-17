@@ -4,7 +4,7 @@
  * Every handler calls the **service layer** and nothing else. That is the rule of
  * `docs/phases/P08-api-agents.md`, and it is what makes "an agent sees the same candidates and
  * the same Inbox as you" (`docs/01-vision-et-principes.md` §8) true by construction rather
- * than by diligence: `POST /imports` and the Console's paste box reach `createFromUrl` by
+ * than by diligence: `POST /imports` and the Console's paste box reach `createImport` by
  * different doors into the same room.
  *
  * `POST /{id}/confirm-mapping` used to be the one place this file had logic of its own — a
@@ -21,7 +21,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import type { Import, ImportStatus, StepName } from "#/server/db/schema/index.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
@@ -182,7 +182,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
     async (c) => {
       const body = c.req.valid("json");
       const options: Partial<z.infer<typeof importOptionsSchema>> = body.options ?? {};
-      const created = await createFromUrl(body.url, {
+      const created = await createImport(body.url, {
         db: db(),
         ...(body.releaseMbid === null || body.releaseMbid === undefined
           ? {}
@@ -192,6 +192,9 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         ...(options.replaygain === undefined ? {} : { replaygain: options.replaygain }),
         ...(options.force === undefined ? {} : { force: options.force }),
         ...(options.autoConfirm === undefined ? {} : { autoConfirm: options.autoConfirm }),
+        ...(options.untaggedFallback === undefined
+          ? {}
+          : { untaggedFallback: options.untaggedFallback }),
         // Whoever opens the confirmation gate signs it. `POST /imports` is `api`, even when
         // the `mm` CLI is what is talking to it in `--remote` mode: the audit trail records
         // the door the decision came through, and this is that door.
@@ -469,9 +472,14 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         "**Two criteria, one endpoint, chosen by what the import is** — `kind` in the answer " +
         "says which one ran. A caller looping over the ids `POST /imports/batch` returned does " +
         "not know which of them the `resolve` step made a single, and should not have to.\n\n" +
-        "**An album is decided on coverage.** The release that binds the most of this import's " +
-        "videos wins, the mapping comes from its `fitLines`, and `minCoverage` (mapped videos " +
-        '÷ videos in the import) is the bar. `preferType: "album"` breaks a tie in favour of ' +
+        "**An album is decided on an exact match.** This is the only path that commits a " +
+        "release without anybody reading the card, so it commits only when there is nothing " +
+        "left to ask: every video of the import bound to a track, no track of the release left " +
+        "without a video, and a candidate credited to the artist the source names. The release " +
+        "that binds the most videos wins and the mapping comes from its `fitLines`; " +
+        "`minCoverage` (mapped videos ÷ videos in the import) is a bar you may *raise* on top " +
+        "of the rule and cannot use to waive it — a deliberately inexact album is what " +
+        '`confirm-mapping` is for. `preferType: "album"` breaks a tie in favour of ' +
         "an Album over an EP or a Single that maps the same number of videos; it is a " +
         "tie-break, not a weight, and never promotes a candidate that maps fewer.\n\n" +
         "**A single is decided on the margin.** One video is ranked against *recordings*, so " +
