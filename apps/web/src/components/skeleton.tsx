@@ -34,6 +34,13 @@
  * sentence, and that span is the live region; every grey block is `aria-hidden` on its own, so
  * a screen reader hears "Loading the album grid…" once, reads the real toolbar as the content
  * it is, and recites nothing at all of the forty placeholder cells.
+ *
+ * **And its controls are the second copy of themselves.** A route's pending tree and its
+ * settled tree both render the page's real toolbar, and React keeps both mounted across a
+ * re-suspend. `SkeletonPage` therefore wraps its children in `PendingTree`, which suffixes
+ * every `data-testid` under it: the settled page keeps `library-search`, the copy in here is
+ * `library-search-pending`, and a query for the page's controls names one element at every
+ * instant of the transition. `components/pending-tree.tsx` is the whole of that argument.
  */
 import type { ReactNode } from "react";
 import { cn } from "cn";
@@ -46,6 +53,7 @@ import {
   TableRow,
 } from "#/components/ui/table.tsx";
 import { Skeleton as Primitive } from "#/components/ui/skeleton.tsx";
+import { PendingTree } from "#/components/pending-tree.tsx";
 
 /**
  * One grey block, in one of two weights.
@@ -182,7 +190,16 @@ export function SkeletonPage({ label, name, children, className }: SkeletonPageP
       <span role="status" className="sr-only">
         {label}
       </span>
-      {children}
+      {/*
+        Everything below is a second copy of controls the settled page also renders, and for
+        the length of a re-suspend both copies are in the document. `PendingTree` is what tells
+        them apart, and it is the only place that decides how.
+
+        The region's own `page-skeleton` stays plain on purpose: it exists in this tree and in
+        no other, so there is nothing for it to collide with, and every spec that waits for "a
+        skeleton" spells it that way.
+      */}
+      <PendingTree>{children}</PendingTree>
     </div>
   );
 }
