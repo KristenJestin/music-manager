@@ -82,10 +82,9 @@ import { enqueueTrack } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { ADOPTION_KEY, type Adoption } from "#/server/services/adopt.record.ts";
-import { resolvePaths } from "#/server/services/jobs/context.ts";
+import { requireImport, resolvePaths } from "#/server/services/jobs/context.ts";
 import { isBefore } from "#/server/services/jobs/machine.ts";
 import { nextStepOfTrack, syncLocalSteps } from "#/server/services/jobs/pipeline.ts";
-import { requireImport } from "#/server/services/jobs/context.ts";
 
 /**
  * The largest upload this route accepts, before base64.
