@@ -480,6 +480,8 @@ describe("ReviewCard", () => {
         value: { action: "cancel" },
       },
     ],
+    source: null,
+    editionBaseTitle: null,
   };
 
   it("opens with the preselected answer chosen", () => {

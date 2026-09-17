@@ -10,22 +10,38 @@
  * Answering an item also puts the job back on the queue when the job was parked on it. An
  * Inbox you can answer without the job resuming is a to-do list, not a gate.
  */
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { INBOX_TYPES, type InboxType } from "#/server/db/schema/enums.ts";
-import type { Import, InboxItem } from "#/server/db/schema/index.ts";
+import {
+  importTracks,
+  type Import,
+  type InboxItem,
+  type InboxStatus,
+} from "#/server/db/schema/index.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { enqueue } from "#/server/services/queue.ts";
 import { getImport } from "#/server/services/imports.ts";
 import {
+  countInbox,
+  countInboxByStatus,
+  countInboxByType,
   getInboxItem,
   hasOpenItems,
   listInbox,
   resolveInboxItem,
+  type InboxFilter,
 } from "#/server/services/inbox.ts";
+import { setImportOptions } from "#/server/services/console.queries.ts";
+import { parseMbid, pinnedRelease } from "#/server/services/matching.queries.ts";
+import { loadSettings } from "#/server/services/settings.ts";
 import { resumeStepOf } from "#/server/services/jobs/index.ts";
+import { editionBaseTitle } from "#/lib/edition-qualifier.ts";
+import { INBOX_PAGE_SIZE, INBOX_SORTS, INBOX_STATUS_FILTERS } from "#/lib/inbox-filters.ts";
+import { albumSourceLink, webpageUrlOf, type AlbumSourceLink } from "#/lib/source-url.ts";
 
 /** One answer a card offers. `value` is what is written to `decisions.choice`. */
 export interface InboxOption {
@@ -43,6 +59,25 @@ export interface InboxCard {
   readonly item: InboxItem;
   readonly job: Import | null;
   readonly options: readonly InboxOption[];
+  /**
+   * Where the audio this question is about can be heard — the YouTube video when the item is
+   * about one track, the playlist otherwise.
+   *
+   * Computed here rather than in the component because the addresses are in two different
+   * rows (`imports.url` and `import_tracks.raw.webpage_url`) and the judgement between them is
+   * `lib/source-url.ts`'s, which the album page already uses. `null` when neither row knows a
+   * web address — a `fixture://` import has none, and inventing one would be worse than the
+   * button not being there.
+   */
+  readonly source: AlbumSourceLink | null;
+  /**
+   * The album title with its edition qualifier removed, when it has one.
+   *
+   * Only ever set on a candidateless `ambiguous_release`, which is the one card that offers to
+   * search again without it. `null` everywhere else, and `null` for a title that carries no
+   * qualifier — the button is then not offered at all rather than offered and useless.
+   */
+  readonly editionBaseTitle: string | null;
 }
 
 /**
@@ -478,24 +513,81 @@ export function optionsFor(item: InboxItem): InboxOption[] {
 export interface InboxListPayload {
   readonly items: readonly InboxItem[];
   readonly card: InboxCard | null;
+  /** Rows in the whole filtered set, not on this page — what the pager prints. */
+  readonly total: number;
+  readonly page: number;
+  readonly pageSize: number;
+  /** One number per type, with the *type* filter lifted; the chips read these. */
+  readonly byType: Record<InboxType, number>;
+  /** One number per status, with the *status* filter lifted; the select reads these. */
+  readonly byStatus: Record<InboxStatus, number>;
 }
 
 const typeFilter = z.enum(INBOX_TYPES);
 
+/**
+ * The list, one page of it, its counts, and the card that is open on it.
+ *
+ * Everything the toolbar offers is a parameter here and a search parameter in the URL, so a
+ * filtered queue is a link: `/review?type=ambiguous_release&sort=oldest` is "the forty edition
+ * decisions, the ones that have waited longest first", which is the view that was unreachable
+ * at three hundred items.
+ *
+ * The four reads take **one** `filter` object. That is the whole defence against the count
+ * disagreeing with the rows: `listInbox`, `countInbox` and the two grouped counts all compile
+ * their predicate from it through `inboxWhere`, and the only difference between them is which
+ * single condition the grouped ones lift.
+ */
 export const fetchInbox = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
-  .inputValidator(z.object({ id: z.string().optional(), type: typeFilter.optional() }).default({}))
+  .inputValidator(
+    z
+      .object({
+        id: z.string().optional(),
+        type: typeFilter.optional(),
+        status: z.enum(INBOX_STATUS_FILTERS).default("open"),
+        q: z.string().default(""),
+        sort: z.enum(INBOX_SORTS).default("recent"),
+        page: z.number().int().min(0).default(0),
+      })
+      /*
+       * `prefault`, not `default`: the fields below have defaults of their own, so the object's
+       * *output* type has four required keys and `default({})` would not type-check against it.
+       * `prefault` substitutes on the input side, which is what "called with nothing" means —
+       * the palette and the tests call `fetchInbox({ data: {} })` and must get the page the
+       * route shows.
+       */
+      .prefault({}),
+  )
   .handler(async ({ data }): Promise<InboxListPayload> => {
     try {
-      const items = await listInbox(
-        { status: "open", ...(data.type === undefined ? {} : { type: data.type }) },
-        db(),
-      );
+      const filter: InboxFilter = {
+        ...(data.status === "all" ? {} : { status: data.status }),
+        ...(data.type === undefined ? {} : { type: data.type }),
+        ...(data.q.trim() === "" ? {} : { search: data.q }),
+        sort: data.sort,
+      };
+      const offset = data.page * INBOX_PAGE_SIZE;
+
+      const [items, total, byType, byStatus] = await Promise.all([
+        listInbox({ ...filter, limit: INBOX_PAGE_SIZE, offset }, db()),
+        countInbox(filter, db()),
+        countInboxByType(filter, db()),
+        countInboxByStatus(filter, db()),
+      ]);
+
+      const page = { total, page: data.page, pageSize: INBOX_PAGE_SIZE, byType, byStatus };
+
+      /*
+       * The open card may be an item this page does not hold — a deep link, or the item that
+       * was answered a second ago while the filter has since moved on. It is looked up on its
+       * own rather than being dropped, because a `/review/:id` that renders "pick an item"
+       * because of a filter would be a link that stopped working.
+       */
       const wanted = data.id === undefined ? items[0] : items.find((item) => item.id === data.id);
       const item = wanted ?? (data.id === undefined ? undefined : await lookup(data.id));
-      if (item === undefined || item === null) return { items, card: null };
-      const job = item.importId === null ? null : await getImport(item.importId, db());
-      return { items, card: { item, job, options: optionsFor(item) } };
+      if (item === undefined || item === null) return { items, card: null, ...page };
+      return { items, card: await cardFor(item), ...page };
     } catch (error) {
       return toFailure(error);
     }
@@ -503,6 +595,59 @@ export const fetchInbox = createServerFn({ method: "GET", strict: STRICT })
 
 async function lookup(id: string): Promise<InboxItem | null> {
   return await getInboxItem(id, db());
+}
+
+/** Everything the decision card needs that is not on the item row itself. */
+async function cardFor(item: InboxItem): Promise<InboxCard> {
+  const job = item.importId === null ? null : await getImport(item.importId, db());
+  return {
+    item,
+    job,
+    options: optionsFor(item),
+    source: await sourceLinkFor(item, job),
+    editionBaseTitle: offersQualifierSearch(item) ? editionBaseTitle(job?.title) : null,
+  };
+}
+
+/** True for the one card that has no candidate to choose between: `match` found nothing. */
+export function offersQualifierSearch(item: InboxItem): boolean {
+  if (item.type !== "ambiguous_release" || item.importId === null) return false;
+  const candidates = item.payload["candidates"];
+  return !Array.isArray(candidates) || candidates.length === 0;
+}
+
+/**
+ * The one link this card offers back to the audio.
+ *
+ * Two rows hold an address and neither is the whole answer, which is the judgement
+ * `lib/source-url.ts` already makes for the album page. The only thing added here is *which*
+ * row to prefer: an item about one track is about one video, so that video wins outright over
+ * the playlist the import was submitted as.
+ *
+ * `raw` is read one row at a time and never for the whole import — it is the verbatim yt-dlp
+ * entry, several kilobytes of thumbnails and formats each, and this runs in a loader.
+ */
+async function sourceLinkFor(item: InboxItem, job: Import | null): Promise<AlbumSourceLink | null> {
+  if (item.trackId !== null) {
+    const [row] = await db()
+      .select({ raw: importTracks.raw })
+      .from(importTracks)
+      .where(eq(importTracks.id, item.trackId))
+      .limit(1);
+    const url = webpageUrlOf(row?.raw);
+    if (url !== null) {
+      return { url, kind: "video", label: "Open the source video on YouTube" };
+    }
+  }
+
+  if (job === null) return null;
+  const [first] = await db()
+    .select({ raw: importTracks.raw })
+    .from(importTracks)
+    .where(eq(importTracks.importId, job.id))
+    .orderBy(importTracks.position)
+    .limit(1);
+  return albumSourceLink(job.url, [webpageUrlOf(first?.raw)]);
 }
 
 const resolveInput = z.object({
@@ -559,13 +704,194 @@ export const resolveItem = createServerFn({ method: "POST", strict: STRICT })
         }
       }
 
-      const rest = await listInbox({ status: "open" }, db());
       return {
         id: data.id,
         importId: item.importId,
         resumed,
-        nextId: rest[0]?.id ?? null,
+        nextId: await nextOpenId(),
       };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * The next item to open, as one row.
+ *
+ * It used to be `listInbox({status:"open"})[0]`, which reads every open item **with its
+ * payload** — the whole candidate set of every unresolved match — to learn one id. That is the
+ * same mistake `countInbox` exists to undo, one function along, and at three hundred items it
+ * is a few hundred jsonb documents per answered card.
+ */
+async function nextOpenId(): Promise<string | null> {
+  const [next] = await listInbox({ status: "open", limit: 1 }, db());
+  return next?.id ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* the candidateless card's two ways out                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The item this card is about, checked to be the one that offers these two actions.
+ *
+ * Both functions below relaunch an import, so both have to refuse an item that is not a
+ * candidateless `ambiguous_release` — otherwise a crafted call could rewind any import in the
+ * database from a card that never offered to.
+ */
+async function candidatelessRelease(id: string): Promise<{ item: InboxItem; job: Import }> {
+  const item = await getInboxItem(id, db());
+  if (item === null) {
+    throw new MMError("NOT_FOUND", `No Inbox item with id ${id}.`, { status: 404 });
+  }
+  if (!offersQualifierSearch(item)) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "This question is not one the matcher failed to find any release for.",
+      {
+        hint: "Relaunching a search only makes sense on a card that has no candidate to choose between.",
+        status: 400,
+      },
+    );
+  }
+  const job = item.importId === null ? null : await getImport(item.importId, db());
+  if (job === null) {
+    throw new MMError("NOT_FOUND", "The import this question was about is gone.", { status: 404 });
+  }
+  return { item, job };
+}
+
+export interface RelaunchResult {
+  readonly importId: string;
+  /** What the import was pinned to, or searched under. For the toast. */
+  readonly pinned: string;
+  /** The next open item, so the page moves on exactly as answering a card does. */
+  readonly nextId: string | null;
+}
+
+/**
+ * Pin an import to a release the owner pasted, and run `match` again against it.
+ *
+ * This is the escape hatch `docs/04` already describes, reached from the card instead of from
+ * a terminal. Nothing new is invented: `parseMbid` is the same parser the wizard's search box
+ * uses (so a musicbrainz.org URL is accepted as readily as a bare id), `pinnedRelease` is the
+ * same lookup-and-score the wizard's "I know the answer" path runs, `imports.options.releaseMbid`
+ * is the field `mm import --release <mbid>` writes, and `match` reads it through the very
+ * branch that exists for a pin the search never returned.
+ *
+ * The lookup is done **here**, before anything is written, for one reason: a wrong id pasted
+ * into a box has to come back as a sentence about that id while the box is still on screen. Left
+ * to the step, it would be a failed job discovered later, which is exactly the round trip this
+ * card exists to remove.
+ */
+export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1), release: z.string().min(1).max(500) }))
+  .handler(async ({ data }): Promise<RelaunchResult> => {
+    try {
+      const { item, job } = await candidatelessRelease(data.id);
+
+      const releaseMbid = parseMbid(data.release);
+      if (releaseMbid === null) {
+        throw new MMError(
+          "INVALID_INPUT",
+          `“${data.release.trim()}” does not contain a MusicBrainz release id.`,
+          {
+            hint: "A release id is 36 characters — 8-4-4-4-12 hexadecimal. Pasting the whole musicbrainz.org/release/… address works too.",
+            action: "Check the id",
+            status: 400,
+          },
+        );
+      }
+
+      let title = releaseMbid;
+      try {
+        const { candidate } = await pinnedRelease({
+          job,
+          settings: await loadSettings(db()),
+          releaseMbid,
+          db: db(),
+        });
+        title = candidate.title;
+      } catch (error) {
+        const failure = MMError.from(error);
+        if (failure.code === "NOT_FOUND") {
+          throw new MMError(
+            "NOT_FOUND",
+            `MusicBrainz does not know a release with id ${releaseMbid}.`,
+            {
+              hint: "Open musicbrainz.org/release/" + releaseMbid + " to check it. A release group id or a recording id looks the same and is not the same thing.",
+              action: "Check the id",
+              status: 404,
+            },
+          );
+        }
+        // An outage, a rate limit, a stale cassette: said as it is rather than reported as a
+        // release that does not exist, which would send somebody looking for the wrong bug.
+        throw failure;
+      }
+
+      await setImportOptions(job.id, { releaseMbid }, { releaseMbid }, db());
+      /*
+       * Answered as a `retry` from `match`, which is vocabulary the Inbox already has: the
+       * resolution is logged in `decisions` like any other, `applyResolution` rewinds and
+       * re-queues, and nothing here learns how to restart a job on its own.
+       */
+      await resolveInboxItem(
+        item.id,
+        {
+          resolution: { action: "retry", step: "match", releaseMbid },
+          decidedBy: "user",
+        },
+        db(),
+      );
+
+      return { importId: job.id, pinned: title, nextId: await nextOpenId() };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * Search again under the album title without its edition qualifier.
+ *
+ * Thirty of the owner's imports are stuck on "The search came back empty" because the playlist
+ * says *Expanded Edition* / *Deluxe* / *Bonus Track Version* and MusicBrainz never published
+ * that edition — while the base title returns twelve of them.
+ *
+ * **The stripping itself is not implemented here.** It is `stripEditionQualifier`, a marked
+ * placeholder in `lib/edition-qualifier.ts` standing in for the automatic fallback branch
+ * `fix-matching-exactness` is building in `packages/domain/src/normalize/`; when that lands,
+ * that module becomes a one-line re-export and this function is untouched. What *is* here is
+ * the wiring: an explicit album title on the import, which `match` prefers over the hint it
+ * derives from the videos' own tags.
+ */
+export const searchWithoutQualifier = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<RelaunchResult> => {
+    try {
+      const { item, job } = await candidatelessRelease(data.id);
+      const base = editionBaseTitle(job.title);
+      if (base === null) {
+        throw new MMError(
+          "INVALID_INPUT",
+          `“${job.title ?? job.url}” carries no edition qualifier to drop.`,
+          {
+            hint: "This shortcut only removes a trailing “(Expanded Edition)”, “(Deluxe)” or “(Bonus Track Version)”. Paste a release id instead.",
+            status: 400,
+          },
+        );
+      }
+
+      await setImportOptions(job.id, { albumTitle: base }, {}, db());
+      await resolveInboxItem(
+        item.id,
+        { resolution: { action: "retry", step: "match", albumTitle: base }, decidedBy: "user" },
+        db(),
+      );
+
+      return { importId: job.id, pinned: base, nextId: await nextOpenId() };
     } catch (error) {
       return toFailure(error);
     }

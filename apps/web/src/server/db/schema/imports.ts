@@ -68,6 +68,20 @@ export interface ImportOptions {
   readonly releaseMbid?: string;
 
   /**
+   * Search MusicBrainz under **this** album title instead of the one the source advertises.
+   *
+   * The hints `match` computes take the album from a majority of the videos' own YouTube Music
+   * tags, and those tags carry the edition — "The Best Damn Thing (Expanded Edition)" — for a
+   * release MusicBrainz never published under that name. The review card's "search without the
+   * edition qualifier" button writes the base title here and re-runs the step.
+   *
+   * A stated title, not a rule: the automatic stripping is the matcher's own business (branch
+   * `fix-matching-exactness`), and this stays the way a person overrides it by hand whatever
+   * that rule ends up saying.
+   */
+  readonly albumTitle?: string;
+
+  /**
    * The watched source that opened this import, when one did.
    *
    * Its presence is what makes `confirm` read the source's policy instead of its own rules:

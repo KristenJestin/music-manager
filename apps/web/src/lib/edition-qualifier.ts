@@ -28,6 +28,7 @@
  * whether to offer the button, and the server function decides what to search for. One module,
  * one answer, and one import to change when the real one lands.
  */
+import { stripReleaseTypePrefix } from "@mm/domain";
 
 /**
  * The qualifiers seen in the owner's 30 stuck imports, as whole words.
@@ -67,4 +68,21 @@ export function stripEditionQualifier(title: string): string | null {
   if (!QUALIFIERS.includes(inner)) return null;
   const base = trimmed.slice(0, match.index).trim();
   return base === "" ? null : base;
+}
+
+/**
+ * What an import's own title reads without its edition qualifier, or `null`.
+ *
+ * The import row's title is the *playlist* title, which for a YouTube-generated release reads
+ * "Album - The Best Damn Thing (Expanded Edition)". `stripReleaseTypePrefix` is what the
+ * matcher's own hints already apply to that same string (`packages/domain/src/matching/hints.ts`),
+ * so applying it here too is what makes the button's label and the search it launches describe
+ * one title rather than two.
+ *
+ * One function, called by the card to decide whether to offer the button and by the server
+ * function to decide what to search for. Two spellings of this would be one spelling too many.
+ */
+export function editionBaseTitle(title: string | null | undefined): string | null {
+  if (title === null || title === undefined || title.trim() === "") return null;
+  return stripEditionQualifier(stripReleaseTypePrefix(title));
 }

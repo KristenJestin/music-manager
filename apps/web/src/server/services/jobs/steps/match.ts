@@ -355,11 +355,24 @@ async function matchOneAlbum(
   videos: readonly MatchVideo[],
   gateway: MbGateway,
 ): Promise<StepResult> {
-  const hints = albumHints(videos, {
+  const derived = albumHints(videos, {
     album: ctx.job.title,
     artist: ctx.job.artist,
     year: ctx.job.year,
   });
+  /*
+   * An album title stated on the import wins over the one derived from the listing.
+   *
+   * `albumHints` takes the album from a majority of the videos' YouTube Music tags, which is
+   * right nearly always and wrong in exactly one way that matters: the tag carries the edition
+   * ("… (Expanded Edition)") for a release MusicBrainz never published under that name, and the
+   * search then comes back empty however many times it is run. `options.albumTitle` is how the
+   * review card says "search for this instead", and it is deliberately an *override* rather
+   * than another fallback — a fallback would still lose to the majority.
+   */
+  const stated = ctx.job.options.albumTitle?.trim();
+  const hints =
+    stated === undefined || stated === "" ? derived : { ...derived, album: stated };
   const result = await matchAlbum(gateway, { videos, hints }, ctx.settings);
   const pinned = ctx.job.options.releaseMbid;
 
@@ -402,8 +415,19 @@ async function matchOneAlbum(
         type: "ambiguous_release",
         importId: ctx.job.id,
         title: `No MusicBrainz release matches “${hints.album ?? ctx.job.url}”`,
-        summary: "The search came back empty. Supply one with `mm import --release <mbid>`.",
-        payload: { url: ctx.job.url, queries: result.queries, videos: videos.length },
+        /*
+         * The sentence used to end with "Supply one with `mm import --release <mbid>`", which
+         * sent the reader out of the Console to do the one thing the card is for. The card now
+         * takes a release id and offers the qualifier search itself; the summary says what
+         * happened and lets the card say what can be done about it.
+         */
+        summary: `Searched for “${hints.album ?? ctx.job.url}” and nothing came back.`,
+        payload: {
+          url: ctx.job.url,
+          album: hints.album,
+          queries: result.queries,
+          videos: videos.length,
+        },
       },
       ctx.db,
     );
