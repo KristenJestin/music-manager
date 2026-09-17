@@ -464,6 +464,18 @@ function reserveOnePerGroup(
   return chosen;
 }
 
+/**
+ * The fewest candidates a match opens before the early stop is allowed to fire.
+ *
+ * Not a scoring rule — a *chooser* rule. Step 2 of the wizard is a list somebody picks from,
+ * and a list with one real card and thirteen saying "tracklist not fetched" is worse than the
+ * six the flat plan used to leave, even when the one card is right. Three is the smallest
+ * number that still shows an alternative and a runner-up next to the preselection, and it costs
+ * at most two requests on the easiest album there is. The bound is unaffected: a candidate that
+ * cannot win is still never opened once the floor is met.
+ */
+const MIN_EXPLORED = 3;
+
 /** What one round of exploration produced, and what it cost. */
 export interface Exploration {
   readonly ranking: ReleaseRanking;
@@ -546,6 +558,7 @@ export async function exploreReleases(
     const leader = ranking.preselected;
     const exact = leader !== null && leader.uncovered === 0 && leader.leftOver === 0;
     if (
+      attempted.size >= MIN_EXPLORED &&
       leader !== null &&
       leader.detailed &&
       exact &&
@@ -573,7 +586,7 @@ export async function exploreReleases(
       stoppedBecause = "exhausted";
       break;
     }
-    if (next.ceiling <= best) {
+    if (attempted.size >= MIN_EXPLORED && next.ceiling <= best) {
       stoppedBecause = "bounded";
       break;
     }
