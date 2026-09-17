@@ -628,6 +628,265 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       }
     }, 120_000);
   });
+
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * A chosen candidate has to be **applied** — the first owner defect.
+   *
+   * "Two recordings of *Good Luck, Babe!* are equally likely", one is picked, the toast says
+   * "Decision saved; the job resumes" — and the job does not move. The card's answer is
+   * `{recordingMbid}`, with no `action`, and `applyResolution` opened with
+   * `if (typeof action !== "string") return;`. The item closed, the decision was logged, and
+   * the import stayed `Blocked` at `match` for ever.
+   */
+  describe("answering a card whose answer is a choice", () => {
+    /** An import parked on an `ambiguous_recording`, exactly as `matchOneRecording` parks one. */
+    async function askedWhichRecording(): Promise<{ importId: string; itemId: string }> {
+      const created = await imports.createFromUrl("fixture://skinny-love");
+      const importId = created.job.id;
+      await db()
+        .update(schema.imports)
+        .set({ status: "awaiting_review", step: "match" })
+        .where(eq(schema.imports.id, importId));
+
+      const [row] = await db()
+        .select()
+        .from(schema.importTracks)
+        .where(eq(schema.importTracks.importId, importId));
+      expect(row).toBeDefined();
+
+      const item = await inbox.openInboxItem({
+        type: "ambiguous_recording",
+        importId,
+        trackId: row!.id,
+        title: "Two recordings are equally likely",
+        payload: {
+          candidates: [
+            {
+              id: "11111111-1111-4111-8111-111111111111",
+              title: "Skinny Love",
+              artist: "Birdy",
+              score: 0.91,
+              borrow: {
+                id: "22222222-2222-4222-8222-222222222222",
+                title: "Birdy",
+                date: "2011-11-04",
+                type: "Album",
+                trackPosition: 2,
+              },
+            },
+            {
+              id: "33333333-3333-4333-8333-333333333333",
+              title: "Skinny Love",
+              artist: "Bon Iver",
+              score: 0.9,
+              borrow: {
+                id: "44444444-4444-4444-8444-444444444444",
+                title: "For Emma, Forever Ago",
+                date: "2007-07-08",
+                type: "Album",
+                trackPosition: 3,
+              },
+            },
+          ],
+        },
+        preselected: {
+          recordingMbid: "11111111-1111-4111-8111-111111111111",
+          releaseMbid: "22222222-2222-4222-8222-222222222222",
+        },
+      });
+      return { importId, itemId: item.id };
+    }
+
+    it("pins the recording the reader chose and matches again against it", async () => {
+      const { importId, itemId } = await askedWhichRecording();
+
+      // The runner-up, not the preselection: the card's option carries a recording id and
+      // nothing else, so the borrow release has to come from the payload.
+      const outcome = await inbox.resolveInboxItem(itemId, {
+        resolution: { recordingMbid: "33333333-3333-4333-8333-333333333333" },
+        decidedBy: "user",
+      });
+
+      expect(outcome.resumed).toBe(true);
+
+      const job = await imports.getImport(importId);
+      const options = job?.options as { mapping?: { tracks?: { recordingMbid?: string }[] } };
+      // Pinned through the door `confirm-mapping` and the wizard's single path already use.
+      expect(options.mapping?.tracks?.[0]?.recordingMbid).toBe(
+        "33333333-3333-4333-8333-333333333333",
+      );
+      expect(job?.releaseMbid).toBe("44444444-4444-4444-8444-444444444444");
+
+      // And it was applied: `match` ran again and the row carries the chosen recording.
+      const [row] = await db()
+        .select()
+        .from(schema.importTracks)
+        .where(eq(schema.importTracks.importId, importId));
+      expect(row?.recordingMbid).toBe("33333333-3333-4333-8333-333333333333");
+      expect(row?.role).toBe("mapped");
+    }, 120_000);
+
+    it("pins the release an `ambiguous_release` card offers", async () => {
+      const created = await imports.createFromUrl("fixture://discovery");
+      const importId = created.job.id;
+      await db()
+        .update(schema.imports)
+        .set({ status: "awaiting_review", step: "match" })
+        .where(eq(schema.imports.id, importId));
+
+      const chosen = "d073287b-d1bd-4f11-a933-a4386f8cf701";
+      const item = await inbox.openInboxItem({
+        type: "ambiguous_release",
+        importId,
+        title: "Two releases are equally likely",
+        payload: { candidates: [{ id: chosen, title: "Discovery", score: 0.96 }] },
+        preselected: { releaseMbid: chosen },
+      });
+
+      const outcome = await inbox.resolveInboxItem(item.id, {
+        resolution: { releaseMbid: chosen },
+        decidedBy: "user",
+      });
+
+      expect(outcome.resumed).toBe(true);
+      const job = await imports.getImport(importId);
+      // `options.releaseMbid` is the field `mm import --release <mbid>` writes, and the branch
+      // of `matchOneAlbum` that reads it is the one that exists for a pin the search missed.
+      expect((job?.options as { releaseMbid?: string }).releaseMbid).toBe(chosen);
+      expect(job?.releaseMbid).toBe(chosen);
+    }, 120_000);
+
+    /**
+     * The other half: an answer nothing can carry out must **throw**, with the item still open.
+     * Closing it would lose the question rather than answer it, which is what the first defect
+     * did fourteen times over.
+     */
+    it("refuses an answer no branch handles, and leaves the item open", async () => {
+      const created = await imports.createFromUrl("fixture://discovery");
+      const item = await inbox.openInboxItem({
+        type: "ambiguous_release",
+        importId: created.job.id,
+        title: "No release of this is credited to that artist",
+        payload: { candidates: [] },
+      });
+
+      await expect(
+        inbox.resolveInboxItem(item.id, { resolution: { accepted: true }, decidedBy: "user" }),
+      ).rejects.toThrow(/names no release or recording/);
+
+      const [after] = await db()
+        .select()
+        .from(schema.inboxItems)
+        .where(eq(schema.inboxItems.id, item.id));
+      expect(after?.status).toBe("open");
+      // Nothing was logged either: a decision row for a decision nobody could apply is a lie.
+      const logged = await db()
+        .select()
+        .from(schema.decisions)
+        .where(eq(schema.decisions.inboxItemId, item.id));
+      expect(logged).toHaveLength(0);
+    }, 120_000);
+  });
+
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Re-matching re-evaluates rather than accumulates — the fourth owner defect.
+   *
+   * `openInboxItem` made `match` idempotent in one direction only. Nothing closed the question
+   * it had stopped asking, so an import re-matched onto a release that covers every track kept
+   * its "6 track(s) of the release have no video" for ever. The owner re-matched fifteen albums
+   * and not one flag was re-evaluated.
+   */
+  describe("re-running `match` closes what it disproves", () => {
+    async function matchedImport(): Promise<string> {
+      const created = await imports.createFromUrl("fixture://discovery");
+      await jobs.runStep(created.job.id, "match", { db: db() });
+      return created.job.id;
+    }
+
+    it("closes an `uncovered_tracks` item the new match does not raise", async () => {
+      const importId = await matchedImport();
+
+      // The state a previous, worse match left behind: a question that is no longer true.
+      const stale = await inbox.openInboxItem({
+        type: "uncovered_tracks",
+        importId,
+        title: "6 track(s) of the release have no video",
+        payload: { positions: [7, 8, 9, 10, 11, 12] },
+        preselected: { action: "import anyway" },
+      });
+
+      await jobs.runStep(importId, "match", { db: db() });
+
+      const [after] = await db()
+        .select()
+        .from(schema.inboxItems)
+        .where(eq(schema.inboxItems.id, stale.id));
+      expect(after?.status).toBe("dismissed");
+      expect((after?.resolution as { closedBy?: string } | null)?.closedBy).toBe("re-run");
+      // No `decisions` row: nobody decided this, the question simply stopped being true.
+      expect(
+        await db()
+          .select()
+          .from(schema.decisions)
+          .where(eq(schema.decisions.inboxItemId, stale.id)),
+      ).toHaveLength(0);
+    }, 120_000);
+
+    it("keeps the question the new match does raise", async () => {
+      const importId = await matchedImport();
+      // Fifteen videos for fourteen tracks: `extra_videos` is still true and must survive.
+      const open = await inbox.listInbox({ importId, status: "open", type: "extra_videos" });
+      expect(open).toHaveLength(1);
+
+      await jobs.runStep(importId, "match", { db: db() });
+
+      const again = await inbox.listInbox({ importId, status: "open", type: "extra_videos" });
+      expect(again).toHaveLength(1);
+      expect(again[0]?.id).toBe(open[0]?.id);
+    }, 120_000);
+
+    /** A decision is a record, not a cache. Only `open` items are ever closed by a re-run. */
+    it("never touches an item a person answered", async () => {
+      const importId = await matchedImport();
+      const [answered] = await inbox.listInbox({ importId, status: "open", type: "extra_videos" });
+      await inbox.resolveInboxItem(answered!.id, {
+        resolution: { action: "ignore" },
+        decidedBy: "user",
+      });
+
+      await jobs.runStep(importId, "match", { db: db() });
+
+      const [after] = await db()
+        .select()
+        .from(schema.inboxItems)
+        .where(eq(schema.inboxItems.id, answered!.id));
+      expect(after?.status).toBe("resolved");
+      expect((after?.resolution as { action?: string } | null)?.action).toBe("ignore");
+    }, 120_000);
+
+    /** Another step's question is another step's business. `closeItemsOf` would have taken it. */
+    it("leaves the items other steps raised alone", async () => {
+      const importId = await matchedImport();
+      const theirs = await inbox.openInboxItem({
+        type: "fingerprint_mismatch",
+        importId,
+        title: "Fingerprint disagrees",
+        payload: {},
+      });
+
+      await jobs.runStep(importId, "match", { db: db() });
+
+      const [after] = await db()
+        .select()
+        .from(schema.inboxItems)
+        .where(eq(schema.inboxItems.id, theirs.id));
+      expect(after?.status).toBe("open");
+    }, 120_000);
+  });
 });
 
 /** Poll until `predicate` holds. Used only for the LISTEN/NOTIFY round trip. */
