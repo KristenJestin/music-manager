@@ -394,14 +394,20 @@ async function candidatesView(
 /**
  * The ranking as it can be computed from `source_cache` alone, or `null` when it cannot.
  *
- * This is the *fast* path and, after the first visit, the normal one. Every MusicBrainz
- * document a match reads is written to `source_cache` on the way past, so an import that has
- * been matched once can be re-ranked with no request at all — which is what makes it possible
- * for the live match to run beside the request and for the request to simply read the answer
- * when it lands (`server/services/match-runs.ts`).
+ * The rescue of decision 165 and **only** that: it runs after a live attempt has failed, never
+ * before one. It is not a fast path and must not become one, for two reasons.
  *
- * `null` rather than a throw, because "the cache cannot answer this yet" is the expected state
- * on a first visit and not a failure of anything. A miss raises `OFFLINE_CACHE_MISS` from
+ * First, it would not buy anything. `sourceTtlDays.musicbrainz` is thirty days, so a *live*
+ * ranking of an import matched last week reads every document out of `source_cache` and makes
+ * no request either — the cache is what makes a revisit instant, not the `offline` flag.
+ *
+ * Second, it would spend something. For a `fixture://` source the gateway is a cassette
+ * whatever `offline` says, so an extra offline pass is an extra pass through the recorded
+ * scenario — which is how `e2e/mb-outage.spec.ts` arms *two* refusals and expects to see the
+ * "unavailable" screen rather than the degraded one.
+ *
+ * `null` rather than a throw, because "the cache cannot answer this" is a fact about the cache
+ * and the caller has a sentence ready for it. A miss raises `OFFLINE_CACHE_MISS` from
  * `integrations/cached.ts`; anything *else* thrown here is a real bug and is left to escape.
  */
 async function cachedView(job: Import, settings: Settings): Promise<CandidatesView | null> {
@@ -456,15 +462,25 @@ const GRACE_MS = 2_000;
  *
  *  1. a match is **running** — say so and return; the screen follows `/api/match-progress`,
  *     and a reload lands here too, which is what makes a reload resume rather than restart;
- *  2. a match has **finished** — render the ranking it left in the registry, or re-rank
- *     offline against `source_cache` when the registry has been lost to a restart;
- *  3. the last run **failed** — report it once, rescued by the cache where possible;
- *  4. nothing is known — rank from the cache if it can answer, otherwise start a run.
+ *  2. a match has **finished** — render the ranking it left in the registry, with no
+ *     recomputation and no request;
+ *  3. the last run **failed** — report it once, rescued by the cache where it can be
+ *     (decision 165), and forget it so that Retry is a real retry;
+ *  4. nothing is known — start a run, linger a moment in case it is instant, and otherwise
+ *     answer "pending".
  *
- * The order matters. `running` is checked before anything else because a half-finished match
- * has left half its documents in `source_cache`, and a ranking computed from half the documents
- * is a wrong answer presented as a final one. While a run is in flight, the only honest answer
- * is "in flight".
+ * Two things about the order.
+ *
+ * `running` is checked before anything else because a half-finished match has left half its
+ * documents in `source_cache`, and a ranking computed from half the documents is a wrong answer
+ * presented as a final one. While a run is in flight, the only honest answer is "in flight".
+ *
+ * And state 4 starts a **live** run rather than reaching for the cache first, which looks like
+ * the slower choice and is not. `sourceTtlDays.musicbrainz` is thirty days, so a live ranking of
+ * an import matched last week reads every document out of `source_cache` and finishes inside the
+ * grace below without a single request — exactly like the old synchronous handler, which is also
+ * why a Back to step 2 was never the slow case. The cache is the fast path; `offline` is the
+ * rescue, and it stays where decision 165 put it.
  */
 export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
   .middleware([sessionMiddleware])
@@ -492,15 +508,8 @@ export const fetchCandidates = createServerFn({ method: "GET", strict: STRICT })
         return await failedView(job, settings, takeMatchFailure(job.id));
       }
 
-      /*
-       * 4. Nothing known here. The cache may still know: a restart, a wizard reopened an hour
-       *    later, a Back from step 3. Every document a match reads is written to `source_cache`
-       *    on the way past, so an import matched once re-ranks with no request at all.
-       */
-      const cached = await cachedView(job, settings);
-      if (cached !== null) return cached;
-
-      // Genuinely new. Start the match behind the request, and linger only a moment for it.
+      // 4. Nothing known. Start the match behind the request, and linger only a moment for it:
+      //    an import already in the cache finishes inside the grace and never shows a spinner.
       startMatchRun(job.id, () => rankFor({ job, settings, db: db() }));
       const settled = await settleMatchRun(job.id, GRACE_MS);
       if (settled?.status === "done" && settled.result !== null) {
