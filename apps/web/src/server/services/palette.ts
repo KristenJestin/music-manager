@@ -84,7 +84,22 @@ export async function searchLibrary(
   if (needle === "") return { query: needle, albums: [], artists: [], tracks: [] };
 
   const albumWhere = albumSearchCondition(needle);
-  const trackWhere = trackSearchCondition(needle);
+  /*
+   * The library's own track search, **plus the tracks of a pasted release**.
+   *
+   * `albumSearchCondition` already matches `library_albums.release_mbid`, so a release id finds
+   * its album for nothing; `trackSearchCondition` matches `recording_mbid` but knows nothing
+   * about which release a track came from. So pasting the id of a record you already own found
+   * the album and none of its fourteen tracks, which is the wrong half of the answer to "show
+   * me that record". One more clause, on the id the album row carries.
+   */
+  const trackWhere = or(
+    trackSearchCondition(needle),
+    sql`exists (select 1 from ${libraryAlbums}
+      where ${libraryAlbums.id} = ${libraryTracks.albumId}
+        and (coalesce(${libraryAlbums.releaseMbid}, '') = ${needle}
+          or coalesce(${libraryAlbums.releaseGroupMbid}, '') = ${needle}))`,
+  );
 
   const [albums, artists, tracks] = await Promise.all([
     db
