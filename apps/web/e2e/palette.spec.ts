@@ -109,6 +109,25 @@ test.describe("the command palette", () => {
     await expect(page.getByTestId("source-count")).toBeVisible({ timeout: 120_000 });
   });
 
+  /**
+   * A pasted link belongs to the paste, not to the palette.
+   *
+   * The clipboard's text is held in the shell so that `⌘V` can put it there before the palette
+   * exists, and held state is state that can outlive its reason. `⌘K` clears it, so the
+   * shortcut opens the empty box it promises rather than the link somebody pasted, looked at
+   * and dismissed.
+   */
+  test("⌘K after a paste opens empty", async ({ page }) => {
+    await page.goto("/");
+    await pasteIntoPage(page, "fixture://discovery");
+    await pressGlobal(page, "Escape");
+    await expect(page.getByTestId("palette-input")).toBeHidden();
+
+    await pressGlobal(page, "ControlOrMeta+k");
+    await expect(page.getByTestId("palette-input")).toHaveValue("");
+    await pressGlobal(page, "Escape");
+  });
+
   test("an artist's name reaches that artist's page, without asking MusicBrainz", async ({
     page,
   }) => {

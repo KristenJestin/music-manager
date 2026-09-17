@@ -43,7 +43,7 @@ export interface ShellContextValue {
    * The reason this is state rather than an argument is that ⌘V is caught on the *document*,
    * far from the palette, and by then the text is in hand: a person who pastes a YouTube link
    * into the Console must not then have to paste it a second time into a box. `null` is the
-   * ordinary ⌘K, which opens on whatever was last typed.
+   * ordinary ⌘K or a click on the bar, which opens empty.
    */
   readonly paletteSeed: string | null;
   /** Open the palette, optionally with text already in it. */

@@ -55,7 +55,10 @@ export function AppShell({
     const onKey = (event: KeyboardEvent): void => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setPaletteOpen(true);
+        // `openPalette()` and not `setPaletteOpen(true)`: with no argument it also *clears* the
+        // seed, so ⌘K after a ⌘V opens the empty box it promises rather than the link somebody
+        // pasted, looked at and closed.
+        openPalette();
         return;
       }
       if (event.key === "Escape") {
