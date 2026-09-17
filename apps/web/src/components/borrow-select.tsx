@@ -144,7 +144,7 @@ export function BorrowSelect({
 
   if (releases.length <= AS_LIST_UP_TO) {
     return (
-      <div className="flex flex-col gap-1.5" data-testid="borrow-list">
+      <div className="flex flex-col gap-1.5" data-testid="borrow" data-shape="list">
         <span className="text-2xs font-medium text-fg-2">{question}</span>
         <div role="radiogroup" aria-label={question} className="flex flex-col gap-1.5">
           {releases.map((release) => {
@@ -203,7 +203,7 @@ export function BorrowSelect({
   /* ---- too many to show: the select, with the same consequence underneath ---- */
 
   return (
-    <label className="flex flex-col gap-1">
+    <label className="flex flex-col gap-1" data-testid="borrow" data-shape="select">
       <span className="text-2xs font-medium text-fg-2">{question}</span>
       <Select
         value={chosen?.id ?? ""}

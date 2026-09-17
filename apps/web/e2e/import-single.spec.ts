@@ -43,13 +43,21 @@ test.describe("importing a single", () => {
      * It exists only on the selected card, because it is that recording's own list of releases
      * — and it is the thing that decides the folder, the album tags and the track number.
      */
-    const borrow = preselected.getByTestId("borrow-select");
+    const borrow = preselected.getByTestId("borrow");
     await expect(borrow).toBeVisible();
+    // It asks the question in the owner's words now, not in `docs/04`'s ("Borrow album context
+    // from" read, to him, as "what is borrow album context"), and it shows the **computed**
+    // destination rather than describing one.
+    await expect(borrow).toContainText("Which album should this file belong to?");
+    await expect(borrow.getByTestId("borrow-path").first()).toContainText(".opus");
     const unselected = page.getByTestId("candidate").filter({ hasNotText: "preselected" }).first();
-    await expect(unselected.getByTestId("borrow-select")).toHaveCount(0);
+    await expect(unselected.getByTestId("borrow")).toHaveCount(0);
 
-    // The search box is wired to *recordings* here, not to releases (DRIVE-1 §B2).
-    await expect(page.getByTestId("mb-search")).toHaveAttribute("placeholder", /Search recordings/);
+    // The box takes a *recording* title — or any MusicBrainz id, which is the thing it used to
+    // refuse. The label says so; the placeholder is an example (DRIVE-1 §B2).
+    await expect(page.getByTestId("mb-search-panel")).toContainText(
+      "Track title, or a MusicBrainz id or link",
+    );
 
     /* ---- step 3: one video, one recording ---------------------------------- */
 
