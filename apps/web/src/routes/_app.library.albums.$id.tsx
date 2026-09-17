@@ -70,6 +70,7 @@ import { setAlbumField, unlockField } from "#/server/functions/overrides.ts";
 import { runRelocate } from "#/server/functions/relocate.ts";
 import { startRetag } from "#/server/functions/retag.ts";
 import type { AlbumTrackRow } from "#/server/services/library.ts";
+import type { AdriftReason } from "#/server/services/quality.ts";
 import type { RelocatePlan } from "#/server/services/relocate.ts";
 
 const TABS = ["tracks", "metadata", "tags", "verify", "mb", "history"] as const;
@@ -87,20 +88,27 @@ const TAB_LABEL: Record<Tab, string> = {
 /**
  * Name the cause rather than making the reader guess at it.
  *
- * The two halves want different sentences because they are different accidents: one is
- * somebody changing the album's identity, the other is somebody changing a field. Shown
- * together when an album has managed both.
+ * The three halves want different sentences because they are different accidents: somebody
+ * changed the album's identity, somebody changed a field, or somebody changed the file. Shown
+ * together when an album has managed more than one.
  */
-function adriftExplanation(reasons: readonly ("document" | "sources")[]): string {
-  const sources = reasons.includes("sources");
-  const document = reasons.includes("document");
-  if (sources && document) {
-    return "the release confirmed for this album and the values corrected since it was filed are both newer than what is written in the files.";
-  }
-  if (sources) {
-    return "the release confirmed for this album is not the one its files were tagged from, so they still carry the previous edition's identifiers.";
-  }
-  return "the database holds values that were never written into the files.";
+function adriftExplanation(reasons: readonly AdriftReason[]): string {
+  const parts = [
+    reasons.includes("sources")
+      ? "the release confirmed for this album is not the one its files were tagged from, so they still carry the previous edition's identifiers"
+      : null,
+    reasons.includes("document")
+      ? "the database holds values that were never written into the files"
+      : null,
+    // The only one of the three that is a measurement rather than a comparison of two rows: the
+    // scan opened the file. Saying so is what tells the reader it was not the app that moved.
+    reasons.includes("file")
+      ? "the last library scan read tags out of the files that this album's documents do not project — somebody edited them outside the app"
+      : null,
+  ].filter((part): part is string => part !== null);
+  if (parts.length === 0) return "the files no longer match the database.";
+  if (parts.length === 1) return `${parts[0] ?? ""}.`;
+  return `${parts.slice(0, -1).join("; ")}; and ${parts.at(-1) ?? ""}.`;
 }
 
 const search = z.object({
