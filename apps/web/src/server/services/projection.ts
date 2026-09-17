@@ -142,33 +142,61 @@ export async function ensureProjection(options: EnsureOptions): Promise<EnsureOu
   const scope = albumId === null ? "track" : "album";
   const targetId = albumId ?? options.targetId;
 
-  const existing = await openRunFor(db, scope, targetId);
-  if (existing !== null) {
-    return { runId: existing.id, total: existing.total, reused: true, adrift: adrift.length };
-  }
-
-  const settings = options.settings ?? (await loadSettings(db));
   /*
-   * Dynamic, and it is the one thing holding the dependency graph the right way up.
-   * `services/retag.ts` imports `withoutProjection` from this module to wrap `runBatch` — the
-   * loop guard — so a static import back into `retag.ts` from here would be a cycle. This edge
-   * is one function call inside a rarely-taken branch; that one is on the hot path of every
-   * batch. The same trick, for the same reason, as `services/queue.ts`.
+   * The rest is a check followed by an act, so it runs one at a time per target.
+   *
+   * Two calls that interleave between `openRunFor` and `createRun` both find no open run and
+   * both open one, and that is not hypothetical: it is precisely the album-scope case, where
+   * fourteen tracks are touched by one gesture and a caller is entitled to fan them out. The
+   * serialisation is *per album*, computed above rather than from the caller's own scope, so
+   * fourteen track-scoped calls queue behind each other and the second one finds the first
+   * one's run. A second **process** racing the same album would still open a second run, and
+   * that is deliberately left alone: it costs one redundant re-projection of files that were
+   * about to be written anyway, and the alternative is holding a transaction open across
+   * `enqueueRetagRun`'s own pg-boss connection.
    */
-  const { createRun } = await import("#/server/services/retag.ts");
-  const run = await createRun({
-    db,
-    settings,
-    scope,
-    targetId,
-    selection: "adrift",
-    dryRun: false,
-    trigger: options.trigger ?? "manual",
-  });
-  if (run.total === 0) return null;
+  return await serialise(`${scope}:${targetId}`, async () => {
+    const existing = await openRunFor(db, scope, targetId);
+    if (existing !== null) {
+      return { runId: existing.id, total: existing.total, reused: true, adrift: adrift.length };
+    }
 
-  await enqueueRetagRun(run.id);
-  return { runId: run.id, total: run.total, reused: false, adrift: adrift.length };
+    const settings = options.settings ?? (await loadSettings(db));
+    /*
+     * Dynamic, and it is the one thing holding the dependency graph the right way up.
+     * `services/retag.ts` imports `withoutProjection` from this module to wrap `runBatch` — the
+     * loop guard — so a static import back into `retag.ts` from here would be a cycle. This
+     * edge is one call inside a rarely-taken branch; that one is on the hot path of every
+     * batch. The same trick, for the same reason, as `services/queue.ts`.
+     */
+    const { createRun } = await import("#/server/services/retag.ts");
+    const run = await createRun({
+      db,
+      settings,
+      scope,
+      targetId,
+      selection: "adrift",
+      dryRun: false,
+      trigger: options.trigger ?? "manual",
+    });
+    if (run.total === 0) return null;
+
+    await enqueueRetagRun(run.id);
+    return { runId: run.id, total: run.total, reused: false, adrift: adrift.length };
+  });
+}
+
+/** The catch-up in flight per target. Emptied as each settles: a queue, never a cache. */
+const INFLIGHT = new Map<string, Promise<unknown>>();
+
+async function serialise<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const queued = (INFLIGHT.get(key) ?? Promise.resolve()).then(fn, fn);
+  INFLIGHT.set(key, queued);
+  try {
+    return await queued;
+  } finally {
+    if (INFLIGHT.get(key) === queued) INFLIGHT.delete(key);
+  }
 }
 
 /** The album every adrift track belongs to, or `null` when they are not all in one. */
