@@ -40,6 +40,22 @@ export const RETAG_TRIGGERS = ["manual", "schema", "sources", "cron"] as const;
 export type RetagTrigger = (typeof RETAG_TRIGGERS)[number];
 export const retagTriggerEnum = pgEnum("retag_trigger", RETAG_TRIGGERS);
 
+/**
+ * Which files inside the scope a run covers — the vocabulary lives in `enums.vocab.ts`.
+ *
+ * Stored on the row, and not merely a parameter of the call that opened the run, because
+ * `runBatch` re-derives the target set on **every batch**: a run that could not say which of
+ * the three it meant would change its mind halfway through. That is not hypothetical — before
+ * this column existed, `scopeTargets` assumed `behind` for every `library` run, so
+ * `mm retag --all` opened a run over four thousand files, filtered every one of them away
+ * because none was behind the *schema*, reported `done`, and wrote nothing.
+ *
+ * Plain `text` rather than a `pgEnum`, because the column is written only by code that has
+ * already parsed the value through `RETAG_SELECTIONS` and a new enum type buys nothing here.
+ */
+export { RETAG_SELECTIONS, type RetagSelection } from "./enums.vocab.ts";
+import type { RetagSelection } from "./enums.vocab.ts";
+
 /** Where a run is. `cancelled` is a person pressing stop, not a failure. */
 export const RETAG_STATUSES = ["pending", "running", "done", "failed", "cancelled"] as const;
 export type RetagStatus = (typeof RETAG_STATUSES)[number];
@@ -52,6 +68,8 @@ export const retagRuns = pgTable(
     scope: retagScopeEnum("scope").notNull().default("library"),
     /** The album or library-track id a scoped run targets. Null for `library`. */
     targetId: text("target_id"),
+    /** One of `RETAG_SELECTIONS`. See the constant: it is re-read on every batch. */
+    selection: text("selection").notNull().default("behind").$type<RetagSelection>(),
     trigger: retagTriggerEnum("trigger").notNull().default("manual"),
     /** A dry run reads the files and writes rows, and touches nothing on disk. */
     dryRun: boolean("dry_run").notNull().default(false),

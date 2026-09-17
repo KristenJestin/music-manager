@@ -44,6 +44,8 @@ import {
 import { type QualityFilter } from "#/lib/library-filters.ts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import {
+  imports,
+  importTracks,
   libraryAlbums,
   libraryTracks,
   metadataDocuments,
@@ -932,7 +934,18 @@ export async function filesBehindCount(
   };
 }
 
-/** The library tracks a re-tag would touch, in a stable order. */
+/**
+ * The library tracks whose **tag schema version** is behind the current one, in a stable order.
+ *
+ * Read the name literally, because a re-tag run used to. `behind` below compares
+ * `library_tracks.tag_schema_version` with `effectiveSchemaVersion(settings)` and nothing
+ * else: it is the answer to "which files were written by an older *projection*", which is the
+ * question `docs/03-metadonnees.md` §8 asks after a `MUSICMANAGER_TAGSCHEMA` bump. It is **not**
+ * the answer to "which files carry different values from the database", and it cannot become
+ * one — a file whose schema version is current is invisible here however wrong its contents
+ * are. That is `tracksAdrift` below, and the two are deliberately separate selections rather
+ * than one fuzzy `onlyBehind` flag.
+ */
 export async function tracksBehindSchema(options: {
   db?: Database;
   settings?: Settings;
@@ -957,4 +970,134 @@ export async function tracksBehindSchema(options: {
     .where(where)
     .orderBy(libraryTracks.albumId, libraryTracks.discNumber, libraryTracks.trackNumber);
   return options.limit === undefined ? await query : await query.limit(options.limit);
+}
+
+/* ------------------------------------------------------------------ */
+/* adrift: the files that disagree with the database                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Why one placed file no longer matches the database.
+ *
+ *  - `document` — the stored document projects to something other than what was last written
+ *    into the file. `metadata_documents.projection_hash` is the record of that write: the `tag`
+ *    step stamps it immediately after the toolbox has written *and read back* the tag block,
+ *    and `retag.stamp` does the same. It is therefore a faithful record of the last successful
+ *    write, and comparing a fresh `projectionHash(projectDocument(document))` against it is the
+ *    honest test for this half.
+ *  - `sources` — the **document itself** is stale. The mapping the database now holds
+ *    (`import_tracks.recording_mbid` / `track_mbid`, `imports.release_mbid`) is not the one the
+ *    document was built from, so document and file can agree perfectly *on the previous
+ *    edition*. The hash test is structurally blind to that: `matchStep` rewrites the mapping and
+ *    rebuilds no document, so both sides of the comparison stay equal while the truth moves
+ *    underneath them. This is the half that let the AURORA and Birdy albums keep the previous
+ *    edition's `MUSICBRAINZ_RELEASETRACKID` and no `ASIN` at all.
+ *
+ * Both are cleared by one act, which is what makes the state actionable rather than merely
+ * true: `retagOne` rebuilds the document from the raw cache (so the mapping catches up), writes
+ * the file, and `stamp` stores the rebuilt document *and* the new hash.
+ */
+export type AdriftReason = "document" | "sources";
+
+export interface AdriftTrack {
+  readonly track: LibraryTrack;
+  readonly reason: AdriftReason;
+}
+
+/**
+ * `null` on either side is "not known", and an unknown is never a divergence.
+ *
+ * A document built by "import without MusicBrainz" carries no `MUSICBRAINZ_TRACKID`, and its
+ * import row carries none either. Calling that pair a divergence would put a permanent "1 file
+ * behind the database" on every untagged album, under a button that could never clear it.
+ */
+function disagrees(left: string | null, right: string | null): boolean {
+  return left !== null && right !== null && left !== right;
+}
+
+/** One identifier off a document, tolerating the multi-valued shape the tag map allows. */
+function identifierOf(document: TrackDocument, field: string): string | null {
+  const value = document.fields[field]?.value;
+  if (typeof value === "string") return value === "" ? null : value;
+  if (Array.isArray(value)) {
+    const first = value[0];
+    return typeof first === "string" && first !== "" ? first : null;
+  }
+  return null;
+}
+
+/**
+ * The placed files that no longer match the database, and why — the input of the catch-up.
+ *
+ * One query and no toolbox: everything compared here is already in Postgres. That is what makes
+ * it affordable on a page loader, inside a step, and over a whole library alike. The scan's own
+ * drift pass is honest in a different way — it probes every file — and costs an hour on four
+ * thousand of them, which is why it is a report you ask for and this is not.
+ */
+export async function tracksAdrift(options: {
+  db?: Database;
+  /** An album id, a library-track id, or neither for the whole library. */
+  albumId?: string;
+  trackId?: string;
+}): Promise<AdriftTrack[]> {
+  const db = options.db ?? defaultDb();
+
+  const scope =
+    options.trackId !== undefined
+      ? eq(libraryTracks.id, options.trackId)
+      : options.albumId !== undefined
+        ? eq(libraryTracks.albumId, options.albumId)
+        : isNotNull(libraryTracks.path);
+
+  const rows = await db
+    .select({
+      track: libraryTracks,
+      document: metadataDocuments.document,
+      storedHash: metadataDocuments.projectionHash,
+      recordingMbid: importTracks.recordingMbid,
+      trackMbid: importTracks.trackMbid,
+      role: importTracks.role,
+      releaseMbid: imports.releaseMbid,
+    })
+    .from(libraryTracks)
+    .innerJoin(importTracks, eq(libraryTracks.importTrackId, importTracks.id))
+    .innerJoin(imports, eq(importTracks.importId, imports.id))
+    .innerJoin(metadataDocuments, eq(metadataDocuments.libraryTrackId, libraryTracks.id))
+    .where(and(scope, isNull(libraryTracks.missingAt)))
+    .orderBy(libraryTracks.albumId, libraryTracks.discNumber, libraryTracks.trackNumber);
+
+  const out: AdriftTrack[] = [];
+  for (const row of rows) {
+    // A video the mapping dropped is not on the release any more; re-projecting it from a
+    // tracklist it is no longer part of would not improve the file.
+    if (row.role === "extra") continue;
+    const document = row.document as unknown as TrackDocument;
+
+    if (
+      disagrees(identifierOf(document, "musicbrainz_recordingid"), row.recordingMbid) ||
+      disagrees(identifierOf(document, "musicbrainz_releasetrackid"), row.trackMbid) ||
+      disagrees(identifierOf(document, "musicbrainz_albumid"), row.releaseMbid)
+    ) {
+      out.push({ track: row.track, reason: "sources" });
+      continue;
+    }
+
+    // `null` means nothing of ours was ever written into this file — an adopted row, or one
+    // from a v1 take-over. It is not a claim that the file is wrong, and `scoreLoadedTracks`
+    // reads it the same way.
+    if (row.storedHash === null) continue;
+    if (projectionHash(projectDocument(document, "vorbis")) !== row.storedHash) {
+      out.push({ track: row.track, reason: "document" });
+    }
+  }
+  return out;
+}
+
+/** How many placed files of a scope are behind the database. What the album page shows. */
+export async function adriftCount(options: {
+  db?: Database;
+  albumId?: string;
+  trackId?: string;
+}): Promise<number> {
+  return (await tracksAdrift(options)).length;
 }

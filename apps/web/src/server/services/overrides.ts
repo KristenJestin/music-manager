@@ -38,9 +38,11 @@
  * **What this never does.** It never moves a file. A change to `title` or `tracknumber`
  * changes where the path template says the file belongs, and moving it loses that track's
  * Navidrome play count and favourites — so a relocate **plan** comes back with the answer and
- * a person presses the button. It does queue a re-tag, with `onlyBehind: false`, because
- * nothing about the tag *schema* changed and a run filtered on "behind the schema" would find
- * nothing to do and report success without opening a file.
+ * a person presses the button. It does queue a re-tag, through `services/projection.ts` and
+ * with `selection: "adrift"`, because nothing about the tag *schema* changed and a run
+ * filtered on "behind the schema" would find nothing to do and report success without opening
+ * a file. That seam is shared with `matchStep` and `refreshAlbumFromSource`, so the three
+ * coalesce onto one run instead of opening three.
  */
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
@@ -62,9 +64,8 @@ import {
 } from "#/server/db/schema/index.ts";
 import { emit } from "#/server/services/events.ts";
 import { rebuild, storeDocument } from "#/server/services/documents.ts";
-import { enqueueRetagRun } from "#/server/services/queue.ts";
 import { planRelocate, type RelocatePlan } from "#/server/services/relocate.ts";
-import { createRun } from "#/server/services/retag.ts";
+import { ensureProjection } from "#/server/services/projection.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 
 /* ------------------------------------------------------------------ */
@@ -813,25 +814,20 @@ async function write(
     db,
   );
 
-  /* ---- 4 · the files catch up, and the paths are only ever *offered* ---- */
-  let retagRunId: string | null = null;
-  if (options.retag !== false) {
-    const run = await createRun({
-      db,
-      settings,
-      scope,
-      targetId,
-      // Nothing about the tag *schema* changed — what changed is the answer. A run filtered on
-      // "behind the schema" would find nothing and report success without opening a file.
-      onlyBehind: false,
-      dryRun: false,
-      trigger: "manual",
-    });
-    if (run.total > 0) {
-      await enqueueRetagRun(run.id);
-      retagRunId = run.id;
-    }
-  }
+  /*
+   * ---- 4 · the files catch up, and the paths are only ever *offered* ----
+   *
+   * Through `ensureProjection` rather than a third hand-rolled `createRun` /
+   * `enqueueRetagRun` pair: it is the same seam `matchStep` and `refreshAlbumFromSource` use,
+   * so all three queue the same kind of run, coalesce onto each other's, and stay silent when
+   * the write changed nothing a file carries. Nothing about the tag *schema* changed here —
+   * what changed is the answer — so the selection is `adrift` and never `behind`.
+   */
+  const outcome =
+    options.retag === false
+      ? null
+      : await ensureProjection({ db, settings, scope, targetId, trigger: "manual" });
+  const retagRunId = outcome?.runId ?? null;
 
   const albumId = touched[0]?.target.track.albumId ?? null;
   const relocatePlan = touchesPath(changedFields)

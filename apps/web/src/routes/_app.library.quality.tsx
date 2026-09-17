@@ -439,6 +439,34 @@ function Quality() {
                 >
                   Dry run (diff)
                 </Button>
+                {/*
+                  The repair for a library that already diverged.
+                  The two buttons above select on the tag schema *version*, which is the right
+                  question after a `MUSICMANAGER_TAGSCHEMA` bump and no question at all about
+                  values: a re-matched album's files carry the current version and the previous
+                  edition's identifiers, and nothing here could reach them. This one selects on
+                  `quality.tracksAdrift` instead, over the whole library, and it is the Console
+                  half of `mm retag --adrift`.
+                */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy !== null}
+                  data-testid="retag-adrift"
+                  title="Re-project every file whose tags disagree with the database — a changed release, a corrected field. Not the same question as the tag schema version."
+                  onClick={() => {
+                    act("adrift", async () => {
+                      const run = await startRetag({
+                        data: { scope: "library", targetId: null, selection: "adrift" },
+                      });
+                      return run.total === 0
+                        ? "Every file in the library already matches the database."
+                        : `Re-tag queued for ${String(run.total)} file(s) that disagree with the database.`;
+                    });
+                  }}
+                >
+                  Files behind the database
+                </Button>
               </>
             )}
           </div>

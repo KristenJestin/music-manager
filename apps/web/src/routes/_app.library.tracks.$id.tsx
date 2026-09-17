@@ -301,6 +301,41 @@ function TrackPage() {
         </div>
       </div>
 
+      {/*
+        The projection invariant for one file. Same test as the album page
+        (`quality.tracksAdrift`), same one button, and deliberately not the same claim as the
+        schema badge beside it: a file can carry the current `MUSICMANAGER_TAGSCHEMA` and still
+        hold the previous edition's identifiers.
+      */}
+      {detail.adrift === null ? null : (
+        <Callout tone="warn" className="mb-3" data-testid="track-adrift">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <strong>This file is behind the database</strong>
+              {": "}
+              {detail.adrift === "sources"
+                ? "the release confirmed for its album is not the one it was tagged from, so it still carries the previous edition's identifiers."
+                : "the database holds values that were never written into it."}
+            </div>
+            <Button
+              size="sm"
+              disabled={busy !== null}
+              data-testid="track-adrift-retag"
+              onClick={() => {
+                act("adrift", async () => {
+                  const run = await startRetag({
+                    data: { scope: "track", targetId: id, selection: "adrift" },
+                  });
+                  return `Re-tag queued (run ${run.runId}), projection v${String(run.schemaVersion)}.`;
+                });
+              }}
+            >
+              <Tag className="size-3.5" aria-hidden="true" /> Update the file
+            </Button>
+          </div>
+        </Callout>
+      )}
+
       <div className="track-grid">
         <div className="flex flex-col gap-3">
           <section className="overflow-hidden rounded-xl border border-line bg-surface-1">

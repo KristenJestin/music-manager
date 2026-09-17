@@ -378,6 +378,7 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
         scope,
         targetId: body.trackId ?? body.albumId ?? null,
         dryRun: body.dryRun,
+        ...(body.selection === undefined ? {} : { selection: body.selection }),
         onlyBehind: body.onlyBehind,
         trigger: "manual",
       });

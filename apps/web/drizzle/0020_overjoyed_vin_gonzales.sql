@@ -1,0 +1,1 @@
+ALTER TABLE "retag_runs" ADD COLUMN "selection" text DEFAULT 'behind' NOT NULL;

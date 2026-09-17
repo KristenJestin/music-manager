@@ -41,6 +41,7 @@ import { emit } from "#/server/services/events.ts";
 import { resolvePaths } from "#/server/services/jobs/context.ts";
 import { openInboxItem } from "#/server/services/inbox.ts";
 import { openLibraryItem } from "#/server/services/library-inbox.ts";
+import { withoutProjection } from "#/server/services/projection.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { verifyAlbum } from "#/server/services/verify.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
@@ -187,6 +188,15 @@ export interface MigrationResult {
 /* ------------------------------------------------------------------ */
 
 export async function runMigration(options: MigrationOptions): Promise<MigrationResult> {
+  // Suppressed for the whole take-over, explicitly. It writes a document and a projection hash
+  // for every track of every album it migrates and writes the file in the same pass, so the
+  // catch-up seam would queue one run per album for work already done — thousands of them on a
+  // real v1 library. Suppression, not batching, is the honest answer for a writer that *is* the
+  // projection.
+  return await withoutProjection(async () => await runMigrationInner(options));
+}
+
+async function runMigrationInner(options: MigrationOptions): Promise<MigrationResult> {
   const db = options.db ?? defaultDb();
   const settings = options.settings ?? (await loadSettings(db));
   const toolbox = options.toolbox ?? defaultToolbox();

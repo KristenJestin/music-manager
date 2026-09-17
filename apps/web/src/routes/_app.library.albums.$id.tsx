@@ -84,6 +84,25 @@ const TAB_LABEL: Record<Tab, string> = {
   history: "History",
 };
 
+/**
+ * Name the cause rather than making the reader guess at it.
+ *
+ * The two halves want different sentences because they are different accidents: one is
+ * somebody changing the album's identity, the other is somebody changing a field. Shown
+ * together when an album has managed both.
+ */
+function adriftExplanation(reasons: readonly ("document" | "sources")[]): string {
+  const sources = reasons.includes("sources");
+  const document = reasons.includes("document");
+  if (sources && document) {
+    return "the release confirmed for this album and the values corrected since it was filed are both newer than what is written in the files.";
+  }
+  if (sources) {
+    return "the release confirmed for this album is not the one its files were tagged from, so they still carry the previous edition's identifiers.";
+  }
+  return "the database holds values that were never written into the files.";
+}
+
 const search = z.object({
   tab: z.enum(TABS).default("tracks"),
   profile: z.enum(["global", ...PROFILE_IDS]).default("global"),
@@ -453,6 +472,49 @@ function Album() {
           </Button>
         </div>
       </div>
+
+      {/*
+        ---- the projection invariant, said out loud ----
+
+        `AGENTS.md`: the database is the source of truth and the files are a regenerable
+        projection of it. When that stops being true the owner used to find out from a library
+        scan he had to think to ask for — and only if he knew a re-tag existed and remembered to
+        run it. It is a state of *this album*, so it belongs on this album's page, with the one
+        button that clears it beside it.
+
+        `adrift.count` is deliberately not `filesBehind`: that one counts files written by an
+        older projection *version*, which a re-matched album never is. See `quality.tracksAdrift`.
+      */}
+      {album.adrift.count === 0 ? null : (
+        <Callout tone="warn" className="mb-3" data-testid="album-adrift">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <strong>
+                {album.adrift.count} file(s) are behind the database
+              </strong>
+              {": "}
+              {adriftExplanation(album.adrift.reasons)} The re-tag rebuilds each document from the
+              raw cache and rewrites the tag block — offline, no re-download, the audio stream is
+              not touched.
+            </div>
+            <Button
+              size="sm"
+              disabled={busy !== null}
+              data-testid="album-adrift-retag"
+              onClick={() => {
+                act("adrift", async () => {
+                  const run = await startRetag({
+                    data: { scope: "album", targetId: id, selection: "adrift" },
+                  });
+                  return `Re-tag queued for ${String(run.total)} file(s) (projection v${String(run.schemaVersion)}).`;
+                });
+              }}
+            >
+              <Tag className="size-3.5" aria-hidden="true" /> Update the files
+            </Button>
+          </div>
+        </Callout>
+      )}
 
       {/* ---- tabs ---- */}
       <div className="mb-3 flex flex-wrap gap-1 border-b border-line" data-testid="album-tabs">

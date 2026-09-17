@@ -26,6 +26,7 @@
  * against it.
  */
 import { eq } from "drizzle-orm";
+import { MMError } from "@mm/contracts";
 import type {
   MappingResult,
   MatchVideo,
@@ -326,6 +327,12 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
     return { status: "failed", message: "Nothing to match: the import has no videos." };
   }
 
+  const result = await runMatch(ctx, rows);
+  await catchUp(ctx, result);
+  return result;
+}
+
+async function runMatch(ctx: StepContext, rows: readonly ImportTrack[]): Promise<StepResult> {
   const options = ctx.job.options as unknown as Record<string, unknown>;
   const supplied = mappingFromOptions({ options });
 
@@ -346,6 +353,53 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
   return ctx.job.kind === "single" || rows.length === 1
     ? await matchOneRecording(ctx, rows, videos, gateway)
     : await matchOneAlbum(ctx, rows, videos, gateway);
+}
+
+/**
+ * The files catch up with the mapping that has just been written.
+ *
+ * This is the whole of the fix for "confirming a different release leaves the previous
+ * edition's tags on disk", and it is *here* rather than in `services/confirm.ts` because this
+ * is where every confirmation ends up: `confirmSupplied` (the wizard's Start button, the album
+ * page's "Change release", `POST /confirm-mapping`, MCP's `confirm_mapping`) and
+ * `confirmBest`/`applyAndReport` (`POST /confirm-best`, MCP, the batch) both call
+ * `runStep(id, "match")`, and an Inbox `{action: "retry", step: "match"}` re-queues this step.
+ * One call, four doors, and `services/confirm.ts` untouched.
+ *
+ * Nothing is queued unless the import already has files in the library **and** those files
+ * disagree with the mapping the database now holds — which is the whole of an ordinary first
+ * import, where `library_tracks` has no row yet and this costs one indexed query.
+ *
+ * `place` and `tag` will not do it instead: a track that has reached `done` or `placed` is
+ * terminal in `machine.ts`, so re-queueing the import after a re-match re-runs nothing over
+ * the files that are already filed. That is the exact shape of the defect.
+ */
+async function catchUp(ctx: StepContext, result: StepResult): Promise<void> {
+  if (result.status !== "done" && result.status !== "skipped") return;
+  try {
+    const { ensureProjectionForImport } = await import("#/server/services/projection.ts");
+    const outcomes = await ensureProjectionForImport({
+      importId: ctx.job.id,
+      db: ctx.db,
+      settings: ctx.settings,
+      trigger: "sources",
+    });
+    for (const outcome of outcomes) {
+      if (outcome.reused) continue;
+      await ctx.say(
+        "step.done",
+        `${String(outcome.adrift)} file(s) of this album no longer match the database; a re-tag is queued.`,
+        { data: { runId: outcome.runId, adrift: outcome.adrift, total: outcome.total } },
+      );
+    }
+  } catch (error) {
+    // The mapping is written and correct; failing the `match` step because the catch-up could
+    // not be queued would throw away the part that worked. The Quality page and the album page
+    // both report the drift, so the state is recoverable by hand.
+    await ctx.say("step.progress", `Could not queue the re-tag: ${MMError.from(error).message}`, {
+      level: "warn",
+    });
+  }
 }
 
 /* ---- album ---- */
