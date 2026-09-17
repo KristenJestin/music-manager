@@ -438,6 +438,48 @@ export function optionsFor(item: InboxItem): InboxOption[] {
         },
       ];
     }
+    case "awaiting_confirm": {
+      /*
+       * The one blocking step of the pipeline, asked as a question at last.
+       *
+       * The preselection is "yes", because the mapping is already computed and on screen and
+       * because the preselection is always the answer that lets the job carry on. The second
+       * option is the escape hatch rather than another answer: the wizard is the only place a
+       * different release can actually be chosen, so the card points at it instead of
+       * pretending to offer the choice itself.
+       */
+      const count = Array.isArray(payload["tracks"]) ? payload["tracks"].length : 0;
+      return [
+        {
+          id: "confirm",
+          label: "Confirm and start",
+          detail: `Accept the mapping as shown and download the ${String(count)} track(s).`,
+          preselected: true,
+          value: { action: "confirm" },
+        },
+        {
+          id: "review",
+          label: "Choose another release first",
+          detail: "Opens the import wizard at the release step; nothing is confirmed.",
+          preselected: false,
+          value: { action: "review" },
+        },
+        {
+          id: "cancel",
+          label: "Cancel this import",
+          detail: "Nothing is written to the library.",
+          preselected: false,
+          value: { action: "cancel" },
+        },
+        {
+          id: "later",
+          label: "Later",
+          preselected: false,
+          dismiss: true,
+          value: { action: "snooze" },
+        },
+      ];
+    }
     case "cover_missing": {
       return [
         {

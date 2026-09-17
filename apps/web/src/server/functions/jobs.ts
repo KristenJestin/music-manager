@@ -39,6 +39,7 @@ import {
   type JobSummary,
 } from "#/server/services/console.queries.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
+import { confirmProposed } from "#/server/services/confirm.ts";
 
 const statusFilter = z.enum([
   "all",
@@ -291,6 +292,33 @@ export const resumeJob = createServerFn({ method: "POST", strict: STRICT })
       const step = await resumeStepOf(data.id, db());
       await enqueue(data.id, "console resume", step);
       return { step };
+    } catch (error) {
+      return toFailure(error);
+    }
+  });
+
+/**
+ * "Yes, the mapping as shown" — the answer an import parked at `awaiting_confirm` was waiting
+ * for, and which the Console had no way of giving.
+ *
+ * `confirm` is the one deliberately blocking step of the pipeline, and confirming it was
+ * possible from `/api/v1`, MCP and `mm` and from nowhere in the browser: the wizard opens the
+ * gate inside its own flow, before the import ever reaches this state, so every import that
+ * got here another way — a batch, a watched source, a job re-matched after an Inbox answer —
+ * sat with a Retry button and a Cancel button and no way to say yes.
+ *
+ * It supplies nothing and re-runs nothing: `services/confirm.ts` opens the gate signed
+ * `console`, answers the `awaiting_confirm` Inbox item if one is open, and hands the job back
+ * to the worker. The `decisions` row is written by `confirmStep`, exactly as it is for the
+ * wizard, for `--yes` and for the API.
+ */
+export const confirmJob = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }): Promise<{ mapped: number; status: ImportStatus }> => {
+    try {
+      const { job, mapped } = await confirmProposed(data.id, "console", db());
+      return { mapped, status: job.status };
     } catch (error) {
       return toFailure(error);
     }

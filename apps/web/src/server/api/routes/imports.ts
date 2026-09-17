@@ -7,10 +7,10 @@
  * than by diligence: `POST /imports` and the Console's paste box reach `createFromUrl` by
  * different doors into the same room.
  *
- * The one place this file has logic of its own is `POST /{id}/confirm-mapping`, and it is a
- * transcription of the wizard's step 4 rather than an invention — same `SuppliedMapping`, same
- * synchronous `match`, same hand-off to the worker. The comments there say which lines are
- * load-bearing.
+ * `POST /{id}/confirm-mapping` used to be the one place this file had logic of its own — a
+ * transcription of the wizard's step 4, which the Console then transcribed a second time and
+ * which had nowhere to put a third. It is now `services/confirm.ts`, one function called by
+ * this route, by the wizard and by the job page alike.
  *
  * `POST /batch` and `POST /{id}/confirm-best` deliberately have none of their own: they are
  * `services/imports.bulk.ts`, which the MCP tools and the CLI call too. The mapping
@@ -31,11 +31,10 @@ import {
   pauseImport,
   requeueUpstreamFailures,
   rewindTo,
-  runStep,
 } from "#/server/services/jobs/index.ts";
 import { jobDetail, setImportOptions } from "#/server/services/console.queries.ts";
+import { confirmSupplied } from "#/server/services/confirm.ts";
 import { hintsFor, rankFor, videosOf } from "#/server/services/matching.queries.ts";
-import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
@@ -415,42 +414,33 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       };
       const options: Partial<z.infer<typeof importOptionsSchema>> = body.options ?? {};
 
-      await setImportOptions(
-        id,
+      // `services/confirm.ts` — the same function the wizard's Start button calls. This route
+      // used to hold the only copy of that logic with its own header apologising for it; the
+      // Console then grew a second and there was nowhere for a third to go.
+      const outcome = await confirmSupplied(
         {
-          mapping,
-          releaseMbid: body.releaseMbid,
-          fingerprint: options.fingerprint ?? true,
-          lyrics: options.lyrics ?? true,
-          replaygain: options.replaygain ?? true,
-          force: options.force ?? false,
-          // Supplying a mapping *is* the confirmation. Blocking on `confirm` afterwards would
-          // ask the caller a question it has just answered in the body of this request.
-          autoConfirm: true,
+          importId: id,
           confirmedBy: "api",
+          mapping,
+          options: {
+            fingerprint: options.fingerprint ?? true,
+            lyrics: options.lyrics ?? true,
+            replaygain: options.replaygain ?? true,
+            force: options.force ?? false,
+          },
+          priority: PRIORITY[body.priority],
+          acknowledgedIn: "api",
+          reason: "api confirm-mapping",
         },
-        { priority: PRIORITY[body.priority], releaseMbid: body.releaseMbid },
         db(),
       );
 
-      // `match` runs here rather than on the worker for the same reason the wizard runs it
-      // here: it is the step that *applies* the supplied mapping, there is no MusicBrainz call
-      // left to make, and running it now is what lets this response say "14 mapped, 1 extra".
-      const settings = await loadSettings(db());
-      const result = await runStep(id, "match", { db: db(), settings });
-      await acknowledgeExtras(id);
-
-      const open = await listInbox({ importId: id, status: "open" }, db());
-      await enqueue(id, "api confirm-mapping");
-      const fresh = (await getImport(id, db())) ?? job;
-      const info = (result.data ?? {}) as { mapped?: number; extras?: number };
-
       return c.json(
         {
-          import: toImport(fresh),
-          mapped: info.mapped ?? body.bindings.length,
-          extras: info.extras ?? 0,
-          uncovered: open.filter((item) => item.type === "uncovered_tracks").length,
+          import: toImport(outcome.job),
+          mapped: outcome.mapped,
+          extras: outcome.extras,
+          uncovered: outcome.uncovered,
         },
         200,
       );
@@ -685,23 +675,4 @@ function notFound(id: string): MMError {
     hint: "List them with `GET /api/v1/imports`.",
     status: 404,
   });
-}
-
-/**
- * Close the `extra_videos` notices this request has just answered.
- *
- * Exactly what the wizard does, and for the same reason: the caller supplied a mapping that
- * omits those videos, which *is* the answer to "what about these?". `uncovered_tracks` is
- * deliberately left open — "the release has tracks your source does not" is a question about
- * the album's completeness and belongs in Review.
- */
-async function acknowledgeExtras(importId: string): Promise<void> {
-  for (const item of await listInbox({ importId, status: "open" }, db())) {
-    if (item.type !== "extra_videos") continue;
-    await resolveInboxItem(
-      item.id,
-      { resolution: { action: "ignore", acknowledgedIn: "api" }, decidedBy: "api" },
-      db(),
-    );
-  }
 }

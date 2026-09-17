@@ -357,7 +357,7 @@ export async function resolveInboxItem(
     db,
   );
 
-  await applyResolution(item, options.resolution, db);
+  await applyResolution(item, options.resolution, options.decidedBy ?? "user", db);
 
   return updated ?? item;
 }
@@ -495,6 +495,7 @@ export async function resolveInboxBatch(
 async function applyResolution(
   item: InboxItem,
   resolution: Record<string, unknown>,
+  decidedBy: string,
   db: Database,
 ): Promise<void> {
   const action = resolution["action"];
@@ -526,6 +527,24 @@ async function applyResolution(
   if (action === "cancel") {
     const { cancelImport } = await import("#/server/services/jobs/index.ts");
     await cancelImport(importId, db);
+    return;
+  }
+
+  /*
+   * "Yes, the mapping as shown."
+   *
+   * The gate is opened and **signed with whoever answered** — `console` from the review card,
+   * `api` from `/api/v1/inbox/{id}/resolve`, `mcp`, `cli`. `confirm` then writes the same
+   * `decisions` row it writes for the wizard and for `--yes`, so the audit trail can still
+   * answer "which of my albums did nobody look at?" with one query.
+   *
+   * It deliberately does **not** re-queue the job: every caller of `resolveInboxItem` already
+   * does that once — the Console after checking nothing else is open, `/api/v1` unconditionally,
+   * the batch once per import — and a second `enqueue` here would race the first.
+   */
+  if (action === "confirm") {
+    const { setImportOptions } = await import("#/server/services/console.queries.ts");
+    await setImportOptions(importId, { autoConfirm: true, confirmedBy: decidedBy }, {}, db);
     return;
   }
 

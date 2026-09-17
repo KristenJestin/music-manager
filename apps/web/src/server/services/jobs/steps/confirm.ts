@@ -19,7 +19,7 @@ import { and, eq } from "drizzle-orm";
 import { decisions, imports, jobSteps, type ImportTrack } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { learnPreferences } from "#/server/services/matching.preferences.ts";
-import { openInboxItem } from "#/server/services/inbox.ts";
+import { listInbox, openInboxItem, resolveInboxItem } from "#/server/services/inbox.ts";
 import type { StepResult } from "../machine.ts";
 import type { StepContext } from "../context.ts";
 
@@ -209,6 +209,20 @@ async function confirmForWatchedSource(
   };
 }
 
+/** Answer the item that was asking for this yes — either of the two — if it is still open. */
+async function closeConfirmItem(ctx: StepContext, decidedBy: string): Promise<void> {
+  const { WAITING_FOR_YES } = await import("#/server/services/confirm.ts");
+  const item = (await listInbox({ importId: ctx.job.id, status: "open" }, ctx.db)).find((row) =>
+    WAITING_FOR_YES.includes(row.type),
+  );
+  if (item === undefined) return;
+  await resolveInboxItem(
+    item.id,
+    { resolution: { accepted: true, confirmedBy: decidedBy }, decidedBy },
+    ctx.db,
+  );
+}
+
 export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   const mapped = await ctx.mappedTracks();
 
@@ -224,20 +238,46 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   const automatic = ctx.job.options.autoConfirm === true || ctx.fixtures;
 
   if (!automatic) {
+    const tracks = mapped.map((track) => ({
+      position: track.position,
+      title: track.sourceTitle,
+      trackPosition: track.trackPosition,
+      trackTitle: track.trackTitle,
+      confidence: track.confidence,
+    }));
+
+    /*
+     * **Say so in the Inbox**, not only in `imports.status`.
+     *
+     * This branch used to block silently. The job page said "Needs confirm" and offered Retry
+     * and Cancel; the review queue — which is where the owner actually works, and which reads
+     * `inbox_items` — knew nothing about it. So every import that reached this step outside
+     * the wizard was unreachable: a batch import, a `mm import` without `--yes`, a job
+     * re-matched after an Inbox answer. The watched-source branch above has raised an item for
+     * exactly this state since P09; the ordinary branch simply never did.
+     *
+     * Idempotent per import, like every other item: re-running `confirm` refreshes this one
+     * rather than piling up a second.
+     */
+    await openInboxItem(
+      {
+        type: "awaiting_confirm",
+        importId: ctx.job.id,
+        title: `Confirm “${ctx.job.title ?? ctx.job.url}”`,
+        summary:
+          `${String(mapped.length)} track(s) are mapped and waiting for your yes. ` +
+          "Nothing is downloaded until you give it.",
+        payload: { releaseMbid: ctx.job.releaseMbid, url: ctx.job.url, tracks },
+        preselected: { action: "confirm" },
+      },
+      ctx.db,
+    );
+
     return {
       status: "blocked",
       blockedAs: "awaiting_confirm",
       message: `Waiting for confirmation of ${String(mapped.length)} track(s).`,
-      data: {
-        releaseMbid: ctx.job.releaseMbid,
-        tracks: mapped.map((track) => ({
-          position: track.position,
-          title: track.sourceTitle,
-          trackPosition: track.trackPosition,
-          trackTitle: track.trackTitle,
-          confidence: track.confidence,
-        })),
-      },
+      data: { releaseMbid: ctx.job.releaseMbid, tracks },
     };
   }
 
@@ -274,6 +314,18 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   });
 
   await ctx.db.update(imports).set({ updatedAt: new Date() }).where(eq(imports.id, ctx.job.id));
+
+  /*
+   * The question has been answered, so it stops being asked.
+   *
+   * Whoever opened the gate — the wizard, `confirm-mapping`, `confirm-best`, MCP, `--yes` —
+   * answers the `awaiting_confirm` item this step raised, whether or not they knew it existed.
+   * Closing it here rather than in each of those callers is the only way a caller added later
+   * cannot forget. The resolution carries **no `action`**: the act is already done by the time
+   * this line runs, and an `action: "confirm"` would send `applyResolution` round to open a
+   * gate that is open.
+   */
+  await closeConfirmItem(ctx, decidedBy);
 
   // A confirmed release is the one piece of evidence about your taste that is not a guess, so
   // it is what the country/format preferences are learned from (P05). It reads the decision

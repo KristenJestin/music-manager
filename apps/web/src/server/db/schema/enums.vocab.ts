@@ -130,6 +130,18 @@ export const INBOX_TYPES = [
   "cover_missing",
   /** A watched source found a video, and the confidence was not high enough to accept it. */
   "source_new_video",
+  /**
+   * The `confirm` step is blocking on a human, and nothing pointed at it.
+   *
+   * Not a new word: it is `imports.status`'s own `awaiting_confirm`, used in a second place.
+   * The state has existed since P03 and is exactly what `docs/04` § Inbox describes — "une
+   * question que le pipeline ne peut pas trancher seul" — but only the *watched source* branch
+   * of `confirm` ever raised an item for it, so an import parked there by a batch import, by
+   * `mm import` without `--yes`, or by a re-matched job was invisible in the review queue and
+   * reachable only from `/api/v1`, MCP or the CLI. Every consumer of the Inbox — the Console,
+   * the sidebar count, `list_inbox`, `mm inbox` — gains it by the word existing.
+   */
+  "awaiting_confirm",
 ] as const;
 export type InboxType = (typeof INBOX_TYPES)[number];
 

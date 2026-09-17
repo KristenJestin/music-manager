@@ -13,8 +13,9 @@
  *
  * The one subtlety worth spelling out is `extra_videos`. `match` raises it for videos outside
  * the tracklist; step 3 shows those videos, in a table, before you press Start. Once you have
- * pressed Start, the question has been asked and answered, so the item is resolved here with
- * `decidedBy: "console"` rather than left in the Inbox for you to answer a second time.
+ * pressed Start, the question has been asked and answered, so the item is resolved by
+ * `services/confirm.ts` with `decidedBy: "console"` rather than left in the Inbox for you to
+ * answer a second time.
  * `uncovered_tracks` is deliberately *not* treated that way: "this release has two tracks your
  * source does not" is a question about the album's completeness, and it belongs in Review.
  */
@@ -35,12 +36,11 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportKind, ImportTrack } from "#/server/db/schema/index.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { enqueue } from "#/server/services/queue.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
-import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
-import { pauseImport, runStep } from "#/server/services/jobs/index.ts";
+import { pauseImport } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
-import { duplicatesOf, setImportOptions } from "#/server/services/console.queries.ts";
+import { duplicatesOf } from "#/server/services/console.queries.ts";
+import { confirmSupplied } from "#/server/services/confirm.ts";
 import { youtubeThumbnail } from "#/server/services/documents.ts";
 import {
   hintsFor,
@@ -703,63 +703,31 @@ export const startImport = createServerFn({ method: "POST", strict: STRICT })
         })),
       };
 
-      await setImportOptions(
-        data.importId,
+      // `services/confirm.ts` — the same function `POST /api/v1/imports/{id}/confirm-mapping`
+      // calls. The wizard *is* the confirmation gate of `docs/04`: you have just seen the
+      // release, the mapping and the options and pressed Start, so `autoConfirm` is opened and
+      // signed `console` rather than asking the same question twice.
+      const outcome = await confirmSupplied(
         {
-          mapping,
-          releaseMbid: data.releaseMbid,
-          fingerprint: data.options.fingerprint,
-          lyrics: data.options.lyrics,
-          replaygain: data.options.replaygain,
-          force: data.options.force,
-          // The wizard *is* the confirmation gate of `docs/04`: you have just seen the
-          // release, the mapping and the options and pressed Start. Blocking on `confirm`
-          // afterwards would be asking the same question twice.
-          autoConfirm: true,
+          importId: data.importId,
           confirmedBy: "console",
+          mapping,
+          options: data.options,
+          priority: PRIORITY[data.priority],
+          acknowledgedIn: "import wizard",
+          reason: "console wizard",
         },
-        { priority: PRIORITY[data.priority], releaseMbid: data.releaseMbid },
         db(),
       );
 
-      const settings = await loadSettings(db());
-      const result = await runStep(data.importId, "match", { db: db(), settings });
-
-      // Videos outside the tracklist were shown in step 3 and accepted by pressing Start.
-      await acknowledgeExtras(data.importId);
-
-      const after = await getImport(data.importId, db());
-      await enqueue(data.importId, "console wizard");
-
-      const info = (result.data ?? {}) as { mapped?: number; extras?: number };
-      const uncovered = (await listInbox({ importId: data.importId, status: "open" }, db())).filter(
-        (item) => item.type === "uncovered_tracks",
-      ).length;
-
       return {
         importId: data.importId,
-        mapped: info.mapped ?? data.bindings.length,
-        extras: info.extras ?? 0,
-        uncovered,
-        status: after?.status ?? "pending",
+        mapped: outcome.mapped,
+        extras: outcome.extras,
+        uncovered: outcome.uncovered,
+        status: outcome.job.status,
       };
     } catch (error) {
       return toFailure(error);
     }
   });
-
-/** Close the `extra_videos` notices of an import, recording who answered and how. */
-async function acknowledgeExtras(importId: string): Promise<void> {
-  const open = await listInbox({ importId, status: "open" }, db());
-  for (const item of open) {
-    if (item.type !== "extra_videos") continue;
-    await resolveInboxItem(
-      item.id,
-      {
-        resolution: { action: "ignore", acknowledgedIn: "import wizard" },
-        decidedBy: "console",
-      },
-      db(),
-    );
-  }
-}

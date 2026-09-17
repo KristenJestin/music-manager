@@ -3,6 +3,7 @@ import { Link, createFileRoute, notFound, useRouter } from "@tanstack/react-rout
 import {
   ArrowRight,
   ArrowUpNarrowWide,
+  Check,
   ExternalLink,
   Fingerprint,
   Inbox,
@@ -46,6 +47,7 @@ import type { JobDetailTrack } from "#/server/services/console.queries.ts";
 import {
   bumpJob,
   cancelJob,
+  confirmJob,
   fetchJob,
   pauseJob,
   retryJob,
@@ -450,6 +452,34 @@ function JobPage() {
           />
         </div>
         <div className="flex shrink-0 gap-2">
+          {/*
+           * The answer `confirm` is waiting for, first in the row and the only primary button
+           * on it.
+           *
+           * `confirm` is the one deliberately blocking step of the pipeline, and this page
+           * offered Retry and Cancel and no way to say yes — so an import that reached
+           * `awaiting_confirm` outside the wizard (a batch, a watched source, a job re-matched
+           * after an Inbox answer) was unreachable from the browser entirely. The mapping and
+           * the release are already on this page, a few hundred pixels down; the decision is
+           * one button, and the escape hatch beside it is the wizard, which is the only place a
+           * *different* release can actually be chosen.
+           */}
+          {job.status === "awaiting_confirm" ? (
+            <Button
+              data-testid="job-confirm"
+              disabled={busy !== null}
+              onClick={() => {
+                act(
+                  "confirm",
+                  async () => await confirmJob({ data: { id: job.id } }),
+                  "Confirmed; the download is queued.",
+                );
+              }}
+            >
+              <Check className="size-4" aria-hidden="true" />{" "}
+              {busy === "confirm" ? "Confirming…" : "Confirm & start"}
+            </Button>
+          ) : null}
           {/* Shown for every job a worker could still do something with, and **disabled while
               it runs**: the owner's C5 was "j'ai le temps de cliquer plein de fois sur Retry",
               and every one of those clicks used to start a step. A retry is only meaningful
@@ -530,6 +560,33 @@ function JobPage() {
        * a red banner over a job that is going to fix itself is the thing that made an outage
        * look like forty-five broken imports.
        */}
+      {/*
+       * Why the page is stopped, and what the two ways out are.
+       *
+       * The status badge said "Needs confirm" and the step said "Blocked — waiting for
+       * confirmation of 1 track(s)", which between them describe the state perfectly and
+       * offer nothing. The callout names the release that is about to be imported and puts
+       * the wizard one link away, so "the proposal is wrong" has an answer that is not Cancel.
+       */}
+      {job.status === "awaiting_confirm" ? (
+        <Callout tone="primary" className="mb-3.5" data-testid="awaiting-confirm">
+          <span>
+            <b>Waiting for your yes.</b> The mapping below is ready and nothing is downloaded until
+            you confirm it
+            {job.releaseMbid === null ? "" : ` (release ${short(job.releaseMbid)}…)`}.{" "}
+            <Link
+              to="/import/new"
+              search={{ importId: job.id, step: 2 }}
+              data-testid="job-confirm-choose"
+              className="underline underline-offset-2 hover:text-primary"
+            >
+              Choose another release
+            </Link>{" "}
+            if the proposal is wrong.
+          </span>
+        </Callout>
+      ) : null}
+
       {job.status === "waiting_upstream" ? (
         <Callout tone="warn" className="mb-3.5" data-testid="waiting-upstream">
           <span suppressHydrationWarning>

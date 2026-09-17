@@ -1,0 +1,1 @@
+ALTER TYPE "public"."inbox_type" ADD VALUE 'awaiting_confirm';
