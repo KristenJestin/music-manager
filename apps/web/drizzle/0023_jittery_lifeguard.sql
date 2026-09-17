@@ -1,0 +1,1 @@
+ALTER TABLE "library_tracks" ADD COLUMN "file_drift_at" timestamp with time zone;

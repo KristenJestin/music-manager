@@ -632,6 +632,13 @@ function refreshSidecars(ctx: FileContext, track: LibraryTrack, document: TrackD
  * later rebuild agrees), the `metadata_documents` row (so "documents behind" is right), and
  * the `library_tracks` row (so "files behind" is right — that is the one the Quality page
  * counts, because it is the one that describes a file).
+ *
+ * The `library_tracks` write also clears `file_drift_at`, and that is what keeps the scan's
+ * recorded finding from ageing into a lie. We have just handed the toolbox the whole tag block
+ * and it wrote it, so whatever a previous scan read out of this file is no longer in it — and a
+ * flag nobody clears is a "175 files adrift" that never goes down however many times you press
+ * the button. Only here, on a real write: a dry run never reaches `stamp`, and a `retagOne` that
+ * threw does not either, so a file that failed to be repaired stays flagged. Which is right.
  */
 async function stamp(
   ctx: FileContext,
@@ -656,7 +663,12 @@ async function stamp(
 
   await ctx.db
     .update(libraryTracks)
-    .set({ tagSchemaVersion: ctx.schemaVersion, projectionHash: hash, updatedAt: new Date() })
+    .set({
+      tagSchemaVersion: ctx.schemaVersion,
+      projectionHash: hash,
+      fileDriftAt: null,
+      updatedAt: new Date(),
+    })
     .where(eq(libraryTracks.id, track.id));
 }
 

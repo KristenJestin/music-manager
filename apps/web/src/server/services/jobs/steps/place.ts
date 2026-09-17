@@ -312,6 +312,14 @@ async function upsertLibraryTrack(
     tagSchemaVersion: document.schemaVersion,
     importId: ctx.job.id,
     importTrackId: track.id,
+    /*
+     * The `tag` step has just written this file and `place` has just moved it here, so any drift
+     * a previous scan recorded for a row at this path (a re-import over an album somebody had
+     * edited by hand) describes a file that no longer exists. Left set, it would keep the row in
+     * `tracksAdrift` until the next scan and put a repair button under a file that is already
+     * right. See `library_tracks.file_drift_at`.
+     */
+    fileDriftAt: null,
     updatedAt: new Date(),
   };
 
