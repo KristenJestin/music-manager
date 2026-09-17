@@ -1065,6 +1065,23 @@ describe("a disambiguation penalty is relative to what the source announced", ()
     );
   });
 
+  it("does not charge a “deluxe edition” for containing the letters of “edit”", () => {
+    /*
+     * The list matched by raw substring, so every "deluxe edition", "special edition" and
+     * "limited edition" quietly owed eight points for the word "edition". It never showed,
+     * because "deluxe" costs 0.20 and only the worst line counts — until the rule above
+     * stopped charging for "deluxe" when the source asked for it, and the eight points
+     * surfaced on the one candidate this review is about. The terms are words now.
+     */
+    const ranking = rank("Record (Deluxe Edition)", [pressing("deluxe", "deluxe edition")]);
+    expect(ranking.candidates[0]?.penalties).toEqual([]);
+    // And the term still means what it meant: a different mix of the same song.
+    const radio = rank("Record", [pressing("radio", "radio edit")]);
+    expect(radio.candidates[0]?.penalties.map((penalty) => penalty.reason).join(" | ")).toMatch(
+      /Disambiguation contains “radio edit”/,
+    );
+  });
+
   it("is not satisfied by a different qualifier", () => {
     // "Remaster" asked for, "live" offered: two different things, and the deduction stands.
     const ranking = rank("Record (Remastered)", [

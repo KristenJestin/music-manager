@@ -1,5 +1,5 @@
 /**
- * Record the five matching scenarios from the real MusicBrainz.
+ * Record the matching scenarios from the real MusicBrainz.
  *
  * `bun run scripts/record-matching-cassettes.ts [name…] [--dry]`
  *
@@ -17,10 +17,15 @@
  * is read from the environment and never printed: the User-Agent is the one thing MusicBrainz
  * asks for and the one thing that must not end up in a committed file.
  *
- * The requests it makes are exactly the ones the service makes, in the same order, decided by
- * the same pure engine — one release-group search, one release search per group kept, and the
- * top-N lookups chosen by pre-scoring the results here too (decision 151). A cassette is
- * therefore a recording of the real algorithm's appetite, not a guess at it.
+ * The requests it makes are the ones the service makes, in the same order, decided by the same
+ * pure engine: the four-rung release-group ladder, one release search per group kept, and the
+ * lookups chosen by pre-scoring the results here too. A cassette is therefore a recording of
+ * the real algorithm's appetite, not a guess at it.
+ *
+ * It is **resumable**. MusicBrainz's load-shedder goes through busy spells measured in minutes
+ * and a scenario is a few dozen documents at one a second, so a run that gives up keeps what it
+ * fetched and the next one reads it back through `existingCassette`. Re-run it until it says
+ * "written"; nothing is lost in between and nothing is fetched twice.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

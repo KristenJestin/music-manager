@@ -376,7 +376,19 @@ const DISAMBIGUATION_PENALTIES: readonly (readonly [string, number])[] = [
   ["karaoke", 0.2],
   ["commentary", 0.2],
   ["video version", 0.14],
-  ["edit", 0.08],
+  /*
+   * "radio edit", never a bare "edit".
+   *
+   * It used to be `["edit", 0.08]` matched as a substring, so *every* "deluxe edition",
+   * "special edition" and "limited edition" quietly owed eight points for containing the
+   * letters. It never showed, because "deluxe" costs 0.20 and only the worst line counts — and
+   * then the edition rule below stopped charging for "deluxe" when the source asked for it,
+   * and an eight-point deduction for the word "edition" surfaced on the one candidate this
+   * whole review is about. The term meant a *different mix*; these are the two ways it is
+   * actually written.
+   */
+  ["radio edit", 0.08],
+  ["single edit", 0.08],
   // A different master or pressing of the same performance: mild.
   ["remaster", 0.1],
   ["reissue", 0.1],
@@ -392,6 +404,24 @@ const DISAMBIGUATION_PENALTIES: readonly (readonly [string, number])[] = [
   ["vellum", 0.03],
   ["exclusive", 0.05],
 ];
+
+/**
+ * Does this comment or title *mention* a term, as a word rather than as letters?
+ *
+ * v1 matched these lists by raw substring and so did the first port of them, which is how
+ * "live" matched "delivery", "import" matched "important" and "edit" matched "edition". The
+ * boundary is only required at the **start** of the term, because MusicBrainz writes
+ * "remastered" where the list says "remaster" and "remixes" where it says "remix".
+ */
+function mentions(haystack: string, term: string): boolean {
+  const text = haystack.toLowerCase();
+  const needle = term.toLowerCase();
+  for (let at = text.indexOf(needle); at !== -1; at = text.indexOf(needle, at + 1)) {
+    const before = at === 0 ? "" : text[at - 1];
+    if (before === undefined || before === "" || !/[a-z0-9]/.test(before)) return true;
+  }
+  return false;
+}
 
 /** v1's `GetSecondaryTypePenalty`, rescaled from −75/−60/−50/−40/−10. */
 const SECONDARY_TYPE_PENALTIES: Readonly<Record<string, number>> = {
@@ -463,7 +493,7 @@ export function disambiguationPenalties(
   };
 
   for (const [term, amount] of DISAMBIGUATION_PENALTIES) {
-    if (!comment.includes(term)) continue;
+    if (!mentions(comment, term)) continue;
     // A qualifier the source itself announced is not a mark against anything.
     if (wanted.size > 0 && editionTokensIn(term).some((token) => wanted.has(token))) continue;
     consider({ reason: `Disambiguation contains “${term}”`, amount });
@@ -579,7 +609,7 @@ export function titleKeywordPenalties(
   const wanted = new Set(wantedEdition);
   const out: Penalty[] = [];
   for (const [term, amount] of TITLE_KEYWORD_PENALTIES) {
-    if (!lowered.includes(term)) continue;
+    if (!mentions(lowered, term)) continue;
     // Already declared by the release group: not a surprise, so not a penalty.
     if (known.has(term) || (term === "greatest hits" && known.has("compilation"))) continue;
     if (term === "best of" && known.has("compilation")) continue;
