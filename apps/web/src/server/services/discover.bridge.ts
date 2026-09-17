@@ -40,7 +40,7 @@ export interface BridgeTarget {
 }
 
 export interface SourceResolution {
-  /** What to hand `createFromUrl`. */
+  /** What to hand `createImport`. */
   readonly url: string;
   /** Whether a real source was found, as opposed to falling back. Drives the `YT Music` badge. */
   readonly found: boolean;

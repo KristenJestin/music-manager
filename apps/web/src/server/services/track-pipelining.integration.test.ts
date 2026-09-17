@@ -117,7 +117,7 @@ describe.skipIf(unavailable !== null)("per-track pipelining", () => {
   });
 
   it("fingerprints, tags and files track N while track N+1 is still downloading", async () => {
-    const created = await imports.createFromUrl(SOURCE, {
+    const created = await imports.createImport(SOURCE, {
       autoConfirm: true,
       confirmedBy: "cli --yes",
     });

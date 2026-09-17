@@ -1,19 +1,29 @@
 /**
- * Step 1 — `resolve` (toolbox, yt-dlp).
+ * Step 1 — `resolve`. Where a source becomes rows.
  *
- * Turn the submitted URL into rows: one `import_tracks` per video, with its duration, its
- * YouTube Music tags and its description kept verbatim. Nothing is downloaded.
+ * One `import_tracks` per **entry**, with its duration, its tags and whatever the source said
+ * about it kept verbatim. Nothing is downloaded.
  *
- * Idempotent by construction: if the videos are already there, the step re-reads them and
+ * Two kinds of source arrive here, and the difference between them stops at this file:
+ *
+ *  - **a URL** — the toolbox's `extract`, yt-dlp, one entry per video. What this step has
+ *    always done;
+ *  - **a folder** (`file://…`) — `services/folder-source.ts`, one entry per audio file, listed
+ *    app-side and probed by the toolbox in one request. The entries stop being videos and
+ *    become files; everything after this step reads the same columns and cannot tell.
+ *
+ * Idempotent by construction: if the entries are already there, the step re-reads them and
  * says so. Re-running it after a `--force` refresh replaces the raw payloads without
  * disturbing anything a later step wrote (the mapping, the download path, the fingerprint),
- * because those columns are matched on the video id, not on the row.
+ * because those columns are matched on the entry id, not on the row.
  */
 import { eq } from "drizzle-orm";
 import { stripReleaseTypePrefix } from "@mm/domain";
 import { imports, importTracks, type ImportKind } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
+import { listFolder, type FolderListing } from "#/server/services/folder-source.ts";
+import { folderPathOf } from "#/server/services/import-source.ts";
 import { admit, refusalOf, sourceRulesOf } from "#/server/services/source-rules.ts";
 import type { ExtractEntry, ExtractResult } from "#/server/toolbox/client.ts";
 import type { StepResult } from "../machine.ts";
@@ -30,6 +40,21 @@ const CHANNEL = /youtube\.com\/(?:channel\/|c\/|user\/|@)/i;
  * entry of an album playlist, so a strong majority agreeing on one album name is the signal.
  */
 export function classify(url: string, extract: ExtractResult): ImportKind {
+  /*
+   * **A folder is not a fifth kind.**
+   *
+   * `IMPORT_KINDS` stays `album | single | playlist | channel`, and a folder is classified by
+   * the same rule as a playlist: one release when the files agree on an album, a bag of
+   * singles when they do not. A new enum value would cost a Drizzle migration and would make
+   * every `switch` on `kind` in the product — `place`'s folder template, `confirm`'s gate,
+   * `match`'s album-versus-recording branch, the Console's chips, `/api/v1`'s filters — wrong
+   * by omission, in exchange for restating something `imports.url` already says by carrying a
+   * `file://` scheme. The *kind* is a statement about the shape of the music; the **source
+   * scheme** is a statement about where it came from, and those are two different facts.
+   *
+   * The signal is better here than on YouTube, incidentally: an album tag written by whatever
+   * tagged these files is a deliberate statement, where YouTube Music's is inferred.
+   */
   if (CHANNEL.test(url)) return "channel";
   if (extract.kind === "video" || extract.entries.length <= 1) return "single";
 
@@ -69,16 +94,44 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     };
   }
 
+  /*
+   * A folder, or a URL. The only branch in the step, and it ends here.
+   *
+   * `listFolder` refuses a folder outside `adoptSourceRoots` before it reads a name, with the
+   * same `realpath`-then-contain check that refuses a single adopted file. A refusal is thrown
+   * rather than returned because it is not a step that failed on a source — it is a
+   * configuration answer, identical every time it is retried, and `runStep` records the thrown
+   * error on the row exactly as it records a returned one.
+   */
+  const folder = folderPathOf(ctx.job.url);
+  const listing: FolderListing | null =
+    folder === null
+      ? null
+      : await listFolder(folder, {
+          paths: ctx.paths,
+          settings: ctx.settings,
+          toolbox: ctx.toolbox,
+        });
   // The same session the download step will use: a resolve that authenticates differently
   // would pass the bot check and then hand the download a URL it cannot fetch.
-  const extract = await ctx.toolbox.extract(ctx.job.url, cookieJar(ctx.settings));
+  const extract: ExtractResult =
+    listing ?? (await ctx.toolbox.extract(ctx.job.url, cookieJar(ctx.settings)));
+
+  for (const file of listing?.skipped ?? []) {
+    await ctx.say("resolve.skipped", `${file.name}: ${file.reason}`, {
+      level: "warn",
+      data: { file: file.name, reason: file.reason, code: file.code },
+    });
+  }
+
+  const noun = listing === null ? "videos" : "files";
   if (extract.entries.length === 0) {
     return {
       status: "failed",
-      message: "The URL resolved to no videos.",
+      message: `The URL resolved to no ${noun}.`,
       error: {
         code: "INVALID_INPUT",
-        message: "The URL resolved to no videos.",
+        message: `The URL resolved to no ${noun}.`,
         hint: "Check the link, or try it in a browser — it may be private or region-locked.",
         action: "Find alternative",
       },
@@ -109,7 +162,20 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
   const skipped: { videoId: string; title: string; reason: string; code: string }[] = [];
   const admitted: ExtractEntry[] = [];
   for (const entry of extract.entries) {
-    const verdict = admit(entry, rules, { isolated });
+    /*
+     * **The admission rules do not apply to a folder**, and it is not an oversight.
+     *
+     * Both of them are statements about a YouTube upload: `officialUploadsOnly` looks for the
+     * "Provided to YouTube by" line a distributor writes in a *description*, and `requireAlbum`
+     * for a YouTube Music album tag. A file on the owner's own disk has neither and never
+     * could, so applying them here would refuse every folder import the moment either rule is
+     * on — for failing to be a video. The rules exist to filter what a *source* offers us; a
+     * folder is not offering anything, it is the owner's own music.
+     */
+    const verdict =
+      listing === null
+        ? admit(entry, rules, { isolated })
+        : { accept: true, reason: "", code: null };
     if (verdict.accept) {
       admitted.push(entry);
       continue;
@@ -188,25 +254,60 @@ export async function resolveStep(ctx: StepContext): Promise<StepResult> {
     }
   }
 
+  /*
+   * A release every file already agrees on is not a hint, it is the answer.
+   *
+   * An existing library's files were tagged by *something* — Picard, this application's v1, or
+   * this one — and a `MUSICBRAINZ_ALBUMID` shared by a majority of them names the exact record
+   * the owner already decided this was, years ago. Pinning it is the same thing `--release`
+   * does, so it is written into the same place and `match` needs no new branch; and it loses
+   * to `--release` and to an existing pin, because a person saying which record it is always
+   * wins over a file saying so.
+   */
+  const hinted =
+    listing?.releaseMbidHint !== null &&
+    listing?.releaseMbidHint !== undefined &&
+    ctx.job.options.releaseMbid === undefined &&
+    ctx.job.releaseMbid === null
+      ? listing.releaseMbidHint
+      : null;
+  if (hinted !== null) {
+    await ctx.say("resolve.release-hint", `The files agree they are release ${hinted}.`, {
+      data: { releaseMbid: hinted, source: "MUSICBRAINZ_ALBUMID" },
+    });
+  }
+
   await ctx.db
     .update(imports)
     .set({
       kind,
       title,
       artist: extract.uploader ?? admitted[0]?.uploader ?? null,
+      ...(hinted === null
+        ? {}
+        : {
+            options: { ...ctx.job.options, releaseMbid: hinted },
+          }),
       updatedAt: new Date(),
     })
     .where(eq(imports.id, ctx.job.id));
 
   const refused = skipped.length === 0 ? "" : `, ${String(skipped.length)} refused by the rules`;
+  const unreadable =
+    listing === null || listing.skipped.length === 0
+      ? ""
+      : `, ${String(listing.skipped.length)} file(s) skipped`;
   return {
     status: "done",
-    message: `${String(admitted.length)} video(s), kind ${kind}${refused}`,
+    message: `${String(admitted.length)} ${noun === "files" ? "file" : "video"}(s), kind ${kind}${refused}${unreadable}`,
     data: {
       videos: admitted.length,
       kind,
       title,
+      ...(listing === null ? {} : { folder: listing.folder, files: admitted.length }),
+      ...(hinted === null ? {} : { releaseMbid: hinted }),
       ...(skipped.length === 0 ? {} : { refused: skipped }),
+      ...(listing === null || listing.skipped.length === 0 ? {} : { unreadable: listing.skipped }),
     },
   };
 }

@@ -38,7 +38,7 @@ import { grants, MMError, type ApiPrincipal, type ApiScope } from "@mm/contracts
 import { TAGS, type FitLine } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { APP_VERSION } from "#/server/version.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import {
   confirmBest,
   createImportsBatch,
@@ -630,20 +630,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         autoConfirm: boolean;
         force: boolean;
       }) => {
-        const created = await createFromUrl(args.url, {
+        const created = await createImport(args.url, {
           db: db(),
           ...(args.releaseMbid === undefined ? {} : { releaseMbid: args.releaseMbid }),
           autoConfirm: args.autoConfirm,
           // The provenance fix reached `confirm_mapping` and stopped there, so an import
           // created *here* with `autoConfirm` was still logged as `cli --yes` in `decisions`.
-          // `createFromUrl` now refuses an unsigned `autoConfirm`, which is what stops the
+          // `createImport` now refuses an unsigned `autoConfirm`, which is what stops the
           // next caller inheriting the same silence.
           ...(args.autoConfirm ? { confirmedBy: "mcp" } : {}),
           force: args.force,
         });
         await enqueue(created.job.id, "mcp");
         /*
-         * `resolve` runs inside `createFromUrl`, so a URL that cannot be resolved comes back
+         * `resolve` runs inside `createImport`, so a URL that cannot be resolved comes back
          * as a *created* import in `failed` — and this tool used to answer `{status:"failed",
          * duplicates:[…]}`, which reads as "the duplicate is the problem" and needed a second
          * call to learn it was a 422 from the toolbox. The reason travels with the verdict.

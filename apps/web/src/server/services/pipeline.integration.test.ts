@@ -248,7 +248,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     async function failOne(): Promise<string> {
       // A fixture URL the toolbox has never heard of: `resolve` fails with a decoded error
       // rather than throwing something shapeless.
-      const created = await imports.createFromUrl(`fixture://no-such-fixture-${newSuffix()}`, {
+      const created = await imports.createImport(`fixture://no-such-fixture-${newSuffix()}`, {
         resolveNow: false,
       });
       const result = await jobs.runStep(created.job.id, "resolve");
@@ -349,7 +349,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     let importId = "";
 
     it("resolves fifteen videos as soon as the import is created", async () => {
-      const created = await imports.createFromUrl("fixture://discovery", {
+      const created = await imports.createImport("fixture://discovery", {
         autoConfirm: true,
         confirmedBy: "cli --yes",
       });
@@ -483,7 +483,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
     }, 300_000);
 
     it("is idempotent: the same import again downloads nothing", async () => {
-      const again = await imports.createFromUrl("fixture://discovery", {
+      const again = await imports.createImport("fixture://discovery", {
         autoConfirm: true,
         confirmedBy: "cli --yes",
       });
@@ -519,7 +519,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
         { setBy: "test" },
       );
       try {
-        const again = await imports.createFromUrl("fixture://discovery", {
+        const again = await imports.createImport("fixture://discovery", {
           autoConfirm: true,
           confirmedBy: "cli --yes",
           force: true,
@@ -614,7 +614,7 @@ describe.skipIf(unavailable !== null)("the orchestrator against a real stack", (
       process.env["MM_FIXTURES"] = "0";
       resetServerEnv();
       try {
-        const created = await imports.createFromUrl("fixture://discovery", { autoConfirm: false });
+        const created = await imports.createImport("fixture://discovery", { autoConfirm: false });
         const outcome = await jobs.runImport(created.job.id);
         expect(outcome.status).toBe("awaiting_confirm");
         expect(outcome.step).toBe("confirm");

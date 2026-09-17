@@ -54,7 +54,7 @@ import type { StepName } from "#/server/db/schema/index.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
@@ -339,7 +339,7 @@ async function cmdImport(args: Args): Promise<number> {
       ? undefined
       : (JSON.parse(readFileSync(mappingFile, "utf8")) as never);
 
-  const created = await createFromUrl(url, {
+  const created = await createImport(url, {
     ...(flagString(args, "release") === undefined
       ? {}
       : { releaseMbid: flagString(args, "release") }),

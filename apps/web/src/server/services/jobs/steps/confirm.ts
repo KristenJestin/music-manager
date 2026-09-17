@@ -301,7 +301,7 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   /*
    * Provenance is claimed by the caller that opened the gate, never guessed from the fact
    * that it is open: MCP is `mcp`, `/api/v1` is `api`, the wizard is `console`, the CLI is
-   * `cli --yes`. `createFromUrl` and `setImportOptions` — the only two functions that can set
+   * `cli --yes`. `createImport` and `setImportOptions` — the only two functions that can set
    * `autoConfirm` — now refuse an unsigned one, so every row written from today carries the
    * caller's own name.
    *

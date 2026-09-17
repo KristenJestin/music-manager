@@ -53,7 +53,7 @@ import {
 } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import type { Import, ImportTrack } from "#/server/db/schema/index.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { setImportOptions } from "#/server/services/console.queries.ts";
 import { listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { rankFor, videosOf } from "#/server/services/matching.queries.ts";
@@ -98,7 +98,7 @@ export interface BatchLine {
   readonly id: string | null;
   readonly status: string | null;
   readonly step: string | null;
-  /** Earlier imports of the same URL. Reported, never a refusal — see `createFromUrl`. */
+  /** Earlier imports of the same URL. Reported, never a refusal — see `createImport`. */
   readonly duplicates: readonly string[];
   readonly error: MMErrorBody | null;
 }
@@ -163,7 +163,7 @@ export async function createImportsBatch(input: BatchInput): Promise<BatchResult
 
   for (const [index, url] of urls.entries()) {
     try {
-      const outcome = await createFromUrl(url, {
+      const outcome = await createImport(url, {
         db,
         // The worker resolves; see the note above.
         resolveNow: false,

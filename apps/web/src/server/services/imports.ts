@@ -1,7 +1,7 @@
 /**
  * `imports.service` — creating a job.
  *
- * `createFromUrl` does one thing beyond inserting a row: it runs `resolve` **immediately**,
+ * `createImport` does one thing beyond inserting a row: it runs `resolve` **immediately**,
  * in the caller's process. That is deliberate. Whoever pasted the URL is still watching, and
  * the answer to "is this a video, an album or a playlist, and how many tracks?" is the first
  * thing they need; queueing it would turn a one-second question into a wait for a worker.
@@ -26,6 +26,7 @@ import { emit } from "./events.ts";
 import { runStep } from "./jobs/index.ts";
 import type { StepResult } from "./jobs/machine.ts";
 import { loadSettings } from "./settings.ts";
+import { parseImportSource } from "./import-source.ts";
 import type { SuppliedMapping } from "./jobs/steps/match.ts";
 
 export interface CreateOptions extends ImportOptions {
@@ -49,8 +50,6 @@ export interface CreateResult {
   /** How many of the mapped recordings are already in the library. */
   readonly alreadyPresent: number;
 }
-
-const URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
 
 /**
  * Opening the confirmation gate obliges you to sign it.
@@ -116,18 +115,30 @@ async function refuseFixtureOutsideFixtures(url: string, db: Database): Promise<
   );
 }
 
-export async function createFromUrl(
-  url: string,
+/**
+ * It was called `createFromUrl` and it took a URL. It now takes a **source**.
+ *
+ * The rename is not cosmetic: the validation it did was `/^(?:https?|fixture):\/\//`, and that
+ * regular expression *was* the definition of what this application could import. A folder of
+ * audio files is now a source too — because twenty of the owner's playlists have vanished from
+ * YouTube, eight albums sit behind an age check, and an existing library is simply already on
+ * the disk — so the check has moved into `parseImportSource`, which answers *which kind of
+ * source this is* rather than *does this look like a link*.
+ *
+ * The column is still `imports.url`, and a folder is stored in it as a `file://` URL. One
+ * string in one column keeps the duplicate report, `GET /imports?url=`, the journal and the
+ * paste box working unchanged — and "this folder is already imported" is exactly the same
+ * question as "this playlist is already imported", answered by the same index.
+ */
+export async function createImport(
+  source: string,
   options: CreateOptions = {},
 ): Promise<CreateResult> {
   const db = options.db ?? defaultDb();
-  const trimmed = url.trim();
-  if (!URL_SHAPE.test(trimmed)) {
-    throw new MMError("INVALID_INPUT", `“${trimmed}” is not a URL this app can import.`, {
-      hint: "Paste a YouTube link, or use `fixture://discovery` to run offline.",
-      action: "Check the URL",
-    });
-  }
+  // Whatever was typed, reduced to one canonical string: a URL as it stands, a folder as a
+  // `file://` URL. Everything below this line works on `trimmed` and does not care which.
+  const parsed = parseImportSource(source);
+  const trimmed = parsed.url;
 
   assertSigned(options);
   await refuseFixtureOutsideFixtures(trimmed, db);
@@ -152,7 +163,8 @@ export async function createFromUrl(
     .values({
       id,
       url: trimmed,
-      // `resolve` corrects this the moment it has seen the entries.
+      // `resolve` corrects this the moment it has seen the entries. A folder starts as a
+      // `playlist` like any other listing: it becomes `album` when the files agree on one.
       kind: trimmed.startsWith("fixture://") ? "album" : "playlist",
       status: "pending",
       step: "resolve",

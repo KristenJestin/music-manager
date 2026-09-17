@@ -38,7 +38,7 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportKind, ImportTrack } from "#/server/db/schema/index.ts";
 import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { pauseImport } from "#/server/services/jobs/index.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf } from "#/server/services/console.queries.ts";
@@ -180,10 +180,10 @@ function toSourceView(
 /**
  * Paste a URL, get a source.
  *
- * `createFromUrl` runs `resolve` in this process — that is P03's deliberate choice and the
+ * `createImport` runs `resolve` in this process — that is P03's deliberate choice and the
  * reason the paste box answers in a second rather than after a worker poll.
  *
- * It then **parks the job**, and that is not optional. `createFromUrl` leaves the import in
+ * It then **parks the job**, and that is not optional. `createImport` leaves the import in
  * `pending`/`running` at `match`, and a running worker's `resumableImports()` picks up exactly
  * those: without this, opening the wizard would start the import the wizard exists to let you
  * configure — the worker would match, auto-confirm and download while you were still looking
@@ -196,7 +196,7 @@ export const resolveSource = createServerFn({ method: "POST", strict: STRICT })
   .inputValidator(z.object({ url: z.string().trim().min(1) }))
   .handler(async ({ data }): Promise<SourceView> => {
     try {
-      const created = await createFromUrl(data.url, { db: db() });
+      const created = await createImport(data.url, { db: db() });
       await pauseImport(created.job.id, "Waiting for the import wizard.", db());
       const { rows } = await videosOf(created.job.id, db());
       return toSourceView({ ...created.job, status: "paused" }, rows, created.duplicates);
@@ -217,7 +217,7 @@ export const fetchSource = createServerFn({ method: "GET", strict: STRICT })
       }
       const { rows } = await videosOf(job.id, db());
       // Asked again on every visit: the wizard redirects away from the URL it resolved, so the
-      // answer `createFromUrl` gave is long gone by the time step 1 renders.
+      // answer `createImport` gave is long gone by the time step 1 renders.
       const duplicates = await duplicatesOf(job.url, job.id, db());
       return toSourceView(job, rows, duplicates);
     } catch (error) {

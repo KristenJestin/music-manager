@@ -21,7 +21,7 @@ import { MMError } from "@mm/contracts";
 import { db } from "#/server/db/client.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import { errorSchema } from "#/server/api/schemas.ts";
-import { createFromUrl, getImport } from "#/server/services/imports.ts";
+import { createImport, getImport } from "#/server/services/imports.ts";
 import { pauseImport } from "#/server/services/jobs/index.ts";
 import { rankFor } from "#/server/services/matching.queries.ts";
 import { resolveDiscoverSource } from "#/server/services/discover.bridge.ts";
@@ -281,7 +281,7 @@ export function discoverRoutes(): OpenAPIHono<ApiEnv> {
         throw new MMError("NOT_FOUND", source.label, { status: 404 });
       }
 
-      const created = await createFromUrl(source.url, { db: db() });
+      const created = await createImport(source.url, { db: db() });
       await pauseImport(created.job.id, "Waiting for confirmation (from Discover).", db());
       await markImported(id, created.job.id, db());
 
