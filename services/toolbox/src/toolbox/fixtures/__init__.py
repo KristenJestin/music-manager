@@ -20,6 +20,10 @@ Recognised URLs:
                                       ms instead of the installation default, so a browser
                                       test can observe a track *while* it is downloading
                                       (capped at 2 s a slice)
+``fixture://discovery?extractslow=1500``
+                                      same playlist, but `/extract` takes 1.5 s to answer, so a
+                                      test has a window in which the orchestrator is still
+                                      resolving (capped at 20 s)
 ``fixture://watched?snapshot=1``      a watched playlist as it was yesterday: three entries,
                                       one of them a ``[Private video]`` that cannot be
                                       fetched and must not fail the scan
@@ -39,10 +43,12 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Final, cast
 
+from toolbox.config import fixture_extract_delay_seconds
 from toolbox.errors import ErrorCode, ToolboxError
 from toolbox.models import (
     ExtractResult,
@@ -162,6 +168,12 @@ def _flatten(result: ExtractResult) -> ExtractResult:
 
 def extract(url: str, *, flat: bool = False) -> ExtractResult:
     """The recorded `/extract` answer for a fixture URL."""
+    # `?extractslow=<ms>`: the scenario switch for a source that takes its time. See
+    # `config.fixture_extract_delay_seconds` for why an instant extraction hides a whole
+    # class of bug. Zero, and a no-op, for every URL that does not ask.
+    delay = fixture_extract_delay_seconds(url)
+    if delay > 0:
+        time.sleep(delay)
     ref = require_ref(url)
     payload = load(ref.name)
     result = _snapshot(ExtractResult.model_validate(payload["extract"]), payload, ref)

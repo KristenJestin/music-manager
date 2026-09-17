@@ -27,7 +27,13 @@ import {
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
-import { importsWithWork, isParked, lockUrl, pickReusable } from "./imports.reuse.ts";
+import {
+  importsThatHaveWorked,
+  isParked,
+  isResolving,
+  lockUrl,
+  pickReusable,
+} from "./imports.reuse.ts";
 import { runStep } from "./jobs/index.ts";
 import type { StepResult } from "./jobs/machine.ts";
 import { loadSettings } from "./settings.ts";
@@ -304,7 +310,7 @@ async function reuseOrInsert(db: Database, url: string, values: NewImport): Prom
       .from(imports)
       .where(eq(imports.url, url))
       .orderBy(desc(imports.createdAt));
-    const working = await importsWithWork(
+    const working = await importsThatHaveWorked(
       tx,
       siblings.filter(isParked).map((row) => row.id),
     );
@@ -336,10 +342,10 @@ async function reuseOrInsert(db: Database, url: string, values: NewImport): Prom
  * itself.
  */
 async function settleResolve(job: Import, db: Database, timeoutMs = 120_000): Promise<Import> {
-  if (job.status !== "pending" || job.step !== "resolve") return job;
+  if (!isResolving(job)) return job;
   const deadline = Date.now() + timeoutMs;
   let current = job;
-  while (current.status === "pending" && current.step === "resolve" && Date.now() < deadline) {
+  while (isResolving(current) && Date.now() < deadline) {
     await new Promise((done) => setTimeout(done, 250));
     current = await reread(current, db);
   }

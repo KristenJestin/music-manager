@@ -489,25 +489,45 @@ function WizardPending() {
  *
  * Re-running the loader is safe however often it happens: `fetchCandidates` answers `pending`
  * for as long as the run is in flight and never starts a second one (`match-runs.ts`).
+ *
+ * **A poll must never re-run a loader that can create.** `router.invalidate()` re-runs *this
+ * route's* loader, and this route's loader has a branch that creates an import: `?url=` with no
+ * `importId` calls `resolveSource`, which is a full yt-dlp extraction — a minute on one of the
+ * owner's playlists. Every tick inside that minute is another creation, and four ticks are the
+ * four identical imports he watched arrive at once without having refreshed anything.
+ *
+ * Two guards, and they are deliberately both:
+ *
+ *  - **here**, `importId` is required before a single tick is armed. This component is only
+ *    rendered from the `importId !== undefined` branch today, so the guard is a restatement —
+ *    which is the point: it makes the rule local and checkable instead of an invariant two
+ *    hundred lines away that a later edit can quietly break.
+ *  - **in the loader**, where the creation is now idempotent per URL whatever re-enters it
+ *    (`services/imports.reuse.ts`). That is the guard that holds when the re-entry is a second
+ *    tab, a double-submitted Enter or an F5 rather than this timer, none of which this file
+ *    can see.
  */
 function WizardMatching({ importId, step }: { readonly importId: string; readonly step: number }) {
   const router = useRouter();
   const progress = useMatchProgress(importId);
   const phase = progress?.phase ?? null;
+  /** Nothing to poll *for* without an import, and the loader without one is a creation. */
+  const pollable = importId !== "";
 
   useEffect(() => {
-    if (phase !== "done") return;
+    if (!pollable || phase !== "done") return;
     void router.invalidate();
-  }, [phase, router]);
+  }, [pollable, phase, router]);
 
   useEffect(() => {
+    if (!pollable) return;
     const timer = setInterval(() => {
       void router.invalidate();
     }, MATCH_POLL_MS);
     return () => {
       clearInterval(timer);
     };
-  }, [router]);
+  }, [pollable, router]);
 
   return <MatchPanel step={step} matching progress={progress} testId="wizard-matching" />;
 }
@@ -659,6 +679,33 @@ function Wizard() {
                 }.`,
                 "ok",
               );
+            }, fail);
+          }}
+          /*
+           * "Import it again as a new job" — `docs/04` § Règles's re-import, made a gesture.
+           *
+           * The rule is that re-importing a URL is allowed and reported, not refused; what was
+           * wrong was that it happened by accident, four times, on a source that took a minute.
+           * `fresh` is the same call with the re-entry switched off.
+           */
+          onFresh={() => {
+            if (source === null) return;
+            setBusy(true);
+            setError(null);
+            void resolveSource({
+              data: {
+                url: source.url,
+                fresh: true,
+                ...(params.pin === undefined || params.pin === ""
+                  ? {}
+                  : { releaseMbid: params.pin }),
+              },
+            }).then((created) => {
+              setBusy(false);
+              void navigate({
+                to: "/import/new",
+                search: { importId: created.importId, step: 1 },
+              });
             }, fail);
           }}
           onContinue={() => {
@@ -1312,6 +1359,7 @@ function StepSource({
   busy,
   onResolve,
   onRefetch,
+  onFresh,
   onContinue,
 }: {
   readonly source: SourceView | null;
@@ -1322,6 +1370,8 @@ function StepSource({
   readonly busy: boolean;
   readonly onResolve: (url: string) => void;
   readonly onRefetch: () => void;
+  /** Open a second import for this URL on purpose — the escape hatch, asked for out loud. */
+  readonly onFresh: () => void;
   readonly onContinue: () => void;
 }) {
   const [pasted, setPasted] = useState(source?.url ?? "");
@@ -1332,6 +1382,16 @@ function StepSource({
    */
   const sameSource = source !== null && pasted.trim() === source.url;
   const submit = (): void => {
+    /*
+     * `busy` guards the *keyboard* too, and it did not.
+     *
+     * The button has been disabled while a resolve is in flight since P06; Enter went straight
+     * past it, so holding the key — or simply pressing it again, on a source that takes a
+     * minute — sent a second `resolveSource` for the same URL. That is the same duplicate the
+     * loader's poll produced, one keystroke away, and the reason the service-side rule is the
+     * one that actually has to hold.
+     */
+    if (busy || pasted.trim() === "") return;
     if (sameSource) onRefetch();
     else onResolve(pasted);
   };
@@ -1354,7 +1414,17 @@ function StepSource({
             {source.importId}
           </Link>
           . Nothing new was fetched from YouTube, and no second import was opened. Use
-          &ldquo;Re-fetch&rdquo; to read the source again into it.
+          &ldquo;Re-fetch&rdquo; to read the source again into it, or{" "}
+          <button
+            type="button"
+            data-testid="wizard-fresh"
+            disabled={busy}
+            onClick={onFresh}
+            className="font-medium text-primary underline underline-offset-2 disabled:opacity-50"
+          >
+            import it again as a new job
+          </button>
+          {" — "}re-importing is legitimate, it is simply no longer what happens by accident.
         </Callout>
       )}
       {pin === null || pin === "" ? null : (

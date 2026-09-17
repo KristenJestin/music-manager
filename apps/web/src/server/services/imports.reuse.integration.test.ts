@@ -144,23 +144,36 @@ describe.skipIf(unavailable !== null)("re-entering an import for a URL", () => {
   /* one per status decision                                           */
   /* ---------------------------------------------------------------- */
 
-  /** Park an import for `url`, then force it into `status`, and enter the wizard again. */
+  /**
+   * Park an import for `url`, force it into `status`, and enter the wizard again.
+   *
+   * `matched` writes the `job_steps` row a state implies. It is not decoration: a `running`
+   * import with nothing past `resolve` in `job_steps` **is** a creation in flight and is
+   * re-entered on purpose, so a test that forced only the status would be describing a row
+   * that cannot exist — `awaiting_confirm` without a `match` having run is not a state the
+   * pipeline can produce.
+   */
   async function afterStatus(
     url: string,
     status: ImportStatus,
-    pausedBy: "user" | "worker" | null = null,
+    options: { pausedBy?: "user" | "worker"; matched?: boolean } = {},
   ): Promise<{ first: string; second: string; reused: boolean }> {
     const first = await enterWizard(url);
     await db()
       .update(schema.imports)
-      .set({ status, ...(pausedBy === null ? {} : { pausedBy }) })
+      .set({ status, ...(options.pausedBy === undefined ? {} : { pausedBy: options.pausedBy }) })
       .where(eq(schema.imports.id, first.id));
+    if (options.matched === true) {
+      await db()
+        .insert(schema.jobSteps)
+        .values({ id: `stp_${first.id}`, importId: first.id, step: "match", status: "running" });
+    }
     const second = await enterWizard(url);
     return { first: first.id, second: second.id, reused: second.reused };
   }
 
   it("re-enters an import parked for the wizard", async () => {
-    const outcome = await afterStatus(source("st-paused"), "paused", "user");
+    const outcome = await afterStatus(source("st-paused"), "paused", { pausedBy: "user" });
     expect(outcome.second).toBe(outcome.first);
     expect(outcome.reused).toBe(true);
   }, 180_000);
@@ -171,10 +184,18 @@ describe.skipIf(unavailable !== null)("re-entering an import for a URL", () => {
     expect(outcome.reused).toBe(true);
   }, 180_000);
 
-  it("opens a new import beside a `running` one, rather than parking a live download", async () => {
-    const outcome = await afterStatus(source("st-running"), "running");
+  it("opens a new import beside a `running` one the worker has started on", async () => {
+    const outcome = await afterStatus(source("st-running"), "running", { matched: true });
     expect(outcome.second).not.toBe(outcome.first);
     expect(outcome.reused).toBe(false);
+  }, 180_000);
+
+  it("re-enters a `running` one nothing has begun: that is the creation in flight", async () => {
+    // The row the owner's four duplicates were: `runStep` wears `running` for the whole of
+    // `resolve`, and a successful `resolve` leaves it `running` at `match`.
+    const outcome = await afterStatus(source("st-creating"), "running");
+    expect(outcome.second).toBe(outcome.first);
+    expect(outcome.reused).toBe(true);
   }, 180_000);
 
   it("opens a new import beside a `done` one, and reports the duplicate", async () => {
@@ -204,13 +225,13 @@ describe.skipIf(unavailable !== null)("re-entering an import for a URL", () => {
 
   it("opens a new import beside one waiting on a person or on a source", async () => {
     for (const status of ["awaiting_confirm", "awaiting_review", "waiting_upstream"] as const) {
-      const outcome = await afterStatus(source(`st-${status}`), status);
+      const outcome = await afterStatus(source(`st-${status}`), status, { matched: true });
       expect(outcome.second, status).not.toBe(outcome.first);
     }
   }, 300_000);
 
   it("leaves an import the **worker** paused to the boot sweep", async () => {
-    const outcome = await afterStatus(source("st-shutdown"), "paused", "worker");
+    const outcome = await afterStatus(source("st-shutdown"), "paused", { pausedBy: "worker" });
     expect(outcome.second).not.toBe(outcome.first);
   }, 180_000);
 
@@ -245,6 +266,67 @@ describe.skipIf(unavailable !== null)("re-entering an import for a URL", () => {
       .select()
       .from(schema.importTracks)
       .where(eq(schema.importTracks.importId, loser.job.id));
+    expect(tracks).toHaveLength(15);
+  }, 240_000);
+
+  /**
+   * The cause the owner found, and it is not the round trip.
+   *
+   * He watched **four identical imports** of one playlist arrive at once, all `Paused` at
+   * `0/13`, all created "just now", without having refreshed anything. The wizard's loader
+   * creates in its `?url=` branch and only swaps the address bar for `?importId=` *after*
+   * `resolveSource` returns — and on his playlist that took a minute. For that whole minute
+   * anything that re-enters the loader is another creation, and the match poll's
+   * `router.invalidate()` fires every four seconds.
+   *
+   * So the window is reproduced rather than assumed: `?extractslow=2500` makes the toolbox
+   * take two and a half seconds to answer `/extract`, and three more entries arrive inside it
+   * at roughly the poll's cadence. A test with a fast resolve passes either way and proves
+   * nothing, which is exactly why this one asks for a slow one.
+   *
+   * This is the **stronger** race of the two: the re-entries land while the first call is
+   * inside `resolve`, i.e. after its insert has committed but long before it has finished —
+   * and, for the first of them, possibly before the insert has committed at all. The advisory
+   * lock covers both, because it is taken *before* the select and released only by the commit.
+   */
+  it("a slow resolve re-entered three times during it still leaves one import", async () => {
+    const url = source("poll") + "&extractslow=2500";
+    const started = Date.now();
+
+    let openedFor = 0;
+    const first = createImport(url, { db: db(), reuse: true }).then((result) => {
+      openedFor = Date.now() - started;
+      return result;
+    });
+    // Three re-entries inside the extraction, at about the wizard's own poll cadence.
+    const later: Promise<Awaited<typeof first>>[] = [];
+    for (const delay of [400, 1_200, 2_000]) {
+      later.push(
+        new Promise((go) => setTimeout(go, delay)).then(
+          async () => await createImport(url, { db: db(), reuse: true }),
+        ),
+      );
+    }
+    const outcomes = await Promise.all([first, ...later]);
+
+    /*
+     * The window really was open, measured on the creating call itself.
+     *
+     * Without this the test would pass on an eight-millisecond extraction — every re-entry
+     * would arrive long after the first had finished, which is a different situation with the
+     * same assertion. That is the trap the owner's report names: a fast resolve proves nothing.
+     */
+    expect(openedFor, "the creating call must still have been resolving").toBeGreaterThan(2_000);
+    expect(await importsFor(url)).toHaveLength(1);
+    expect(new Set(outcomes.map((one) => one.job.id)).size).toBe(1);
+    expect(outcomes.filter((one) => one.reused)).toHaveLength(3);
+
+    // And every one of them was handed a resolved import, not an empty shell: a re-entry that
+    // returned a source with no videos would be a different bug wearing the same fix.
+    const tracks = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.importId, outcomes[0]?.job.id ?? ""));
     expect(tracks).toHaveLength(15);
   }, 240_000);
 

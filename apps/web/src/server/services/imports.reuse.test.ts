@@ -42,8 +42,14 @@ function row(
   };
 }
 
-/** The four the brief singles out, plus the five that were never in doubt. */
-const REUSED: readonly ImportStatus[] = ["pending", "paused"];
+/**
+ * The three statuses a row may carry and still be re-entered, on its columns alone.
+ *
+ * `running` is in the list because a creation in flight wears it; whether *that* `running` is
+ * a creation or the worker is a question for `job_steps`, asked by `importsThatHaveWorked` and
+ * supplied here as the second argument to `pickReusable`.
+ */
+const REUSED: readonly ImportStatus[] = ["pending", "running", "paused"];
 
 describe("which import a wizard entrance re-enters", () => {
   it("re-enters the import the wizard itself parked — the whole defect", () => {
@@ -57,8 +63,30 @@ describe("which import a wizard entrance re-enters", () => {
     expect(pickReusable([fresh], new Set())).toBe(fresh);
   });
 
-  it("does not re-enter a `running` import: reuse would park a download mid-file", () => {
-    expect(pickReusable([row("imp_running", "running")], new Set())).toBeNull();
+  /*
+   * The row the owner's four duplicates were all about.
+   *
+   * `runStep` marks an import `running` for the whole of `resolve` — the minute-long extraction
+   * the wizard's `?url=` loader waits on — and a successful `resolve` leaves it `running` at
+   * `match`. A rule that refused every `running` row refused the one row every re-entry inside
+   * that minute is about.
+   */
+  it("re-enters a `running` import that nothing has worked on: the creation in flight", () => {
+    for (const step of ["resolve", "match"] as const) {
+      const creating = row(`imp_creating_${step}`, "running", { step });
+      expect(isParked(creating), step).toBe(true);
+      expect(pickReusable([creating], new Set()), step).toBe(creating);
+    }
+  });
+
+  /*
+   * And the other `running`, which `status` alone cannot tell from the one above: the worker is
+   * in `match`, or further. `importsThatHaveWorked` is what answers it, from `job_steps`; here
+   * that answer is the second argument.
+   */
+  it("does not re-enter a `running` import something has already worked on", () => {
+    const busy = row("imp_busy", "running");
+    expect(pickReusable([busy], new Set(["imp_busy"]))).toBeNull();
   });
 
   it("does not re-enter a `done` import: the duplicate is announced, a new import is opened", () => {
@@ -104,11 +132,21 @@ describe("which import a wizard entrance re-enters", () => {
     expect(pickReusable([parked], new Set(["imp_worked"]))).toBeNull();
   });
 
-  it("covers every status in the vocabulary, so a new one cannot be forgotten", () => {
+  it("covers every status at both early steps, so a new one cannot be forgotten", () => {
+    for (const step of ["resolve", "match"] as const) {
+      for (const status of IMPORT_STATUSES) {
+        const candidate = row(`imp_${status}_${step}`, status, { step });
+        const picked = pickReusable([candidate], new Set());
+        expect(picked === null, `status ${status} at ${step}`).toBe(!REUSED.includes(status));
+      }
+    }
+  });
+
+  it("and refuses every one of them once something has worked on it", () => {
     for (const status of IMPORT_STATUSES) {
-      const candidate = row(`imp_${status}`, status);
-      const picked = pickReusable([candidate], new Set());
-      expect(picked === null, `status ${status}`).toBe(!REUSED.includes(status));
+      const id = `imp_worked_${status}`;
+      const candidate = { ...row(id, status), id };
+      expect(pickReusable([candidate], new Set([id])), status).toBeNull();
     }
   });
 

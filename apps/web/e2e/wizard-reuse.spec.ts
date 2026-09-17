@@ -56,6 +56,52 @@ test.describe("re-entering the wizard for a URL it already has", () => {
     await expect(page.getByTestId("wizard-reused")).toBeVisible({ timeout: 60_000 });
   });
 
+  /**
+   * The cause the owner found, in a browser: a source that takes its time.
+   *
+   * He watched four identical imports of one playlist arrive at once, all `Paused` at `0/13`,
+   * all created "just now", without refreshing anything. The wizard's `?url=` loader creates,
+   * and it only swaps the address bar for `?importId=` *after* `resolveSource` returns — a
+   * minute on his playlist. For that whole minute anything that re-enters the loader is another
+   * creation: the match poll's `router.invalidate()`, a second tab, an impatient Enter.
+   *
+   * `?extractslow=6000` makes the toolbox hold `/extract` open for six seconds, so the window
+   * is real rather than assumed, and two tabs go into it together. A test on an instant fixture
+   * would pass whatever the service did, which is the whole reason this one asks for a slow one.
+   */
+  test("two tabs entering one slow URL together still open one import", async ({ context }) => {
+    const first = await context.newPage();
+    await signIn(first);
+    const url = `${uniqueSource("fixture://discovery")}&extractslow=6000`;
+    const target = `/import/new?url=${encodeURIComponent(url)}`;
+
+    const second = await context.newPage();
+    // Both loaders enter the creating branch before either can have finished resolving.
+    await Promise.all([first.goto(target), second.goto(target)]);
+    await first.waitForURL(/importId=/, { timeout: 180_000 });
+    await second.waitForURL(/importId=/, { timeout: 180_000 });
+
+    const left = new URL(first.url()).searchParams.get("importId");
+    const right = new URL(second.url()).searchParams.get("importId");
+    expect(left, "the first tab must have landed on an import").toBeTruthy();
+    expect(right, "two tabs must not become two imports").toBe(left);
+
+    // Both were handed a resolved source, not an empty shell of one.
+    await expect(first.getByTestId("source-count")).toContainText("15 videos", { timeout: 60_000 });
+    await expect(second.getByTestId("source-count")).toContainText("15 videos", {
+      timeout: 60_000,
+    });
+    // One of them re-entered, and says so.
+    expect(
+      (await first.getByTestId("wizard-reused").count()) +
+        (await second.getByTestId("wizard-reused").count()),
+      "exactly one of the two tabs re-entered the other's import",
+    ).toBe(1);
+
+    await first.close();
+    await second.close();
+  });
+
   test("Re-fetch re-reads the source into this import instead of opening a sibling", async ({
     page,
   }) => {

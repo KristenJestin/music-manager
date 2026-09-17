@@ -13,8 +13,8 @@
  *  - **cleanup**: which of the rows already there may be collapsed (`findParkedDuplicates`).
  *
  * Sharing the predicate is the point. "Safe to hand back to the wizard" and "safe to cancel as
- * a redundant sibling" are the same statement about a row — *it is parked, nobody is running
- * it, and it has done no work* — and two definitions of it would drift apart on the first
+ * a redundant sibling" are the same statement about a row — *nobody is working on it and
+ * nothing has been done to it* — and two definitions of it would drift apart on the first
  * status somebody added.
  *
  * ## The status-by-status decision
@@ -23,9 +23,16 @@
  * | ------------------ | ----------- | ------------------------------------------------------- |
  * | `paused` (wizard)  | **yes**     | the row the wizard itself left behind — the whole defect |
  * | `pending`          | **yes**     | created and not yet resolved: the double-click window    |
+ * | `running`, nothing | **yes**     | **the creation that is happening right now.** `runStep`  |
+ * | past `resolve`     |             | marks the row `running` for the whole of the extraction, |
+ * |                    |             | and a *successful* `resolve` leaves it `running` at      |
+ * |                    |             | `match`. On the owner's playlist that is a minute, and   |
+ * |                    |             | every re-entry inside it — the match poll, a second tab, |
+ * |                    |             | an impatient Enter — must join it rather than open a     |
+ * |                    |             | fifth. `resolve` downloads nothing and holds no slot     |
+ * | `running`, and a   | no          | somebody else's work: the worker is in `match`, or it    |
+ * | step past `resolve`| no          | holds the download slot and reuse would park it mid-file |
  * | `paused` by worker | no          | a shutdown parked it; the resume sweep owns those rows   |
- * | `running`          | no          | it holds the download slot, and the wizard *parks* what  |
- * |                    |             | it picks up — reuse would abort a download mid-file      |
  * | `waiting_upstream` | no          | running slowly, not stopped. The same argument           |
  * | `awaiting_confirm` | no          | it has matched and raised a question; the answer lives   |
  * | `awaiting_review`  | no          | in Review, and the wizard would ask it again from zero   |
@@ -37,12 +44,15 @@
  * |                    |             | is its door; reusing it would erase the evidence         |
  * | `cancelled`        | no          | somebody said no to that one                             |
  *
- * `step` narrows it further: only `resolve` and `match` qualify. An import stopped at
- * `download` or later has a file on disk somewhere, whatever its track rows say.
+ * Two further narrowings, both in `importsThatHaveWorked` and both checked rather than assumed:
+ * **no `job_steps` row past `resolve`**, which is the only thing that separates "just created"
+ * from "the worker is matching it" — `status` cannot, they are both `running` at `match` — and
+ * **no track that has downloaded, tagged or placed anything**. `step` narrows it once more:
+ * only `resolve` and `match` qualify at all.
  */
 import { and, desc, eq, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
-import { imports, importTracks, type Import } from "#/server/db/schema/index.ts";
+import { imports, importTracks, jobSteps, type Import } from "#/server/db/schema/index.ts";
 
 /**
  * A Drizzle transaction, named from `Database` itself rather than from a `drizzle-orm`
@@ -83,45 +93,83 @@ export async function lockUrl(tx: Tx, url: string): Promise<void> {
 }
 
 /**
- * The ids, among these, whose import has already done something to a file.
+ * The ids, among these, whose import has done something beyond being listed.
  *
- * `state <> 'pending'` is the statement; `download_path` and `library_path` are the two
- * columns that would still be true if a state had been rolled back by hand. A row this
- * returns is never re-entered and never collapsed.
+ * Two questions, one answer, because a row that fails either is neither re-entered nor
+ * collapsed:
+ *
+ *  - **has any step past `resolve` ever been begun?** `job_steps` is the record of that, and
+ *    it is what `imports.status` cannot tell you: a successful `resolve` leaves the import
+ *    `running` at `match` (`machine.transition`), which is *also* what a worker halfway
+ *    through `match` looks like. The first is the creation this function exists to let a
+ *    second tab join; the second is somebody else's work. Only `job_steps` separates them.
+ *  - **has any track moved?** `state <> 'pending'` is the statement; `download_path` and
+ *    `library_path` are the two columns that would still be true if a state had been rolled
+ *    back by hand.
+ *
+ * The wizard's own step 2 does **not** run the `match` step — it computes candidates and
+ * writes nothing (`functions/wizard.ts`) — so an import somebody has walked to step 3 and
+ * abandoned is still re-enterable, which is the whole population of the owner's 204.
  */
-export async function importsWithWork(
+export async function importsThatHaveWorked(
   reader: Tx | Database,
   ids: readonly string[],
 ): Promise<Set<string>> {
   if (ids.length === 0) return new Set();
-  const rows = await reader
-    .selectDistinct({ importId: importTracks.importId })
-    .from(importTracks)
-    .where(
-      and(
-        inArray(importTracks.importId, [...ids]),
-        or(
-          ne(importTracks.state, "pending"),
-          isNotNull(importTracks.downloadPath),
-          isNotNull(importTracks.libraryPath),
+  const [stepped, moved] = await Promise.all([
+    reader
+      .selectDistinct({ importId: jobSteps.importId })
+      .from(jobSteps)
+      .where(and(inArray(jobSteps.importId, [...ids]), ne(jobSteps.step, "resolve"))),
+    reader
+      .selectDistinct({ importId: importTracks.importId })
+      .from(importTracks)
+      .where(
+        and(
+          inArray(importTracks.importId, [...ids]),
+          or(
+            ne(importTracks.state, "pending"),
+            isNotNull(importTracks.downloadPath),
+            isNotNull(importTracks.libraryPath),
+          ),
         ),
       ),
-    );
-  return new Set(rows.map((row) => row.importId));
+  ]);
+  return new Set([...stepped, ...moved].map((row) => row.importId));
 }
 
 /** Is this row, on its own columns alone, a candidate to re-enter or to collapse? */
 export function isParked(job: Import): boolean {
   if (!(EARLY_STEPS as readonly string[]).includes(job.step)) return false;
   if (job.status === "pending") return true;
+  /*
+   * The creation that is in flight, and the single most important row in this function.
+   *
+   * `runStep` marks an import `running` for the whole of `resolve`, and a *successful*
+   * `resolve` leaves it `running` at `match` — so the minute-long extraction the wizard's
+   * `?url=` loader waits on, and the moment just after it, both read as `running`. A rule that
+   * refused every `running` import refused the very row each re-entry inside that minute is
+   * about, which is how the owner got four identical imports without refreshing anything.
+   *
+   * `running` is allowed **here** and then filtered by `importsThatHaveWorked`, which asks
+   * `job_steps` whether anything past `resolve` has actually begun. That is the question
+   * `status` cannot answer, and the two together are the whole rule: this function narrows by
+   * what the row claims, that one by what was done.
+   */
+  if (job.status === "running") return true;
   // `paused_by = 'worker'` is a shutdown, and the boot sweep is what owns those rows.
   return job.status === "paused" && job.pausedBy !== "worker";
+}
+
+/** Is this row still being created — i.e. is somebody else inside `resolve` for it? */
+export function isResolving(job: Import): boolean {
+  return job.step === "resolve" && (job.status === "pending" || job.status === "running");
 }
 
 /**
  * The import a wizard entrance should re-enter for this URL, or `null` for "open a new one".
  *
- * `candidates` is every import of the URL, newest first; `working` is what `importsWithWork`
+ * `candidates` is every import of the URL, newest first; `working` is what `importsThatHaveWorked`
  * answered over them. Pure, so the table at the top of this file is testable without a
  * database and without a toolbox.
  */
@@ -185,7 +233,7 @@ export async function findParkedDuplicates(
     )
     .orderBy(desc(imports.createdAt));
 
-  const working = await importsWithWork(
+  const working = await importsThatHaveWorked(
     database,
     rows.map((row) => row.id),
   );
