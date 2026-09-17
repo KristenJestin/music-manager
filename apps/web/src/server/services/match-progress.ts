@@ -1,9 +1,9 @@
 /**
  * What step 2 of the wizard is doing right now, streamed while it does it.
  *
- * Matching an album is two MusicBrainz searches and up to six lookups, and MusicBrainz is
- * rate-limited to one request per second — so eight to ten seconds is the *floor*, not a
- * symptom. The owner's report of the first real import says the screen did nothing at all for
+ * Matching an album is a handful of MusicBrainz searches and a handful of lookups, and
+ * MusicBrainz is rate-limited to one request per second — so several seconds is the *floor*,
+ * not a symptom. The owner's report of the first real import says the screen did nothing at all for
  * that whole time, which is the part that is a bug: the wait is unavoidable, being unable to
  * tell it apart from a hang is not.
  *
@@ -85,13 +85,20 @@ export function subscribeProgress(importId: string, listener: Listener): () => v
 export interface MatchReporter {
   (phase: MatchPhase, label: string, done: { searches: number; lookups: number }): void;
   /**
-   * Narrow the plan once the match knows its own shape.
+   * Correct the plan once the match knows its own shape.
    *
    * The ceiling is `1 + matchGroupLimit` searches (decision 151), but a match that finds one
    * usable release group only makes two of them. Announcing the ceiling and then stopping at
    * "2/4" reads like something failed; revising it the moment the group search comes back —
    * which is before the second second of the wait — keeps the denominator a promise rather
-   * than a guess. It only ever *narrows*: nothing here may raise the ceiling it was given.
+   * than a guess.
+   *
+   * It used to *only* narrow, and that stopped being right when the search grew a ladder. A
+   * source whose composite credit and edition qualifier both have to be tried, and which then
+   * goes through four recording searches to find its album at all, genuinely asks ten
+   * questions rather than four — and a bar frozen at 4/4 while six more seconds pass is a
+   * worse lie than a bar that grew. So the plan follows the match in both directions, and the
+   * common album, which spends four of four, never sees it move at all.
    */
   revise(planned: { searches?: number; lookups?: number }): void;
   /** The current plan, live — the `finally` that publishes `done` reads it rather than guessing. */
@@ -113,16 +120,19 @@ export function matchReporter(
       phase,
       label,
       searches: done.searches,
-      searchesPlanned: plan.searches,
+      // A denominator smaller than its numerator is never right, and the ladder can reach one
+      // before `onPlan` has had a chance to say so: the rungs are all spent inside the group
+      // search itself. Clamping here is cheaper than threading a revision through every rung.
+      searchesPlanned: Math.max(plan.searches, done.searches),
       lookups: done.lookups,
-      lookupsPlanned: plan.lookups,
+      lookupsPlanned: Math.max(plan.lookups, done.lookups),
     });
   };
   return Object.assign(emit, {
     plan,
     revise(next: { searches?: number; lookups?: number }): void {
-      if (next.searches !== undefined) plan.searches = Math.min(plan.searches, next.searches);
-      if (next.lookups !== undefined) plan.lookups = Math.min(plan.lookups, next.lookups);
+      if (next.searches !== undefined) plan.searches = next.searches;
+      if (next.lookups !== undefined) plan.lookups = next.lookups;
     },
   });
 }
