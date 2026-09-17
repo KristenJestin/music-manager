@@ -1095,6 +1095,24 @@ describe("a disambiguation penalty is relative to what the source announced", ()
     );
   });
 
+  it("charges a qualifier written in the title, when the source asked for nothing", () => {
+    // MusicBrainz writes the edition in either column, so both are read *and* both are
+    // charged. "live" and "remix" are excluded here because `titleKeywordPenalties` owns
+    // them, and one word must not be charged twice.
+    const titled: ReleaseCandidateInput = {
+      ...pressing("titled", ""),
+      release: { ...pressing("titled", "").release, title: "Record (Deluxe Edition)" },
+    };
+    const ranking = rank("Record", [titled, pressing("standard", "")]);
+    expect(ranking.preselected?.id).toBe("standard");
+    expect(
+      ranking.candidates
+        .find((candidate) => candidate.id === "titled")
+        ?.penalties.map((p) => p.reason)
+        .join(" | "),
+    ).toMatch(/Title contains “deluxe”/);
+  });
+
   it("reads the edition off the release's title as well as its comment", () => {
     // MusicBrainz writes it in either column; "Record (Deluxe Edition)" with no comment at all
     // is the same statement as a comment saying "deluxe edition".

@@ -492,11 +492,25 @@ export function disambiguationPenalties(
     if (worst === null || penalty.amount > worst.amount) worst = penalty;
   };
 
+  /*
+   * Both columns, charged as well as read.
+   *
+   * "Nevermind (20th Anniversary Edition)" with an empty comment is the same statement as a
+   * comment reading "anniversary edition", so a qualifier in the *title* earns the same
+   * deduction — except for the four terms `titleKeywordPenalties` already owns ("live",
+   * "remix", "best of", "greatest hits"), which would otherwise be charged twice for one word.
+   */
+  const titleOwned = new Set(TITLE_KEYWORD_PENALTIES.map(([term]) => term));
   for (const [term, amount] of DISAMBIGUATION_PENALTIES) {
-    if (!mentions(comment, term)) continue;
+    const inComment = mentions(comment, term);
+    const inTitle = !titleOwned.has(term) && mentions(edition.candidateTitle, term);
+    if (!inComment && !inTitle) continue;
     // A qualifier the source itself announced is not a mark against anything.
     if (wanted.size > 0 && editionTokensIn(term).some((token) => wanted.has(token))) continue;
-    consider({ reason: `Disambiguation contains “${term}”`, amount });
+    consider({
+      reason: inComment ? `Disambiguation contains “${term}”` : `Title contains “${term}”`,
+      amount,
+    });
   }
 
   if (wanted.size > 0 && !agrees) {
