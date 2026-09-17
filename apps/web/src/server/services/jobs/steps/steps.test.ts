@@ -72,6 +72,33 @@ describe("classify", () => {
       "channel",
     );
   });
+
+  /*
+   * A listing with a hole must not change kind. The twenty playlists this branch is about are
+   * albums, and an album demoted to `playlist` or to `single` by an entry nobody could read
+   * takes a different path through `match`, `confirm` and `place` — for a reason that has
+   * nothing to do with the music.
+   */
+  it("still calls an album an album when one entry could not be read", () => {
+    const entries = Array.from({ length: 19 }, (_, index) =>
+      entry({ id: `v${String(index)}`, index, album: "Discovery" }),
+    );
+    const listing = {
+      ...extract(entries, "playlist"),
+      unreadable: [{ position: 7, id: "dead", reason: "Private video", code: "YTDLP_PRIVATE" }],
+    } as ExtractResult;
+    expect(classify("https://youtube.com/playlist?list=x", listing)).toBe("album");
+  });
+
+  it("does not call a two-entry playlist a single because one of them is unreadable", () => {
+    const listing = {
+      ...extract([entry({ album: "Discovery" })], "playlist"),
+      unreadable: [{ position: 1, id: null, reason: null, code: "PLAYLIST_ENTRY_UNAVAILABLE" }],
+    } as ExtractResult;
+    // `single` would send it down the isolated-video path, where a refused entry throws
+    // instead of being skipped — the opposite of what a partial listing wants.
+    expect(classify("https://youtube.com/playlist?list=x", listing)).toBe("album");
+  });
 });
 
 /* ------------------------------------------------------------------ */

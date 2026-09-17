@@ -3,7 +3,7 @@
  *
  * This is the acceptance test of P03 and the regression net for every phase after it. It runs
  * the real worker, the real CLI and the real toolbox container; nothing is stubbed and nothing
- * reaches the network. Four scenarios, in one pass over one library:
+ * reaches the network. Five scenarios, in one pass over one library:
  *
  *  1. **resume**       — the worker is killed mid-download and restarted. The job carries on
  *                        and nothing already on disk is fetched twice; an import the *worker*
@@ -12,7 +12,10 @@
  *                        `cover.jpg`, and one file probed through the toolbox to prove the
  *                        tags really are in it.
  *  3. **idempotence**  — the same import again: zero downloads, `already present`.
- *  4. **fingerprint**  — `?fp=mismatch` parks the job in `awaiting_review` with Inbox items,
+ *  4. **a gap**        — `?gap=14` makes one entry of the listing unreadable. The import still
+ *                        finishes, is still an album, and says "14 of 15 entries" in the
+ *                        journal and on the row instead of failing on the one it lost.
+ *  5. **fingerprint**  — `?fp=mismatch` parks the job in `awaiting_review` with Inbox items,
  *                        and `mm inbox resolve --accept` lets it finish.
  *
  * The SSE endpoint is curled during a run, because a job you cannot watch is half a feature.
@@ -582,14 +585,82 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
-  section("5 · SSE, while a job runs");
+  section("5 · a playlist that lost one entry, imported anyway");
+  /* ---------------------------------------------------------------- */
+  //
+  // The defect of 2026-09-17, end to end. `GET /tools/url` on an `OLAK5uy_…` album answered
+  // `entries: 0` and "This video is not available" while yt-dlp, asked with `--ignore-errors`,
+  // listed all twenty titles: one dead entry cancelled the extraction of the other nineteen,
+  // and twenty live playlists were filed as vanished from YouTube on the strength of it.
+  //
+  // `?gap=14` takes one entry out of the recorded listing and reports it as unreadable, which
+  // is what a live `ignoreerrors` extraction now does. Four properties, and every one of them
+  // was false before: the import finishes, it is still an **album** and not something the
+  // missing entry demoted it to, the gap is in the journal in words, and it survives on the
+  // row for whoever opens the page tomorrow.
+
+  await mm("import", "fixture://discovery?gap=14", "--yes");
+  const partial = await latestImport();
+  const partialRow = await waitFor(
+    partial,
+    (row) => row.status === "done" || row.status === "failed",
+    "the partial import to finish",
+  );
+  check(
+    partialRow.status === "done",
+    "one unreadable entry does not fail the import",
+    partialRow.status,
+  );
+
+  const partialKind = await sql<{ kind: string; n: string }[]>`
+    select i.kind::text as kind,
+           (select count(*)::text from import_tracks t where t.import_id = i.id) as n
+      from imports i where i.id = ${partial}`;
+  check(
+    partialKind[0]?.kind === "album",
+    "a partial listing is still classified as an album",
+    partialKind[0]?.kind ?? "?",
+  );
+  check(
+    partialKind[0]?.n === "14",
+    "the fourteen entries that came back are all there",
+    `${partialKind[0]?.n ?? "?"} track row(s)`,
+  );
+
+  const partialResolve = await stepRow(partial, "resolve");
+  check(
+    partialResolve.message.startsWith("14 of 15 entries; 1 could not be read"),
+    "the journal says how many entries the source listed",
+    partialResolve.message,
+  );
+
+  const gapEvents = await sql<{ level: string; message: string }[]>`
+    select level::text as level, message from job_events
+     where import_id = ${partial} and type = 'resolve.unreadable'`;
+  check(
+    gapEvents.length === 1 && gapEvents[0]?.level === "warn",
+    "one warn line names the entry that could not be read",
+    gapEvents[0]?.message ?? "no event",
+  );
+
+  const storedGaps = await sql<{ unreadable: unknown }[]>`
+    select unreadable from imports where id = ${partial}`;
+  const gaps = (storedGaps[0]?.unreadable ?? []) as { position: number | null; code: string }[];
+  check(
+    gaps.length === 1 && gaps[0]?.position === 15,
+    "the gap is on the import row, not only in the log",
+    JSON.stringify(gaps),
+  );
+
+  /* ---------------------------------------------------------------- */
+  section("6 · SSE, while a job runs");
   /* ---------------------------------------------------------------- */
 
   const web = await startWebIfNeeded();
   let sseLines = 0;
 
   /* ---------------------------------------------------------------- */
-  section("6 · fingerprint mismatch, Inbox, and resuming from it");
+  section("7 · fingerprint mismatch, Inbox, and resuming from it");
   /* ---------------------------------------------------------------- */
 
   await mm("import", "fixture://discovery?fp=mismatch", "--yes", "--force");
@@ -637,7 +708,7 @@ async function main(): Promise<void> {
   }
 
   /* ---------------------------------------------------------------- */
-  section("7 · watched sources: the diff, and the auto-accept gate");
+  section("8 · watched sources: the diff, and the auto-accept gate");
   /* ---------------------------------------------------------------- */
   //
   // The fixture playlist exists at two points in time, one video apart, and every reachable
@@ -741,7 +812,7 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
-  section("8 · a folder of files, imported without downloading anything");
+  section("9 · a folder of files, imported without downloading anything");
   /* ---------------------------------------------------------------- */
   //
   // The case the owner has three times over and which no URL can express: twenty playlists
@@ -897,7 +968,7 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
-  section("9 · the files follow the database (AGENTS.md's first guiding fact)");
+  section("10 · the files follow the database (AGENTS.md's first guiding fact)");
   /* ---------------------------------------------------------------- */
   //
   // *The database is the source of truth for metadata; files are a regenerable projection of
