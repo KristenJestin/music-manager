@@ -64,4 +64,10 @@ MusicBrainz data changes; Last.fm counts change daily. Read the diff before comm
 re-run `bun run --cwd apps/web test integrations`: a field that disappears from a cassette is
 usually a real editorial change, occasionally a client that stopped asking for it.
 
-`matching/` belongs to P05 and is recorded by `scripts/record-matching-cassettes.ts`.
+`matching/` belongs to P05 and is recorded by `scripts/record-matching-cassettes.ts`. That
+recorder is **resumable**: MusicBrainz's load-shedder goes through busy spells measured in
+minutes, so a run that gives up keeps the documents it fetched and the next one reads them back.
+Re-run it until it says "written"; nothing is lost in between and nothing is fetched twice. It
+also opens its lookups in the **same order the matcher does**, four deeper, so a cassette holds
+what a match asks for by construction — a missing document reads "no document for release/…"
+rather than "the ranking moved", and neither is a thing to guess at.

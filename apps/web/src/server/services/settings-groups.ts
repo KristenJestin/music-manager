@@ -44,6 +44,7 @@ export const METADATA_KEYS = [
   /* matching */
   "safeThreshold",
   "titleMatchThreshold",
+  "matchPreselectionFloor",
   "matchAmbiguityMargin",
   "matchBindingFloor",
   "matchDurationTolerance",

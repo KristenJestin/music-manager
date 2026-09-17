@@ -338,6 +338,19 @@ function MetadataSettings() {
           />
         </FormRow>
         <FormRow
+          label="Preselection floor"
+          help="Below this score the matcher has not found the record — it has found something with a similar name — and the import waits for you instead of preselecting. It is a question, not a refusal: the Inbox item carries the best candidate as its answer."
+        >
+          <NumberField
+            testId="setting-matchPreselectionFloor"
+            value={value("matchPreselectionFloor", 0.6)}
+            step={0.05}
+            onChange={(next) => {
+              set("matchPreselectionFloor", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
           label="Ambiguity margin"
           help="Two candidates closer than this go to the Inbox instead of being guessed at."
         >
@@ -361,12 +374,12 @@ function MetadataSettings() {
           />
         </FormRow>
         <FormRow
-          label="Tracklist lookups"
-          help="How many release candidates get their tracklist fetched, which is what the fit is computed from. More costs one MusicBrainz request each, at one request per second."
+          label="Tracklist lookup ceiling"
+          help="The most release candidates a match may open, not the number it will. The matcher keeps opening candidates while an unopened one could still win and stops on its own, so an ordinary album costs three; this is the stop for a record MusicBrainz presses two dozen times. One request each, at one request per second."
         >
           <NumberField
             testId="setting-matchLookupLimit"
-            value={value("matchLookupLimit", 6)}
+            value={value("matchLookupLimit", 14)}
             step={1}
             onChange={(next) => {
               set("matchLookupLimit", next);

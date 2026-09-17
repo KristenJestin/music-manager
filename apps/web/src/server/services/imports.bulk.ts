@@ -531,6 +531,35 @@ async function confirmBestRelease(
   const preferType = input.preferType ?? "album";
 
   /*
+   * The same artist gate the `match` step applies, and for the same reason.
+   *
+   * `confirm-best` is the one path that commits a release without a person reading the card,
+   * so the rule that "nothing here is by the artist the source names" must stop it too. The
+   * coverage bar would catch the owner's *Bewitched* by accident — Laura Fygi's twelve tracks
+   * map seven of fourteen videos, half the bar — but an accident is not a rule, and a wrong
+   * artist whose tracklist happens to fit would sail straight through it.
+   */
+  if (!result.artist.carried) {
+    throw new MMError(
+      "AWAITING_CONFIRM",
+      `No candidate is credited to ${result.artist.wanted ?? "the artist this source names"}. ` +
+        "Nothing was confirmed.",
+      {
+        hint:
+          "MusicBrainz returned releases with this title by other artists. Read " +
+          "`GET /api/v1/imports/{id}/candidates`, or pin one with `confirm-mapping`.",
+        action: "Choose a release yourself",
+        details: {
+          importId: job.id,
+          wantedArtist: result.artist.wanted,
+          candidates: result.ranking.candidates.length,
+        },
+        status: 409,
+      },
+    );
+  }
+
+  /*
    * Only candidates whose tracklist was actually fetched can be chosen. The rest have a `fit`
    * of zero because nothing was looked up, not because they fit badly, and picking one would
    * mean confirming a release nobody has read the tracks of.

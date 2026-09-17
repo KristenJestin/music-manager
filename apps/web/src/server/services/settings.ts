@@ -16,6 +16,7 @@ import { MMError, notifiableEventSchema, type NotifiableEvent } from "@mm/contra
 import {
   ARTIST_NAME_SOURCES,
   DEFAULT_GROUP_LIMIT,
+  DEFAULT_LOOKUP_LIMIT,
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_THRESHOLDS,
   DEFAULT_WEIGHTS,
@@ -203,6 +204,11 @@ export const SETTING_DEFINITIONS = {
     "either",
     "Which of an explicit/clean pair to prefer.",
   ),
+  matchPreselectionFloor: define(
+    z.number().min(0).max(1),
+    0.6,
+    "Below this, the matcher has not found the record — it has found something with a similar name — and `match` blocks for review instead of preselecting. This is the gate that did not exist: `safeThreshold` only *marks* a candidate, `matchBindingFloor` only judges one video against one track, and `--yes` and fixtures mode open the confirmation without reading a score at all. A fourteen-video Laufey playlist was imported as Laura Fygi's 1993 album at 0.537 with nothing in the way.",
+  ),
   matchAmbiguityMargin: define(
     z.number().min(0).max(1),
     0.04,
@@ -220,8 +226,8 @@ export const SETTING_DEFINITIONS = {
   ),
   matchLookupLimit: define(
     z.number().int().min(1).max(25),
-    6,
-    "How many release candidates get a tracklist lookup, which is what the fit needs.",
+    DEFAULT_LOOKUP_LIMIT,
+    "The **ceiling** on tracklist lookups for one album match — not a plan. The matcher opens candidates while an unopened one could still win and stops on its own, so an ordinary album costs one to four; this is the stop for a record MusicBrainz presses a dozen times. It used to be a flat six spent from the top of the pre-score, which is why a fourteen-track *Appeal to Reason* that ranked twelfth was never examined.",
   ),
   matchSearchLimit: define(
     z.number().int().min(1).max(100),

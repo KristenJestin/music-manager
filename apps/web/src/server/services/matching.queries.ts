@@ -31,7 +31,6 @@ import {
   type RecordingCandidate,
   type RecordingCandidateInput,
   type ReleaseCandidate,
-  type ReleaseCandidateInput,
   type ReleaseGroupCandidate,
 } from "@mm/domain";
 import { MMError } from "@mm/contracts";
@@ -51,6 +50,7 @@ import { cassetteNameOf, loadCassette } from "#/server/services/matching.cassett
 import { sourceContextFor } from "#/server/services/matching.context.ts";
 import {
   configFromSettings,
+  exploreReleases,
   lookupLimitOf,
   matchAlbum,
   matchSingle,
@@ -144,11 +144,12 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
    * The wait is the feature here (A5 of the owner review).
    *
    * A group search, up to `matchGroupLimit` release searches and up to `matchLookupLimit`
-   * lookups, at one request per second, is ten seconds that cannot be made shorter — so the
-   * screen is told what is being spent rather than left blank. The planned counts are the
-   * budget `matchAlbum` promises (`plannedBudgetOf`), taken from the settings rather than
+   * lookups, at one request per second, is several seconds that cannot be made shorter — so
+   * the screen is told what is being spent rather than left blank. The planned counts are the
+   * ceiling `matchAlbum` is allowed (`plannedBudgetOf`), taken from the settings rather than
    * discovered as we go, and narrowed once the group search says how many groups there really
-   * were (decision 151).
+   * were (decision 151). The lookup half is a ceiling the branch and bound rarely reaches, so
+   * the bar usually finishes early.
    */
   const planned = single
     ? { searches: 2, lookups: lookupLimitOf(input.settings) }
@@ -224,29 +225,24 @@ export async function searchReleases(input: SearchInput): Promise<{
   const found = await gateway.search("release", query, input.settings.matchSearchLimit);
   const releases = found?.releases ?? [];
 
-  const limit = lookupLimitOf(input.settings);
   const config = configFromSettings(input.settings);
   const hints = hintsFor(input.job, videos);
 
-  const shallow: ReleaseCandidateInput[] = releases.map((release) => ({
-    release,
-    detailed: false,
-  }));
-  const prescored = releaseCandidates.score({ videos, hints, candidates: shallow }, config);
-  const wanted = new Set(prescored.candidates.slice(0, limit).map((candidate) => candidate.id));
-
-  const detailed: ReleaseCandidateInput[] = [];
-  for (const release of releases) {
-    if (release.id !== undefined && wanted.has(release.id)) {
-      const full = await gateway.lookupRelease(release.id);
-      detailed.push(
-        full === null ? { release, detailed: false } : { release: full, detailed: true },
-      );
-    } else {
-      detailed.push({ release, detailed: false });
-    }
-  }
-  const scored = releaseCandidates.score({ videos, hints, candidates: detailed }, config);
+  /*
+   * The same branch and bound the automatic match uses, and for the same two reasons.
+   *
+   * It is bounded — a hand search for a common word brings back twenty-five releases and the
+   * old code looked up the first `matchLookupLimit` of them unconditionally, which is now a
+   * *ceiling* of fourteen rather than a plan of six; spending all fourteen on a search box
+   * would be fourteen seconds of somebody waiting. And it is the same numbers: a release found
+   * by hand has to be comparable with one the matcher proposed, which means its fit has to have
+   * been decided by the same rule.
+   */
+  const explored = await exploreReleases(gateway, { videos, hints }, releases, config, {
+    ceiling: lookupLimitOf(input.settings),
+    safe: input.settings.safeThreshold,
+  });
+  const scored = explored.ranking;
   return {
     candidates: scored.candidates,
     // Grouped too, because step 2 draws groups: a hand-found release has to be able to land in

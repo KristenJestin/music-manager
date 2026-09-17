@@ -66,6 +66,16 @@ export interface AlbumHints {
   readonly year?: number | null;
   readonly label?: string | null;
   readonly releasedOn?: string | null;
+  /**
+   * Which **edition** the source announced, as canonical tokens ("deluxe", "live", …).
+   *
+   * Read off the source's own title by `sourceEdition`, and it is the same extraction the
+   * search query uses to *drop* the qualifier — one extraction, two consumers. The query drops
+   * it because MusicBrainz does not publish it; the scorer keeps it, because it says which
+   * pressing of the record the person actually wants, and a playlist called "The Heist (Deluxe
+   * Edition)" must not be marked down twenty points for choosing the deluxe edition.
+   */
+  readonly edition?: readonly string[];
 }
 
 /** One track of a candidate release, flattened across media into tracklist order. */
@@ -86,7 +96,7 @@ export interface MatchTrack {
 /* weights and thresholds                                              */
 /* ------------------------------------------------------------------ */
 
-/** The ten release signals of `docs/04`, in the order the Console lists them. */
+/** The thirteen release signals of `docs/04`, in the order the Console lists them. */
 export interface ReleaseSignals {
   readonly title: number;
   readonly artist: number;
@@ -101,6 +111,21 @@ export interface ReleaseSignals {
    * one-track single covered by one of them: both are 1.0. This one says 1.0 and 0.09.
    */
   readonly coverage: number;
+  /**
+   * The **symmetric** fit: the share of the union of tracks and videos the assignment binds.
+   *
+   * `durations` counts the release's tracks a video lands on; `coverage` counts the videos
+   * that land on a track. Each is blind to the other's orphans, and together they still
+   * cannot separate a fourteen-track edition covered by fourteen videos from a fifteen-track
+   * one that places the same fourteen and leaves a bonus track behind: coverage is 1.0 for
+   * both, because both place every video. This one is `bound / max(videos, tracks)` — the
+   * intersection over the union — so it reaches 1 only when there is **no orphan track and no
+   * orphan video**, and the owner's *Appeal to Reason* pair is finally two different numbers.
+   *
+   * A weight and never a veto: an edition whose extra track is genuinely missing from the
+   * playlist loses the same fraction as any other, and still wins when nothing fits better.
+   */
+  readonly exactness: number;
   /**
    * Whether the Cover Art Archive has a front for this exact pressing (decision 167).
    *
@@ -278,6 +303,23 @@ export interface ReleaseCandidate {
    */
   readonly leftOver: number;
   readonly videos: number;
+  /**
+   * The best score this candidate could still reach if everything unknown about it turned out
+   * perfect — the bound the adaptive exploration of `matching.service.ts` branches on.
+   *
+   * For a candidate whose tracklist was read it is simply `score`: nothing is unknown any
+   * more. For one that was not, the fit signals and the cover are replaced by the most they
+   * could be *given its track count*, which the search result already carries: a fifteen-track
+   * pressing facing fourteen videos can never exceed `14/15` of the symmetric fit, whatever
+   * its tracklist turns out to be. Everything else — title, artist, year, country, format and
+   * every penalty the disambiguation earns — is known from the search result and kept as it
+   * is, so the bound is optimistic without being vacuous.
+   *
+   * That is what makes the exploration terminate: a candidate nobody looked up is opened only
+   * while this number is *strictly* greater than the best complete score, so a shelf of
+   * identical pressings behind the leader stops the loop instead of draining the budget.
+   */
+  readonly ceiling: number;
   /** Mean |video − track| over the covered tracks, in seconds. */
   readonly durDelta: number | null;
   /** The fit, line by line. Empty when the tracklist was never looked up. */
@@ -289,7 +331,8 @@ export interface ReleaseCandidate {
   readonly safe: boolean;
   /**
    * False when the tracklist was never looked up, so `fit` is unknown rather than zero.
-   * Only the first N candidates are looked up (`docs/04`: the fit needs one lookup each).
+   * A candidate is opened only while it could still win (`docs/04` § Exploration adaptative);
+   * the fit needs one lookup each, so the ones that could not are left unread.
    */
   readonly detailed: boolean;
 }
