@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpNarrowWide,
   ExternalLink,
+  FileUp,
   Fingerprint,
   Inbox,
   Pause,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
+import { AdoptFileDialog, type AdoptFileChoice } from "#/components/adopt-file-dialog.tsx";
 import { ConfigureLink } from "#/components/configure-link.tsx";
 import { Cover, coverArtFront, SLOT_SIZES } from "#/components/cover.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
@@ -50,6 +52,7 @@ import {
   pauseJob,
   retryJob,
   retryTrack,
+  adoptTrackFile,
 } from "#/server/functions/jobs.ts";
 
 /**
@@ -203,6 +206,36 @@ function JobPage() {
     );
   };
 
+  /**
+   * The track whose "Adopt a file" dialog is open, if any.
+   *
+   * On the row and not in a page-level menu: the need is felt one line at a time — one video
+   * of fourteen that came back `YTDLP_AGE` or `YTDLP_UNAVAILABLE` — and the owner is already
+   * looking at the row that says so.
+   */
+  const [adopting, setAdopting] = useState<JobDetailTrack | null>(null);
+
+  const adopt = (choice: AdoptFileChoice): void => {
+    const track = adopting;
+    if (track === null) return;
+    act(
+      `adopt:${track.id}`,
+      async () =>
+        await adoptTrackFile({
+          data: {
+            id: job.id,
+            trackId: track.id,
+            source:
+              choice.kind === "path"
+                ? { kind: "path", path: choice.path }
+                : { kind: "upload", filename: choice.filename, content: choice.content },
+          },
+        }),
+      "File adopted; the track carries on from here.",
+    );
+    setAdopting(null);
+  };
+
   /** True while the worker owns this job: retrying now would only queue a second run. */
   const running = ACTIVE.includes(job.status);
 
@@ -350,6 +383,26 @@ function JobPage() {
                 }}
               >
                 <RotateCcw className="size-3" aria-hidden="true" /> Retry track
+              </Button>
+            ) : null}
+            {/* The other answer to a download that will not happen: the file itself.
+                Icon-only, because this column is width-pinned (D4) and "Retry track" is
+                already in it — and because the two are the same offer seen from two sides,
+                "try again" and "stop trying". Offered on exactly the same condition, so a
+                track never shows one without the other. */}
+            {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
+              <Button
+                size="icon-sm"
+                variant="outline"
+                data-testid="track-adopt"
+                aria-label={`Adopt a local file for ${track.sourceTitle}`}
+                title="Adopt a local file — for a deleted video, an age check, or a library you already have"
+                disabled={busy !== null}
+                onClick={() => {
+                  setAdopting(track);
+                }}
+              >
+                <FileUp className="size-3" aria-hidden="true" />
               </Button>
             ) : null}
           </div>
@@ -579,6 +632,20 @@ function JobPage() {
           empty="No videos resolved yet."
         />
       </section>
+
+      {/* One dialog for the whole table rather than one per row: only one can be open, and a
+          fourteen-track album would otherwise mount fourteen file inputs nobody asked for. */}
+      {adopting === null ? null : (
+        <AdoptFileDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAdopting(null);
+          }}
+          trackTitle={adopting.trackTitle ?? adopting.sourceTitle}
+          busy={busy === `adopt:${adopting.id}`}
+          onAdopt={adopt}
+        />
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="rounded-xl border border-line bg-surface-1">

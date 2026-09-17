@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-eight tools and two resource families over the *same service layer* the REST API and the
+ * Twenty-nine tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-eight, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-nine, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -26,7 +26,7 @@
  *
  * Each tool declares the scope it needs, and the server built for a request only **registers**
  * the tools that request's key may call. A `library:read` key therefore sees the handful it may
- * call in `tools/list` rather than twenty-eight of which most fail — which is the difference between
+ * call in `tools/list` rather than twenty-nine of which most fail — which is the difference between
  * an agent that plans correctly and one that discovers its limits by hitting them.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -45,6 +45,7 @@ import {
   DEFAULT_MIN_COVERAGE,
   MAX_BATCH_URLS,
 } from "#/server/services/imports.bulk.ts";
+import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
   createWatchedSource,
   getWatchedSource,
@@ -366,7 +367,7 @@ interface ToolSpec {
  * `get_scan_report` from the second, `refresh_album` from the third, and `create_imports` and
  * `confirm_best` from the bulk-import session that drove 375 playlists through here by hand.
  *
- * A table rather than twenty-eight `server.registerTool(...)` calls, so that "which tools does this
+ * A table rather than twenty-nine `server.registerTool(...)` calls, so that "which tools does this
  * key get?" is one `filter` and the scope of each tool is visible next to its name rather than
  * buried in its body.
  *
@@ -775,6 +776,92 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           db: db(),
           source: "mcp confirm_best",
         }),
+    },
+    {
+      name: "adopt_track_file",
+      scope: "imports:write",
+      title: "Adopt a local file as one track's source",
+      description:
+        "Gives one track a file that already exists, instead of downloading it. This is the " +
+        "answer for a video that has been **deleted**, for a video behind an **age check** " +
+        "that no cookie jar gets past, and for **taking over an existing library** track by " +
+        "track.\n\n" +
+        "**Two ways for the bytes to arrive**, and you almost always want the first:\n\n" +
+        "- `path` — an absolute path *on the server running this application*. Not on your " +
+        "machine. It is resolved through `realpath` and refused unless it lands inside the " +
+        "library or inside a directory the operator listed in the `adoptSourceRoots` setting, " +
+        "which is **empty by default**. A refusal here is `ADOPT_PATH_REFUSED` and it is not " +
+        "something you can work around: ask the operator to add the folder.\n" +
+        "- `content` — the file's bytes, base64, up to 64 MB, with `filename` for its name. " +
+        "Use it when you hold the bytes and the server cannot see them.\n\n" +
+        "Give exactly one of `path` and `content`.\n\n" +
+        "The file lands where `download` would have put it, so **the single download slot is " +
+        "never spent**, and the track resumes at `fingerprint` → `tag` → `place`.\n\n" +
+        '**The tags say it was adopted.** `COMMENT` becomes *Adopted local file "…" · not ' +
+        "downloaded from youtu.be/…*, `ORIGINALFILENAME` becomes the file's own name, and " +
+        "`ENCODEDBY` is n/a. Do not describe an adopted file as downloaded.\n\n" +
+        "Refusals, each with its own code: `ADOPT_UNSUPPORTED` (a container the tagger cannot " +
+        "write — convert it), `ADOPT_NOT_AUDIO` (ffprobe found no audio stream), " +
+        "`ADOPT_CONFLICT` (the track already has a file — `retry_step` it first), " +
+        "`ADOPT_PATH_REFUSED`, `ADOPT_NOT_READY` (the import is cancelled, or not yet " +
+        "confirmed, or this video is not bound to a track).",
+      inputSchema: {
+        importId: z.string().min(1),
+        trackId: z.string().min(1).describe("An `import_tracks` id, as `get_import` lists it."),
+        path: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Absolute path on the server. Mutually exclusive with `content`."),
+        filename: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("The file's own name. Required with `content`, ignored with `path`."),
+        content: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("The file's bytes, base64, 64 MB at most. Mutually exclusive with `path`."),
+      },
+      run: async (args: {
+        importId: string;
+        trackId: string;
+        path?: string;
+        filename?: string;
+        content?: string;
+      }) => {
+        // The schema cannot state "exactly one of these two" in a way the MCP SDK renders
+        // usefully, so it is stated here — and as a refusal, not as a preference, because
+        // silently ignoring one of two supplied sources is how an agent uploads a file and
+        // believes it adopted a different one.
+        if ((args.path === undefined) === (args.content === undefined)) {
+          throw new MMError("INVALID_INPUT", "Give exactly one of `path` and `content`.", {
+            hint: "`path` for a file already on the server, `content` (with `filename`) to upload one.",
+            status: 400,
+          });
+        }
+        if (args.content !== undefined && args.filename === undefined) {
+          throw new MMError("INVALID_INPUT", "`content` needs `filename`.", {
+            hint: "The extension decides whether the tagger can write to the file at all.",
+            status: 400,
+          });
+        }
+        return await adoptTrackFile({
+          importId: args.importId,
+          trackId: args.trackId,
+          source:
+            args.path === undefined
+              ? {
+                  kind: "upload",
+                  filename: args.filename ?? "adopted",
+                  bytes: new Uint8Array(Buffer.from(args.content ?? "", "base64")),
+                }
+              : { kind: "path", path: args.path },
+          adoptedBy: "mcp",
+          db: db(),
+        });
+      },
     },
     {
       name: "get_candidates",

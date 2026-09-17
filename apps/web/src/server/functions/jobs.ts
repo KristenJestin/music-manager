@@ -43,6 +43,7 @@ import {
   type JobSummary,
 } from "#/server/services/console.queries.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
+import { adoptTrackFile as adoptFile } from "#/server/services/adopt.ts";
 
 const statusFilter = z.enum([
   "all",
@@ -337,6 +338,64 @@ export const retryTrack = createServerFn({ method: "POST", strict: STRICT })
       return toFailure(error);
     }
   });
+
+/**
+ * Adopt a local file as one track's source, from the Console.
+ *
+ * The Console's half of `POST /api/v1/imports/{id}/tracks/{trackId}/file`, and it reaches the
+ * same `adoptTrackFile` service, so the refusals, the allow-list and the provenance are one
+ * implementation rather than three.
+ *
+ * The browser sends the bytes base64 in the RPC body rather than as a multipart upload: the
+ * app has no multipart parser, every other boundary in it is a zod schema, and the one
+ * existing file input in the Console (`settings/integrations`, the backup import) already
+ * reads the file in the browser and posts its contents. `MAX_ADOPT_UPLOAD_BYTES` is the cap on
+ * the decoded bytes, checked again in the service — the dialog only checks it to give a
+ * faster, kinder answer than a rejected request.
+ */
+export const adoptTrackFile = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z.object({
+      id: z.string().min(1),
+      trackId: z.string().min(1),
+      source: z.discriminatedUnion("kind", [
+        z.object({ kind: z.literal("path"), path: z.string().min(1) }),
+        z.object({
+          kind: z.literal("upload"),
+          filename: z.string().min(1),
+          content: z.string().min(1),
+        }),
+      ]),
+    }),
+  )
+  .handler(
+    async ({ data }): Promise<{ path: string; originalName: string; nextStep: string | null }> => {
+      try {
+        const result = await adoptFile({
+          importId: data.id,
+          trackId: data.trackId,
+          source:
+            data.source.kind === "path"
+              ? { kind: "path", path: data.source.path }
+              : {
+                  kind: "upload",
+                  filename: data.source.filename,
+                  bytes: new Uint8Array(Buffer.from(data.source.content, "base64")),
+                },
+          adoptedBy: "console",
+          db: db(),
+        });
+        return {
+          path: result.path,
+          originalName: result.originalName,
+          nextStep: result.nextStep,
+        };
+      } catch (error) {
+        return toFailure(error);
+      }
+    },
+  );
 
 export const resumeJob = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])

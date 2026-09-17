@@ -56,6 +56,7 @@ import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
 import { createFromUrl, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
+import { adoptTrackFile } from "#/server/services/adopt.ts";
 import {
   bumpImport,
   cancelImport,
@@ -525,6 +526,51 @@ async function cmdRetry(args: Args): Promise<number> {
   await stopBoss(boss);
 
   await printJob(id);
+  return 0;
+}
+
+/**
+ * `mm adopt <import id> <track id> --file <path>` — give one track a file you already have.
+ *
+ * The CLI runs *on the server*, which is the whole reason it only offers the path form: the
+ * files of a library being taken over are on this disk, and base64-ing them through the local
+ * HTTP API to a process with the same filesystem would be ceremony. `--upload` exists for the
+ * remote case (`--url`), where the machine holding the file and the machine holding the
+ * library really are two machines; it is in `remote-commands.ts`.
+ *
+ * The allow-list still applies. `mm` has a database handle, not a licence: the same
+ * `adoptSourceRoots` check runs here as on the HTTP route, because "which folders may the
+ * application read from" is a property of the installation, not of the door.
+ */
+async function cmdAdopt(args: Args): Promise<number> {
+  const importId = args.positional[1];
+  const trackId = args.positional[2];
+  const file = flagString(args, "file");
+  if (importId === undefined || trackId === undefined || file === undefined) {
+    throw new MMError(
+      "INVALID_INPUT",
+      "usage: mm adopt <import id> <track id> --file <path on this server>",
+    );
+  }
+
+  const result = await adoptTrackFile({
+    importId,
+    trackId,
+    source: { kind: "path", path: file },
+    adoptedBy: "cli adopt",
+    db: db(),
+  });
+
+  line(`adopted ${result.originalName} for ${result.trackId}`);
+  line(`  file     ${result.path}`);
+  line(
+    `  audio    ${result.codec ?? "?"}` +
+      (result.durationSeconds === null ? "" : `, ${String(Math.round(result.durationSeconds))} s`) +
+      `, ${String(Math.round(result.bytes / 1024))} KiB`,
+  );
+  line(`  next     ${result.nextStep ?? "nothing left"}${result.queued ? " (queued)" : ""}`);
+  line("");
+  line("The tags will say this file was adopted, not downloaded.");
   return 0;
 }
 
@@ -1500,6 +1546,8 @@ const USAGE = `mm — Music Manager
   mm job <id> [--follow]
   mm retry <id> --step <${STEP_ORDER.join("|")}>
   mm retry --failed-upstream [--dry-run] [--limit N]   every import a source killed, at once
+  mm adopt <id> <track id> --file <path>   give one track a file you already have
+                                          (deleted video, age check, an existing library)
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
   mm inbox resolve --all --accept [--import <id>]
@@ -1575,6 +1623,8 @@ async function main(): Promise<number> {
       return await cmdJob(args);
     case "retry":
       return await cmdRetry(args);
+    case "adopt":
+      return await cmdAdopt(args);
     case "inbox":
       return await cmdInbox(args);
     case "settings":

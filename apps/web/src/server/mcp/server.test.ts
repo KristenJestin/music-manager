@@ -59,8 +59,8 @@ describe("the tool table", () => {
 
   it("agrees with the count docs/06-stack.md publishes", () => {
     // Bump both together, or an agent reads a number that is not true.
-    // 26 + `create_imports` and `confirm_best`, the two bulk-import doors.
-    expect(tools.length).toBe(28);
+    // 26 + `create_imports` and `confirm_best`, the two bulk-import doors, + `adopt_track_file`.
+    expect(tools.length).toBe(29);
   });
 });
 

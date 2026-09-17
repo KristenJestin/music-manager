@@ -57,6 +57,7 @@ import { newId } from "#/server/ids.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
 import { get as cacheGet } from "#/server/services/cache.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
+import { adoptionOf } from "#/server/services/adopt.record.ts";
 import { APP_VERSION } from "#/server/version.ts";
 import * as acoustid from "#/server/integrations/acoustid.ts";
 import * as caa from "#/server/integrations/coverartarchive.ts";
@@ -835,6 +836,14 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
   }
 
   const entry = track.raw as YtdlpEntry;
+  /**
+   * The file was taken over from disk, not downloaded (`services/adopt.ts`).
+   *
+   * Read from the same `raw` payload as the yt-dlp entry, so a rebuild months from now says
+   * the same thing this import said — which is the whole reason the record is on the row and
+   * not only in the journal.
+   */
+  const adoption = adoptionOf(track.raw);
   /** When this track was observed — the instant `resolve` wrote its yt-dlp payload down. */
   const observedAt = track.createdAt.toISOString();
   const extra: DocumentPatch[] = [];
@@ -970,6 +979,14 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
       fetchedAt: observedAt,
       appVersion: APP_VERSION,
       importedOn: observedAt.slice(0, 10),
+      ...(adoption === null
+        ? {}
+        : {
+            adopted: {
+              originalName: adoption.originalName,
+              adoptedOn: adoption.adoptedAt.slice(0, 10),
+            },
+          }),
     },
     ...(extra.length === 0 ? {} : { extra }),
     app: {

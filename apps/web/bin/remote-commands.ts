@@ -351,6 +351,59 @@ async function cmdRetry(api: ApiClient, args: RemoteArgs): Promise<number> {
   return 0;
 }
 
+/**
+ * `mm adopt <id> <track id> --file <path>` against another installation.
+ *
+ * Remote mode is the case where the file and the library are genuinely on two machines, so
+ * the default here is the opposite of the local command's: `--file` is read *from this
+ * machine* and uploaded. `--server-path` is the escape hatch for the file that is already on
+ * the far end, and it still has to pass that installation's `adoptSourceRoots`.
+ */
+async function cmdAdopt(api: ApiClient, args: RemoteArgs): Promise<number> {
+  const id = args.positional[1];
+  const trackId = args.positional[2];
+  const file = flagString(args, "file");
+  const serverPath = flagString(args, "server-path");
+  if (
+    id === undefined ||
+    trackId === undefined ||
+    (file === undefined) === (serverPath === undefined)
+  ) {
+    throw new Error(
+      "usage: mm adopt <id> <track id> --file <path here>\n" +
+        "       mm adopt <id> <track id> --server-path <path there>",
+    );
+  }
+
+  const body =
+    serverPath === undefined
+      ? {
+          source: "upload" as const,
+          filename: (file ?? "").split(/[/\\]/).pop() ?? "adopted",
+          // `node:fs`, not `Bun.file`: `bin/` is the one place in this app that really does
+          // run under Bun, and it is still not worth a second way of reading a file.
+          content: readFileSync(file ?? "").toString("base64"),
+        }
+      : { source: "path" as const, path: serverPath };
+
+  const result = await api.post<{
+    path: string;
+    bytes: number;
+    codec: string | null;
+    originalName: string;
+    nextStep: string | null;
+    queued: boolean;
+  }>(`/imports/${id}/tracks/${trackId}/file`, body);
+
+  if (asJson(args)) return dump(result);
+  line(`adopted ${result.originalName}`);
+  line(
+    `  file     ${result.path} (${String(Math.round(result.bytes / 1024))} KiB, ${result.codec ?? "?"})`,
+  );
+  line(`  next     ${result.nextStep ?? "nothing left"}${result.queued ? " (queued)" : ""}`);
+  return 0;
+}
+
 async function cmdControl(
   api: ApiClient,
   args: RemoteArgs,
@@ -651,6 +704,8 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
   mm jobs [--status <s>] [--limit n] [--offset n]
   mm job <id> [--follow]
   mm retry <id> --step <step>
+  mm adopt <id> <track id> --file <path here>          upload a file as that track's source
+  mm adopt <id> <track id> --server-path <path there>  …or one already on the server
   mm cancel|pause|bump <id>
   mm inbox list [--all] | mm inbox resolve <id> --accept [--follow]
   mm inbox resolve --all --accept [--import <id>]
@@ -676,6 +731,8 @@ export async function runRemote(api: ApiClient, args: RemoteArgs): Promise<numbe
       return await cmdJob(api, args);
     case "retry":
       return await cmdRetry(api, args);
+    case "adopt":
+      return await cmdAdopt(api, args);
     case "inbox":
       return await cmdInbox(api, args);
     case "library":

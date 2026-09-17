@@ -32,6 +32,22 @@ export interface YtdlpEntry {
   readonly playlist_index?: number | null;
 }
 
+/**
+ * The audio was taken over from a file on disk instead of being downloaded.
+ *
+ * Deleted videos, videos behind an age check, and a library being handed to this application
+ * track by track: three cases where the entry below is still the right *identity* for the
+ * track — the title, the description credits, the source URL — and where no byte of the file
+ * came from YouTube. Saying "Source: youtu.be/…" on such a file would be false in the one
+ * field a human reads to find out where their music came from.
+ */
+export interface AdoptedFile {
+  /** The name the file had when it was adopted. Basename, never a path. */
+  readonly originalName: string;
+  /** `YYYY-MM-DD`. */
+  readonly adoptedOn: string;
+}
+
 export interface YouTubeResolverOptions {
   readonly fetchedAt: string;
   /** yt-dlp's own version string, written to `ENCODEDBY`. */
@@ -40,6 +56,8 @@ export interface YouTubeResolverOptions {
   readonly appVersion: string;
   /** The instant of the import, as it appears in `COMMENT`. `YYYY-MM-DD`. */
   readonly importedOn: string;
+  /** Present when the file was adopted from disk rather than downloaded. See `AdoptedFile`. */
+  readonly adopted?: AdoptedFile;
 }
 
 /** The credit roles the description carries, mapped onto tag-map fields (§2.3). */
@@ -67,20 +85,55 @@ export function fromYouTubeEntry(
   /* ---- provenance you can grep (§2.6) ---- */
   const url = entry.webpage_url ?? (entry.id === undefined ? null : `https://youtu.be/${entry.id}`);
   const shortUrl = entry.id === undefined ? url : `youtu.be/${entry.id}`;
-  if (shortUrl !== null) {
+  const adopted = options.adopted;
+
+  if (adopted !== undefined) {
+    /*
+     * An adopted file says so, in the field a person actually reads.
+     *
+     * The sentence names the file, the day, and the video the bytes are *not* from — because
+     * "this came from somewhere else" and "this is which track it is" are two facts and the
+     * owner needs both: a deleted video is exactly the case where the only remaining evidence
+     * of what the track was is the id in this line.
+     *
+     * `MUSICMANAGER_SOURCEURL` below is deliberately left as the video's URL. It is the
+     * machine-readable *identity* of the track — what the v1 reconciliation, the library scan
+     * and the re-tag match on — and rewriting it to say "a file" would break every one of them
+     * to restate something `COMMENT` has just said in words.
+     */
     patch.set(
       "comment",
-      `Source: ${shortUrl} · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
+      `Adopted local file "${adopted.originalName}" on ${adopted.adoptedOn}` +
+        (shortUrl === null ? "" : ` · not downloaded from ${shortUrl}`) +
+        ` · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
       { confidence: 1 },
     );
+    // The file's own name, which is the honest answer here and is more use than `<id>.<ext>`:
+    // on a take-over it is how the owner finds the track again in the library it came from.
+    patch.set("originalfilename", adopted.originalName, { confidence: 1 });
+    // Neither of these is knowable: nothing of ours encoded this file.
+    patch.setOrNa("encodedby", undefined, "the file was adopted from disk, not downloaded");
+    patch.setOrNa("encodersettings", undefined, "the file was adopted from disk, not downloaded");
+  } else {
+    if (shortUrl !== null) {
+      patch.set(
+        "comment",
+        `Source: ${shortUrl} · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
+        { confidence: 1 },
+      );
+    }
+    if (entry.id !== undefined && entry.ext !== undefined) {
+      patch.set("originalfilename", `${entry.id}.${entry.ext}`, { confidence: 1 });
+    }
+    patch.setOrNa(
+      "encodedby",
+      options.ytdlpVersion,
+      "the download did not report a yt-dlp version",
+    );
+    patch.setOrNa("encodersettings", encoderSettings(entry), "yt-dlp reported no format details");
   }
-  patch.set("musicmanager_sourceurl", url, { confidence: 1 });
 
-  if (entry.id !== undefined && entry.ext !== undefined) {
-    patch.set("originalfilename", `${entry.id}.${entry.ext}`, { confidence: 1 });
-  }
-  patch.setOrNa("encodedby", options.ytdlpVersion, "the download did not report a yt-dlp version");
-  patch.setOrNa("encodersettings", encoderSettings(entry), "yt-dlp reported no format details");
+  patch.set("musicmanager_sourceurl", url, { confidence: 1 });
 
   /* ---- fallbacks read from the auto-generated description ---- */
   const parsed = parseYouTubeDescription(entry.description);

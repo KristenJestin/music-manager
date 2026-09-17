@@ -126,6 +126,32 @@ export const SETTING_DEFINITIONS = {
     "How many tracks may be fingerprinted, tagged or filed at the same time. The download " +
       "slot stays at one whatever this says; these steps are local and cheap.",
   ),
+  /*
+   * The *preparation* concurrency: `resolve`, `match` and `confirm`, the three steps that run
+   * before a single byte of audio is fetched.
+   *
+   * It was nailed to 1 in the worker, and on a few hundred queued imports that is what the
+   * owner waited on: preparations came out at about four a minute, so the first download of
+   * the batch started two hours after the paste. Nothing in `docs/06-stack.md` asks for it —
+   * "one orchestrator" is a rule about the **download** slot, which stays at one whatever
+   * this says (`QUEUES.download` is `singleton`, `localConcurrency: 1`, and the toolbox
+   * answers `409 LOCKED` to a second caller).
+   *
+   * Raising it does **not** scale linearly, and the reason is `integrations/rate-gate.ts`:
+   * `match` is mostly MusicBrainz, and MusicBrainz is one request per second for the whole
+   * installation, across processes. Parallel preparations queue on that gate; what they
+   * genuinely overlap is the yt-dlp extraction, the database work and each other's waiting.
+   * Four is where the measured gain flattens on the development machine — the numbers, and
+   * what to do when they are not yours, are in `docs/deploy.md` § 5 quater.
+   */
+  importStepConcurrency: define(
+    z.number().int().min(1).max(8),
+    4,
+    "How many imports may be resolved, matched and confirmed at the same time. The single " +
+      "download slot is unaffected: it stays at one whatever this says. Above four the " +
+      "MusicBrainz rate limit (one request a second, installation-wide) is what you are " +
+      "queueing on, not this number.",
+  ),
 
   /* ---- upstream resilience: a busy source is a wait, not a failure ---- */
   //
@@ -743,6 +769,26 @@ export const SETTING_DEFINITIONS = {
     z.string(),
     "",
     "The same directory as the toolbox container sees it. Empty means: take MM_TOOLBOX_LIBRARY_ROOT.",
+  ),
+  /*
+   * The directories `POST /imports/{id}/tracks/{trackId}/file` may read a **server path** from.
+   *
+   * Empty on purpose, and empty means "the library and nothing else". A path arriving in an
+   * HTTP body and opened without a check is a file-read primitive: the request would copy any
+   * file the app can read into the library, give it a `.opus` name and hand it to the tagger.
+   * So the route resolves the path (symlinks and all, `realpath`), and refuses it unless it
+   * lands under the library root or under one of these roots. Adding `D:\Musique` here is the
+   * operator saying, once, "this folder is mine and the app may read from it" — which is what
+   * taking over an existing library needs, and it is a decision that belongs to a person with
+   * access to Settings rather than to whoever holds an API key.
+   *
+   * The procedure, and the three cases it exists for, are in `docs/deploy.md` § 5 quinquies.
+   */
+  adoptSourceRoots: define(
+    z.array(z.string().min(1)),
+    [],
+    "Absolute directories a local file may be adopted *from* by path. The library root is " +
+      "always allowed; everything else has to be listed here. Uploads are unaffected.",
   ),
 } as const;
 

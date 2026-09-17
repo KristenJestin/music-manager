@@ -455,6 +455,88 @@ export const retryStepSchema = z
   .openapi("RetryStep");
 
 /**
+ * `POST /imports/{id}/tracks/{trackId}/file` — adopt a local file as this track's source.
+ *
+ * **One content type, two ways for the bytes to arrive**, discriminated on `source`. JSON and
+ * not `multipart/form-data` for a reason worth writing down: every boundary in this
+ * application is a zod schema (`CLAUDE.md` § Code style), there is no multipart parser
+ * anywhere in it, and adding one for a single route would make this the only body in the app
+ * that is validated by hand. Base64 costs a third more bytes on a file that is at most 64 MB
+ * and at most one per call — and the caller who minds that is the caller who should be using
+ * `source: "path"`, which sends no bytes at all.
+ */
+export const adoptFileSchema = z
+  .discriminatedUnion("source", [
+    z
+      .object({
+        source: z.literal("path"),
+        path: z
+          .string()
+          .min(1)
+          .openapi({
+            example: "D:\\Musique\\Daft Punk\\Discovery\\03 Digital Love.flac",
+            description:
+              "An absolute path **on the server**. It is resolved (symlinks included) and " +
+              "refused unless it lands inside the library or inside one of the directories " +
+              "listed in the `adoptSourceRoots` setting, which is empty by default.",
+          }),
+      })
+      .openapi("AdoptFileByPath"),
+    z
+      .object({
+        source: z.literal("upload"),
+        filename: z
+          .string()
+          .min(1)
+          .openapi({
+            example: "03 Digital Love.flac",
+            description:
+              "The file's own name. Only its extension and its basename are used — the " +
+              "destination name is chosen by the server — and the basename is what ends up in " +
+              "the file's `ORIGINALFILENAME` tag.",
+          }),
+        content: z
+          .string()
+          .min(1)
+          // Standard base64, padding optional, whitespace not allowed: an unchecked string
+          // reaching `Buffer.from(…, "base64")` is silently truncated at the first bad
+          // character, which would store a corrupt file and report success.
+          .regex(/^[A-Za-z0-9+/]+={0,2}$/, "`content` must be standard base64, with no whitespace.")
+          .openapi({ description: "The file's bytes, base64. 64 MB before encoding." }),
+      })
+      .openapi("AdoptFileUpload"),
+  ])
+  .openapi("AdoptFile");
+
+export const adoptFileResultSchema = z
+  .object({
+    importId: z.string(),
+    trackId: z.string(),
+    /** Library-relative, forward slashes: `.mm-work/imp_…/itr_….flac`. */
+    path: z.string(),
+    bytes: z.number().int(),
+    container: z.string(),
+    codec: z.string().nullable(),
+    durationSeconds: z.number().nullable(),
+    via: z.enum(["path", "upload"]),
+    originalName: z.string(),
+    /** The step the track runs next — `fingerprint` unless the options turned it off. */
+    nextStep: z.string().nullable(),
+    /** True when the track was put back on the queue. */
+    queued: z.boolean(),
+    /**
+     * True when the import had already given up and was re-opened by this call.
+     *
+     * An import whose download step failed is `failed`, and a per-track message would be
+     * skipped by a runner that refuses terminal jobs. Such an import is rewound to `download`
+     * and re-queued instead — which does **not** re-download this track (the file is there and
+     * `download` reuses it) but does try the album's other failures again.
+     */
+    reopened: z.boolean(),
+  })
+  .openapi("AdoptFileResult");
+
+/**
  * `POST /imports/retry-failed-upstream` — the whole outage in one call.
  *
  * A body with two optional knobs and no required field, so the common case is an empty POST.

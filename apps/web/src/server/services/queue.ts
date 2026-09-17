@@ -22,7 +22,9 @@ import {
   enqueueWebhookDelivery,
   reprioritiseImport,
   stopBoss,
+  enqueueTrackStep,
   type BumpOutcome,
+  type TrackStepJob,
 } from "#/worker/queues.ts";
 
 export type { BumpOutcome } from "#/worker/queues.ts";
@@ -170,6 +172,28 @@ export async function bumpQueuedImport(
     await boss.start();
     await ensureQueues(boss);
     return await reprioritiseImport(boss, importId, priority, options);
+  } finally {
+    await stopBoss(boss);
+  }
+}
+
+/**
+ * Ask for one track to carry on from the step it is due next — the `track.step` queue.
+ *
+ * The one caller is `services/adopt.ts`, and that is the whole reason this exists: adopting a
+ * file puts a track at exactly the point `download` would have left it, so what has to happen
+ * next is what `download`'s `onTrackDownloaded` hook does inside the worker — announce the
+ * track on the per-track queue and let `fingerprint`, `tag` and `place` follow. The web
+ * process cannot call that hook (it is a closure over the worker's `boss`), so it sends the
+ * same message the hook would have sent, with the same `singletonKey`: a duplicate collapses
+ * into the message already waiting rather than running a step twice.
+ */
+export async function enqueueTrack(job: TrackStepJob): Promise<void> {
+  const boss = createBoss({ producer: true });
+  try {
+    await boss.start();
+    await ensureQueues(boss);
+    await enqueueTrackStep(boss, job);
   } finally {
     await stopBoss(boss);
   }

@@ -19,8 +19,9 @@ import { existsSync, mkdirSync, statSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
-import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
+import { containerPath, hostPath, taggable, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
+import { adoptionOf } from "#/server/services/adopt.record.ts";
 import { backoffMs, jitterMs, type StepResult } from "../machine.ts";
 import {
   aborted,
@@ -64,30 +65,12 @@ function targetRelative(ctx: StepContext, track: ImportTrack): string {
 }
 
 /**
- * Containers `tag` can actually write to — the same list as the toolbox's
- * `TAGGABLE_SUFFIXES`. A `.webm` left behind by an older, pre-remux download must **not**
- * count as "already downloaded": reusing it would walk straight back into
- * `TAG_WRITE_FAILED — Unsupported container '.webm'` on every retry.
+ * True when a previous run already produced a non-empty, taggable file for this track — or
+ * when somebody adopted one into the work directory by hand (`services/adopt.ts`).
+ *
+ * `taggable` is `paths.ts`'s, shared with `adopt`: the containers this step is willing to
+ * reuse and the containers that route is willing to accept have to be one list.
  */
-const TAGGABLE_SUFFIXES = new Set([
-  ".opus",
-  ".ogg",
-  ".oga",
-  ".flac",
-  ".mp3",
-  ".mp2",
-  ".m4a",
-  ".mp4",
-  ".m4b",
-  ".aac",
-]);
-
-function taggable(relative: string): boolean {
-  const dot = relative.lastIndexOf(".");
-  return dot === -1 ? false : TAGGABLE_SUFFIXES.has(relative.slice(dot).toLowerCase());
-}
-
-/** True when a previous run already produced a non-empty, taggable file for this track. */
 function fileReady(ctx: StepContext, track: ImportTrack): string | null {
   const candidates = [
     ...(track.downloadPath === null ? [] : [track.downloadPath]),
@@ -279,17 +262,29 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       continue;
     }
 
+    /*
+     * `--force` means "fetch it again from the source". An adopted file has no source to fetch
+     * again (`services/adopt.ts`): the operator supplied those bytes precisely because the
+     * video is gone, age-checked, or was never the point. Re-downloading would overwrite the
+     * one copy that exists with a failure — so `force` is honoured for everything except a
+     * track whose `raw` carries an adoption record.
+     */
+    const adopted = adoptionOf(track.raw) !== null;
     const ready = fileReady(ctx, track);
-    if (ready !== null && !force) {
+    if (ready !== null && (!force || adopted)) {
       await updateTrack(ctx, track.id, {
         downloadPath: ready,
         downloadedBytes: statSync(hostPath(ctx.paths, ready)).size,
         ...(track.state === "pending" ? { state: "downloaded" as const } : {}),
       });
-      await ctx.say("track.skipped", `${track.sourceTitle}: already downloaded`, {
-        trackId: track.id,
-        data: { reason: "already downloaded", path: ready },
-      });
+      await ctx.say(
+        "track.skipped",
+        `${track.sourceTitle}: ${adopted ? "adopted from a local file" : "already downloaded"}`,
+        {
+          trackId: track.id,
+          data: { reason: adopted ? "adopted" : "already downloaded", path: ready, adopted },
+        },
+      );
       reused += 1;
       await ctx.onTrackDownloaded?.(track.id);
       continue;

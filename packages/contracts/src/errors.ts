@@ -60,6 +60,29 @@ export const MM_ERROR_CODES = [
   "SOURCE_NO_ALBUM",
   /** No session, or an expired one. The Console turns it into a redirect to `/login` (P06). */
   "UNAUTHORIZED",
+  /* --- adopting a local file as a track's source --- */
+  //
+  // Five codes rather than five shades of `INVALID_INPUT`, on the rule this catalogue already
+  // follows: a code is worth its own entry when the *fix* is its own sentence. "Convert it
+  // first", "that is not audio", "clear the file you have", "add the folder to the allow-list"
+  // and "confirm the mapping first" are five different things to go and do.
+  /** The container is one no tagger in the toolbox can write to — a `.webm`, a `.wav`. */
+  "ADOPT_UNSUPPORTED",
+  /** ffprobe found no audio stream in the file. A cover, a video, a renamed archive. */
+  "ADOPT_NOT_AUDIO",
+  /** The track already has a file, in the work directory or in the library. */
+  "ADOPT_CONFLICT",
+  /**
+   * The server path is outside the library and outside every root in `adoptSourceRoots`.
+   *
+   * A path taken from an HTTP body and opened without this check is a file-read primitive:
+   * `POST …/file {"path":"/etc/shadow"}` would copy it into the library under a `.opus` name
+   * and hand it to the tagger. The allow-list is empty by default, so the only directory this
+   * route can read from until an operator says otherwise is the library itself.
+   */
+  "ADOPT_PATH_REFUSED",
+  /** The import or the track is not at a point where adopting a file means anything. */
+  "ADOPT_NOT_READY",
   /* --- the public API (P08) --- */
   /**
    * Authenticated, but the credential does not carry the scope this route needs.

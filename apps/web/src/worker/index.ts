@@ -202,20 +202,47 @@ export async function startWorker(): Promise<Worker> {
     log("closed stale empty re-tag run(s)", { count: closedEmptyRuns });
   }
 
+  // Read once, and before the first consumer is registered: both pacing numbers are
+  // `boss.work` options, and `boss.work` starts polling the instant it returns.
+  const pacing = await loadSettings(db());
+
   /* ---- import.step: advance a job up to (but not into) the download queue ---- */
+  //
+  // `localConcurrency` is a setting here for the same reason it is one on `track.step`: it is
+  // a judgement about *this* machine and about how patient MusicBrainz is feeling, not a rule
+  // of the design. The rule of the design is one queue below this one — `download` stays at
+  // `localConcurrency: 1` on a `singleton` queue, and nothing in this block may change that.
+  //
+  // **One preparation at a time per import, whatever the concurrency.** `import.step` is a
+  // `standard` queue, and on pg-boss 12 a `standard` queue puts no unique index behind
+  // `singletonKey` (see `queues.ts` § `importsWithLiveJobs`): two sends for one import are two
+  // rows. At `localConcurrency: 1` that was harmless — the second ran after the first. Above
+  // one they would run *together*, two `runImport` calls advancing one job through the same
+  // steps, which is how you get two `match` passes writing two mappings. One process consumes
+  // this queue, so a set of ids is the whole of the exclusion, exactly as on `track.step`.
+  const preparing = new Set<string>();
   await boss.work<ImportStepJob>(
     QUEUES.importStep,
-    { localConcurrency: 1, pollingIntervalSeconds: 1 },
+    { localConcurrency: pacing.importStepConcurrency, pollingIntervalSeconds: 1 },
     async (jobs: Job<ImportStepJob>[]) => {
       for (const job of jobs) {
         const { importId } = job.data;
-        log("import.step", { importId, jobId: job.id });
-        const outcome = await runImport(importId, {
-          db: db(),
-          signal: shutdown.signal,
-          stopBefore: QUEUES.download,
-        });
-        await follow(boss, outcome, 0);
+        if (preparing.has(importId)) {
+          log("import.step already in flight", { importId, jobId: job.id });
+          continue;
+        }
+        preparing.add(importId);
+        try {
+          log("import.step", { importId, jobId: job.id });
+          const outcome = await runImport(importId, {
+            db: db(),
+            signal: shutdown.signal,
+            stopBefore: QUEUES.download,
+          });
+          await follow(boss, outcome, 0);
+        } finally {
+          preparing.delete(importId);
+        }
       }
     },
   );
@@ -313,8 +340,8 @@ export async function startWorker(): Promise<Worker> {
   //
   // `localConcurrency` is a setting because it is a judgement about *this* machine: these steps
   // are fpcalc, mutagen and a rename, so they are cheap, but they all go through the one
-  // toolbox container and a number that is too high only moves the queue inside it.
-  const pacing = await loadSettings(db());
+  // toolbox container and a number that is too high only moves the queue inside it. `pacing`
+  // was read above, before the first consumer was registered.
   //
   // **One step at a time per track, whatever the concurrency.** The database guard
   // (`hasPassed`) refuses a step a track has already been through, but two *concurrent* runs of
