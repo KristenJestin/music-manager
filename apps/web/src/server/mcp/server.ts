@@ -1434,7 +1434,8 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             "Which files in scope. `behind` (the default) is files written by an older tag " +
               "*schema version* — not a question about values. `adrift` is files whose tags " +
               "disagree with the database: a release confirmed since they were filed, a field " +
-              "corrected by hand. `all` is everything in scope. Use `adrift` to repair a " +
+              "corrected by hand, or a tag edited on disk that the last library scan read back " +
+              "and reported. `all` is everything in scope. Use `adrift` to repair a " +
               "divergence; `behind` will report nothing to do on it.",
           ),
         onlyBehind: z

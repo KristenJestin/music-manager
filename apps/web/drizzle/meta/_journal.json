@@ -162,6 +162,13 @@
       "when": 1789671299694,
       "tag": "0022_free_carnage",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789674802004,
+      "tag": "0023_jittery_lifeguard",
+      "breakpoints": true
     }
   ]
 }

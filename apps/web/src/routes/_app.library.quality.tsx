@@ -453,7 +453,7 @@ function Quality() {
                   variant="outline"
                   disabled={busy !== null}
                   data-testid="retag-adrift"
-                  title="Re-project every file whose tags disagree with the database — a changed release, a corrected field. Not the same question as the tag schema version."
+                  title="Re-project every file whose tags disagree with the database — a changed release, a corrected field, or a tag the last library scan found edited on disk. Not the same question as the tag schema version."
                   onClick={() => {
                     act("adrift", async () => {
                       const run = await startRetag({

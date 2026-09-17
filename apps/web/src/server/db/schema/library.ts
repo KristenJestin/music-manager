@@ -111,6 +111,26 @@ export const libraryTracks = pgTable(
      * this" is honest even if somebody has since plugged the drive back in.
      */
     missingAt: timestamp("missing_at", { withTimezone: true }),
+    /**
+     * When a library scan last **read this file back and found tags the document does not
+     * project**, `null` when it read it back and found none.
+     *
+     * The only column on this table written from the *file* rather than from a row, and that is
+     * the whole point of it. `projection_hash` — here and on `metadata_documents` — is stamped
+     * once the toolbox has written a tag block *and read it back*, so it is a faithful record of
+     * **what we last wrote** and structurally blind to somebody editing the file afterwards: on
+     * a hand edit the document and the hash still agree with each other perfectly, and every
+     * database-side predicate answers "nothing adrift". The scan's drift pass is the only thing
+     * in the app that opens the file, so it is the only thing that can know — and this is where
+     * it writes down what it knew.
+     *
+     * A *fact with a date on it*, like `missing_at` above, not a flag: "the scan of 14:32 read a
+     * `DATE` this document does not project" stays true even after the file has been repaired.
+     * Which is why three separate acts clear it rather than one — the next scan that reads the
+     * file and finds no difference (`scan.recordFileDrift`), a re-tag that rewrites the file
+     * (`retag.stamp`), and `place` writing a file at this path.
+     */
+    fileDriftAt: timestamp("file_drift_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

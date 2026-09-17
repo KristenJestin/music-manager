@@ -187,7 +187,9 @@ export type WatchedItemStatus = (typeof WATCHED_ITEM_STATUSES)[number];
  *  - `behind` — those whose `tag_schema_version` is older than the run's. §8's schema bump, and
  *    a question about `MUSICMANAGER_TAGSCHEMA` rather than about values.
  *  - `adrift` — those whose file disagrees with the database (`quality.tracksAdrift`): the
- *    answer to a re-match or a hand correction. This is the one selection that is about values.
+ *    answer to a re-match, to a hand correction, and — since the scan records what it reads out
+ *    of a file on `library_tracks.file_drift_at` — to somebody editing a tag behind the app's
+ *    back. This is the one selection that is about values.
  *  - `all` — everything in scope, current or not.
  *
  * Here rather than in `retag.ts` for the reason `AGENTS.md` gives for `STEPS`: the Console needs

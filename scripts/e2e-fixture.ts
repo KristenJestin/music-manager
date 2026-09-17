@@ -315,6 +315,27 @@ async function recreateToolbox(delayMs: string): Promise<void> {
   await toolboxReady();
 }
 
+/**
+ * `POST /tag` on a library file, addressed as the container sees it — **behind the app's back**.
+ *
+ * `clear: false`, so exactly one key moves and everything else in the block stays as the app
+ * wrote it. That is the sabotage §10 needs: it is what a person with a tag editor does, and it
+ * is the one kind of divergence no amount of comparing rows against rows can see.
+ */
+async function writeTag(relative: string, key: string, value: string): Promise<void> {
+  const response = await fetch(`${TOOLBOX_URL}/tag`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      path: `${TOOLBOX_LIBRARY_ROOT}/${relative}`,
+      tags: [{ key, value }],
+      clear: false,
+      sidecar_lrc: false,
+    }),
+  });
+  if (!response.ok) die(`toolbox /tag failed: HTTP ${String(response.status)} for ${relative}`);
+}
+
 /** `POST /probe` on a library file, addressed as the container sees it. */
 async function probe(relative: string): Promise<{ tags: Record<string, string>; codec: string }> {
   const response = await fetch(`${TOOLBOX_URL}/probe`, {
@@ -1146,6 +1167,108 @@ async function main(): Promise<void> {
     (engineerTags["ENGINEER"] ?? "") === "Robin Schmidt",
     "and the file says what the database says, without a second gesture",
     engineerTags["ENGINEER"] ?? "(absent)",
+  );
+
+  /*
+   * ---- and the other direction: the file moved, and nothing in the database did ----
+   *
+   * Everything above is a divergence the *database* caused — a re-match, a corrected field — and
+   * every one of them is visible from a query. This one is not, and that is the whole point of
+   * it: somebody opens a tag editor and changes `DATE`. The document does not move, and
+   * `projection_hash` does not move either, because it is stamped after the toolbox has written
+   * and read a block back and is therefore a record of *what we last wrote*, not of what the file
+   * now holds. So both database-side predicates go on answering "nothing adrift" over a file that
+   * plainly is — which is how `mm retag --adrift` came to select nothing after a hand edit and
+   * report `0 changed` as though it had repaired something.
+   *
+   * The scan is the only pass that opens the file, so the scan is the only thing that can know.
+   * It now writes what it read onto `library_tracks.file_drift_at`, and `adrift` unions that with
+   * the two it already had. The cost stays where it already was — one probe per file, in the pass
+   * that was already paying for it — instead of being paid a second time by every caller that
+   * wants to *select* a drifted file.
+   */
+  const HAND_EDITED = FILE_2;
+  const originalDate = (await probe(HAND_EDITED)).tags["DATE"] ?? "";
+  await writeTag(HAND_EDITED, "DATE", "2008");
+  check(
+    (await probe(HAND_EDITED)).tags["DATE"] === "2008",
+    "a tag edited behind the app's back really is in the file",
+    `${originalDate} → 2008`,
+  );
+
+  // Honest about the mechanism, and the price of the design: nothing has opened the file since,
+  // so nothing yet knows. This is the trade — a recorded fact, not a re-measured one.
+  const beforeScan = await mm("retag", "--album", albumId, "--adrift");
+  check(
+    beforeScan.includes("Nothing to do"),
+    "before a scan, no query can see it — no row moved",
+    beforeScan.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  // `mm scan run` exits 1 when it finds drift, which is the point, so it is captured rather than
+  // run through `mm()`.
+  const scanRun = await capture({
+    label: "mm scan run",
+    cmd: [bun, "run", "apps/web/bin/mm.ts", "scan", "run", "--json"],
+    env: childEnv,
+  });
+  const scanReport = JSON.parse(scanRun.stdout) as {
+    drift: { path: string; fields: { key: string; db: string; file: string }[] }[];
+  };
+  const found = scanReport.drift.find((entry) => entry.path === HAND_EDITED);
+  const dateField = found?.fields.find((field) => field.key === "DATE");
+  check(
+    dateField?.file === "2008" && dateField.db === originalDate,
+    "the scan opens the file, finds it, and says both sides",
+    `db=${String(dateField?.db)} file=${String(dateField?.file)}`,
+  );
+
+  const flagged = await sql<{ n: string }[]>`
+    select count(*)::text as n from library_tracks
+     where path = ${HAND_EDITED} and file_drift_at is not null`;
+  check(flagged[0]?.n === "1", "and writes what it read onto the row", `file_drift_at set`);
+
+  /*
+   * The owner's instruction after a hand edit, with no file named and no ids fed in. That is the
+   * acceptance test for the whole mechanism: a detector that reads files and a repairer that
+   * reads only the database are no use to anybody until one of them can reach the other.
+   */
+  const adriftAfterScan = await mm("retag", "--album", albumId, "--adrift");
+  check(
+    /\b1 file\(s\) to projection/.test(adriftAfterScan),
+    "`mm retag --adrift` now selects exactly that one file, nobody having named it",
+    adriftAfterScan.split("\n")[0] ?? "",
+  );
+  check(
+    /done: 1\/1 file\(s\), 1 changed, 0 failed/.test(adriftAfterScan),
+    "and rewrites it",
+    adriftAfterScan.split("\n").slice(-1).join(" ").trim(),
+  );
+  check(
+    (await probe(HAND_EDITED)).tags["DATE"] === originalDate,
+    "the file carries the document's value again",
+    (await probe(HAND_EDITED)).tags["DATE"] ?? "(absent)",
+  );
+
+  /*
+   * A recorded fact ages, so something has to clear it — otherwise "175 files adrift" never goes
+   * down however many times the button is pressed. Two things do: `retag.stamp`, on the file it
+   * has just rewritten (here), and a scan that re-reads a file and finds no difference
+   * (`scan.recordFileDrift`), which is what covers a file repaired by something else entirely.
+   */
+  const cleared = await sql<{ n: string }[]>`
+    select count(*)::text as n from library_tracks
+     where path = ${HAND_EDITED} and file_drift_at is null`;
+  check(
+    cleared[0]?.n === "1",
+    "and the re-tag cleared the scan's finding with it",
+    "file_drift_at null",
+  );
+  const settledAgain = await mm("retag", "--album", albumId, "--adrift");
+  check(
+    settledAgain.includes("already matches the database"),
+    "so running it again finds nothing: the flag cannot age into a lie",
+    settledAgain.split("\n").slice(-1).join(" ").trim(),
   );
 
   /* ---------------------------------------------------------------- */

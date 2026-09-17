@@ -13,7 +13,11 @@
  *  - **missing** — a row whose file is gone. The import that produced it is still known, so
  *    the fix is a re-download that keeps the existing mapping rather than a new import.
  *  - **drift** — the tags in the file are not the ones the document projects. Somebody edited
- *    them by hand, or a re-tag was interrupted. The fix is to re-write the projection.
+ *    them by hand, or a re-tag was interrupted. The fix is to re-write the projection, and this
+ *    pass is the only one in the app that can *see* the problem: it opens the file. So it also
+ *    writes what it saw onto `library_tracks.file_drift_at` (`recordFileDrift`), which is what
+ *    gives `mm retag --adrift` something to select — see the column's own comment for why every
+ *    database-side predicate is blind to a hand edit by construction.
  *  - **duplicate** — the same recording MBID under two paths. Not always wrong (an album and
  *    a compilation legitimately share a recording), so it is *reported*, never auto-resolved.
  *
@@ -742,9 +746,47 @@ export async function runScan(options: ScanOptions = {}): Promise<{
           documents.set(row.libraryTrackId, row.document as unknown as TrackDocument);
         }
       }
+
+      /*
+       * …and then, where there is one, the document reached through `import_track_id` wins.
+       *
+       * `metadata_documents.library_track_id` is not unique: importing the same album twice —
+       * supported, tested, and what "already present (14 track(s))" is about — leaves two
+       * document rows pointing at one file, and the loop above picks whichever came back last.
+       * That was survivable while drift was only a report. It is not survivable now that the
+       * finding is *written on the row* and `tracksAdrift` selects on it, because `tracksAdrift`
+       * joins on `import_track_id` and `retagOne` rebuilds from it: a scan judging the file
+       * against a different document would flag it, the re-tag would rewrite it from the other
+       * one and clear the flag, and the next scan would flag it again — for ever.
+       *
+       * `library_tracks.import_track_id` names the one video this file actually came from, so
+       * this is the document the repair will use, and the detector and the repairer now compare
+       * the same two things. The fallback above still covers an adopted row, which has no import.
+       */
+      const owned = await db
+        .select({ libraryTrackId: libraryTracks.id, document: metadataDocuments.document })
+        .from(libraryTracks)
+        .innerJoin(
+          metadataDocuments,
+          eq(metadataDocuments.importTrackId, libraryTracks.importTrackId),
+        )
+        .where(isNotNull(libraryTracks.importTrackId));
+      for (const row of owned) {
+        documents.set(row.libraryTrackId, row.document as unknown as TrackDocument);
+      }
     }
 
     const drift: DriftedTrack[] = [];
+    /*
+     * The ids this pass *actually opened a file for*, drifted or not.
+     *
+     * Both halves are written back to `library_tracks.file_drift_at` below, and the clean half
+     * is the one that matters for staleness: a file somebody else repaired between two scans
+     * must stop being flagged, and "I read it and found no difference" is exactly the evidence
+     * that clears it. A file this pass never reached — beyond `driftLimit`, or one the toolbox
+     * could not probe — appears in neither list and keeps whatever the last scan concluded.
+     */
+    const clean: string[] = [];
     let probed = 0;
     for (const row of candidates) {
       if (options.signal?.aborted === true) {
@@ -771,8 +813,24 @@ export async function runScan(options: ScanOptions = {}): Promise<{
           path: row.path,
           fields,
         });
+      } else {
+        clean.push(row.id);
       }
     }
+
+    /*
+     * The finding, written onto the rows — the point of the whole exercise.
+     *
+     * A scan that only prints its drift is a detector with no repairer behind it: `mm retag
+     * --adrift` selects on `quality.tracksAdrift`, which compares rows against rows and can
+     * therefore never see a hand edit. Recording it here is what lets the repair reach the files
+     * the report names, without the repair having to re-open four thousand of them itself.
+     */
+    await recordFileDrift(
+      db,
+      drift.map((entry) => entry.trackId),
+      clean,
+    );
 
     /*
      * Stamp the walk onto the rows, then let one rule decide the album counters.
@@ -904,6 +962,38 @@ async function recordMissing(
       .update(libraryTracks)
       .set({ missingAt: null, updatedAt: now })
       .where(and(inArray(libraryTracks.id, batch), isNotNull(libraryTracks.missingAt)));
+  }
+}
+
+/**
+ * Stamp what the drift pass read out of the files onto `library_tracks.file_drift_at`.
+ *
+ * Two lists and never "everything else": only the files this pass opened are touched. A row the
+ * scan did not reach keeps the last answer somebody actually measured, which is the honest thing
+ * for a capped pass to do — `driftLimit` defaults to 500 and the owner's library is 4 344 files,
+ * so "not in `drifted`" is routinely "not looked at" rather than "clean".
+ *
+ * `clean` is guarded on `is not null` for the same reason `recordMissing` guards its own: the
+ * overwhelmingly common case is a library with nothing adrift, and an unconditional update would
+ * rewrite every row of it on every nightly scan.
+ */
+async function recordFileDrift(
+  db: Database,
+  drifted: readonly string[],
+  clean: readonly string[],
+): Promise<void> {
+  const now = new Date();
+  for (const batch of chunk(drifted, 500)) {
+    await db
+      .update(libraryTracks)
+      .set({ fileDriftAt: now, updatedAt: now })
+      .where(inArray(libraryTracks.id, batch));
+  }
+  for (const batch of chunk(clean, 500)) {
+    await db
+      .update(libraryTracks)
+      .set({ fileDriftAt: null, updatedAt: now })
+      .where(and(inArray(libraryTracks.id, batch), isNotNull(libraryTracks.fileDriftAt)));
   }
 }
 

@@ -16,9 +16,11 @@
  *    missing from the *database*; the file simply has not caught up. `retag.service` fixes it
  *    offline, from the raw cache, without re-downloading a byte.
  *  - **drift** — the projection of the document we hold no longer hashes to what we last
- *    wrote into the file. That is as much as can be known without opening the file; the
- *    album's "DB vs files" tab opens it (through the toolbox's `/probe`) and says exactly
- *    which keys differ.
+ *    wrote into the file, *or* the last scan opened the file and read a tag the document does
+ *    not project (`library_tracks.file_drift_at`). The first half is all that can be inferred
+ *    without opening the file and is blind to a hand edit by construction; the second is the
+ *    scan's measurement, carried on the row so that selecting on it stays a query. The album's
+ *    "DB vs files" tab opens the file itself and says exactly which keys differ.
  *
  * Everything here is read-only and takes at most three queries whatever the size of the
  * library: albums, tracks, documents. Scoring is pure and happens in memory, because
@@ -466,6 +468,9 @@ export function scoreLoadedTracks(
     ) as Record<ProfileId, number | null>;
     // What the document projects to *now*, against what was last written into the file.
     const current = drift ? projectionHash(projectDocument(document, "vorbis")) : null;
+    // …and, unioned with it, what the last scan read *out of* the file. The hash answers "has
+    // the database moved since we wrote?"; only the scan can answer "has the file?".
+    const edited = drift && entry.track.fileDriftAt !== null;
     return {
       libraryTrackId: entry.track.id,
       path: entry.track.path,
@@ -478,7 +483,8 @@ export function scoreLoadedTracks(
       na: report.na,
       schemaVersion: entry.track.tagSchemaVersion,
       behind: isBehindSchema(entry.track.tagSchemaVersion, currentSchema),
-      drift: current !== null && entry.storedHash !== null && entry.storedHash !== current,
+      drift:
+        edited || (current !== null && entry.storedHash !== null && entry.storedHash !== current),
       hasLyrics: hasLyrics(document),
       hasReplayGain: hasReplayGain(document),
       hasDocument: true,
@@ -991,12 +997,19 @@ export async function tracksBehindSchema(options: {
  *    both sides of the comparison stay equal while the truth moves underneath them. This is the
  *    half that let the AURORA and Birdy albums keep the previous edition's
  *    `MUSICBRAINZ_RELEASETRACKID` and no `ASIN` at all.
+ *  - `file` — **the file was edited behind the app's back**, and only the scan could know. The
+ *    two predicates above are both *database-side*: they compare rows against rows. A hand edit
+ *    moves neither, so document and hash go on agreeing with each other perfectly while the
+ *    bytes on disk say something else, and a selection built only out of them answers "nothing
+ *    adrift" over a file the scan has just reported drifted — which is exactly the gap that let
+ *    `mm retag --adrift` select nothing after a hand edit and report success over an empty set.
+ *    `library_tracks.file_drift_at` is the scan's own finding, carried on the row.
  *
- * Both are cleared by one act, which is what makes the state actionable rather than merely
+ * All three are cleared by one act, which is what makes the state actionable rather than merely
  * true: `retagOne` rebuilds the document from the raw cache (so the mapping catches up), writes
- * the file, and `stamp` stores the rebuilt document *and* the new hash.
+ * the file, and `stamp` stores the rebuilt document, the new hash, *and* a null `file_drift_at`.
  */
-export type AdriftReason = "document" | "sources";
+export type AdriftReason = "document" | "sources" | "file";
 
 export interface AdriftTrack {
   readonly track: LibraryTrack;
@@ -1033,9 +1046,16 @@ function identifierOf(document: TrackDocument, field: string): string | null {
  * The placed files that no longer match the database, and why — the input of the catch-up.
  *
  * One query and no toolbox: everything compared here is already in Postgres. That is what makes
- * it affordable on a page loader, inside a step, and over a whole library alike. The scan's own
- * drift pass is honest in a different way — it probes every file — and costs an hour on four
- * thousand of them, which is why it is a report you ask for and this is not.
+ * it affordable on a page loader, inside a step, and over a whole library alike — including the
+ * `file` half, because the scan has already paid for the probing and left its answer on the row.
+ *
+ * That division is the deliberate trade. The alternative was for this function to open every
+ * file in scope itself, which is always current and needs no flag to be kept honest — and costs
+ * the owner's 4 344-file probe a second time, on a page loader, for an answer the scan computed
+ * an hour ago. So the cost stays where it already was, in the scan, and what ages is a recorded
+ * fact rather than a re-measured one. The staleness is bounded on both sides: a re-tag clears
+ * the flag on the file it rewrites (`retag.stamp`), and a scan that re-reads a file and finds no
+ * difference clears it too (`scan.recordFileDrift`).
  */
 export async function tracksAdrift(options: {
   db?: Database;
@@ -1104,6 +1124,19 @@ export async function tracksAdrift(options: {
       disagrees(identifierOf(document, "musicbrainz_releasetrackid"), row.trackMbid)
     ) {
       out.push({ track: row.track, reason: "sources" });
+      continue;
+    }
+
+    /*
+     * Before the hash, because it is better evidence than the hash.
+     *
+     * The scan opened this file and read a tag the document does not project. That is a
+     * measurement, where the comparison below is an inference from two rows — and it is the one
+     * finding neither row can contradict, `storedHash` included: a hand edit leaves the stored
+     * hash a perfectly accurate record of a write that has since been overwritten.
+     */
+    if (row.track.fileDriftAt !== null) {
+      out.push({ track: row.track, reason: "file" });
       continue;
     }
 

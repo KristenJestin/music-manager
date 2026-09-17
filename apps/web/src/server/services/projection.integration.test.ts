@@ -55,14 +55,14 @@ const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 const { drizzle } = await import("drizzle-orm/postgres-js");
 const { resetServerEnv } = await import("#/server/env.ts");
 const { db } = await import("#/server/db/client.ts");
-const { eq } = await import("drizzle-orm");
+const { desc, eq } = await import("drizzle-orm");
 const schema = await import("#/server/db/schema/index.ts");
 const { field, projectDocument, TAG_SCHEMA_VERSION } = await import("@mm/domain");
 
 const { projectionHash } = await import("./jobs/steps/tag.ts");
 const { tracksAdrift, tracksBehindSchema } = await import("./quality.ts");
 const { ensureProjection, withoutProjection } = await import("./projection.ts");
-const { createRun, planRetag, runBatch } = await import("./retag.ts");
+const { createRun, emptyReason, emptyRunNote, planRetag, runBatch } = await import("./retag.ts");
 const { storeDocument } = await import("./documents.ts");
 
 resetServerEnv();
@@ -419,6 +419,131 @@ describe.skipIf(unavailable !== null)("the projection invariant, against a real 
     const run = await createRun({ db: db(), scope: "library", selection: "behind" });
     expect(run.total).toBe(0);
     expect(run.status).toBe("done");
+  });
+
+  /* ---- 5 · the half that only a scan can see ---- */
+
+  /**
+   * Both predicates above are *database-side*: they compare rows against rows. `projection_hash`
+   * is written once the toolbox has written a tag block **and read it back**, so it is a faithful
+   * record of what we last wrote — and structurally blind to somebody editing the file
+   * afterwards, because a hand edit moves neither side of the comparison. The scan's drift pass
+   * is the only thing in the app that opens the file, so `library_tracks.file_drift_at` is what
+   * it leaves behind, and the union with it is what gives `mm retag --adrift` something to select.
+   */
+  it("a file edited on disk is adrift, and the database-side predicates are blind to it", async () => {
+    const seed = await seedAlbum("PD");
+    const trackId = seed.trackIds[0] ?? "";
+
+    // The state a hand edit leaves: nothing in the database moved, so document and hash still
+    // agree with each other perfectly, and every row-against-row test answers "nothing adrift".
+    expect(await tracksAdrift({ db: db(), albumId: seed.albumId })).toHaveLength(0);
+    expect(await tracksBehindSchema({ db: db(), albumId: seed.albumId })).toHaveLength(0);
+
+    // What the scan's drift pass writes when it probes the file and reads a DATE back that this
+    // document does not project (`scan.recordFileDrift`).
+    await db()
+      .update(schema.libraryTracks)
+      .set({ fileDriftAt: new Date() })
+      .where(eq(schema.libraryTracks.id, trackId));
+
+    const adrift = await tracksAdrift({ db: db(), albumId: seed.albumId });
+    expect(adrift).toHaveLength(1);
+    expect(adrift[0]?.track.id).toBe(trackId);
+    expect(adrift[0]?.reason).toBe("file");
+
+    // …and it is reachable from `mm retag --adrift` and from the Quality page's button alike,
+    // over the whole library, without anybody naming the file.
+    const wide = await planRetag({ db: db(), scope: "library", selection: "adrift" });
+    expect(wide.map((track) => track.id)).toContain(trackId);
+  });
+
+  it("a re-tag clears the scan's finding, so the flag cannot age into a lie", async () => {
+    const seed = await seedAlbum("PE");
+    const trackId = seed.trackIds[0] ?? "";
+    await db()
+      .update(schema.libraryTracks)
+      .set({ fileDriftAt: new Date() })
+      .where(eq(schema.libraryTracks.id, trackId));
+    expect(await tracksAdrift({ db: db(), albumId: seed.albumId })).toHaveLength(1);
+
+    /*
+     * `retag.stamp` clears it on the file it rewrites, which is the half a unit of this kind can
+     * see; the other half — a scan that re-reads the file and finds no difference — is
+     * `scan.recordFileDrift`, and both round trips run for real over real files in
+     * `bun run e2e-fixture` §10 and `bun run e2e-verify` §5. Here it is enough to show that a
+     * cleared flag really does take the row out of the selection, because a flag nobody clears
+     * is a "175 files adrift" that never goes down however many times you press the button.
+     */
+    await db()
+      .update(schema.libraryTracks)
+      .set({ fileDriftAt: null })
+      .where(eq(schema.libraryTracks.id, trackId));
+    expect(await tracksAdrift({ db: db(), albumId: seed.albumId })).toHaveLength(0);
+  });
+
+  it("a named track is re-tagged even though its schema version is current", async () => {
+    const seed = await seedAlbum("PF");
+    const trackId = seed.trackIds[0] ?? "";
+
+    /*
+     * `planRetag` returns the named row for a `track` scope whatever the selection, and
+     * `scopeTargets` used to disagree with it: it applied the `behind` filter to every scope, so
+     * `mm retag --track <id>` planned one file, filtered it away because a hand-edited file
+     * always carries the current schema version, and finished `done: 0/1 file(s), 0 changed`.
+     * The file is deliberately not on disk — `retagOne` fails it with `NOT_FOUND`, which is all
+     * that is needed to prove it was *reached*.
+     */
+    const run = await createRun({ db: db(), scope: "track", targetId: trackId });
+    expect(run.selection).toBe("behind");
+    expect(run.total).toBe(1);
+
+    const result = await runBatch(run.id, { db: db(), batchSize: 10 });
+    expect(result.processed).toBe(1);
+    expect(result.run.done).toBe(1);
+  });
+
+  it("a run that selects nothing at its first batch says which question it asked", async () => {
+    const seed = await seedAlbum("PG");
+    await reMatch(seed);
+
+    const run = await createRun({
+      db: db(),
+      scope: "album",
+      targetId: seed.albumId,
+      selection: "adrift",
+    });
+    expect(run.total).toBe(2);
+
+    /*
+     * Somebody else repaired the album between the plan and the batch — a second worker, a
+     * re-tag the operator started from the album page. `scopeTargets` re-derives the set on
+     * every batch, so this run now means nothing, and what it used to print was
+     * `done: 0/2 file(s), 0 changed, 0 failed` — the shape of a success over an empty set.
+     */
+    for (const [index, importTrackId] of seed.importTrackIds.entries()) {
+      await db()
+        .update(schema.importTracks)
+        .set({ trackMbid: OLD.track(index + 1) })
+        .where(eq(schema.importTracks.id, importTrackId));
+    }
+
+    const result = await runBatch(run.id, { db: db(), batchSize: 10 });
+    expect(result.processed).toBe(0);
+    expect(result.finished).toBe(true);
+    expect(result.run.status).toBe("done");
+    expect(result.run.done).toBe(0);
+    expect(emptyRunNote(result.run)).toBe(`No file was selected — ${emptyReason("adrift")}`);
+
+    // And the journal says it too, rather than logging a cheerful `0/2` at `info`.
+    const [event] = await db()
+      .select()
+      .from(schema.jobEvents)
+      .where(eq(schema.jobEvents.type, "retag.done"))
+      .orderBy(desc(schema.jobEvents.id))
+      .limit(1);
+    expect(event?.message).toContain("No file was selected");
+    expect(event?.level).toBe("warn");
   });
 });
 

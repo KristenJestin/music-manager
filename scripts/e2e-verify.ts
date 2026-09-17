@@ -560,6 +560,58 @@ async function main(): Promise<void> {
     await probeTag(drifted, "DATE"),
   );
 
+  /*
+   * ---- and again, the way the owner is actually told to do it ----
+   *
+   * Above, the id came out of the scan report. That is fine for a test and useless as an
+   * instruction: nobody hand-copies ids out of 175 findings. The instruction after a hand edit is
+   * `mm retag --adrift`, and it has to work with no file named — which it could not, because
+   * `adrift` was two database-side predicates and a hand edit moves neither of them. The scan
+   * now records what it read out of the file on the row, and `adrift` unions that with the two.
+   */
+  const alsoDrifted = "Daft Punk/Discovery (2001)/02 - Aerodynamic.opus";
+  const originalTitle = await probeTag(alsoDrifted, "TITLE");
+  await writeTag(alsoDrifted, "TITLE", "Aerodynamite");
+  const afterSecondEdit = await mm(["scan", "run", "--json"], { allowFailure: true });
+  const scan4 = JSON.parse(afterSecondEdit.stdout) as ScanReport;
+  check(
+    scan4.drift.some((entry) => entry.path === alsoDrifted),
+    "a second hand edit, and the scan reports it too",
+    `${originalTitle} → Aerodynamite`,
+  );
+
+  const blind = await mm(["retag", "--adrift"], { allowFailure: true });
+  check(
+    /1 file\(s\) to projection/.test(blind.stdout),
+    "`mm retag --adrift` selects it over the whole library, with nobody naming a file",
+    blind.stdout.trim().split("\n")[0] ?? "",
+  );
+  check(
+    /done: 1\/1 file\(s\), 1 changed, 0 failed/.test(blind.stdout),
+    "and repairs it",
+    blind.stdout.trim().split("\n").at(-1) ?? "",
+  );
+  check(
+    (await probeTag(alsoDrifted, "TITLE")) === originalTitle,
+    "the file carries the document's title again",
+    await probeTag(alsoDrifted, "TITLE"),
+  );
+
+  const empty = await mm(["retag", "--adrift"], { allowFailure: true });
+  check(
+    empty.stdout.includes("already matches the database"),
+    "and a run with nothing to do says so, instead of reporting success over an empty set",
+    empty.stdout.trim().split("\n").at(-1) ?? "",
+  );
+
+  const afterAdrift = await mm(["scan", "run", "--json"], { allowFailure: true });
+  const scan5 = JSON.parse(afterAdrift.stdout) as ScanReport;
+  check(
+    scan5.drift.length === 0,
+    "no file in the library is adrift",
+    `${String(scan5.drift.length)} left`,
+  );
+
   /* ---------------------------------------------------------------- */
   section("result");
   /* ---------------------------------------------------------------- */

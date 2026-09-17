@@ -315,7 +315,9 @@ function TrackPage() {
               {": "}
               {detail.adrift === "sources"
                 ? "the release confirmed for its album is not the one it was tagged from, so it still carries the previous edition's identifiers."
-                : "the database holds values that were never written into it."}
+                : detail.adrift === "file"
+                  ? "the last library scan read tags out of it that this document does not project — it was edited outside the app."
+                  : "the database holds values that were never written into it."}
             </div>
             <Button
               size="sm"

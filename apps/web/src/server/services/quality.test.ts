@@ -90,6 +90,10 @@ function track(overrides: Partial<LibraryTrack> = {}): LibraryTrack {
     importTrackId: "itr_1",
     verifiedAt: null,
     verifyResult: null,
+    // "The last scan read this file back and found nothing the document does not project."
+    // Part of the row, so it is part of the fixture: a track built without it is not a row any
+    // query could return, and a score computed off one would be measuring a shape, not a file.
+    fileDriftAt: null,
     createdAt: new Date(AT),
     updatedAt: new Date(AT),
     ...overrides,
@@ -157,6 +161,24 @@ describe("scoreAlbum", () => {
 
   it("says nothing about drift for a file that was never hashed", () => {
     expect(scoreAlbum(album(), [loaded({ storedHash: null })], 1).driftCount).toBe(0);
+  });
+
+  /*
+   * The half the hash cannot reach. `projection_hash` records what we last *wrote*, so on a hand
+   * edit it still agrees with the document perfectly and the comparison above answers "no drift"
+   * over a file the scan has just reported drifted. `file_drift_at` is the scan's own reading of
+   * the file, and the count is the union of the two — including on a file that was never hashed,
+   * where the hash has nothing to say and the scan still does.
+   */
+  it("reports drift when the last scan read something else out of the file", () => {
+    const edited = loaded({ track: track({ fileDriftAt: new Date(AT) }) });
+    expect(scoreAlbum(album(), [edited], 1).driftCount).toBe(1);
+
+    const neverHashed = loaded({
+      track: track({ fileDriftAt: new Date(AT) }),
+      storedHash: null,
+    });
+    expect(scoreAlbum(album(), [neverHashed], 1).driftCount).toBe(1);
   });
 
   it("calls an album with no release untagged", () => {

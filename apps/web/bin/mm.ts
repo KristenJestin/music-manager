@@ -90,6 +90,7 @@ import {
   cancelRun,
   createRun,
   emptyReason,
+  emptyRunNote,
   listRuns,
   runToCompletion,
   runView,
@@ -1618,6 +1619,14 @@ async function cmdRetag(args: Args): Promise<number> {
   line(
     `${finished.status}: ${String(finished.done)}/${String(finished.total)} file(s), ${String(finished.changed)} changed, ${String(finished.failed)} failed.`,
   );
+  /*
+   * The line above is a count, and a count of zero is not an answer. A run that planned files
+   * and then selected none of them used to stop right there — `done: 0/1 file(s), 0 changed, 0
+   * failed`, which reads as "it worked" on the one command whose argument was a file the scan
+   * had just reported drifted. `emptyRunNote` says which question was asked instead.
+   */
+  const note = emptyRunNote(finished);
+  if (note !== null) line(note);
   if (dryRun) line(`Read the diff with:  mm retag show ${finished.id}`);
   return finished.failed > 0 ? 1 : 0;
 }
