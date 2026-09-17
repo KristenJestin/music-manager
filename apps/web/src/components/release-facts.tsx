@@ -255,14 +255,24 @@ export function rowFacts(
  * colouring the ones that happen to differ would tint most of most rows; an extra is on the
  * row *because* it differs, and the tint says which reading is the reason.
  */
-function FactItem({ fact, marked }: { readonly fact: ReleaseFact; readonly marked: boolean }) {
+function FactItem({
+  fact,
+  differs,
+  marked,
+}: {
+  readonly fact: ReleaseFact;
+  /** True when this fact is not the same on every pressing — what the attribute reports. */
+  readonly differs: boolean;
+  /** True when it is also one of the extras, which is what the tint reports. */
+  readonly marked: boolean;
+}) {
   return (
     <span
       data-testid="candidate-fact"
       data-fact={fact.key}
-      data-distinguishing={marked}
+      data-distinguishing={differs}
       title={
-        marked ? `${fact.label} — this is what tells this pressing from the others` : fact.label
+        differs ? `${fact.label} — this is what tells this pressing from the others` : fact.label
       }
       className={cn(
         "whitespace-nowrap",
@@ -301,6 +311,7 @@ export function ReleaseFactsRow({
         <FactItem
           key={fact.key}
           fact={fact}
+          differs={differs.has(fact.key)}
           marked={differs.has(fact.key) && !ALWAYS.includes(fact.key)}
         />
       ))}
