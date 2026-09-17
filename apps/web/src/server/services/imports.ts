@@ -7,9 +7,12 @@
  * thing they need; queueing it would turn a one-second question into a wait for a worker.
  * Everything after `resolve` is queued.
  *
- * Deduplication has two levels, matching `docs/04-pipeline-et-matching.md` § Règles:
+ * Deduplication has three levels, matching `docs/04-pipeline-et-matching.md` § Règles:
  *  - the same URL already imported is *reported*, not refused — re-importing an album to pick
  *    up new metadata is legitimate;
+ *  - **except** that a caller passing `reuse` re-enters an import that is merely parked
+ *    waiting for somebody, rather than opening a second one beside it. That is the wizard, and
+ *    only the wizard: see `CreateOptions.reuse` and `services/imports.reuse.ts`;
  *  - a recording already in the library is skipped at `download` time, unless `--force`.
  */
 import { desc, eq } from "drizzle-orm";
@@ -20,9 +23,11 @@ import {
   libraryTracks,
   type Import,
   type ImportOptions,
+  type NewImport,
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { emit } from "./events.ts";
+import { importsWithWork, isParked, lockUrl, pickReusable } from "./imports.reuse.ts";
 import { runStep } from "./jobs/index.ts";
 import type { StepResult } from "./jobs/machine.ts";
 import { loadSettings } from "./settings.ts";
@@ -41,6 +46,19 @@ export interface CreateOptions extends ImportOptions {
    * videos must not push a paste-box import to the back of the queue.
    */
   readonly priority?: number;
+  /**
+   * Re-enter an existing import for this source instead of opening a second one.
+   *
+   * **Off by default, and that is deliberate.** `POST /api/v1/imports`, `create_import` over
+   * MCP, `mm import`, a batch and a watched-source scan all mean *open an import*, and
+   * `docs/04` § Règles is explicit that re-importing a URL is allowed and reported rather than
+   * refused. The wizard is the caller that means something else: it *parks* what it creates
+   * and comes back to it, so a second visit that opens a second row is a bug — 204 of them on
+   * the owner's instance, each one a yt-dlp extraction nobody asked for.
+   *
+   * Which imports qualify, status by status, is `services/imports.reuse.ts`.
+   */
+  readonly reuse?: boolean;
 }
 
 export interface CreateResult {
@@ -49,6 +67,13 @@ export interface CreateResult {
   readonly duplicates: readonly Import[];
   /** How many of the mapped recordings are already in the library. */
   readonly alreadyPresent: number;
+  /**
+   * `job` is an import that already existed and was re-entered, not a new row.
+   *
+   * The wizard shows this: switching somebody's import out from under them silently would be
+   * worse than the duplicate it replaces.
+   */
+  readonly reused: boolean;
 }
 
 /**
@@ -143,13 +168,7 @@ export async function createImport(
   assertSigned(options);
   await refuseFixtureOutsideFixtures(trimmed, db);
 
-  const duplicates = await db
-    .select()
-    .from(imports)
-    .where(eq(imports.url, trimmed))
-    .orderBy(desc(imports.createdAt));
-
-  const { mapping, db: _db, resolveNow, priority, ...rest } = options;
+  const { mapping, db: _db, resolveNow, priority, reuse, ...rest } = options;
   void _db;
   const stored: Record<string, unknown> = { ...rest };
   if (mapping !== undefined) stored["mapping"] = mapping;
@@ -157,47 +176,199 @@ export async function createImport(
     stored["releaseMbid"] = mapping.releaseMbid;
   }
 
-  const id = newId("import");
-  const [created] = await db
-    .insert(imports)
-    .values({
-      id,
-      url: trimmed,
-      // `resolve` corrects this the moment it has seen the entries. A folder starts as a
-      // `playlist` like any other listing: it becomes `album` when the files agree on one.
-      kind: trimmed.startsWith("fixture://") ? "album" : "playlist",
-      status: "pending",
-      step: "resolve",
-      options: stored as ImportOptions,
-      ...(priority === undefined ? {} : { priority }),
-      ...(rest.releaseMbid === undefined ? {} : { releaseMbid: rest.releaseMbid }),
-      ...(mapping?.releaseMbid === undefined ? {} : { releaseMbid: mapping.releaseMbid }),
-    })
-    .returning();
+  const values: NewImport = {
+    id: newId("import"),
+    url: trimmed,
+    // `resolve` corrects this the moment it has seen the entries. A folder starts as a
+    // `playlist` like any other listing: it becomes `album` when the files agree on one.
+    kind: trimmed.startsWith("fixture://") ? "album" : "playlist",
+    status: "pending",
+    step: "resolve",
+    options: stored as ImportOptions,
+    ...(priority === undefined ? {} : { priority }),
+    ...(rest.releaseMbid === undefined ? {} : { releaseMbid: rest.releaseMbid }),
+    ...(mapping?.releaseMbid === undefined ? {} : { releaseMbid: mapping.releaseMbid }),
+  };
 
-  if (created === undefined) throw new MMError("UNKNOWN", "Could not create the import.");
+  const outcome =
+    reuse === true
+      ? await reuseOrInsert(db, trimmed, values)
+      : await insertAlways(db, trimmed, values);
 
+  if (outcome.reused) {
+    // `resolveNow: false` says "do not resolve", and therefore also "do not wait for anyone
+    // else's resolve": the tests that turn it off must not sit on the settle poll.
+    const settled = resolveNow === false ? outcome.job : await settleResolve(outcome.job, db);
+    const job = await applyPin(settled, rest.releaseMbid, db);
+    await emit(
+      {
+        importId: job.id,
+        type: "import.reused",
+        message:
+          `Re-entered the import opened ${job.createdAt.toISOString()} for ${trimmed} ` +
+          `rather than opening another one.`,
+        data: {
+          url: trimmed,
+          reusedCreatedAt: job.createdAt.toISOString(),
+          reusedStatus: job.status,
+          duplicates: outcome.duplicates.length,
+        },
+      },
+      db,
+    );
+    /*
+     * The one case where a re-entered import still has to resolve: a previous attempt died
+     * between the insert and `resolve`, so the row exists, is `pending` at `resolve`, and has
+     * no videos. `settleResolve` has already waited for anyone who might still be working on
+     * it, so reaching here means nobody is.
+     */
+    if (job.status === "pending" && job.step === "resolve" && resolveNow !== false) {
+      refuseOnAdmissionRule(
+        await runStep(job.id, "resolve", { db, settings: await loadSettings(db) }),
+      );
+    }
+    return {
+      job: await reread(job, db),
+      duplicates: outcome.duplicates,
+      alreadyPresent: 0,
+      reused: true,
+    };
+  }
+
+  const created = outcome.job;
   await emit(
     {
-      importId: id,
+      importId: created.id,
       type: "import.created",
       message: `Import created for ${trimmed}`,
       data: {
         url: trimmed,
-        duplicates: duplicates.length,
-        ...(duplicates.length === 0 ? {} : { previous: duplicates[0]?.id }),
+        duplicates: outcome.duplicates.length,
+        ...(outcome.duplicates.length === 0 ? {} : { previous: outcome.duplicates[0]?.id }),
       },
     },
     db,
   );
 
   if (resolveNow !== false) {
-    const resolved = await runStep(id, "resolve", { db, settings: await loadSettings(db) });
+    const resolved = await runStep(created.id, "resolve", { db, settings: await loadSettings(db) });
     refuseOnAdmissionRule(resolved);
   }
 
-  const job = (await db.select().from(imports).where(eq(imports.id, id)).limit(1))[0] ?? created;
-  return { job, duplicates, alreadyPresent: 0 };
+  return {
+    job: await reread(created, db),
+    duplicates: outcome.duplicates,
+    alreadyPresent: 0,
+    reused: false,
+  };
+}
+
+/** What the select-or-insert decided: the row to work on, its siblings, and which it is. */
+interface CreateOutcome {
+  readonly job: Import;
+  readonly duplicates: readonly Import[];
+  readonly reused: boolean;
+}
+
+/** Read the row back after the steps that may have moved it. */
+async function reread(job: Import, db: Database): Promise<Import> {
+  return (await db.select().from(imports).where(eq(imports.id, job.id)).limit(1))[0] ?? job;
+}
+
+/** The behaviour every non-wizard caller has always had: report the duplicates, insert anyway. */
+async function insertAlways(db: Database, url: string, values: NewImport): Promise<CreateOutcome> {
+  const duplicates = await db
+    .select()
+    .from(imports)
+    .where(eq(imports.url, url))
+    .orderBy(desc(imports.createdAt));
+  const [created] = await db.insert(imports).values(values).returning();
+  if (created === undefined) throw new MMError("UNKNOWN", "Could not create the import.");
+  return { job: created, duplicates, reused: false };
+}
+
+/**
+ * Look for an import to re-enter, and insert one only if there is none — **atomically**.
+ *
+ * The look and the insert are one transaction behind `pg_advisory_xact_lock` on the URL, so
+ * two tabs, a double click or a retry cannot both decide "there is nothing here" and both
+ * insert. The lock is held over two indexed reads and one insert; `resolve` is deliberately
+ * outside it, because a transaction open across a yt-dlp extraction would hold a connection of
+ * the shared pool for a minute.
+ */
+async function reuseOrInsert(db: Database, url: string, values: NewImport): Promise<CreateOutcome> {
+  return await db.transaction(async (tx) => {
+    await lockUrl(tx, url);
+    const siblings = await tx
+      .select()
+      .from(imports)
+      .where(eq(imports.url, url))
+      .orderBy(desc(imports.createdAt));
+    const working = await importsWithWork(
+      tx,
+      siblings.filter(isParked).map((row) => row.id),
+    );
+    const reusable = pickReusable(siblings, working);
+    if (reusable !== null) {
+      return {
+        job: reusable,
+        duplicates: siblings.filter((row) => row.id !== reusable.id),
+        reused: true,
+      };
+    }
+    const [created] = await tx.insert(imports).values(values).returning();
+    if (created === undefined) throw new MMError("UNKNOWN", "Could not create the import.");
+    return { job: created, duplicates: siblings, reused: false };
+  });
+}
+
+/**
+ * Wait for whoever created this row to finish resolving it.
+ *
+ * The race the lock does *not* close: the loser re-enters the winner's row a millisecond after
+ * it was inserted, while the winner is still inside `resolve`. Returning then would show an
+ * import with no videos and, worse, park a job in the middle of its own first step. So the
+ * loser waits — on the row, not on a promise, because the winner is in another process as
+ * often as not.
+ *
+ * Bounded: two minutes is longer than any extraction the toolbox will finish, and a row still
+ * `pending` at `resolve` after it is one whose creator died, which the caller then resolves
+ * itself.
+ */
+async function settleResolve(job: Import, db: Database, timeoutMs = 120_000): Promise<Import> {
+  if (job.status !== "pending" || job.step !== "resolve") return job;
+  const deadline = Date.now() + timeoutMs;
+  let current = job;
+  while (current.status === "pending" && current.step === "resolve" && Date.now() < deadline) {
+    await new Promise((done) => setTimeout(done, 250));
+    current = await reread(current, db);
+  }
+  return current;
+}
+
+/**
+ * Carry a release pinned in the palette onto the import being re-entered.
+ *
+ * ⌘K's order of events is "choose the release, then paste the URL", and the pin arrives on
+ * `createImport`. Re-entering an import that was opened without one would drop it silently —
+ * the one thing the pin's own callout promises will not happen — so it is written onto the row
+ * instead. An import that already carries the same pin is left alone.
+ */
+async function applyPin(
+  job: Import,
+  releaseMbid: string | undefined,
+  db: Database,
+): Promise<Import> {
+  if (releaseMbid === undefined || job.options.releaseMbid === releaseMbid) return job;
+  await db
+    .update(imports)
+    .set({
+      options: { ...job.options, releaseMbid },
+      releaseMbid,
+      updatedAt: new Date(),
+    })
+    .where(eq(imports.id, job.id));
+  return await reread(job, db);
 }
 
 /**
