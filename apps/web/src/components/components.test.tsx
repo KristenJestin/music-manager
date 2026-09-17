@@ -1,7 +1,12 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { MappingLine, ReleaseCandidate, ReleaseGroupCandidate } from "@mm/domain";
+import type {
+  BorrowRelease,
+  MappingLine,
+  ReleaseCandidate,
+  ReleaseGroupCandidate,
+} from "@mm/domain";
 import { Callout } from "./callout.tsx";
 import {
   albumCoverSources,
@@ -20,6 +25,7 @@ import { MappingRow } from "./mapping-row.tsx";
 import { MbSearchPanel } from "./mb-search-panel.tsx";
 import { PipelineDots, type StepRow } from "./pipeline-dots.tsx";
 import { STEPS } from "#/server/db/schema/enums.vocab.ts";
+import { BorrowSelect } from "./borrow-select.tsx";
 import { ReleaseCandidateCard } from "./candidate-card.tsx";
 import { ReleaseGroupCard } from "./candidate-group.tsx";
 import { ReviewCard } from "./review-card.tsx";
@@ -43,7 +49,7 @@ afterEach(cleanup);
 
 const candidate: ReleaseCandidate = {
   id: "d073287b-d1bd-4f11-a933-a4386f8cf701",
-  releaseGroupId: null,
+  releaseGroupId: "48117b90-a16e-34ca-a514-19c702df1158",
   title: "Discovery",
   artist: "Daft Punk",
   date: "2001-02-26",
@@ -56,6 +62,9 @@ const candidate: ReleaseCandidate = {
   secondary: [],
   disambiguation: "",
   barcode: null,
+  catalogNumber: "7243 8 49606 5 0",
+  packaging: "Jewel Case",
+  media: [{ position: 1, format: "CD", trackCount: 14 }],
   coverArt: { available: true, front: true, count: 3 },
   tracks: 14,
   score: 0.97,
@@ -265,6 +274,39 @@ describe("ReleaseCandidateCard", () => {
     );
     expect(screen.getAllByText(/Bootleg release/)).toHaveLength(1);
   });
+
+  /* ---- what the owner could not choose between (points 1 and 2) ---- */
+
+  it("links the release and its release group, by id, without opening anything", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    expect(screen.getByTestId("candidate-mb-release").getAttribute("href")).toBe(
+      `https://musicbrainz.org/release/${candidate.id}`,
+    );
+    expect(screen.getByTestId("candidate-mb-group").getAttribute("href")).toBe(
+      `https://musicbrainz.org/release-group/${candidate.releaseGroupId ?? ""}`,
+    );
+  });
+
+  it("puts the whole fact sheet one disclosure away", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    expect(screen.getByTestId("candidate-details").dataset["state"]).toBe("closed");
+    fireEvent.click(screen.getByTestId("details-toggle"));
+    const details = screen.getByTestId("candidate-details");
+    expect(details.dataset["state"]).toBe("open");
+    // The facts the compact row keeps quiet, because on this card nothing differs.
+    expect(within(details).getByText("7243 8 49606 5 0")).toBeTruthy();
+    expect(within(details).getByText("Jewel Case")).toBeTruthy();
+    expect(within(details).getByText("no barcode")).toBeTruthy();
+  });
+
+  it("stays quiet when a pressing has nobody to be told apart from", () => {
+    render(<ReleaseCandidateCard candidate={candidate} selected={false} onSelect={vi.fn()} />);
+    const row = screen.getByTestId("candidate-facts");
+    // Four facts, no more: the barcode, the catalogue number and the packaging are not the
+    // question when there is only one pressing on screen.
+    expect(within(row).getAllByTestId("candidate-fact")).toHaveLength(4);
+    expect(row.textContent).not.toContain("no barcode");
+  });
 });
 
 describe("ReleaseGroupCard", () => {
@@ -331,6 +373,65 @@ describe("ReleaseGroupCard", () => {
     expect(onSelect).not.toHaveBeenCalled();
     fireEvent.click(screen.getByTestId("candidate"));
     expect(onSelect).toHaveBeenCalledWith("r-single");
+  });
+
+  it("links the group itself, beside its score", () => {
+    render(<ReleaseGroupCard group={group} selected={null} onSelect={vi.fn()} defaultOpen />);
+    expect(screen.getByTestId("group-mb-link").getAttribute("href")).toBe(
+      "https://musicbrainz.org/release-group/g-album",
+    );
+  });
+
+  it("says what its pressings span, rather than only the best one's track count", () => {
+    const spread: ReleaseGroupCandidate = {
+      ...group,
+      releases: [
+        inGroup({ id: "r-fr", country: "FR" }),
+        inGroup({
+          id: "r-jp",
+          country: "JP",
+          media: [{ position: 1, format: "CD", trackCount: 15 }],
+          tracks: 15,
+        }),
+      ],
+    };
+    render(<ReleaseGroupCard group={spread} selected={null} onSelect={vi.fn()} defaultOpen />);
+    const header = screen.getByTestId("group-toggle");
+    expect(header.textContent).toContain("FR · JP");
+    expect(header.textContent).toContain("14–15 tracks");
+  });
+
+  /**
+   * The pair the owner could not choose between: same album, same label, same country, same
+   * fourteen tracks — one barcode.
+   *
+   * Both cards print the barcode and the one without it says "no barcode", because the answer
+   * to "how do these differ?" is not an omitted line.
+   */
+  it("makes the one fact two otherwise identical pressings differ on visible on both", () => {
+    const pair: ReleaseGroupCandidate = {
+      ...group,
+      releases: [
+        inGroup({ id: "r-barcode", barcode: "724384960650" }),
+        inGroup({ id: "r-none", barcode: null }),
+      ],
+    };
+    render(<ReleaseGroupCard group={pair} selected={null} onSelect={vi.fn()} defaultOpen />);
+    const [withBarcode, without] = screen.getAllByTestId("candidate");
+    const marked = (card: HTMLElement | undefined): HTMLElement =>
+      within(card as HTMLElement)
+        .getByTestId("candidate-facts")
+        .querySelector<HTMLElement>(
+          '[data-fact="barcode"][data-distinguishing="true"]',
+        ) as HTMLElement;
+    expect(marked(withBarcode).textContent).toContain("724384960650");
+    expect(marked(without).textContent).toContain("no barcode");
+    // …and nothing else is marked, because nothing else differs.
+    expect(
+      within(withBarcode as HTMLElement)
+        .getByTestId("candidate-facts")
+        .querySelectorAll('[data-distinguishing="true"]'),
+    ).toHaveLength(1);
   });
 });
 
@@ -1088,5 +1189,97 @@ describe("MbSearchPanel", () => {
     render(<MbSearchPanel {...base} defaultTitle="966e9be9-d8d0-46fa-a87b-2d07a963097b" />);
     // An id names one thing; an artist clause beside it would be a contradiction.
     expect(screen.queryByTestId("mb-search-artist")).toBeNull();
+  });
+
+  /* ---- an artist on its own is a search (point 3) ---- */
+
+  it("lets the artist field work alone, and says what pressing the button will do", () => {
+    const onSearch = vi.fn(async () => {
+      await Promise.resolve();
+    });
+    render(<MbSearchPanel {...base} onSearch={onSearch} />);
+    const submit = screen.getByTestId("mb-search-submit");
+    // Both fields empty is still nothing to ask.
+    expect(submit).toHaveProperty("disabled", true);
+
+    fireEvent.change(screen.getByTestId("mb-search-artist"), { target: { value: "Laufey" } });
+    expect(submit).toHaveProperty("disabled", false);
+    expect(submit.textContent).toContain("List records by this artist");
+    expect(screen.getByTestId("mb-search-artist-only").textContent).toContain(
+      "everything by “Laufey”",
+    );
+
+    fireEvent.click(submit);
+    expect(onSearch).toHaveBeenCalledWith("", "Laufey");
+  });
+
+  it("names an artist-only search that found nothing, rather than quoting an empty title", () => {
+    render(
+      <MbSearchPanel {...base} terms={{ title: "", artist: "Laufey", guessed: false }} empty />,
+    );
+    const empty = screen.getByTestId("mb-search-empty");
+    expect(empty.textContent).toContain("everything by “Laufey”");
+    expect(empty.textContent).not.toContain("“” by");
+  });
+});
+
+/**
+ * The eighteen-option dropdown.
+ *
+ * The owner's screenshot is eighteen *Arcane: League of Legends* soundtrack variants whose
+ * titles are identical, because they genuinely are the same record. A list of eighteen
+ * identical lines is a list of one option; what separates them — the country, the catalogue
+ * number, the barcode — was on the release documents all along and was simply not drawn.
+ */
+describe("BorrowSelect with near-identical options", () => {
+  const variant = (over: Partial<BorrowRelease>): BorrowRelease => ({
+    id: "b-1",
+    title: "Arcane: League of Legends",
+    type: "Album",
+    secondary: ["Soundtrack"],
+    date: "2021-11-06",
+    country: "XW",
+    format: "Digital Media",
+    mediumCount: 1,
+    label: "Riot Games",
+    catalogNumber: null,
+    barcode: null,
+    status: "Official",
+    disambiguation: "",
+    trackPosition: 3,
+    trackCount: 11,
+    preferred: false,
+    why: [],
+    ...over,
+  });
+
+  it("gives every option the facts that tell it from the others", () => {
+    const releases = [
+      variant({ id: "b-fr", country: "FR", catalogNumber: "RG-001", preferred: true }),
+      variant({ id: "b-jp", country: "JP", catalogNumber: "RG-002" }),
+      variant({ id: "b-us", country: "US", catalogNumber: null }),
+    ];
+    render(<BorrowSelect releases={releases} value={null} onChange={vi.fn()} />);
+    // The country is on the first line, which `borrowLabel` builds.
+    expect(screen.getAllByTestId("borrow-option")[0]?.textContent).toContain("FR");
+    const details = screen.getAllByTestId("borrow-detail").map((node) => node.textContent ?? "");
+    expect(details[0]).toContain("RG-001");
+    expect(details[2]).toContain("no catalogue number");
+    // The label and the date are the same on all three, so they are not repeated on every line.
+    expect(details[0]).not.toContain("Riot Games");
+    expect(details[0]).not.toContain("2021-11-06");
+  });
+
+  it("links the chosen release, whatever shape the control took", () => {
+    render(
+      <BorrowSelect
+        releases={[variant({ id: "b-only", preferred: true })]}
+        value={null}
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("borrow-mb").getAttribute("href")).toBe(
+      "https://musicbrainz.org/release/b-only",
+    );
   });
 });

@@ -371,9 +371,11 @@ async function tryEntity(
       artist: null,
       disambiguation: found.disambiguation === "" ? null : (found.disambiguation ?? null),
       action: "search-artist",
-      actionLabel: `Search ${found.name ?? "this artist"}`,
+      actionLabel: `List ${found.name ?? "this artist"}’s ${options.single ? "recordings" : "records"}`,
       searchText: found.name ?? null,
-      explanation: `That is an artist, not a ${options.single ? "recording" : "release"}. Their catalogue can be searched for this import's title instead.`,
+      // It lists the catalogue rather than searching it for this import's title, which is what
+      // the artist-only search does everywhere else now — one behaviour, one sentence.
+      explanation: `That is an artist, not a ${options.single ? "recording" : "release"}. Their ${options.single ? "recordings" : "release groups"} can be listed instead.`,
     };
   }
 

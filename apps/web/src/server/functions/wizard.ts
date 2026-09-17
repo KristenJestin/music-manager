@@ -723,11 +723,21 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
         };
       }
 
-      // `editions-of-group` and `search-artist`: both are a search, run against the pipeline's
-      // own scorer so a hand-found candidate's number means what every other number means.
-      const query = ref.searchText ?? ref.title ?? ref.mbid;
+      /*
+       * `editions-of-group` and `search-artist`: both are a search, run against the pipeline's
+       * own scorer so a hand-found candidate's number means what every other number means.
+       *
+       * They differ in *which field* the text belongs in, and putting an artist's name in the
+       * title field was the same bug as `bewitched Laufey`: pasting an artist id asked
+       * MusicBrainz for a release literally titled "Daft Punk". An artist id is now the
+       * artist-only search it always meant.
+       */
+      const text = ref.searchText ?? ref.title ?? ref.mbid;
+      const artistOnly = ref.action === "search-artist";
+      const query = artistOnly ? "" : text;
+      const artist = artistOnly ? text : null;
       if (single) {
-        const found = await searchRecordings({ job, settings, db: db(), query });
+        const found = await searchRecordings({ job, settings, db: db(), query, artist });
         return {
           view: {
             kind: "single",
@@ -740,7 +750,7 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
           selectId: found.candidates[0]?.id ?? null,
         };
       }
-      const found = await searchReleases({ job, settings, db: db(), query });
+      const found = await searchReleases({ job, settings, db: db(), query, artist });
       return {
         view: {
           kind: "album",
@@ -764,6 +774,12 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
  * mean" — and because an MBID pasted into the search box should just work rather than being a
  * different field you have to notice.
  *
+ * **Either field alone is a search.** A title with no artist always was; an artist with no
+ * title was not, and typing one produced nothing at all — which is precisely what somebody who
+ * knows the band and not the exact album title has to type. It now searches that artist's
+ * release groups (or, on a single, their recordings), and the empty-result message names what
+ * was searched either way.
+ *
  * It follows the import's **kind**, which it did not before: a single searched releases, and
  * step 2 of a single renders recordings, so the box and the paste field were two visible,
  * inert controls on exactly the screen where the matcher had just proposed the wrong thing
@@ -772,12 +788,25 @@ export const applyPastedRef = createServerFn({ method: "POST", strict: STRICT })
 export const searchCandidates = createServerFn({ method: "POST", strict: STRICT })
   .middleware([sessionMiddleware])
   .inputValidator(
-    z.object({
-      importId: z.string().min(1),
-      query: z.string().trim().min(1),
-      /** The wizard's second field. Absent means "split the query and say what you split". */
-      artist: z.string().trim().optional(),
-    }),
+    z
+      .object({
+        importId: z.string().min(1),
+        /**
+         * The title — **or nothing at all**, when an artist is given.
+         *
+         * An artist on its own is a search: "I know the band, not which record", which is the
+         * thing somebody does before they can type a title. The refinement below is what makes
+         * it legal, and it is the *only* thing that had to change on this side; the Lucene
+         * builder already drops an empty clause.
+         */
+        query: z.string().trim().default(""),
+        /** The wizard's second field. Absent means "split the query and say what you split". */
+        artist: z.string().trim().optional(),
+      })
+      .refine((data) => data.query !== "" || (data.artist ?? "") !== "", {
+        message: "Give a title, an artist, or both.",
+        path: ["query"],
+      }),
   )
   .handler(async ({ data }): Promise<SearchResultView> => {
     try {

@@ -224,6 +224,31 @@ describe("Discovery — fifteen videos for a fourteen-track album", () => {
     expect(why.join(" | ")).toMatch(/tracks are covered by a video within/);
     expect(why.join(" | ")).toMatch(/Album title and artist match exactly/);
   });
+
+  /**
+   * The facts that tell one pressing from another, out of documents already fetched.
+   *
+   * The owner's complaint was that a candidate carried a title, an artist, a year and a track
+   * count — the four things two pressings of one record agree on. The catalogue number, the
+   * packaging and the per-disc breakdown were in `label-info`, `packaging` and
+   * `media[].track-count` all along; no `inc=` list changed to read them, which is why this
+   * asserts them against the *recorded* payloads rather than against a hand-built release.
+   */
+  it("carries the catalogue number, the packaging and the discs, from what was already fetched", () => {
+    const first = ranking.preselected;
+    expect(first?.media.length).toBeGreaterThan(0);
+    expect(first?.media.reduce((sum, medium) => sum + medium.trackCount, 0)).toBe(first?.tracks);
+    expect(first?.media[0]?.format).toBe("CD");
+
+    // Across the twenty-odd pressings of Discovery, MusicBrainz has catalogue numbers,
+    // barcodes and packagings for many of them; a fixture where none of the three ever
+    // appeared would mean the fields are being dropped rather than absent.
+    const carried = (pick: (c: (typeof ranking.candidates)[number]) => string | null): number =>
+      ranking.candidates.filter((candidate) => pick(candidate) !== null).length;
+    expect(carried((candidate) => candidate.catalogNumber)).toBeGreaterThan(0);
+    expect(carried((candidate) => candidate.barcode)).toBeGreaterThan(0);
+    expect(carried((candidate) => candidate.packaging)).toBeGreaterThan(0);
+  });
 });
 
 describe("Discovery — the fifteen-track Japanese edition", () => {

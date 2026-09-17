@@ -65,4 +65,12 @@ describe("splitSearchTerms", () => {
     );
     expect(describeSearchTerms(splitSearchTerms("Bewitched"))).toBe("“Bewitched”");
   });
+
+  it("names an artist-only search as what it is, not as an empty title", () => {
+    // The wizard's artist field on its own is a search now, and `“” by “Laufey”` would be the
+    // original defect — an empty result that does not say what was asked — one field along.
+    expect(describeSearchTerms({ title: "", artist: "Laufey", guessed: false })).toBe(
+      "everything by “Laufey”",
+    );
+  });
 });
