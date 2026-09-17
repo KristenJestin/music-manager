@@ -449,8 +449,19 @@ async function failedView(
  * which is the case this whole change is about.
  *
  * Far below the connection's own patience, which is what the change exists to respect.
+ *
+ * `MM_MATCH_GRACE_MS` overrides it, and `0` is the useful value: it makes *every* match answer
+ * `pending` on the first request, whatever it was going to cost. That is how
+ * `e2e/wizard-matching.spec.ts` reaches the waiting screen at all — offline, the cassette
+ * answers in milliseconds, so the slow path would never otherwise be drawn in a test.
+ *
+ * Read once, at module load, and clamped rather than trusted: a bad value in `.env` must not
+ * become a request that waits for ever.
  */
-const GRACE_MS = 2_000;
+const GRACE_MS = ((): number => {
+  const raw = Number.parseInt((process.env["MM_MATCH_GRACE_MS"] ?? "").trim(), 10);
+  return Number.isFinite(raw) && raw >= 0 && raw <= 10_000 ? raw : 2_000;
+})();
 
 /**
  * Step 2's candidates, without waiting for MusicBrainz inside the request.

@@ -340,7 +340,20 @@ function MatchPanel({
   const planned = Math.max(1, (progress?.searchesPlanned ?? 4) + (progress?.lookupsPlanned ?? 6));
 
   return (
-    <div role="status" aria-busy="true" data-testid={testId} className="flex flex-col gap-3.5">
+    /*
+     * `data-waiting` as well as the test id, because there are now two components drawing this
+     * panel and a test usually means "the wizard is waiting" rather than "by which of the two
+     * mechanisms". `wizard-pending` is the router's, `wizard-matching` is the loader data's,
+     * and which one a given moment lands on depends on how fast the match turned out to be —
+     * which is precisely the thing a test should not be asserting by accident.
+     */
+    <div
+      role="status"
+      aria-busy="true"
+      data-testid={testId}
+      data-waiting={matching ? "musicbrainz" : "source"}
+      className="flex flex-col gap-3.5"
+    >
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-1 px-4 py-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">New import</h1>
