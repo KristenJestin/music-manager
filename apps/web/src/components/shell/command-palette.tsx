@@ -134,8 +134,12 @@ export function CommandPalette() {
       label: "Verify library in Navidrome",
       icon: ShieldCheck,
       run: async () => {
-        const report = await verifyAll({ data: {} });
-        return `${String(report.verified)} album(s) compared, ${String(report.withMismatch)} with a mismatch.`;
+        // Queued, not awaited: the read-back is minutes of Subsonic calls and lives in the
+        // worker now. The counts arrive as the `verify.done` line in the journal.
+        const queued = await verifyAll({ data: {} });
+        return queued.queued
+          ? `Reading ${String(queued.total)} album(s) back from Navidrome. Tools has the log.`
+          : "The read-back could not be queued.";
       },
     },
     {

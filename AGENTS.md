@@ -181,6 +181,19 @@ therefore safe, and running two of them at once is too.
   reads exactly like a client bundle leak and is not one, and it only fired with an empty
   `MM_AUTH_SECRET`, so the fixtures E2E never saw it. The `runtime portability` block of
   `client-boundary.guard.test.ts` now fails on any new `Bun.`.
+- **Production closes an idle connection after ten seconds, and dev does not.** The image runs
+  Nitro's `bun` preset, so every request is served by `Bun.serve()` through `srvx/bun`, which
+  passes no options — and `Bun.serve`'s `idleTimeout` defaults to **10 s**. A server function
+  writes its body once, at the end, so it is idle for its whole duration: anything slower than
+  ten seconds used to be killed mid-flight, and the abort escaped as a 500. `src/server-entry.ts`
+  now raises the ceiling per request (`MM_REQUEST_TIMEOUT_S`, default 240, Bun's own cap is 255)
+  and records a genuine disconnection as `499` at `info` instead of an error. Two consequences
+  for anything you write here: **a route loader or server function that can take minutes belongs
+  on a queue** (`startScan`, `startRetag`, `verifyAll`) **or beside the request**
+  (`server/services/match-runs.ts` — start it, return an id, report on `/api/match-progress` or
+  `/api/events`); and **no test in this repository can see the timeout by accident**, because
+  `vite dev`, Playwright and vitest all run under Node. `server/http/abort.integration.test.ts`
+  spawns a real Bun for exactly that reason.
 
 ### Ports and `.env`
 

@@ -58,7 +58,16 @@ test.describe("owner review, lot A", () => {
     /* ---- A5: the waiting screen, with real counters ------------------------ */
 
     await page.getByTestId("wizard-next").click();
-    const pending = page.getByTestId("wizard-pending");
+    /*
+     * `data-waiting`, not a test id, because the wait is now drawn by either of two components
+     * and which one is on screen depends on how fast the match was.
+     *
+     * `wizard-pending` is the router's pending component, for the moment a *loader* is running;
+     * `wizard-matching` is a real component rendered from loader data, for a match that is
+     * running in the server beside the request (`server/services/match-runs.ts`). They draw the
+     * same panel, and asserting on one of them would be asserting on a race.
+     */
+    const pending = page.locator('[data-waiting="musicbrainz"]');
     await expect(pending).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("pending-title")).toContainText("Searching MusicBrainz");
     await expect(page.getByTestId("pending-counters")).toContainText("searches");

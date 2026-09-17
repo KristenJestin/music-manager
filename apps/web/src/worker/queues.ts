@@ -40,6 +40,14 @@ export const QUEUES = {
   webhook: "webhook.deliver",
   /** Scan one watched source, or every enabled one. */
   watchedScan: "watched-sources.scan",
+  /**
+   * Read the whole library back from Navidrome (P07).
+   *
+   * On the queue rather than in the request that asks for it, because it is a rescan wait of up
+   * to four minutes followed by six or seven Subsonic calls per album, serially and with no cap
+   * — a quarter of an hour on a real library. `worker/handlers/verify.ts` says the rest.
+   */
+  verify: "verify.library",
 } as const;
 
 /** Scheduled work. Registered now, implemented in the phase named in the comment. */
@@ -126,6 +134,9 @@ export async function ensureQueues(boss: PgBoss): Promise<void> {
   // `standard`, with the source id as `singletonKey` on the send side: two *different*
   // sources may be scanned at once, the same source may not be queued twice.
   await boss.createQueue(QUEUES.watchedScan, { policy: "standard" });
+  // `singleton`: two whole-library read-backs at once would double every Subsonic call and
+  // agree with each other about nothing. The same rule as `scan`, for the same reason.
+  await boss.createQueue(QUEUES.verify, { policy: "singleton" });
   for (const name of Object.keys(CRON_QUEUES)) {
     await boss.createQueue(name, { policy: "singleton" });
   }

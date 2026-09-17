@@ -115,6 +115,20 @@ le travail du proxy. Trois choses, et une seule est piégeuse :
 3. **Le proxy doit poser `X-Forwarded-Proto`, `X-Forwarded-Host` et `X-Forwarded-For`.** Caddy
    et Traefik le font tout seuls ; nginx demande de l'écrire.
 
+**Et une quatrième, qui n'est pas un piège du proxy.** Une page qui meurt au bout d'une dizaine
+de secondes avec un panneau d'erreur n'accuse pas le proxy : le défaut coupable est celui du
+serveur lui-même (`MM_REQUEST_TIMEOUT_S`, §7). Le proxy n'entre en jeu qu'au-delà, et seulement
+pour deux réglages, qu'il ne faut toucher que si les journaux de `web` montrent une requête
+terminée en `200` alors que le navigateur, lui, n'a rien reçu :
+
+- **nginx** : `proxy_read_timeout` (défaut 60 s) — déjà à `3600s` dans l'exemple ci-dessous, à
+  cause du SSE.
+- **Traefik** : `respondingTimeouts.readTimeout` (défaut 60 s) s'applique à la lecture de la
+  _requête_, pas à l'attente de la réponse ; `writeTimeout` vaut `0` (aucune limite) par défaut
+  et c'est celui qui compterait. Une installation Traefik par défaut, y compris celle que
+  Dokploy déploie, ne coupe donc pas une réponse lente : il n'y a rien à y changer.
+- **Caddy** : aucune limite de ce genre par défaut.
+
 ### Caddy
 
 ```caddyfile
@@ -814,6 +828,40 @@ docker compose -f docker-compose.prod.yml logs --since 1h --no-log-prefix web \
 `MM_LOG_LEVEL` (`debug` · `info` · `warn` · `error` · `silent`) vaut pour les trois services.
 Une réponse 5xx est journalisée en `error` quel que soit le niveau, et les fichiers de build en
 `debug` — sinon vingt lignes utiles disparaissent sous deux cents lignes d'assets.
+
+**Le statut `499`.** Il n'existe pas dans la norme HTTP : c'est la convention de nginx pour
+« le client a fermé la connexion ». Rien n'est jamais envoyé sous ce code — la socket est
+partie, c'est tout son sens — mais la ligne est écrite, en `info`, avec le chemin et la durée :
+
+```json
+{ "level": "info", "msg": "request", "path": "/_serverFn/…", "status": 499, "ms": 11316 }
+```
+
+Un rechargement au milieu d'un chargement, un onglet fermé, une page quittée : cela arrive, ce
+n'est pas une panne de ce serveur, et cela ne doit donc pas peser sur son taux d'erreur. Si ces
+lignes se multiplient sur un même chemin, ce n'est pas le réseau qu'il faut regarder mais la
+durée : quelque chose y est plus lent que la patience de la connexion.
+
+### `MM_REQUEST_TIMEOUT_S` — la patience d'une connexion
+
+L'image de production tourne sur le preset **bun** de Nitro, c'est-à-dire sur `Bun.serve()`, et
+le défaut de son `idleTimeout` est de **dix secondes** : une connexion sur laquelle aucun octet
+n'a circulé depuis dix secondes est fermée par le serveur lui-même. Or une server function
+calcule d'abord et n'écrit son corps qu'à la fin — elle est donc inactive pendant toute sa
+durée. Tout ce qui dépassait dix secondes était tué en vol, l'`AbortError` remontait en 500, et
+la page affichait un panneau d'erreur pour un travail qui se déroulait normalement.
+
+L'application relève désormais ce plafond requête par requête. `MM_REQUEST_TIMEOUT_S` vaut
+`240` par défaut ; Bun ramène silencieusement toute valeur supérieure à 255, et l'application
+refuse donc ce qui sort de la plage plutôt que de faire semblant. Ne le baissez que si vous
+savez que chaque page répond plus vite que la valeur choisie.
+
+Ce réglage est un plancher de correction, pas un permis : les traitements réellement longs —
+l'appariement MusicBrainz de l'assistant d'import, la relecture Navidrome de toute la
+bibliothèque, le re-tag, le scan — passent par la file d'attente et le worker, et rendent la
+main immédiatement. `bun run dev` n'est pas concerné : le serveur de développement rend le SSR
+sous Node, qui n'a pas cette limite (c'est aussi pourquoi le défaut de dix secondes n'était
+visible qu'en production).
 
 **Rotation.** Elle est dans le fichier compose (`json-file`, 10 Mo × 3 par service) : sans elle,
 un conteneur qui journalise une exception en boucle remplit le disque. Pour envoyer les

@@ -113,6 +113,18 @@ const childEnv: Record<string, string> = {
   MM_AUTH_SECRET: "music-manager-e2e-secret-not-for-production",
   MM_LIBRARY_ROOT: LIBRARY,
   MM_TOOLBOX_LIBRARY_ROOT: `/library/${LIBRARY_LEAF}`,
+  /*
+   * Never linger on a match that has just been started: answer `pending` and let the screen
+   * follow the progress stream.
+   *
+   * Offline, wizard step 2 is a cassette and finishes in milliseconds, so the *slow* path —
+   * the one this whole mechanism exists for, and the one the owner's production install takes
+   * every time — would never be drawn in a browser test. Zero forces it, and what is then
+   * measured is exactly what production does: a request that returns immediately, a waiting
+   * screen fed by `/api/match-progress`, and candidates that arrive when the match lands.
+   * `e2e/wizard-matching.spec.ts` is the spec; `functions/wizard.ts` owns the default of 2 s.
+   */
+  MM_MATCH_GRACE_MS: "0",
 };
 
 function say(message: string): void {

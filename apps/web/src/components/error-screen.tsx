@@ -18,13 +18,38 @@
  *    document, so the URL, the history entry and the wizard's place in it survive;
  *  - it links to the journal, because the second question after "what broke" is always "what
  *    was it doing".
+ *
+ * ## What it used to do to everything that was not an `MMError`
+ *
+ * All of the above assumed a typed failure, and degraded to nonsense without one. On
+ * 2026-09-17 the owner's wizard produced this, verbatim:
+ *
+ * ```
+ * This page could not be loaded
+ * Invariant failed
+ * UNKNOWN
+ * ```
+ *
+ * Three lines, none of them true or useful. *"Invariant failed"* is what `tiny-invariant`
+ * throws in a production build once it has stripped the message — the router's way of saying
+ * the server function's answer was unreadable, which it was, because the connection carrying
+ * it had been closed at ten seconds (`server/http/abort.ts`). *"UNKNOWN"* is the decoder
+ * admitting it found no code, printed in the slot reserved for a code somebody could quote
+ * into a bug report.
+ *
+ * So the panel now asks `lib/errors.ts` what *kind* of failure it has and takes its sentence,
+ * its hint and its button from there: an interrupted connection, an unreachable server, a
+ * server-side 5xx, or an untyped throw each say what happened, in words, with a Retry that
+ * means something. The `MMError` path is untouched — it was always the good one — and no
+ * second vocabulary was invented: the fallbacks speak in the same `message`/`hint`/`action`
+ * that the toolbox's error catalogue and `_app.tools.tsx`'s decoder already use.
  */
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { CircleAlert, RefreshCw, ScrollText } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import { Callout } from "#/components/callout.tsx";
-import { failureLabel, readFailure } from "#/lib/errors.ts";
+import { describeFailure, readFailure } from "#/lib/errors.ts";
 
 export interface ErrorScreenProps {
   readonly error: unknown;
@@ -43,6 +68,7 @@ export function ErrorScreen({
 }: ErrorScreenProps) {
   const router = useRouter();
   const failure = readFailure(error);
+  const copy = describeFailure(failure);
   const [busy, setBusy] = useState(false);
 
   const retry = (): void => {
@@ -63,6 +89,7 @@ export function ErrorScreen({
     <section
       data-testid={testId}
       data-error-code={failure.code}
+      data-error-kind={failure.kind}
       className="flex flex-col gap-3.5 rounded-xl border border-line bg-surface-1 px-6 py-8"
     >
       <div className="flex items-start gap-3">
@@ -72,17 +99,27 @@ export function ErrorScreen({
             {title ?? "This page could not be loaded"}
           </h1>
           <p className="mt-1 text-xs text-fg-2" data-testid="error-message">
-            {failure.message}
+            {copy.message}
           </p>
-          <p className="mt-1 font-mono text-2xs text-fg-3" data-testid="error-code">
-            {failureLabel(failure)}
-          </p>
+          {/*
+           * No line at all rather than a line reading "UNKNOWN".
+           *
+           * This slot is for the one string a reader can quote into a bug report. When the
+           * failure carried no code there is no such string, and saying so by printing the
+           * decoder's placeholder is the bug the owner reported. The machine-readable value
+           * stays on `data-error-code`, where a test can read it and a person cannot.
+           */}
+          {copy.label === null ? null : (
+            <p className="mt-1 font-mono text-2xs text-fg-3" data-testid="error-code">
+              {copy.label}
+            </p>
+          )}
         </div>
       </div>
 
-      {failure.hint === null ? null : (
+      {copy.hint === "" ? null : (
         <Callout tone={failure.transient ? "warn" : "danger"} data-testid="error-hint" role="alert">
-          {failure.hint}
+          {copy.hint}
         </Callout>
       )}
 
@@ -90,7 +127,7 @@ export function ErrorScreen({
         {retryable ? (
           <Button data-testid="error-retry" disabled={busy} onClick={retry}>
             <RefreshCw className={busy ? "size-4 animate-spin" : "size-4"} aria-hidden="true" />
-            {failure.action ?? "Retry"}
+            {copy.action}
           </Button>
         ) : null}
         <Button
