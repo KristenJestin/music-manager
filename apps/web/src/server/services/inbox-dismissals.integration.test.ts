@@ -202,7 +202,10 @@ beforeAll(async () => {
 
   // One stray file nothing in the database claims: the orphan question.
   write("Loose/unknown-a.opus");
-});
+  // Two minutes, like `inbox-filter.integration.test.ts`: this drops a database, creates one
+  // and runs every migration, against a postgres several agents share. Vitest's ten-second
+  // default is a timeout on contention, not on anything this file does.
+}, 120_000);
 
 describe.skipIf(unavailable !== null)("the loop the owner hit", () => {
   it("raises both duplicates on the first scan", async () => {
