@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect, test, resolveSource, signIn, typeInto } from "./helpers.ts";
 import {
   clearSeededInbox,
@@ -64,6 +65,12 @@ function bulk(): SeededItem[] {
 
 const TOTAL = Object.values(COUNTS).reduce((sum, n) => sum + n, 0);
 
+/** Cancel the job on screen when it is still cancellable, and say nothing when it is not. */
+async function stopIfRunning(page: Page): Promise<void> {
+  const cancel = page.getByTestId("job-cancel");
+  if ((await cancel.count()) > 0) await cancel.click();
+}
+
 test.describe("the review queue at three hundred items", () => {
   test.afterAll(async () => {
     await clearSeededInbox();
@@ -104,11 +111,14 @@ test.describe("the review queue at three hundred items", () => {
     await page.waitForURL(/type=ambiguous_release/);
     await expect(editions).toHaveAttribute("data-active", "true");
 
-    // The count on the chip and the total in the pager are the same set, and the rows on
-    // screen are a page of it. That is the assertion the two past bugs would have failed.
-    await expect(page.getByTestId("review-pager-range")).toContainText(
-      `1–40 of ${String(COUNTS.ambiguous_release)}`,
-    );
+    /*
+     * The count on the chip and the rows on screen are one number.
+     *
+     * Forty fits on a page, so the pager is gone — which is itself the assertion that the total
+     * moved with the filter rather than staying at 307. That is the shape of both past
+     * "filtered count lies" bugs: a count computed from a predicate the list did not use.
+     */
+    await expect(page.getByTestId("review-pager")).toHaveCount(0);
     const rows = page.getByTestId("review-list").getByRole("link");
     expect(await rows.count()).toBe(COUNTS.ambiguous_release);
     await expect(editions).toContainText(String(COUNTS.ambiguous_release));
@@ -181,8 +191,9 @@ test.describe("the review queue at three hundred items", () => {
       `https://musicbrainz.org/release/${PINNED_RELEASE}`,
     );
     // The relaunch put the job back on the queue; stop it here rather than leave a download
-    // running under the specs that follow.
-    await page.getByTestId("job-cancel").click();
+    // running under the specs that follow. Tolerant of a job that already finished: the
+    // fixture skips every recording the library already holds, so it often has.
+    await stopIfRunning(page);
   });
 
   test("searches again without the edition qualifier, and says what it will search for", async ({
@@ -222,18 +233,22 @@ test.describe("the review queue at three hundred items", () => {
     expect(job?.options["albumTitle"]).toBe("Discovery");
 
     await page.goto(`/imports/${importId}`);
-    await page.getByTestId("job-cancel").click();
+    await stopIfRunning(page);
   });
 
   test("refuses something that is not a release id, in words, without leaving the card", async ({
     page,
   }) => {
     await signIn(page);
+    // On a real import: the card only offers the box when it is about one, because relaunching
+    // is what the box does.
+    const importId = await resolveSource(page, "fixture://discovery");
     await seedInbox([
       {
         id: `${SEED_PREFIX}bad`,
         type: "ambiguous_release",
         title: "No MusicBrainz release matches “Whatever This Is”",
+        importId,
         payload: { candidates: [] },
       },
     ]);
