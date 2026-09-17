@@ -208,6 +208,19 @@ describe.skipIf(unavailable !== null)("bump moves the message, not only the row"
     expect(after[0]?.priority).toBe(10);
   }, 60_000);
 
+  /* The same choice the resume sweep makes: `download` is the one queue that may download. */
+  it("sends an import that stopped at `download` to the download queue", async () => {
+    const id = await given({ status: "running", step: "download" });
+
+    const result = await bumpImport(id, 10, db());
+
+    expect(result.queue.queue).toBe(queues.QUEUES.download);
+    const after = await messagesFor(id);
+    expect(after).toHaveLength(1);
+    expect(after[0]?.name).toBe(queues.QUEUES.download);
+    expect(after[0]?.priority).toBe(10);
+  }, 60_000);
+
   /*
    * The duplicate the old Console produced on every bump, and the proof of the premise: two
    * sends with the same `singletonKey` really are two rows on a `standard` queue.
@@ -225,6 +238,34 @@ describe.skipIf(unavailable !== null)("bump moves the message, not only the row"
     const after = await messagesFor(id);
     expect(after).toHaveLength(1);
     expect(after[0]?.priority).toBe(10);
+  }, 60_000);
+
+  /*
+   * The hazard "exactly one message" would create if taken too literally.
+   *
+   * `track.step` carries one message per track per step — several at once is the whole point of
+   * the pipelining — and they all name the same `importId`. A bump that collapsed the import's
+   * messages to one would amputate a running album, which is a far worse bug than the one this
+   * branch is fixing. They are counted and never touched.
+   */
+  it("never touches the per-track messages of a pipelined import", async () => {
+    const id = await given({ status: "running", step: "tag" });
+    for (const trackId of ["trk_a", "trk_b", "trk_c"]) {
+      await queues.enqueueTrackStep(boss, { importId: id, trackId, step: "tag" });
+    }
+    expect(await messagesFor(id)).toHaveLength(3);
+
+    const result = await bumpImport(id, 10, db());
+
+    expect(result.queue.action).toBe("running");
+    expect(result.queue.trackMessages).toBe(3);
+    expect(result.queue.removed).toBe(0);
+    // All three survive, and nothing was added beside them.
+    const after = await messagesFor(id);
+    expect(after).toHaveLength(3);
+    expect(after.every((message) => message.name === queues.QUEUES.trackStep)).toBe(true);
+    expect(await priorityOf(id)).toBe(10);
+    expect(await lastEvent(id)).toMatch(/3 track step\(s\) in flight/);
   }, 60_000);
 
   /*

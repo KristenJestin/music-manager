@@ -995,6 +995,7 @@ export async function bumpImport(
   const queue = await bumpQueuedImport(importId, priority, {
     send: belongsOnQueue(job),
     reason: "bump",
+    step: job.step,
   });
 
   await emit(
@@ -1021,7 +1022,13 @@ function bumpSentence(outcome: BumpOutcome): string {
     case "sent":
       return `nothing was on a queue, so one message was sent to ${outcome.queue ?? "the queue"}.${removed}`;
     case "running":
-      return `the worker is already running this import, so its message could not move; the new priority applies to whatever is queued next.${removed}`;
+      return (
+        `the worker is already running this import` +
+        (outcome.trackMessages > 0
+          ? ` (${String(outcome.trackMessages)} track step(s) in flight)`
+          : "") +
+        `, so its message could not move; the new priority applies to whatever is queued next.${removed}`
+      );
     case "none":
       return `nothing is on a queue and this import is not waiting for one, so the priority applies to whatever is queued next.${removed}`;
   }

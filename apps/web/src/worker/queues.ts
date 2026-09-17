@@ -334,8 +334,15 @@ export interface BumpOutcome {
   readonly updated: number;
   /** Duplicate messages deleted, so the import ends with exactly one. */
   readonly removed: number;
-  /** Unfinished messages this import holds afterwards. Never more than one. */
+  /** Unfinished import-level messages this import holds afterwards. Never more than one. */
   readonly messages: number;
+  /**
+   * Unfinished `track.step` messages, which are counted and never touched.
+   *
+   * They are the pipelined tail: one per track per step, and several of them coexisting is the
+   * whole point of that queue. Collapsing them to "exactly one" would amputate a running album.
+   */
+  readonly trackMessages: number;
 }
 
 /**
@@ -370,39 +377,88 @@ export interface BumpOutcome {
  *
  * Duplicates that were already there are removed on the way past, keeping the message pg-boss
  * would have fetched first — and never an `active` one, which is kept and left alone.
+ *
+ * **`track.step` is read and never written.** "One import, one message" is a statement about the
+ * *import-level* queues; the pipelined tail is one message per track per step, and several of
+ * them at once is the entire point of decision 147. An import holding them is being worked on by
+ * definition, so it answers `running` and nothing is sent, edited or deleted. Getting this wrong
+ * would not be a priority that failed to change — it would be an album that stopped mid-way.
  */
 export async function reprioritiseImport(
   boss: PgBoss,
   importId: string,
   priority: number,
-  options: { readonly send: boolean; readonly reason: string; readonly db?: Database },
+  options: {
+    readonly send: boolean;
+    readonly reason: string;
+    /** Where the import stands, so a job at `download` is sent to the queue that may do it. */
+    readonly step?: string;
+    readonly db?: Database;
+  },
 ): Promise<BumpOutcome> {
   const db = options.db ?? defaultDb();
   const live = await liveJobsOf(importId, db);
+  // Read, counted, and left strictly alone. See the note above.
+  const tracks = live.filter((job) => job.queue === QUEUES.trackStep).length;
+  const own = live.filter((job) => job.queue !== QUEUES.trackStep);
 
-  if (live.length === 0) {
-    if (!options.send) {
-      return { action: "none", queue: null, priority, updated: 0, removed: 0, messages: 0 };
+  if (own.length === 0) {
+    // Per-track messages with no import-level one is the pipelined tail in full flight: the
+    // import is being worked on, and there is nothing here to move or to add.
+    if (tracks > 0) {
+      return {
+        action: "running",
+        queue: QUEUES.trackStep,
+        priority,
+        updated: 0,
+        removed: 0,
+        messages: 0,
+        trackMessages: tracks,
+      };
     }
-    await enqueueImportStep(boss, { importId, reason: options.reason }, { priority });
+    if (!options.send) {
+      return {
+        action: "none",
+        queue: null,
+        priority,
+        updated: 0,
+        removed: 0,
+        messages: 0,
+        trackMessages: 0,
+      };
+    }
+    // The same choice the resume sweep makes: `download` is its own queue, and routing through
+    // `import.step` would only cost a hop to be told so.
+    const toDownload = options.step === QUEUES.download;
+    if (toDownload) await enqueueDownload(boss, { importId }, { priority });
+    else await enqueueImportStep(boss, { importId, reason: options.reason }, { priority });
     return {
       action: "sent",
-      queue: QUEUES.importStep,
+      queue: toDownload ? QUEUES.download : QUEUES.importStep,
       priority,
       updated: 0,
       removed: 0,
       messages: 1,
+      trackMessages: 0,
     };
   }
 
   // An `active` message wins the right to survive: it is the one being worked on.
-  const keep = live.find((job) => job.state === "active") ?? live[0];
+  const keep = own.find((job) => job.state === "active") ?? own[0];
   if (keep === undefined) {
-    return { action: "none", queue: null, priority, updated: 0, removed: 0, messages: 0 };
+    return {
+      action: "none",
+      queue: null,
+      priority,
+      updated: 0,
+      removed: 0,
+      messages: 0,
+      trackMessages: tracks,
+    };
   }
 
   let removed = 0;
-  for (const job of live) {
+  for (const job of own) {
     // Never an `active` row: `deleteJob` on a message a handler is holding is how the worker
     // once deleted a job out from under itself.
     if (job.id === keep.id || job.state === "active") continue;
@@ -417,7 +473,8 @@ export async function reprioritiseImport(
       priority,
       updated: 0,
       removed,
-      messages: live.length - removed,
+      messages: own.length - removed,
+      trackMessages: tracks,
     };
   }
 
@@ -428,7 +485,8 @@ export async function reprioritiseImport(
     priority,
     updated,
     removed,
-    messages: live.length - removed,
+    messages: own.length - removed,
+    trackMessages: tracks,
   };
 }
 

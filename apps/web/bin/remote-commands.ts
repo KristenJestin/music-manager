@@ -358,9 +358,21 @@ async function cmdControl(
 ): Promise<number> {
   const id = args.positional[1];
   if (id === undefined) throw new Error(`usage: mm ${verb} <id>`);
-  const payload = await api.post<{ import: ImportRow }>(`/imports/${id}/${verb}`);
+  const payload = await api.post<{
+    import: ImportRow;
+    /** `bump` only: what happened to the message on the queue, not just to the row. */
+    bump?: { action: string; queue: string | null; priority: number; messages: number };
+  }>(`/imports/${id}/${verb}`);
   if (asJson(args)) return dump(payload);
   line(`${verb}: ${payload.import.id} is now ${payload.import.status}`);
+  // Printed because "priority 10" on its own is exactly what the broken bump used to say.
+  if (payload.bump !== undefined) {
+    line(
+      `  priority ${String(payload.bump.priority)} · queue ${payload.bump.action}` +
+        `${payload.bump.queue === null ? "" : ` on ${payload.bump.queue}`}` +
+        ` · ${String(payload.bump.messages)} message(s)`,
+    );
+  }
   return 0;
 }
 

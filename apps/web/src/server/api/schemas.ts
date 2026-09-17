@@ -398,10 +398,17 @@ export const bumpResultSchema = z
     priority: z.number().int(),
     updated: z.number().int(),
     removed: z.number().int(),
-    messages: z
+    messages: z.number().int().openapi({
+      description: "Unfinished import-level messages this import holds. Never above 1.",
+    }),
+    trackMessages: z
       .number()
       .int()
-      .openapi({ description: "Unfinished pg-boss messages this import holds. Never above 1." }),
+      .openapi({
+        description:
+          "Unfinished `track.step` messages. Counted, never touched: one per track per step is " +
+          "what the pipelined tail is made of.",
+      }),
   })
   .openapi("BumpResult");
 

@@ -163,7 +163,7 @@ export async function enqueueAll(
 export async function bumpQueuedImport(
   importId: string,
   priority: number,
-  options: { readonly send: boolean; readonly reason: string },
+  options: { readonly send: boolean; readonly reason: string; readonly step?: string },
 ): Promise<BumpOutcome> {
   const boss = createBoss({ producer: true });
   try {
