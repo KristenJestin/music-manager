@@ -13,6 +13,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { MMError } from "@mm/contracts";
+import { parseMbRef } from "@mm/domain";
 import { db } from "#/server/db/client.ts";
 import { INBOX_TYPES, type InboxType } from "#/server/db/schema/enums.ts";
 import {
@@ -36,7 +37,8 @@ import {
   type InboxFilter,
 } from "#/server/services/inbox.ts";
 import { setImportOptions } from "#/server/services/console.queries.ts";
-import { parseMbid, pinnedRelease } from "#/server/services/matching.queries.ts";
+import { pinnedRelease } from "#/server/services/matching.queries.ts";
+import { resolveMbRef } from "#/server/services/mb-resolve.ts";
 import { loadSettings } from "#/server/services/settings.ts";
 import { resumeStepOf } from "#/server/services/jobs/index.ts";
 import { editionBaseTitle } from "#/lib/edition-qualifier.ts";
@@ -844,8 +846,8 @@ export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT
     try {
       const { item, job } = await candidatelessRelease(data.id);
 
-      const releaseMbid = parseMbid(data.release);
-      if (releaseMbid === null) {
+      const ref = parseMbRef(data.release);
+      if (ref === null) {
         throw new MMError(
           "INVALID_INPUT",
           `“${data.release.trim()}” does not contain a MusicBrainz release id.`,
@@ -856,6 +858,7 @@ export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT
           },
         );
       }
+      const releaseMbid = ref.mbid;
 
       let title = releaseMbid;
       try {
@@ -869,14 +872,31 @@ export const pinReleaseForItem = createServerFn({ method: "POST", strict: STRICT
       } catch (error) {
         const failure = MMError.from(error);
         if (failure.code === "NOT_FOUND") {
+          /*
+           * **Name what it is before saying it is wrong.**
+           *
+           * The same resolver the wizard's box uses. "MusicBrainz does not know a release with
+           * id X" is the worst answer available when X is a perfectly good *recording* — it
+           * says the id is wrong when the kind is wrong — and it is the exact sentence the
+           * owner met one screen over. One extra lookup buys the honest one.
+           */
+          const what = await resolveMbRef(data.release, {
+            job,
+            single: false,
+            videoTitle: job.title,
+            videoSeconds: null,
+            db: db(),
+          });
           throw new MMError(
             "NOT_FOUND",
-            `MusicBrainz does not know a release with id ${releaseMbid}.`,
+            what === null || what.entity === null
+              ? `MusicBrainz does not know a release with id ${releaseMbid}.`
+              : `That id is a ${what.noun ?? "different kind of entity"} — “${what.title ?? releaseMbid}” — and this card needs a release.`,
             {
               hint:
-                "Open musicbrainz.org/release/" +
-                releaseMbid +
-                " to check it. A release group id or a recording id looks the same and is not the same thing.",
+                what === null || what.entity === null
+                  ? `Open musicbrainz.org/release/${releaseMbid} to check it.`
+                  : "Open it on musicbrainz.org and copy the release's own id, or use the wizard, where any kind of id is accepted.",
               action: "Check the id",
               status: 404,
             },
