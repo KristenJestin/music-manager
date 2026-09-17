@@ -249,15 +249,15 @@ export async function listFolder(
     // The folder's own name is what a person calls this record; the ALBUM tag is better still
     // when the files agree on one, and `resolve` runs it through the same title cleaning a
     // YouTube playlist title gets.
-    title: majority(ordered.map((held) => held.tags["ALBUM"] ?? "")) ?? baseNameOf(root),
+    title: majority(ordered.map((held) => tagOf(held.tags, "ALBUM") ?? "")) ?? baseNameOf(root),
     uploader:
-      majority(ordered.map((held) => held.tags["ALBUMARTIST"] ?? "")) ??
-      majority(ordered.map((held) => held.tags["ARTIST"] ?? "")),
+      majority(ordered.map((held) => tagOf(held.tags, ...ALBUM_ARTIST) ?? "")) ??
+      majority(ordered.map((held) => tagOf(held.tags, "ARTIST") ?? "")),
     id: folderUrl(root),
     entries,
     folder: root,
     skipped,
-    releaseMbidHint: majority(ordered.map((held) => held.tags["MUSICBRAINZ_ALBUMID"] ?? "")),
+    releaseMbidHint: majority(ordered.map((held) => tagOf(held.tags, ...RELEASE_MBID) ?? "")),
   };
 }
 
@@ -292,22 +292,22 @@ function entryOf(
   index: number,
 ): ExtractEntry {
   const stem = name.replace(/\.[^.]+$/, "");
-  const title = text(tags["TITLE"]) ?? stem;
-  const artist = text(tags["ARTIST"]) ?? text(tags["ALBUMARTIST"]);
+  const title = tagOf(tags, "TITLE") ?? stem;
+  const artist = tagOf(tags, "ARTIST") ?? tagOf(tags, ...ALBUM_ARTIST);
   const entry: Record<string, unknown> = {
     id: fileId(name),
     title,
     duration: file.durationSeconds,
-    uploader: text(tags["ALBUMARTIST"]) ?? artist,
+    uploader: tagOf(tags, ...ALBUM_ARTIST) ?? artist,
     index,
-    track: text(tags["TITLE"]),
+    track: tagOf(tags, "TITLE"),
     artist,
-    album: text(tags["ALBUM"]),
+    album: tagOf(tags, "ALBUM"),
     release_year: yearOf(tags),
     description: null,
     thumbnails: [],
     webpage_url: folderUrl(file.path),
-    playlist_index: numberOf(tags["TRACKNUMBER"]) ?? index,
+    playlist_index: trackNumberOf(tags) ?? index,
     availability: null,
     unavailable: false,
     /*
@@ -338,7 +338,7 @@ export function fileId(name: string): string {
 /* small helpers                                                       */
 /* ------------------------------------------------------------------ */
 
-/** ffprobe upper-cases nothing on MP4; the batch does, but a defensive pass costs nothing. */
+/** Upper-cased keys, so a lookup is one spelling rather than three. */
 function normaliseTags(tags: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(tags)) {
@@ -348,27 +348,54 @@ function normaliseTags(tags: Record<string, string>): Record<string, string> {
   return out;
 }
 
-function text(value: string | undefined): string | null {
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+/**
+ * **ffprobe renames tags, and the names it chooses are not the ones in the file.**
+ *
+ * A Vorbis comment block holding `TRACKNUMBER=1`, `DISCNUMBER=1`, `ALBUMARTIST=…` comes back
+ * from ffprobe as `track`, `disc` and `album_artist`: it projects every container onto one
+ * vocabulary of its own before we ever see it. That is a fact about the tool, not about the
+ * file, and it is exactly the sort of thing that looks like it works — `TITLE`, `ARTIST`,
+ * `ALBUM` and `DATE` survive unchanged, so four of the seven lookups are right and the folder
+ * is silently listed in filename order because the track numbers "were not there".
+ *
+ * So every lookup that matters goes through a list of spellings: ffprobe's, the container's
+ * own, and the space-separated form MP4 and ID3 use for the MusicBrainz ids.
+ */
+function tagOf(tags: Record<string, string>, ...keys: readonly string[]): string | null {
+  for (const key of keys) {
+    const held = tags[key];
+    if (typeof held === "string" && held.trim() !== "") return held.trim();
+  }
+  return null;
 }
 
+const ALBUM_ARTIST = ["ALBUMARTIST", "ALBUM_ARTIST", "ALBUM ARTIST"] as const;
+const TRACK_NUMBER = ["TRACKNUMBER", "TRACK"] as const;
+const DISC_NUMBER = ["DISCNUMBER", "DISC"] as const;
+const YEAR_KEYS = ["DATE", "ORIGINALDATE", "ORIGINALYEAR", "YEAR", "RELEASEDATE"] as const;
+const RELEASE_MBID = [
+  "MUSICBRAINZ_ALBUMID",
+  "MUSICBRAINZ ALBUM ID",
+  "MUSICBRAINZ_ALBUM_ID",
+] as const;
+
 /** `3`, `3/12`, `03` — a tag that means a position. `null` when it means nothing. */
-function numberOf(value: string | undefined): number | null {
-  const held = text(value);
-  if (held === null) return null;
-  const digits = /^(\d+)/.exec(held);
+function positionOf(value: string | null): number | null {
+  if (value === null) return null;
+  const digits = /^(\d+)/.exec(value);
   if (digits?.[1] === undefined) return null;
   const parsed = Number.parseInt(digits[1], 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function trackNumberOf(tags: Record<string, string>): number | null {
+  return positionOf(tagOf(tags, ...TRACK_NUMBER));
+}
+
 /** `DATE`, `ORIGINALDATE`, `YEAR` — whichever is there, reduced to a year. */
 function yearOf(tags: Record<string, string>): number | null {
-  for (const key of ["DATE", "ORIGINALDATE", "ORIGINALYEAR", "YEAR", "RELEASEDATE"]) {
-    const found = /(\d{4})/.exec(text(tags[key]) ?? "");
-    if (found?.[1] !== undefined) return Number.parseInt(found[1], 10);
-  }
-  return null;
+  const found = /(\d{4})/.exec(tagOf(tags, ...YEAR_KEYS) ?? "");
+  return found?.[1] === undefined ? null : Number.parseInt(found[1], 10);
 }
 
 /**
@@ -408,8 +435,8 @@ interface Held {
 
 function orderByTracklist(files: readonly Held[]): readonly Held[] {
   const positions = files.map((held) => ({
-    disc: numberOf(held.tags["DISCNUMBER"]) ?? 1,
-    track: numberOf(held.tags["TRACKNUMBER"]),
+    disc: positionOf(tagOf(held.tags, ...DISC_NUMBER)) ?? 1,
+    track: trackNumberOf(held.tags),
     held,
   }));
   if (positions.some((position) => position.track === null)) return files;

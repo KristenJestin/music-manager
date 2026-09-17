@@ -70,6 +70,32 @@ export function compareFingerprint(
     };
   }
 
+  /*
+   * **An import without MusicBrainz claims nothing, so nothing can contradict it.**
+   *
+   * This step asks one question — *does the audio match the recording we mapped it to?* — and
+   * an untagged import (`docs/04` § import sans MusicBrainz, `SuppliedMapping` with
+   * `releaseMbid: null`) has no such recording: `recording_mbid` is null on every row by
+   * design. Comparing AcoustID's answer with the *title* there turns "AcoustID recognises this
+   * as something" into a question with no possible answer, because there is no mapping to
+   * correct — and it raises one `fingerprint_mismatch` per track. On the owner's 273-track
+   * library that is 273 questions nobody can act on.
+   *
+   * The fingerprint is still computed and still stored on the row, which is the part that has
+   * value: it is what lets the track be identified later, when somebody does go looking for a
+   * release. What is dropped is only the *verdict*, and only when there was no claim to judge.
+   */
+  if (expected.recordingMbid === null || expected.recordingMbid === "") {
+    const heard = candidates[0];
+    return {
+      agrees: true,
+      candidateMbid: heard?.recording_mbid ?? null,
+      candidateTitle: heard?.title ?? null,
+      score: heard?.score ?? null,
+      reason: "the track is bound to no recording, so there is nothing to contradict",
+    };
+  }
+
   for (const candidate of candidates) {
     if (
       expected.recordingMbid !== null &&

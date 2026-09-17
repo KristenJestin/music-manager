@@ -335,19 +335,25 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
 
   const videos = rows.map(toMatchVideo);
   const gateway = await gatewayFor(ctx);
-  if (gateway === null) {
-    return {
-      status: "blocked",
-      blockedAs: "awaiting_review",
-      message: `No recorded MusicBrainz data for ${ctx.job.url} in fixtures mode.`,
-      data: { url: ctx.job.url },
-    };
-  }
-
-  const result =
-    ctx.job.kind === "single" || rows.length === 1
-      ? await matchOneRecording(ctx, rows, videos, gateway)
-      : await matchOneAlbum(ctx, rows, videos, gateway);
+  /*
+   * No gateway at all — fixtures mode with nothing recorded for this source.
+   *
+   * It goes through `untaggedFallback` like every other way of giving up, and it has to: this
+   * is precisely the shape "MusicBrainz knows nothing about this record" takes offline, and a
+   * folder import is the case where the files themselves know enough to carry on. Returning
+   * early here is what left the end-to-end folder run parked in `awaiting_review`.
+   */
+  const result: StepResult =
+    gateway === null
+      ? {
+          status: "blocked",
+          blockedAs: "awaiting_review",
+          message: `No recorded MusicBrainz data for ${ctx.job.url} in fixtures mode.`,
+          data: { url: ctx.job.url },
+        }
+      : ctx.job.kind === "single" || rows.length === 1
+        ? await matchOneRecording(ctx, rows, videos, gateway)
+        : await matchOneAlbum(ctx, rows, videos, gateway);
 
   return (await untaggedFallback(ctx, rows, result)) ?? result;
 }

@@ -200,24 +200,38 @@ export async function createImport(
   return { job, duplicates, alreadyPresent: 0 };
 }
 
-/** The two codes `source-rules.ts` raises, i.e. "a rule you switched on said no". */
-const ADMISSION_CODES = new Set(["SOURCE_NOT_OFFICIAL", "SOURCE_NO_ALBUM"]);
+/**
+ * The refusals that are answers rather than failures — raised at the caller, not filed away.
+ *
+ * Two families, one property: **nothing about them will be different in ten minutes.**
+ *
+ *  - the two `source-rules.ts` codes, i.e. "a rule you switched on said no";
+ *  - the two a **folder source** produces: a folder outside `adoptSourceRoots`, and a folder
+ *    with nothing the tagger can read. Both are a path somebody typed or a setting somebody
+ *    has not written yet, and both are exactly as true on the tenth retry as on the first.
+ */
+const REFUSED_OUTRIGHT = new Set([
+  "SOURCE_NOT_OFFICIAL",
+  "SOURCE_NO_ALBUM",
+  "ADOPT_PATH_REFUSED",
+  "FOLDER_NO_AUDIO",
+]);
 
 /**
- * Re-raise an admission-rule refusal at the caller instead of leaving a failed job behind.
+ * Re-raise such a refusal at the caller instead of leaving a failed job behind.
  *
  * Every other `resolve` failure is *reported*, not thrown: a bot check or a private video is
- * something to retry, and the job row is where a retry lives. A rule the operator switched on
- * is not that. Nothing about it will be different in ten minutes, there is nothing to retry,
- * and whoever pasted the URL is still looking at the box — so they get the sentence, the hint
- * naming the setting, and a 422, rather than a job in the list that says "failed".
+ * something to retry, and the job row is where a retry lives. These are not that. There is
+ * nothing to retry, and whoever pasted the source is still looking at the box — so they get
+ * the sentence, the hint naming the setting or the folder, and a 4xx, rather than a job in the
+ * list that says "failed".
  *
  * The row is still written and still carries the same typed error. It is the record of what
  * was asked for and refused, which is the one thing a thrown error on its own would lose.
  */
 function refuseOnAdmissionRule(result: StepResult): void {
   if (result.status !== "failed" || result.error === undefined) return;
-  if (!ADMISSION_CODES.has(result.error.code)) return;
+  if (!REFUSED_OUTRIGHT.has(result.error.code)) return;
   throw MMError.fromBody(result.error);
 }
 
