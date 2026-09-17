@@ -870,34 +870,7 @@ async function main(): Promise<void> {
     settled.split("\n").slice(-1).join(" ").trim(),
   );
 
-  /*
-   * ---- and the same thing without anybody asking ----
-   *
-   * Everything above was driven by hand, which is the *repair* for a library that already
-   * diverged. This is the half that stops it happening again: a field corrected from the
-   * Console queues the catch-up because of where it is written (`services/projection.ts`), and
-   * the worker rewrites the file. `ENGINEER` is the owner's own second example — "Robin
-   * Schmidt" in the database, "Robin Schmidt, Alex Wharton" in the file.
-   */
-  const trackRow = await sql<{ id: string }[]>`
-    select id from library_tracks where path = ${FILE_1} limit 1`;
-  const overridden = await mm("doc", "set", trackRow[0]?.id ?? "", "engineer", "Robin Schmidt");
-  check(
-    overridden.includes("re-tag     queued"),
-    "a hand correction queues the catch-up itself — nobody had to know a re-tag exists",
-    overridden.split("\n").slice(-1).join(" ").trim(),
-  );
-
-  const engineerRunId = /run (rtg_[0-9A-Z]+)/.exec(overridden)?.[1] ?? "";
-  const engineerRun = await waitForRetagRun(engineerRunId);
-  check(engineerRun === "done", "the worker drained it", engineerRun);
-  check(
-    ((await probe(FILE_1)).tags["ENGINEER"] ?? "") === "Robin Schmidt",
-    "and the file now says what the database says",
-    (await probe(FILE_1)).tags["ENGINEER"] ?? "(absent)",
-  );
-
-  /* ---- and back, so the library this suite leaves behind is correct ---- */
+  /* ---- and back, so the rest of this section works on a correct album ---- */
 
   await sql`
     update import_tracks a
@@ -915,6 +888,37 @@ async function main(): Promise<void> {
     restored === beforeFile1,
     "the round trip is reversible: the album is back to what it was",
     restored,
+  );
+
+  /*
+   * ---- and the same thing without anybody asking ----
+   *
+   * Everything above was driven by hand, which is the *repair* for a library that already
+   * diverged. This is the half that stops it happening again: a field corrected from the
+   * Console queues the catch-up because of where it is written (`services/projection.ts`), and
+   * the worker rewrites the file. Nobody had to know a re-tag exists.
+   *
+   * `ENGINEER` is the owner's own second example — "Robin Schmidt" in the database, "Robin
+   * Schmidt, Alex Wharton" in the file — and it is run on a *restored* album because the
+   * override refuses an edit to a track whose position is claimed by another file, which the
+   * swap above deliberately makes true.
+   */
+  const trackRow = await sql<{ id: string }[]>`
+    select id from library_tracks where path = ${FILE_1} limit 1`;
+  const overridden = await mm("doc", "set", trackRow[0]?.id ?? "", "engineer", "Robin Schmidt");
+  check(
+    overridden.includes("re-tag     queued"),
+    "a hand correction queues the catch-up itself, with nobody asking",
+    overridden.split("\n").slice(-1).join(" ").trim(),
+  );
+
+  const engineerRun = await waitForRetagRun(/run (rtg_[0-9A-Z]+)/.exec(overridden)?.[1] ?? "");
+  check(engineerRun === "done", "the worker drained it", engineerRun);
+  const engineerTags = (await probe(FILE_1)).tags;
+  check(
+    (engineerTags["ENGINEER"] ?? "") === "Robin Schmidt",
+    "and the file says what the database says, without a second gesture",
+    engineerTags["ENGINEER"] ?? "(absent)",
   );
 
   /* ---------------------------------------------------------------- */

@@ -845,36 +845,40 @@ async function scopeTargets(
   db: Database,
   settings: Settings,
 ): Promise<LibraryTrack[]> {
-  const all = await planRetag({
-    db,
-    settings,
-    scope: run.scope,
-    targetId: run.targetId,
-    selection: "all",
-  });
-  if (run.selection === "all") return all;
+  const plan = { db, settings, scope: run.scope, targetId: run.targetId } as const;
 
   let selected: LibraryTrack[];
-  if (run.selection === "behind") {
-    // The run's **own** schema version, not the live one: a run opened at v2 must finish at v2
-    // even if somebody bumps the projection to v3 halfway through it.
-    selected = all.filter(
+  if (run.selection === "all") {
+    selected = await planRetag({ ...plan, selection: "all" });
+  } else if (run.selection === "behind") {
+    /*
+     * Everything in scope, filtered by the run's **own** schema version rather than the live
+     * one: a run opened at v2 must finish at v2 even if somebody bumps the projection to v3
+     * halfway through it. `planRetag`'s `behind` reads the current version, so it cannot be
+     * used here — this is the one selection whose meaning is frozen at the run row.
+     */
+    selected = (await planRetag({ ...plan, selection: "all" })).filter(
       (track) => track.tagSchemaVersion === null || track.tagSchemaVersion < run.schemaVersion,
     );
   } else {
-    const adrift = await tracksAdrift({
-      db,
-      ...(run.scope === "album" ? { albumId: run.targetId ?? "" } : {}),
-      ...(run.scope === "track" ? { trackId: run.targetId ?? "" } : {}),
-    });
-    const ids = new Set(adrift.map((entry) => entry.track.id));
-    selected = all.filter((track) => ids.has(track.id));
+    // Straight from `planRetag`, not scope-wide-then-filtered: a library-wide adrift run would
+    // otherwise re-project every document in the library **twice** on every batch of 25.
+    selected = await planRetag({ ...plan, selection: "adrift" });
   }
+  if (run.selection === "all") return selected;
 
+  /*
+   * Files this run has already written are no longer behind and no longer adrift, so they drop
+   * out of the selection — and `remaining` would go wrong under a progress bar somebody is
+   * watching. Added back by id rather than by re-reading the scope.
+   */
   const done = await doneIds(run.id, db);
   if (done.size === 0) return selected;
   const seen = new Set(selected.map((track) => track.id));
-  return [...selected, ...all.filter((track) => done.has(track.id) && !seen.has(track.id))];
+  const missing = [...done].filter((id) => !seen.has(id));
+  if (missing.length === 0) return selected;
+  const stamped = await db.select().from(libraryTracks).where(inArray(libraryTracks.id, missing));
+  return [...selected, ...stamped];
 }
 
 async function doneIds(runId: string, db: Database): Promise<Set<string>> {
