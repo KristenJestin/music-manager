@@ -18,6 +18,7 @@ import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { DataTable, type Column } from "#/components/data-table.tsx";
 import { PageHeader } from "#/components/page-header.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 import { ToneBadge } from "#/components/status-badge.tsx";
 import { TimeAgo } from "#/components/time-ago.tsx";
 import { Toggle } from "#/components/settings/controls.tsx";
@@ -78,6 +79,9 @@ const SCAN_TONE = {
 function AddSourceCard() {
   const router = useRouter();
   const toast = useToast();
+  // The card is rendered by the page and by `WatchedSourcesPending` alike, so for the length
+  // of a re-suspend there are two of it in the document (`components/pending-tree.tsx`).
+  const testId = useTestId();
 
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
@@ -111,13 +115,13 @@ function AddSourceCard() {
   return (
     <div
       className="mb-3.5 rounded-lg border border-line bg-surface-1 p-3.5"
-      data-testid="source-add"
+      data-testid={testId("source-add")}
     >
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex min-w-0 flex-1 flex-col gap-1 text-2xs text-fg-2">
           Playlist or channel URL
           <Input
-            data-testid="source-url"
+            data-testid={testId("source-url")}
             className="h-8 text-xs"
             placeholder="https://www.youtube.com/@artist"
             value={url}
@@ -129,7 +133,7 @@ function AddSourceCard() {
         <label className="flex flex-col gap-1 text-2xs text-fg-2">
           Label (optional)
           <Input
-            data-testid="source-label"
+            data-testid={testId("source-label")}
             className="h-8 w-48 text-xs"
             placeholder="taken from the listing"
             value={label}
@@ -138,7 +142,7 @@ function AddSourceCard() {
             }}
           />
         </label>
-        <Button data-testid="source-add-submit" disabled={busy} onClick={add}>
+        <Button data-testid={testId("source-add-submit")} disabled={busy} onClick={add}>
           <Plus className="size-4" aria-hidden="true" /> Watch
         </Button>
       </div>

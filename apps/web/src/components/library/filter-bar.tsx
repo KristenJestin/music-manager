@@ -44,6 +44,7 @@ import { Input } from "#/components/ui/input.tsx";
 import { Popover, PopoverContent, PopoverTrigger } from "#/components/ui/popover.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "#/components/ui/select.tsx";
 import { Callout } from "#/components/callout.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 import {
   FILTER_OPERATOR_ARITY,
   FILTER_OPERATOR_LABELS,
@@ -111,8 +112,9 @@ function Chip({
   readonly onRemove: () => void;
   readonly testId?: string;
 }) {
+  const scoped = useTestId();
   return (
-    <span className={CHIP} data-testid={testId} data-filter-chip={label}>
+    <span className={CHIP} data-testid={scoped(testId)} data-filter-chip={label}>
       {onOpen === undefined ? (
         <span className="py-0.5">{label}</span>
       ) : (
@@ -151,6 +153,7 @@ function ValueEditor({
   readonly values: readonly string[];
   readonly onChange: (next: readonly string[]) => void;
 }) {
+  const scoped = useTestId();
   const [min] = FILTER_OPERATOR_ARITY[op];
   if (min === 0) {
     return <p className="text-2xs text-fg-3">This operator takes no value.</p>;
@@ -174,7 +177,7 @@ function ValueEditor({
       >
         <SelectTrigger
           size="sm"
-          data-testid="filter-value-select"
+          data-testid={scoped("filter-value-select")}
           aria-label={`${def.label} value`}
           className="w-full text-xs"
         >
@@ -238,7 +241,7 @@ function ValueEditor({
       >
         <SelectTrigger
           size="sm"
-          data-testid="filter-value-select"
+          data-testid={scoped("filter-value-select")}
           aria-label={`${def.label} value`}
           className="w-full text-xs"
         >
@@ -263,7 +266,7 @@ function ValueEditor({
       type={type}
       className="h-7 text-xs"
       aria-label={label}
-      data-testid={`filter-value-${String(index)}`}
+      data-testid={scoped(`filter-value-${String(index)}`)}
       min={def.min}
       max={def.max}
       value={at(index)}
@@ -311,6 +314,7 @@ function ConditionBuilder({
   readonly onCommit: (condition: FilterCondition) => void;
   readonly onCancel: () => void;
 }) {
+  const scoped = useTestId();
   const [draft, setDraft] = useState<Draft | null>(() => {
     if (initial === null) return null;
     const def = findField(fields, initial.field);
@@ -319,13 +323,16 @@ function ConditionBuilder({
 
   if (draft === null) {
     return (
-      <div className="flex max-h-72 flex-col gap-0.5 overflow-y-auto" data-testid="filter-fields">
+      <div
+        className="flex max-h-72 flex-col gap-0.5 overflow-y-auto"
+        data-testid={scoped("filter-fields")}
+      >
         <p className="px-1 pb-1 text-2xs text-fg-3">Filter by…</p>
         {fields.map((def) => (
           <button
             key={def.name}
             type="button"
-            data-testid={`filter-field-${def.name}`}
+            data-testid={scoped(`filter-field-${def.name}`)}
             onClick={() => {
               const op = def.operators[0] ?? "eq";
               setDraft({ field: def, op, values: defaultValues(def, op) });
@@ -355,7 +362,7 @@ function ConditionBuilder({
   const ready = operands >= FILTER_OPERATOR_ARITY[draft.op][0];
 
   return (
-    <div className="flex flex-col gap-2" data-testid="filter-builder">
+    <div className="flex flex-col gap-2" data-testid={scoped("filter-builder")}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-xs font-medium">{def.label}</span>
         {initial === null ? (
@@ -381,7 +388,7 @@ function ConditionBuilder({
       >
         <SelectTrigger
           size="sm"
-          data-testid="filter-operator"
+          data-testid={scoped("filter-operator")}
           aria-label={`${def.label} operator`}
           className="w-full text-xs"
         >
@@ -413,7 +420,7 @@ function ConditionBuilder({
         </Button>
         <Button
           size="xs"
-          data-testid="filter-apply"
+          data-testid={scoped("filter-apply")}
           disabled={!ready}
           onClick={() => {
             onCommit({
@@ -445,6 +452,7 @@ function ConditionBuilder({
  * fact rather than a way to remove it.
  */
 export function FilterConditions({ fields, value, onChange, testId }: FilterConditionsProps) {
+  const scoped = useTestId();
   const decoded = useMemo(() => decodeFilter(value, fields), [value, fields]);
   const tree = decoded.tree;
 
@@ -470,7 +478,7 @@ export function FilterConditions({ fields, value, onChange, testId }: FilterCond
       role="group"
       aria-label="Filters"
       className="flex min-w-0 flex-wrap items-center gap-1.5"
-      data-testid={testId}
+      data-testid={scoped(testId)}
     >
       {tree.children.map((child, index) => (
         <Chip
@@ -505,7 +513,7 @@ export function FilterConditions({ fields, value, onChange, testId }: FilterCond
         }}
       >
         <PopoverTrigger
-          data-testid="filter-add"
+          data-testid={scoped("filter-add")}
           render={
             <button
               type="button"
@@ -548,7 +556,7 @@ export function FilterConditions({ fields, value, onChange, testId }: FilterCond
         >
           <SelectTrigger
             size="sm"
-            data-testid="filter-join"
+            data-testid={scoped("filter-join")}
             aria-label="Match all or any of the filters"
             className="h-7 border-line bg-surface-1 text-2xs"
           >
@@ -568,7 +576,7 @@ export function FilterConditions({ fields, value, onChange, testId }: FilterCond
       {tree.children.length > 0 ? (
         <button
           type="button"
-          data-testid="filter-clear"
+          data-testid={scoped("filter-clear")}
           onClick={() => {
             commit({ ...tree, join: "and", children: [] });
           }}
@@ -591,11 +599,12 @@ export function FilterConditions({ fields, value, onChange, testId }: FilterCond
  * while the list in front of them says otherwise.
  */
 export function FilterNotice({ fields, value, error }: FilterNoticeProps) {
+  const scoped = useTestId();
   const decoded = useMemo(() => decodeFilter(value, fields), [value, fields]);
   const notice = error ?? decoded.error;
   if (notice === null || notice === undefined) return null;
   return (
-    <Callout tone="warn" role="status" data-testid="filter-error" className="mb-3">
+    <Callout tone="warn" role="status" data-testid={scoped("filter-error")} className="mb-3">
       {notice} Everything is shown.
     </Callout>
   );

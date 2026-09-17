@@ -26,6 +26,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 import { coverCandidate, type CoverSource } from "#/lib/cover-sources.ts";
 import { coverIndex } from "#/lib/format.ts";
+import { useTestId } from "#/components/pending-tree.tsx";
 
 export {
   albumCoverSources,
@@ -99,6 +100,7 @@ export interface CoverProps extends VariantProps<typeof coverVariants> {
 }
 
 export function Cover({ src, seed, label, size, className }: CoverProps) {
+  const testId = useTestId();
   // `broken` accumulates the URLs the browser refused, so the tile walks down its candidates
   // once and never re-tries one it has already been told about. `loaded` is keyed on the URL,
   // so a re-render pointing at another image starts from scratch rather than claiming pixels
@@ -177,7 +179,7 @@ export function Cover({ src, seed, label, size, className }: CoverProps) {
           aria-hidden="true"
           loading="lazy"
           decoding="async"
-          data-testid="cover-image"
+          data-testid={testId("cover-image")}
           data-loaded={loaded === url ? true : undefined}
           onLoad={() => {
             setLoaded(url);

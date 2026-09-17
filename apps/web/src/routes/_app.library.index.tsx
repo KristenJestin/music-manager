@@ -24,6 +24,7 @@ import { scoreTone } from "#/components/status-badge.tsx";
 import { AlbumCard } from "#/components/library/album-card.tsx";
 import { FilterNotice } from "#/components/library/filter-bar.tsx";
 import { FilterToolbar } from "#/components/library/filter-toolbar.tsx";
+import { useTestId } from "#/components/pending-tree.tsx";
 import {
   SkeletonAlbumGrid,
   SkeletonPage,
@@ -122,6 +123,9 @@ function AlbumsToolbar({
 }) {
   const params = Route.useSearch();
   const navigate = useNavigate();
+  // The two selects are the page identifiers this component writes itself; the rest come from
+  // `FilterToolbar`. `pending-tree.tsx` says why they cannot be literals.
+  const testId = useTestId();
 
   return (
     <FilterToolbar
@@ -165,7 +169,7 @@ function AlbumsToolbar({
       >
         <SelectTrigger
           size="sm"
-          data-testid="library-sort"
+          data-testid={testId("library-sort")}
           aria-label="Sort albums"
           className="max-w-36 border-line bg-surface-1 text-xs"
         >
@@ -193,7 +197,7 @@ function AlbumsToolbar({
       >
         <SelectTrigger
           size="sm"
-          data-testid="library-profile"
+          data-testid={testId("library-profile")}
           aria-label="Scoring profile"
           className="max-w-36 border-line bg-surface-1 text-xs"
         >
