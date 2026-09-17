@@ -706,27 +706,36 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
     {
       name: "confirm_best",
       scope: "imports:write",
-      title: "Confirm the candidate that maps the most videos",
+      title: "Confirm the engine's best candidate",
       description:
         "`confirm_mapping` for a caller that has nothing to add. It reads the same ranked " +
-        "candidates `get_candidates` returns, picks the release that binds the most of this " +
-        "import's videos, and builds the mapping from that candidate's own `fitLines` — the " +
-        "assignment the matching engine computed in order to score it. **There is nothing here " +
-        "for you to get wrong:** no `bindings` to rebuild, no `position` to line up, no " +
+        "candidates `get_candidates` returns and confirms the engine's own best answer, " +
+        "building the mapping from that candidate's own evidence. **There is nothing here for " +
+        "you to get wrong:** no `bindings` to rebuild, no `position` to line up, no " +
         "`recordingMbid` to omit and have `fingerprint` disagree with thirteen times.\n\n" +
-        "**`minCoverage` is a real gate.** Coverage is mapped videos ÷ videos in the import, " +
-        "and it defaults to 0.8. Below the bar nothing is confirmed: the tool fails naming the " +
-        "best candidate, its release, its type and the coverage it reached, and the import is " +
-        "left exactly where it was, waiting for a human. That is what makes this safe to run " +
-        "over three hundred imports in a loop — the ones it will not decide are still there " +
-        "afterwards.\n\n" +
+        "**Two criteria, one tool, chosen by what the import is.** `kind` in the answer says " +
+        "which one ran. Loop this over every id `create_imports` gave you; you do not have to " +
+        "know in advance which of them resolved to a single.\n\n" +
+        "**An album is decided on coverage** — `minCoverage` is mapped videos ÷ videos in the " +
+        "import, and defaults to 0.8 — and the mapping comes from the winning release's " +
+        "`fitLines`. " +
         '`preferType: "album"` breaks a tie in favour of an Album over an EP or a Single that ' +
-        "maps the same number of videos. It is a tie-break and never promotes a candidate that " +
-        "maps fewer.\n\n" +
+        "maps the same number of videos; it never promotes a candidate that maps fewer.\n\n" +
+        "**A single is decided on the margin.** One video is ranked against *recordings*, so " +
+        "there is no tracklist and coverage would be 1 whatever was chosen. The bar is four " +
+        "conditions instead, all read from thresholds the engine already uses: the chosen " +
+        "recording leads the runner-up by at least `minMargin` (default: the installation's " +
+        "`matchAmbiguityMargin`, the same gap under which `match` itself refuses to decide and " +
+        "opens an `ambiguous_recording` item); the durations agree within ± 2 s; the title and " +
+        "the artist both agree at or above `titleMatchThreshold`. A missing duration on either " +
+        "side fails the check rather than skipping it, and the artist condition is what stops " +
+        "a cover of the right length being confirmed as the original.\n\n" +
+        "**Both bars are real gates.** Below either one nothing is confirmed: the tool fails " +
+        "naming the candidate and every condition it missed, and the import is left exactly " +
+        "where it was, waiting for a human. That is what makes this safe to run over three " +
+        "hundred imports in a loop — the ones it will not decide are still there afterwards.\n\n" +
         "The confirmation is automatic but **signed**: the decision is logged with " +
-        "`decidedBy: mcp`, like every other gate this server opens.\n\n" +
-        "A single — one video, ranked against recordings rather than releases — is refused: " +
-        "there is no tracklist to cover, so use `get_candidates` and `confirm_mapping`.",
+        "`decidedBy: mcp`, like every other gate this server opens.",
       inputSchema: {
         importId: z.string().min(1),
         minCoverage: z
@@ -734,16 +743,33 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           .min(0)
           .max(1)
           .default(DEFAULT_MIN_COVERAGE)
-          .describe("Mapped videos ÷ videos in the import. Below it, nothing is confirmed."),
+          .describe(
+            "Albums only. Mapped videos ÷ videos in the import; below it, nothing is confirmed.",
+          ),
+        minMargin: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe(
+            "Singles only. How far ahead of the runner-up the chosen recording must score. " +
+              "Defaults to the installation's ambiguity margin.",
+          ),
         preferType: z
           .enum(["album", "any"])
           .default("album")
           .describe("`album` prefers an Album over an EP or Single of equal coverage."),
       },
-      run: async (args: { importId: string; minCoverage: number; preferType: "album" | "any" }) =>
+      run: async (args: {
+        importId: string;
+        minCoverage: number;
+        minMargin?: number;
+        preferType: "album" | "any";
+      }) =>
         await confirmBest({
           importId: args.importId,
           minCoverage: args.minCoverage,
+          ...(args.minMargin === undefined ? {} : { minMargin: args.minMargin }),
           preferType: args.preferType,
           confirmedBy: "mcp",
           db: db(),

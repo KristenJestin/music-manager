@@ -255,20 +255,20 @@ async function cmdImportBatch(args: Args, path: string): Promise<number> {
 }
 
 /**
- * `mm confirm-best <id>` — confirm the candidate that maps the most videos.
+ * `mm confirm-best <id>` — confirm the engine's best candidate, on whichever bar applies.
  *
  * The same service the REST route and the MCP tool call, so the three cannot drift; the only
- * thing that differs is `confirmedBy`, which is the door the decision came through.
+ * thing that differs is `confirmedBy`, which is the door the decision came through. An album is
+ * decided on `--min-coverage`, a single on `--min-margin`; the printout names which one ran, so
+ * a terminal never leaves you guessing what the number on the screen was measured against.
  */
 async function cmdConfirmBest(args: Args): Promise<number> {
   const id = args.positional[1];
   if (id === undefined) {
-    throw new MMError(
-      "INVALID_INPUT",
-      "usage: mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]",
-    );
+    throw new MMError("INVALID_INPUT", CONFIRM_BEST_USAGE);
   }
   const coverage = flagString(args, "min-coverage");
+  const margin = flagString(args, "min-margin");
   const prefer = flagString(args, "prefer");
   if (prefer !== undefined && prefer !== "album" && prefer !== "any") {
     throw new MMError("INVALID_INPUT", "--prefer takes `album` or `any`.");
@@ -277,21 +277,35 @@ async function cmdConfirmBest(args: Args): Promise<number> {
   const outcome = await confirmBest({
     importId: id,
     ...(coverage === undefined ? {} : { minCoverage: Number(coverage) }),
+    ...(margin === undefined ? {} : { minMargin: Number(margin) }),
     ...(prefer === undefined ? {} : { preferType: prefer }),
     confirmedBy: "cli confirm-best",
     db: db(),
     source: "cli confirm-best",
   });
 
-  line(`confirmed ${outcome.importId}`);
-  line(
-    `  release  ${outcome.chosen.artist} — ${outcome.chosen.title}` +
-      ` (${outcome.chosen.primaryType ?? "?"})  ${outcome.chosen.releaseMbid}`,
-  );
-  line(
-    `  coverage ${String(Math.round(outcome.chosen.coverage * 100))} %` +
-      ` of ${String(outcome.chosen.videos)} video(s), over ${String(outcome.candidatesConsidered)} candidate(s)`,
-  );
+  line(`confirmed ${outcome.importId} (${outcome.kind})`);
+  if (outcome.chosen.kind === "release") {
+    const chosen = outcome.chosen;
+    line(
+      `  release  ${chosen.artist} — ${chosen.title} (${chosen.primaryType ?? "?"})  ${chosen.mbid}`,
+    );
+    line(
+      `  coverage ${String(Math.round(chosen.coverage * 100))} %` +
+        ` of ${String(chosen.videos)} video(s), over ${String(outcome.candidatesConsidered)} candidate(s)`,
+    );
+  } else {
+    const chosen = outcome.chosen;
+    line(`  recording ${chosen.artist} — ${chosen.title}  ${chosen.mbid}`);
+    line(
+      `  filed as  ${chosen.releaseTitle} (${chosen.releaseType ?? "release"})  ${chosen.releaseMbid}`,
+    );
+    line(
+      `  margin   ${chosen.margin === null ? "no runner-up" : String(chosen.margin)}` +
+        ` over ${String(outcome.minMargin ?? 0)}, duration ${chosen.durationDelta === null ? "?" : `${String(chosen.durationDelta)} s`}` +
+        `, title ${String(chosen.titleAgreement)}, artist ${String(chosen.artistAgreement)}`,
+    );
+  }
   line(
     `  mapped   ${String(outcome.mapped ?? 0)} track(s), ` +
       `${String(outcome.extras ?? 0)} extra, ${String(outcome.uncovered)} uncovered`,
@@ -299,6 +313,10 @@ async function cmdConfirmBest(args: Args): Promise<number> {
   line(`  status   ${outcome.status} (step ${outcome.step})`);
   return 0;
 }
+
+/** One sentence, used by the usage error and by `USAGE`, so the two cannot disagree. */
+const CONFIRM_BEST_USAGE =
+  "usage: mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]";
 
 async function cmdImport(args: Args): Promise<number> {
   const fromFile = flagString(args, "from-file");
@@ -1453,8 +1471,9 @@ const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
   mm import --from-file <path> [--yes] [--force]   one URL per line, '#' comments; queued, not resolved
-  mm confirm-best <id> [--min-coverage 0.8] [--prefer album|any]
-                                          confirm the candidate that maps the most videos
+  mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
+                                          confirm the engine's best candidate: an album on
+                                          coverage, a single on its margin over the runner-up
   mm match <url|fixture://…> [--kind album|single] [--json]   score candidates without importing
   mm jobs
   mm job <id> [--follow]
