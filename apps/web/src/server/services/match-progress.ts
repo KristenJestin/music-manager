@@ -76,9 +76,11 @@ export function subscribeProgress(importId: string, listener: Listener): () => v
  * A reporter bound to one import, with the budget already known.
  *
  * The planned counts come from the settings rather than from observation, because a progress
- * bar that discovers its own total is not a progress bar. Two searches and `lookupLimit`
- * lookups is exactly the budget `matching.service.ts` promises and `matching.budget.test.ts`
- * asserts, so the denominator here cannot drift from what actually happens.
+ * bar that discovers its own total is not a progress bar. They are a **ceiling** on both axes
+ * and the lookup one is now rarely reached: a match opens candidates while an unopened one
+ * could still win and stops on its own, usually after one to four. So the bar routinely
+ * finishes early, which is the honest shape of it — the alternative is a denominator that
+ * grows as the match goes, and that is worse than one that is generous.
  */
 export interface MatchReporter {
   (phase: MatchPhase, label: string, done: { searches: number; lookups: number }): void;

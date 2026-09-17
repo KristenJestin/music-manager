@@ -144,11 +144,12 @@ export async function rankFor(input: RankingInput): Promise<AlbumMatch | SingleM
    * The wait is the feature here (A5 of the owner review).
    *
    * A group search, up to `matchGroupLimit` release searches and up to `matchLookupLimit`
-   * lookups, at one request per second, is ten seconds that cannot be made shorter — so the
-   * screen is told what is being spent rather than left blank. The planned counts are the
-   * budget `matchAlbum` promises (`plannedBudgetOf`), taken from the settings rather than
+   * lookups, at one request per second, is several seconds that cannot be made shorter — so
+   * the screen is told what is being spent rather than left blank. The planned counts are the
+   * ceiling `matchAlbum` is allowed (`plannedBudgetOf`), taken from the settings rather than
    * discovered as we go, and narrowed once the group search says how many groups there really
-   * were (decision 151).
+   * were (decision 151). The lookup half is a ceiling the branch and bound rarely reaches, so
+   * the bar usually finishes early.
    */
   const planned = single
     ? { searches: 2, lookups: lookupLimitOf(input.settings) }
@@ -237,13 +238,10 @@ export async function searchReleases(input: SearchInput): Promise<{
    * by hand has to be comparable with one the matcher proposed, which means its fit has to have
    * been decided by the same rule.
    */
-  const explored = await exploreReleases(
-    gateway,
-    { videos, hints },
-    releases,
-    config,
-    { ceiling: lookupLimitOf(input.settings), safe: input.settings.safeThreshold },
-  );
+  const explored = await exploreReleases(gateway, { videos, hints }, releases, config, {
+    ceiling: lookupLimitOf(input.settings),
+    safe: input.settings.safeThreshold,
+  });
   const scored = explored.ranking;
   return {
     candidates: scored.candidates,

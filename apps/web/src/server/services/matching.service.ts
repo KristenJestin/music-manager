@@ -224,7 +224,7 @@ export type MatchFallback =
 export function describeFallback(fallback: MatchFallback): string {
   switch (fallback.kind) {
     case "primary-artist":
-      return `The search came back empty for “${fallback.from}”, so it fell back to the first credited artist, “${fallback.to}”.`;
+      return `The credit “${fallback.from}” names more than one artist, so MusicBrainz was asked for the first of them, “${fallback.to}” — a composite credit is almost never one it publishes.`;
     case "base-title":
       return `The search came back empty for “${fallback.from}”, so it fell back to the base title, “${fallback.to}” — the edition qualifier was treated as noise.`;
     case "recordings":
