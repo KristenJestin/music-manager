@@ -350,7 +350,11 @@ function Album() {
             {missing.length === 0 ? null : (
               <ToneBadge
                 tone="danger"
-                data-testid="album-incomplete"
+                // `album-missing`, and not the `album-incomplete` of the callout below: these
+                // are two different facts. This badge counts rows whose *file* is not on the
+                // disk; that callout counts tracks of the release the library never got. The
+                // remedy differs too — re-download one, adopt the other — so the names do.
+                data-testid="album-missing"
                 title={`Not on disk: ${missing.map((track) => track.title).join(", ")}`}
               >
                 {missing.length} file(s) missing
