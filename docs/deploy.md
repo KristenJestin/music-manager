@@ -920,6 +920,69 @@ savoir d'où vient sa musique serait un mensonge.
 
 ---
 
+## 5 septies. Quand MusicBrainz ne connaît pas le disque
+
+Certaines playlists YouTube n'ont **aucune** sortie MusicBrainz : un live, un bootleg, un
+artiste non référencé, une mixtape. `match` ne trouve rien, et il s'arrête plutôt que de
+deviner — forcer un homonyme classerait l'album sous un titre que personne n'a choisi, ce qui
+est pire que de le laisser en attente. Le défaut est donc **« demander »** pour une URL, et
+« se rabattre sur les tags » pour un dossier (§ 5 sexies), parce qu'un dossier porte de vrais
+tags et qu'un titre de vidéo n'en porte pas.
+
+La sortie de secours existe : construire l'album à partir des étiquettes de la source —
+titre, artiste, année, ordre des pistes, plus ce que la description auto-générée donne
+(label, compositeurs). Aucun identifiant MusicBrainz n'est écrit, la provenance de chaque
+champ est marquée `youtube` dans le document, et l'album est classé **`untagged`** dans la
+bibliothèque, avec son propre filtre sur la page Quality : choisir une sortie plus tard le
+re-tague sans re-télécharger un octet.
+
+### À la création de l'import
+
+`untaggedFallback` s'applique à une URL comme à un dossier, y compris en lot :
+
+```bash
+# CLI, une source ou un fichier de sources
+mm import "https://www.youtube.com/playlist?list=OLAK5uy_…" --untagged
+mm import --from-file ./sources.txt --untagged
+
+# API
+curl -sS -X POST "$MM_URL/api/v1/imports/batch" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d '{"urls":["https://www.youtube.com/playlist?list=OLAK5uy_…"],
+       "options":{"untaggedFallback":true}}'
+```
+
+Et `create_import` / `create_imports` côté MCP, avec le même champ. L'omettre garde le défaut :
+demander pour une URL, se rabattre pour un dossier.
+
+### Sur un import déjà parqué
+
+C'est le cas courant : l'import est passé, MusicBrainz n'a rien rendu, et la carte de revue
+« Ambiguous release » n'a aucun candidat à proposer. La même sortie se prend depuis les quatre
+surfaces, et elle pose `options.untaggedFallback` sur cet import-là puis relance `match` :
+
+- **Console** — la carte de revue offre la réponse « Import it from the YouTube tags instead »,
+  à côté de « Cancel this import ». Elle n'est pas présélectionnée : c'est un résultat moindre
+  que l'on choisit délibérément, après avoir lu ce qu'il coûte ;
+- **API** — `untaggedFallback: true` sur `POST /api/v1/inbox/{id}/resolve`, et sur
+  `POST /api/v1/inbox/resolve` pour répondre à tout un lot d'un coup ;
+- **MCP** — le même champ sur `resolve_inbox` ;
+- **CLI** — `mm inbox resolve <id> --untagged`.
+
+```bash
+# les huit albums parqués d'un coup, pour un agent
+curl -sS -X POST "$MM_URL/api/v1/inbox/resolve" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d '{"itemIds":["ibx_…","ibx_…"],"untaggedFallback":true}'
+```
+
+`accept: true` ne répond **pas** à ces cartes-là : leur réponse présélectionnée est
+« annuler », et une acceptation qui ne nomme aucune sortie n'est pas une réponse — l'API la
+refuse en le disant. Un élément auquel la sortie ne s'applique pas (une empreinte qui ne
+concorde pas, par exemple) revient dans `failed`, et son import n'est pas touché.
+
+---
+
 ## 6. Sauvegarde et restauration
 
 ```bash
