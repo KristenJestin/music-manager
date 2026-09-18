@@ -42,7 +42,7 @@
  * feature worse than the counter it replaces: it invites the owner to re-download a file he
  * already has, over the top of itself.
  */
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
 import type { MbRelease } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -461,15 +461,4 @@ export async function createSourcelessImportTrack(
     });
   }
   return created;
-}
-
-/** Rows this import holds for a slot, exported for the tests that check the materialisation. */
-export async function sourcelessTracksOf(
-  importId: string,
-  db: Database = defaultDb(),
-): Promise<readonly (typeof importTracks.$inferSelect)[]> {
-  return await db
-    .select()
-    .from(importTracks)
-    .where(and(eq(importTracks.importId, importId), eq(importTracks.videoId, "")));
 }
