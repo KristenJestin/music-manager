@@ -1,5 +1,5 @@
-import type { APIRequestContext, Page } from "@playwright/test";
-import { expect, test, signIn, typeInto } from "./helpers.ts";
+import type { APIRequestContext } from "@playwright/test";
+import { expect, test, mintKey, signIn, typeInto } from "./helpers.ts";
 
 /**
  * The public API, driven the way an agent would drive it.
@@ -14,54 +14,6 @@ import { expect, test, signIn, typeInto } from "./helpers.ts";
  * one, and because the secret exists for exactly one render: if the panel that shows it ever
  * stops working there is no other way to recover the key, and this spec is what would notice.
  */
-
-/** A key with these scopes, minted through Settings › API & agents. Returns the plaintext. */
-async function mintKey(page: Page, name: string, scopes: readonly string[]): Promise<string> {
-  await page.goto("/settings/api");
-  await expect(page.getByTestId("settings-api")).toBeVisible({ timeout: 60_000 });
-
-  await typeInto(page.getByTestId("key-name"), name);
-
-  /*
-   * The chips are a toggle group with two on by default, so each one is set to what this call
-   * wants rather than cleared and re-ticked.
-   *
-   * Resolved from `getByRole("button")` and **not** from `getByRole("button", {pressed:true})`:
-   * `.all()` hands back `nth(0…n-1)` locators against the filter it was given, and that filter
-   * is re-evaluated at click time — so clearing the first pressed chip makes the second one
-   * vanish from the set, and `nth(1)` waits thirty seconds for an element that no longer
-   * matches. Filtering on a property the click itself changes is the trap; the set of buttons
-   * is stable, their `aria-pressed` is not.
-   */
-  const scopeGroup = page.getByTestId("key-scopes");
-  for (const chip of await scopeGroup.getByRole("button").all()) {
-    const label = ((await chip.textContent()) ?? "").trim();
-    const on = (await chip.getAttribute("aria-pressed")) === "true";
-    if (on !== scopes.includes(label)) await chip.click();
-  }
-
-  /*
-   * Wait on the three things Create is disabled for, rather than on Create itself.
-   *
-   * The button is `disabled` until React has a name and at least one scope in *state*, and the
-   * server-rendered HTML is on screen well before React attaches — so a click can land on a
-   * button that is still disabled and Playwright then waits thirty seconds and reports only
-   * "element is not enabled", which says nothing about which of the three inputs was missing.
-   * Asserting them separately turns that into a failure that names its own cause.
-   */
-  await expect(page.getByTestId("key-name")).toHaveValue(name);
-  await expect(scopeGroup.getByRole("button", { pressed: true })).toHaveCount(scopes.length);
-  await expect(page.getByTestId("create-key")).toBeEnabled({ timeout: 30_000 });
-  await page.getByTestId("create-key").click();
-
-  // Shown once, and only once. If this panel is missing the key is unrecoverable.
-  const secret = page.getByTestId("secret-value");
-  await expect(secret).toBeVisible({ timeout: 60_000 });
-  const value = (await secret.textContent()) ?? "";
-  expect(value, "the key's plaintext should be shown once").toMatch(/^mm_/);
-  await page.getByTestId("dismiss-secret").click();
-  return value;
-}
 
 test.describe("the REST API", () => {
   test("a key created in the Console authenticates, and its scopes are enforced", async ({

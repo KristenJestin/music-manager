@@ -228,3 +228,77 @@ export async function readDismissals(): Promise<{ subject: string; label: string
     await sql.end();
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* an album with a hole in it                                          */
+/* ------------------------------------------------------------------ */
+
+export interface DetachedTrack {
+  readonly id: string;
+  readonly title: string;
+  readonly discNumber: number;
+  readonly trackNumber: number;
+}
+
+/**
+ * Take one track out of an album, and hand back what it was so it can be put back.
+ *
+ * The situation, not a shortcut. An album whose playlist published sixteen of twenty tracks
+ * *is* an album row with four of the release's tracks unaccounted for, and this is the
+ * smallest true way to reach that from a fixture whose listing is complete. Nothing else is
+ * written — the file stays exactly where `place` put it, the counters are left to whoever owns
+ * them, and `album_id` is the one column touched — so re-attaching is the exact inverse and
+ * the specs that run after this one see the album they would have seen.
+ *
+ * Deliberately **not** a delete: a deleted row cannot be restored, and this suite is serial
+ * against one database and one library directory.
+ */
+export async function detachAlbumTrack(albumId: string): Promise<DetachedTrack | null> {
+  const sql = connect();
+  try {
+    // The second track, so the hole is *between* two present rows: the claim the album page
+    // makes is that a missing track is drawn at its own position, and a gap at the end of the
+    // list would be satisfied by an implementation that simply appended.
+    const rows = await sql<
+      { id: string; title: string; disc_number: number | null; track_number: number | null }[]
+    >`
+      select id, title, disc_number, track_number
+        from library_tracks
+       where album_id = ${albumId} and track_number is not null
+       order by disc_number nulls first, track_number
+       offset 1 limit 1`;
+    const row = rows[0];
+    if (row === undefined) return null;
+    await sql`update library_tracks set album_id = null where id = ${row.id}`;
+    return {
+      id: row.id,
+      title: row.title,
+      discNumber: row.disc_number ?? 1,
+      trackNumber: row.track_number ?? 0,
+    };
+  } finally {
+    await sql.end();
+  }
+}
+
+/** Put back what `detachAlbumTrack` took out. */
+export async function reattachAlbumTrack(albumId: string, trackId: string): Promise<void> {
+  const sql = connect();
+  try {
+    await sql`update library_tracks set album_id = ${albumId} where id = ${trackId}`;
+  } finally {
+    await sql.end();
+  }
+}
+
+/** The album's MusicBrainz release, so a spec can say whether the tracklist is knowable. */
+export async function albumReleaseMbid(albumId: string): Promise<string | null> {
+  const sql = connect();
+  try {
+    const rows = await sql<{ release_mbid: string | null }[]>`
+      select release_mbid from library_albums where id = ${albumId}`;
+    return rows[0]?.release_mbid ?? null;
+  } finally {
+    await sql.end();
+  }
+}

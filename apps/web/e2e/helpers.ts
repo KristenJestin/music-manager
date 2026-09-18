@@ -329,3 +329,65 @@ export async function typeInto(field: Locator, text: string): Promise<void> {
 export function mappingRow(page: Page, title: string) {
   return page.locator(`[data-testid="mapping-row"][data-video-title="${title}"]`);
 }
+
+/**
+ * A key with these scopes, minted through Settings › API & agents. Returns the plaintext.
+ *
+ * Through the Console, because that is the only way a real user gets one, and because the
+ * secret exists for exactly one render: if the panel that shows it ever stops working there
+ * is no other way to recover the key, and the specs that call this are what would notice.
+ *
+ * Here rather than in `api.spec.ts` because two specs mint keys now — the API's own and the
+ * one that checks an album's missing tracks read the same through `/api/v1` as through the
+ * page. Importing it from a spec file would re-register that spec's tests in the importer.
+ */
+export async function mintKey(
+  page: Page,
+  name: string,
+  scopes: readonly string[],
+): Promise<string> {
+  await page.goto("/settings/api");
+  await expect(page.getByTestId("settings-api")).toBeVisible({ timeout: 60_000 });
+
+  await typeInto(page.getByTestId("key-name"), name);
+
+  /*
+   * The chips are a toggle group with two on by default, so each one is set to what this call
+   * wants rather than cleared and re-ticked.
+   *
+   * Resolved from `getByRole("button")` and **not** from `getByRole("button", {pressed:true})`:
+   * `.all()` hands back `nth(0…n-1)` locators against the filter it was given, and that filter
+   * is re-evaluated at click time — so clearing the first pressed chip makes the second one
+   * vanish from the set, and `nth(1)` waits thirty seconds for an element that no longer
+   * matches. Filtering on a property the click itself changes is the trap; the set of buttons
+   * is stable, their `aria-pressed` is not.
+   */
+  const scopeGroup = page.getByTestId("key-scopes");
+  for (const chip of await scopeGroup.getByRole("button").all()) {
+    const label = ((await chip.textContent()) ?? "").trim();
+    const on = (await chip.getAttribute("aria-pressed")) === "true";
+    if (on !== scopes.includes(label)) await chip.click();
+  }
+
+  /*
+   * Wait on the three things Create is disabled for, rather than on Create itself.
+   *
+   * The button is `disabled` until React has a name and at least one scope in *state*, and the
+   * server-rendered HTML is on screen well before React attaches — so a click can land on a
+   * button that is still disabled and Playwright then waits thirty seconds and reports only
+   * "element is not enabled", which says nothing about which of the three inputs was missing.
+   * Asserting them separately turns that into a failure that names its own cause.
+   */
+  await expect(page.getByTestId("key-name")).toHaveValue(name);
+  await expect(scopeGroup.getByRole("button", { pressed: true })).toHaveCount(scopes.length);
+  await expect(page.getByTestId("create-key")).toBeEnabled({ timeout: 30_000 });
+  await page.getByTestId("create-key").click();
+
+  // Shown once, and only once. If this panel is missing the key is unrecoverable.
+  const secret = page.getByTestId("secret-value");
+  await expect(secret).toBeVisible({ timeout: 60_000 });
+  const value = (await secret.textContent()) ?? "";
+  expect(value, "the key's plaintext should be shown once").toMatch(/^mm_/);
+  await page.getByTestId("dismiss-secret").click();
+  return value;
+}

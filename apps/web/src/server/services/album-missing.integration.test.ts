@@ -121,7 +121,9 @@ async function fileOneTrack(importId: string, trackId: string): Promise<void> {
   });
   for (const step of ["fingerprint", "tag", "place"] as const) {
     const outcome = await jobs.runTrackStep(importId, trackId, step, { db: db() });
-    expect(outcome.status, `${step}: ${outcome.message ?? ""}`).not.toBe("failed");
+    expect(["done", "skipped"], `${step}: ${outcome.result.message ?? ""}`).toContain(
+      outcome.result.status,
+    );
   }
 }
 
@@ -147,6 +149,18 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
     const { seedFixtures } = await import("#/server/integrations/seed-fixtures.ts");
     await seedFixtures();
 
+    /*
+     * The fingerprint safety net off, and only here.
+     *
+     * Every track in this test is given the *same* five-second sample, because the subject is
+     * which slots of a release are filled and not what is in them. One sample cannot match
+     * four different recordings, so the net would stop three of the four on a disagreement it
+     * is right to raise — an artefact of the fixture, not a fact about album holes.
+     * `review.spec.ts` is where the net itself is exercised.
+     */
+    const settings = await import("./settings.ts");
+    await settings.setSettings({ verifyFingerprint: false }, { db: db() });
+
     rmSync(LIBRARY_HOST, { recursive: true, force: true });
     mkdirSync(HELD, { recursive: true });
     copyFileSync(SAMPLE, join(HELD, "held.opus"));
@@ -160,13 +174,16 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
     importId = created.job.id;
     for (const step of ["match", "confirm"] as const) {
       const outcome = await jobs.runStep(importId, step, { db: db() });
+      // `runStep` answers with a `StepResult` directly; `runTrackStep` wraps one in `.result`.
       expect(outcome.status, `${step}: ${outcome.message ?? ""}`).not.toBe("failed");
     }
 
     const mapped = await db()
       .select()
       .from(schema.importTracks)
-      .where(and(eq(schema.importTracks.importId, importId), eq(schema.importTracks.role, "mapped")))
+      .where(
+        and(eq(schema.importTracks.importId, importId), eq(schema.importTracks.role, "mapped")),
+      )
       .orderBy(schema.importTracks.trackPosition);
     expect(mapped.length).toBeGreaterThan(5);
 
@@ -309,7 +326,9 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
 
     for (const step of ["fingerprint", "tag", "place"] as const) {
       const outcome = await jobs.runTrackStep(importId, result.trackId, step, { db: db() });
-      expect(outcome.status, `${step}: ${outcome.message ?? ""}`).not.toBe("failed");
+      expect(["done", "skipped"], `${step}: ${outcome.result.message ?? ""}`).toContain(
+        outcome.result.status,
+      );
     }
 
     const after = await albumMissingTracks(albumId, { db: db() });
@@ -348,7 +367,9 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
 
     for (const step of ["fingerprint", "tag", "place"] as const) {
       const outcome = await jobs.runTrackStep(importId, result.trackId, step, { db: db() });
-      expect(outcome.status, `${step}: ${outcome.message ?? ""}`).not.toBe("failed");
+      expect(["done", "skipped"], `${step}: ${outcome.result.message ?? ""}`).toContain(
+        outcome.result.status,
+      );
     }
 
     const after = await albumMissingTracks(albumId, { db: db() });
