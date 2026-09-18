@@ -167,9 +167,22 @@ const PROGRESS: Partial<Record<TrackState, number>> = {
   done: 4,
 };
 
-/** True when the track will never move again by itself. */
+/**
+ * True when the track will never move again by itself.
+ *
+ * `sourceless` joins the other two rather than sitting at rank 0 with `pending`, and the
+ * difference is the whole of what makes such a row safe. A `pending` track is one the
+ * pipeline still owes work to; a `sourceless` one has **no video to fetch**, so there is no
+ * work to owe. Left as non-terminal it would be picked up by `download`, fail, and take the
+ * album down with it — and `aggregateStatus` below would never reach `done === total`, so the
+ * `fingerprint` and `place` rows would stay `running` and the import would never finish.
+ *
+ * "By itself" is the operative phrase in all three cases: a person adopting a file or a
+ * replacement address onto this row moves it to `downloaded`, and from that instant it is an
+ * ordinary track again.
+ */
 export function isTrackTerminal(state: TrackState): boolean {
-  return state === "skipped" || state === "failed";
+  return state === "skipped" || state === "failed" || state === "sourceless";
 }
 
 /**
@@ -208,7 +221,20 @@ export function aggregateStatus(
   tracks: readonly { readonly state: TrackState }[],
   step: LocalStep,
 ): { status: StepStatus; done: number; total: number } {
-  const active = tracks.filter((track) => track.state !== "skipped");
+  /*
+   * `skipped` and `sourceless` are both excluded, for the same reason and not quite the same
+   * one. A skipped track is already in the library; a sourceless one has no video to put
+   * there. Neither is a track this *step* has anything to do, so neither belongs in the
+   * denominator — an album of twenty whose twentieth has no video reads "19 of 19" for
+   * `fingerprint`, and the step can finish. What it must not read is "19 of 20" for ever,
+   * which is a step row stuck at `running` and an import that never settles.
+   *
+   * The gap is not thereby hidden: it is a row, it is on the page greyed out, and the album's
+   * completeness is measured over the *release* rather than over this projection.
+   */
+  const active = tracks.filter(
+    (track) => track.state !== "skipped" && track.state !== "sourceless",
+  );
   const total = active.length;
   if (total === 0) return { status: "skipped", done: 0, total: 0 };
   const done = active.filter((track) => hasPassed(track.state, step)).length;

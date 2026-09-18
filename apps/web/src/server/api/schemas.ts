@@ -454,12 +454,27 @@ export const importDetailSchema = importSchema
     ),
     tracks: z.array(
       z.object({
-        id: z.string(),
+        id: z.string().openapi({
+          description:
+            "The `import_tracks` id. This is what `POST /imports/{id}/tracks/{trackId}/file` " +
+            "takes, including for a track whose `status` is `sourceless`.",
+        }),
         position: z.number(),
-        videoId: z.string(),
+        videoId: z
+          .string()
+          .nullable()
+          .openapi({
+            description:
+              "The video this track came from, or **null** when it came from no video — a " +
+              "track of the confirmed release that the source never published. Such a track " +
+              'has `status: "sourceless"` and is waiting for a file or a replacement address.',
+          }),
         title: z.string(),
         durationSeconds: z.number().nullable(),
         status: z.string(),
+        /** Where this track sits on the record, which is all a sourceless one has. */
+        trackPosition: z.number().nullable(),
+        mediumPosition: z.number().nullable(),
       }),
     ),
     inbox: z.array(

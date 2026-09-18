@@ -38,7 +38,7 @@ import { MMError } from "@mm/contracts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { importTracks, type Import, type ImportTrack } from "#/server/db/schema/index.ts";
 import { asc, eq } from "drizzle-orm";
-import { toMatchVideo } from "#/server/services/jobs/steps/match.ts";
+import { toMatchVideo, videoRows } from "#/server/services/jobs/steps/match.ts";
 import {
   cassetteGateway,
   liveGateway,
@@ -101,7 +101,9 @@ export async function videosOf(
     .from(importTracks)
     .where(eq(importTracks.importId, importId))
     .orderBy(asc(importTracks.position));
-  return { rows, videos: rows.map(toMatchVideo) };
+  // Only the rows that came from the listing: a `sourceless` row is a track of the release
+  // with no video, and the matcher has nothing to score it against (`services/sourceless.ts`).
+  return { rows, videos: videoRows(rows).map(toMatchVideo) };
 }
 
 /** What the source believes the album is — YouTube tags plus the parsed description. */

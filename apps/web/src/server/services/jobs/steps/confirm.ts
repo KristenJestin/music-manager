@@ -16,10 +16,15 @@
  * grants, and it is per source, off by default, and spent only on an unambiguous match.
  */
 import { and, eq } from "drizzle-orm";
+import { MMError } from "@mm/contracts";
 import { decisions, imports, jobSteps, type ImportTrack } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
 import { learnPreferences } from "#/server/services/matching.preferences.ts";
 import { listInbox, openInboxItem, resolveInboxItem } from "#/server/services/inbox.ts";
+import {
+  cellsFromUncoveredPayload,
+  materialiseSourcelessTracks,
+} from "#/server/services/sourceless.ts";
 import type { StepResult } from "../machine.ts";
 import type { StepContext } from "../context.ts";
 
@@ -355,6 +360,63 @@ async function confirmForWatchedSource(
   };
 }
 
+/**
+ * Turn this import's `uncovered_tracks` notice into `sourceless` rows, and say how many.
+ *
+ * Reads the item whatever its status. An owner who answered the notice with "import anyway"
+ * before the worker reached `confirm` said *carry on without those tracks*, not *pretend the
+ * record has nineteen*: the gap is the same gap, and the row is what finally makes it
+ * actionable. The notice is left exactly as it was — this function only reads.
+ *
+ * Every failure is swallowed into a journal line on purpose. See the call site: a release has
+ * just been confirmed and eighteen tracks are ready to download, and none of that may be
+ * undone because a payload would not parse.
+ */
+async function materialiseGaps(ctx: StepContext, decidedBy: string): Promise<number> {
+  try {
+    const item = (await listInbox({ importId: ctx.job.id }, ctx.db))
+      .filter((row) => row.type === "uncovered_tracks")
+      .at(-1);
+    if (item === undefined) return 0;
+
+    const cells = cellsFromUncoveredPayload(item.payload);
+    if (cells.length === 0) return 0;
+
+    const { created } = await materialiseSourcelessTracks({
+      importId: ctx.job.id,
+      cells,
+      by: decidedBy,
+      db: ctx.db,
+    });
+    if (created.length === 0) return 0;
+
+    await ctx.say(
+      "tracks.sourceless",
+      `${String(created.length)} track(s) of this release have no video and are waiting for a file or an address`,
+      {
+        level: "info",
+        data: {
+          created: created.length,
+          tracks: created.map((row) => ({
+            id: row.id,
+            mediumPosition: row.mediumPosition,
+            trackPosition: row.trackPosition,
+            title: row.trackTitle,
+          })),
+        },
+      },
+    );
+    return created.length;
+  } catch (error) {
+    await ctx.say(
+      "tracks.sourceless",
+      `The uncovered tracks of this release could not be listed: ${MMError.from(error).message}`,
+      { level: "warn" },
+    );
+    return 0;
+  }
+}
+
 /** Answer the item that was asking for this yes — either of the two — if it is still open. */
 async function closeConfirmItem(ctx: StepContext, decidedBy: string): Promise<void> {
   const { WAITING_FOR_YES } = await import("#/server/services/confirm.ts");
@@ -494,6 +556,27 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
   await ctx.db.update(imports).set({ updatedAt: new Date() }).where(eq(imports.id, ctx.job.id));
 
   /*
+   * Give the tracks nothing covers a row of their own, now that the release is a decision.
+   *
+   * **Here, and not in `match`.** `match` *proposes* a release; until this line runs, the
+   * tracklist it proposed might still be replaced by another — a re-match, a different
+   * candidate chosen from the review card — and rows created off a proposal would have to be
+   * deleted again when it changed. Confirmation is the first instant the tracklist is settled,
+   * which makes it the first instant a gap in it is a fact rather than a guess. It is also
+   * literally what the owner asked for: the rows appear when you say yes.
+   *
+   * The grid comes from the `uncovered_tracks` notice `match` already wrote, which is the same
+   * grid the owner was shown before pressing Confirm — so what gets created is what the card
+   * listed, and this costs no MusicBrainz lookup at a point where somebody is waiting.
+   *
+   * Failure here is **not** a failed confirmation. The release has been chosen, the decision
+   * row is written, and the tracks that do have videos are ready to download; refusing all of
+   * that because a notice could not be read would trade a complete album for an incomplete
+   * one. The gap stays a notice, which is what it was before this existed.
+   */
+  const sourceless = await materialiseGaps(ctx, decidedBy);
+
+  /*
    * The question has been answered, so it stops being asked.
    *
    * Whoever opened the gate — the wizard, `confirm-mapping`, `confirm-best`, MCP, `--yes` —
@@ -517,7 +600,11 @@ export async function confirmStep(ctx: StepContext): Promise<StepResult> {
 
   return {
     status: "done",
-    message: `Confirmed automatically (${decidedBy}): ${String(mapped.length)} track(s).`,
-    data: { decidedBy, tracks: mapped.length, learnedFrom: learned?.from ?? 0 },
+    message:
+      `Confirmed automatically (${decidedBy}): ${String(mapped.length)} track(s).` +
+      (sourceless === 0
+        ? ""
+        : ` ${String(sourceless)} track(s) of the release have no video and are waiting for a source.`),
+    data: { decidedBy, tracks: mapped.length, sourceless, learnedFrom: learned?.from ?? 0 },
   };
 }

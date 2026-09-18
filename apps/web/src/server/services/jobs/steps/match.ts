@@ -145,7 +145,25 @@ export function mappingFromOptions(job: {
  * to whatever yt-dlp decided to call them this month, and the matcher is the only thing that
  * cares.
  */
-export function toMatchVideo(row: ImportTrack): MatchVideo {
+/**
+ * An `import_tracks` row that really is a video — the only kind the matcher can be given.
+ *
+ * `video_id` and `url` became nullable with the `sourceless` state: a track of the release
+ * that no video covers has a row so that a file or an address can be adopted onto it
+ * (`services/sourceless.ts`). Such a row is not an input to matching — there is nothing to
+ * score, no title to compare, no duration the source claimed — and it is already bound to the
+ * track it belongs to. Feeding it in would at best waste a comparison and at worst see it
+ * unbound as an "extra video", which is how the gap this whole feature closes would re-open on
+ * the next re-match.
+ */
+type VideoRow = ImportTrack & { readonly videoId: string; readonly url: string };
+
+/** The rows of an import that came from the listing, narrowed so the compiler agrees. */
+export function videoRows(rows: readonly ImportTrack[]): VideoRow[] {
+  return rows.filter((row): row is VideoRow => row.videoId !== null && row.url !== null);
+}
+
+export function toMatchVideo(row: VideoRow): MatchVideo {
   const raw = row.raw;
   const text = (key: string): string | null => {
     const value = raw[key];
@@ -410,7 +428,10 @@ export async function matchStep(ctx: StepContext): Promise<StepResult> {
 }
 
 async function runMatch(ctx: StepContext): Promise<StepResult> {
-  const rows = await ctx.tracks();
+  // Only the rows that are videos. A re-match of an import that already has `sourceless` rows
+  // must leave them exactly where they are: they are bound to tracks of the release, not to
+  // anything in the listing, and every path below reasons about the listing.
+  const rows = videoRows(await ctx.tracks());
   if (rows.length === 0) {
     return { status: "failed", message: "Nothing to match: the import has no videos." };
   }
@@ -517,7 +538,7 @@ async function untaggedFallback(
       ),
     );
 
-  const videos = rows.map(toMatchVideo);
+  const videos = videoRows(rows).map(toMatchVideo);
   const hints = albumHints(videos, {
     album: ctx.job.title,
     artist: ctx.job.artist,

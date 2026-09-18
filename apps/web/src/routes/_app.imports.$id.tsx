@@ -435,13 +435,22 @@ function JobPage() {
                 already in it — and because the two are the same offer seen from two sides,
                 "try again" and "stop trying". Offered on exactly the same condition, so a
                 track never shows one without the other. */}
-            {track.role === "mapped" && (track.state === "failed" || track.error !== null) ? (
+            {track.role === "mapped" &&
+            (track.state === "failed" || track.state === "sourceless" || track.error !== null) ? (
               <Button
                 size="icon-sm"
                 variant="outline"
                 data-testid="track-adopt"
-                aria-label={`Adopt a local file for ${track.sourceTitle}`}
-                title="Adopt a local file — for a deleted video, an age check, or a library you already have"
+                aria-label={
+                  track.state === "sourceless"
+                    ? `Give ${track.sourceTitle} a source`
+                    : `Adopt a local file for ${track.sourceTitle}`
+                }
+                title={
+                  track.state === "sourceless"
+                    ? "This track of the release has no video. Give it a file, or an address to download it from."
+                    : "Adopt a local file — for a deleted video, an age check, or a library you already have"
+                }
                 disabled={busy !== null}
                 onClick={() => {
                   setAdopting(track);
@@ -759,6 +768,12 @@ function JobPage() {
           columns={columns}
           rows={tracks}
           rowKey={(track) => track.id}
+          /* A track of the record the source never published is **greyed**: it is a real line
+             of the album, it is not something that failed, and it is not something that is
+             going to happen on its own. Dimming says all three at once, and leaves the Adopt
+             button in the Status column at full contrast — which is the only thing on the row
+             anybody can act on. */
+          rowClassName={(track) => (track.state === "sourceless" ? "opacity-60" : undefined)}
           empty="No videos resolved yet."
         />
       </section>

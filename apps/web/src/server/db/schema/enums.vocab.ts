@@ -92,7 +92,24 @@ export const STEP_STATUSES = [
 ] as const;
 export type StepStatus = (typeof STEP_STATUSES)[number];
 
-/** How far one video has travelled. Ordered: each value implies the previous ones. */
+/**
+ * How far one video has travelled. Ordered: each value implies the previous ones — except for
+ * the last three, which are ways of *leaving* the line rather than positions on it.
+ *
+ * `sourceless` is the newest, and it is the one state that describes a row with **no video at
+ * all**. YouTube publishes nineteen titles, the confirmed release has twenty: the twentieth is
+ * a real track of the record that nothing covers, and until it existed there was no id to hang
+ * a file on — `import_tracks` is born from a video, so the adoption refused with
+ * `ADOPT_NOT_READY`, "this video is not bound to a track", and the album could never be
+ * finished. Such a row is materialised at confirmation (`services/sourceless.ts`) carrying its
+ * position, title and expected duration, and it exists to be given a file or a replacement
+ * address.
+ *
+ * It is deliberately **terminal**, in the same family as `skipped`: nothing will move it
+ * without a person, it must never be downloaded, and it must never keep an import open. The
+ * moment somebody adopts onto it, it becomes `downloaded` like any other track and the rest of
+ * the pipeline stops being able to tell the difference.
+ */
 export const TRACK_STATES = [
   "pending",
   "downloaded",
@@ -102,6 +119,7 @@ export const TRACK_STATES = [
   "done",
   "skipped",
   "failed",
+  "sourceless",
 ] as const;
 export type TrackState = (typeof TRACK_STATES)[number];
 

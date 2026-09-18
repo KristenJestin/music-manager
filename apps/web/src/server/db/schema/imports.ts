@@ -233,10 +233,28 @@ export const importTracks = pgTable(
     importId: text("import_id")
       .notNull()
       .references(() => imports.id, { onDelete: "cascade" }),
-    /** Position in the source listing, as yt-dlp numbered it. */
+    /**
+     * Position in the source listing, as yt-dlp numbered it.
+     *
+     * A `sourceless` row has no place in that listing, so it is given one *after* the last
+     * real entry. The column stays `notNull` and stays unique per import: it is what
+     * `applySupplied` joins a supplied mapping on, and a null there would make every
+     * sourceless row collide with every other. The musical position lives, as it does for
+     * every other row, in `(mediumPosition, trackPosition)`.
+     */
     position: integer("position").notNull(),
-    videoId: text("video_id").notNull(),
-    url: text("url").notNull(),
+    /**
+     * The video this row came from — **null when there is no video**.
+     *
+     * Nullable since the `sourceless` state: a track of the confirmed release that no video
+     * covers has no id, no URL and no yt-dlp entry, and inventing one would put a video that
+     * does not exist into `COMMENT` and into the reconciliation. Every reader that joins on
+     * this column is joining a *listing* to its rows, and a sourceless row is not in the
+     * listing, so `null` is exactly the right answer and never a missing one.
+     */
+    videoId: text("video_id"),
+    /** The video's page URL. Null for a `sourceless` row, for the same reason as `videoId`. */
+    url: text("url"),
     sourceTitle: text("source_title").notNull(),
     sourceDuration: doublePrecision("source_duration"),
     uploader: text("uploader"),

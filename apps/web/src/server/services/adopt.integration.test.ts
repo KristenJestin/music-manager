@@ -462,7 +462,9 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
       expect(code, address).toBe("INVALID_INPUT");
     }
     // And nothing was staged for any of them: the refusal is before the toolbox is called.
-    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(false);
+    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(
+      false,
+    );
   });
 
   it("downloads from the replacement address into the work path, as a file would have", async () => {
@@ -482,7 +484,9 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
     expect(result.path).toBe(`.mm-work/${urlImportId}/${urlTrackId}.opus`);
     expect(result.codec).toBe("opus");
     expect(result.nextStep).toBe("fingerprint");
-    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(true);
+    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(
+      true,
+    );
     // The staging stem is gone. It exists so a half-finished download is invisible to
     // `fileReady` and to `workPathOf`; leaving one behind would be a file nobody accepted.
     expect(

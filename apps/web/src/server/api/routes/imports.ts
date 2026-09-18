@@ -325,10 +325,14 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
           tracks: detail.tracks.map((track) => ({
             id: track.id,
             position: track.position,
+            // Null for a `sourceless` track: it came from no video. The id above is still the
+            // one the adopt route takes, which is the whole point of the row existing.
             videoId: track.videoId,
             title: track.sourceTitle,
             durationSeconds: track.sourceDuration,
             status: track.state,
+            trackPosition: track.trackPosition,
+            mediumPosition: track.mediumPosition,
           })),
           inbox: detail.inbox.map((item) => ({
             id: item.id,

@@ -15,8 +15,17 @@ import { PatchBuilder } from "./patch.ts";
 export interface AppProvenance {
   /** The import job this track belongs to. */
   readonly importId: string;
-  /** The URL the audio came from — the machine-readable twin of `COMMENT`. */
-  readonly sourceUrl: string;
+  /**
+   * The URL the audio came from — the machine-readable twin of `COMMENT`.
+   *
+   * **`null` when there genuinely is not one.** A track of a release that the source never
+   * published has a row of its own so that a file can be adopted onto it, and that row has no
+   * video and no URL. Writing an empty string, or the import's own playlist URL, would put a
+   * value into the one field the library scan, the v1 reconciliation and the re-tag all match
+   * on — and they would match the wrong thing, or match every such track to each other.
+   * Absent is the truth, and `n/a` is how this document says absent.
+   */
+  readonly sourceUrl: string | null;
   /** `TAG_SCHEMA_VERSION`; see ../schema.ts. */
   readonly tagSchemaVersion: number;
   /** Encoder identification, when the toolbox transcoded rather than remuxed. */
@@ -29,7 +38,11 @@ export function fromApp(provenance: AppProvenance): DocumentPatch {
 
   patch.set("musicmanager_tagschema", provenance.tagSchemaVersion);
   patch.set("musicmanager_importid", provenance.importId);
-  patch.set("musicmanager_sourceurl", provenance.sourceUrl);
+  patch.setOrNa(
+    "musicmanager_sourceurl",
+    provenance.sourceUrl ?? undefined,
+    "this track came from no source of its own; a file was adopted onto it",
+  );
   if (provenance.encodedBy !== undefined) patch.set("encodedby", provenance.encodedBy);
 
   // §2.4/§2.6: nothing in our pipeline produces these, and no source ever will for a

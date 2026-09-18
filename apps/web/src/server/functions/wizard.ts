@@ -40,7 +40,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { STRICT, sessionMiddleware, toFailure } from "#/server/functions/base.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
 import { pauseImport, runStep } from "#/server/services/jobs/index.ts";
-import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
+import { videoRows, type SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { duplicatesOf } from "#/server/services/console.queries.ts";
 import { confirmSupplied } from "#/server/services/confirm.ts";
 import { resolveMbRef, type ResolveInput, type ResolvedRef } from "#/server/services/mb-resolve.ts";
@@ -138,10 +138,21 @@ export interface SourceView {
 
 function toSourceView(
   job: Import,
-  rows: readonly ImportTrack[],
+  allRows: readonly ImportTrack[],
   duplicates: readonly Import[],
   reused = false,
 ): SourceView {
+  /*
+   * The wizard shows **the source**, so it shows the rows that came from it.
+   *
+   * A `sourceless` row is a track of the release that the source never published
+   * (`services/sourceless.ts`); it has no video id, no thumbnail and no yt-dlp entry, and it
+   * is created at confirmation — after this screen. It cannot appear here on a first pass, but
+   * it can on a second (a re-match sends an already-confirmed import back through), and
+   * listing it as a video of the source would be a plain falsehood: it would be counted in
+   * "19 videos", offered for mapping, and fed to `albumHints` as a title with no uploader.
+   */
+  const rows = videoRows(allRows);
   const videos = rows.map((row) => {
     const raw = row.raw;
     const track = raw["track"];

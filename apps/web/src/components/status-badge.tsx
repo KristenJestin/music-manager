@@ -85,6 +85,13 @@ export const TRACK_STATE_META: Record<TrackState, { label: string; tone: Tone }>
   done: { label: "Done", tone: "ok" },
   skipped: { label: "Skipped", tone: "muted" },
   failed: { label: "Failed", tone: "danger" },
+  /*
+   * `warn`, not `danger` and not `muted`. Nothing has gone wrong — this track of the record
+   * simply has no video — but it is not finished either, and it is the one row on the page
+   * that is waiting for the owner to do something. `muted` would file it away next to
+   * "Skipped", which means *spared*; `danger` would say the import is broken, which it is not.
+   */
+  sourceless: { label: "No source", tone: "warn" },
 };
 
 /** Label and tone of every outcome one step can have. */

@@ -169,6 +169,13 @@
       "when": 1789674802004,
       "tag": "0023_jittery_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789723953149,
+      "tag": "0024_workable_joseph",
+      "breakpoints": true
     }
   ]
 }

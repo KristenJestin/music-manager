@@ -535,6 +535,14 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "`mediumPosition`, `recordingMbid`, `trackMbid`, `trackTitle` — which is exactly the " +
         "shape `confirm_mapping.bindings[]` expects. Re-confirming an import without losing " +
         "its identifiers is therefore a copy, not a guess.\n\n" +
+        "Each entry also carries its own `id`, which is the `trackId` that " +
+        "`adopt_track_file` takes.\n\n" +
+        '**`state: "sourceless"` is a track of the confirmed release that the source never ' +
+        "published** — nineteen videos against a twenty-track record. It has `videoId: null` " +
+        "and no position in the listing, it is never downloaded, and it does not make the " +
+        "import fail or keep it running; the import finishes and says nineteen of twenty. It " +
+        "is there so you can *finish the record*: call `adopt_track_file` with its `id` and " +
+        "either a file or a replacement address. `sourcelessCount` is how many there are.\n\n" +
         "**When polling, leave about " +
         `${String(Math.round(SUGGESTED_POLL_INTERVAL_MS / 1000))} second(s) between calls.** An API key is limited to ` +
         `${String(KEY_RATE_LIMIT.maxRequests)} requests per ` +
@@ -567,6 +575,15 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           // `failedCount` at the job level, because a job can sit at `running` with
           // `error: null` while five of its tracks fail in a loop — which is what it did.
           failedCount: detail.tracks.filter((track) => track.state === "failed").length,
+          /*
+           * Tracks of the confirmed release that no video covers, and which are therefore
+           * waiting for `adopt_track_file`.
+           *
+           * Beside `failedCount` because it answers the same question — "what does this
+           * import still need from me?" — with a different answer. A failed track has a video
+           * and needs a retry; a sourceless one has none and needs a source.
+           */
+          sourcelessCount: detail.tracks.filter((track) => track.state === "sourceless").length,
           steps: detail.steps.map(({ step, row }) => ({
             step,
             status: row?.status ?? "pending",
@@ -574,7 +591,21 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             error: row?.error ?? null,
           })),
           tracks: detail.tracks.map((track) => ({
+            /*
+             * **The `import_tracks` id, which is what `adopt_track_file` takes.**
+             *
+             * It was never published here, and the omission was load-bearing in the wrong
+             * direction: `adopt_track_file` asks for a `trackId` that `get_import` was the
+             * natural place to learn, so an agent could read an import in full and still have
+             * no way to act on one of its tracks without going to `/api/v1` for the id.
+             *
+             * It matters most for a `sourceless` track, which has no video id and no position
+             * in any listing — this is the *only* handle on it.
+             */
+            id: track.id,
             position: track.position,
+            /** Null on a `sourceless` track: it came from no video. */
+            videoId: track.videoId,
             title: track.sourceTitle,
             durationSeconds: track.sourceDuration,
             state: track.state,

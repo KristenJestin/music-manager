@@ -91,6 +91,16 @@ async function downloadOne(ctx: StepContext, track: ImportTrack): Promise<number
   let lastProgress = 0;
   let size = 0;
 
+  // `url` is nullable since the `sourceless` state, and a null one must never reach the
+  // toolbox. `downloadStep` already skips those rows; this is the compiler's proof of it,
+  // and it would rather say what went wrong than send `"null"` to yt-dlp.
+  if (track.url === null) {
+    throw new MMError("INVALID_INPUT", `${track.sourceTitle} has no source to download.`, {
+      hint: "This track has no video. Adopt a file or a replacement address for it instead.",
+      status: 409,
+    });
+  }
+
   for await (const event of ctx.toolbox.download({
     url: track.url,
     destDir,
@@ -206,6 +216,8 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
   let downloaded = 0;
   let reused = 0;
   let skipped = 0;
+  /** Tracks of the release with no video to fetch. Reported, never downloaded, never failed. */
+  let sourceless = 0;
   const failures: { track: string; error: MMError }[] = [];
 
   for (const track of tracks) {
@@ -216,6 +228,25 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
         message: `Stopped after ${String(downloaded)} download(s).`,
         data: { downloaded, reused, skipped },
       };
+    }
+
+    /*
+     * A track of the release that no video covers: there is nothing here to download.
+     *
+     * **First, before every other branch**, because every one of them assumes a video. The
+     * row carries `url: null` — it was materialised from the confirmed tracklist, not from a
+     * listing (`services/sourceless.ts`) — and `downloadOne` would send that null to the
+     * toolbox, get an error back, mark the track `failed`, and fail the step and therefore
+     * the album. An album with a nineteen-of-twenty gap would be permanently unimportable,
+     * which is the exact defect the sourceless row exists to fix.
+     *
+     * It is not counted as `skipped` either, and that distinction is deliberate: `skipped`
+     * means "already in the library, spared", and this means "waiting for somebody to give it
+     * a source". The state stays `sourceless` so the page keeps offering the adoption.
+     */
+    if (track.state === "sourceless" || track.url === null) {
+      sourceless += 1;
+      continue;
     }
 
     /*
@@ -429,7 +460,7 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
     }
   }
 
-  const summary = { downloaded, reused, skipped, failed: failures.length };
+  const summary = { downloaded, reused, skipped, sourceless, failed: failures.length };
 
   if (failures.length > 0) {
     const first = failures[0]?.error ?? new MMError("UNKNOWN", "Download failed.");
@@ -451,7 +482,11 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
 
   return {
     status: "done",
-    message: `${String(downloaded)} downloaded, ${String(reused)} reused, ${String(skipped)} already present`,
+    message:
+      `${String(downloaded)} downloaded, ${String(reused)} reused, ${String(skipped)} already present` +
+      // Said out loud, because it is the one number that means "this album is not complete and
+      // is waiting for you" rather than "this album is finished".
+      (sourceless === 0 ? "" : `, ${String(sourceless)} with no source yet`),
     data: summary,
   };
 }
