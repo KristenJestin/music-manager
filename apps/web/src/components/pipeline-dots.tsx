@@ -119,6 +119,22 @@ const RANK: Partial<Record<TrackState, number>> = {
   done: 4,
   skipped: 4,
   failed: 4,
+  /*
+   * A track of the release with no video (`services/sourceless.ts`), counted like the other
+   * two terminal states and for the reason stated above: the count answers "how many are
+   * through this step", and a track that will never go through one has stopped, not stalled.
+   *
+   * It has to be **4 and not absent**, because the server's `hasPassed` returns true for every
+   * terminal state and `aggregateStatus` leaves them out of its denominator. Omitting it here
+   * would leave a `Partial` lookup falling through to 0, so a finished album with one gap
+   * would show "13/14 downloaded" under a `download` dot the server had already marked done —
+   * the Console contradicting the server about the same rows.
+   *
+   * The gap is not thereby hidden. The Tracks header still reads `tracksDone / tracks.length`,
+   * where `tracksDone` counts only `placed | done | skipped`, so it says 13 of 14; and the row
+   * itself is on the page, greyed, badged "No source", offering the button that fixes it.
+   */
+  sourceless: 4,
 };
 
 /**
