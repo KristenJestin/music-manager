@@ -141,6 +141,44 @@ export type AdoptSource =
 export type AdoptVia = AdoptSource["kind"];
 
 /**
+ * `AdoptSource` as it travels on the wire — JSON, discriminated on `source`.
+ *
+ * Declared here rather than beside the route that first parsed it, because **four doors decode
+ * this union now**: both `/api/v1` adopt routes, the MCP tools and the Console's two server
+ * functions. Three of them are not the HTTP API, so a decoder living in `api/routes/` would be
+ * a second place where "which flag means which source" is written down — and two copies of that
+ * rule is how the address form came to exist on one door and not on another.
+ *
+ * The zod schemas stay where they are and validate *into* this shape; this is the one function
+ * that turns the validated shape into the service's own union. A structural type rather than
+ * `z.infer`, because `api/schemas.ts` builds on `@hono/zod-openapi`'s zod and this module has no
+ * business importing an OpenAPI generator (see the note at the top of that file).
+ */
+export type AdoptSourceBody =
+  | { readonly source: "path"; readonly path: string }
+  | { readonly source: "upload"; readonly filename: string; readonly content: string }
+  | { readonly source: "url"; readonly url: string };
+
+/**
+ * A `switch` over the discriminant rather than a ternary chain, so that a fourth member of
+ * `AdoptSource` is a compile error here instead of a body silently read as an upload.
+ */
+export function adoptSourceOf(body: AdoptSourceBody): AdoptSource {
+  switch (body.source) {
+    case "path":
+      return { kind: "path", path: body.path };
+    case "url":
+      return { kind: "url", url: body.url };
+    case "upload":
+      return {
+        kind: "upload",
+        filename: body.filename,
+        bytes: new Uint8Array(Buffer.from(body.content, "base64")),
+      };
+  }
+}
+
+/**
  * The address schemes the toolbox may be asked to download from.
  *
  * `http(s)` is every real case; `fixture://` is how the offline end-to-end run and the

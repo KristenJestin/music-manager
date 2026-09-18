@@ -782,6 +782,85 @@ export const albumSchema = z
   })
   .openapi("Album");
 
+/**
+ * One track the album's retained release has and the album does not.
+ *
+ * `mediumPosition` and `trackPosition` travel together and are the slot's whole identity —
+ * `trackPosition` alone is meaningless on a multi-disc release, where every medium restarts
+ * its numbering at 1. Both are what `POST …/missing/{medium}/{position}/file` takes.
+ */
+export const missingTrackSchema = z
+  .object({
+    mediumPosition: z.number().int().openapi({ example: 1, description: "1 on a single disc." }),
+    trackPosition: z
+      .number()
+      .int()
+      .openapi({ example: 2, description: "1-based **within its medium**." }),
+    number: z
+      .string()
+      .openapi({ example: "2", description: "As MusicBrainz prints it — `A2` on a vinyl." }),
+    title: z.string(),
+    artist: z.string().nullable(),
+    trackMbid: z.string().nullable(),
+    recordingMbid: z.string().nullable(),
+    lengthSeconds: z.number().nullable(),
+    mediumTitle: z.string().nullable(),
+  })
+  .openapi("MissingTrack");
+
+export const albumMissingSchema = z
+  .object({
+    albumId: z.string(),
+    releaseMbid: z.string().nullable(),
+    trackCount: z.number().int(),
+    presentCount: z.number().int(),
+    completeness: z.number().nullable(),
+    mediumCount: z.number().int(),
+    missing: z.array(missingTrackSchema),
+    /**
+     * `null` when the comparison ran. Otherwise why it could not — and `missing` is empty,
+     * which a client must **not** read as "this album is complete".
+     */
+    unavailable: z
+      .enum(["no-release", "not-cached"])
+      .nullable()
+      .openapi({
+        description:
+          "`no-release`: the album was imported without MusicBrainz, so there is no tracklist " +
+          "to compare against — re-import it against a release. `not-cached`: the release is " +
+          "not in this installation's raw cache — call `POST /library/albums/{id}/refresh` " +
+          "once, and every call after it is offline again.",
+      }),
+  })
+  .openapi("AlbumMissing");
+
+/**
+ * What filling one hole answers with: the adoption, plus where it landed in the album.
+ *
+ * `counters` is the album **as it is now**, deliberately. `present_count` only moves when
+ * `place` files the track, which happens on the worker after this call has returned, and a
+ * route that answered with the number it expected would be the `1/1` bug of
+ * `album-counters.ts` all over again, in the other direction.
+ */
+export const adoptMissingResultSchema = adoptFileResultSchema
+  .extend({
+    albumId: z.string(),
+    mediumPosition: z.number().int(),
+    trackPosition: z.number().int(),
+    trackTitle: z.string(),
+    materialised: z.boolean().openapi({
+      description:
+        "True when no `import_tracks` row existed for this slot and one was created with " +
+        "no source — the ordinary case for a track the album's playlist never published.",
+    }),
+    counters: z.object({
+      trackCount: z.number().int(),
+      presentCount: z.number().int(),
+      trackCountSource: z.enum(["release", "tags", "rows"]),
+    }),
+  })
+  .openapi("AdoptMissingResult");
+
 export const listAlbumsQuery = paginationQuery.extend({
   filter: z.string().optional(),
   profile: z.string().optional(),

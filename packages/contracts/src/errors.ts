@@ -107,6 +107,17 @@ export const MM_ERROR_CODES = [
   /** The import or the track is not at a point where adopting a file means anything. */
   "ADOPT_NOT_READY",
   /**
+   * An album's holes cannot be named, because there is no tracklist to compare it against.
+   *
+   * Its own code rather than `NOT_FOUND`, on the rule above: the album exists and the request
+   * was well formed, and the two fixes are different sentences — "re-import it against a
+   * release", when it was imported without MusicBrainz at all, or "refetch the release once",
+   * when the release is simply not in this installation's raw cache. Naming the missing
+   * tracks is an *offline* comparison by design, so a cache miss is an answer and not a
+   * reason to spend a MusicBrainz request on a page load.
+   */
+  "ALBUM_NO_TRACKLIST",
+  /**
    * `mm import <folder>` was pointed at a folder that holds nothing the tagger can read.
    *
    * Its own code rather than `INVALID_INPUT`, on the rule above: the fix is its own sentence,

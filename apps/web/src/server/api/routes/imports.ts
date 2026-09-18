@@ -23,7 +23,7 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportStatus, StepName } from "#/server/db/schema/index.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
-import { adoptTrackFile, type AdoptSource } from "#/server/services/adopt.ts";
+import { adoptSourceOf, adoptTrackFile } from "#/server/services/adopt.ts";
 import {
   bumpImport,
   cancelImport,
@@ -97,27 +97,6 @@ function toImport(job: Import): z.infer<typeof importSchema> {
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
   };
-}
-
-/**
- * The validated body of the adopt route → the service's own `AdoptSource`.
- *
- * A `switch` over the discriminant rather than a ternary, so that a fourth member of
- * `AdoptSource` is a compile error here instead of a body silently read as an upload.
- */
-function sourceOf(body: z.infer<typeof adoptFileSchema>): AdoptSource {
-  switch (body.source) {
-    case "path":
-      return { kind: "path", path: body.path };
-    case "url":
-      return { kind: "url", url: body.url };
-    case "upload":
-      return {
-        kind: "upload",
-        filename: body.filename,
-        bytes: new Uint8Array(Buffer.from(body.content, "base64")),
-      };
-  }
 }
 
 export function importRoutes(): OpenAPIHono<ApiEnv> {
@@ -746,7 +725,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       const result = await adoptTrackFile({
         importId: id,
         trackId,
-        source: sourceOf(body),
+        source: adoptSourceOf(body),
         adoptedBy: "api",
         db: db(),
       });
