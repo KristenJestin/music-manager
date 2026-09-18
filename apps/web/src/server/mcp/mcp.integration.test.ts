@@ -917,6 +917,71 @@ describe.skipIf(unavailable !== null)("the MCP tools against a real stack", () =
     expect(after).toHaveLength(0);
   }, 120_000);
 
+  /**
+   * The agent's half of the way out of a record MusicBrainz has never published.
+   *
+   * Eight of the owner's albums are parked on a candidateless `ambiguous_release`, and
+   * `accept: true` cannot answer one of them: their preselection is *cancel*, `{accepted:true}`
+   * names no release, and `planResolution` refuses it. Both halves are asserted, because the
+   * new flag is only worth anything measured against what an agent meets without it.
+   *
+   * `create_imports` is the other half, and the earlier one: the tool had no `untaggedFallback`
+   * at all while `create_import` has had it since P08, so a hundred URLs submitted at once
+   * could not state the option and every unpublished record among them parked one by one.
+   */
+  it("I resolve_inbox answers a candidateless card by importing from the source's tags", async () => {
+    const created = await imports.createImport("fixture://discovery", { db: db() });
+    await db()
+      .insert(schema.inboxItems)
+      .values({
+        id: "inb_untagged_1",
+        type: "ambiguous_release",
+        importId: created.job.id,
+        trackId: null,
+        title: "No MusicBrainz release matches this playlist",
+        payload: { candidates: [] },
+      });
+
+    // Without the flag: refused, and the item stays open rather than closing over nothing.
+    const refused = (await call("resolve_inbox", { itemId: "inb_untagged_1" })) as {
+      resolved: unknown[];
+      failed: { message: string }[];
+    };
+    expect(refused.resolved).toHaveLength(0);
+    expect(refused.failed[0]?.message).toMatch(/names no release or recording/);
+
+    const answered = (await call("resolve_inbox", {
+      itemId: "inb_untagged_1",
+      untaggedFallback: true,
+    })) as { resolved: unknown[]; failed: unknown[]; resumed: string[] };
+    expect(answered.failed).toEqual([]);
+    expect(answered.resolved).toHaveLength(1);
+    expect(answered.resumed).toEqual([created.job.id]);
+
+    const job = await imports.getImport(created.job.id, db());
+    expect((job?.options as Record<string, unknown>)["untaggedFallback"]).toBe(true);
+  }, 180_000);
+
+  it("I create_imports carries the untagged fallback the single tool has always had", async () => {
+    const outcome = (await call("create_imports", {
+      urls: ["fixture://discovery?case=mcp-untagged"],
+      untaggedFallback: true,
+    })) as { ids: string[] };
+
+    const [id] = outcome.ids;
+    expect(id).toBeDefined();
+    const job = await imports.getImport(id ?? "", db());
+    expect((job?.options as Record<string, unknown>)["untaggedFallback"]).toBe(true);
+
+    // Absent still means "decide by the source", so a batch that says nothing keeps the
+    // default that parks a URL rather than filing it under a title nobody chose.
+    const silent = (await call("create_imports", {
+      urls: ["fixture://discovery?case=mcp-silent"],
+    })) as { ids: string[] };
+    const quiet = await imports.getImport(silent.ids[0] ?? "", db());
+    expect((quiet?.options as Record<string, unknown>)["untaggedFallback"]).toBeUndefined();
+  }, 180_000);
+
   it("I refuses two ways of naming the same set, and none at all", async () => {
     await expect(call("resolve_inbox", {})).rejects.toThrow(/itemId/);
     await expect(call("resolve_inbox", { itemId: "inb_x", importId: "imp_x" })).rejects.toThrow(

@@ -85,7 +85,7 @@ const { db } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
 const imports = await import("#/server/services/imports.ts");
 const jobs = await import("#/server/services/jobs/index.ts");
-const { openInboxItem, resolveInboxItem } = await import("./inbox.ts");
+const { openInboxItem, resolveInboxBatch, resolveInboxItem } = await import("./inbox.ts");
 const { optionsFor } = await import("#/server/functions/inbox.ts");
 
 resetServerEnv();
@@ -239,4 +239,76 @@ describe.skipIf(unavailable !== null)("the untagged way out of a candidateless c
     expect(decided).toHaveLength(1);
     expect(decided[0]?.choice).toMatchObject({ untaggedFallback: true, step: "match" });
   }, 180_000);
+
+  /**
+   * The same gesture in batch, which is the form the agent uses and the owner's eight need.
+   *
+   * `resolveInboxBatch` is the one function behind `POST /api/v1/inbox/resolve` and MCP's
+   * `resolve_inbox`, so this is those two surfaces under test rather than a third
+   * implementation. Two claims:
+   *
+   *  - **`accept: true` is not an answer to these cards**, and never was: their preselection is
+   *    *cancel*, `{accepted: true}` names no release, and `planResolution` refuses it. That is
+   *    exactly what an agent meets today over eight parked albums, and it is asserted here so
+   *    the new flag is measured against the thing it replaces;
+   *  - **`untaggedFallback: true` answers them all**, one import re-queued per import, and an
+   *    item it cannot apply to comes back in `failed` with its import untouched rather than
+   *    silently flagged.
+   */
+  it("answers a whole batch, and refuses the items it does not apply to", async () => {
+    const first = await parkedImport();
+    const second = await parkedImport();
+
+    /* ---- what an agent meets today ----------------------------------------- */
+
+    const refused = await resolveInboxBatch(
+      { itemIds: [first.card.id] },
+      { accept: true, decidedBy: "api" },
+      db(),
+    );
+    expect(refused.resolved).toHaveLength(0);
+    expect(refused.failed[0]?.message).toMatch(/names no release or recording/);
+
+    /* ---- and what it can say instead --------------------------------------- */
+
+    const answered = await resolveInboxBatch(
+      { itemIds: [first.card.id, second.card.id] },
+      { accept: true, decidedBy: "api", untaggedFallback: true },
+      db(),
+    );
+    expect(answered.failed).toEqual([]);
+    expect(answered.resolved).toHaveLength(2);
+    expect([...answered.imports].sort()).toEqual([first.importId, second.importId].sort());
+
+    for (const importId of [first.importId, second.importId]) {
+      const job = await imports.getImport(importId, db());
+      expect((job?.options as Record<string, unknown>)["untaggedFallback"]).toBe(true);
+      expect(job?.status).not.toBe("awaiting_review");
+      expect(job?.releaseMbid).toBeNull();
+    }
+
+    /* ---- a question this is not an answer to keeps its import untouched ----- */
+
+    const other = await parkedImport();
+    const wrongKind = await openInboxItem(
+      {
+        type: "fingerprint_mismatch",
+        importId: other.importId,
+        title: "The fingerprint disagrees",
+      },
+      db(),
+    );
+
+    const mixed = await resolveInboxBatch(
+      { itemIds: [wrongKind.id] },
+      { accept: true, decidedBy: "mcp", untaggedFallback: true },
+      db(),
+    );
+    expect(mixed.resolved).toEqual([]);
+    expect(mixed.failed[0]?.message).toMatch(/not an answer to a fingerprint_mismatch/);
+
+    const untouched = await imports.getImport(other.importId, db());
+    expect((untouched?.options as Record<string, unknown>)["untaggedFallback"]).toBeUndefined();
+    expect(untouched?.status).toBe("awaiting_review");
+  }, 240_000);
 });

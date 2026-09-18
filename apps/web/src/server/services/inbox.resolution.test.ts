@@ -10,10 +10,45 @@
  */
 import { describe, expect, it } from "vitest";
 import { MMError } from "@mm/contracts";
-import { planResolution } from "./inbox.resolution.ts";
+import { offersUntaggedImport, planResolution, UNTAGGED_RESOLUTION } from "./inbox.resolution.ts";
 import type { InboxType } from "#/server/db/schema/enums.vocab.ts";
 
 const on = (type: InboxType) => ({ type });
+
+/** An item as the three non-Console surfaces see it: type, import, payload. */
+const card = (type: InboxType, payload: Record<string, unknown> = {}, importId = "imp_1") => ({
+  type,
+  importId,
+  payload,
+});
+
+/**
+ * Which card may be answered "import it from the source's own tags".
+ *
+ * The predicate lives beside `planResolution` rather than beside the card, because the batch
+ * resolver has to ask it of items the Console never renders: an agent answering forty items
+ * with `untaggedFallback` must not turn the flag on for a `fingerprint_mismatch` that happened
+ * to be open on the same import.
+ */
+describe("offersUntaggedImport", () => {
+  it("is the candidateless ambiguous release, and nothing else", () => {
+    expect(offersUntaggedImport(card("ambiguous_release"))).toBe(true);
+    expect(offersUntaggedImport(card("ambiguous_release", { candidates: [] }))).toBe(true);
+    expect(offersUntaggedImport(card("ambiguous_release", { candidates: [{ id: "rel-a" }] }))).toBe(
+      false,
+    );
+    expect(offersUntaggedImport(card("ambiguous_recording"))).toBe(false);
+    expect(offersUntaggedImport(card("fingerprint_mismatch"))).toBe(false);
+    expect(offersUntaggedImport(card("uncovered_tracks"))).toBe(false);
+  });
+
+  /** There is no import to set the flag on, so there is nothing to offer. */
+  it("refuses a library-scoped item that has no import behind it", () => {
+    expect(offersUntaggedImport({ type: "ambiguous_release", importId: null, payload: {} })).toBe(
+      false,
+    );
+  });
+});
 
 describe("planResolution — a chosen candidate", () => {
   it("reads a bare recording MBID as a pin, not as nothing", () => {
@@ -92,6 +127,23 @@ describe("planResolution — an answer no branch handles", () => {
    * somebody will try it — it is an answer no branch handles, and this is what says so on the
    * first click instead of closing the card and leaving the import parked where it was.
    */
+  /**
+   * The four surfaces send one shape, and this is the shape.
+   *
+   * The review card, `POST /api/v1/inbox/{id}/resolve` (and its batch), MCP's `resolve_inbox`
+   * and `mm inbox resolve --untagged` all answer with `UNTAGGED_RESOLUTION`. Four hand-written
+   * copies would be four chances for one of them to drift into an answer `planResolution`
+   * refuses — which, for the surface nobody is looking at, would be discovered by the person
+   * whose eight albums it was meant to rescue.
+   */
+  it("plans the shared untagged answer every surface sends", () => {
+    expect(planResolution(on("ambiguous_release"), { ...UNTAGGED_RESOLUTION })).toEqual({
+      kind: "retry",
+      step: "match",
+      untaggedFallback: true,
+    });
+  });
+
   it("refuses the untagged offer written as a verb nothing carries out", () => {
     expect(() => planResolution(on("ambiguous_release"), { action: "import_untagged" })).toThrow(
       /import_untagged/,
