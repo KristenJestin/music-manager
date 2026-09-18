@@ -1272,6 +1272,131 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
+  section("11 · an album with a hole in it, closed from the command line");
+  /* ---------------------------------------------------------------- */
+  //
+  // The two halves of the owner's September batch, in the order he hits them.
+  //
+  // A source publishes fewer titles than the release has tracks — nineteen official playlists
+  // deleted, five videos withdrawn — so one track of the record is covered by no video. Until
+  // now that album was *permanently* incomplete: `import_tracks` is born from a video, so
+  // there was no id to adopt onto, and `mm adopt` answered ADOPT_NOT_READY however good the
+  // file in your hand was. Now confirmation materialises the gap as a row, and that row takes
+  // either a file or **a replacement address** — the same song under another upload, which is
+  // what actually exists when a video is age-checked or Premium-only.
+  //
+  // Everything here goes through the real CLI, the real worker and the real toolbox, and the
+  // last assertion is read back out of a *placed* file with ffprobe rather than out of the row
+  // that produced it.
+
+  // `?gap=3` drops a *real* track from the listing, where section 5's `?gap=14` drops the one
+  // video that was outside the tracklist anyway. That one entry is the difference between an
+  // album that is merely short a video and a record with a hole in it.
+  await mm("import", "fixture://discovery?gap=3", "--yes", "--no-fingerprint");
+  const gapJob = await latestImport();
+  await waitFor(
+    gapJob,
+    (row) => ["done", "failed", "awaiting_review", "awaiting_confirm"].includes(row.status),
+    "the album with a hole in it to settle",
+  );
+
+  const holes = await sql<{ id: string; track_position: number; source_title: string }[]>`
+    select id, track_position, source_title
+      from import_tracks
+     where import_id = ${gapJob} and video_id is null
+     order by medium_position, track_position`;
+  check(
+    holes.length > 0,
+    "confirming an album the source did not fully publish leaves a row for each missing track",
+    `${String(holes.length)} sourceless row(s)`,
+  );
+  check(
+    holes.every((row) => row.track_position !== null),
+    "…each one knowing where it sits on the record, which is how it will be filed",
+    holes.map((row) => String(row.track_position)).join(", "),
+  );
+
+  // **No byte was fetched for them.** The whole danger of a row with no url is that the
+  // download step sends that null to yt-dlp, fails the track, and takes the album with it.
+  const gapState = await sql<{ n: string }[]>`
+    select count(*)::text as n
+      from import_tracks
+     where import_id = ${gapJob} and video_id is null
+       and (state <> 'sourceless' or error is not null or attempts <> 0)`;
+  check(
+    Number(gapState[0]?.n ?? "1") === 0,
+    "no download was attempted for them: still `sourceless`, no error, no attempt",
+    `${gapState[0]?.n ?? "?"} row(s) that moved`,
+  );
+
+  // …and the import **settled** rather than hanging for ever on a track nobody can download.
+  const gapStatus = await sql<{ status: string }[]>`
+    select status from imports where id = ${gapJob} limit 1`;
+  check(
+    gapStatus[0]?.status !== "running" && gapStatus[0]?.status !== "pending",
+    "and the import finished anyway instead of waiting for a track that cannot arrive",
+    gapStatus[0]?.status ?? "(none)",
+  );
+
+  // Now close the hole with a replacement address, from the command line, exactly as Kris
+  // would. `--from-url` and not `--url`: `--url` selects a *remote installation*.
+  const gapTrack = holes[0]?.id ?? "";
+  if (gapTrack !== "") {
+    const adopted = await mm("adopt", gapJob, gapTrack, "--from-url", "fixture://skinny-love");
+    check(
+      adopted.includes("downloaded") && adopted.includes("fixture://skinny-love"),
+      "`mm adopt --from-url` downloads it and says which address it came from",
+      adopted
+        .split("\n")
+        .find((line) => line.trim() !== "")
+        ?.slice(0, 120) ?? "",
+    );
+
+    const filled = await sql<{ state: string; download_path: string | null; raw: unknown }[]>`
+      select state, download_path, raw from import_tracks where id = ${gapTrack} limit 1`;
+    check(
+      filled[0]?.state === "downloaded" && (filled[0]?.download_path ?? "") !== "",
+      "the track that had no source now has one, and is an ordinary track again",
+      `${filled[0]?.state ?? "?"} ${filled[0]?.download_path ?? ""}`,
+    );
+
+    const provenance = await sql<{ n: string }[]>`
+      select count(*)::text as n
+        from import_tracks
+       where id = ${gapTrack}
+         and raw -> 'mm_adoption' ->> 'via' = 'url'
+         and raw -> 'mm_adoption' ->> 'url' = ${"fixture://skinny-love"}`;
+    check(
+      Number(provenance[0]?.n ?? "0") === 1,
+      "…and `raw` remembers the address, so a rebuild months later says the same thing",
+      `${provenance[0]?.n ?? "?"} record(s)`,
+    );
+  }
+
+  // The same gesture on an ordinary failed video, and the sentence it writes into the file.
+  // Read with ffprobe off a placed file: the database was never the thing in doubt.
+  const replaced = await sql<{ path: string }[]>`
+    select lt.path
+      from library_tracks lt
+      join import_tracks it on it.id = lt.import_track_id
+     where it.raw -> 'mm_adoption' ->> 'via' = 'url'
+     limit 1`;
+  if ((replaced[0]?.path ?? "") !== "") {
+    const tags = await probe(replaced[0]?.path ?? "");
+    const comment = tags.tags["COMMENT"] ?? "";
+    check(
+      comment.startsWith("Downloaded from"),
+      "a replaced track's COMMENT names the address the bytes really came from",
+      comment.slice(0, 140),
+    );
+    check(
+      !comment.startsWith("Source:") && !comment.includes("Adopted local file"),
+      "…and claims neither to be its own video nor to be a file off a disk",
+      comment.slice(0, 140),
+    );
+  }
+
+  /* ---------------------------------------------------------------- */
   section("summary");
   /* ---------------------------------------------------------------- */
 
