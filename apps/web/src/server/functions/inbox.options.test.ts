@@ -206,6 +206,40 @@ describe("optionsFor", () => {
     expect(options.filter((option) => option.preselected)).toHaveLength(0);
   });
 
+  /*
+   * The two cards that arrive at "nothing is ticked" by different roads, and must stay
+   * different.
+   *
+   * A card with **no candidate** is MusicBrainz not having the record, and its answers are
+   * verbs: cancel, or build the album from the YouTube tags. A card whose candidates **all
+   * disagree about the artist** is MusicBrainz having ten records with this name and none of
+   * them this one, and its answers are those records — offered, unticked, for a person to
+   * choose between. Collapsing the two would either hide the way out of the first or put an
+   * untagged import in front of somebody who has ten real releases to pick from.
+   */
+  it("offers the untagged import on a card with no candidate, and still preselects cancelling", () => {
+    const options = optionsFor(item({ type: "ambiguous_release", payload: { candidates: [] } }));
+    expect(options.map((option) => option.id)).toEqual(["cancel", "untagged"]);
+    expect(options.find((option) => option.preselected)?.id).toBe("cancel");
+  });
+
+  it("offers the candidates, and no untagged answer, when they all disagree about the artist", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_release",
+        payload: {
+          candidates: [
+            { id: "rel-a", title: "Soleil bleu", artistDisagrees: true },
+            { id: "rel-b", title: "Soleil bleu", artistDisagrees: true },
+          ],
+        },
+      }),
+    );
+    expect(options.map((option) => option.id)).toEqual(["rel-a", "rel-b"]);
+    expect(options.filter((option) => option.preselected)).toHaveLength(0);
+    expect(options.some((option) => option.id === "untagged")).toBe(false);
+  });
+
   it("keeps a pinned release pinned, because a person saying which record it is outranks this", () => {
     const options = optionsFor(
       item({

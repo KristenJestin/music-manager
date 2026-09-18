@@ -380,6 +380,20 @@ const TRAILING_SEGMENT = /\s*(?:[([]([^()[\]]*)[)\]]|[-–—:,]\s*([^-–—:,(
  * Only **trailing bracketed or separated segments** are read, and that is what keeps it from
  * firing on a record's real name: *Deluxe* by Harmonia announces nothing, and neither does
  * *Live Through This* — but "MTV Unplugged (Live)" and "Abbey Road - Remastered" do.
+ *
+ * ## Do not widen this to read a bare trailing word
+ *
+ * It is the obvious simplification and it is wrong. "AFTERCARE DELUXE" carries no bracket and
+ * no separator, so nothing here fires and the deluxe pressing of that record was marked down
+ * for announcing itself — a real defect, and the temptation is to reach for
+ * `stripEditionQualifierLoosely` and read the last word after all. That breaks *Hotel Deluxe*
+ * and *Songs Remastered*, which are names, and the test below says so in as many words.
+ *
+ * The bare case is answered somewhere it can be answered *on evidence*:
+ * `editionProvenByFallback` in `apps/web/src/server/services/matching.service.ts` reads the
+ * word only once MusicBrainz has answered the stripped title and refused the full one, which
+ * is the index stating that the word is not part of the name. A string cannot know that and
+ * this function only ever has the string.
  */
 export function sourceEdition(raw: string | null | undefined): string[] {
   let rest = (raw ?? "").trim();
