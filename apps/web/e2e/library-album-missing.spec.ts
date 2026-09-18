@@ -1,8 +1,7 @@
 import { expect, test, mintKey, reloadUntil, signIn } from "./helpers.ts";
 import {
-  albumReleaseMbid,
+  albumWithTracklist,
   detachAlbumTrack,
-  firstAlbumId,
   reattachAlbumTrack,
   type DetachedTrack,
 } from "./seed.ts";
@@ -23,11 +22,22 @@ import {
  * that a gesture exists in the interface *and* in the API, and a test that only drove the page
  * would prove half of it.
  *
- * The situation is seeded by detaching one `library_tracks` row from its album — the one
- * column that distinguishes "the playlist never published this" from "it did" — and it is
- * re-attached at the end, because the suite is serial against one database and one library
- * directory and a spec that leaves an album short breaks the ones after it. No file is moved
- * and no row is deleted, so the inverse is exact.
+ * Named `library-album-missing` and not `album-missing`: the suite is serial and runs in
+ * file-name order, and the album this reads is placed by `import-album.spec.ts`. A name
+ * sorting before that one is a test that always finds an empty library.
+ *
+ * **Every assertion is a delta, never an absolute.** The albums this suite builds are already
+ * short of their releases — the fixture playlist does not cover every track of the release the
+ * matcher picks — so "the callout is not there to begin with" is simply false here, and a test
+ * that asserted it would be asserting something about the fixtures rather than about the
+ * feature. What is checked instead is what *this spec's own seed* changes: one more missing
+ * row, named, and gone again when the row is put back.
+ *
+ * The seed detaches one `library_tracks` row from its album — the one column that distinguishes
+ * "the playlist never published this" from "it did" — and re-attaches it in a `finally`, because
+ * the suite is serial against one database and one library directory and a spec that leaves an
+ * album short breaks the ones after it. No file is moved and no row is deleted, so the inverse
+ * is exact.
  *
  * **Nothing is adopted for real.** The last thing the page does here is submit a path the
  * server's allow-list must refuse, which drives the whole chain — dialog, server function,
@@ -40,68 +50,72 @@ test.describe("an album that is missing tracks", () => {
   test("names them in place, and offers to fill each one", async ({ page }) => {
     await signIn(page);
 
-    const albumId = await firstAlbumId();
+    const albumId = await albumWithTracklist();
     expect(
       albumId,
-      "no album with two placed tracks: import-album.spec.ts places the album this spec reads, so run the whole suite rather than this file alone",
+      "no album with three placed tracks and a MusicBrainz release: import-album.spec.ts places the album this spec reads, so run the whole suite rather than this file alone",
     ).not.toBeNull();
     if (albumId === null) return;
 
-    /* ---- nothing is missing yet, and the page says nothing ---- */
+    /* ---- how short the album is before this spec touches it ---- */
 
     await page.goto(`/library/albums/${albumId}`);
     await expect(page.getByTestId("album-title")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("album-missing")).toHaveCount(0);
-    await expect(page.getByTestId("album-missing-adopt")).toHaveCount(0);
+    // The tracklist is knowable at all: `album-incomplete-unknown` is the other case, and an
+    // album in it can say nothing about which tracks it has not got.
+    await expect(page.getByTestId("album-incomplete-unknown")).toHaveCount(0);
 
-    const releaseMbid = await albumReleaseMbid(albumId);
-    expect(releaseMbid, "the album was matched against a release").not.toBeNull();
+    const rows = page.getByTestId("album-tracks").locator("tbody tr");
+    const missingRows = rows.filter({ has: page.getByTestId("missing-track-badge") });
+    const before = await missingRows.count();
 
     let detached: DetachedTrack | null = null;
     try {
-      /* ---- one of the release's tracks is not in the library ---- */
+      /* ---- one more of the release's tracks is not in the library ---- */
 
       detached = await detachAlbumTrack(albumId);
       expect(detached, "an album track was detached").not.toBeNull();
       if (detached === null) return;
 
       await reloadUntil(page, `/library/albums/${albumId}`, async () => {
-        await expect(page.getByTestId("album-missing")).toBeVisible();
+        await expect(
+          page
+            .getByTestId("album-tracks")
+            .locator("tbody tr")
+            .filter({ has: page.getByTestId("missing-track-badge") }),
+        ).toHaveCount(before + 1);
       });
 
-      const callout = page.getByTestId("album-missing");
-      await expect(callout).toContainText("1 track(s) of this release are not in the library");
-      // It says what the remedy is, in the same breath: a state with no action beside it is
-      // the thing this feature exists to stop being.
+      const callout = page.getByTestId("album-incomplete");
+      await expect(callout).toContainText("not in the library");
+      // It says what the remedy is in the same breath: a state with no action beside it is the
+      // thing this feature exists to stop being.
       await expect(callout).toContainText("that track alone is downloaded, tagged and filed");
 
-      /* ---- and it is a row of the tracklist, at its own position ---- */
+      /* ---- and the detached track is a row of the tracklist, by name ---- */
 
-      const rows = page.getByTestId("album-tracks").locator("tbody tr");
-      const missingRow = rows.filter({ has: page.getByTestId("album-missing-badge") });
-      await expect(missingRow).toHaveCount(1);
-      // The release's own title for it, which is the whole point: the number said how many
-      // were absent and never which.
-      await expect(missingRow).toContainText(detached.title);
-      await expect(missingRow.getByTestId("album-missing-source")).toHaveText("never published");
+      const seeded = rows.filter({ hasText: detached.title }).filter({
+        has: page.getByTestId("missing-track-badge"),
+      });
+      await expect(seeded).toHaveCount(1);
+      await expect(seeded.getByTestId("missing-track-source")).toHaveText("never published");
 
       /*
        * Interleaved, not appended. The seeded hole is the album's *second* track, so an
        * implementation that listed the missing ones after the present ones would put it last —
        * this is the assertion that tells the two apart.
        */
-      const all = await rows.count();
-      expect(all).toBeGreaterThan(2);
-      const index = await missingRow.evaluate((row) =>
+      const total = await rows.count();
+      const index = await seeded.evaluate((row) =>
         Array.from(row.parentElement?.children ?? []).indexOf(row),
       );
       expect(index, "the missing track sits at its own position, not at the end").toBeLessThan(
-        all - 1,
+        total - 1,
       );
 
       /* ---- the row's own button opens the dialog, with all three ways in ---- */
 
-      await missingRow.getByTestId("album-missing-adopt").click();
+      await seeded.getByTestId("missing-track-adopt").click();
       const dialog = page.getByTestId("adopt-file-dialog");
       await expect(dialog).toBeVisible();
       await expect(dialog).toContainText(detached.title);
@@ -124,10 +138,10 @@ test.describe("an album that is missing tracks", () => {
       await expect(page.getByTestId("toaster")).toContainText(/not allowed|No such file/, {
         timeout: 30_000,
       });
+      await page.keyboard.press("Escape");
 
       /* ---- the API answers the same question, for the agent that has no screen ---- */
 
-      await page.keyboard.press("Escape");
       const key = await mintKey(page, `missing-${String(Date.now())}`, ["library:read"]);
       const answer = await page.request.get(`/api/v1/library/albums/${albumId}/missing`, {
         headers: { "x-api-key": key },
@@ -140,19 +154,25 @@ test.describe("an album that is missing tracks", () => {
         trackCount: number;
       };
       expect(body.unavailable).toBeNull();
-      expect(body.missing).toHaveLength(1);
-      // The couple, not a flat index: it is what the adoption route's path takes.
-      expect(body.missing[0]?.mediumPosition).toBe(detached.discNumber);
-      expect(body.missing[0]?.trackPosition).toBe(detached.trackNumber);
-      expect(body.missing[0]?.title).toBe(detached.title);
+      expect(body.missing).toHaveLength(before + 1);
       expect(body.presentCount).toBeLessThan(body.trackCount);
+      // The couple, not a flat index: it is what the adoption route's path takes.
+      const slot = body.missing.find((track) => track.title === detached?.title);
+      expect(slot, "the API names the same track the page does").toBeDefined();
+      expect(slot?.mediumPosition).toBe(detached.discNumber);
+      expect(slot?.trackPosition).toBe(detached.trackNumber);
     } finally {
       /* ---- put the album back, for the specs that run after this one ---- */
       if (detached !== null) await reattachAlbumTrack(albumId, detached.id);
     }
 
     await reloadUntil(page, `/library/albums/${albumId}`, async () => {
-      await expect(page.getByTestId("album-missing")).toHaveCount(0);
+      await expect(
+        page
+          .getByTestId("album-tracks")
+          .locator("tbody tr")
+          .filter({ has: page.getByTestId("missing-track-badge") }),
+      ).toHaveCount(before);
     });
   });
 });

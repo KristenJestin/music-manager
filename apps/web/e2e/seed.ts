@@ -291,13 +291,26 @@ export async function reattachAlbumTrack(albumId: string, trackId: string): Prom
   }
 }
 
-/** The album's MusicBrainz release, so a spec can say whether the tracklist is knowable. */
-export async function albumReleaseMbid(albumId: string): Promise<string | null> {
+/**
+ * An album with a real MusicBrainz release and at least three placed tracks.
+ *
+ * Stricter than `firstAlbumId` on both counts, and both matter. Without a release there is no
+ * tracklist to compare against and the page can only say so; with fewer than three tracks the
+ * claim that a missing row is drawn *between* two present ones cannot be made at all.
+ */
+export async function albumWithTracklist(): Promise<string | null> {
   const sql = connect();
   try {
-    const rows = await sql<{ release_mbid: string | null }[]>`
-      select release_mbid from library_albums where id = ${albumId}`;
-    return rows[0]?.release_mbid ?? null;
+    const rows = await sql<{ id: string }[]>`
+      select a.id
+        from library_albums a
+        join library_tracks t on t.album_id = a.id
+       where a.release_mbid is not null and t.track_number is not null
+       group by a.id
+      having count(*) >= 3
+       order by count(*) desc
+       limit 1`;
+    return rows[0]?.id ?? null;
   } finally {
     await sql.end();
   }

@@ -25,7 +25,18 @@ test.describe("the player", () => {
     await page.getByTestId("album-card").first().click();
     await page.waitForURL(/\/library\/albums\//, { timeout: 60_000 });
 
-    const rows = page.getByTestId("album-tracks").locator("tbody tr");
+    /*
+     * The first row that can actually be played, which is not always the first row.
+     *
+     * The album tracklist interleaves the tracks of the release the library never got — greyed,
+     * at their own positions — so an album whose first track was never downloaded opens with a
+     * row that has no play button on it, by design. `has:` is the whole fix: the set of rows is
+     * stable, and this picks the first one carrying the control this test is about.
+     */
+    const rows = page
+      .getByTestId("album-tracks")
+      .locator("tbody tr")
+      .filter({ has: page.getByTestId("track-play") });
     await expect(rows.first()).toBeVisible();
     const title = await rows.first().locator("td").nth(2).innerText();
 

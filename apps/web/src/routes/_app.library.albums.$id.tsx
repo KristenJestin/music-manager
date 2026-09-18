@@ -350,7 +350,7 @@ function Album() {
             {missing.length === 0 ? null : (
               <ToneBadge
                 tone="danger"
-                data-testid="album-missing"
+                data-testid="album-incomplete"
                 title={`Not on disk: ${missing.map((track) => track.title).join(", ")}`}
               >
                 {missing.length} file(s) missing
@@ -826,7 +826,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       header: "Title",
       cell: (slot) =>
         slot.kind === "missing" ? (
-          <span className="text-fg-3 italic" data-testid="album-missing-title">
+          <span className="text-fg-3 italic" data-testid="missing-track-title">
             {slot.track.title}
           </span>
         ) : (
@@ -863,7 +863,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       cell: (slot) => {
         if (slot.kind === "missing") {
           return (
-            <span className="text-fg-3" data-testid="album-missing-source">
+            <span className="text-fg-3" data-testid="missing-track-source">
               never published
             </span>
           );
@@ -916,7 +916,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
           return (
             <ToneBadge
               tone="warn"
-              data-testid="album-missing-badge"
+              data-testid="missing-track-badge"
               title="The release has this track and the library never got it. Give it a file or an address."
             >
               missing
@@ -971,7 +971,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
           <Button
             size="icon-sm"
             variant="outline"
-            data-testid="album-missing-adopt"
+            data-testid="missing-track-adopt"
             aria-label={`Give ${slot.track.title} a file or an address`}
             title="Give this track a file or an address — it downloads, tags and files that track alone"
             disabled={busy}
@@ -995,7 +995,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       */}
       {album.missing.unavailable !== null &&
       album.missing.presentCount < album.missing.trackCount ? (
-        <Callout tone="info" data-testid="album-missing-unavailable">
+        <Callout tone="info" data-testid="album-incomplete-unknown">
           This album is{" "}
           <strong>
             {album.missing.presentCount} of {album.missing.trackCount}
@@ -1008,7 +1008,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       ) : null}
 
       {album.missing.missing.length === 0 ? null : (
-        <Callout tone="warn" data-testid="album-missing">
+        <Callout tone="warn" data-testid="album-incomplete">
           <strong>
             {album.missing.missing.length} track(s) of this release are not in the library
           </strong>
