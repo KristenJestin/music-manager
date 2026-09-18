@@ -19,10 +19,15 @@ import { createRun, runToCompletion } from "#/server/services/retag.ts";
 import { relocate } from "#/server/services/relocate.ts";
 import { overrideAlbumFields, overrideTrackFields } from "#/server/services/overrides.ts";
 import { refreshAlbumFromSource } from "#/server/services/album-refresh.ts";
+import { adoptLibraryTrack, albumMissingTracks } from "#/server/services/album-missing.ts";
+import { adoptSourceOf } from "#/server/services/adopt.ts";
 import { verifyAlbum, verifyLibrary } from "#/server/services/verify.ts";
 import { enqueueRetagRun } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
+  adoptFileSchema,
+  adoptMissingResultSchema,
+  albumMissingSchema,
   albumSchema,
   errorSchema,
   fieldsPatchSchema,
@@ -171,6 +176,130 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
         dryRun: c.req.valid("query").dryRun === "true",
       });
       return c.json(result as unknown as Record<string, unknown>, 200);
+    },
+  );
+
+  /* ---- which tracks this album has not got ---- */
+  //
+  // Declared before `/albums/{id}/…` shallower siblings would be, for the reason the imports
+  // file already states: Hono matches in declaration order and a shallower `/{id}/…` route
+  // declared first swallows anything deeper.
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/albums/{id}/missing",
+      tags: [TAG],
+      summary: "Which tracks of this album's release the library has not got",
+      description:
+        "`GET /library/albums` and `mm library show` have been able to say **16/20** for a " +
+        "while. This says *which four*, and it is the list an agent needs in order to work " +
+        "through an album with holes in it without a screen.\n\n" +
+        "**Offline.** The comparison is made against the release already in this " +
+        "installation's raw cache — the same payload the completeness denominator is read " +
+        "from — so this route never spends a MusicBrainz request. An album whose release was " +
+        'never fetched answers `unavailable: "not-cached"` with an empty list rather than ' +
+        "reaching for the network; `POST /library/albums/{id}/refresh` fetches it once and " +
+        "every call after that is offline again.\n\n" +
+        "**`missing` being empty does not mean the album is complete.** Check `unavailable` " +
+        "first: it is `no-release` for an album imported without MusicBrainz and " +
+        "`not-cached` for the case above, and in both the comparison did not run.\n\n" +
+        "**A slot is `(mediumPosition, trackPosition)`, never a position on its own.** Every " +
+        "medium of a multi-disc release restarts its numbering at 1, so disc 2 track 1 and " +
+        "disc 1 track 1 are two slots and not one. Both numbers are what " +
+        "`POST /library/albums/{id}/missing/{medium}/{position}/file` takes.",
+      middleware: [requireScope("library:read")] as const,
+      request: { params: z.object({ id: idParam }) },
+      responses: {
+        200: {
+          content: { "application/json": { schema: albumMissingSchema } },
+          description: "The holes in the album, in release order",
+        },
+        ...FAILURES,
+      },
+    }),
+    async (c) => {
+      const found = await albumMissingTracks(c.req.valid("param").id, { db: db() });
+      // The service answers with `readonly` arrays, which is right for a service and is not
+      // what Hono's typed response accepts; one spread rather than a `readonly` hole in it.
+      return c.json({ ...found, missing: [...found.missing] }, 200);
+    },
+  );
+
+  /* ---- and filling one of them ---- */
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/albums/{id}/missing/{medium}/{position}/file",
+      tags: [TAG],
+      summary: "Give one missing track a file or an address, and finish it",
+      description:
+        "The remedy for one line of `GET /library/albums/{id}/missing`. Until now adoption " +
+        "lived only on the page of an import, and **a finished import does not re-open** — so " +
+        "an album that came out short stayed short for ever, with no recourse at all.\n\n" +
+        "`{medium}` and `{position}` are the couple that route reports. Passing a position " +
+        "that is not in fact missing is refused with `ADOPT_CONFLICT` rather than silently " +
+        "overwriting a file that is already there.\n\n" +
+        "**Three ways for the audio to arrive**, chosen by `source`, exactly as on " +
+        "`POST /imports/{id}/tracks/{trackId}/file`:\n\n" +
+        "- `path` — an absolute path on the server, refused with `ADOPT_PATH_REFUSED` unless " +
+        "it lands inside the library or inside a directory named in `adoptSourceRoots`;\n" +
+        "- `upload` — the bytes, base64, 64 MB at most;\n" +
+        "- `url` — an address, fetched through the same downloader the pipeline uses. It " +
+        "takes the single download slot for the duration and the address is kept as the " +
+        "track's declared provenance.\n\n" +
+        "**One track, on its own.** What is queued is that track's `fingerprint` → `tag` → " +
+        "`place`; the album's other files are not re-tagged, not re-placed and not touched. " +
+        "`present_count` and `completeness` move when `place` files it, which is after this " +
+        "call returns — the `counters` on the answer are the album as it is *now*, not a " +
+        "prediction.\n\n" +
+        "A track the album's playlist never published has no `import_tracks` row at all; one " +
+        "is created with no source, and `materialised` says so.",
+      middleware: [requireScope("library:write")] as const,
+      request: {
+        params: z.object({
+          id: idParam,
+          medium: z.coerce.number().int().min(1).openapi({ example: 1 }),
+          position: z.coerce.number().int().min(1).openapi({ example: 2 }),
+        }),
+        body: { content: { "application/json": { schema: adoptFileSchema } }, required: true },
+      },
+      responses: {
+        ...FAILURES,
+        200: {
+          content: { "application/json": { schema: adoptMissingResultSchema } },
+          description: "Adopted; that one track carries on from `fingerprint`",
+        },
+        403: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "Missing scope, or `ADOPT_PATH_REFUSED`: the path is outside the allow-list",
+        },
+        409: {
+          content: { "application/json": { schema: errorSchema } },
+          description:
+            "`ADOPT_CONFLICT` (that position is not missing), `ADOPT_NOT_READY` (no import " +
+            "produced this album) or `ALBUM_NO_TRACKLIST` (no release to compare against)",
+        },
+        413: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "The upload is larger than 64 MB. Adopt it by path or by URL instead.",
+        },
+        415: {
+          content: { "application/json": { schema: errorSchema } },
+          description: "`ADOPT_UNSUPPORTED` or `ADOPT_NOT_AUDIO`",
+        },
+      },
+    }),
+    async (c) => {
+      const { id, medium, position } = c.req.valid("param");
+      const result = await adoptLibraryTrack({
+        albumId: id,
+        mediumPosition: medium,
+        trackPosition: position,
+        source: adoptSourceOf(c.req.valid("json")),
+        adoptedBy: "api",
+        db: db(),
+      });
+      return c.json(result, 200);
     },
   );
 

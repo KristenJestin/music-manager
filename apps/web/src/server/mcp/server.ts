@@ -1,11 +1,11 @@
 /**
  * The MCP server (`docs/phases/P08-api-agents.md` § MCP).
  *
- * Twenty-nine tools and two resource families over the *same service layer* the REST API and the
+ * Thirty-one tools and two resource families over the *same service layer* the REST API and the
  * Console use. No tool touches the database directly, which is the rule the spec states and
  * the reason an agent's view of a candidate list is the same view a human gets.
  *
- * `toolTable()` is the count. `docs/06-stack.md` lists the same twenty-nine, and `server.test.ts`
+ * `toolTable()` is the count. `docs/06-stack.md` lists the same thirty-one, and `server.test.ts`
  * asserts the length, because a table that quietly gained four tools while the documentation
  * still said fourteen is exactly the drift an agent reads and believes.
  *
@@ -45,7 +45,8 @@ import {
   DEFAULT_MIN_COVERAGE,
   MAX_BATCH_URLS,
 } from "#/server/services/imports.bulk.ts";
-import { adoptTrackFile, type AdoptSource } from "#/server/services/adopt.ts";
+import { adoptSourceOf, adoptTrackFile, type AdoptSource } from "#/server/services/adopt.ts";
+import { adoptLibraryTrack, albumMissingTracks } from "#/server/services/album-missing.ts";
 import {
   createWatchedSource,
   getWatchedSource,
@@ -1458,6 +1459,144 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
       },
       run: async (args: { albumId: string; dryRun: boolean }) =>
         await refreshAlbumFromSource(args.albumId, { db: db(), dryRun: args.dryRun }),
+    },
+    {
+      name: "list_missing_tracks",
+      scope: "library:read",
+      title: "Which tracks an album has not got",
+      description:
+        "`get_album` and `search_library` have been able to say **16/20** for a while. This " +
+        "says *which four*, and it is what lets you work through the albums with holes in " +
+        "them in a batch, without a screen.\n\n" +
+        "The list is the album's retained MusicBrainz release minus the tracks the library " +
+        "holds, in release order. Every entry carries its title, its credited artist and its " +
+        "MusicBrainz ids, so you can go and look for the audio without guessing from a " +
+        "position number.\n\n" +
+        "**A slot is the couple `(mediumPosition, trackPosition)`, never the position on its " +
+        "own.** Each medium of a multi-disc release restarts its numbering at 1, so disc 2 " +
+        "track 1 and disc 1 track 1 are two different slots. Both numbers are what " +
+        "`adopt_missing_track` takes. A flat index over the whole release is wrong and will " +
+        "address the wrong track.\n\n" +
+        "**Offline**: the comparison is made against the release already in the raw cache, " +
+        "so this spends no MusicBrainz request however many albums you walk.\n\n" +
+        "**Read `unavailable` before you read `missing`.** An empty list with `unavailable` " +
+        "set does not mean the album is complete — it means the comparison did not run. " +
+        "`no-release`: the album was imported without MusicBrainz, and the fix is to " +
+        "re-import it against a release. `not-cached`: nothing has fetched the release here " +
+        "yet, and one `refresh_album` fixes it for good.\n\n" +
+        "Find the albums worth calling this on with `search_library`, or with " +
+        "`GET /api/v1/library/albums?filter=incomplete`.",
+      inputSchema: { albumId: z.string().min(1) },
+      run: async (args: { albumId: string }) =>
+        await albumMissingTracks(args.albumId, { db: db() }),
+    },
+    {
+      name: "adopt_missing_track",
+      scope: "library:write",
+      title: "Give one missing track a file or an address",
+      description:
+        "The remedy for one line of `list_missing_tracks`, and the thing that had no door at " +
+        "all until now: adoption lived only on the page of an import, and **a finished " +
+        "import does not re-open**, so an album that came out short stayed short for ever.\n\n" +
+        "`mediumPosition` and `trackPosition` are the couple `list_missing_tracks` reports. " +
+        "Give both. A position that is not in fact missing is refused with `ADOPT_CONFLICT` " +
+        "rather than overwriting a file that is already on the disk.\n\n" +
+        "**Three ways for the audio to arrive. Give exactly one.**\n\n" +
+        "- `path` — an absolute path *on the server running this application*, not on your " +
+        "machine. Refused with `ADOPT_PATH_REFUSED` unless it lands inside the library or " +
+        "inside a folder the operator listed in `adoptSourceRoots`, which is **empty by " +
+        "default**. That refusal is not something you can work around: ask the operator.\n" +
+        "- `content` — the bytes, base64, up to 64 MB, with `filename` for its name.\n" +
+        "- `url` — an address the audio can be fetched from. It goes through the same " +
+        "downloader the pipeline uses, so a page is remuxed rather than stored as HTML, and " +
+        "the address is kept as the track's declared provenance. It takes the single " +
+        "download slot for the duration.\n\n" +
+        "**One track, on its own.** What is queued is that track's `fingerprint` -> `tag` -> " +
+        "`place`. The album's other files are not re-tagged, not re-placed, not touched.\n\n" +
+        "**`counters` is the album as it is now, not a prediction.** `presentCount` moves " +
+        "when `place` files the track, on the worker, after this call has returned. Call " +
+        "`get_album` or `list_missing_tracks` again to see it, and `get_status.worker` to " +
+        "know whether anything is running the queue at all.\n\n" +
+        "`materialised: true` means the album's playlist never published this track, so " +
+        "there was no import row for it and one was created with no source.\n\n" +
+        "Refusals: `ADOPT_CONFLICT` (that position is not missing), `ALBUM_NO_TRACKLIST` (no " +
+        "release to compare against — `refresh_album` first), `ADOPT_NOT_READY` (no import " +
+        "produced this album), plus `ADOPT_UNSUPPORTED`, `ADOPT_NOT_AUDIO` and " +
+        "`ADOPT_PATH_REFUSED` exactly as on `adopt_track_file`.",
+      inputSchema: {
+        albumId: z.string().min(1),
+        mediumPosition: z
+          .number()
+          .int()
+          .min(1)
+          .default(1)
+          .describe("The disc. 1 on a single-disc release. Half of the slot's identity."),
+        trackPosition: z
+          .number()
+          .int()
+          .min(1)
+          .describe("The position **within that medium**, as `list_missing_tracks` reports it."),
+        path: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Absolute path on the server. Mutually exclusive with `content` and `url`."),
+        filename: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("The file's own name. Required with `content`, ignored otherwise."),
+        content: z.string().min(1).optional().describe("The file's bytes, base64, 64 MB at most."),
+        url: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("An address to fetch the audio from. Mutually exclusive with the other two."),
+      },
+      run: async (args: {
+        albumId: string;
+        mediumPosition: number;
+        trackPosition: number;
+        path?: string;
+        filename?: string;
+        content?: string;
+        url?: string;
+      }) => {
+        // Stated here and as a refusal rather than a preference, for the reason
+        // `adopt_track_file` states: silently ignoring one of two supplied sources is how an
+        // agent uploads a file and believes it adopted a different one.
+        const given = [args.path, args.content, args.url].filter((one) => one !== undefined);
+        if (given.length !== 1) {
+          throw new MMError("INVALID_INPUT", "Give exactly one of `path`, `content` and `url`.", {
+            hint: "`path` for a file already on the server, `content` (with `filename`) to upload one, `url` to fetch one.",
+            status: 400,
+          });
+        }
+        if (args.content !== undefined && args.filename === undefined) {
+          throw new MMError("INVALID_INPUT", "`content` needs `filename`.", {
+            hint: "The extension decides whether the tagger can write to the file at all.",
+            status: 400,
+          });
+        }
+        return await adoptLibraryTrack({
+          albumId: args.albumId,
+          mediumPosition: args.mediumPosition,
+          trackPosition: args.trackPosition,
+          source: adoptSourceOf(
+            args.path !== undefined
+              ? { source: "path", path: args.path }
+              : args.url !== undefined
+                ? { source: "url", url: args.url }
+                : {
+                    source: "upload",
+                    filename: args.filename ?? "adopted",
+                    content: args.content ?? "",
+                  },
+          ),
+          adoptedBy: "mcp",
+          db: db(),
+        });
+      },
     },
     {
       name: "get_album",

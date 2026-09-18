@@ -60,6 +60,7 @@ import { collapseParkedDuplicates } from "#/server/services/imports.reuse.ts";
 import { folderPathOf } from "#/server/services/import-source.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
 import { adoptTrackFile } from "#/server/services/adopt.ts";
+import { adoptLibraryTrack, albumMissingTracks } from "#/server/services/album-missing.ts";
 import {
   bumpImport,
   cancelImport,
@@ -1553,6 +1554,134 @@ async function cmdLibrary(args: Args): Promise<number> {
     return 0;
   }
 
+  /*
+   * `mm library missing <album id>` — which tracks of the release this album has not got.
+   *
+   * The half of `mm library show` that was never there. `show` prints `16/20` and then lists
+   * the *tag* fields that are missing, which is a different question entirely; this one names
+   * the four recordings. Offline, against the release already in the raw cache, so it costs
+   * nothing to run it over every incomplete album `mm library albums --filter incomplete`
+   * reports.
+   */
+  if (sub === "missing") {
+    const id = args.positional[2];
+    if (id === undefined) {
+      throw new MMError("INVALID_INPUT", "usage: mm library missing <album id> [--json]");
+    }
+    const found = await albumMissingTracks(id, { db: db() });
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(found, null, 2));
+      return 0;
+    }
+    line(
+      `${String(found.presentCount)}/${String(found.trackCount)} track(s) present · release ${found.releaseMbid ?? "—"}`,
+    );
+    if (found.unavailable !== null) {
+      line("");
+      // Said rather than left as an empty list: "nothing printed" and "nothing is missing"
+      // look identical on a terminal, and only one of them is good news.
+      line(
+        found.unavailable === "no-release"
+          ? "  This album has no MusicBrainz release, so there is no tracklist to compare it against."
+          : "  The release is not in the local cache, so its tracklist cannot be read offline.",
+      );
+      line(
+        found.unavailable === "no-release"
+          ? "  Re-import it against a release to give it one."
+          : "  Run `mm library refresh <album id>` once; everything after that is offline.",
+      );
+      return 0;
+    }
+    if (found.missing.length === 0) {
+      line("");
+      line("  Every track of the release is accounted for.");
+      return 0;
+    }
+    line("");
+    // The disc column only when there is more than one, so the ordinary album is not made to
+    // look like a box set. The couple is still what `mm library adopt` is given.
+    const multi = found.mediumCount > 1;
+    line(`${multi ? "DISC  " : ""}  #  TITLE                          ARTIST`);
+    for (const track of found.missing) {
+      line(
+        `${multi ? `${String(track.mediumPosition).padStart(4)}  ` : ""}${String(track.trackPosition).padStart(3)}  ${track.title.slice(0, 30).padEnd(30)} ${track.artist ?? ""}`,
+      );
+    }
+    line("");
+    line(
+      multi
+        ? "  mm library adopt <album id> <disc> <position> --file <path>   to fill one"
+        : "  mm library adopt <album id> 1 <position> --file <path>   to fill one",
+    );
+    return 0;
+  }
+
+  /*
+   * `mm library adopt <album id> <disc> <position> --file <path>|--url <address>`.
+   *
+   * Both numbers, always, and the disc is not optional even on a single-disc record: a command
+   * that took one number would be a command whose meaning changed when a release turned out to
+   * have two discs, and the one thing this feature must never do is address the wrong track.
+   *
+   * `--file` is a path *on this server* and `--url` an address to fetch — the same two the CLI
+   * offers for `mm adopt`, plus the address, because the whole point of the missing-track case
+   * is that there is no local file half the time.
+   */
+  if (sub === "adopt") {
+    const id = args.positional[2];
+    const medium = Number(args.positional[3]);
+    const position = Number(args.positional[4]);
+    const file = flagString(args, "file");
+    const url = flagString(args, "url");
+    if (
+      id === undefined ||
+      !Number.isInteger(medium) ||
+      !Number.isInteger(position) ||
+      (file === undefined) === (url === undefined)
+    ) {
+      throw new MMError(
+        "INVALID_INPUT",
+        "usage: mm library adopt <album id> <disc> <position> --file <path on this server>\n" +
+          "       mm library adopt <album id> <disc> <position> --url <address>",
+        {
+          hint: "Both numbers, always: `mm library missing <album id>` prints the couple to give. The disc is 1 on a single-disc release.",
+        },
+      );
+    }
+
+    const result = await adoptLibraryTrack({
+      albumId: id,
+      mediumPosition: medium,
+      trackPosition: position,
+      source: file === undefined ? { kind: "url", url: url ?? "" } : { kind: "path", path: file },
+      adoptedBy: "cli library adopt",
+      db: db(),
+    });
+    if (flagBoolean(args, "json")) {
+      line(JSON.stringify(result, null, 2));
+      return 0;
+    }
+    line(`adopted ${result.originalName} for “${result.trackTitle}”`);
+    line(`  slot     disc ${String(result.mediumPosition)}, track ${String(result.trackPosition)}`);
+    line(`  file     ${result.path}`);
+    line(
+      `  audio    ${result.codec ?? "?"}` +
+        (result.durationSeconds === null
+          ? ""
+          : `, ${String(Math.round(result.durationSeconds))} s`) +
+        `, ${String(Math.round(result.bytes / 1024))} KiB`,
+    );
+    if (result.materialised) {
+      line("  row      created with no source: the album's playlist never published this track");
+    }
+    line(`  next     ${result.nextStep ?? "nothing left"}${result.queued ? " (queued)" : ""}`);
+    line("");
+    line(
+      `The album says ${String(result.counters.presentCount)}/${String(result.counters.trackCount)} until \`place\` files this one — run \`bun run worker\` if nothing is.`,
+    );
+    return 0;
+  }
+
   if (sub === "artists") {
     for (const artist of await artistList({}, db())) {
       line(
@@ -1573,7 +1702,7 @@ async function cmdLibrary(args: Args): Promise<number> {
 
   throw new MMError(
     "INVALID_INPUT",
-    "usage: mm library albums|tracks|artists|show <id>|repair-orphans [--apply]",
+    "usage: mm library albums|tracks|artists|show <id>|missing <id>|adopt <id> <disc> <pos>|repair-orphans [--apply]",
   );
 }
 
@@ -1846,6 +1975,11 @@ const USAGE = `mm — Music Manager
   mm library tracks [--search s] [--filter f] [--limit n]     every file, one line each
   mm library show <album id> [--json]     one album: identifiers, score, what is missing
   mm library artists                      grouped as the folders name them
+  mm library missing <album id> [--json]  which tracks of the release this album has not
+                                          got — offline, the four lines behind "16/20"
+  mm library adopt <album id> <disc> <position> --file <path> | --url <address>
+                                          fill one of them: downloads or copies, tags and
+                                          files that track alone
   mm library repair-orphans [--apply] [--limit n] [--json]
                                           re-attach library files that have no row, from their
                                           own MUSICBRAINZ_* tags; dry run unless --apply
