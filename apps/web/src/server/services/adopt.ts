@@ -105,6 +105,7 @@ import { enqueue, enqueueTrack } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import { toolbox as defaultToolbox, type ToolboxClient } from "#/server/toolbox/client.ts";
 import { ADOPTION_KEY, type Adoption } from "#/server/services/adopt.record.ts";
+import { closeUncoveredNoticeIfFilled } from "#/server/services/sourceless.ts";
 import { requireImport, resolvePaths } from "#/server/services/jobs/context.ts";
 import { isBefore, isTerminal } from "#/server/services/jobs/machine.ts";
 import { rewindTo } from "#/server/services/jobs/index.ts";
@@ -858,6 +859,18 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
     },
     db,
   );
+
+  /*
+   * A gap that has just been filled may have been the last one the notice was about.
+   *
+   * Only for a row that had no video of its own: that is what makes this adoption an answer to
+   * `uncovered_tracks` rather than to a failed download. `closeUncoveredNoticeIfFilled` checks
+   * that nothing is left before it closes anything, so adopting the first of three gaps leaves
+   * the card exactly where it is, still counting.
+   */
+  if (track.videoId === null) {
+    await closeUncoveredNoticeIfFilled(job.id, options.adoptedBy, db);
+  }
 
   /*
    * Re-open the import, when it had already given up.

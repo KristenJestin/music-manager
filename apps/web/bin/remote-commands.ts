@@ -375,7 +375,10 @@ async function cmdAdopt(api: ApiClient, args: RemoteArgs): Promise<number> {
     throw new Error(
       "usage: mm adopt <id> <track id> --file <path here>\n" +
         "       mm adopt <id> <track id> --server-path <path there>\n" +
-        "       mm adopt <id> <track id> --from-url <address the server downloads from>",
+        "       mm adopt <id> <track id> --from-url <address the server downloads from>\n" +
+        "\n" +
+        "`--from-url`, never `--url`: you are already using `--url` to name the installation " +
+        "this command is talking to, and it is read before the command name.",
     );
   }
 

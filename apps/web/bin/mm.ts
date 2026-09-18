@@ -718,7 +718,13 @@ async function cmdAdopt(args: Args): Promise<number> {
         hint:
           file !== undefined && from !== undefined
             ? "Give one or the other: the bytes come from a file or from an address, not both."
-            : "`--file` for audio already on this server, `--from-url` to download another upload of the same song.",
+            : "`--file <path>` takes audio already on this server. `--from-url <address>` makes " +
+              "the server download this track from another upload of the same song — for a " +
+              "video that is deleted, age-checked or Premium-only. It is spelled `--from-url` " +
+              "and not `--url` because `--url` already means something else and would not " +
+              "reach this command: `mm --url <base> --token mm_… <command>` is how the CLI " +
+              "drives *another installation*, and that flag is read before the command name.",
+        action: "mm adopt <id> <track id> --from-url 'https://www.youtube.com/watch?v=…'",
       },
     );
   }
@@ -1794,9 +1800,12 @@ const USAGE = `mm — Music Manager
   mm adopt <id> <track id> --file <path>   give one track a file you already have
                                           (deleted video, age check, an existing library)
   mm adopt <id> <track id> --from-url <address>   download this track from another upload
-                                          of the same song; the original stays its source
-                                          (--from-url, not --url: --url selects a remote
-                                          installation. It spends the download slot.)
+                                          of the same song; the original stays its declared
+                                          source. Spends the single download slot.
+                                          NB: --from-url, never --url. --url is the global
+                                          flag that points mm at ANOTHER INSTALLATION (see
+                                          Remote below) and is read before the command name,
+                                          so "adopt --url ..." never reaches this command.
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
   mm inbox resolve <id> --untagged        on a card MusicBrainz found nothing for: build the

@@ -91,6 +91,7 @@ const jobs = await import("./jobs/index.ts");
 const { adoptTrackFile } = await import("./adopt.ts");
 const { discardUnclaimedSourcelessTracks, materialiseSourcelessTracks, sourcelessTracksOf } =
   await import("./sourceless.ts");
+const { listInbox } = await import("./inbox.ts");
 const { aggregateStatus, isTrackTerminal } = await import("./jobs/machine.ts");
 const { nextStepOfTrack } = await import("./jobs/pipeline.ts");
 
@@ -292,6 +293,41 @@ describe.skipIf(unavailable !== null)("an album the source did not fully publish
     expect(after?.videoId).toBeNull();
     expect(after?.url).toBeNull();
   }, 300_000);
+
+  it("stops asking once the last gap is filled, instead of leaving a dead Inbox entry", async () => {
+    /*
+     * The residue test, and it is measured rather than reasoned about.
+     *
+     * `match` raises `uncovered_tracks` — "1 track(s) of the release have no video" — and
+     * nothing in the adoption path has any reason to know about it. But once the last
+     * sourceless row has been given a source the question has simply stopped being true, and
+     * an item nobody can ever answer is worse than no item: the review queue is where the
+     * owner works, and a queue with a permanent entry in it stops being read. `inbox.ts` says
+     * exactly this about the sibling case — fifteen albums re-matched and not one flag
+     * re-evaluated.
+     *
+     * The previous test adopted the only gap of this import, so by now there should be
+     * nothing left to ask.
+     */
+    expect(await sourcelessTracksOf(importId, db())).toHaveLength(0);
+
+    const open = (await listInbox({ importId, status: "open" }, db())).filter(
+      (row) => row.type === "uncovered_tracks",
+    );
+    expect(
+      open,
+      "the uncovered-tracks notice should not still be open once every track has a source",
+    ).toHaveLength(0);
+
+    // …and it was closed as a question that stopped being true, not as a decision somebody
+    // took: nobody answered it, the world moved under it.
+    const closed = (await listInbox({ importId }, db())).filter(
+      (row) => row.type === "uncovered_tracks",
+    );
+    expect(closed.length).toBeGreaterThan(0);
+    expect(closed[0]?.status).not.toBe("open");
+    expect((closed[0]?.resolution ?? {})["closedBy"]).toBe("adoption");
+  });
 
   it("is discarded by a re-match, which is what created it, unless it has been adopted", async () => {
     /*

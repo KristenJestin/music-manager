@@ -51,10 +51,11 @@
  * offers a failed download, and `get_import` returns it with the same id so an agent can adopt
  * onto it with no screen.
  */
-import { and, eq, isNull, sql } from "drizzle-orm";
-import { importTracks, type ImportTrack } from "#/server/db/schema/index.ts";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { importTracks, inboxItems, type ImportTrack } from "#/server/db/schema/index.ts";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { newId } from "#/server/ids.ts";
+import { emit } from "#/server/services/events.ts";
 
 /**
  * One track of the release that has no video, as the caller knows it.
@@ -279,6 +280,91 @@ export function cellsFromUncoveredPayload(payload: unknown): SourcelessCell[] {
 }
 
 /**
+ * Stop asking "n tracks of the release have no video" once none of them is true any more.
+ *
+ * `match` raises `uncovered_tracks`, and nothing in the adoption path has any reason to know
+ * that item exists. But the question it asks is about *this* set of rows, and filling the last
+ * of them makes it false — while leaving it open makes it **unanswerable**: there is no gap
+ * left for the card to be about, and no re-run of `match` is coming to close it. The owner has
+ * reported exactly this shape of residue before, and `inbox.ts` says why it matters more than
+ * it sounds: the review queue is where he works, and a queue carrying a permanent entry stops
+ * being read, which costs more than the bug that filled it.
+ *
+ * Closed as a question that **stopped being true**, not as a decision somebody took — the same
+ * distinction `closeSupersededItems` draws, and for the same reason. No `decisions` row is
+ * written: nobody answered this, the world moved underneath it. The resolution says so in as
+ * many words so that a reader a year from now is not left guessing who dismissed it.
+ *
+ * Deliberately narrow. It fires only when the track just adopted had no video of its own, and
+ * only when the import has no sourceless row left; an import whose gaps predate this feature
+ * has no such rows to count and its notice is left exactly where it is, because closing a
+ * notice whose subject was never materialised would be a guess about somebody else's album.
+ */
+export async function closeUncoveredNoticeIfFilled(
+  importId: string,
+  by: string,
+  db: Database = defaultDb(),
+): Promise<number> {
+  const remaining = await db
+    .select({ id: importTracks.id })
+    .from(importTracks)
+    .where(
+      and(
+        eq(importTracks.importId, importId),
+        isNull(importTracks.videoId),
+        eq(importTracks.state, "sourceless"),
+      ),
+    )
+    .limit(1);
+  if (remaining.length > 0) return 0;
+
+  const open = await db
+    .select()
+    .from(inboxItems)
+    .where(
+      and(
+        eq(inboxItems.importId, importId),
+        eq(inboxItems.status, "open"),
+        eq(inboxItems.type, "uncovered_tracks"),
+      ),
+    );
+  if (open.length === 0) return 0;
+
+  const now = new Date();
+  await db
+    .update(inboxItems)
+    .set({
+      status: "dismissed",
+      resolution: {
+        closedBy: "adoption",
+        reason: "every track of the release has a source now",
+        by,
+      },
+      resolvedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      inArray(
+        inboxItems.id,
+        open.map((item) => item.id),
+      ),
+    );
+
+  for (const item of open) {
+    await emit(
+      {
+        importId,
+        type: "inbox.resolved",
+        message: `No longer asking: ${item.title}`,
+        data: { inboxItemId: item.id, inboxType: item.type, closedBy: "adoption" },
+      },
+      db,
+    );
+  }
+  return open.length;
+}
+
+/**
  * Throw away the sourceless rows **nobody has given a source to**, for a discarded mapping.
  *
  * `forgetMapping` — "match again" — unmatches every row of the import and nulls the mapping
@@ -315,7 +401,18 @@ export async function discardUnclaimedSourcelessTracks(
   return gone.length;
 }
 
-/** The sourceless rows of one import, in tracklist order. */
+/**
+ * The tracks of one import that are **still waiting for a source**, in tracklist order.
+ *
+ * Both halves of the condition are load-bearing, and the second one was missing at first. A row
+ * adopted onto keeps `video_id: null` for ever — it never had a video and does not pretend it
+ * did — so `video_id is null` alone answers "tracks that came from no video", which is a
+ * different question and includes the ones already dealt with. The name says *sourceless*, and
+ * a track somebody has given a file to has a source.
+ *
+ * Getting this wrong is not cosmetic: this is the count `closeUncoveredNoticeIfFilled` asks
+ * before it decides the notice has nothing left to be about.
+ */
 export async function sourcelessTracksOf(
   importId: string,
   db: Database = defaultDb(),
@@ -323,7 +420,13 @@ export async function sourcelessTracksOf(
   return await db
     .select()
     .from(importTracks)
-    .where(and(eq(importTracks.importId, importId), isNull(importTracks.videoId)))
+    .where(
+      and(
+        eq(importTracks.importId, importId),
+        isNull(importTracks.videoId),
+        eq(importTracks.state, "sourceless"),
+      ),
+    )
     .orderBy(
       sql`coalesce(${importTracks.mediumPosition}, 1)`,
       sql`coalesce(${importTracks.trackPosition}, 0)`,
