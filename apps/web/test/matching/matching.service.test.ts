@@ -55,14 +55,18 @@ function albumInput(recorded: Cassette): {
 describe("the recorded scenarios", () => {
   it("holds the four the phase specification names, plus the owner review counter-examples", () => {
     expect(cassetteNames()).toEqual([
+      "aftercare",
       "bad-ideas",
       "bewitched",
+      "cars",
       "currents",
       "discovery",
       "formidable",
       "pure-heroine",
       "rise-against",
       "skinny-love",
+      "soleil-bleu",
+      "stardew-valley",
       "the-heist",
     ]);
   });

@@ -1,0 +1,3699 @@
+{
+  "kind": "single",
+  "video": {
+    "id": "yt-soleil-bleu",
+    "index": 0,
+    "title": "Soleil bleu",
+    "durationSeconds": 246,
+    "uploader": "Bleu Soleil - Topic",
+    "ytTrack": "Soleil bleu",
+    "ytArtist": "Bleu Soleil",
+    "ytAlbum": "Soleil bleu",
+    "ytReleaseYear": 2023
+  },
+  "candidates": [
+    {
+      "id": "e23b0075-8466-4bd4-8b73-f9af7918cb63",
+      "title": "Soleil bleu",
+      "artist": "Bleu Soleil & Luiza",
+      "disambiguation": "",
+      "lengthMs": 246000,
+      "isrcs": [
+        "FR6F32500820"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "fd36524b-c0d3-4012-989e-cf904ae51a48",
+          "title": "Soleil bleu",
+          "disambiguation": "",
+          "date": "2025-04-11",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "joinphrase": " & ",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil",
+                "disambiguation": ""
+              }
+            },
+            {
+              "name": "Luiza",
+              "joinphrase": "",
+              "artist": {
+                "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                "name": "Luiza",
+                "sort-name": "Luiza",
+                "disambiguation": "French Brazilian dub singer"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "fffd29d5-20f0-41f1-ac95-e46f6d59c64f",
+            "title": "Soleil bleu",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2025-04-11",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Bleu Soleil",
+                "joinphrase": " & ",
+                "artist": {
+                  "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                  "name": "Bleu Soleil",
+                  "sort-name": "Bleu Soleil",
+                  "disambiguation": ""
+                }
+              },
+              {
+                "name": "Luiza",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                  "name": "Luiza",
+                  "sort-name": "Luiza",
+                  "disambiguation": "French Brazilian dub singer"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 1,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "6c315f42-f442-4a5c-bb25-2875ae4bd5c1",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Soleil bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "disambiguation": "",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "joinphrase": "",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2025-06-11",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Bleu Soleil",
+                "joinphrase": "",
+                "artist": {
+                  "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                  "name": "Bleu Soleil",
+                  "sort-name": "Bleu Soleil",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 3,
+              "tracks": [
+                {
+                  "id": "96ccf99d-d324-484a-a94f-c04cc2478ba4",
+                  "position": 4,
+                  "number": "4",
+                  "title": "Soleil bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "disambiguation": "",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "barcode": "3617396272286",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "joinphrase": "",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2025-06-11",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Bleu Soleil",
+                "joinphrase": "",
+                "artist": {
+                  "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                  "name": "Bleu Soleil",
+                  "sort-name": "Bleu Soleil",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 3,
+              "tracks": [
+                {
+                  "id": "075ded37-d014-4333-9de7-a58823c8e039",
+                  "position": 4,
+                  "number": "4",
+                  "title": "Soleil bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " feat. ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f2c3f7ce-7cdd-45ae-b48b-5f8b5c9a8666",
+          "title": "NRJ Music Awards 2025",
+          "disambiguation": "",
+          "date": "2025-10",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "105cdc30-da9f-4913-9b46-202603bc1256",
+            "title": "NRJ Music Awards 2025",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2025-10",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 20,
+              "track-offset": 19,
+              "tracks": [
+                {
+                  "id": "e761b301-09a4-4502-9fe5-b860dfe0e1ad",
+                  "position": 20,
+                  "number": "20",
+                  "title": "Soleil Bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "94bb790a-f790-41b1-8622-3028e976a7c3",
+          "title": "Best of 2025",
+          "disambiguation": "",
+          "date": "2025-12-18",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "ODGPROD",
+              "joinphrase": "",
+              "artist": {
+                "id": "1232e62a-117f-4e75-a31a-ac4bb311013e",
+                "name": "ODGProd",
+                "sort-name": "ODGProd",
+                "disambiguation": "Dub"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5081479c-752a-49bf-9b12-2c9b1f370c62",
+            "title": "Best of 2025",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2025-12-18",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "ODGPROD",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1232e62a-117f-4e75-a31a-ac4bb311013e",
+                  "name": "ODGProd",
+                  "sort-name": "ODGProd",
+                  "disambiguation": "Dub"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 17,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "513f3b71-5a92-4f4a-bc76-546ba73705c0",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Soleil Bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " x ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "937f02fe-76ab-4726-9127-8cdb6549b94c",
+          "title": "Nrj Hits 2026",
+          "disambiguation": "",
+          "date": "2025-12-19",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "5021732996947",
+          "packaging": "Snap Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "joinphrase": "",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "89f32df1-dc28-432b-8c8b-121184dc17e6",
+            "title": "Nrj Hits 2026",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2025-12-19",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 17,
+              "tracks": [
+                {
+                  "id": "32faaba8-f593-43c6-b161-72a71924cb2b",
+                  "position": 18,
+                  "number": "18",
+                  "title": "Soleil bleu",
+                  "length": 247000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c030581e-3fab-497e-b08f-cb7a6ccb4308",
+          "title": "Luiza",
+          "disambiguation": "",
+          "date": "2026-04-10",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "3596975000192",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Luiza",
+              "joinphrase": "",
+              "artist": {
+                "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                "name": "Luiza",
+                "sort-name": "Luiza",
+                "disambiguation": "French Brazilian dub singer"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "522fa790-5cff-4083-ac7f-ca66aac60e16",
+            "title": "Luiza",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2026-04-10",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Luiza",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                  "name": "Luiza",
+                  "sort-name": "Luiza",
+                  "disambiguation": "French Brazilian dub singer"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "83e1ccdf-46ff-43a6-9c94-223911569dc1",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Soleil bleu",
+                  "length": 246000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c327d4f1-28c8-4c84-8e35-9f31a511a4f4",
+          "title": "Luiza",
+          "disambiguation": "",
+          "date": "2026-04-10",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "3596975010726",
+          "packaging": "Gatefold Cover",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Luiza",
+              "joinphrase": "",
+              "artist": {
+                "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                "name": "Luiza",
+                "sort-name": "Luiza",
+                "disambiguation": "French Brazilian dub singer"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "522fa790-5cff-4083-ac7f-ca66aac60e16",
+            "title": "Luiza",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2026-04-10",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Luiza",
+                "joinphrase": "",
+                "artist": {
+                  "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                  "name": "Luiza",
+                  "sort-name": "Luiza",
+                  "disambiguation": "French Brazilian dub singer"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "e60f9f85-289e-461c-8ef8-8addddb22106",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Soleil bleu",
+                  "length": 247000,
+                  "artist-credit": [
+                    {
+                      "name": "Bleu Soleil",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                        "name": "Bleu Soleil",
+                        "sort-name": "Bleu Soleil",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Luiza",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                        "name": "Luiza",
+                        "sort-name": "Luiza",
+                        "disambiguation": "French Brazilian dub singer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7dbafede-7853-4f90-a699-5a6aa3d5afc3",
+      "title": "Soleil bleu",
+      "artist": "Corynne Charby",
+      "disambiguation": "",
+      "lengthMs": 176760,
+      "isrcs": [
+        "FR6V80471723",
+        "FR6V80464195"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "9c08f000-d2f6-42c8-a9a0-264ec6d0a7d4",
+          "title": "À cause de toi",
+          "disambiguation": "",
+          "date": "1984",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Corynne Charby",
+              "joinphrase": "",
+              "artist": {
+                "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                "name": "Corynne Charby",
+                "sort-name": "Charby, Corynne",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2fdf6a7c-8aa1-4196-abfa-7d41e883a554",
+            "title": "À cause de toi",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "1984",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Corynne Charby",
+                "joinphrase": "",
+                "artist": {
+                  "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                  "name": "Corynne Charby",
+                  "sort-name": "Charby, Corynne",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "7\" Vinyl",
+              "title": "",
+              "track-count": 2,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "9a18fdb5-8b59-39fc-8dfd-72329b667ef5",
+                  "position": 2,
+                  "number": "B",
+                  "title": "Soleil bleu",
+                  "length": 172000,
+                  "artist-credit": [
+                    {
+                      "name": "Corynne Charby",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                        "name": "Corynne Charby",
+                        "sort-name": "Charby, Corynne",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f9549e3b-3239-4168-bfce-5a9b64e1408a",
+          "title": "Best Of",
+          "disambiguation": "",
+          "date": "2011-10-17",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "3610150181855",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Corynne Charby",
+              "joinphrase": "",
+              "artist": {
+                "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                "name": "Corynne Charby",
+                "sort-name": "Charby, Corynne",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "77513536-ad09-42ca-a5b6-486fb4eb459a",
+            "title": "Best Of",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-10-17",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Corynne Charby",
+                "joinphrase": "",
+                "artist": {
+                  "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                  "name": "Corynne Charby",
+                  "sort-name": "Charby, Corynne",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 22,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "c07e588c-5b1a-47db-b828-170d17929b48",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Soleil bleu",
+                  "length": 176760,
+                  "artist-credit": [
+                    {
+                      "name": "Corynne Charby",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                        "name": "Corynne Charby",
+                        "sort-name": "Charby, Corynne",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d9a6bbe8-d65e-449a-b77c-6ff459c9e9d0",
+          "title": "À cause de toi",
+          "disambiguation": "",
+          "date": "2011-10-31",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "3610150198600",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Corynne Charby",
+              "joinphrase": "",
+              "artist": {
+                "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                "name": "Corynne Charby",
+                "sort-name": "Charby, Corynne",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2fdf6a7c-8aa1-4196-abfa-7d41e883a554",
+            "title": "À cause de toi",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "1984",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Corynne Charby",
+                "joinphrase": "",
+                "artist": {
+                  "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                  "name": "Corynne Charby",
+                  "sort-name": "Charby, Corynne",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 2,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "dd416c97-fc67-4894-87ea-5413ada8981c",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Soleil bleu",
+                  "length": 176760,
+                  "artist-credit": [
+                    {
+                      "name": "Corynne Charby",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                        "name": "Corynne Charby",
+                        "sort-name": "Charby, Corynne",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bc346d4e-ed49-462c-b48d-48b93a3862d7",
+          "title": "Ma génération",
+          "disambiguation": "",
+          "date": "2011-10-31",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "3610150205865",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Corynne Charby",
+              "joinphrase": "",
+              "artist": {
+                "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                "name": "Corynne Charby",
+                "sort-name": "Charby, Corynne",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5492e05a-4a58-4bc3-a657-613c8af0fc36",
+            "title": "Ma génération",
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "1984",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Corynne Charby",
+                "joinphrase": "",
+                "artist": {
+                  "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                  "name": "Corynne Charby",
+                  "sort-name": "Charby, Corynne",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 4,
+              "tracks": [
+                {
+                  "id": "f0b2808d-2073-47cb-9b75-d30659980453",
+                  "position": 5,
+                  "number": "5",
+                  "title": "Soleil bleu",
+                  "length": 176760,
+                  "artist-credit": [
+                    {
+                      "name": "Corynne Charby",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                        "name": "Corynne Charby",
+                        "sort-name": "Charby, Corynne",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aad6025e-a18c-447c-bbed-f74af0686237",
+      "title": "Soleil bleu",
+      "artist": "VSO",
+      "disambiguation": "",
+      "lengthMs": 247160,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "14b8b35e-e6e0-4ae5-b178-03be8563fcdf",
+          "title": "Adrénaline",
+          "disambiguation": "",
+          "date": "2020-03-13",
+          "country": "FR",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "VSO",
+              "joinphrase": "",
+              "artist": {
+                "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                "name": "VSO",
+                "sort-name": "VSO",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f560335d-755d-4718-8f2f-2a2cd20ab0fb",
+            "title": "Adrénaline",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2020-03-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "VSO",
+                "joinphrase": "",
+                "artist": {
+                  "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                  "name": "VSO",
+                  "sort-name": "VSO",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "003810f7-bccb-4d0e-9cae-3299244aff6f",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Soleil bleu",
+                  "length": 247160,
+                  "artist-credit": [
+                    {
+                      "name": "VSO",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                        "name": "VSO",
+                        "sort-name": "VSO",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4bc692c1-79e0-41dc-9b68-edd3475cf8cb",
+          "title": "Adrénaline",
+          "disambiguation": "",
+          "date": "2020-03-13",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "602508779237",
+          "packaging": "Digipak",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "VSO",
+              "joinphrase": "",
+              "artist": {
+                "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                "name": "VSO",
+                "sort-name": "VSO",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f560335d-755d-4718-8f2f-2a2cd20ab0fb",
+            "title": "Adrénaline",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2020-03-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "VSO",
+                "joinphrase": "",
+                "artist": {
+                  "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                  "name": "VSO",
+                  "sort-name": "VSO",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "9d75c7bd-32a4-4528-9de4-a134c01ec2b4",
+                  "position": 6,
+                  "number": "6",
+                  "title": "Soleil bleu",
+                  "length": 247160,
+                  "artist-credit": [
+                    {
+                      "name": "VSO",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "633c3c72-f329-40b7-831c-5eb741576201",
+                        "name": "VSO",
+                        "sort-name": "VSO",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ee107d9f-2297-4a54-b57e-19d1140b3d5d",
+      "title": "Soleil bleu",
+      "artist": "Nunca",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a6241d81-e878-45d7-a145-d55524a0f5fa",
+          "title": "OLEADA",
+          "disambiguation": "",
+          "date": "2022-08-16",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Nunca",
+              "joinphrase": "",
+              "artist": {
+                "id": "5c02fad6-badb-4428-88cc-fab13909e2ee",
+                "name": "Nunca",
+                "sort-name": "Nunca",
+                "disambiguation": "French Rapper"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "838beb06-f6d3-4b2b-aa8f-6705371cdd87",
+            "title": "OLEADA",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2022-08-16",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Nunca",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5c02fad6-badb-4428-88cc-fab13909e2ee",
+                  "name": "Nunca",
+                  "sort-name": "Nunca",
+                  "disambiguation": "French Rapper"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 3,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "a9ff5731-363c-4d7e-9a91-b25a4eb5db5c",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Soleil bleu",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Nunca",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "5c02fad6-badb-4428-88cc-fab13909e2ee",
+                        "name": "Nunca",
+                        "sort-name": "Nunca",
+                        "disambiguation": "French Rapper"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5fe7dcc7-0fb1-4d91-be36-bd6c5b79b6d5",
+      "title": "Soleil Bleu",
+      "artist": "Molécule",
+      "disambiguation": "",
+      "lengthMs": 443000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ab54d03f-5f1e-4223-b59b-6ffd3c06ad6f",
+          "title": "60° 43' Nord (Deluxe Edition)",
+          "disambiguation": "",
+          "date": "2016",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "5060421564760",
+          "packaging": "Digibook",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Molécule",
+              "joinphrase": "",
+              "artist": {
+                "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                "name": "Molécule",
+                "sort-name": "Molécule",
+                "disambiguation": "French DJ"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "49c7bfb7-0c1f-40ca-9425-a361aee19700",
+            "title": "60° 43' Nord (Deluxe Edition)",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2016",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Molécule",
+                "joinphrase": "",
+                "artist": {
+                  "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                  "name": "Molécule",
+                  "sort-name": "Molécule",
+                  "disambiguation": "French DJ"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "60° 43' Nord",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "a6e636d1-ba4b-4436-849e-11cd0b7e42cd",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil Bleu",
+                  "length": 443000,
+                  "artist-credit": [
+                    {
+                      "name": "Molécule",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                        "name": "Molécule",
+                        "sort-name": "Molécule",
+                        "disambiguation": "French DJ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d000af02-b86f-45ce-bb5e-04a5ab575387",
+      "title": "Soleil bleu",
+      "artist": "Philippe Bestion",
+      "disambiguation": "",
+      "lengthMs": 257163,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "17e09324-4a8a-4ea1-92a5-8cb1f3369c29",
+          "title": "Inspire",
+          "disambiguation": "",
+          "date": "2019-07-05",
+          "country": "FR",
+          "status": "Official",
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Philippe Bestion",
+              "joinphrase": " / ",
+              "artist": {
+                "id": "fdc6e068-3031-47bf-a438-3ab41f0f89a6",
+                "name": "Philippe Bestion",
+                "sort-name": "Bestion, Philippe",
+                "disambiguation": ""
+              }
+            },
+            {
+              "name": "Vincent Bruley",
+              "joinphrase": "",
+              "artist": {
+                "id": "5e814d09-9d00-4e43-9a0d-61c73b4ed380",
+                "name": "Vincent Bruley",
+                "sort-name": "Bruley, Vincent",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "6c23370f-d41e-49f7-85d3-268b7658d688",
+            "title": "Inspire",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2019-07-05",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Philippe Bestion",
+                "joinphrase": " / ",
+                "artist": {
+                  "id": "fdc6e068-3031-47bf-a438-3ab41f0f89a6",
+                  "name": "Philippe Bestion",
+                  "sort-name": "Bestion, Philippe",
+                  "disambiguation": ""
+                }
+              },
+              {
+                "name": "Vincent Bruley",
+                "joinphrase": "",
+                "artist": {
+                  "id": "5e814d09-9d00-4e43-9a0d-61c73b4ed380",
+                  "name": "Vincent Bruley",
+                  "sort-name": "Bruley, Vincent",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 16,
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "c7afbd4c-e041-4696-a027-de6fe7a7be53",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Soleil bleu",
+                  "length": 257163,
+                  "artist-credit": [
+                    {
+                      "name": "Philippe Bestion",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "fdc6e068-3031-47bf-a438-3ab41f0f89a6",
+                        "name": "Philippe Bestion",
+                        "sort-name": "Bestion, Philippe",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2b561998-1612-445f-94a0-62dc2069fdbb",
+      "title": "Soleil Bleu",
+      "artist": "Courser",
+      "disambiguation": "",
+      "lengthMs": 252966,
+      "isrcs": [
+        "GBKQU2128374"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "2e4e170c-ad22-438c-bae9-b509a910bbca",
+          "title": "Aurora",
+          "disambiguation": "",
+          "date": "2021-04-20",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "5054285751626",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Courser",
+              "joinphrase": "",
+              "artist": {
+                "id": "50d4611a-2d25-472a-8513-cba37a52f661",
+                "name": "Courser",
+                "sort-name": "Courser",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "0a75d734-3a56-45c5-9c4c-fc9489845b83",
+            "title": "Aurora",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2021-04-20",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Courser",
+                "joinphrase": "",
+                "artist": {
+                  "id": "50d4611a-2d25-472a-8513-cba37a52f661",
+                  "name": "Courser",
+                  "sort-name": "Courser",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "3746121c-b3eb-46e9-98c9-4188a9541909",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil Bleu",
+                  "length": 252966,
+                  "artist-credit": [
+                    {
+                      "name": "Courser",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "50d4611a-2d25-472a-8513-cba37a52f661",
+                        "name": "Courser",
+                        "sort-name": "Courser",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6956bbd5-2b16-4e09-afa0-513c70e57343",
+      "title": "Soleil Bleu",
+      "artist": "Corynne Charby",
+      "disambiguation": "",
+      "lengthMs": 174000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0300ec37-6fb3-4abc-a97c-33392aadd4db",
+          "title": "Référence 80",
+          "disambiguation": "",
+          "date": "2011-06-13",
+          "country": "FR",
+          "status": null,
+          "barcode": "3760108354975",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Corynne Charby",
+              "joinphrase": "",
+              "artist": {
+                "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                "name": "Corynne Charby",
+                "sort-name": "Charby, Corynne",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "cc222feb-a258-4b1d-b3a7-929478fb1c19",
+            "title": "Référence 80",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2011-06-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Corynne Charby",
+                "joinphrase": "",
+                "artist": {
+                  "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                  "name": "Corynne Charby",
+                  "sort-name": "Charby, Corynne",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 18,
+              "track-offset": 8,
+              "tracks": [
+                {
+                  "id": "b3dec6f9-74c9-4f0e-b9b8-98807488a5fd",
+                  "position": 9,
+                  "number": "9",
+                  "title": "Soleil Bleu",
+                  "length": 174000,
+                  "artist-credit": [
+                    {
+                      "name": "Corynne Charby",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "061bba7e-85de-4dbd-9d23-5515f000e6fe",
+                        "name": "Corynne Charby",
+                        "sort-name": "Charby, Corynne",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d578a777-5b53-41f0-9ced-80644208561b",
+      "title": "Soleil bleu",
+      "artist": "Bruno Mursic",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0a63d847-94b8-4ce6-a968-d758c620dfeb",
+          "title": "Couleurs",
+          "disambiguation": "",
+          "date": "2013-02-02",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Bruno Mursic",
+              "joinphrase": "",
+              "artist": {
+                "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                "name": "Bruno Mursic",
+                "sort-name": "Mursic, Bruno",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "a4206728-c34e-4f49-8d59-286069368245",
+            "title": "Couleurs",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-02-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Bruno Mursic",
+                "joinphrase": "",
+                "artist": {
+                  "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                  "name": "Bruno Mursic",
+                  "sort-name": "Mursic, Bruno",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "f5f17ad3-8d27-4d88-a4c8-437d3e3a2658",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Soleil bleu",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Bruno Mursic",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                        "name": "Bruno Mursic",
+                        "sort-name": "Mursic, Bruno",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cda59f08-2566-43de-8300-a91ea28f6ae7",
+          "title": "Couleurs",
+          "disambiguation": "",
+          "date": "2013-02-02",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Bruno Mursic",
+              "joinphrase": "",
+              "artist": {
+                "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                "name": "Bruno Mursic",
+                "sort-name": "Mursic, Bruno",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "a4206728-c34e-4f49-8d59-286069368245",
+            "title": "Couleurs",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2013-02-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Bruno Mursic",
+                "joinphrase": "",
+                "artist": {
+                  "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                  "name": "Bruno Mursic",
+                  "sort-name": "Mursic, Bruno",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 14,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "9660a00d-3ab6-4b38-aad7-560c7096c87f",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Soleil bleu",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Bruno Mursic",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "776118b2-0e3d-4666-8c87-f6324b59bf60",
+                        "name": "Bruno Mursic",
+                        "sort-name": "Mursic, Bruno",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c92fc6a1-a23b-4f7b-bc17-2b251e1fdd25",
+      "title": "Soleil bleu",
+      "artist": "Éliane Reyes, Ronald Van Spaendonck",
+      "disambiguation": "",
+      "lengthMs": 432000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "d963573a-d3c0-4f95-b124-ca5943e5697f",
+          "title": "Enigma",
+          "disambiguation": "",
+          "date": "2006-11",
+          "country": "BE",
+          "status": "Official",
+          "barcode": "5902547005317",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Michel Lysight",
+              "joinphrase": "; ",
+              "artist": {
+                "id": "e54ad9b0-142a-43e8-904e-46cd07df35f4",
+                "name": "Michel Lysight",
+                "sort-name": "Lysight, Michel",
+                "disambiguation": "Belgian conductor & composer"
+              }
+            },
+            {
+              "name": "Jean-Marc Fessard",
+              "joinphrase": ", ",
+              "artist": {
+                "id": "cde59d92-300b-4120-9de9-121d8b92664c",
+                "name": "Jean-Marc Fessard",
+                "sort-name": "Fessard, Jean-Marc",
+                "disambiguation": "clarinetist"
+              }
+            },
+            {
+              "name": "Eliane Reyes",
+              "joinphrase": ", ",
+              "artist": {
+                "id": "2afe916a-21fc-40f8-97ff-642f4f70bf93",
+                "name": "Éliane Reyes",
+                "sort-name": "Reyes, Éliane",
+                "disambiguation": "pianist"
+              }
+            },
+            {
+              "name": "Ronald van Spaendonck",
+              "joinphrase": "",
+              "artist": {
+                "id": "6aa4f8ed-3f99-4f4b-a829-5eb2de2eabe8",
+                "name": "Ronald Van Spaendonck",
+                "sort-name": "Spaendonck, Ronald Van",
+                "disambiguation": "clarinet player"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "26f7207b-f9cb-47fe-9bc9-e14772448c34",
+            "title": "Enigma",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2006-11",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Michel Lysight",
+                "joinphrase": "; ",
+                "artist": {
+                  "id": "e54ad9b0-142a-43e8-904e-46cd07df35f4",
+                  "name": "Michel Lysight",
+                  "sort-name": "Lysight, Michel",
+                  "disambiguation": "Belgian conductor & composer"
+                }
+              },
+              {
+                "name": "Jean-Marc Fessard",
+                "joinphrase": ", ",
+                "artist": {
+                  "id": "cde59d92-300b-4120-9de9-121d8b92664c",
+                  "name": "Jean-Marc Fessard",
+                  "sort-name": "Fessard, Jean-Marc",
+                  "disambiguation": "clarinetist"
+                }
+              },
+              {
+                "name": "Eliane Reyes",
+                "joinphrase": ", ",
+                "artist": {
+                  "id": "2afe916a-21fc-40f8-97ff-642f4f70bf93",
+                  "name": "Éliane Reyes",
+                  "sort-name": "Reyes, Éliane",
+                  "disambiguation": "pianist"
+                }
+              },
+              {
+                "name": "Ronald van Spaendonck",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6aa4f8ed-3f99-4f4b-a829-5eb2de2eabe8",
+                  "name": "Ronald Van Spaendonck",
+                  "sort-name": "Spaendonck, Ronald Van",
+                  "disambiguation": "clarinet player"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 27,
+              "track-offset": 26,
+              "tracks": [
+                {
+                  "id": "7860bd4d-4386-46a3-92f8-7a012a3e0c56",
+                  "position": 27,
+                  "number": "27",
+                  "title": "Soleil bleu",
+                  "length": 432000,
+                  "artist-credit": [
+                    {
+                      "name": "Michel Lysight",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "e54ad9b0-142a-43e8-904e-46cd07df35f4",
+                        "name": "Michel Lysight",
+                        "sort-name": "Lysight, Michel",
+                        "disambiguation": "Belgian conductor & composer"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c946fafc-8e8a-44c4-82ef-04310935b92f",
+      "title": "Soleil Bleu",
+      "artist": "Mutine",
+      "disambiguation": "",
+      "lengthMs": 210462,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "f4e61940-144f-45f1-aecd-18decd165a35",
+          "title": "Versatile, Vol.1",
+          "disambiguation": "",
+          "date": "2019-02-15",
+          "country": "FR",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Mutine",
+              "joinphrase": "",
+              "artist": {
+                "id": "eea1c14e-9f58-4ec2-be81-49c92c7d3993",
+                "name": "Mutine",
+                "sort-name": "Mutine",
+                "disambiguation": "Rap français"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "89e727ca-dd13-480c-9d37-02951f6c1d8f",
+            "title": "Versatile, Vol.1",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2019-02-15",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Mutine",
+                "joinphrase": "",
+                "artist": {
+                  "id": "eea1c14e-9f58-4ec2-be81-49c92c7d3993",
+                  "name": "Mutine",
+                  "sort-name": "Mutine",
+                  "disambiguation": "Rap français"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 15,
+              "track-offset": 6,
+              "tracks": [
+                {
+                  "id": "1d75b655-024a-4ccb-a1c4-96ef97da39c6",
+                  "position": 7,
+                  "number": "7",
+                  "title": "Soleil Bleu",
+                  "length": 210462,
+                  "artist-credit": [
+                    {
+                      "name": "Mutine",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "eea1c14e-9f58-4ec2-be81-49c92c7d3993",
+                        "name": "Mutine",
+                        "sort-name": "Mutine",
+                        "disambiguation": "Rap français"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4d4575e6-6de8-4c65-9c85-2a43487675f1",
+      "title": "Soleil bleu",
+      "artist": "Arthur Dairaine",
+      "disambiguation": "",
+      "lengthMs": 100000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0cfe404a-f4a5-4b40-bb91-5ff60f11bba6",
+          "title": "Mars, le 8ème continent",
+          "disambiguation": "",
+          "date": "2018-12-13",
+          "country": null,
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Arthur Dairaine",
+              "joinphrase": "",
+              "artist": {
+                "id": "f619388f-1b52-45df-b004-6725489c1f71",
+                "name": "Arthur Dairaine",
+                "sort-name": "Arthur Dairaine",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "aaa8aa1a-395b-4203-8005-5c380186d493",
+            "title": "Mars, le 8ème continent",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Soundtrack"
+            ],
+            "first-release-date": "2018-12-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Arthur Dairaine",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f619388f-1b52-45df-b004-6725489c1f71",
+                  "name": "Arthur Dairaine",
+                  "sort-name": "Arthur Dairaine",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "2a5b38ed-b7da-4041-af38-cb0367dfd1a5",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Soleil bleu",
+                  "length": 100000,
+                  "artist-credit": [
+                    {
+                      "name": "Arthur Dairaine",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "f619388f-1b52-45df-b004-6725489c1f71",
+                        "name": "Arthur Dairaine",
+                        "sort-name": "Arthur Dairaine",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "42636c18-3cab-44dc-bccc-1d6fa27deb80",
+      "title": "Soleil Bleu",
+      "artist": "LÜNE",
+      "disambiguation": "",
+      "lengthMs": 189000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "99b1a40f-695b-4e1d-ba5b-1a1210a838bd",
+          "title": "Rêve Lucide",
+          "disambiguation": "Bandcamp",
+          "date": "2018-07-13",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "LÜNE",
+              "joinphrase": "",
+              "artist": {
+                "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                "name": "LÜNE",
+                "sort-name": "LÜNE",
+                "disambiguation": "Synthwave artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "09e10d61-dddd-4436-b614-a9f3029d9bdb",
+            "title": "Rêve Lucide",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2018-07-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "LÜNE",
+                "joinphrase": "",
+                "artist": {
+                  "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                  "name": "LÜNE",
+                  "sort-name": "LÜNE",
+                  "disambiguation": "Synthwave artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 4,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "670d9361-d0f1-4b3f-bde2-6515a9dd4a3d",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Soleil Bleu",
+                  "length": 189600,
+                  "artist-credit": [
+                    {
+                      "name": "LÜNE",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                        "name": "LÜNE",
+                        "sort-name": "LÜNE",
+                        "disambiguation": "Synthwave artist"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3314e5e6-6c0d-47e0-a9ad-33de4f50f06c",
+          "title": "Rêve Lucide",
+          "disambiguation": "",
+          "date": "2018-07-15",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "194271265630",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "LÜNE",
+              "joinphrase": "",
+              "artist": {
+                "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                "name": "LÜNE",
+                "sort-name": "LÜNE",
+                "disambiguation": "Synthwave artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "09e10d61-dddd-4436-b614-a9f3029d9bdb",
+            "title": "Rêve Lucide",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2018-07-13",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "LÜNE",
+                "joinphrase": "",
+                "artist": {
+                  "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                  "name": "LÜNE",
+                  "sort-name": "LÜNE",
+                  "disambiguation": "Synthwave artist"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 4,
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "cfd22d7b-5d7e-4d1c-94df-09c0b10964bc",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Soleil Bleu",
+                  "length": 189000,
+                  "artist-credit": [
+                    {
+                      "name": "LÜNE",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "af905346-77c2-486d-b25d-67fa3070c71b",
+                        "name": "LÜNE",
+                        "sort-name": "LÜNE",
+                        "disambiguation": "Synthwave artist"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6f4d224b-ad27-4562-9af3-8651e7a256c1",
+      "title": "Soleil Bleu",
+      "artist": "François Lebaron",
+      "disambiguation": "",
+      "lengthMs": 389000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "62b92c34-799b-40d0-b1e5-9b416752d4d6",
+          "title": "Paranoid Fantasies",
+          "disambiguation": "",
+          "date": "2023-06-26",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "5063181385408",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "François Lebaron",
+              "joinphrase": "",
+              "artist": {
+                "id": "fff8b00c-39e4-4b34-98cc-f780e4b53685",
+                "name": "François Lebaron",
+                "sort-name": "Lebaron, François",
+                "disambiguation": "Lebaron, Delavelour"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "bc173ebc-81a2-4f20-9481-21f411ff9cbf",
+            "title": "Paranoid Fantasies",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2023-06-26",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "François Lebaron",
+                "joinphrase": "",
+                "artist": {
+                  "id": "fff8b00c-39e4-4b34-98cc-f780e4b53685",
+                  "name": "François Lebaron",
+                  "sort-name": "Lebaron, François",
+                  "disambiguation": "Lebaron, Delavelour"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 7,
+              "track-offset": 6,
+              "tracks": [
+                {
+                  "id": "cf3f95e8-885b-449f-b90e-b56d6e55d20c",
+                  "position": 7,
+                  "number": "7",
+                  "title": "Soleil Bleu",
+                  "length": 389000,
+                  "artist-credit": [
+                    {
+                      "name": "François Lebaron",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "fff8b00c-39e4-4b34-98cc-f780e4b53685",
+                        "name": "François Lebaron",
+                        "sort-name": "Lebaron, François",
+                        "disambiguation": "Lebaron, Delavelour"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "30e0adeb-9b17-4408-985a-ac76f2f66b35",
+      "title": "Soleil bleu",
+      "artist": "Sylvie Vartan en duo avec Julien Doré",
+      "disambiguation": "",
+      "lengthMs": 241000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "462851ef-69a8-4aa8-aa3d-96a795f73134",
+          "title": "Soleil bleu",
+          "disambiguation": "",
+          "date": "2010-11-29",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "886977783128",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Sylvie Vartan",
+              "joinphrase": "",
+              "artist": {
+                "id": "ff82ff36-5d5a-41ce-b305-0ccdef9c4cdc",
+                "name": "Sylvie Vartan",
+                "sort-name": "Vartan, Sylvie",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "fe73d9bc-58e4-4754-977a-280c38ed6b3f",
+            "title": "Soleil bleu",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2010-11-29",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Sylvie Vartan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "ff82ff36-5d5a-41ce-b305-0ccdef9c4cdc",
+                  "name": "Sylvie Vartan",
+                  "sort-name": "Vartan, Sylvie",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 12,
+              "track-offset": 6,
+              "tracks": [
+                {
+                  "id": "e0881235-ba9e-40fc-9a2b-7e84c20a0ae5",
+                  "position": 7,
+                  "number": "7",
+                  "title": "Soleil bleu",
+                  "length": 241000,
+                  "artist-credit": [
+                    {
+                      "name": "Sylvie Vartan",
+                      "joinphrase": " en duo avec ",
+                      "artist": {
+                        "id": "ff82ff36-5d5a-41ce-b305-0ccdef9c4cdc",
+                        "name": "Sylvie Vartan",
+                        "sort-name": "Vartan, Sylvie",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Julien Doré",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "b4d31609-8343-46f8-ad6a-728c5860c53e",
+                        "name": "Julien Doré",
+                        "sort-name": "Doré, Julien",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "530826e9-07c2-4c39-8de9-ae7d6bd8cc7b",
+      "title": "SOLEIL BLEU",
+      "artist": "Nemo Nebbia",
+      "disambiguation": "",
+      "lengthMs": 179874,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "b52bf77b-ab0f-49cd-a151-ac1555e83517",
+          "title": "Soleil Bleu",
+          "disambiguation": "",
+          "date": "2024-10-25",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Nemo Nebbia",
+              "joinphrase": "",
+              "artist": {
+                "id": "df4d07ad-adbc-4468-be13-8d021ecb6da1",
+                "name": "Nemo Nebbia",
+                "sort-name": "Nemo Nebbia",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "edaa6118-97ff-488c-aa51-614424fe0736",
+            "title": "Soleil Bleu",
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2024-10-25",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Nemo Nebbia",
+                "joinphrase": "",
+                "artist": {
+                  "id": "df4d07ad-adbc-4468-be13-8d021ecb6da1",
+                  "name": "Nemo Nebbia",
+                  "sort-name": "Nemo Nebbia",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 6,
+              "track-offset": 5,
+              "tracks": [
+                {
+                  "id": "51ed1d82-21f0-4a45-bcdc-69b052fd54d1",
+                  "position": 6,
+                  "number": "6",
+                  "title": "SOLEIL BLEU",
+                  "length": 179874,
+                  "artist-credit": [
+                    {
+                      "name": "Nemo Nebbia",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "df4d07ad-adbc-4468-be13-8d021ecb6da1",
+                        "name": "Nemo Nebbia",
+                        "sort-name": "Nemo Nebbia",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "31ed7fec-053b-427c-9f67-dad9cb0a5c32",
+      "title": "Soleil bleu",
+      "artist": "Molécule",
+      "disambiguation": "",
+      "lengthMs": 443000,
+      "isrcs": [
+        "FR9W11414370"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "b3a5cd19-270d-46c6-9cd9-50be809ddbdb",
+          "title": "60° 43' Nord",
+          "disambiguation": "",
+          "date": "2015-02-02",
+          "country": "FR",
+          "status": "Official",
+          "barcode": "9782953699777",
+          "packaging": "Book",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Molécule",
+              "joinphrase": "",
+              "artist": {
+                "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                "name": "Molécule",
+                "sort-name": "Molécule",
+                "disambiguation": "French DJ"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "c241f800-467c-4fe6-97b3-c5d5ce193175",
+            "title": "60° 43′ Nord",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2015-02-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Molécule",
+                "joinphrase": "",
+                "artist": {
+                  "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                  "name": "Molécule",
+                  "sort-name": "Molécule",
+                  "disambiguation": "French DJ"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "c50a7f09-de9f-43a3-b029-e594ce7fb574",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil bleu",
+                  "length": 443000,
+                  "artist-credit": [
+                    {
+                      "name": "Molécule",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                        "name": "Molécule",
+                        "sort-name": "Molécule",
+                        "disambiguation": "French DJ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "24fc2ab1-3155-4ffd-91d4-8e6957b669a8",
+          "title": "60° 43′ Nord",
+          "disambiguation": "",
+          "date": "2015-02-02",
+          "country": "XW",
+          "status": "Official",
+          "barcode": "",
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Molécule",
+              "joinphrase": "",
+              "artist": {
+                "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                "name": "Molécule",
+                "sort-name": "Molécule",
+                "disambiguation": "French DJ"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "c241f800-467c-4fe6-97b3-c5d5ce193175",
+            "title": "60° 43′ Nord",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2015-02-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Molécule",
+                "joinphrase": "",
+                "artist": {
+                  "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                  "name": "Molécule",
+                  "sort-name": "Molécule",
+                  "disambiguation": "French DJ"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "5ec6d4cc-ccff-4941-ad7c-1ed45e01a571",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil bleu",
+                  "length": 443000,
+                  "artist-credit": [
+                    {
+                      "name": "Molécule",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                        "name": "Molécule",
+                        "sort-name": "Molécule",
+                        "disambiguation": "French DJ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "89c7fd52-0c86-4eee-af63-f2bef1b8106a",
+          "title": "60° Nord 43’ + Live aux Transmusicales",
+          "disambiguation": "",
+          "date": "2016",
+          "country": "FR",
+          "status": null,
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Molécule",
+              "joinphrase": "",
+              "artist": {
+                "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                "name": "Molécule",
+                "sort-name": "Molécule",
+                "disambiguation": "French DJ"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "40da944b-f986-4925-b24a-c7b282e8896d",
+            "title": "60° Nord 43’ + Live aux Transmusicales",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2016",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Molécule",
+                "joinphrase": "",
+                "artist": {
+                  "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                  "name": "Molécule",
+                  "sort-name": "Molécule",
+                  "disambiguation": "French DJ"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "5352904e-f594-4201-9520-823e375f4819",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil bleu",
+                  "length": 443333,
+                  "artist-credit": [
+                    {
+                      "name": "Molécule",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                        "name": "Molécule",
+                        "sort-name": "Molécule",
+                        "disambiguation": "French DJ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3c23bacc-dc44-4825-8f75-dea721091c92",
+          "title": "60°43' Nord",
+          "disambiguation": "",
+          "date": "2018-05-15",
+          "country": "XW",
+          "status": "Official",
+          "barcode": null,
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Molécule",
+              "joinphrase": "",
+              "artist": {
+                "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                "name": "Molécule",
+                "sort-name": "Molécule",
+                "disambiguation": "French DJ"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "c241f800-467c-4fe6-97b3-c5d5ce193175",
+            "title": "60° 43′ Nord",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2015-02-02",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Molécule",
+                "joinphrase": "",
+                "artist": {
+                  "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                  "name": "Molécule",
+                  "sort-name": "Molécule",
+                  "disambiguation": "French DJ"
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "2e2ef3c5-77b7-4c12-b4f6-f0b4444a866b",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Soleil Bleu",
+                  "length": 443333,
+                  "artist-credit": [
+                    {
+                      "name": "Molécule",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "832a12ed-f96d-4042-bdfc-de7d55c5996f",
+                        "name": "Molécule",
+                        "sort-name": "Molécule",
+                        "disambiguation": "French DJ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eab20795-123b-4542-8b6f-facfcd7a40ff",
+      "title": "Le Soleil bleu",
+      "artist": "Ridan",
+      "disambiguation": "",
+      "lengthMs": 203346,
+      "isrcs": [
+        "FRZ050600654"
+      ],
+      "searchScore": 87,
+      "releases": [
+        {
+          "id": "e6eefc40-2d90-4c78-820f-64a720fc966d",
+          "title": "L'Ange de mon démon",
+          "disambiguation": "",
+          "date": "2007-03-19",
+          "country": "XE",
+          "status": "Official",
+          "barcode": "886970586726",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Ridan",
+              "joinphrase": "",
+              "artist": {
+                "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                "name": "Ridan",
+                "sort-name": "Ridan",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "91e6873b-6472-3d5e-9b96-edde37b13347",
+            "title": "L'Ange de mon démon",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2007-03-19",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Ridan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                  "name": "Ridan",
+                  "sort-name": "Ridan",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "087e96d5-b9af-3c70-86f9-2c39a40bc5e4",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Le Soleil bleu",
+                  "length": 203346,
+                  "artist-credit": [
+                    {
+                      "name": "Ridan",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                        "name": "Ridan",
+                        "sort-name": "Ridan",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b7ee8c36-1f25-449b-a0de-bbc856c31ada",
+          "title": "L'Ange de mon Démon",
+          "disambiguation": "",
+          "date": "2007",
+          "country": "CA",
+          "status": "Official",
+          "barcode": "064027901320",
+          "packaging": "Jewel Case",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Ridan",
+              "joinphrase": "",
+              "artist": {
+                "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                "name": "Ridan",
+                "sort-name": "Ridan",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "release-group": {
+            "id": "91e6873b-6472-3d5e-9b96-edde37b13347",
+            "title": "L'Ange de mon démon",
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2007-03-19",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Ridan",
+                "joinphrase": "",
+                "artist": {
+                  "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                  "name": "Ridan",
+                  "sort-name": "Ridan",
+                  "disambiguation": ""
+                }
+              }
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "title": "",
+              "track-count": 10,
+              "track-offset": 7,
+              "tracks": [
+                {
+                  "id": "34c62d79-ca6c-4a19-9c93-7b2620225090",
+                  "position": 8,
+                  "number": "8",
+                  "title": "Le Soleil bleu",
+                  "length": null,
+                  "artist-credit": [
+                    {
+                      "name": "Ridan",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "20ed617c-4c01-451a-b6ac-f10acac2ec25",
+                        "name": "Ridan",
+                        "sort-name": "Ridan",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "15417e96-ef35-430f-a211-d032c17b633e",
+      "title": "Soleil, soleil bleu",
+      "artist": "Baptiste W. Hamon",
+      "disambiguation": "",
+      "lengthMs": 232000,
+      "isrcs": [],
+      "searchScore": 87,
+      "releases": [
+        {
+          "id": "28a53b42-1712-4364-a345-1a6c298221e4",
+          "title": "Soleil, soleil bleu",
+          "date": "2019-04-05",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "de3eee3e-8a18-4161-82f8-37b74e350476",
+            "title": "Soleil, soleil bleu",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3bde6979-179a-4f47-a68e-bc9e91c48df0",
+      "title": "Soleil bleu (pour Arthur)",
+      "artist": "Les Chiens",
+      "disambiguation": "",
+      "lengthMs": 131866,
+      "isrcs": [],
+      "searchScore": 78,
+      "releases": [
+        {
+          "id": "45aaca9b-9fd4-42e9-8792-9870f1c7e0c6",
+          "title": "La Nuit dérobée",
+          "date": "2006-07-11",
+          "country": "CA",
+          "status": "Official",
+          "release-group": {
+            "id": "fa148d97-5ad9-3f87-ae86-5d2dfc4bd46f",
+            "title": "La Nuit dérobée",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7797f924-c3fd-4ef0-bba6-285ba2e8f1ba",
+      "title": "Vers le soleil bleu",
+      "artist": "Fadia Tomb El-Hage, Pierre Feraux, Amaury Geens, Nathalie Huby, Natacha Save, Luc Vanden Bosch, Matthieu Widart",
+      "disambiguation": "",
+      "lengthMs": 325280,
+      "isrcs": [
+        "ATTE42004211"
+      ],
+      "searchScore": 78,
+      "releases": [
+        {
+          "id": "cfe7639b-800f-441a-a0e7-78afae2c2152",
+          "title": "Masārāt",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Fadia Tomb El-Hage",
+              "joinphrase": ", ",
+              "artist": {
+                "id": "9c5c87d2-3718-414b-9470-a5ff802259bc",
+                "name": "فاديا الحاج",
+                "sort-name": "el-Hage, Fadia"
+              }
+            },
+            {
+              "name": "Fragments ensemble",
+              "artist": {
+                "id": "a3f03916-dbd1-423e-8e64-cbe7b0160cb4",
+                "name": "Fragments",
+                "sort-name": "Fragments",
+                "disambiguation": "Fragments ensemble"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "fd841422-9e47-463d-b3c8-e0c3cd8a46b9",
+            "title": "Masārāt",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dce0bc75-1611-498b-bb2c-2680d54f1caa",
+      "title": "Soleil bleu (radio edit)",
+      "artist": "Bleu Soleil & Luiza",
+      "disambiguation": "",
+      "lengthMs": 131566,
+      "isrcs": [],
+      "searchScore": 78,
+      "releases": [
+        {
+          "id": "0ceb7692-e671-4785-9ab2-5ed43d04ad28",
+          "title": "Soleil bleu (radio edit)",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "joinphrase": " & ",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil"
+              }
+            },
+            {
+              "name": "Luiza",
+              "artist": {
+                "id": "4fbe2c5f-03c8-4ec0-af85-9558746a4c38",
+                "name": "Luiza",
+                "sort-name": "Luiza",
+                "disambiguation": "French Brazilian dub singer"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "fffd29d5-20f0-41f1-ac95-e46f6d59c64f",
+            "title": "Soleil bleu",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1ca9f09-b493-4c4b-8ea9-0e6a34b668ec",
+      "title": "Soleil bleu (Dr LoOney remix)",
+      "artist": "Bleu Soleil",
+      "disambiguation": "",
+      "lengthMs": 265412,
+      "isrcs": [],
+      "searchScore": 70,
+      "releases": [
+        {
+          "id": "e214d402-3bc7-4e82-8370-d63ff9870473",
+          "title": "Soleil bleu (Dr LoOney remix)",
+          "date": "2025-09-20",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Dr LoOney",
+              "artist": {
+                "id": "bc4f5495-657c-4be7-9c76-0871970c50d5",
+                "name": "Dr Looney",
+                "sort-name": "Dr Looney"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "985119c4-c923-403a-b3fe-7fa300ed8ef6",
+            "title": "Soleil bleu (Dr LoOney remix)",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Remix"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "76a6412d-fe06-4227-b313-e36126c24333",
+      "title": "Soleil Bleu (Hard Sinister Remix)",
+      "artist": "Hard Sinister",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 70,
+      "releases": [
+        {
+          "id": "080d3399-3a34-4fee-8ec4-499cbcc66e23",
+          "title": "Vorstelijk Bouncen in het Beukpaleis 6.0",
+          "date": "2026-01-03",
+          "country": "NL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Datichs",
+              "artist": {
+                "id": "c21ff938-e754-415c-8d5e-56152707570d",
+                "name": "Datichs",
+                "sort-name": "Datichs",
+                "disambiguation": "Uptempo Hardcore by Richard Verhoef"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "3926b6da-a14d-4c80-920c-648e0a8e1095",
+            "title": "Vorstelijk Bouncen in het Beukpaleis 6.0",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "DJ-mix"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 43,
+              "track-offset": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "25a16686-185a-4716-baac-94386dcd4d0b",
+      "title": "Sous le Soleil bleu de méthylène",
+      "artist": "Magali Noël",
+      "disambiguation": "",
+      "lengthMs": 135000,
+      "isrcs": [],
+      "searchScore": 64,
+      "releases": [
+        {
+          "id": "3766218b-5850-4355-97e6-7b7753368af1",
+          "title": "Prévert 96 \"Soleil blanc\"",
+          "date": "1996",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Magali Noël",
+              "artist": {
+                "id": "929c6c86-f70e-406f-8df7-f26df5ac729d",
+                "name": "Magali Noël",
+                "sort-name": "Noël, Magali"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5d5752e9-dbe8-417a-a3f8-b8957b1dbda5",
+            "title": "Prévert 96 \"Soleil blanc\"",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 17,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1fa7a7e-4fac-4582-8abd-e69343e95776",
+      "title": "Noir soleil",
+      "artist": "Bleu Soleil",
+      "disambiguation": "",
+      "lengthMs": 156000,
+      "isrcs": [
+        "FRX282552935"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9f110029-c90f-45d4-9ee3-7ca04ad32715",
+      "title": "Cerf‐volant",
+      "artist": "Bleu Soleil",
+      "disambiguation": "",
+      "lengthMs": 204462,
+      "isrcs": [
+        "FRX282552933"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7d1b4865-3fef-4335-80d1-3b72af51ef67",
+      "title": "Hisui",
+      "artist": "Bleu Soleil",
+      "disambiguation": "",
+      "lengthMs": 234612,
+      "isrcs": [
+        "DGA062411475"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "f4f02a7c-878a-498b-bf62-e9aa15e93f88",
+          "title": "Best of 2024",
+          "date": "2024-12-31",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "ODGProd",
+              "artist": {
+                "id": "1232e62a-117f-4e75-a31a-ac4bb311013e",
+                "name": "ODGProd",
+                "sort-name": "ODGProd",
+                "disambiguation": "Dub"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "bf80aae3-af82-44e3-b25e-4f5ab01b4e05",
+            "title": "Best of 2024",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 20,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 4
+            }
+          ]
+        },
+        {
+          "id": "f8709cd8-4d9b-4a8f-87a9-65845b9872c4",
+          "title": "Hisui",
+          "date": "2024-07-04",
+          "country": "CA",
+          "status": "Official",
+          "release-group": {
+            "id": "2010a9f7-4077-4673-88de-f773d3e65ca2",
+            "title": "Hisui",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "fa1e3dfc-c534-4ed2-aaac-ddcfe857f82d",
+          "title": "Hisui",
+          "date": "2024-07-08",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "2010a9f7-4077-4673-88de-f773d3e65ca2",
+            "title": "Hisui",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "952654e4-dd3d-4370-935b-d7b88e7c5d13",
+      "title": "Alizé",
+      "artist": "Bleu Soleil",
+      "disambiguation": "",
+      "lengthMs": 261236,
+      "isrcs": [
+        "FRX282552934"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "48863653-cfde-4aa2-95e3-e07e9ed34eba",
+      "title": "Confluence",
+      "artist": "Bleu Soleil feat. Cléo",
+      "disambiguation": "",
+      "lengthMs": 238269,
+      "isrcs": [
+        "FR2X42507549"
+      ],
+      "searchScore": 74,
+      "releases": [
+        {
+          "id": "19c297c5-3c82-4476-b9cf-6b09db36b70c",
+          "title": "Women Voices #3",
+          "date": "2025-03-08",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "ODGPROD",
+              "artist": {
+                "id": "1232e62a-117f-4e75-a31a-ac4bb311013e",
+                "name": "ODGProd",
+                "sort-name": "ODGProd",
+                "disambiguation": "Dub"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e862573f-6ef3-4590-84e8-adeed24ba682",
+            "title": "Women Voices #3",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "Mixtape/Street"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 12,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "a345783c-ef35-4b9b-9b76-4c81f31b0f72",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 1
+            }
+          ]
+        },
+        {
+          "id": "4d8f4d4a-38d3-40ad-9d09-575ecd724421",
+          "title": "Soleil bleu",
+          "date": "2025-06-11",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "66227222-6d50-471e-914c-0eda0f0bcf40",
+            "title": "Soleil bleu",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 6,
+              "track-offset": 1
+            }
+          ]
+        },
+        {
+          "id": "7498225b-d705-4caa-a298-f88c9555bf45",
+          "title": "Confluence",
+          "date": "2025-02-20",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Bleu Soleil",
+              "joinphrase": " w/ ",
+              "artist": {
+                "id": "736ee88d-6b6d-4160-9484-a2c9ea5d3c04",
+                "name": "Bleu Soleil",
+                "sort-name": "Bleu Soleil"
+              }
+            },
+            {
+              "name": "Cléo",
+              "artist": {
+                "id": "1e626a2b-f11d-4b58-8586-a11dd424b1ac",
+                "name": "Cléo",
+                "sort-name": "Cléo",
+                "disambiguation": "reggae singer"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "b13e9d49-7d92-4220-a8d9-d2342abe412a",
+            "title": "Confluence",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 1,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

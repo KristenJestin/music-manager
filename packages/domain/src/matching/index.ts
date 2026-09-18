@@ -40,6 +40,7 @@ export type { SearchTerms } from "./search-terms.ts";
 export type { HintFallback } from "./hints.ts";
 
 export {
+  artistDisagrees,
   artistScore,
   coverArtOf,
   coverArtScore,

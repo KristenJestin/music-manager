@@ -32,6 +32,7 @@
 import { assign } from "./mapping.ts";
 import { withDefaults, type DeepPartialConfig } from "./config.ts";
 import {
+  artistDisagrees,
   artistScore,
   countryScore,
   coverArtOf,
@@ -601,7 +602,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       signals,
       penalties,
       why: [],
-      artistDisagrees: signals.artist < config.thresholds.artistDisagreement,
+      artistDisagrees: artistDisagrees(sourceArtists, artist, signals.artist, config.thresholds),
       preselected: false,
       safe: false,
       detailed: fitSignal !== null,

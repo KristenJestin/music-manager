@@ -12,6 +12,7 @@
  */
 
 import {
+  creditCarriesArtist,
   editionTokensIn,
   normalizeArtist,
   normalizeTitle,
@@ -112,6 +113,47 @@ export function artistScore(
     best = Math.max(best, contained ? Math.max(0.8, similarity) : similarity);
   }
   return unit(best);
+}
+
+/**
+ * Is this a **disagreement about who made the record**, rather than a spelling?
+ *
+ * The one expression behind both the “Artist mismatch” line every card can print and the
+ * `artistDisagrees` flag the preselection vetoes on. They are the same statement by
+ * construction, which is the point: the version this replaces had three scorers writing the
+ * sentence out of a hard-coded `artist < 0.5` and nothing anywhere reading it, so the engine
+ * printed “Artist mismatch (credited to VSO)” on the card it had ticked.
+ *
+ * Two conditions, and the second is why this is a function rather than a comparison:
+ *
+ *  - **the signal is low.** `artistScore` is a *similarity*, so it is the right thing to
+ *    weight and the wrong thing to accuse with. Below `thresholds.artistDisagreement` there is
+ *    no longer a spelling to forgive.
+ *  - **and the two credits share no name.** `creditCarriesArtist` is this repository's
+ *    settled answer to "are these the same artist" — it splits both sides on the separators a
+ *    credit really uses, folds accents and case, and accepts one name in common. It is what
+ *    the artist gate in `matching.service.ts` already asks, and asking something *different*
+ *    here would mean the gate and the veto could contradict each other on the same pair.
+ *
+ * The second condition is not a technicality. *Stardew Valley Piano Collections* is credited
+ * by YouTube to "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales" and by MusicBrainz
+ * to "Augustine Mayuga Gonzales & Matthew Bridgham": as strings they barely resemble each
+ * other and `artistScore` says so, but they name the same person and the record really is his.
+ * Calling that a mismatch would print a false accusation on the right answer's card and then
+ * refuse to tick it — the new bug, wearing the old one's clothes.
+ */
+export function artistDisagrees(
+  sources: readonly (string | null | undefined)[],
+  candidateCredit: string | null | undefined,
+  signal: number,
+  thresholds: MatchingThresholds,
+): boolean {
+  // `sources` is the same list `artistScore` was given — the album's credit and every video's
+  // own tags — because a disagreement with one of them while another agrees is not one.
+  const named = sources.filter((s) => s != null && s.trim() !== "");
+  if (named.length === 0) return false; // the source names nobody to disagree with
+  if (signal >= thresholds.artistDisagreement) return false;
+  return !named.some((source) => creditCarriesArtist(source, candidateCredit));
 }
 
 /* ------------------------------------------------------------------ */

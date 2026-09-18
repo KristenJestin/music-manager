@@ -22,7 +22,7 @@
  */
 
 import { withDefaults, type DeepPartialConfig } from "./config.ts";
-import { artistScore, round3, titleScore, unit, yearOf } from "./signals.ts";
+import { artistDisagrees, artistScore, round3, titleScore, unit, yearOf } from "./signals.ts";
 import type {
   AlbumHints,
   ReleaseCandidate,
@@ -116,13 +116,13 @@ export function searchScore(
 
     // The sentence and the flag are one comparison, against one named threshold — the third
     // of the three places that used to spell `< 0.5` out by hand and answer to nothing.
-    const artistDisagrees = artist !== "" && credit < config.thresholds.artistDisagreement;
+    const disagrees = artistDisagrees([artist], artistName, credit, config.thresholds);
 
     const why: string[] = [];
     if (title >= 0.99) why.push("Title matches exactly");
     else if (title < 0.5) why.push("Title does not match");
     if (credit >= 0.99) why.push("Artist matches exactly");
-    else if (artistDisagrees) why.push(`Artist mismatch (credited to ${artistName})`);
+    else if (disagrees) why.push(`Artist mismatch (credited to ${artistName})`);
     if (group["primary-type"] != null && group["primary-type"] !== "") {
       why.push(
         `Filed as a ${group["primary-type"]}${
@@ -141,7 +141,7 @@ export function searchScore(
       firstReleaseDate: group["first-release-date"] ?? null,
       score: round3(unit((title * 0.36 + credit * 0.34 + primary * 0.2) * (0.7 + 0.3 * secondary))),
       why,
-      artistDisagrees,
+      artistDisagrees: disagrees,
     });
   }
 

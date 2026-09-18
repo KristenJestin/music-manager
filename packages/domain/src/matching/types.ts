@@ -229,11 +229,16 @@ export interface MatchingThresholds {
   /**
    * Below this the artist signal stops being a deduction and becomes a **disagreement**.
    *
-   * One number, read in exactly two places per scorer, and that is the whole reason it is here
-   * rather than inlined twice: it is the threshold that makes the “Artist mismatch” line appear
-   * in `why`, *and* the threshold that raises `artistDisagrees`. Written once, the sentence and
-   * the flag cannot drift apart — and drifting apart is the failure this is for, in its worst
-   * shape: three scorers printing the sentence and nothing at all reading it.
+   * One number, read in exactly one place per scorer, and that is the whole reason it is here
+   * rather than inlined three times: it is the threshold that makes the “Artist mismatch” line
+   * appear in `why`, *and* the threshold that raises `artistDisagrees`, because they are now
+   * one expression. Written once, the sentence and the flag cannot drift apart — and drifting
+   * apart is the failure this is for, in its worst shape: three scorers printing the sentence
+   * and nothing at all reading it.
+   *
+   * It is necessary and not sufficient. See `artistDisagrees` in `signals.ts` for the second
+   * half, which is what keeps a low similarity between two credits that *share a name* from
+   * being called a disagreement.
    */
   readonly artistDisagreement: number;
 }

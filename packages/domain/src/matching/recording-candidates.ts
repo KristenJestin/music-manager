@@ -16,6 +16,7 @@
 
 import { withDefaults, type DeepPartialConfig } from "./config.ts";
 import {
+  artistDisagrees,
   artistScore,
   disambiguationPenalties,
   durationScore,
@@ -390,7 +391,12 @@ export function score(
       signals,
       penalties,
       why: [],
-      artistDisagrees: signals.artist < config.thresholds.artistDisagreement,
+      artistDisagrees: artistDisagrees(
+        [video.uploader, video.ytArtist],
+        candidate.artist,
+        signals.artist,
+        config.thresholds,
+      ),
       preselected: false,
       safe: false,
       releases,

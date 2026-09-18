@@ -29,6 +29,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { CREDIT_LADDER_LIMIT } from "../apps/web/src/server/services/matching.service.ts";
 import {
   albumHints,
   DEFAULT_GROUP_LIMIT,
@@ -40,10 +41,12 @@ import {
   type MatchVideo,
 } from "../packages/domain/src/matching/index.ts";
 import {
+  artistLadder,
   creditCarriesArtist,
   primaryArtist,
   stripArtistPrefix,
   stripEditionQualifier,
+  stripEditionQualifierLoosely,
 } from "../packages/domain/src/normalize/title.ts";
 import type {
   MbRecording,
@@ -551,6 +554,239 @@ const THE_HEIST: AlbumScenario = {
   ),
 };
 
+/**
+ * The seventh owner review's first defect: seven searches, no candidate, and the record was
+ * there all along.
+ *
+ * YouTube credits *Stardew Valley Piano Collections* to "**ConcernedApe, Meadow Bridgham,
+ * Augustine Mayuga Gonzales**" — the game's author, the arranger's sibling, and the pianist.
+ * MusicBrainz credits it to "**Augustine Mayuga Gonzales & Matthew Bridgham**". The two
+ * strings agree on exactly one name, and it is the *third* one YouTube writes, so the two
+ * rungs that existed — the first credited name, then the whole credit — both asked for
+ * somebody MusicBrainz has never filed this record under. The recording convergence below
+ * them asked with the first name too, and answered nothing four times over; the direct release
+ * search made seven. Release `02f4383d-21d1-4179-90c9-1fb307cfdbc6` (22 tracks, Digital Media,
+ * 2018) was never a candidate.
+ *
+ * With the credit degraded name by name the fourth rung asks `artist:"Augustine Mayuga
+ * Gonzales"` and MusicBrainz answers with the record. Nothing about that question is wide: it
+ * names an artist, and it names one the source itself credits.
+ *
+ * The durations are MusicBrainz's own, because the owner's playlist is not something this
+ * repository can replay; the assertions this scenario carries are about *which questions are
+ * asked and what comes back*, and those are recorded from the real index.
+ */
+const STARDEW_VALLEY: AlbumScenario = {
+  name: "stardew-valley",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_stardew-valley-piano",
+    album: "Stardew Valley Piano Collections",
+    artist: "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales",
+    year: 2018,
+    label: "ConcernedApe",
+    note: "22 videos. The one name the YouTube credit and the MusicBrainz credit share is the third of three, which no rung asked for: seven searches, zero candidates (owner review 7, D1).",
+  },
+  videos: albumVideos(
+    [
+      ["Overture", 148],
+      ["Spring (It’s a Big World Outside)", 212],
+      ["Spring (The Valley Comes Alive)", 264],
+      ["Spring (Wild Horseradish Jam)", 250],
+      ["Pelican Town", 152],
+      ["Summer (Nature’s Crescendo)", 257],
+      ["Summer (The Sun Can Bend an Orange Sky)", 242],
+      ["Summer (Tropicala)", 211],
+      ["Mines (Crystal Bells)", 182],
+      ["Mines (Star Lumpy)", 113],
+      ["Mines (Cloth)", 118],
+      ["Fall (The Smell of Mushroom)", 226],
+      ["Fall (Ghost Synth)", 150],
+      ["Fall (Raven’s Descent)", 189],
+      ["In the Deep Woods (Variations)", 163],
+      ["Winter (Nocturne of Ice)", 210],
+      ["Winter (The Wind Can Be Still)", 181],
+      ["Winter (Ancient)", 202],
+      ["A Golden Star Was Born", 152],
+      ["Mermaid Song", 88],
+      ["Night Market", 146],
+      ["Submarine Song", 141],
+    ],
+    {
+      album: "Stardew Valley Piano Collections",
+      artist: "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales",
+      year: 2018,
+      uploader: "ConcernedApe - Topic",
+      label: "ConcernedApe",
+      releasedOn: "2018-10-05",
+    },
+  ),
+};
+
+/**
+ * The seventh owner review's second empty search: a record filed under a shorter name.
+ *
+ * The YouTube Music album is titled, verbatim, **"AFTERCARE DELUXE"**. MusicBrainz files the
+ * release group as **"AFTERCARE"** (`7f40718f-2b31-4d9b-88a7-b7f49cb8a330`) and puts the
+ * deluxe pressing inside it (`0a6776c7-fb09-4dd1-b402-07b6b65fe583`, 21 tracks). The credit is
+ * a single name, so there is no artist rung to climb; and "DELUXE" here is *bare* — no
+ * bracket, no dash, no comma — which is precisely the form `stripEditionQualifier` refuses to
+ * strip, on purpose, so that an album really called *Deluxe* keeps its name. So the base-title
+ * rung never fired either, and six searches found nothing.
+ *
+ * The bare rung is the last title question, asked only once everything narrower has answered
+ * nothing, and it still carries `artist:"Nessa Barrett"`. Recorded so that stays true.
+ */
+const AFTERCARE: AlbumScenario = {
+  name: "aftercare",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_aftercare-deluxe",
+    album: "AFTERCARE DELUXE",
+    artist: "Nessa Barrett",
+    year: 2025,
+    label: "Warner Records",
+    note: "21 videos. MusicBrainz names the group AFTERCARE; the bare trailing DELUXE is the one edition word stripEditionQualifier leaves alone, so six searches found nothing (owner review 7, D1).",
+  },
+  videos: albumVideos(
+    [
+      ["AFTERCARE", 94],
+      ["P*RNSTAR", 149],
+      ["HEARTBEAT", 189],
+      ["DISCO", 198],
+      ["PASSENGER PRINCESS", 156],
+      ["MUSTANG BABY", 192],
+      ["RUSSIAN ROULETTE", 160],
+      ["S.L.U.T.", 148],
+      ["BABYDOLL", 219],
+      ["GIVEN ENOUGH", 204],
+      ["EDWARD SCISSORHANDS", 211],
+      ["GLITTER AND VIOLENCE", 185],
+      ["PINS AND NEEDLES", 202],
+      ["STAY ALIVE", 191],
+      ["DIRTY LITTLE SECRET", 215],
+      ["LOVE LOOKS PRETTY ON YOU", 192],
+      ["DOES GOD CRY?", 218],
+      ["BLUE VALENTINE", 150],
+      ["KEEP YOUR EYES ON ME BOY", 184],
+      ["AMERICAN BEAUTY", 196],
+      ["BREAKFAST IN BED", 188],
+    ],
+    {
+      album: "AFTERCARE DELUXE",
+      artist: "Nessa Barrett",
+      year: 2025,
+      uploader: "Nessa Barrett - Topic",
+      label: "Warner Records",
+      releasedOn: "2025-02-07",
+    },
+  ),
+};
+
+/**
+ * The seventh owner review's second defect, and the half of it this branch does **not** fix.
+ *
+ * The playlist is Pixar's *Cars*: Sheryl Crow's "Real Gone", Rascal Flatts' "Life is a
+ * Highway", James Taylor's "Our Town", Brad Paisley's "Find Yourself" and Randy Newman's score
+ * cuts. YouTube credits the album to **Randy Newman**, who wrote the score; MusicBrainz
+ * credits the 2006 soundtrack `ac0830de-51e0-43ee-b8ce-65c2b7f2b170` to **Various Artists**,
+ * in release group `b0629c4f-8e28-3066-99d6-ebcf0b2e601c`. The engine preselected *Cars 3
+ * (Original Score)* — a different film, by the right composer.
+ *
+ * Recorded because it is the evidence for a limit rather than for a fix. `releasegroup:"Cars"
+ * AND artist:"Randy Newman"` **answers**, with Randy Newman's own records, so no rung below it
+ * is ever climbed — the ladder stops at the first question with an answer, which is the
+ * property that keeps the ordinary album at one search. And no artist-carrying query built
+ * from "Randy Newman" reaches a group credited to Various Artists, because that is the name
+ * MusicBrainz indexes for it. Reaching it would take dropping the artist, which is the one
+ * thing `lucene.ts` forbids and for good reason.
+ *
+ * What this branch does change here is that the wrong answer is no longer *silent*: the
+ * tracklist fit puts *Cars 3* well under `matchPreselectionFloor`, and the review card now
+ * says why nothing is ticked instead of showing an unexplained list.
+ *
+ * The tracklist is the 2006 soundtrack's own twenty tracks; the owner's playlist had sixteen
+ * of them.
+ */
+const CARS: AlbumScenario = {
+  name: "cars",
+  kind: "album",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_cars-soundtrack",
+    album: "Cars",
+    artist: "Randy Newman",
+    year: 2006,
+    label: "Walt Disney Records",
+    note: "A Various Artists soundtrack credited by YouTube to the score's composer. The group search answers with his own records, so no fallback rung is ever reached: the known limit, recorded (owner review 7, D2).",
+  },
+  videos: albumVideos(
+    [
+      ["Real Gone", 201],
+      ["Route 66", 171],
+      ["Life is a Highway", 276],
+      ["Behind the Clouds", 249],
+      ["Our Town", 247],
+      ["Sh‐Boom", 147],
+      ["Route 66", 205],
+      ["Find Yourself", 250],
+      ["Opening Race", 125],
+      ["McQueen’s Lost", 149],
+      ["My Heart Would Know", 148],
+      ["Bessie", 59],
+      ["Dirt Is Different", 87],
+      ["New Road", 77],
+      ["Tractor Tipping", 80],
+      ["McQueen and Sally", 119],
+      ["Goodbye", 161],
+      ["Pre‐Race Pageantry", 90],
+      ["The Piston Cup", 112],
+      ["The Big Race", 187],
+    ],
+    {
+      album: "Cars",
+      artist: "Randy Newman",
+      year: 2006,
+      uploader: "Randy Newman - Topic",
+      label: "Walt Disney Records",
+      releasedOn: "2006-06-06",
+    },
+  ),
+};
+
+/**
+ * The seventh owner review's clearest case: the engine writes the sentence, then ticks it.
+ *
+ * One video, "Soleil bleu" by **Bleu Soleil**, 4:06. MusicBrainz has the recording — 100,
+ * exact length, `e23b0075-8466-4bd4-8b73-f9af7918cb63`, credited "Bleu Soleil & Luiza" — and
+ * the wide title-only search that exists to *surface the wrong answers* brings back ten
+ * homonyms with it: VSO, Sylvie Vartan, Molécule, LÜNE, Bruno Mursic. None of them is Bleu
+ * Soleil. The engine preselected VSO at 0.725 and printed, on VSO's own card, "Artist mismatch
+ * (credited to VSO) · The YouTube tags point elsewhere".
+ *
+ * 0.725 is above `matchPreselectionFloor`, which is the whole point: a floor is a quantity and
+ * this is not one. The veto reads the same signal the sentence reads, so the tick walks past
+ * VSO — and past every homonym — and lands on the recording that carries the artist.
+ */
+const SOLEIL_BLEU: SingleScenario = {
+  name: "soleil-bleu",
+  kind: "single",
+  source: {
+    url: "https://music.youtube.com/playlist?list=OLAK5uy_nFmYCcpzRfPXMg1qERF6G3gOBsodCD2HU",
+    note: "Ten homonyms and one right answer. VSO was preselected at 0.725 with “Artist mismatch (credited to VSO)” on its own card (owner review 7, D2).",
+  },
+  video: {
+    id: "yt-soleil-bleu",
+    index: 0,
+    title: "Soleil bleu",
+    durationSeconds: 246,
+    uploader: "Bleu Soleil - Topic",
+    ytTrack: "Soleil bleu",
+    ytArtist: "Bleu Soleil",
+    ytAlbum: "Soleil bleu",
+    ytReleaseYear: 2023,
+  },
+};
+
 const SCENARIOS: readonly Scenario[] = [
   DISCOVERY,
   SKINNY_LOVE,
@@ -561,6 +797,10 @@ const SCENARIOS: readonly Scenario[] = [
   RISE_AGAINST,
   BEWITCHED,
   THE_HEIST,
+  STARDEW_VALLEY,
+  AFTERCARE,
+  CARS,
+  SOLEIL_BLEU,
 ];
 
 /* ------------------------------------------------------------------ */
@@ -743,19 +983,33 @@ async function recordAlbum(
   /*
    * 1 — the release groups, down the same ladder `findReleaseGroups` climbs.
    *
-   * First credited artist, then the whole credit, then the base title — and never the title on
-   * its own, which is the rung the sixth owner review had removed. The recording-convergence
-   * rung below it is recorded too, because a scenario that needs it (Laufey's *Bewitched*) has
-   * to replay through it rather than around it.
+   * First credited artist, then the whole credit, then the base title, then **each of the
+   * other names the source credits** and the bare base title — and never the title on its own,
+   * which is the rung the sixth owner review had removed. The recording-convergence rung below
+   * it is recorded too, because a scenario that needs it (Laufey's *Bewitched*) has to replay
+   * through it rather than around it.
+   *
+   * This list is a copy of the service's, and it has to stay one: a cassette is a recording of
+   * the real algorithm's appetite, and a recorder that asked a different set of questions would
+   * be a recording of a matcher nobody ships. `matching.service.test.ts` is what notices when
+   * the two drift, by failing with "no document for …" rather than with a moved ranking.
    */
   const album = scenario.source.album;
   const credit = scenario.source.artist;
   const primary = primaryArtist(credit);
   const base = stripEditionQualifier(album);
+  const bare = stripEditionQualifierLoosely(album);
 
   const rungs = [lucene.releaseGroupQuery(album, primary ?? credit)];
   if (primary !== null) rungs.push(lucene.releaseGroupQuery(album, credit));
   if (base !== album) rungs.push(lucene.releaseGroupQuery(base, primary ?? credit));
+  for (const name of artistLadder(credit, CREDIT_LADDER_LIMIT).slice(2)) {
+    rungs.push(lucene.releaseGroupQuery(album, name));
+    if (base !== album) rungs.push(lucene.releaseGroupQuery(base, name));
+  }
+  if (bare !== base && bare !== album) {
+    rungs.push(lucene.releaseGroupQuery(bare, primary ?? credit));
+  }
 
   let rawGroups: readonly { id?: string; title?: string }[] = [];
   for (const rung of rungs) {
@@ -836,16 +1090,36 @@ async function recordAlbum(
   // 2 — the releases of each kept group.
   const searchResults: MbRelease[] = [];
   const seen = new Set<string>();
+  const collect = (releases: readonly MbRelease[] | undefined): void => {
+    for (const release of releases ?? []) {
+      if (release.id === undefined || seen.has(release.id)) continue;
+      seen.add(release.id);
+      searchResults.push(release);
+    }
+  };
   for (const group of kept) {
     const query = lucene.releaseQuery({
       album: scenario.source.album,
       releaseGroupId: group.id,
     });
-    const answer = await searchDocument("release", query);
-    for (const release of answer.releases ?? []) {
-      if (release.id === undefined || seen.has(release.id)) continue;
-      seen.add(release.id);
-      searchResults.push(release);
+    collect((await searchDocument("release", query)).releases);
+  }
+  // The service's retry for a record whose every pressing is unofficial: after the whole loop,
+  // and only when it produced no release at all. Same condition, same queries, same order.
+  if (searchResults.length === 0) {
+    for (const group of kept) {
+      collect(
+        (
+          await searchDocument(
+            "release",
+            lucene.releaseQuery({
+              album: scenario.source.album,
+              releaseGroupId: group.id,
+              officialOnly: false,
+            }),
+          )
+        ).releases,
+      );
     }
   }
 

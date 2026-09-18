@@ -769,21 +769,28 @@ export async function matchAlbum(
         releaseGroupId: group.id,
       });
       queries.push(query);
-      const answer = releasesOf(await mb.search("release", query, settings.matchSearchLimit));
-      collect(answer);
-      /*
-       * A release group that exists and whose release search answers nothing.
-       *
-       * `releaseQuery` appends `status:Official` unless it is told not to, which is right
-       * everywhere else and wrong here: the group was found by *name and artist*, so it is
-       * already the record we are looking for, and there is nothing left for the status clause
-       * to protect against. When every pressing MusicBrainz has of it is a promo, a bootleg or
-       * simply unset — which is common on a self-released digital record — the group is on the
-       * screen with no releases under it and the match ends with no candidate, having spent a
-       * search proving the record exists. So the same group is asked again without the clause,
-       * and only when the first ask came back empty.
-       */
-      if (answer.length === 0) {
+      collect(releasesOf(await mb.search("release", query, settings.matchSearchLimit)));
+    }
+
+    /*
+     * The release groups exist and not one of them yielded a release. Ask again, unofficially.
+     *
+     * `releaseQuery` appends `status:Official` unless it is told not to, which is right
+     * everywhere else and wrong at this exact point: the groups were found by *name and
+     * artist*, so they are already the record being looked for, and there is nothing left for
+     * the status clause to protect against. When every pressing MusicBrainz has is a promo, a
+     * bootleg or simply unset — ordinary on a self-released digital record — the group is on
+     * the screen with no release under it and the match ends with no candidate, having spent a
+     * search proving the record exists.
+     *
+     * It is deliberately **after the whole loop and only when nothing at all was found**,
+     * rather than per group when that group came back empty. Two of *Discovery*'s three kept
+     * groups have no official pressing of their own, so the per-group version cost every
+     * ordinary album two extra searches and two extra reserved lookups to add candidates that
+     * never win. A retry that fires only when the alternative is "no candidate" cannot do that.
+     */
+    if (searchResults.length === 0) {
+      for (const group of kept) {
         const anyStatus = lucene.releaseQuery({
           album: input.hints.album ?? "",
           releaseGroupId: group.id,
