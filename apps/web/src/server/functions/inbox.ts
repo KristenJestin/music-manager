@@ -59,6 +59,16 @@ export interface InboxOption {
   readonly detail?: string;
   readonly score?: number;
   readonly preselected: boolean;
+  /**
+   * This option's own reasons say the artist does not match — see
+   * `ReleaseCandidate.artistDisagrees`.
+   *
+   * Carried onto the option rather than left in the payload so that both consumers can act on
+   * one fact: the card refuses to default to it, and the API and the MCP server hand an agent
+   * the same flag the human is shown. Absent on the options that are not candidates ("Later",
+   * "Cancel this import"), and on payloads written before the flag existed.
+   */
+  readonly artistDisagrees?: boolean;
   readonly value: Record<string, unknown>;
   /** `dismissed` rather than `resolved` — "not now" is not an answer. */
   readonly dismiss?: boolean;
@@ -122,11 +132,36 @@ const UNTAGGED_ANSWER: InboxOption = {
 };
 
 /**
+ * Which candidate the Inbox ticks: the first one whose artist does **not** disagree.
+ *
+ * The Inbox re-derives its own preselection from the payload rather than reading the ranking's,
+ * because the payload is what survives a restart — and that meant the artist veto stopped at
+ * the Console's door. The wizard would refuse to tick VSO and the Inbox card for the same
+ * import would tick it again, one screen along, which is the original defect with a different
+ * component's name on it.
+ *
+ * It reads `artistDisagrees` off the stored candidate, which `keep()` in the `match` step
+ * carries through: the flag, never the prose, for the reason `ReleaseCandidate.artistDisagrees`
+ * gives. An older payload written before the flag existed simply has `undefined` there and
+ * behaves exactly as it used to, which is what `!== true` is for.
+ *
+ * `-1` — no candidate agrees — is a real answer and deliberately left as one: `index === -1` is
+ * true of nothing, so no option is ticked and `ReviewCard` says why.
+ */
+function firstAgreeingIndex(candidates: readonly unknown[]): number {
+  return candidates.findIndex(
+    (raw) => (raw as Record<string, unknown> | null)?.["artistDisagrees"] !== true,
+  );
+}
+
+/**
  * The answers for one item.
  *
  * The first option is always the preselection, and it is always the one that lets the job
  * carry on: an Inbox whose default answer stops your import would be a worse place to press
- * Enter quickly.
+ * Enter quickly. "First" means the first the matcher is willing to stand behind — see
+ * `firstAgreeingIndex`, which walks past the candidates whose own reasons say the artist is
+ * wrong, and ticks nothing when they all do.
  */
 export function optionsFor(item: InboxItem): InboxOption[] {
   const payload = item.payload;
@@ -198,7 +233,9 @@ export function optionsFor(item: InboxItem): InboxOption[] {
       const candidates = Array.isArray(payload["candidates"]) ? payload["candidates"] : [];
       const pinned =
         typeof preselected["releaseMbid"] === "string" ? preselected["releaseMbid"] : null;
-      const options = candidates.slice(0, 5).map((raw, index) => {
+      const shown = candidates.slice(0, 5);
+      const tick = firstAgreeingIndex(shown);
+      const options = shown.map((raw, index) => {
         const candidate = raw as Record<string, unknown>;
         const id = String(candidate["id"] ?? `candidate-${String(index)}`);
         return {
@@ -208,7 +245,8 @@ export function optionsFor(item: InboxItem): InboxOption[] {
             .filter((part) => typeof part === "string" && part !== "")
             .join(" · "),
           score: typeof candidate["score"] === "number" ? candidate["score"] : undefined,
-          preselected: pinned === null ? index === 0 : id === pinned,
+          preselected: pinned === null ? index === tick : id === pinned,
+          artistDisagrees: candidate["artistDisagrees"] === true,
           value: { releaseMbid: id },
         } satisfies InboxOption;
       });
@@ -243,7 +281,9 @@ export function optionsFor(item: InboxItem): InboxOption[] {
     }
     case "ambiguous_recording": {
       const candidates = Array.isArray(payload["candidates"]) ? payload["candidates"] : [];
-      const options = candidates.slice(0, 5).map((raw, index) => {
+      const shown = candidates.slice(0, 5);
+      const tick = firstAgreeingIndex(shown);
+      const options = shown.map((raw, index) => {
         const candidate = raw as Record<string, unknown>;
         const id = String(candidate["id"] ?? `candidate-${String(index)}`);
         return {
@@ -252,7 +292,8 @@ export function optionsFor(item: InboxItem): InboxOption[] {
           detail:
             typeof candidate["disambiguation"] === "string" ? candidate["disambiguation"] : "",
           score: typeof candidate["score"] === "number" ? candidate["score"] : undefined,
-          preselected: index === 0,
+          preselected: index === tick,
+          artistDisagrees: candidate["artistDisagrees"] === true,
           value: { recordingMbid: id },
         } satisfies InboxOption;
       });

@@ -276,8 +276,18 @@ export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: Re
    * on the wrong one.
    */
   const [chosen, setChosen] = useState(
-    () => options.find((option) => option.preselected)?.id ?? options[0]?.id ?? "",
+    () =>
+      options.find((option) => option.preselected)?.id ??
+      /*
+       * Falling back to the first option is right for a card whose answers are verbs ("Retry",
+       * "Cancel this import") and wrong for one whose answers are candidates the matcher has
+       * just declined to stand behind. Landing on the first of ten homonyms would put the
+       * engine's rejected guess under the Enter key — the original defect, one component along.
+       */
+      options.find((option) => option.artistDisagrees !== true)?.id ??
+      "",
   );
+
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -405,6 +415,23 @@ export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: Re
             </ul>
           </div>
         )}
+
+        {/*
+          Why nothing is ticked, when nothing is ticked.
+
+          Ten cards, no preselection and no explanation is the thing the owner was left staring
+          at: the reader cannot tell whether the engine failed, the record is missing, or it is
+          asking them something. It reads the same flag the options carry and the wizard reads,
+          so the Inbox and the wizard cannot say different things about one import.
+        */}
+        {options.length > 0 &&
+        options.every((option) => option.artistDisagrees === true) &&
+        !options.some((option) => option.preselected) ? (
+          <p className="mb-1.5 text-2xs text-fg-2" data-testid="no-preselection-artist">
+            Nothing is preselected: none of these {options.length} is credited to the artist this
+            source names, so the choice is yours.
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-1.5" role="radiogroup" aria-label="Answers">
           {options.map((option) => {

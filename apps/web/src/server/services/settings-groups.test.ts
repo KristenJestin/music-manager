@@ -10,6 +10,9 @@
  * arrive after this file — so it is asserted as an explicit allow-list. Adding a key without
  * a home means adding it to that list on purpose, and writing down which phase will house it.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   DISCOVER_KEYS,
@@ -81,6 +84,38 @@ describe("coverage", () => {
   it("the groups declared here are most of the registry", () => {
     const shown = SETTING_KEYS.length - ungroupedKeys().length;
     expect(shown).toBeGreaterThan(SETTING_KEYS.length / 2);
+  });
+
+  /**
+   * The parity rule, for the two knobs the seventh owner review's fix added.
+   *
+   * "A setting that is on no tab is a bug" is the owner's rule and `matchGroupLimit` is the
+   * precedent for it — a number nobody could reach from the Console because the registry entry
+   * and the tab's key list are two lists that nothing compares. `OURS` above is the shape of
+   * that guard and it only ever covered P07a's keys, so a new matching key would have been
+   * homeless in exactly the same silence.
+   *
+   * Both halves are asserted, because being on the tab's *key list* and being on the *page* are
+   * different facts: `settings-metadata.ts` refuses to save a key that is not on the list, and
+   * the page shows nothing for a key that has no field. `matchBindingFloor` was on the list and
+   * on no page until this branch gave it a field.
+   */
+  const ADDED = ["matchArtistLadder", "matchArtistVeto", "matchBindingFloor"] as const;
+
+  it("the matching switches this branch added are on the Metadata tab", () => {
+    for (const key of ADDED) {
+      expect(isSettingKey(key)).toBe(true);
+      expect(METADATA_KEYS).toContain(key);
+      expect(ungroupedKeys()).not.toContain(key);
+    }
+  });
+
+  it("…and each of them has a field on the page, not just a place on the list", () => {
+    const page = readFileSync(
+      resolve(fileURLToPath(new URL(".", import.meta.url)), "../../routes/_app.settings.metadata.tsx"),
+      "utf8",
+    );
+    for (const key of ADDED) expect(page).toContain(`testId="setting-${key}"`);
   });
 });
 

@@ -1794,6 +1794,24 @@ function StepMatch({
         null);
 
   /*
+   * Why nothing is ticked, when nothing is ticked.
+   *
+   * "Nothing scored high enough to propose" was the only sentence this box had for an empty
+   * preselection, and since the artist veto it is the wrong one more often than the right one:
+   * ten candidates for "Soleil bleu", all of them somebody else's, every one of them scoring
+   * perfectly well. Somebody reading ten cards with no tick and no explanation cannot tell
+   * whether the engine failed, the record is missing, or it is asking them something — and the
+   * owner's complaint is exactly that they were left to guess.
+   *
+   * The flag, not the prose: `artistDisagrees` is the same statement the cards print, so this
+   * line cannot say one thing while a card says another.
+   */
+  const offered = candidates === null ? [] : [...candidates.releases, ...candidates.recordings];
+  const vetoedForArtist =
+    preselected === null && offered.length > 0 && offered.every((entry) => entry.artistDisagrees);
+  const wantedArtist = candidates?.hints?.artist ?? null;
+
+  /*
    * A manual search (or a pasted MBID) is scored on its own, so its first result comes back
    * flagged `preselected` — which would paint a second "preselected" badge on a card the
    * algorithm never proposed, next to the one it did. The preselection belongs to the original
@@ -1972,10 +1990,12 @@ function StepMatch({
       ) : (
         <>
           <Callout tone="info" className="mb-3.5" data-testid="preselection">
-            <b>
-              {preselected === null
-                ? "Nothing scored high enough to propose."
-                : `Preselected: ${preselected.title}, scored ${pct(preselected.score)}.`}
+            <b data-testid="preselection-verdict">
+              {preselected !== null
+                ? `Preselected: ${preselected.title}, scored ${pct(preselected.score)}.`
+                : vetoedForArtist
+                  ? `Nothing preselected: none of these ${String(offered.length)} is credited to ${wantedArtist === null || wantedArtist === "" ? "the artist this source names" : wantedArtist}, so the choice is yours.`
+                  : "Nothing scored high enough to propose."}
             </b>{" "}
             <span data-testid="budget">
               {candidates.budget.searches} of {candidates.planned.searches} search
