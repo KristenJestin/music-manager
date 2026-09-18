@@ -87,11 +87,12 @@ process.env["MM_TOOLBOX_LIBRARY_ROOT"] = LIBRARY_CONTAINER;
 
 const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 const { drizzle } = await import("drizzle-orm/postgres-js");
-const { and, eq } = await import("drizzle-orm");
+const { and, eq, isNotNull, isNull } = await import("drizzle-orm");
 const { MMError } = await import("@mm/contracts");
 const { resetServerEnv } = await import("#/server/env.ts");
 const { db } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
+const { newId } = await import("#/server/ids.ts");
 const imports = await import("./imports.ts");
 const jobs = await import("./jobs/index.ts");
 const { adoptTrackFile } = await import("./adopt.ts");
@@ -343,6 +344,8 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
   }, 120_000);
 
   it("materialises a sourceless row for a track the playlist never published", async () => {
+    const before = await albumMissingTracks(albumId, { db: db() });
+
     const result = await adoptLibraryTrack({
       albumId,
       mediumPosition: unpublished.mediumPosition,
@@ -360,10 +363,26 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
       .from(schema.importTracks)
       .where(eq(schema.importTracks.id, result.trackId));
     // No video, and `mapped` all the same — which is what `refuseAdoption` has to see, and
-    // exactly what it refused before this existed.
-    expect(row?.videoId).toBe("");
+    // exactly what it refused before `materialiseSourcelessTracks` existed.
+    expect(row?.videoId).toBeNull();
     expect(row?.role).toBe("mapped");
     expect(row?.trackPosition).toBe(unpublished.trackPosition);
+
+    /*
+     * **Still a hole, until `place` files it.**
+     *
+     * `sourceless` is a *terminal* state that `aggregateStatus` leaves out of its denominator,
+     * so an import can be "done" with one of these on it. That is right for the import and
+     * would be a lie about the album, and the two are easy to confuse: the row exists now, and
+     * nothing on it says "no audio yet" except the absence of a `library_tracks` row.
+     * `albumMissingTracks` reads the library and not the import for exactly this reason, and
+     * this assertion is what keeps that true rather than merely intended.
+     */
+    const midway = await albumMissingTracks(albumId, { db: db() });
+    expect(
+      midway.missing.map((track) => slotKey(track.mediumPosition, track.trackPosition)),
+    ).toContain(slotKey(unpublished.mediumPosition, unpublished.trackPosition));
+    expect(midway.presentCount).toBe(before.presentCount);
 
     for (const step of ["fingerprint", "tag", "place"] as const) {
       const outcome = await jobs.runTrackStep(importId, result.trackId, step, { db: db() });
@@ -376,5 +395,110 @@ describe.skipIf(unavailable !== null)("an album with holes in it", () => {
     expect(
       after.missing.map((track) => slotKey(track.mediumPosition, track.trackPosition)),
     ).not.toContain(slotKey(unpublished.mediumPosition, unpublished.trackPosition));
+    expect(after.presentCount).toBe(before.presentCount + 1);
+  }, 120_000);
+
+  /**
+   * A filled sourceless track keeps `video_id NULL` for ever.
+   *
+   * So any count that asks "which tracks have no video" and nothing else goes on counting a
+   * track that is already on the disk — the false hole this whole module is built to avoid,
+   * arriving by a different door. `albumMissingTracks` reads `library_tracks` and never
+   * `import_tracks.video_id`, and this is the measurement of that rather than a reading of it.
+   */
+  it("does not re-report a sourceless track once its file is in the library", async () => {
+    const sourceless = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(
+        and(
+          eq(schema.importTracks.importId, importId),
+          isNull(schema.importTracks.videoId),
+          isNotNull(schema.importTracks.libraryPath),
+        ),
+      );
+    expect(sourceless.length, "the test above filed one").toBeGreaterThan(0);
+
+    const found = await albumMissingTracks(albumId, { db: db() });
+    const holes = new Set(
+      found.missing.map((track) => slotKey(track.mediumPosition, track.trackPosition)),
+    );
+    for (const row of sourceless) {
+      expect(
+        holes.has(slotKey(row.mediumPosition ?? 1, row.trackPosition ?? 0)),
+        `${String(row.trackPosition)} is filed and must not be reported missing`,
+      ).toBe(false);
+    }
+  });
+
+  /**
+   * Filling the last gap from the *album* closes the Inbox card, as it does from the import.
+   *
+   * `closeUncoveredNoticeIfFilled` lives inside `adoptTrackFile` and fires only for a row with
+   * no video of its own — so `adoptLibraryTrack` inherits it by delegating rather than by
+   * arranging anything. That is a claim about a call path, and a call path is exactly the kind
+   * of thing that is true until somebody reorders two lines, so it is measured here.
+   */
+  it("closes the uncovered-tracks card when the album's last hole is filled from the album", async () => {
+    // Every sourceless row this suite made has been filled by now; one more gap is created so
+    // that there is a last one to fill.
+    const stillMissing = await albumMissingTracks(albumId, { db: db() });
+    const gap = stillMissing.missing[0];
+    expect(gap, "the album still has a hole to work with").toBeDefined();
+    if (gap === undefined) return;
+
+    /*
+     * Make it a slot with no import row, which is what the notice is about.
+     *
+     * The fixture listing covers every track, so a gap here always *has* a row and adopting it
+     * would take the video branch — which does not touch the card, correctly. Deleting the row
+     * is how the `Cars` situation is reached from a complete listing, and it is the same thing
+     * the suite does once already. Done here rather than searched for: an earlier version of
+     * this test looked for a rowless slot, never found one, and returned green without
+     * asserting anything at all.
+     */
+    await db()
+      .delete(schema.importTracks)
+      .where(
+        and(
+          eq(schema.importTracks.importId, importId),
+          eq(schema.importTracks.trackPosition, gap.trackPosition),
+          eq(schema.importTracks.mediumPosition, gap.mediumPosition),
+        ),
+      );
+
+    await db()
+      .insert(schema.inboxItems)
+      .values({
+        id: newId("inboxItem"),
+        importId,
+        type: "uncovered_tracks",
+        status: "open",
+        title: "Some tracks of this release have no video",
+        payload: {},
+      });
+
+    const result = await adoptLibraryTrack({
+      albumId,
+      mediumPosition: gap.mediumPosition,
+      trackPosition: gap.trackPosition,
+      source: { kind: "path", path: join(HELD, "held.opus") },
+      adoptedBy: "test",
+      db: db(),
+      queue: false,
+    });
+    expect(result.materialised).toBe(true);
+
+    const open = await db()
+      .select()
+      .from(schema.inboxItems)
+      .where(
+        and(
+          eq(schema.inboxItems.importId, importId),
+          eq(schema.inboxItems.type, "uncovered_tracks"),
+          eq(schema.inboxItems.status, "open"),
+        ),
+      );
+    expect(open, "the card is answered by the album page's adoption too").toHaveLength(0);
   }, 120_000);
 });

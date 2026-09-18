@@ -48,11 +48,11 @@ import type { MbRelease } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { importTracks, libraryAlbums, libraryTracks } from "#/server/db/schema/index.ts";
 import { missingTracksOf, slotKey, type MissingTrack } from "#/lib/album-slots.ts";
-import { newId } from "#/server/ids.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
 import * as musicbrainz from "#/server/integrations/musicbrainz.ts";
 import { adoptTrackFile, type AdoptResult, type AdoptSource } from "#/server/services/adopt.ts";
 import { countersFor, type AlbumCounters } from "#/server/services/album-counters.ts";
+import { materialiseSourcelessTracks } from "#/server/services/sourceless.ts";
 import { importBehindAlbum } from "#/server/services/library.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import type { ToolboxClient } from "#/server/toolbox/client.ts";
@@ -322,18 +322,46 @@ export async function adoptLibraryTrack(
     );
   }
 
+  /*
+   * The row this file will hang on, made if the playlist never published the track.
+   *
+   * `materialiseSourcelessTracks` is `confirm`'s own helper, called here with a single cell: it
+   * keys on `(mediumPosition, trackPosition)` exactly as this module does, it is idempotent, and
+   * reusing it is what stops "a track with no video" meaning two different rows depending on
+   * which door made it. It answers `existing` rather than a row when something already sits at
+   * that slot — which `importTrackForSlot` has already looked for, so an empty `created` here
+   * means a video's row is parked there and the album is not missing this track after all.
+   */
   const existing = await importTrackForSlot(db, importId, wanted);
-  const track =
-    existing ??
-    (await createSourcelessImportTrack({
+  let track = existing;
+  if (track === null) {
+    const made = await materialiseSourcelessTracks({
       db,
       importId,
-      trackMbid: wanted.trackMbid,
-      recordingMbid: wanted.recordingMbid,
-      trackTitle: wanted.title,
-      trackPosition: wanted.trackPosition,
-      mediumPosition: wanted.mediumPosition,
-    }));
+      by: options.adoptedBy,
+      cells: [
+        {
+          position: wanted.trackPosition,
+          mediumPosition: wanted.mediumPosition,
+          title: wanted.title,
+          recordingMbid: wanted.recordingMbid,
+          trackMbid: wanted.trackMbid,
+          lengthSeconds: wanted.lengthSeconds,
+        },
+      ],
+    });
+    track = made.created[0] ?? null;
+    if (track === null) {
+      throw new MMError(
+        "ADOPT_CONFLICT",
+        `Disc ${String(wanted.mediumPosition)} track ${String(wanted.trackPosition)} already has a row on import ${importId}.`,
+        {
+          hint: "Something is already mapped to that position. Read the import's tracklist before adopting for it.",
+          status: 409,
+        },
+      );
+    }
+  }
 
   const result = await adoptTrackFile({
     importId,
@@ -385,81 +413,4 @@ async function importTrackForSlot(
     ) ??
     null
   );
-}
-
-/* ================================================================== */
-/* MERGE — symbols owned by `adopt-url-sourceless`, declared here so   */
-/* this branch compiles before that one lands. See the report.         */
-/* ================================================================== */
-
-/**
- * Create an `import_tracks` row bound to a MusicBrainz track and to **no source**.
- *
- * `refuseAdoption` answers `ADOPT_NOT_READY` — *"this video is not bound to a track"* — for
- * anything whose `role` is not `mapped`, and every mapped row until now came from a listing
- * entry. A track the playlist never published has no entry and never will, so the row has to
- * be made: same mapping columns, same `role`, an empty `video_id` and an empty `url`.
- *
- * `video_id` is `not null` in the schema, so "no source" is the empty string and not `NULL` —
- * a distinction worth stating because `documents.ts` keys the YouTube resolvers off it.
- *
- * **Owned by the `adopt-url-sourceless` branch.** Declared here, with this name and this
- * shape, so that the merge is a deletion of one of the two copies rather than a reconciliation
- * of two different designs.
- */
-export interface SourcelessTrackInput {
-  readonly importId: string;
-  readonly trackMbid: string | null;
-  readonly recordingMbid: string | null;
-  readonly trackTitle: string;
-  readonly trackPosition: number;
-  readonly mediumPosition: number;
-  readonly db?: Database;
-}
-
-export async function createSourcelessImportTrack(
-  input: SourcelessTrackInput,
-): Promise<typeof importTracks.$inferSelect> {
-  const db = input.db ?? defaultDb();
-
-  /*
-   * `position` is the listing index, and `(import_id, position)` is unique. A sourceless row
-   * was never in the listing, so it takes the next free index rather than the track's own
-   * position — which on a two-disc release would collide with disc 1's row at the same number.
-   */
-  const siblings = await db
-    .select({ position: importTracks.position })
-    .from(importTracks)
-    .where(eq(importTracks.importId, input.importId));
-  const position = siblings.reduce((top, row) => Math.max(top, row.position), 0) + 1;
-
-  const [created] = await db
-    .insert(importTracks)
-    .values({
-      id: newId("importTrack"),
-      importId: input.importId,
-      position,
-      // Not `NULL`: the column is `not null`, and an empty string is the honest spelling of
-      // "there is no video", which is exactly what the document resolvers have to see.
-      videoId: "",
-      url: "",
-      sourceTitle: input.trackTitle,
-      raw: {},
-      role: "mapped",
-      state: "pending",
-      trackMbid: input.trackMbid,
-      recordingMbid: input.recordingMbid,
-      trackTitle: input.trackTitle,
-      trackPosition: input.trackPosition,
-      mediumPosition: input.mediumPosition,
-      note: "no source: this track was never published by the album's playlist",
-    })
-    .returning();
-
-  if (created === undefined) {
-    throw new MMError("UNKNOWN", "The sourceless track row could not be created.", {
-      status: 500,
-    });
-  }
-  return created;
 }

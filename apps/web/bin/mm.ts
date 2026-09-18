@@ -1617,7 +1617,7 @@ async function cmdLibrary(args: Args): Promise<number> {
   }
 
   /*
-   * `mm library adopt <album id> <disc> <position> --file <path>|--url <address>`.
+   * `mm library adopt <album id> <disc> <position> --file <path>|--from-url <address>`.
    *
    * Both numbers, always, and the disc is not optional even on a single-disc record: a command
    * that took one number would be a command whose meaning changed when a release turned out to
@@ -1632,17 +1632,17 @@ async function cmdLibrary(args: Args): Promise<number> {
     const medium = Number(args.positional[3]);
     const position = Number(args.positional[4]);
     const file = flagString(args, "file");
-    const url = flagString(args, "url");
+    const from = flagString(args, "from-url");
     if (
       id === undefined ||
       !Number.isInteger(medium) ||
       !Number.isInteger(position) ||
-      (file === undefined) === (url === undefined)
+      (file === undefined) === (from === undefined)
     ) {
       throw new MMError(
         "INVALID_INPUT",
         "usage: mm library adopt <album id> <disc> <position> --file <path on this server>\n" +
-          "       mm library adopt <album id> <disc> <position> --url <address>",
+          "       mm library adopt <album id> <disc> <position> --from-url <address>",
         {
           hint: "Both numbers, always: `mm library missing <album id>` prints the couple to give. The disc is 1 on a single-disc release.",
         },
@@ -1653,7 +1653,7 @@ async function cmdLibrary(args: Args): Promise<number> {
       albumId: id,
       mediumPosition: medium,
       trackPosition: position,
-      source: file === undefined ? { kind: "url", url: url ?? "" } : { kind: "path", path: file },
+      source: file === undefined ? { kind: "url", url: from ?? "" } : { kind: "path", path: file },
       adoptedBy: "cli library adopt",
       db: db(),
     });
@@ -1977,7 +1977,7 @@ const USAGE = `mm — Music Manager
   mm library artists                      grouped as the folders name them
   mm library missing <album id> [--json]  which tracks of the release this album has not
                                           got — offline, the four lines behind "16/20"
-  mm library adopt <album id> <disc> <position> --file <path> | --url <address>
+  mm library adopt <album id> <disc> <position> --file <path> | --from-url <address>
                                           fill one of them: downloads or copies, tags and
                                           files that track alone
   mm library repair-orphans [--apply] [--limit n] [--json]

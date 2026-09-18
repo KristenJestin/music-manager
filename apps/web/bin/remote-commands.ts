@@ -718,7 +718,10 @@ async function cmdLibrary(api: ApiClient, args: RemoteArgs): Promise<number> {
     const usage =
       "usage: mm library adopt <album id> <disc> <position> --file <path here>\n" +
       "       mm library adopt <album id> <disc> <position> --server-path <path there>\n" +
-      "       mm library adopt <album id> <disc> <position> --url <address>";
+      "       mm library adopt <album id> <disc> <position> --from-url <address the server downloads from>\n" +
+      "\n" +
+      "`--from-url`, never `--url`: you are already using `--url` to name the installation " +
+      "this command is talking to, and it is read before the command name.";
     const id = args.positional[2];
     const medium = Number(args.positional[3]);
     const position = Number(args.positional[4]);
@@ -875,7 +878,7 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
   mm library show <album id> | search <text>
   mm library missing <album id> [--json]               which tracks of the release it has not got
   mm library adopt <album id> <disc> <position> --file <path here>
-  mm library adopt <album id> <disc> <position> --server-path <path there> | --url <address>
+  mm library adopt <album id> <disc> <position> --server-path <path there> | --from-url <address>
                                                        fill one of them, that track alone
   mm library retag [--album <id>] [--dry-run] [--now] | verify [--album <id>]
   mm settings list|get [key]|set <key> <value>|schema

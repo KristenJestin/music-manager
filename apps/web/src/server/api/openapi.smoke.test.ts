@@ -31,7 +31,7 @@ describe("the OpenAPI document", () => {
   });
 
   it("names the shapes those routes answer with", () => {
-    for (const name of ["MissingTrack", "AlbumMissing", "AdoptMissingResult", "AdoptFileFromUrl"]) {
+    for (const name of ["MissingTrack", "AlbumMissing", "AdoptMissingResult", "AdoptFileByUrl"]) {
       expect(document.components.schemas[name], name).toBeDefined();
     }
   });

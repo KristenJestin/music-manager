@@ -88,7 +88,7 @@ describe("mm --url … library adopt", () => {
     const { api, sent } = recorder(ADOPT_REPLY);
     await runRemote(
       api,
-      args(["library", "adopt", "alb_1", "2", "7"], { url: "https://a.test/x" }),
+      args(["library", "adopt", "alb_1", "2", "7"], { "from-url": "https://a.test/x" }),
     );
     expect(sent[0]?.method).toBe("POST");
     expect(sent[0]?.path).toBe("/library/albums/alb_1/missing/2/7/file");
@@ -98,7 +98,7 @@ describe("mm --url … library adopt", () => {
     const { api, sent } = recorder(ADOPT_REPLY);
     await runRemote(
       api,
-      args(["library", "adopt", "alb_1", "1", "2"], { url: "https://a.test/x" }),
+      args(["library", "adopt", "alb_1", "1", "2"], { "from-url": "https://a.test/x" }),
     );
     expect(sent[0]?.body).toEqual({ source: "url", url: "https://a.test/x" });
   });
@@ -139,7 +139,7 @@ describe("mm --url … library adopt", () => {
       runRemote(
         api,
         args(["library", "adopt", "alb_1", "1", "2"], {
-          url: "https://a.test/x",
+          "from-url": "https://a.test/x",
           "server-path": "/music/02.flac",
         }),
       ),
@@ -158,7 +158,10 @@ describe("mm --url … library adopt", () => {
   it("refuses a position that is not a number, rather than posting `NaN` in the path", async () => {
     const { api, sent } = recorder(ADOPT_REPLY);
     await expect(
-      runRemote(api, args(["library", "adopt", "alb_1", "1", "side-b"], { url: "https://a.test" })),
+      runRemote(
+        api,
+        args(["library", "adopt", "alb_1", "1", "side-b"], { "from-url": "https://a.test" }),
+      ),
     ).rejects.toThrow(/usage/);
     expect(sent).toEqual([]);
   });
@@ -167,7 +170,7 @@ describe("mm --url … library adopt", () => {
 describe("mm --url … adopt", () => {
   it("gained the address form too, so the three doors offer the same three ways", async () => {
     const { api, sent } = recorder({ path: "p", bytes: 1, codec: null, originalName: "n" });
-    await runRemote(api, args(["adopt", "imp_1", "itr_1"], { url: "https://a.test/x" }));
+    await runRemote(api, args(["adopt", "imp_1", "itr_1"], { "from-url": "https://a.test/x" }));
     expect(sent[0]?.path).toBe("/imports/imp_1/tracks/itr_1/file");
     expect(sent[0]?.body).toEqual({ source: "url", url: "https://a.test/x" });
   });
@@ -215,8 +218,33 @@ describe("the printed forms", () => {
     expect(
       await runRemote(api, {
         positional: ["library", "adopt", "alb_1", "1", "2"],
-        flags: { url: "https://a.test/x" },
+        flags: { "from-url": "https://a.test/x" },
       }),
     ).toBe(0);
+  });
+});
+
+/**
+ * The flag is `--from-url`, and that is not a style choice.
+ *
+ * `--url` is how this CLI is pointed at the installation it is talking to, and it is read
+ * *before* the command name. `mm --url https://mine library adopt … --url https://youtu.be/…`
+ * names two installations and never reaches the command at all — so a `--url` here would be a
+ * flag that cannot work, in the one mode it exists for.
+ */
+describe("--from-url, never --url", () => {
+  it("does not read `--url` as an address", async () => {
+    const { api, sent } = recorder(ADOPT_REPLY);
+    await expect(
+      runRemote(api, args(["library", "adopt", "alb_1", "1", "2"], { url: "https://a.test/x" })),
+    ).rejects.toThrow(/usage/);
+    expect(sent).toEqual([]);
+  });
+
+  it("says so in the usage, so the reader is not left guessing", async () => {
+    const { api } = recorder(ADOPT_REPLY);
+    await expect(runRemote(api, args(["library", "adopt", "alb_1", "1", "2"]))).rejects.toThrow(
+      /`--from-url`, never `--url`/,
+    );
   });
 });
