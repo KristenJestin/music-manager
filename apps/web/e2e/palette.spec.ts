@@ -52,9 +52,110 @@ async function highlight(page: Page, row: Locator): Promise<void> {
   throw new Error("the highlight never reached that row after thirty ArrowDowns");
 }
 
+/**
+ * Which rows are *painted* as the cursor, read off the screen rather than off an attribute.
+ *
+ * `aria-selected` was right the whole time the highlight was invisible — cmdk writes
+ * `data-selected={!!selected}` on **every** option, so an unselected row carries
+ * `data-selected="false"`, and the shared `CommandItem` asked for `data-selected:bg-muted`,
+ * which is Tailwind's *presence* variant and matched the whole list. Every row wore the
+ * selected surface and the cursor was nowhere. A test that reads `aria-selected` therefore
+ * cannot see that defect at all; this one reads the computed background, border and the accent
+ * bar's `::before`, and counts.
+ */
+async function paintedRows(page: Page): Promise<{ index: number; label: string }[]> {
+  return await page.evaluate(() => {
+    return [...document.querySelectorAll("[cmdk-item]")]
+      .map((row, index) => {
+        const own = getComputedStyle(row);
+        const bar = getComputedStyle(row, "::before");
+        return {
+          index,
+          label: (row.textContent ?? "").trim().slice(0, 40),
+          painted:
+            own.backgroundColor !== "rgba(0, 0, 0, 0)" ||
+            own.borderTopColor !== "rgba(0, 0, 0, 0)" ||
+            bar.backgroundColor !== "rgba(0, 0, 0, 0)",
+        };
+      })
+      .filter((row) => row.painted)
+      .map((row) => ({ index: row.index, label: row.label }));
+  });
+}
+
+/** The row cmdk, the input's `aria-activedescendant` and the footer all agree is the cursor. */
+async function cursor(page: Page): Promise<{ index: number; label: string } | null> {
+  return await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("[cmdk-item]")];
+    const index = rows.findIndex((row) => row.getAttribute("aria-selected") === "true");
+    if (index === -1) return null;
+    return { index, label: (rows[index]?.textContent ?? "").trim().slice(0, 40) };
+  });
+}
+
 test.describe("the command palette", () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page);
+  });
+
+  /**
+   * One cursor, and the same one whether it was moved with the keyboard or with the mouse.
+   *
+   * The owner's words: *"the selection background is on every item, so when I hover or move
+   * with the arrows I cannot see where I am."* Three things are asserted, and the first is the
+   * defect itself:
+   *
+   *  - **exactly one** row is painted, out of a *Go to* list that is a dozen rows long;
+   *  - arrowing moves that one row and takes `aria-activedescendant` and the footer with it;
+   *  - hovering takes the cursor, and arrowing takes it straight back — they are one state,
+   *    not two that can disagree.
+   */
+  test("paints exactly one row as the cursor, for the arrows and for the mouse", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await pressGlobal(page, "ControlOrMeta+k");
+    const input = page.getByTestId("palette-input");
+    await expect(input).toBeVisible();
+    await expect(page.getByTestId("palette-list").locator("[cmdk-item]").first()).toBeVisible();
+
+    const total = await page.getByTestId("palette-list").locator("[cmdk-item]").count();
+    expect(total).toBeGreaterThan(5);
+
+    /* ---- at rest: one painted row, and it is the one cmdk calls selected ---- */
+
+    expect(await paintedRows(page)).toEqual([await cursor(page)]);
+    const first = await cursor(page);
+    expect(first?.index).toBe(0);
+
+    /* ---- two arrows down: still one, two rows further ----------------------- */
+
+    await input.press("ArrowDown");
+    await input.press("ArrowDown");
+
+    const moved = await cursor(page);
+    expect(moved?.index).toBe(2);
+    expect(await paintedRows(page)).toEqual([moved]);
+    // The screen reader's pointer and the sentence under the list say the same row.
+    const id = await page.locator("[cmdk-item]").nth(2).getAttribute("id");
+    await expect(input).toHaveAttribute("aria-activedescendant", id ?? "");
+    await expect(page.getByTestId("palette-hint")).toContainText(moved?.label ?? "");
+
+    /* ---- the mouse takes the cursor ---------------------------------------- */
+
+    await page.locator("[cmdk-item]").nth(5).hover();
+    const hovered = await cursor(page);
+    expect(hovered?.index).toBe(5);
+    expect(await paintedRows(page)).toEqual([hovered]);
+
+    /* ---- and the keyboard takes it back ------------------------------------ */
+
+    await input.press("ArrowUp");
+    const back = await cursor(page);
+    expect(back?.index).toBe(4);
+    expect(await paintedRows(page)).toEqual([back]);
+
+    await pressGlobal(page, "Escape");
   });
 
   test("opens from the top bar, from ⌘K, and closes on Escape", async ({ page }) => {
