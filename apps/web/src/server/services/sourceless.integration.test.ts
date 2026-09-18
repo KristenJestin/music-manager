@@ -82,6 +82,7 @@ process.env["MM_TOOLBOX_LIBRARY_ROOT"] = LIBRARY_CONTAINER;
 const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 const { drizzle } = await import("drizzle-orm/postgres-js");
 const { and, eq, isNull } = await import("drizzle-orm");
+const { MMError } = await import("@mm/contracts");
 const { resetServerEnv } = await import("#/server/env.ts");
 const { db } = await import("#/server/db/client.ts");
 const schema = await import("#/server/db/schema/index.ts");
@@ -93,6 +94,31 @@ const { aggregateStatus, isTrackTerminal } = await import("./jobs/machine.ts");
 const { nextStepOfTrack } = await import("./jobs/pipeline.ts");
 
 resetServerEnv();
+
+/**
+ * Adopt, waiting out the single download slot the way the product tells a caller to.
+ *
+ * `adoptTrackFile` answers `LOCKED` rather than blocking when something else holds the slot —
+ * every caller of it is interactive, and "try again shortly" beats a request held open for
+ * minutes. The whole vitest run shares **one** toolbox, so the other integration suites are
+ * downloading while this one is, and a test that ignored that advice would fail for the one
+ * reason the product explicitly says is not a failure.
+ *
+ * Bounded, and not a flake mask: a `LOCKED` here *is* the documented contract, and this is the
+ * test being the caller that obeys it.
+ */
+async function adoptWhenSlotFree(
+  options: Parameters<typeof adoptTrackFile>[0],
+): Promise<Awaited<ReturnType<typeof adoptTrackFile>>> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await adoptTrackFile(options);
+    } catch (error) {
+      if (MMError.from(error).code !== "LOCKED" || attempt >= 30) throw error;
+      await new Promise((wake) => setTimeout(wake, 1000));
+    }
+  }
+}
 
 describe.skipIf(unavailable !== null)("an album the source did not fully publish", () => {
   let importId = "";
@@ -240,7 +266,7 @@ describe.skipIf(unavailable !== null)("an album the source did not fully publish
      * changed to make it work; the row simply exists now and satisfies the conditions it
      * always checked.
      */
-    const result = await adoptTrackFile({
+    const result = await adoptWhenSlotFree({
       importId,
       trackId,
       source: { kind: "url", url: "fixture://skinny-love" },

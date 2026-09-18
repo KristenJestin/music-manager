@@ -96,6 +96,31 @@ resetServerEnv();
 
 const paths = pathMap({ host: LIBRARY_HOST, container: LIBRARY_CONTAINER });
 
+/**
+ * Adopt, waiting out the single download slot the way the product tells a caller to.
+ *
+ * `adoptTrackFile` answers `LOCKED` rather than blocking when something else holds the slot,
+ * deliberately: every caller of it is interactive, and "try again shortly" beats a request
+ * held open for minutes. The whole vitest run shares **one** toolbox, so the other integration
+ * suites are downloading while this one is, and a test that did not honour that advice would
+ * fail for the one reason the product explicitly says is not a failure.
+ *
+ * So this is the retry the hint asks for, bounded. It is not papering over a flake: a `LOCKED`
+ * here *is* the documented contract, and the test is simply the caller obeying it.
+ */
+async function adoptWhenSlotFree(
+  options: Parameters<typeof adoptTrackFile>[0],
+): Promise<Awaited<ReturnType<typeof adoptTrackFile>>> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await adoptTrackFile(options);
+    } catch (error) {
+      if (MMError.from(error).code !== "LOCKED" || attempt >= 30) throw error;
+      await new Promise((wake) => setTimeout(wake, 1000));
+    }
+  }
+}
+
 /** The code of whatever `run` threw, or `"(no refusal)"` when it did not throw. */
 async function refusalOf(run: () => Promise<unknown>): Promise<string> {
   try {
@@ -468,7 +493,7 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
   });
 
   it("downloads from the replacement address into the work path, as a file would have", async () => {
-    const result = await adoptTrackFile({
+    const result = await adoptWhenSlotFree({
       importId: urlImportId,
       trackId: urlTrackId,
       source: { kind: "url", url: REPLACEMENT },
