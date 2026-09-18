@@ -89,6 +89,17 @@ export interface BatchOptions {
   /** Required by `assertSigned` when `autoConfirm` is true: the caller names itself. */
   readonly confirmedBy?: string;
   readonly priority?: number;
+  /**
+   * When MusicBrainz has nothing, build the album from the source's own tags rather than park.
+   *
+   * Missing from this list until now, and that omission is where the owner's eight untagged
+   * albums come from: `POST /imports/batch` advertises the whole of `ImportOptions` and its
+   * handler forwarded five of the six fields, `mm import --from-file` never read `--untagged`,
+   * and MCP's `create_imports` did not offer it at all — while the *single* forms of all three
+   * did. A hundred URLs submitted at once therefore could not state the one option that
+   * matters for a record MusicBrainz has never published.
+   */
+  readonly untaggedFallback?: boolean;
 }
 
 /** One URL's outcome, in the position the caller sent it. */
@@ -175,6 +186,11 @@ export async function createImportsBatch(input: BatchInput): Promise<BatchResult
         ...(options.autoConfirm === undefined ? {} : { autoConfirm: options.autoConfirm }),
         ...(options.confirmedBy === undefined ? {} : { confirmedBy: options.confirmedBy }),
         ...(options.priority === undefined ? {} : { priority: options.priority }),
+        // Only when it was *said*. Absent still means "decide by the source" — on for a folder,
+        // off for a URL — so a batch that says nothing keeps the default that parks.
+        ...(options.untaggedFallback === undefined
+          ? {}
+          : { untaggedFallback: options.untaggedFallback }),
       });
       created.push(outcome.job.id);
       results.push({

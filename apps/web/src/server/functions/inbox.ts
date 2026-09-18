@@ -42,6 +42,7 @@ import {
   forgetInboxDismissals,
   listInboxDismissals,
 } from "#/server/services/inbox-dismissals.ts";
+import { offersUntaggedImport, UNTAGGED_RESOLUTION } from "#/server/services/inbox.resolution.ts";
 import { setImportOptions } from "#/server/services/console.queries.ts";
 import { pinnedRelease } from "#/server/services/matching.queries.ts";
 import { resolveMbRef } from "#/server/services/mb-resolve.ts";
@@ -117,7 +118,7 @@ const UNTAGGED_ANSWER: InboxOption = {
     "no credits, no archive cover: the library flags it untagged, with its own filter on the " +
     "Quality page, and picking a release later re-tags it without re-downloading a byte.",
   preselected: false,
-  value: { action: "retry", step: "match", untaggedFallback: true },
+  value: { ...UNTAGGED_RESOLUTION },
 };
 
 /**
@@ -734,11 +735,15 @@ async function cardFor(item: InboxItem): Promise<InboxCard> {
   };
 }
 
-/** True for the one card that has no candidate to choose between: `match` found nothing. */
+/**
+ * True for the one card that has no candidate to choose between: `match` found nothing.
+ *
+ * The predicate itself is `offersUntaggedImport` in `services/inbox.resolution.ts`, because the
+ * batch resolver has to ask exactly the same question of an item the Console never renders.
+ * This name stays for the two relaunch buttons, which is what it guards.
+ */
 export function offersQualifierSearch(item: InboxItem): boolean {
-  if (item.type !== "ambiguous_release" || item.importId === null) return false;
-  const candidates = item.payload["candidates"];
-  return !Array.isArray(candidates) || candidates.length === 0;
+  return offersUntaggedImport(item);
 }
 
 /**

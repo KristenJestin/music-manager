@@ -114,6 +114,43 @@ const ELSEWHERE_ACTIONS: ReadonlySet<string> = new Set([
   "identify",
 ]);
 
+/**
+ * "Import it from the source's own tags", as the answer every surface sends.
+ *
+ * One constant, because the gesture exists in four places — the review card, `POST
+ * /api/v1/inbox/{id}/resolve` and its batch, MCP's `resolve_inbox`, and `mm inbox resolve
+ * --untagged` — and four hand-written copies of an object literal is four chances for one of
+ * them to send a shape `planResolution` refuses. It is deliberately *not* a new verb: `retry`
+ * from `match` is what the card's other two answers already send, and only the flag is new.
+ */
+export const UNTAGGED_RESOLUTION: Record<string, unknown> = Object.freeze({
+  action: "retry",
+  step: "match",
+  untaggedFallback: true,
+});
+
+/**
+ * Is this the card that has nothing to choose between, and therefore the one that can offer to
+ * give up on MusicBrainz?
+ *
+ * `match` raises `ambiguous_release` in three situations and only one of them is candidateless:
+ * the search came back empty. The other two carry candidates, and offering to ignore a release
+ * the matcher *did* find would be offering to file an album wrongly on purpose.
+ *
+ * It lives here rather than beside the card because the batch resolver has to ask the same
+ * question — an agent answering forty items with `untaggedFallback` must not turn the flag on
+ * for a `fingerprint_mismatch` that happened to be open on the same import.
+ */
+export function offersUntaggedImport(item: {
+  readonly type: InboxType;
+  readonly importId: string | null;
+  readonly payload: Record<string, unknown>;
+}): boolean {
+  if (item.type !== "ambiguous_release" || item.importId === null) return false;
+  const candidates = item.payload["candidates"];
+  return !Array.isArray(candidates) || candidates.length === 0;
+}
+
 /** What answering an item makes the server do. `none` is "close it, and nothing else". */
 export type ResolutionPlan =
   | { readonly kind: "none" }

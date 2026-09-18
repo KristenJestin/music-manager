@@ -27,7 +27,13 @@ import {
   type InboxType,
   type StepName,
 } from "#/server/db/schema/index.ts";
-import { planResolution, silencesSubject, type ResolutionPlan } from "./inbox.resolution.ts";
+import {
+  offersUntaggedImport,
+  planResolution,
+  silencesSubject,
+  UNTAGGED_RESOLUTION,
+  type ResolutionPlan,
+} from "./inbox.resolution.ts";
 import { dismissalSubjectsOf, rememberDismissals } from "./inbox-dismissals.ts";
 import type { SuppliedMapping } from "#/server/services/jobs/steps/match.ts";
 import { INBOX_SORTS, type InboxSort } from "#/lib/inbox-filters.ts";
@@ -440,6 +446,18 @@ export async function resolveInboxBatch(
     readonly decidedBy: string;
     /** Override the preselected answer. Only meaningful for a single item. */
     readonly resolution?: Record<string, unknown>;
+    /**
+     * Answer every item with "import it from the source's own tags" instead of its preselection.
+     *
+     * This is the batch half of the offer the review card carries, and it is the half the
+     * owner's eight albums need: they are parked on a candidateless `ambiguous_release`, whose
+     * preselection is *cancel* — so `accept: true` over the lot would refuse each one
+     * (`{accepted: true}` names no release, and `planResolution` says so). An item this cannot
+     * apply to comes back in `failed` rather than quietly having the flag set on its import:
+     * turning `untaggedFallback` on from a `fingerprint_mismatch` that happened to be open on
+     * the same import would be the silent wrong answer this module exists to prevent.
+     */
+    readonly untaggedFallback?: boolean;
   },
   db: Database = defaultDb(),
 ): Promise<BatchOutcome> {
@@ -494,11 +512,7 @@ export async function resolveInboxBatch(
       const { item: updated } = await resolveInboxItem(
         item.id,
         {
-          resolution:
-            options.resolution ??
-            (options.accept
-              ? { accepted: true, ...(item.preselected ?? {}) }
-              : { accepted: false, action: "dismiss" }),
+          resolution: answerFor(item, options),
           decidedBy: options.decidedBy,
           status: options.accept ? "resolved" : "dismissed",
         },
@@ -512,6 +526,44 @@ export async function resolveInboxBatch(
   }
 
   return { resolved, failed, imports: [...imports] };
+}
+
+/**
+ * What one item of a batch is answered with.
+ *
+ * Three answers in order of precedence: an explicit `resolution`, the untagged import, the
+ * item's own preselection. It throws rather than returning a fallback, because the throw lands
+ * in the batch's `failed` list with the reason attached — which is the difference between "I
+ * could not do that to this one" and forty imports quietly given a flag one of them asked for.
+ */
+function answerFor(
+  item: InboxItem,
+  options: {
+    readonly accept: boolean;
+    readonly resolution?: Record<string, unknown>;
+    readonly untaggedFallback?: boolean;
+  },
+): Record<string, unknown> {
+  if (options.resolution !== undefined) return options.resolution;
+
+  if (options.untaggedFallback === true) {
+    if (!offersUntaggedImport(item)) {
+      throw new MMError(
+        "INVALID_INPUT",
+        `Importing from the source's own tags is not an answer to a ${item.type} item.`,
+        {
+          hint: "It is offered on an `ambiguous_release` the search found no candidate for — the card that says MusicBrainz has nothing for this title.",
+          action: "Answer this one with its own options",
+          status: 400,
+        },
+      );
+    }
+    return { ...UNTAGGED_RESOLUTION };
+  }
+
+  return options.accept
+    ? { accepted: true, ...(item.preselected ?? {}) }
+    : { accepted: false, action: "dismiss" };
 }
 
 /**

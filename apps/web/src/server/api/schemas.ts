@@ -669,12 +669,33 @@ export const inboxItemSchema = z
   })
   .openapi("InboxItem");
 
+/**
+ * "Import it from the source's own tags" — the answer to a card MusicBrainz cannot fill.
+ *
+ * Shared by the single and the batch form of `resolve`, because an agent that has forty of
+ * these answers them in one call and a person answering one answers it in the Console. Only
+ * offered on an `ambiguous_release` the search found no candidate for; anywhere else it is a
+ * 400 for that item, not a flag quietly set on its import.
+ */
+const untaggedAnswerField = z
+  .boolean()
+  .optional()
+  .openapi({
+    description:
+      "Answer with **import from the source's own tags** instead of the preselection: the " +
+      "album is built from the YouTube listing's own title, artist, year and track order, no " +
+      "MusicBrainz identifier is written, and the library flags it `untagged`. Only valid on " +
+      "an `ambiguous_release` item whose search returned no candidate. Sets " +
+      "`options.untaggedFallback` on that import and re-runs `match`.",
+  });
+
 export const resolveInboxSchema = z
   .object({
     /** `true` takes the preselection; `false` dismisses the question. */
     accept: z.boolean(),
     /** Overrides the preselected answer when accepting. */
     resolution: z.record(z.string(), z.unknown()).optional(),
+    untaggedFallback: untaggedAnswerField,
   })
   .openapi("ResolveInbox");
 
@@ -691,6 +712,7 @@ export const resolveBatchSchema = z
     /** With `importId` only: e.g. `fingerprint_mismatch`. */
     type: z.enum(INBOX_TYPES).optional(),
     accept: z.boolean().default(true),
+    untaggedFallback: untaggedAnswerField,
   })
   .openapi("ResolveInboxBatch");
 

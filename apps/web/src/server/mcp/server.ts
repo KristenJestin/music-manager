@@ -722,8 +722,23 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           .default(false)
           .describe("Applies to every URL. Logged with `decidedBy: mcp`."),
         force: z.boolean().default(false).describe("Re-import even if the tracks are present."),
+        untaggedFallback: z
+          .boolean()
+          .optional()
+          .describe(
+            "Applies to every URL. When MusicBrainz has nothing, import from the source's " +
+              "own tags instead of parking the job in the review queue. Omit it to decide by " +
+              "the source: on for a folder, off for a URL. `create_import` has offered this " +
+              "since P08 and a batch could not state it, which is how a hundred URLs of " +
+              "records MusicBrainz has never published end up parked one by one.",
+          ),
       },
-      run: async (args: { urls: string[]; autoConfirm: boolean; force: boolean }) =>
+      run: async (args: {
+        urls: string[];
+        autoConfirm: boolean;
+        force: boolean;
+        untaggedFallback?: boolean;
+      }) =>
         await createImportsBatch({
           urls: args.urls,
           db: db(),
@@ -734,6 +749,9 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             // `assertSigned` refuses. See `services/imports.ts`.
             ...(args.autoConfirm ? { confirmedBy: "mcp" } : {}),
             force: args.force,
+            ...(args.untaggedFallback === undefined
+              ? {}
+              : { untaggedFallback: args.untaggedFallback }),
           },
         }),
     },
@@ -1224,6 +1242,19 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
           .optional()
           .describe("With `importId`: only items of this kind, e.g. `fingerprint_mismatch`."),
         accept: z.boolean().default(true),
+        untaggedFallback: z
+          .boolean()
+          .optional()
+          .describe(
+            "Answer with **import it from the source's own tags** instead of the " +
+              "preselection: the album is built from the listing's own title, artist, year " +
+              "and track order, no MusicBrainz identifier is written, and the library flags " +
+              "it `untagged`. This is the way out of a record MusicBrainz has never " +
+              "published, and the one to reach for over a set of `ambiguous_release` items " +
+              "whose search returned nothing — `accept: true` refuses those, because their " +
+              "preselection is *cancel* and an acceptance naming no release is not an " +
+              "answer. An item it does not apply to comes back in `failed`.",
+          ),
       },
       run: async (args: {
         itemId?: string;
@@ -1231,6 +1262,7 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         importId?: string;
         type?: InboxType;
         accept: boolean;
+        untaggedFallback?: boolean;
       }) => {
         const outcome = await resolveInboxBatch(
           {
@@ -1239,7 +1271,13 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             ...(args.importId === undefined ? {} : { importId: args.importId }),
             ...(args.type === undefined ? {} : { type: args.type }),
           },
-          { accept: args.accept, decidedBy: "mcp" },
+          {
+            accept: args.accept,
+            decidedBy: "mcp",
+            ...(args.untaggedFallback === undefined
+              ? {}
+              : { untaggedFallback: args.untaggedFallback }),
+          },
           db(),
         );
 

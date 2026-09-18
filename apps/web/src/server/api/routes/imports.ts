@@ -258,6 +258,12 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
           ...(options.autoConfirm === undefined ? {} : { autoConfirm: options.autoConfirm }),
           // Same rule as the single route: whoever opens the confirmation gate signs it.
           ...(options.autoConfirm === true ? { confirmedBy: "api" } : {}),
+          // The schema has advertised this on a batch since P08 and the handler dropped it,
+          // which is how a hundred URLs could not state the one option that matters for a
+          // record MusicBrainz has never published. The single route has always forwarded it.
+          ...(options.untaggedFallback === undefined
+            ? {}
+            : { untaggedFallback: options.untaggedFallback }),
           ...(body.priority === "normal" ? {} : { priority: PRIORITY[body.priority] }),
         },
       });

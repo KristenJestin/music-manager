@@ -54,6 +54,7 @@ import type { StepName } from "#/server/db/schema/index.ts";
 import { STEP_ORDER } from "#/server/services/jobs/machine.ts";
 import { readEvents, subscribe } from "#/server/services/events.ts";
 import { getInboxItem, listInbox, resolveInboxItem } from "#/server/services/inbox.ts";
+import { offersUntaggedImport, UNTAGGED_RESOLUTION } from "#/server/services/inbox.resolution.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
 import { collapseParkedDuplicates } from "#/server/services/imports.reuse.ts";
 import { folderPathOf } from "#/server/services/import-source.ts";
@@ -244,6 +245,14 @@ async function cmdImportBatch(args: Args, path: string): Promise<number> {
         ...(signed ? { confirmedBy: "cli --yes" } : {}),
         force: flagBoolean(args, "force"),
         ...(flagBoolean(args, "no-fingerprint") ? { fingerprint: false } : {}),
+        // The same pair `mm import <one>` takes, and missing here until now: a file of a
+        // hundred YouTube playlists is exactly the case where "MusicBrainz has never published
+        // this" is worth stating once instead of eight times in the review queue.
+        ...(flagBoolean(args, "no-untagged")
+          ? { untaggedFallback: false }
+          : flagBoolean(args, "untagged")
+            ? { untaggedFallback: true }
+            : {}),
       },
     });
     created += outcome.created;
@@ -732,6 +741,15 @@ async function cmdInbox(args: Args): Promise<number> {
 
   if (sub === "resolve") {
     const accept = flagBoolean(args, "accept");
+    /*
+     * The way out of a record MusicBrainz has never published, from a terminal.
+     *
+     * Same answer as the review card's and the API's, through the same shared shape: the album
+     * is built from the source's own tags and flagged `untagged`. It implies an acceptance —
+     * `--untagged` alone is an answer, not a dismissal — and it refuses an item it cannot apply
+     * to rather than closing it, exactly as the batch does.
+     */
+    const untagged = flagBoolean(args, "untagged");
     const id = args.positional[2];
     const importFilter = flagString(args, "import");
 
@@ -754,20 +772,36 @@ async function cmdInbox(args: Args): Promise<number> {
     if (items.length === 0) {
       throw new MMError(
         "INVALID_INPUT",
-        "usage: mm inbox resolve <id> --accept | mm inbox resolve --all --accept [--import <id>]",
+        "usage: mm inbox resolve <id> --accept | mm inbox resolve <id> --untagged | mm inbox resolve --all --accept [--import <id>]",
       );
     }
 
     const affected = new Set<string>();
     for (const item of items) {
+      if (untagged && !offersUntaggedImport(item)) {
+        throw new MMError(
+          "INVALID_INPUT",
+          `Importing from the source's own tags is not an answer to a ${item.type} item.`,
+          {
+            hint: "It is offered on an `ambiguous_release` the search found no candidate for — the card that says MusicBrainz has nothing for this title.",
+            action: "Answer this one with its own options",
+          },
+        );
+      }
       await resolveInboxItem(item.id, {
-        resolution: accept
-          ? { accepted: true, ...(item.preselected ?? {}) }
-          : { accepted: false, action: "dismiss" },
+        resolution: untagged
+          ? { ...UNTAGGED_RESOLUTION }
+          : accept
+            ? { accepted: true, ...(item.preselected ?? {}) }
+            : { accepted: false, action: "dismiss" },
         decidedBy: "cli",
-        status: accept ? "resolved" : "dismissed",
+        status: accept || untagged ? "resolved" : "dismissed",
       });
-      line(`${accept ? "accepted" : "dismissed"} ${item.type} — ${item.title}`);
+      line(
+        untagged
+          ? `untagged ${item.type} — ${item.title}`
+          : `${accept ? "accepted" : "dismissed"} ${item.type} — ${item.title}`,
+      );
       if (item.importId !== null) affected.add(item.importId);
     }
 
@@ -792,7 +826,7 @@ async function cmdInbox(args: Args): Promise<number> {
 
   throw new MMError(
     "INVALID_INPUT",
-    "usage: mm inbox list | mm inbox resolve <id> --accept | mm inbox resolve --all --accept",
+    "usage: mm inbox list | mm inbox resolve <id> --accept | mm inbox resolve <id> --untagged | mm inbox resolve --all --accept",
   );
 }
 
@@ -1697,13 +1731,20 @@ async function cmdRelocate(args: Args): Promise<number> {
 const USAGE = `mm — Music Manager
 
   mm import <url|fixture://…> [--release <mbid>] [--mapping <file.json>] [--yes] [--force] [--follow]
+                                          --untagged builds the album from the source's own
+                                          tags when MusicBrainz has nothing, instead of
+                                          parking it in the review queue: no identifiers, the
+                                          album flagged 'untagged' in the library. Off by
+                                          default for a URL, and worth saying for a record
+                                          MusicBrainz has never published.
   mm import <folder> [--release <mbid>] [--yes] [--follow]
                                           an absolute folder of audio files: each file is an
                                           entry, matched like a video, then adopted rather than
                                           downloaded. Must be inside adoptSourceRoots.
-                                          --no-untagged asks instead of falling back to the
-                                          files' own tags when MusicBrainz has nothing.
-  mm import --from-file <path> [--yes] [--force]   one source per line (URL or folder),
+                                          --untagged is already the default here, because the
+                                          files carry real tags; --no-untagged asks instead.
+  mm import --from-file <path> [--yes] [--force] [--untagged|--no-untagged]
+                                          one source per line (URL or folder),
                                           '#' comments; queued, not resolved
   mm confirm-best <id> [--min-coverage 0.8] [--min-margin 0.04] [--prefer album|any]
                                           confirm the engine's best candidate: an album on
@@ -1724,6 +1765,9 @@ const USAGE = `mm — Music Manager
                                           (deleted video, age check, an existing library)
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
+  mm inbox resolve <id> --untagged        on a card MusicBrainz found nothing for: build the
+                                          album from the source's own tags and run match
+                                          again. The album is flagged 'untagged'.
   mm inbox resolve --all --accept [--import <id>]
   mm settings get [key] | set <key> <value> | list
   mm pause <id> | mm cancel <id> | mm bump <id>

@@ -20,6 +20,7 @@ import {
   resolveInboxBatch,
   resolveInboxItem,
 } from "#/server/services/inbox.ts";
+import { offersUntaggedImport, UNTAGGED_RESOLUTION } from "#/server/services/inbox.resolution.ts";
 import { enqueue } from "#/server/services/queue.ts";
 import { requireScope, type ApiEnv } from "#/server/api/auth.ts";
 import {
@@ -130,7 +131,14 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
         "This exists because answering thirteen fingerprint mismatches through " +
         "`POST /{id}/resolve` was thirteen requests *and* thirteen restarts of the same job, " +
         "each racing the one before it. An item that cannot be answered comes back in " +
-        "`failed`; it does not undo the ones that were.",
+        "`failed`; it does not undo the ones that were.\n\n" +
+        "**`untaggedFallback: true`** answers every item in the set with *import it from the " +
+        "source's own tags* instead of its preselection — the batch form of the review card's " +
+        "way out of a record MusicBrainz has never published. It is the answer to reach for " +
+        "over a set of `ambiguous_release` items the search found nothing for, where " +
+        "`accept: true` refuses each one: their preselection is *cancel*, and an acceptance " +
+        "that names no release is not an answer. Any item it does not apply to comes back in " +
+        "`failed` rather than having the flag set on its import.",
       middleware: [requireScope("review:write")] as const,
       request: {
         body: { content: { "application/json": { schema: resolveBatchSchema } }, required: true },
@@ -165,7 +173,13 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
           ...(body.importId === undefined ? {} : { importId: body.importId }),
           ...(body.type === undefined ? {} : { type: body.type as InboxType }),
         },
-        { accept: body.accept, decidedBy: "api" },
+        {
+          accept: body.accept,
+          decidedBy: "api",
+          ...(body.untaggedFallback === undefined
+            ? {}
+            : { untaggedFallback: body.untaggedFallback }),
+        },
         db(),
       );
       for (const importId of outcome.imports) await enqueue(importId, "api inbox resolved");
@@ -188,7 +202,12 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
       summary: "Answer an Inbox item and unblock its import",
       description:
         "`accept: true` takes the item's own preselected answer, which is the same thing the " +
-        "Console's Accept button does. Pass `resolution` to answer something else.",
+        "Console's Accept button does. Pass `resolution` to answer something else.\n\n" +
+        "**`untaggedFallback: true`** is the one alternative with a name of its own, because it " +
+        "is the way out of a record MusicBrainz has never published: the album is built from " +
+        "the source's own tags, flagged `untagged` in the library, and `match` runs again with " +
+        "`options.untaggedFallback` set. It is the same answer the review card offers, and it " +
+        "is only valid on an `ambiguous_release` whose search returned no candidate.",
       middleware: [requireScope("review:write")] as const,
       request: {
         params: z.object({ id: idParam }),
@@ -208,18 +227,40 @@ export function inboxRoutes(): OpenAPIHono<ApiEnv> {
     }),
     async (c) => {
       const id = c.req.valid("param").id;
-      const { accept, resolution } = c.req.valid("json");
+      const { accept, resolution, untaggedFallback } = c.req.valid("json");
       const item = await getInboxItem(id, db());
       if (item === null) throw notFound(id);
+
+      /*
+       * The one answer that is a *named* parameter rather than a hand-built `resolution`.
+       *
+       * An agent should not have to know that "import it from the source's own tags" is spelled
+       * `{action: "retry", step: "match", untaggedFallback: true}`; the Console does not, and a
+       * gesture that exists on one surface as a button and on another as folklore is a gesture
+       * that exists once. The shape is `UNTAGGED_RESOLUTION`, shared with the card and the
+       * batch, and the refusal for an item this cannot apply to is the batch's refusal.
+       */
+      if (untaggedFallback === true && !offersUntaggedImport(item)) {
+        throw new MMError(
+          "INVALID_INPUT",
+          `Importing from the source's own tags is not an answer to a ${item.type} item.`,
+          {
+            hint: "It is offered on an `ambiguous_release` the search found no candidate for — the card that says MusicBrainz has nothing for this title.",
+            status: 400,
+          },
+        );
+      }
 
       const { item: updated } = await resolveInboxItem(
         id,
         {
           resolution:
             resolution ??
-            (accept
-              ? { accepted: true, ...(item.preselected ?? {}) }
-              : { accepted: false, action: "dismiss" }),
+            (untaggedFallback === true
+              ? { ...UNTAGGED_RESOLUTION }
+              : accept
+                ? { accepted: true, ...(item.preselected ?? {}) }
+                : { accepted: false, action: "dismiss" }),
           decidedBy: "api",
           status: accept ? "resolved" : "dismissed",
         },
