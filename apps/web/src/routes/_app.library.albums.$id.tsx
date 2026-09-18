@@ -751,8 +751,17 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
   const [busy, setBusy] = useState(false);
 
   const slots = interleaveSlots(album.tracks, album.missing.missing);
-  /** The disc column earns its place only on a release that has more than one. */
-  const multiDisc = album.missing.mediumCount > 1;
+  /**
+   * Whether to prefix the position with its disc.
+   *
+   * Read from the *rows* as well as from the release, and not from the release alone: an album
+   * whose release is not in the local cache has `mediumCount: 0`, and a two-disc album in that
+   * state would have lost the `2-` prefix it has always had here. The release is the better
+   * answer when there is one — it knows about a disc we hold nothing from — and the rows are
+   * the answer that never disappears.
+   */
+  const multiDisc =
+    album.missing.mediumCount > 1 || album.tracks.some((track) => (track.discNumber ?? 1) > 1);
 
   const adopt = (choice: AdoptFileChoice): void => {
     const target = adopting;
@@ -816,7 +825,11 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
         <span className="text-fg-3">
           {multiDisc ? `${String(slot.mediumPosition)}-` : ""}
           {slot.kind === "missing"
-            ? slot.track.number
+            ? // MusicBrainz's own spelling when it is not a plain number — `A2` on a vinyl —
+              // and the column's two-digit padding when it is, so `01 · 2 · 03` cannot happen.
+              /^\d+$/.test(slot.track.number)
+              ? slot.track.number.padStart(2, "0")
+              : slot.track.number
             : String(slot.track.trackNumber ?? 0).padStart(2, "0")}
         </span>
       ),
