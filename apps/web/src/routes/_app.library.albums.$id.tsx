@@ -1040,7 +1040,10 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
               : slot.track.id
           }
           rowClassName={(slot) =>
-            slot.kind === "missing" ? "bg-surface-2/40 text-fg-3" : undefined
+            // `cursor-default` undoes the pointer `DataTable` puts on every row when the table
+            // is clickable: a missing row is not, and a cursor that says otherwise is a promise
+            // the row cannot keep.
+            slot.kind === "missing" ? "bg-surface-2/40 text-fg-3 cursor-default" : undefined
           }
           onRowClick={(slot) => {
             // A missing row has no track page to open; its one action is the button on it.
