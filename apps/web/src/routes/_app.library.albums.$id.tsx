@@ -19,6 +19,7 @@ import { PROFILE_IDS } from "@mm/domain";
 import {
   Disc3,
   Download,
+  FileUp,
   ExternalLink,
   Image as ImageIcon,
   ListVideo,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
+import { AdoptFileDialog, type AdoptFileChoice } from "#/components/adopt-file-dialog.tsx";
 import { Callout } from "#/components/callout.tsx";
 import { Cover, albumCoverSources } from "#/components/cover.tsx";
 import { primaryCoverUrl } from "#/lib/cover-sources.ts";
@@ -54,8 +56,10 @@ import {
   SkeletonTabs,
 } from "#/components/skeleton.tsx";
 import { artistKey } from "#/lib/artist-links.ts";
+import { interleaveSlots, slotKey, type AlbumSlot, type MissingTrack } from "#/lib/album-slots.ts";
 import { bytes, clockTime, dateTime, mmss, pct, short } from "#/lib/format.ts";
 import {
+  adoptMissingTrack,
   chooseCover,
   fetchAlbum,
   fetchAlbumHistory,
@@ -719,17 +723,73 @@ function queueOf(album: AlbumData): {
   };
 }
 
+/**
+ * The tracklist, as the *record* rather than as the files.
+ *
+ * `library_albums` has been able to say `16/20` for a while and nothing could say which four
+ * were missing, so an album that came out short was a number with no remedy behind it. The
+ * four lines are now rows of this table, greyed, at their own positions, each with the one
+ * button that fills it — because a hole you can see and a hole you can act on should not be
+ * two different pages.
+ *
+ * The rows are `AlbumSlot`s and not `AlbumTrackRow`s: `interleaveSlots` merges what we hold
+ * with what the release says on the couple `(mediumPosition, trackPosition)`, so disc 2's
+ * track 1 sorts after disc 1's last and not beside disc 1's first. Every cell below therefore
+ * answers for both kinds, and a missing row deliberately renders *nothing* in the columns that
+ * describe a file — no duration, no score, no schema — rather than a dash that reads like a
+ * measurement of something absent.
+ */
 function TracksTab({ album }: { readonly album: AlbumData }) {
   const navigate = useNavigate();
+  const router = useRouter();
+  const toast = useToast();
   const player = usePlayer();
   const { rows: playable, queue } = queueOf(album);
 
-  const columns: Column<AlbumTrackRow>[] = [
+  /** The missing track whose dialog is open, if any. One dialog for the whole table. */
+  const [adopting, setAdopting] = useState<MissingTrack | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const slots = interleaveSlots(album.tracks, album.missing.missing);
+  /** The disc column earns its place only on a release that has more than one. */
+  const multiDisc = album.missing.mediumCount > 1;
+
+  const adopt = (choice: AdoptFileChoice): void => {
+    const target = adopting;
+    if (target === null) return;
+    setBusy(true);
+    void adoptMissingTrack({
+      data: {
+        albumId: album.album.id,
+        mediumPosition: target.mediumPosition,
+        trackPosition: target.trackPosition,
+        source: choice,
+      },
+    }).then(
+      (result) => {
+        setBusy(false);
+        setAdopting(null);
+        toast(
+          `“${result.trackTitle}” adopted; it carries on from ${result.nextStep ?? "here"} on its own.`,
+          "ok",
+        );
+        void router.invalidate();
+      },
+      (error: unknown) => {
+        setBusy(false);
+        toast(error instanceof Error ? error.message : "That did not work.", "danger");
+      },
+    );
+  };
+
+  const columns: Column<AlbumSlot<AlbumTrackRow>>[] = [
     {
       key: "play",
       header: "",
       className: "w-9",
-      cell: (row) => {
+      cell: (slot) => {
+        if (slot.kind === "missing") return null;
+        const row = slot.track;
         const at = playable.findIndex((track) => track.id === row.id);
         const active = player.current?.id === `library:${row.id}`;
         return (
@@ -752,24 +812,64 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       header: "#",
       numeric: true,
       className: "w-10",
-      cell: (row) => (
+      cell: (slot) => (
         <span className="text-fg-3">
-          {row.discNumber !== null && row.discNumber > 1 ? `${String(row.discNumber)}-` : ""}
-          {String(row.trackNumber ?? 0).padStart(2, "0")}
+          {multiDisc ? `${String(slot.mediumPosition)}-` : ""}
+          {slot.kind === "missing"
+            ? slot.track.number
+            : String(slot.track.trackNumber ?? 0).padStart(2, "0")}
         </span>
       ),
     },
     {
       key: "title",
       header: "Title",
-      cell: (row) => <span className="font-medium">{row.title}</span>,
+      cell: (slot) =>
+        slot.kind === "missing" ? (
+          <span className="text-fg-3 italic" data-testid="album-missing-title">
+            {slot.track.title}
+          </span>
+        ) : (
+          <span className="font-medium">{slot.track.title}</span>
+        ),
     },
-    { key: "length", header: "Length", numeric: true, cell: (row) => mmss(row.duration) },
+    {
+      key: "artist",
+      header: "Artist",
+      cell: (slot) => (
+        // The credited artist, which on a compilation is not the album artist — and on `Cars`
+        // it is the whole of what tells Chuck Berry's *Route 66* from John Mayer's.
+        <span className={slot.kind === "missing" ? "text-fg-3" : "text-fg-2"}>
+          {slot.kind === "missing"
+            ? (slot.track.artist ?? album.album.albumArtist)
+            : (slot.track.artist ?? album.album.albumArtist)}
+        </span>
+      ),
+    },
+    {
+      key: "length",
+      header: "Length",
+      numeric: true,
+      cell: (slot) =>
+        slot.kind === "missing" ? (
+          <span className="text-fg-3">{mmss(slot.track.lengthSeconds)}</span>
+        ) : (
+          mmss(slot.track.duration)
+        ),
+    },
     {
       key: "source",
       header: "Source",
-      cell: (row) =>
-        row.videoId === null ? (
+      cell: (slot) => {
+        if (slot.kind === "missing") {
+          return (
+            <span className="text-fg-3" data-testid="album-missing-source">
+              never published
+            </span>
+          );
+        }
+        const row = slot.track;
+        return row.videoId === null ? (
           <span className="text-fg-3">no video</span>
         ) : (
           <a
@@ -783,72 +883,175 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
           >
             {row.videoId}
           </a>
-        ),
+        );
+      },
     },
     {
       key: "recording",
       header: "Recording",
-      cell: (row) => (
-        <span className="font-mono text-2xs text-fg-3">{short(row.recordingMbid)}</span>
+      cell: (slot) => (
+        <span className="font-mono text-2xs text-fg-3">
+          {short(slot.kind === "missing" ? slot.track.recordingMbid : slot.track.recordingMbid)}
+        </span>
       ),
     },
     {
       key: "file",
       header: "File",
       className: "max-w-64",
-      cell: (row) => (
-        <span className="block truncate font-mono text-2xs text-fg-3" title={row.path}>
-          {row.path.slice(row.path.lastIndexOf("/") + 1)}
-        </span>
-      ),
+      cell: (slot) =>
+        slot.kind === "missing" ? (
+          <span className="text-fg-3">—</span>
+        ) : (
+          <span className="block truncate font-mono text-2xs text-fg-3" title={slot.track.path}>
+            {slot.track.path.slice(slot.track.path.lastIndexOf("/") + 1)}
+          </span>
+        ),
     },
     {
       key: "extras",
       header: "Extras",
-      cell: (row) => (
-        <span className="flex gap-1">
-          {/*
-            First, and in `danger`: a track that says `lrc` and `rg` and 99% about a file that
-            is not there is worse than one that says nothing (DRIVE-1 §B5).
-          */}
-          {row.present ? null : (
+      cell: (slot) => {
+        if (slot.kind === "missing") {
+          return (
             <ToneBadge
-              tone="danger"
-              data-testid="track-missing"
-              title="The file is not on disk. Re-download it from the album's actions."
+              tone="warn"
+              data-testid="album-missing-badge"
+              title="The release has this track and the library never got it. Give it a file or an address."
             >
               missing
             </ToneBadge>
-          )}
-          {row.hasLyrics ? <ToneBadge tone="ok">lrc</ToneBadge> : null}
-          {row.hasReplayGain ? <ToneBadge tone="ok">rg</ToneBadge> : null}
-        </span>
-      ),
+          );
+        }
+        const row = slot.track;
+        return (
+          <span className="flex gap-1">
+            {/*
+              First, and in `danger`: a track that says `lrc` and `rg` and 99% about a file that
+              is not there is worse than one that says nothing (DRIVE-1 §B5).
+            */}
+            {row.present ? null : (
+              <ToneBadge
+                tone="danger"
+                data-testid="track-missing"
+                title="The file is not on disk. Re-download it from the album's actions."
+              >
+                missing
+              </ToneBadge>
+            )}
+            {row.hasLyrics ? <ToneBadge tone="ok">lrc</ToneBadge> : null}
+            {row.hasReplayGain ? <ToneBadge tone="ok">rg</ToneBadge> : null}
+          </span>
+        );
+      },
     },
     {
       key: "score",
       header: "Metadata",
-      cell: (row) => <ToneBadge tone={scoreTone(row.score)}>{pct(row.score)}</ToneBadge>,
+      cell: (slot) =>
+        slot.kind === "missing" ? null : (
+          <ToneBadge tone={scoreTone(slot.track.score)}>{pct(slot.track.score)}</ToneBadge>
+        ),
     },
     {
       key: "schema",
       header: "Schema",
-      cell: (row) => <SchemaBadge version={row.tagSchemaVersion} current={album.currentSchema} />,
+      cell: (slot) =>
+        slot.kind === "missing" ? null : (
+          <SchemaBadge version={slot.track.tagSchemaVersion} current={album.currentSchema} />
+        ),
+    },
+    {
+      key: "fill",
+      header: "",
+      actions: true,
+      className: "w-9",
+      cell: (slot) =>
+        slot.kind === "missing" ? (
+          <Button
+            size="icon-sm"
+            variant="outline"
+            data-testid="album-missing-adopt"
+            aria-label={`Give ${slot.track.title} a file or an address`}
+            title="Give this track a file or an address — it downloads, tags and files that track alone"
+            disabled={busy}
+            onClick={(event) => {
+              event.stopPropagation();
+              setAdopting(slot.track);
+            }}
+          >
+            <FileUp className="size-3" aria-hidden="true" />
+          </Button>
+        ) : null,
     },
   ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-surface-1">
-      <DataTable
-        data-testid="album-tracks"
-        columns={columns}
-        rows={album.tracks}
-        rowKey={(row) => row.id}
-        onRowClick={(row) => {
-          void navigate({ to: "/library/tracks/$id", params: { id: row.id } });
-        }}
-        empty="No files placed for this album yet."
-      />
+    <div className="flex flex-col gap-3">
+      {/*
+        Said above the table as well as in it, because the table is long and the four greyed
+        rows are scattered through it. `unavailable` gets its own sentence: an empty list with
+        no tracklist behind it is not an album that is complete, and the two look identical.
+      */}
+      {album.missing.unavailable !== null &&
+      album.missing.presentCount < album.missing.trackCount ? (
+        <Callout tone="info" data-testid="album-missing-unavailable">
+          This album is{" "}
+          <strong>
+            {album.missing.presentCount} of {album.missing.trackCount}
+          </strong>{" "}
+          tracks, and which ones are missing cannot be worked out here:{" "}
+          {album.missing.unavailable === "no-release"
+            ? "it was imported without MusicBrainz, so there is no tracklist to compare it against. Re-import it against a release."
+            : "its release has never been fetched on this installation, so the tracklist is not in the local cache. Refetch it from MusicBrainz once, and everything after that is offline."}
+        </Callout>
+      ) : null}
+
+      {album.missing.missing.length === 0 ? null : (
+        <Callout tone="warn" data-testid="album-missing">
+          <strong>
+            {album.missing.missing.length} track(s) of this release are not in the library
+          </strong>
+          : they are listed below, greyed, at their own positions. The album was created anyway
+          because the rest downloaded. Give one a file you have or an address to fetch it from, and
+          that track alone is downloaded, tagged and filed — the others are not touched.
+        </Callout>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-line bg-surface-1">
+        <DataTable
+          data-testid="album-tracks"
+          columns={columns}
+          rows={slots}
+          rowKey={(slot) =>
+            slot.kind === "missing"
+              ? `missing:${slotKey(slot.mediumPosition, slot.trackPosition)}`
+              : slot.track.id
+          }
+          rowClassName={(slot) =>
+            slot.kind === "missing" ? "bg-surface-2/40 text-fg-3" : undefined
+          }
+          onRowClick={(slot) => {
+            // A missing row has no track page to open; its one action is the button on it.
+            if (slot.kind === "missing") return;
+            void navigate({ to: "/library/tracks/$id", params: { id: slot.track.id } });
+          }}
+          empty="No files placed for this album yet."
+        />
+      </div>
+
+      {adopting === null ? null : (
+        <AdoptFileDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAdopting(null);
+          }}
+          trackTitle={adopting.title}
+          description={`“${adopting.title}” is on this album's release and was never downloaded — the playlist did not publish it. Give it a file you already have, or an address to fetch it from, and it alone is downloaded, tagged and filed.`}
+          busy={busy}
+          onAdopt={adopt}
+        />
+      )}
     </div>
   );
 }

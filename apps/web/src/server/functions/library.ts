@@ -54,6 +54,12 @@ import {
   type TrackDetail,
   type TrackListPayload,
 } from "#/server/services/library.ts";
+import { adoptSourceOf } from "#/server/services/adopt.ts";
+import {
+  adoptLibraryTrack,
+  albumMissingTracks,
+  type AlbumMissing,
+} from "#/server/services/album-missing.ts";
 import type { ArtistShelf } from "#/server/services/discography.ts";
 import { enqueue } from "#/server/services/queue.ts";
 
@@ -101,6 +107,17 @@ export const fetchAlbums = createServerFn({ method: "GET", strict: STRICT })
 export interface AlbumPagePayload extends AlbumDetail {
   /** The import the "change release" action would re-run step 2 of, if there is one. */
   readonly wizardImportId: string | null;
+  /**
+   * The tracks of the retained release this album has not got, in release order.
+   *
+   * Read here rather than in `albumDetail` on purpose: `albumDetail` is also `get_album`,
+   * `GET /api/v1/library/albums/{id}` and `mm library show`, and those three ask for the holes
+   * through their own door (`list_missing_tracks`, `…/missing`, `mm library missing`) so that
+   * a caller who does not want them does not pay for them. The album *page* always wants them
+   * — they are rows in its tracklist — so it costs one more offline read in the loader rather
+   * than a second round trip once the page is up.
+   */
+  readonly missing: AlbumMissing;
 }
 
 export const fetchAlbum = createServerFn({ method: "GET", strict: STRICT })
@@ -110,11 +127,72 @@ export const fetchAlbum = createServerFn({ method: "GET", strict: STRICT })
     try {
       const detail = await albumDetail(data.id, db());
       if (detail === null) return null;
-      return { ...detail, wizardImportId: await importBehindAlbum(data.id, db()) };
+      const [wizardImportId, missing] = await Promise.all([
+        importBehindAlbum(data.id, db()),
+        albumMissingTracks(data.id, { db: db() }),
+      ]);
+      return { ...detail, wizardImportId, missing };
     } catch (error) {
       return toFailure(error);
     }
   });
+
+/**
+ * Give one of the album's missing tracks a file, an upload or an address.
+ *
+ * The Console's half of `POST /api/v1/library/albums/{id}/missing/{medium}/{position}/file`,
+ * reaching the same `adoptLibraryTrack`, so the refusals, the allow-list, the materialisation
+ * of a sourceless row and the provenance are one implementation rather than four.
+ */
+export const adoptMissingTrack = createServerFn({ method: "POST", strict: STRICT })
+  .middleware([sessionMiddleware])
+  .inputValidator(
+    z.object({
+      albumId: z.string().min(1),
+      mediumPosition: z.number().int().min(1),
+      trackPosition: z.number().int().min(1),
+      source: z.discriminatedUnion("kind", [
+        z.object({ kind: z.literal("path"), path: z.string().min(1) }),
+        z.object({ kind: z.literal("url"), url: z.string().min(1) }),
+        z.object({
+          kind: z.literal("upload"),
+          filename: z.string().min(1),
+          content: z.string().min(1),
+        }),
+      ]),
+    }),
+  )
+  .handler(
+    async ({
+      data,
+    }): Promise<{ trackTitle: string; path: string; nextStep: string | null; queued: boolean }> => {
+      try {
+        const source = data.source;
+        const result = await adoptLibraryTrack({
+          albumId: data.albumId,
+          mediumPosition: data.mediumPosition,
+          trackPosition: data.trackPosition,
+          source: adoptSourceOf(
+            source.kind === "path"
+              ? { source: "path", path: source.path }
+              : source.kind === "url"
+                ? { source: "url", url: source.url }
+                : { source: "upload", filename: source.filename, content: source.content },
+          ),
+          adoptedBy: "console",
+          db: db(),
+        });
+        return {
+          trackTitle: result.trackTitle,
+          path: result.path,
+          nextStep: result.nextStep,
+          queued: result.queued,
+        };
+      } catch (error) {
+        return toFailure(error);
+      }
+    },
+  );
 
 /** One track's whole document — 50 KB of JSON, so it is asked for a track at a time. */
 export const fetchTrackDocument = createServerFn({ method: "GET", strict: STRICT })

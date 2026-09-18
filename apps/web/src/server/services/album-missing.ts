@@ -14,6 +14,10 @@
  * back to compute the denominator — and the tracks we hold are `library_tracks`. So this
  * module is a comparison and nothing more: **offline, no request, no new column**.
  *
+ * The comparison itself — the couple `(mediumPosition, trackPosition)`, and why "present" is
+ * the union of a matching track id and a matching couple — is `#/lib/album-slots.ts`, which
+ * the album page reads too. This module is the database around it.
+ *
  * ## The key is the couple, never the position alone
  *
  * A release is a list of *media*, each with its own tracklist restarting at 1. Flattening the
@@ -40,9 +44,10 @@
  */
 import { and, eq } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
-import { creditName, type MbRelease } from "@mm/domain";
+import type { MbRelease } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { importTracks, libraryAlbums, libraryTracks } from "#/server/db/schema/index.ts";
+import { missingTracksOf, slotKey, type MissingTrack } from "#/lib/album-slots.ts";
 import { newId } from "#/server/ids.ts";
 import { sourcesConfig } from "#/server/integrations/config.ts";
 import * as musicbrainz from "#/server/integrations/musicbrainz.ts";
@@ -56,44 +61,25 @@ import type { ToolboxClient } from "#/server/toolbox/client.ts";
 /* the vocabulary                                                      */
 /* ------------------------------------------------------------------ */
 
-/**
- * One track the retained release has and the album does not.
+/*
+ * The comparison itself is `#/lib/album-slots.ts`, and deliberately not here.
  *
- * Everything a person or an agent needs in order to recognise it and go and find it: where it
- * sits, what it is called, who plays it, and the MusicBrainz ids that let a caller look it up
- * without guessing from the title.
+ * The album page renders the missing tracks interleaved with the present ones, so it needs
+ * `interleaveSlots` as a *value* in the browser — and a value import of `#/server/**` from a
+ * route drags Drizzle and `postgres` into the client bundle (`client-boundary.guard.test.ts`).
+ * Keeping the pure half in `lib/` is what lets the page, this service, the API, the MCP tools
+ * and the CLI all read one implementation of "which tracks are missing" instead of two.
+ *
+ * Re-exported so a server caller never has to know the split exists.
  */
-export interface MissingTrack {
-  /** 1-based, and 1 on a single-disc release. Half of the identity of the slot. */
-  readonly mediumPosition: number;
-  /** 1-based **within its medium**, which is why it is never used on its own. */
-  readonly trackPosition: number;
-  /** What MusicBrainz prints for the position — `7` on a CD, `A2` on a vinyl. */
-  readonly number: string;
-  readonly title: string;
-  /** The track's own credit, which on a compilation is not the album artist. */
-  readonly artist: string | null;
-  readonly trackMbid: string | null;
-  readonly recordingMbid: string | null;
-  readonly lengthSeconds: number | null;
-  /** `Disc 2` and friends, when the medium has a name of its own. */
-  readonly mediumTitle: string | null;
-}
-
-/** One slot of the retained release's tracklist, present or not, in release order. */
-export type AlbumSlot<T> =
-  | {
-      readonly kind: "present";
-      readonly mediumPosition: number;
-      readonly trackPosition: number;
-      readonly track: T;
-    }
-  | {
-      readonly kind: "missing";
-      readonly mediumPosition: number;
-      readonly trackPosition: number;
-      readonly track: MissingTrack;
-    };
+export {
+  interleaveSlots,
+  missingTracksOf,
+  slotKey,
+  type AlbumSlot,
+  type HeldTrack,
+  type MissingTrack,
+} from "#/lib/album-slots.ts";
 
 /** Why an album's holes cannot be named. Each one has a different remedy, so each has a code. */
 export type MissingUnavailable =
@@ -117,112 +103,6 @@ export interface AlbumMissing {
    * which a caller must not read as "nothing is missing".
    */
   readonly unavailable: MissingUnavailable | null;
-}
-
-/* ------------------------------------------------------------------ */
-/* the pure comparison                                                 */
-/* ------------------------------------------------------------------ */
-
-/**
- * The identity of a slot, as a string a `Set` can hold.
- *
- * The only place the couple is flattened, and it flattens it *reversibly* — `2:7` is disc 2
- * track 7 and can never collide with disc 1 track 27. A running index would.
- */
-export function slotKey(mediumPosition: number, trackPosition: number): string {
-  return `${String(mediumPosition)}:${String(trackPosition)}`;
-}
-
-/** What a held track knows about where it sits and what it is. */
-export interface HeldTrack {
-  /** `null` reads as disc 1: a single-disc rip very often leaves the tag off entirely. */
-  readonly discNumber: number | null;
-  readonly trackNumber: number | null;
-  readonly trackMbid: string | null;
-}
-
-/**
- * The release's tracks that nothing in `held` accounts for, in release order.
- *
- * Pure, so the multi-disc rule is testable without a database or a network — which matters,
- * because the multi-disc rule is the one this repository has already got wrong once.
- */
-export function missingTracksOf(
-  release: MbRelease,
-  held: readonly HeldTrack[],
-): readonly MissingTrack[] {
-  const heldSlots = new Set<string>();
-  const heldMbids = new Set<string>();
-  for (const track of held) {
-    if (track.trackMbid !== null && track.trackMbid !== "") heldMbids.add(track.trackMbid);
-    // A row with no track number cannot claim a slot; it can still claim an id above.
-    if (track.trackNumber === null) continue;
-    heldSlots.add(slotKey(track.discNumber ?? 1, track.trackNumber));
-  }
-
-  const out: MissingTrack[] = [];
-  for (const [mediumIndex, medium] of (release.media ?? []).entries()) {
-    // MusicBrainz numbers its media from 1 and always sends `position`; the index is the
-    // fallback for a payload pruned by `scripts/prune-musicbrainz.ts`.
-    const mediumPosition = medium.position ?? mediumIndex + 1;
-    for (const [trackIndex, track] of (medium.tracks ?? []).entries()) {
-      const trackPosition = track.position ?? trackIndex + 1;
-      const mbid = track.id ?? null;
-      if (mbid !== null && heldMbids.has(mbid)) continue;
-      if (heldSlots.has(slotKey(mediumPosition, trackPosition))) continue;
-      out.push({
-        mediumPosition,
-        trackPosition,
-        number: track.number ?? String(trackPosition),
-        title: track.title ?? track.recording?.title ?? "(untitled)",
-        artist: creditName(track["artist-credit"] ?? track.recording?.["artist-credit"]),
-        trackMbid: mbid,
-        recordingMbid: track.recording?.id ?? null,
-        lengthSeconds:
-          track.length === undefined || track.length === null ? null : track.length / 1000,
-        mediumTitle: medium.title ?? null,
-      });
-    }
-  }
-  return out;
-}
-
-/**
- * The tracks we hold and the ones we do not, woven into one list in release order.
- *
- * The Console's half of the feature is *"grisées et à leur position"*, and a page that appended
- * the four missing lines under the sixteen present ones would have answered a different
- * question — "which are missing" rather than "what does this record look like". Interleaving is
- * what turns the list back into the record.
- *
- * Present tracks the release does not mention keep their place at the end of their own medium
- * rather than being dropped: a bonus track, or a row whose numbering is wrong, is still a file
- * on the disk and hiding it would be a lie of a different kind.
- */
-export function interleaveSlots<T extends HeldTrack>(
-  present: readonly T[],
-  missing: readonly MissingTrack[],
-): readonly AlbumSlot<T>[] {
-  const slots: AlbumSlot<T>[] = [
-    ...present.map((track): AlbumSlot<T> => ({
-      kind: "present",
-      mediumPosition: track.discNumber ?? 1,
-      // A row with no track number sorts to the end of its disc rather than to the front:
-      // `null` is "we never knew", and the front is where track 1 lives.
-      trackPosition: track.trackNumber ?? Number.MAX_SAFE_INTEGER,
-      track,
-    })),
-    ...missing.map((track): AlbumSlot<T> => ({
-      kind: "missing",
-      mediumPosition: track.mediumPosition,
-      trackPosition: track.trackPosition,
-      track,
-    })),
-  ];
-  return slots.sort(
-    (one, other) =>
-      one.mediumPosition - other.mediumPosition || one.trackPosition - other.trackPosition,
-  );
 }
 
 /* ------------------------------------------------------------------ */

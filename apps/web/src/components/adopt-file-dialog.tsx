@@ -63,6 +63,14 @@ export interface AdoptFileDialogProps {
   readonly onOpenChange: (open: boolean) => void;
   /** The track's title, so the dialog names what it is about to change. */
   readonly trackTitle: string;
+  /**
+   * One sentence under the title, when the caller's situation is not the default one.
+   *
+   * The job page's track failed to download; the album page's was never published at all, so
+   * there is no video behind it and nothing to retry. Those are different sentences, and rather
+   * than the dialog guessing which it is in, the caller that knows says so.
+   */
+  readonly description?: string;
   readonly busy?: boolean;
   readonly onAdopt: (choice: AdoptFileChoice) => void;
 }
@@ -87,6 +95,7 @@ export function AdoptFileDialog({
   open,
   onOpenChange,
   trackTitle,
+  description,
   busy = false,
   onAdopt,
 }: AdoptFileDialogProps) {
@@ -150,9 +159,14 @@ export function AdoptFileDialog({
         <DialogHeader>
           <DialogTitle>Adopt a file for this track</DialogTitle>
           <DialogDescription>
-            Give <b className="text-fg-1">{trackTitle}</b> audio from somewhere other than its own
-            video — a file you already have, or another address to download from. The track carries
-            on from fingerprinting, and its tags will say where the audio really came from.
+            {description ?? (
+              <>
+                Give <b className="text-fg-1">{trackTitle}</b> audio from somewhere other than its
+                own video — a file you already have, or another address to download from. The track
+                carries on from fingerprinting, and its tags will say where the audio really came
+                from.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
