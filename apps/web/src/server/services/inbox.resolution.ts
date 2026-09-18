@@ -119,7 +119,22 @@ export type ResolutionPlan =
   | { readonly kind: "none" }
   | { readonly kind: "cancel" }
   | { readonly kind: "confirm" }
-  | { readonly kind: "retry"; readonly step: string | null }
+  | {
+      readonly kind: "retry";
+      readonly step: string | null;
+      /**
+       * Turn `options.untaggedFallback` on before rewinding.
+       *
+       * The way out of "MusicBrainz does not know this playlist", answered from the card that
+       * says so. `match` is off by default for a URL and on for a folder
+       * (`wantsUntaggedFallback`), and until this existed the only ways to state it were
+       * `mm import <url> --untagged`, `options.untaggedFallback` on the API, and a button
+       * inside the wizard — none of which a batch import passes through. It rides on `retry`
+       * rather than on a verb of its own because the *act* is the act the card's other two
+       * answers already perform: rewind to `match` and run it again. Only the flag is new.
+       */
+      readonly untaggedFallback: boolean;
+    }
   | { readonly kind: "trash"; readonly what: "orphans" | "duplicates" }
   | { readonly kind: "update-ytdlp" }
   | { readonly kind: "reverify" }
@@ -169,7 +184,11 @@ export function planResolution(
       case "confirm":
         return { kind: "confirm" };
       case "retry":
-        return { kind: "retry", step: text(resolution["step"]) };
+        return {
+          kind: "retry",
+          step: text(resolution["step"]),
+          untaggedFallback: resolution["untaggedFallback"] === true,
+        };
       case "trash_orphans":
         return { kind: "trash", what: "orphans" };
       case "trash_duplicates":

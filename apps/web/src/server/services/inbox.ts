@@ -602,6 +602,24 @@ async function applyResolution(
   if (plan.kind !== "retry") return { resumed: false };
 
   /*
+   * "Build it from the source's own tags instead."
+   *
+   * The same door `mm import --untagged` and the API's `options.untaggedFallback` already open,
+   * written before the rewind so that the `match` about to be re-queued reads it:
+   * `wantsUntaggedFallback` returns a stated flag ahead of everything it would otherwise infer,
+   * so the step stops blocking and ends in `applySupplied` with `releaseMbid: null` — the album
+   * filed `untagged`, findable and identifiable later.
+   *
+   * **The default it overrides is not changed by this and must not be.** Off for a URL is the
+   * right default; filing an album under a title nobody chose is worse than parking it. What
+   * this carries out is somebody reading the card and choosing the lesser outcome on purpose.
+   */
+  if (plan.untaggedFallback) {
+    const { setImportOptions } = await import("#/server/services/console.queries.ts");
+    await setImportOptions(importId, { untaggedFallback: true }, {}, db);
+  }
+
+  /*
    * Rewind, then hand the job back to the worker. A retry from an HTTP request that ran the
    * whole pipeline inline would die with the request, and `download` is not even allowed to
    * run outside the single global queue — hence `only`, which runs the rewound step and leaves

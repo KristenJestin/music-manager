@@ -194,9 +194,16 @@ function NoCandidatePanel({
       data-testid="no-candidate-panel"
       className="flex flex-col gap-2.5 rounded-md border border-line bg-background p-3"
     >
+      {/*
+        Three ways out, and the third is named here because it is the one nobody finds.
+        Pinning an id and dropping the edition qualifier are buttons in this panel; importing
+        from the source's own tags is an *answer*, below with the others, so that the API, the
+        MCP server and `mm inbox` reach it through the same door the Console does.
+      */}
       <Callout tone="info">
-        MusicBrainz returned nothing for this title. Either name the release yourself, or search
-        again without the edition the source added to it.
+        MusicBrainz returned nothing for this title. Name the release yourself, search again without
+        the edition the source added to it, or — if MusicBrainz simply does not have this record —
+        import it from the YouTube tags with the answer below.
       </Callout>
 
       <form

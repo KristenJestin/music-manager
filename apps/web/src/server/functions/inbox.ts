@@ -98,6 +98,29 @@ export interface InboxCard {
 }
 
 /**
+ * "Import it from the source's own tags", the way out of a record MusicBrainz does not have.
+ *
+ * Declared once, beside the card that offers it, and worded as what it *does* rather than as
+ * what it is called: the album is built from the YouTube listing's own title, artist and track
+ * order, no MusicBrainz identifier is written, and the library flags it `untagged` so it can be
+ * found again and identified later. That sentence is on the card because this is a lesser
+ * outcome somebody is choosing deliberately.
+ *
+ * The value is the shape `applyResolution` already carries out for the two buttons beside it —
+ * rewind to `match`, run it again — with `untaggedFallback` riding along.
+ */
+const UNTAGGED_ANSWER: InboxOption = {
+  id: "untagged",
+  label: "Import it from the YouTube tags instead",
+  detail:
+    "Builds the album from the source's own title, artist, year and track order. No identifiers, " +
+    "no credits, no archive cover: the library flags it untagged, with its own filter on the " +
+    "Quality page, and picking a release later re-tags it without re-downloading a byte.",
+  preselected: false,
+  value: { action: "retry", step: "match", untaggedFallback: true },
+};
+
+/**
  * The answers for one item.
  *
  * The first option is always the preselection, and it is always the one that lets the job
@@ -189,14 +212,32 @@ export function optionsFor(item: InboxItem): InboxOption[] {
         } satisfies InboxOption;
       });
       if (options.length > 0) return options;
+      /*
+       * Nothing to choose between — and, until now, nothing to do but give up.
+       *
+       * The escape has existed since P03 and was unreachable from here: `match` builds the
+       * album from the source's own tags when `options.untaggedFallback` is true, which is on
+       * by default for a folder and off for a URL (`steps/match.ts`, `wantsUntaggedFallback`).
+       * The only ways to state it were `mm import <url> --untagged`, `options.untaggedFallback`
+       * on the API and a button inside the wizard, so an import started from a batch, a watched
+       * source or Discover met none of them and its owner met a card that offered cancelling.
+       *
+       * It is **not** the preselection, and that is the whole of the judgement. Filing an album
+       * under a title nobody chose is worse than parking it, so the pipeline's default stays
+       * "ask"; what the card owes the reader is the offer, said plainly enough that choosing it
+       * is a decision rather than an accident. `UNTAGGED_ANSWER` is the shape, not a new verb:
+       * `{action: "retry", step: "match"}` is what the pin button and the qualifier search
+       * already send, with the flag riding along.
+       */
       return [
         {
           id: "cancel",
           label: "Cancel this import",
-          detail: "The search found nothing usable.",
+          detail: "The search found nothing usable. Nothing is written to the library.",
           preselected: true,
           value: { action: "cancel" },
         },
+        UNTAGGED_ANSWER,
       ];
     }
     case "ambiguous_recording": {
