@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { MMError } from "@mm/contracts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  adoptSourceOf,
   adoptUrlSchema,
   baseNameOf,
   isAdoptableUrl,
@@ -208,5 +209,43 @@ describe("baseNameOf", () => {
     // An uploaded `filename` is attacker-controlled; only its basename is ever used, and the
     // destination name is the track id, so this is a second fence rather than the first.
     expect(baseNameOf("../../../etc/passwd")).toBe("passwd");
+  });
+});
+
+/**
+ * The one decoder of the wire union, tested because four doors now call it.
+ *
+ * `POST /imports/{id}/tracks/{trackId}/file`, `POST /library/albums/{id}/missing/…/file`, the
+ * two MCP tools and the Console's two server functions all hand it the same JSON shape. Each
+ * of them used to restate the mapping inline, and that is exactly how the imports page came to
+ * be missing the address form for a while: three copies, one of them older than the others.
+ */
+describe("adoptSourceOf", () => {
+  it("passes a server path through unchanged", () => {
+    expect(adoptSourceOf({ source: "path", path: "/music/03.flac" })).toEqual({
+      kind: "path",
+      path: "/music/03.flac",
+    });
+  });
+
+  it("passes an address through unchanged", () => {
+    expect(adoptSourceOf({ source: "url", url: "https://youtu.be/abc" })).toEqual({
+      kind: "url",
+      url: "https://youtu.be/abc",
+    });
+  });
+
+  it("decodes an upload's base64 into the bytes it stands for", () => {
+    const decoded = adoptSourceOf({
+      source: "upload",
+      filename: "03.flac",
+      // "hello" — checked as bytes rather than as a round trip, because the failure this
+      // guards against is a decoder that silently produces something plausible.
+      content: "aGVsbG8=",
+    });
+    expect(decoded.kind).toBe("upload");
+    if (decoded.kind !== "upload") return;
+    expect(decoded.filename).toBe("03.flac");
+    expect([...decoded.bytes]).toEqual([104, 101, 108, 108, 111]);
   });
 });
