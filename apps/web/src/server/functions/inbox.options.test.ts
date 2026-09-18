@@ -156,6 +156,83 @@ describe("optionsFor", () => {
     expect(options.map((option) => option.id)).not.toContain("untagged");
   });
 
+  /*
+   * The artist veto, on the Inbox side.
+   *
+   * The card re-derives its own preselection from the stored payload rather than from the
+   * ranking — rightly, the payload is what survives a restart — and that is how the veto came
+   * to stop at the Console's door: the wizard refused to tick VSO and the Inbox card for the
+   * same import ticked it again, because `index === 0` knows nothing. It reads the flag off
+   * the candidate, never the prose; see `ReleaseCandidate.artistDisagrees`.
+   */
+  it("walks past the candidates whose artist disagrees, and ticks the first that does not", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_recording",
+        payload: {
+          candidates: [
+            { id: "vso", title: "Soleil bleu", artist: "VSO", score: 0.727, artistDisagrees: true },
+            {
+              id: "right",
+              title: "Soleil bleu",
+              artist: "Bleu Soleil & Luiza",
+              score: 0.518,
+              artistDisagrees: false,
+            },
+          ],
+        },
+      }),
+    );
+    // Nothing removed, nothing reordered: the homonym is still first and still offered.
+    expect(options.map((option) => option.id)).toEqual(["vso", "right"]);
+    expect(options.find((option) => option.preselected)?.id).toBe("right");
+    expect(options[0]?.artistDisagrees).toBe(true);
+    expect(options[1]?.artistDisagrees).toBe(false);
+  });
+
+  it("ticks nothing at all when every candidate is somebody else's", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_recording",
+        payload: {
+          candidates: [
+            { id: "vso", title: "Soleil bleu", artist: "VSO", artistDisagrees: true },
+            { id: "vartan", title: "Soleil bleu", artist: "Sylvie Vartan", artistDisagrees: true },
+          ],
+        },
+      }),
+    );
+    expect(options).toHaveLength(2);
+    expect(options.filter((option) => option.preselected)).toHaveLength(0);
+  });
+
+  it("keeps a pinned release pinned, because a person saying which record it is outranks this", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_release",
+        payload: {
+          candidates: [
+            { id: "rel-a", title: "Cars", artistDisagrees: true },
+            { id: "rel-b", title: "Cars", artistDisagrees: true },
+          ],
+        },
+        preselected: { releaseMbid: "rel-b" },
+      }),
+    );
+    expect(options.find((option) => option.preselected)?.id).toBe("rel-b");
+  });
+
+  it("behaves exactly as it used to on a payload written before the flag existed", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_release",
+        payload: { candidates: [{ id: "rel-a", title: "Discovery" }, { id: "rel-b" }] },
+      }),
+    );
+    expect(options.find((option) => option.preselected)?.id).toBe("rel-a");
+    expect(options[0]?.artistDisagrees).toBe(false);
+  });
+
   it("believes the confirmed mapping over the fingerprint, by default", () => {
     const options = optionsFor(item({ type: "fingerprint_mismatch" }));
     expect(options.find((option) => option.preselected)?.id).toBe("keep");

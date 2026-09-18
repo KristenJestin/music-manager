@@ -639,6 +639,111 @@ describe("ReviewCard", () => {
     expect(onConfirm.mock.calls[0]?.[0]).toMatchObject({ id: "cancel" });
   });
 
+  /**
+   * The seventh owner review, on the Inbox side.
+   *
+   * Ten candidates for "Soleil bleu" by Bleu Soleil, all of them other people's, and a card
+   * that ticked the first one anyway — VSO — with "Artist mismatch (credited to VSO)" printed
+   * underneath it. Two things have to be true here and they are different things: nothing is
+   * under the Enter key, and the reader is told why.
+   */
+  const homonyms: InboxCard = {
+    ...card,
+    item: { ...card.item, type: "ambiguous_recording", title: "Which recording?" },
+    options: [
+      {
+        id: "vso",
+        label: "Soleil bleu — VSO",
+        score: 0.727,
+        preselected: false,
+        artistDisagrees: true,
+        value: { recordingMbid: "vso" },
+      },
+      {
+        id: "vartan",
+        label: "Soleil bleu — Sylvie Vartan",
+        score: 0.598,
+        preselected: false,
+        artistDisagrees: true,
+        value: { recordingMbid: "vartan" },
+      },
+    ],
+  };
+
+  it("ticks nothing when every answer's own reasons say the artist is wrong", () => {
+    render(
+      <ReviewCard
+        card={homonyms}
+        busy={false}
+        onConfirm={vi.fn()}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
+    const options = screen.getAllByTestId("review-option");
+    // Nothing removed and nothing reordered: both homonyms are still offered, in order.
+    expect(options).toHaveLength(2);
+    expect(options.every((option) => option.getAttribute("aria-checked") === "false")).toBe(true);
+  });
+
+  it("says why nothing is ticked, rather than leaving the reader to guess", () => {
+    render(
+      <ReviewCard
+        card={homonyms}
+        busy={false}
+        onConfirm={vi.fn()}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("no-preselection-artist").textContent).toMatch(
+      /none of these 2 is credited to the artist this source names/,
+    );
+  });
+
+  it("does not put a rejected guess under the Enter key", () => {
+    const onConfirm = vi.fn();
+    render(
+      <ReviewCard
+        card={homonyms}
+        busy={false}
+        onConfirm={onConfirm}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    // …and Enter works again the moment a person has actually chosen.
+    fireEvent.click(screen.getAllByTestId("review-option")[1] as HTMLElement);
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(onConfirm.mock.calls[0]?.[0]).toMatchObject({ id: "vartan" });
+  });
+
+  it("still ticks the first answer when the card's answers are verbs, not candidates", () => {
+    // The fallback that exists for "Retry" / "Cancel this import" is untouched: an Inbox whose
+    // default answer is nothing would be a worse place to press Enter quickly.
+    const verbs: InboxCard = {
+      ...card,
+      options: card.options.map((option) => ({ ...option, preselected: false })),
+    };
+    render(
+      <ReviewCard
+        card={verbs}
+        busy={false}
+        onConfirm={vi.fn()}
+        onPin={vi.fn()}
+        onDropQualifier={vi.fn()}
+      />,
+    );
+    const chosen = screen
+      .getAllByTestId("review-option")
+      .find((option) => option.getAttribute("aria-checked") === "true");
+    expect(chosen?.dataset["optionId"]).toBe("partial");
+    expect(screen.queryByTestId("no-preselection-artist")).toBeNull();
+  });
+
   it("ignores Enter while a decision is already being saved", () => {
     const onConfirm = vi.fn();
     render(

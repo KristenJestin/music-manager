@@ -29,6 +29,7 @@ import {
   lookupLimitOf,
   matchAlbum,
   matchSingle,
+  type MatchFallback,
 } from "#/server/services/matching.service.ts";
 import { defaults, type Settings } from "#/server/services/settings.ts";
 
@@ -1129,5 +1130,39 @@ describe("describeFallback", () => {
     expect(
       describeFallback({ kind: "recordings", sampled: 4, titles: ["A", "B"], groups: ["g"] }),
     ).toMatch(/searched as recordings/);
+  });
+
+  it("names the credited artist the ladder fell back to, and the name it used", () => {
+    const line = describeFallback({
+      kind: "credited-artist",
+      from: "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales",
+      to: "Augustine Mayuga Gonzales",
+    });
+    // A fallback that only shows up as "it worked this time" is a fallback nobody can audit:
+    // the person reading a questionable import has to see *which* name was asked for.
+    expect(line).toContain("Augustine Mayuga Gonzales");
+    expect(line).toContain("ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales");
+    expect(line).toMatch(/another name the source credits/);
+  });
+
+  it("says the trailing edition word was treated as noise, and by whom the search still asked", () => {
+    const line = describeFallback({
+      kind: "bare-title",
+      from: "AFTERCARE DELUXE",
+      to: "AFTERCARE",
+    });
+    expect(line).toContain("AFTERCARE DELUXE");
+    expect(line).toMatch(/still by the same artist/);
+  });
+
+  it("has a line for every kind, so a new rung cannot ship without one", () => {
+    const kinds: MatchFallback[] = [
+      { kind: "primary-artist", from: "a, b", to: "a" },
+      { kind: "credited-artist", from: "a, b", to: "b" },
+      { kind: "base-title", from: "X (Deluxe Edition)", to: "X" },
+      { kind: "bare-title", from: "X DELUXE", to: "X" },
+      { kind: "recordings", sampled: 4, titles: ["A"], groups: ["g"] },
+    ];
+    for (const fallback of kinds) expect(describeFallback(fallback).length).toBeGreaterThan(20);
   });
 });
