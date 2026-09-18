@@ -151,47 +151,93 @@ export async function materialiseSourcelessTracks(
     }
     taken.add(key(cell.mediumPosition, cell.position));
 
-    const title = cell.title ?? `Track ${String(cell.position)}`;
-    const [row] = await db
-      .insert(importTracks)
-      .values({
-        id: newId("importTrack"),
-        importId: options.importId,
-        position: next,
-        // The two that make this row what it is. Nothing is invented: there is no video.
-        videoId: null,
-        url: null,
-        sourceTitle: title,
-        sourceDuration: cell.lengthSeconds,
-        uploader: null,
-        // `raw` is the yt-dlp entry everywhere else, and there is no entry here. An empty
-        // object rather than a fabricated one: `documents.ts` reads it as "no YouTube
-        // provenance", which is the truth, and an adoption record will be written beside it
-        // the moment somebody gives this track a source.
-        raw: {},
-        // **`mapped`**, because it is: this row is bound to a track of the confirmed release,
-        // which is precisely the condition `refuseAdoption` checks before allowing a file.
-        // `unmatched` would make the whole row pointless.
-        role: "mapped",
-        state: "sourceless",
-        trackMbid: cell.trackMbid ?? null,
-        recordingMbid: cell.recordingMbid,
-        trackTitle: cell.title,
-        trackPosition: cell.position,
-        mediumPosition: cell.mediumPosition,
-        // Not a guess the matcher made — a fact read off the release — so it is not scored.
-        confidence: null,
-        note:
-          options.by === undefined
-            ? "no video covers this track of the release"
-            : `no video covers this track of the release (${options.by})`,
-      })
-      .returning();
-    if (row !== undefined) created.push(row);
-    next += 1;
+    const row = await insertAt(db, options.importId, next, {
+      sourceTitle: cell.title ?? `Track ${String(cell.position)}`,
+      sourceDuration: cell.lengthSeconds,
+      trackMbid: cell.trackMbid ?? null,
+      recordingMbid: cell.recordingMbid,
+      trackTitle: cell.title,
+      trackPosition: cell.position,
+      mediumPosition: cell.mediumPosition,
+      note:
+        options.by === undefined
+          ? "no video covers this track of the release"
+          : `no video covers this track of the release (${options.by})`,
+    });
+    created.push(row);
+    next = row.position + 1;
   }
 
   return { created, existing };
+}
+
+/** Postgres' unique-violation. The only insert failure here that is worth retrying. */
+const UNIQUE_VIOLATION = "23505";
+
+/**
+ * Insert one sourceless row, stepping past a listing position somebody else has taken.
+ *
+ * `import_tracks.position` is unique per import, and the free one is chosen from a `select`
+ * that is not in the same transaction as the `insert`. That gap is a real race for the second
+ * caller of this module — completing an album from the library page, where two clicks on two
+ * missing tracks can land together — and losing it would surface as a raw constraint violation
+ * from a button, which is not an answer anybody can act on.
+ *
+ * Retrying on the conflict rather than locking the table, because the value is arbitrary: any
+ * free position will do, the number means nothing to a row that is in no listing, and a
+ * conflict is proof that somebody else got there first rather than that anything is wrong.
+ */
+async function insertAt(
+  db: Database,
+  importId: string,
+  from: number,
+  fields: {
+    sourceTitle: string;
+    sourceDuration: number | null;
+    trackMbid: string | null;
+    recordingMbid: string | null;
+    trackTitle: string | null;
+    trackPosition: number;
+    mediumPosition: number;
+    note: string;
+  },
+): Promise<ImportTrack> {
+  let position = from;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const [row] = await db
+        .insert(importTracks)
+        .values({
+          id: newId("importTrack"),
+          importId,
+          position,
+          // The two that make this row what it is. Nothing is invented: there is no video.
+          videoId: null,
+          url: null,
+          uploader: null,
+          // `raw` is the yt-dlp entry everywhere else, and there is no entry here. An empty
+          // object rather than a fabricated one: `documents.ts` reads it as "no YouTube
+          // provenance", which is the truth, and an adoption record will be written beside it
+          // the moment somebody gives this track a source.
+          raw: {},
+          // **`mapped`**, because it is: this row is bound to a track of the confirmed release,
+          // which is precisely the condition `refuseAdoption` checks before allowing a file.
+          // `unmatched` would make the whole row pointless.
+          role: "mapped",
+          state: "sourceless",
+          // Not a guess the matcher made — a fact read off the release — so it is not scored.
+          confidence: null,
+          ...fields,
+        })
+        .returning();
+      if (row !== undefined) return row;
+      throw new Error("the insert returned no row");
+    } catch (error) {
+      const code = (error as { code?: unknown }).code;
+      if (code !== UNIQUE_VIOLATION || attempt >= 50) throw error;
+      position += 1;
+    }
+  }
 }
 
 /**
