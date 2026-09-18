@@ -278,6 +278,43 @@ export function cellsFromUncoveredPayload(payload: unknown): SourcelessCell[] {
   return cells;
 }
 
+/**
+ * Throw away the sourceless rows **nobody has given a source to**, for a discarded mapping.
+ *
+ * `forgetMapping` — "match again" — unmatches every row of the import and nulls the mapping
+ * columns, which is right for a video: the video is the *listing*, it survives any number of
+ * re-matches, and only its binding was wrong. A sourceless row is the opposite. It exists
+ * **only** as a consequence of the mapping being discarded: it is a track of *that* release,
+ * at a position on *that* tracklist, and once the release is gone it describes nothing.
+ *
+ * Left alone it became a ghost — no video, no role, no position — and the next confirmation
+ * would not recognise it (`taken` is keyed on `trackPosition`, which had just been nulled), so
+ * it would create a *second* row for the same gap. Re-matching a record with a hole twice would
+ * leave two ghosts and a real row for one missing track.
+ *
+ * **A row somebody has already adopted onto is kept**, and that is the whole of the condition.
+ * It has bytes on disk and possibly a file in the library; it is no longer a statement about a
+ * tracklist but a track with audio, and deleting it would throw away the very thing this
+ * feature exists to let people put there.
+ */
+export async function discardUnclaimedSourcelessTracks(
+  importId: string,
+  db: Database = defaultDb(),
+): Promise<number> {
+  const gone = await db
+    .delete(importTracks)
+    .where(
+      and(
+        eq(importTracks.importId, importId),
+        isNull(importTracks.videoId),
+        // Still empty. Anything adopted has moved on to `downloaded` and beyond.
+        eq(importTracks.state, "sourceless"),
+      ),
+    )
+    .returning({ id: importTracks.id });
+  return gone.length;
+}
+
 /** The sourceless rows of one import, in tracklist order. */
 export async function sourcelessTracksOf(
   importId: string,

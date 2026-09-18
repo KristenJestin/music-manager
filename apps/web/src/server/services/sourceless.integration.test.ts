@@ -89,7 +89,8 @@ const schema = await import("#/server/db/schema/index.ts");
 const imports = await import("./imports.ts");
 const jobs = await import("./jobs/index.ts");
 const { adoptTrackFile } = await import("./adopt.ts");
-const { materialiseSourcelessTracks, sourcelessTracksOf } = await import("./sourceless.ts");
+const { discardUnclaimedSourcelessTracks, materialiseSourcelessTracks, sourcelessTracksOf } =
+  await import("./sourceless.ts");
 const { aggregateStatus, isTrackTerminal } = await import("./jobs/machine.ts");
 const { nextStepOfTrack } = await import("./jobs/pipeline.ts");
 
@@ -291,6 +292,69 @@ describe.skipIf(unavailable !== null)("an album the source did not fully publish
     expect(after?.videoId).toBeNull();
     expect(after?.url).toBeNull();
   }, 300_000);
+
+  it("is discarded by a re-match, which is what created it, unless it has been adopted", async () => {
+    /*
+     * "Match again" unmatches every row and nulls the mapping columns. That is right for a
+     * video — the video is the listing, it survives any number of re-matches, and only its
+     * binding was wrong — and wrong for a sourceless row, which exists *because of* the
+     * mapping being discarded and describes nothing once the release is gone.
+     *
+     * Left alone it became a ghost with no video, no role and no position, and the next
+     * confirmation would not recognise it (the key is `trackPosition`, which had just been
+     * nulled) and would materialise the same gap a second time beside it.
+     */
+    const fresh = await imports.createImport("fixture://discovery?gap=3", {
+      autoConfirm: true,
+      confirmedBy: "test",
+      replaygain: false,
+      fingerprint: false,
+    });
+    for (const step of ["match", "confirm"] as const) {
+      await jobs.runStep(fresh.job.id, step, { db: db() });
+    }
+    const before = await sourcelessTracksOf(fresh.job.id, db());
+    expect(before.length).toBeGreaterThan(0);
+
+    await jobs.forgetMapping(fresh.job.id, db());
+
+    // Gone, rather than left behind as an unmatched row with no position.
+    expect(await sourcelessTracksOf(fresh.job.id, db())).toHaveLength(0);
+    // …and the videos are all still there: the listing is not the mapping.
+    const survivors = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.importId, fresh.job.id));
+    expect(survivors.length).toBeGreaterThan(0);
+    expect(survivors.every((row) => row.videoId !== null)).toBe(true);
+  }, 300_000);
+
+  it("keeps a sourceless row a re-match finds already adopted, because it has audio", async () => {
+    // The one exception, and the reason the delete is conditional: this row is no longer a
+    // statement about a tracklist, it is a track with bytes on disk.
+    const kept = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(
+        and(
+          eq(schema.importTracks.importId, importId),
+          eq(schema.importTracks.state, "downloaded"),
+          isNull(schema.importTracks.videoId),
+        ),
+      )
+      .limit(1);
+    expect(kept[0]).toBeDefined();
+
+    const discarded = await discardUnclaimedSourcelessTracks(importId, db());
+    expect(discarded).toBe(0);
+
+    const [still] = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.id, kept[0]?.id ?? ""));
+    expect(still).toBeDefined();
+    expect(still?.downloadPath).not.toBeNull();
+  });
 
   it("rejoins the pipeline at the same step any other adopted track would", async () => {
     /*

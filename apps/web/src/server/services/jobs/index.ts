@@ -35,6 +35,7 @@ import { newId } from "#/server/ids.ts";
 import { emit } from "#/server/services/events.ts";
 import { closeItemsOf, openInboxItem } from "#/server/services/inbox.ts";
 import { bumpQueuedImport, type BumpOutcome } from "#/server/services/queue.ts";
+import { discardUnclaimedSourcelessTracks } from "#/server/services/sourceless.ts";
 import { forgetsMapping } from "#/server/services/retry-plan.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
 import {
@@ -802,6 +803,16 @@ export async function forgetMapping(importId: string, db: Database = defaultDb()
       updatedAt: new Date(),
     })
     .where(eq(imports.id, importId));
+
+  /*
+   * The tracks that existed *because of* the mapping go, rather than being unmatched with the
+   * rest. A video survives any number of re-matches — it is the listing, and only its binding
+   * was wrong — but a sourceless row is a track of the release that has just been discarded,
+   * at a position on a tracklist that no longer applies. Unmatching it nulls the very columns
+   * the next confirmation keys on, so the gap would be materialised a second time beside a row
+   * that now describes nothing. One already adopted onto is kept: it has audio.
+   */
+  await discardUnclaimedSourcelessTracks(importId, db);
 
   await db
     .update(importTracks)
