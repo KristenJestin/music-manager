@@ -924,9 +924,9 @@ describe("Stardew Valley Piano Collections — the name is the third one credite
      * spent. That failure *is* the assertion: with the ladder off, the next thing this match
      * does is give up on the album's name and go looking through its tracks.
      */
-    await expect(
-      matchAlbum(cassetteGateway(recorded), albumInput(recorded), off),
-    ).rejects.toThrow(/no document for "search\/recording\?query=recording:/);
+    await expect(matchAlbum(cassetteGateway(recorded), albumInput(recorded), off)).rejects.toThrow(
+      /no document for "search\/recording\?query=recording:/,
+    );
   });
 });
 
@@ -989,9 +989,9 @@ describe("AFTERCARE DELUXE — a bare edition word in the title", () => {
 
     // One rung, then the convergence. Same reasoning as the Stardew case above: the cassette
     // has no document for a question the fixed matcher never asks.
-    await expect(
-      matchAlbum(cassetteGateway(recorded), albumInput(recorded), off),
-    ).rejects.toThrow(/no document for "search\/recording\?query=recording:/);
+    await expect(matchAlbum(cassetteGateway(recorded), albumInput(recorded), off)).rejects.toThrow(
+      /no document for "search\/recording\?query=recording:/,
+    );
   });
 });
 
@@ -1062,7 +1062,19 @@ describe("Soleil bleu — the sentence that condemns the candidate", () => {
     // And with the veto off, the old behaviour is back, exactly: VSO ticked, above the floor,
     // with "Artist mismatch" printed on the card that was ticked.
     const without = recordingCandidates.score(
-      { video, candidates: ranking.candidates.map((c) => ({ id: c.id, title: c.title, artist: c.artist, disambiguation: c.disambiguation, lengthMs: c.length === null ? null : c.length * 1000, isrcs: [], searchScore: null, releases: [] })) },
+      {
+        video,
+        candidates: ranking.candidates.map((c) => ({
+          id: c.id,
+          title: c.title,
+          artist: c.artist,
+          disambiguation: c.disambiguation,
+          lengthMs: c.length === null ? null : c.length * 1000,
+          isrcs: [],
+          searchScore: null,
+          releases: [],
+        })),
+      },
       { ...configFromSettings({ ...settings, matchArtistVeto: false }) },
     );
     expect(without.preselected?.artist).toBe("VSO");

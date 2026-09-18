@@ -22,6 +22,10 @@
  * lookups chosen by pre-scoring the results here too. A cassette is therefore a recording of
  * the real algorithm's appetite, not a guess at it.
  *
+ * **Run `bun run format` after it.** It writes `JSON.stringify(…, 2)`, which prettier then
+ * compacts — so a fresh recording leaves `bun run check` red on a formatting difference that
+ * looks like a six-thousand-line change and is none: the parsed documents are identical.
+ *
  * It is **resumable**. MusicBrainz's load-shedder goes through busy spells measured in minutes
  * and a scenario is a few dozen documents at one a second, so a run that gives up keeps what it
  * fetched and the next one reads it back through `existingCassette`. Re-run it until it says

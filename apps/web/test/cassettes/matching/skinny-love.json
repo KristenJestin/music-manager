@@ -33,11 +33,7 @@
             "length": 201026,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1100350",
-              "GBAHT1100002",
-              "GBAHS1300023"
-            ],
+            "isrcs": ["GBAHS1100350", "GBAHT1100002", "GBAHS1300023"],
             "first-release-date": "2011-01-30",
             "artist-credit": [
               {
@@ -73,9 +69,7 @@
                   "id": "0e874bef-0b8d-4c46-967d-0e41b5633449",
                   "title": "Love Songs: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -107,9 +101,7 @@
                   "id": "848b2391-0622-4a69-9dec-2fd483ee4b5b",
                   "title": "100 Greatest Shower Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -172,9 +164,7 @@
                   "id": "dbcfb29d-8be2-4b89-9bb9-ebbfe5b80b10",
                   "title": "Het beste uit 20 jaar top 2000",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -206,9 +196,7 @@
                   "id": "56f69b9e-06d0-47d2-a3cf-0c3a427a3daf",
                   "title": "Now That’s What I Call a Love Song",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -303,9 +291,7 @@
                   "id": "1e641100-dbdd-4f02-b6cf-c30f40c6145c",
                   "title": "Best 10s Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -337,9 +323,7 @@
                   "id": "2cbe1078-978a-4038-8f95-06097d7d60db",
                   "title": "u don't deserve me",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -371,9 +355,7 @@
                   "id": "9c10d27f-90bf-4667-bc81-2cea430ee661",
                   "title": "Now That’s What I Call Music 42",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "New Zealand"
                 },
                 "media": [
@@ -406,9 +388,7 @@
                   "id": "095e8ad2-6aa2-42a7-9263-46bb9b01bf07",
                   "title": "BreakUp Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -441,9 +421,7 @@
                   "id": "88f6f59b-6a60-4f8e-ab20-477afea92ddf",
                   "title": "The Best Ever: Acoustic",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -475,9 +453,7 @@
                   "id": "39ad5e6f-b4d7-44e3-b742-aa77f0bf7232",
                   "title": "Songs: The Very Best of Acoustic: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -509,9 +485,7 @@
                   "id": "f5363f4d-76b5-4a25-b9e0-967ea3df7ff2",
                   "title": "#Love 2015",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -543,9 +517,7 @@
                   "id": "62bfd905-d23c-47f0-a7ac-44a894c8efde",
                   "title": "Greatest Ever Feelgood Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -577,9 +549,7 @@
                   "id": "cacaa54d-0524-4adf-8236-d141b636bfd4",
                   "title": "Live, Love, Laugh",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -609,9 +579,7 @@
                   "id": "233a8634-41b0-487c-8416-c181d3143c17",
                   "title": "i'm doing better, i made it to september",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -643,9 +611,7 @@
                   "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
                   "title": "Bravo Hits 77",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -675,9 +641,7 @@
                   "id": "b0da9250-d3ea-48da-ac1b-b206eb9439c1",
                   "title": "Your Songs: A Time to Relax",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -709,9 +673,7 @@
                   "id": "883abb41-45d7-4472-adbd-17ff11c63216",
                   "title": "Mum: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -743,9 +705,7 @@
                   "id": "71590635-dd19-4e1b-9de0-8e6a538ddc91",
                   "title": "Young Folks",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -777,9 +737,7 @@
                   "id": "00da60da-261c-4e59-b667-beb45e0f968c",
                   "title": "KlangCafé",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -809,9 +767,7 @@
                   "id": "ff61b3a7-e05d-467d-96f0-48a6d4415dec",
                   "title": "100 Greatest: Covers",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -843,9 +799,7 @@
                   "id": "8806c73a-c5d4-4e3f-b1d9-a92678cfde52",
                   "title": "awit, anong laban ko sa 3 years?",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -875,9 +829,7 @@
                   "id": "74d7c985-7808-40ca-ae85-4556571d5c44",
                   "title": "HITS ACÚSTICOS",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -907,9 +859,7 @@
                   "id": "29a2942e-608e-4b1a-9333-8a88077a6138",
                   "title": "100 Greatest 10s: The Best Songs of Last Decade",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -941,9 +891,7 @@
                   "id": "bb91285a-a5e5-41f4-b8e7-19f4d8418474",
                   "title": "The Singer Songwriter",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -975,9 +923,7 @@
                   "id": "db52d8c9-f071-4e1e-8417-1841429d46b2",
                   "title": "Let’s Dance: Das Tanzalbum 2018",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1009,9 +955,7 @@
                   "id": "d289c3d2-72df-4762-9b51-e2b8e62759d5",
                   "title": "Acoustic Hits",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1043,9 +987,7 @@
                   "id": "64290006-73e1-43e9-824d-bd73e5ea723f",
                   "title": "Herzberührt Singer & Songwriter Vol. 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1075,9 +1017,7 @@
                   "id": "3aa52090-9443-4ae9-aae3-31084b6d5aa9",
                   "title": "The Best Unplugged Covers",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1109,9 +1049,7 @@
                   "id": "a81e848f-73d0-482e-afe2-67ef82f65ba2",
                   "title": "RFM Les grandes Voix",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1141,9 +1079,7 @@
                   "id": "f7eebbf6-c005-4b3a-b873-0b33b789e408",
                   "title": "100 Greatest Ballads",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1173,9 +1109,7 @@
                   "id": "763b9f0b-7f8d-4189-9f60-19f34e130145",
                   "title": "100 Greatest Winter Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1207,9 +1141,7 @@
                   "id": "a81e848f-73d0-482e-afe2-67ef82f65ba2",
                   "title": "RFM Les grandes Voix",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1241,9 +1173,7 @@
                   "id": "736b5f6e-0001-4ee9-8578-f9d857885457",
                   "title": "538 Hitzone: Best of 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1275,9 +1205,7 @@
                   "id": "77affed1-58b3-46ac-92cc-924c98e6ffab",
                   "title": "100% Hits: The Best of 2013 - Summer Edition",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1309,9 +1237,7 @@
                   "id": "90341dd8-c1ea-4556-bc49-df79d5330d8e",
                   "title": "Simply Power Ballads",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1406,9 +1332,7 @@
                   "id": "0e874bef-0b8d-4c46-967d-0e41b5633449",
                   "title": "Love Songs: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1438,9 +1362,7 @@
                   "id": "d6ef4514-8523-487a-8cd7-ab91f163c01d",
                   "title": "Love Ballads",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1472,9 +1394,7 @@
                   "id": "d290867e-936e-4557-8c71-0b8a99af99f3",
                   "title": "100 Greatest Sad Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1506,9 +1426,7 @@
                   "id": "e5b43dfd-25b1-4f85-af97-8f5266c9bfad",
                   "title": "100 Greatest Love Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1540,9 +1458,7 @@
                   "id": "5c0fa7cc-07a6-49b7-9df5-850f6bdb8880",
                   "title": "Your Songs 2017",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1574,9 +1490,7 @@
                   "id": "ccb2c79e-dcee-4f95-ae1b-aa00d505b8df",
                   "title": "Acoustic: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1608,9 +1522,7 @@
                   "id": "d1f8950a-dc14-4634-9838-4267bba73170",
                   "title": "Now That’s What I Call Brit Hits",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -1643,9 +1555,7 @@
                   "id": "d1f8950a-dc14-4634-9838-4267bba73170",
                   "title": "Now That’s What I Call Brit Hits",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -1678,9 +1588,7 @@
                   "id": "51fa77cf-4b87-4f5e-96ac-efa74a87ccdc",
                   "title": "It Had to Be You: The Ultimate Love Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1712,9 +1620,7 @@
                   "id": "3857e727-4c6a-4acf-aa92-1742aa9a0be3",
                   "title": "Now That’s What I Call a Song",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -1747,9 +1653,7 @@
                   "id": "c5355941-ace1-4b7b-a64a-be65f319265b",
                   "title": "Lazy Sunday: The Album",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1779,9 +1683,7 @@
                   "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
                   "title": "The Chillout Session",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "British 2012 edition"
                 },
                 "media": [
@@ -1814,9 +1716,7 @@
                   "id": "781fc7b0-968d-419b-883d-081e05bfaf2b",
                   "title": "Autumn Acoustic",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1848,9 +1748,7 @@
                   "id": "a81e848f-73d0-482e-afe2-67ef82f65ba2",
                   "title": "RFM Les grandes Voix",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1882,9 +1780,7 @@
                   "id": "7cd0ada2-fc53-44c5-8f50-8ffd267d8a09",
                   "title": "100 Greatest: Chillout",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1916,9 +1812,7 @@
                   "id": "a81e848f-73d0-482e-afe2-67ef82f65ba2",
                   "title": "RFM Les grandes Voix",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1950,9 +1844,7 @@
                   "id": "63edc154-59a8-434a-ab2a-b287ab0d88dd",
                   "title": "NOW 100 Hits: Decade (2010s)",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -1983,9 +1875,7 @@
                   "id": "bab1cf38-9462-4e3e-9aaa-ccb140603727",
                   "title": "Songbird: The Greatest Female Voices",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2017,9 +1907,7 @@
                   "id": "bab1cf38-9462-4e3e-9aaa-ccb140603727",
                   "title": "Songbird: The Greatest Female Voices",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2051,9 +1939,7 @@
                   "id": "ef2e8241-22eb-4136-a34b-039e84f44525",
                   "title": "Just Great Songs 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2085,9 +1971,7 @@
                   "id": "cf11dccf-4c82-456f-a98e-d6454dfa19ad",
                   "title": "Now That’s What I Call Chill",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -2151,9 +2035,7 @@
                   "id": "47cd8ec5-5147-478e-9c7d-cefd7c0a2b8a",
                   "title": "NRJ Hits 2012, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2185,9 +2067,7 @@
                   "id": "bd18d870-0f5a-4338-9668-e1b1e2126851",
                   "title": "Nostalgie What a Feeling! The Big 5: Slow Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2219,9 +2099,7 @@
                   "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
                   "title": "Now That’s What I Call Music! 79",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -2254,9 +2132,7 @@
                   "id": "9e949691-ca1c-428b-a8e6-7b6f04587794",
                   "title": "Chilled Sunday",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2288,9 +2164,7 @@
                   "id": "df0e5c15-160f-40ac-a643-4337fe61bac3",
                   "title": "Maximum Hit Music 01 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2322,9 +2196,7 @@
                   "id": "be68e8ff-60d1-4ce1-9d85-dbd4930f71e4",
                   "title": "The Best Ever Indie",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2356,9 +2228,7 @@
                   "id": "135d8761-32c1-4d1b-9236-5b72ef135670",
                   "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2390,9 +2260,7 @@
                   "id": "d50a1d97-8df6-40e0-9b40-3f05904f682d",
                   "title": "Knuffelrock 2012 – Jubileum‐Editie",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2642,9 +2510,7 @@
                   "id": "8738ef90-66fc-4465-a0db-c7b2e559e4fb",
                   "title": "Love Songs: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2676,9 +2542,7 @@
                   "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
                   "title": "Bravo Hits 77",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2710,9 +2574,7 @@
                   "id": "f99843cc-7a03-4fdd-9a0c-ec78e212ce23",
                   "title": "Keep Calm and Stay Cosy",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2744,9 +2606,7 @@
                   "id": "3461ca3f-04ec-431a-9fb2-3ca419df9f1c",
                   "title": "Ö3 Greatest Hits 58",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2778,9 +2638,7 @@
                   "id": "40857657-a868-4437-835d-5a9a770ac940",
                   "title": "Car‐aoke",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2812,9 +2670,7 @@
                   "id": "784ae128-f713-4798-b624-958a2235a04c",
                   "title": "H1ts 2012, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2877,9 +2733,7 @@
                   "id": "2a263858-4e0c-4668-a357-f2c3095066e0",
                   "title": "The Big 5: Slow Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2911,9 +2765,7 @@
                   "id": "82b6624a-a228-4446-a0bf-99ce8f991319",
                   "title": "40 ans, les nocturnes Georges Lang",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2945,9 +2797,7 @@
                   "id": "575dcb98-dddc-4886-bc37-1807411899e7",
                   "title": "Studio Brusselle: Wife Is Music",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -2980,9 +2830,7 @@
                   "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
                   "title": "The Chillout Session",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "British 2012 edition"
                 },
                 "media": [
@@ -3015,9 +2863,7 @@
                   "id": "74782fdc-6fab-4abc-95d1-fa102864db43",
                   "title": "Power Vrouwen Top 101",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3047,9 +2893,7 @@
                   "id": "441cac1b-2dea-49dd-a57c-4042d24a969e",
                   "title": "Tous les hits pour fêter 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3113,9 +2957,7 @@
                   "id": "864ca545-b695-47dd-93c9-72749de3fcc9",
                   "title": "100 Greatest Acoustic Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3147,9 +2989,7 @@
                   "id": "a27e2835-ccad-4ece-b226-783e2ed47cbe",
                   "title": "Radio 538: Hitzone 60",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3181,9 +3021,7 @@
                   "id": "db3d48a9-fcf9-4731-a5ef-812bc5a618de",
                   "title": "Cafe Puls Sommerhits 12",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3215,9 +3053,7 @@
                   "id": "d1232fd7-188c-4515-8e67-56af89bd1bfc",
                   "title": "Cities 97 Sampler, Volume 26",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3249,9 +3085,7 @@
                   "id": "64cbf4a4-7ee7-4b50-affc-f27263b5af6c",
                   "title": "NRJ 200% Hits 2012, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3283,9 +3117,7 @@
                   "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
                   "title": "Now That’s What I Call Music! 79",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "UK"
                 },
                 "media": [
@@ -3318,9 +3150,7 @@
                   "id": "2807806f-8f01-45c6-a14f-33314dc6cf93",
                   "title": "NRJ Summer Hits Only 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3352,9 +3182,7 @@
                   "id": "5c0fa7cc-07a6-49b7-9df5-850f6bdb8880",
                   "title": "Your Songs 2017",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3386,9 +3214,7 @@
                   "id": "607e6d76-6b9f-46e0-9a1f-893a57670ae2",
                   "title": "Hits, Volume 31: April–May 2011",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3407,9 +3233,7 @@
             "length": 201080,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1100350"
-            ],
+            "isrcs": ["GBAHS1100350"],
             "first-release-date": "2025-06-28",
             "artist-credit": [
               {
@@ -3442,9 +3266,7 @@
                   "id": "3094d419-dbfd-44fa-babf-242d73a156c9",
                   "title": "Chill Lounge",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3496,9 +3318,7 @@
                   "id": "b1009d36-32e9-46ac-895c-f54ac5d19c95",
                   "title": "Die Hit-Giganten: Romance",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3551,9 +3371,7 @@
                   "id": "f364a81c-976e-40a6-b82e-0f3ed9e0e3ef",
                   "title": "Songs for the Car",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3607,10 +3425,7 @@
                   "id": "ac3c8bc3-f8b3-4a87-a17b-d0450044d1f0",
                   "title": "EDM: Electronic Dance Music: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation",
-                    "DJ-mix"
-                  ]
+                  "secondary-types": ["Compilation", "DJ-mix"]
                 },
                 "media": [
                   {
@@ -3660,9 +3475,7 @@
                   "id": "eb73d0db-93ab-49aa-b603-ad3e47234390",
                   "title": "Cover Mondays",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3772,9 +3585,7 @@
             "length": 201080,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1100350"
-            ],
+            "isrcs": ["GBAHS1100350"],
             "first-release-date": "2025-06-28",
             "artist-credit": [
               {
@@ -3807,9 +3618,7 @@
                   "id": "3094d419-dbfd-44fa-babf-242d73a156c9",
                   "title": "Chill Lounge",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -3863,10 +3672,7 @@
                   "id": "7a65ec6a-a912-44dc-8b7c-ab6105358f88",
                   "title": "Ministry of Sound: Chillout Sessions Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation",
-                    "DJ-mix"
-                  ]
+                  "secondary-types": ["Compilation", "DJ-mix"]
                 },
                 "media": [
                   {
@@ -4265,9 +4071,7 @@
             "length": 221776,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "QZPJ32124201"
-            ],
+            "isrcs": ["QZPJ32124201"],
             "first-release-date": "2021-11-26",
             "artist-credit": [
               {
@@ -4329,9 +4133,7 @@
             "length": 226981,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "USJ5G2232502"
-            ],
+            "isrcs": ["USJ5G2232502"],
             "first-release-date": "2022-03-30",
             "artist-credit": [
               {
@@ -4417,9 +4219,7 @@
                   "id": "b1009d36-32e9-46ac-895c-f54ac5d19c95",
                   "title": "Die Hit-Giganten: Romance",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4518,9 +4318,7 @@
                   "id": "7474b685-4061-4350-9112-3422d9170112",
                   "title": "Live + 1",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4573,9 +4371,7 @@
                   "id": "62131ed6-c59c-4a61-bfcc-6e3603175f01",
                   "title": "The Voice: The Final 32",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4595,10 +4391,7 @@
             "length": 238520,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "US38Y0811503",
-              "US38Y0800003"
-            ],
+            "isrcs": ["US38Y0811503", "US38Y0800003"],
             "first-release-date": "2007-07-08",
             "artist-credit": [
               {
@@ -4670,9 +4463,7 @@
                   "id": "dc0cf2cd-2d30-4a01-bc3e-019ee32339c9",
                   "title": "Triple J: Hottest 100 of the Past 20 Years",
                   "primary-type": "Other",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4735,9 +4526,7 @@
                   "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
                   "title": "Paste Magazine Sampler #40: March 2008",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4769,9 +4558,7 @@
                   "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
                   "title": "Folk You!",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4803,9 +4590,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4837,9 +4622,7 @@
                   "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
                   "title": "Long Time Gone: 15 All-New American Music Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4871,9 +4654,7 @@
                   "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
                   "title": "Triple J: Hottest 100, Volume 16",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4905,9 +4686,7 @@
                   "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
                   "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4939,9 +4718,7 @@
                   "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
                   "title": "Coastal Chill 09",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -4973,9 +4750,7 @@
                   "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
                   "title": "Coastal Chill: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5006,9 +4781,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5278,9 +5051,7 @@
                   "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
                   "title": "eMusic SXSW Birthday Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5333,9 +5104,7 @@
                   "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
                   "title": "Jagjaguwar 2008/2009 Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5365,9 +5134,7 @@
                   "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
                   "title": "Songs of the Valentine's Day Massacre",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5407,9 +5174,7 @@
             "length": 250026,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBCAD0902494"
-            ],
+            "isrcs": ["GBCAD0902494"],
             "first-release-date": "2009",
             "artist-credit": [
               {
@@ -5444,10 +5209,7 @@
                   "id": "528ae5c3-5a55-4478-b2b9-688563cbf76b",
                   "title": "Later… Live With Jools Holland, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation",
-                    "Live"
-                  ]
+                  "secondary-types": ["Compilation", "Live"]
                 },
                 "media": [
                   {
@@ -5499,9 +5261,7 @@
                   "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
                   "title": "POP MIX",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5583,9 +5343,7 @@
                   "id": "da0afe47-38b0-4bfc-99f3-7a5e44f22484",
                   "title": "Blogotheque Take Away Show",
                   "primary-type": "EP",
-                  "secondary-types": [
-                    "Live"
-                  ]
+                  "secondary-types": ["Live"]
                 },
                 "media": [
                   {
@@ -5637,9 +5395,7 @@
                   "id": "27526dd4-62ee-45a0-9bd1-d9d941a5031e",
                   "title": "Delicatessen",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -5679,9 +5435,7 @@
                   "id": "3b23332e-6925-42a2-a63f-286e5683f466",
                   "title": "2008-08-08: Koka Booth Amphitheater, Cary, NC, USA",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Live"
-                  ]
+                  "secondary-types": ["Live"]
                 },
                 "media": [
                   {
@@ -6167,9 +5921,7 @@
             "length": 252106,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1300286"
-            ],
+            "isrcs": ["GBAHS1300286"],
             "first-release-date": "2024-05-24",
             "artist-credit": [
               {
@@ -6202,9 +5954,7 @@
                   "id": "8f1fd611-2a85-45df-8452-f8d71cc52718",
                   "title": "Rainy Melodies",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -6223,9 +5973,7 @@
             "length": 194960,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1300292"
-            ],
+            "isrcs": ["GBAHS1300292"],
             "first-release-date": "2013-09-16",
             "artist-credit": [
               {
@@ -6588,9 +6336,7 @@
             "length": 245213,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1300296"
-            ],
+            "isrcs": ["GBAHS1300296"],
             "first-release-date": "2013-09-16",
             "artist-credit": [
               {
@@ -6981,9 +6727,7 @@
             "length": 183680,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1300291"
-            ],
+            "isrcs": ["GBAHS1300291"],
             "first-release-date": "2013-09-16",
             "artist-credit": [
               {
@@ -7205,9 +6949,7 @@
                   "id": "d68ba38f-827a-41e8-876e-b4eaab46ce7f",
                   "title": "Fire: Sagittarius’ Songs",
                   "primary-type": "EP",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7380,11 +7122,7 @@
             "length": 256000,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1400077",
-              "GBAHS1300235",
-              "GBAHS1100351"
-            ],
+            "isrcs": ["GBAHS1400077", "GBAHS1300235", "GBAHS1100351"],
             "first-release-date": "2011-10-28",
             "artist-credit": [
               {
@@ -7451,9 +7189,7 @@
                   "id": "285eb271-d09d-416a-91d6-fb754a4d9e4a",
                   "title": "20 Ans RTL2 le Son Pop-Rock",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7485,9 +7221,7 @@
                   "id": "66540065-1e27-4f19-b526-ec9d5aeba620",
                   "title": "Los números 1 de Cadena 100",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7519,9 +7253,7 @@
                   "id": "0153da2f-96c5-4712-994d-a46cce1d22f7",
                   "title": "NRJ Hits 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7553,9 +7285,7 @@
                   "id": "084be7af-9a32-4ca8-a136-f231eecfa94e",
                   "title": "NRJ Music Awards 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7585,10 +7315,7 @@
                   "id": "ec557011-2aec-4d23-b39e-37dd7d8bee1a",
                   "title": "This Is Acoustic",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation",
-                    "Live"
-                  ]
+                  "secondary-types": ["Compilation", "Live"]
                 },
                 "media": [
                   {
@@ -7620,9 +7347,7 @@
                   "id": "8d84271d-4276-4493-bc31-007fbf2ad45f",
                   "title": "NRJ Hit Music Only! 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7654,9 +7379,7 @@
                   "id": "5ec57c94-22ed-4d0c-9dfd-6c0e381b42fe",
                   "title": "Festivals: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7688,9 +7411,7 @@
                   "id": "5ec57c94-22ed-4d0c-9dfd-6c0e381b42fe",
                   "title": "Festivals: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7722,9 +7443,7 @@
                   "id": "6e0147c1-427c-43f5-a929-63cbbf7df285",
                   "title": "Virgin Radio: La Playlist Pop Music",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7756,9 +7475,7 @@
                   "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
                   "title": "Bravo Hits 80",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7790,9 +7507,7 @@
                   "id": "379b65e0-6b1e-4466-bc86-c9af06f5a50f",
                   "title": "Virgin Radio Les 10 Ans",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7887,9 +7602,7 @@
                   "id": "4a50b7ad-ed5c-4cd8-ac8d-4fa1a6b06662",
                   "title": "Earth: Virgo’s Songs",
                   "primary-type": "EP",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7921,9 +7634,7 @@
                   "id": "7fcbe814-4d02-4443-83a7-0a5d1de2cd50",
                   "title": "NRJ Music Awards: Le coffret best of des 20 éditions",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7955,9 +7666,7 @@
                   "id": "9f212a3b-1a0e-4f30-b06b-6a5bdfbfc36b",
                   "title": "Massive Hits: Songs",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -7989,9 +7698,7 @@
                   "id": "f9772db6-767e-4f57-8e8b-9fae11ece907",
                   "title": "Heart & Soul",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8023,9 +7730,7 @@
                   "id": "3697b557-2e11-4de3-9c2d-399a228a7d07",
                   "title": "Maximum Hit Music: 02 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8056,9 +7761,7 @@
                   "id": "398ade82-5b20-4347-868f-2952a9e4b123",
                   "title": "Spring Break Hits 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8152,9 +7855,7 @@
                   "id": "219edfe6-bbc5-4bb9-9686-67a770847b40",
                   "title": "Life Is Music 2012.1",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8186,9 +7887,7 @@
                   "id": "83228c67-fbdd-4534-bc0a-555ebc39bbe7",
                   "title": "Un printemps 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8251,9 +7950,7 @@
                   "id": "05bfc22f-d385-459d-9a71-a0364f73575c",
                   "title": "Knuffelrock 2013",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ],
+                  "secondary-types": ["Compilation"],
                   "disambiguation": "Netherlands"
                 },
                 "media": [
@@ -8286,9 +7983,7 @@
                   "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
                   "title": "Bravo Hits 80",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8320,9 +8015,7 @@
                   "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
                   "title": "Bravo Hits 80",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8511,9 +8204,7 @@
                   "id": "f29b7d00-6920-46ba-aaf9-3872a2d91136",
                   "title": "MNM Big Hits 2012.2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8545,9 +8236,7 @@
                   "id": "5b0772d3-054a-4e02-a357-dd795ca43894",
                   "title": "Radio 538: Hitzone 61",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8579,9 +8268,7 @@
                   "id": "dbf41907-581f-4c73-97ae-81247e7857fd",
                   "title": "MNM Big Hits Best of 2012",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8704,9 +8391,7 @@
                   "id": "e892e72e-37c5-4df8-af76-cef3dcce3206",
                   "title": "Pure FM: 10 Years",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -8757,9 +8442,7 @@
             "length": 256266,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1100380"
-            ],
+            "isrcs": ["GBAHS1100380"],
             "first-release-date": "2011-11-04",
             "artist-credit": [
               {
@@ -8940,9 +8623,7 @@
             "length": 286693,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1100347"
-            ],
+            "isrcs": ["GBAHS1100347"],
             "first-release-date": "2011-10-28",
             "artist-credit": [
               {
@@ -9134,9 +8815,7 @@
                   "id": "23633306-5e5f-4796-932c-6bdc79436dd5",
                   "title": "Water: Pisces’ Songs",
                   "primary-type": "EP",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -9518,9 +9197,7 @@
                 "release-group": {
                   "id": "9c4cf5e6-41b6-44ad-8e96-77a8c9ea5e7d",
                   "title": "The Collection 1 - of 25 timeless techno tunes",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -9747,9 +9424,7 @@
             "length": 306386,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "GBAHS1600034"
-            ],
+            "isrcs": ["GBAHS1600034"],
             "first-release-date": "2016-03-25",
             "artist-credit": [
               {
@@ -9784,9 +9459,7 @@
                   "id": "04834465-04a7-4278-82c0-5f94b12661f1",
                   "title": "SNOW DAY",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -9818,9 +9491,7 @@
                   "id": "995f0fc5-e9ab-4e7c-a3c1-5f53624399b9",
                   "title": "Fire: Leo’s Songs",
                   "primary-type": "EP",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -9999,9 +9670,7 @@
                   "id": "37fc2608-2d1c-4387-93b6-b793c689078f",
                   "title": "Throwback Covers",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -10025,11 +9694,7 @@
         "disambiguation": "",
         "length": 201026,
         "video": false,
-        "isrcs": [
-          "GBAHS1100350",
-          "GBAHS1300023",
-          "GBAHT1100002"
-        ],
+        "isrcs": ["GBAHS1100350", "GBAHS1300023", "GBAHT1100002"],
         "first-release-date": "2011-01-30",
         "artist-credit": [
           {
@@ -10143,9 +9808,7 @@
               "id": "607e6d76-6b9f-46e0-9a1f-893a57670ae2",
               "title": "Hits, Volume 31: April–May 2011",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2011-04-01",
               "disambiguation": "",
               "artist-credit": [
@@ -10218,9 +9881,7 @@
               "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
               "title": "Now That’s What I Call Music! 79",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2011-07-25",
               "disambiguation": "UK",
               "artist-credit": [
@@ -10293,9 +9954,7 @@
               "id": "96a9391d-237e-4fda-8e14-691f1c4926de",
               "title": "Now That’s What I Call Music! 79",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2011-07-25",
               "disambiguation": "UK",
               "artist-credit": [
@@ -10806,9 +10465,7 @@
               "id": "135d8761-32c1-4d1b-9236-5b72ef135670",
               "title": "Mastermix Classic Cuts, Volume 106: Ballads / End of Nighters",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2011",
               "disambiguation": "",
               "artist-credit": [
@@ -10881,9 +10538,7 @@
               "id": "a27e2835-ccad-4ece-b226-783e2ed47cbe",
               "title": "Radio 538: Hitzone 60",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-02-03",
               "disambiguation": "",
               "artist-credit": [
@@ -10956,9 +10611,7 @@
               "id": "df0e5c15-160f-40ac-a643-4337fe61bac3",
               "title": "Maximum Hit Music 01 2012",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-02-24",
               "disambiguation": "",
               "artist-credit": [
@@ -11104,9 +10757,7 @@
               "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
               "title": "Bravo Hits 77",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-04-27",
               "disambiguation": "",
               "artist-credit": [
@@ -11179,9 +10830,7 @@
               "id": "d50a1d97-8df6-40e0-9b40-3f05904f682d",
               "title": "Knuffelrock 2012 – Jubileum‐Editie",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-05-07",
               "disambiguation": "",
               "artist-credit": [
@@ -11254,9 +10903,7 @@
               "id": "f1eff8f9-3360-4d9a-a9dc-4791bfee4033",
               "title": "Bravo Hits 77",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-04-27",
               "disambiguation": "",
               "artist-credit": [
@@ -11329,9 +10976,7 @@
               "id": "2807806f-8f01-45c6-a14f-33314dc6cf93",
               "title": "NRJ Summer Hits Only 2012",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-06-06",
               "disambiguation": "",
               "artist-credit": [
@@ -11404,9 +11049,7 @@
               "id": "3461ca3f-04ec-431a-9fb2-3ca419df9f1c",
               "title": "Ö3 Greatest Hits 58",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-06-22",
               "disambiguation": "",
               "artist-credit": [
@@ -11479,9 +11122,7 @@
               "id": "db3d48a9-fcf9-4731-a5ef-812bc5a618de",
               "title": "Cafe Puls Sommerhits 12",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-06-29",
               "disambiguation": "",
               "artist-credit": [
@@ -11554,9 +11195,7 @@
               "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
               "title": "The Chillout Session",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-07-23",
               "disambiguation": "British 2012 edition",
               "artist-credit": [
@@ -11629,9 +11268,7 @@
               "id": "ecdf6208-7b51-4c4e-ae22-9ad5ddd2a67f",
               "title": "The Chillout Session",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-07-23",
               "disambiguation": "British 2012 edition",
               "artist-credit": [
@@ -11704,9 +11341,7 @@
               "id": "cf11dccf-4c82-456f-a98e-d6454dfa19ad",
               "title": "Now That’s What I Call Chill",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-08-20",
               "disambiguation": "UK",
               "artist-credit": [
@@ -11779,9 +11414,7 @@
               "id": "47cd8ec5-5147-478e-9c7d-cefd7c0a2b8a",
               "title": "NRJ Hits 2012, Volume 2",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-08-27",
               "disambiguation": "",
               "artist-credit": [
@@ -11854,9 +11487,7 @@
               "id": "64cbf4a4-7ee7-4b50-affc-f27263b5af6c",
               "title": "NRJ 200% Hits 2012, Volume 2",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2012-09-17",
               "disambiguation": "",
               "artist-credit": [
@@ -11914,9 +11545,7 @@
         "disambiguation": "",
         "length": 201080,
         "video": false,
-        "isrcs": [
-          "GBAHS1100350"
-        ],
+        "isrcs": ["GBAHS1100350"],
         "first-release-date": "2025-06-28",
         "artist-credit": [
           {
@@ -11957,9 +11586,7 @@
               "id": "3094d419-dbfd-44fa-babf-242d73a156c9",
               "title": "Chill Lounge",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2025-06-28",
               "disambiguation": "",
               "artist-credit": [
@@ -12058,9 +11685,7 @@
               "id": "b1009d36-32e9-46ac-895c-f54ac5d19c95",
               "title": "Die Hit-Giganten: Romance",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2022-05-27",
               "disambiguation": "",
               "artist-credit": [
@@ -12159,9 +11784,7 @@
               "id": "f364a81c-976e-40a6-b82e-0f3ed9e0e3ef",
               "title": "Songs for the Car",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2018-07-27",
               "disambiguation": "",
               "artist-credit": [
@@ -12260,10 +11883,7 @@
               "id": "ac3c8bc3-f8b3-4a87-a17b-d0450044d1f0",
               "title": "EDM: Electronic Dance Music: The Collection",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation",
-                "DJ-mix"
-              ],
+              "secondary-types": ["Compilation", "DJ-mix"],
               "first-release-date": "2015-07-31",
               "disambiguation": "",
               "artist-credit": [
@@ -12362,9 +11982,7 @@
               "id": "eb73d0db-93ab-49aa-b603-ad3e47234390",
               "title": "Cover Mondays",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2011-07-26",
               "disambiguation": "",
               "artist-credit": [
@@ -12661,10 +12279,7 @@
               "id": "7a65ec6a-a912-44dc-8b7c-ab6105358f88",
               "title": "Ministry of Sound: Chillout Sessions Classics",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation",
-                "DJ-mix"
-              ],
+              "secondary-types": ["Compilation", "DJ-mix"],
               "first-release-date": "2013-07-26",
               "disambiguation": "",
               "artist-credit": [
@@ -13567,9 +13182,7 @@
         "disambiguation": "",
         "length": 221776,
         "video": false,
-        "isrcs": [
-          "QZPJ32124201"
-        ],
+        "isrcs": ["QZPJ32124201"],
         "first-release-date": "2021-11-26",
         "artist-credit": [
           {
@@ -13688,9 +13301,7 @@
         "disambiguation": "",
         "length": 226981,
         "video": false,
-        "isrcs": [
-          "USJ5G2232502"
-        ],
+        "isrcs": ["USJ5G2232502"],
         "first-release-date": "2022-03-30",
         "artist-credit": [
           {
@@ -13795,10 +13406,7 @@
             "length": 238520,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "US38Y0811503",
-              "US38Y0800003"
-            ],
+            "isrcs": ["US38Y0811503", "US38Y0800003"],
             "first-release-date": "2007-07-08",
             "artist-credit": [
               {
@@ -13870,9 +13478,7 @@
                   "id": "dc0cf2cd-2d30-4a01-bc3e-019ee32339c9",
                   "title": "Triple J: Hottest 100 of the Past 20 Years",
                   "primary-type": "Other",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -13935,9 +13541,7 @@
                   "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
                   "title": "Paste Magazine Sampler #40: March 2008",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -13969,9 +13573,7 @@
                   "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
                   "title": "Folk You!",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14003,9 +13605,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14037,9 +13637,7 @@
                   "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
                   "title": "Long Time Gone: 15 All-New American Music Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14071,9 +13669,7 @@
                   "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
                   "title": "Triple J: Hottest 100, Volume 16",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14105,9 +13701,7 @@
                   "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
                   "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14139,9 +13733,7 @@
                   "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
                   "title": "Coastal Chill 09",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14173,9 +13765,7 @@
                   "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
                   "title": "Coastal Chill: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14206,9 +13796,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14478,9 +14066,7 @@
                   "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
                   "title": "eMusic SXSW Birthday Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14533,9 +14119,7 @@
                   "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
                   "title": "Jagjaguwar 2008/2009 Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14565,9 +14149,7 @@
                   "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
                   "title": "Songs of the Valentine's Day Massacre",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14639,9 +14221,7 @@
                   "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
                   "title": "POP MIX",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14671,10 +14251,7 @@
             "length": 238520,
             "video": null,
             "score": 100,
-            "isrcs": [
-              "US38Y0811503",
-              "US38Y0800003"
-            ],
+            "isrcs": ["US38Y0811503", "US38Y0800003"],
             "first-release-date": "2007-07-08",
             "artist-credit": [
               {
@@ -14746,9 +14323,7 @@
                   "id": "dc0cf2cd-2d30-4a01-bc3e-019ee32339c9",
                   "title": "Triple J: Hottest 100 of the Past 20 Years",
                   "primary-type": "Other",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14811,9 +14386,7 @@
                   "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
                   "title": "Paste Magazine Sampler #40: March 2008",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14845,9 +14418,7 @@
                   "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
                   "title": "Folk You!",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14879,9 +14450,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14913,9 +14482,7 @@
                   "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
                   "title": "Long Time Gone: 15 All-New American Music Classics",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14947,9 +14514,7 @@
                   "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
                   "title": "Triple J: Hottest 100, Volume 16",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -14981,9 +14546,7 @@
                   "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
                   "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15015,9 +14578,7 @@
                   "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
                   "title": "Coastal Chill 09",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15049,9 +14610,7 @@
                   "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
                   "title": "Coastal Chill: The Collection",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15082,9 +14641,7 @@
                   "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
                   "title": "Pop-Rock Station, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15354,9 +14911,7 @@
                   "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
                   "title": "eMusic SXSW Birthday Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15409,9 +14964,7 @@
                   "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
                   "title": "Jagjaguwar 2008/2009 Sampler",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15441,9 +14994,7 @@
                   "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
                   "title": "Songs of the Valentine's Day Massacre",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15515,9 +15066,7 @@
                   "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
                   "title": "POP MIX",
                   "primary-type": "Album",
-                  "secondary-types": [
-                    "Compilation"
-                  ]
+                  "secondary-types": ["Compilation"]
                 },
                 "media": [
                   {
@@ -15541,10 +15090,7 @@
         "disambiguation": "original studio mix",
         "length": 238520,
         "video": false,
-        "isrcs": [
-          "US38Y0800003",
-          "US38Y0811503"
-        ],
+        "isrcs": ["US38Y0800003", "US38Y0811503"],
         "first-release-date": "2007-07-08",
         "artist-credit": [
           {
@@ -16242,9 +15788,7 @@
               "id": "13de99d5-9309-3357-8e50-1d44ad3d9bac",
               "title": "Paste Magazine Sampler #40: March 2008",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2008-03",
               "disambiguation": "",
               "artist-credit": [
@@ -16609,9 +16153,7 @@
               "id": "b22d556f-e2c6-3287-a00c-0b16886878b2",
               "title": "Long Time Gone: 15 All-New American Music Classics",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2008-06-05",
               "disambiguation": "",
               "artist-credit": [
@@ -16684,9 +16226,7 @@
               "id": "fdbf2d79-387e-4a1b-b754-5d25ad2f221e",
               "title": "Coastal Chill 09",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2008",
               "disambiguation": "",
               "artist-credit": [
@@ -16759,9 +16299,7 @@
               "id": "47c0d5cb-5bf5-3b32-a3da-68bcd92dabb7",
               "title": "eMusic SXSW Birthday Sampler",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2008",
               "disambiguation": "",
               "artist-credit": [
@@ -16834,9 +16372,7 @@
               "id": "f510d95c-cbe2-4a13-8fdd-a2243b82dbd5",
               "title": "Songs of the Valentine's Day Massacre",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2008",
               "disambiguation": "",
               "artist-credit": [
@@ -16982,9 +16518,7 @@
               "id": "98da7e92-04fa-38f1-87df-b0b1f0486aef",
               "title": "Jagjaguwar 2008/2009 Sampler",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2009-03-06",
               "disambiguation": "",
               "artist-credit": [
@@ -17057,9 +16591,7 @@
               "id": "6e002e81-17bb-494d-b761-9e3d783c4d15",
               "title": "Coastal Chill: The Collection",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2009",
               "disambiguation": "",
               "artist-credit": [
@@ -17132,9 +16664,7 @@
               "id": "aed39bfd-b31f-3acc-99c6-1a1a47ca484b",
               "title": "Triple J: Hottest 100, Volume 16",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2009",
               "disambiguation": "",
               "artist-credit": [
@@ -17207,9 +16737,7 @@
               "id": "6822c3f7-b7ad-464c-97c8-4eebf41fdfaa",
               "title": "Folk You!",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2013-03-01",
               "disambiguation": "",
               "artist-credit": [
@@ -17282,9 +16810,7 @@
               "id": "8cd3ea59-8d45-4ca5-a436-4ddfd1abcd0e",
               "title": "Triple J: Hottest 100, 20 Years of Triple J’s Hottest 100",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2013-07-19",
               "disambiguation": "",
               "artist-credit": [
@@ -17357,9 +16883,7 @@
               "id": "c684b4c2-2355-4a4e-81c1-83ae342a459b",
               "title": "Pop-Rock Station, Volume 2",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "2013-11",
               "disambiguation": "",
               "artist-credit": [
@@ -17457,9 +16981,7 @@
               "id": "e25cddc4-737c-48b5-8a90-c00ce77d7d27",
               "title": "POP MIX",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ],
+              "secondary-types": ["Compilation"],
               "first-release-date": "",
               "disambiguation": "",
               "artist-credit": [

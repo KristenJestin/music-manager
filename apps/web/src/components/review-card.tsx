@@ -288,7 +288,6 @@ export function ReviewCard({ card, busy, onConfirm, onPin, onDropQualifier }: Re
       "",
   );
 
-
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== "Enter" || busy) return;

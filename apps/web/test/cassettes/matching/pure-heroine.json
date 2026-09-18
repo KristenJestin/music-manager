@@ -205,9 +205,7 @@
             "id": "16ed33a0-e3ff-494b-8bf8-22205fb8dc5a",
             "title": "Live in Concert",
             "primary-type": "EP",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2013-11-03",
             "artist-credit": [
               {
@@ -225,9 +223,7 @@
             "id": "6a2bcbcf-4473-460b-98b0-5d1ac58f348c",
             "title": "Tennis Court (Flume remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2014-04-23",
             "artist-credit": [
               {
@@ -245,9 +241,7 @@
             "id": "7a6f72e6-74cd-4a94-be30-cb2a869029b7",
             "title": "2017-06-23: Glastonbury Festival of Contemporary Performing Arts",
             "primary-type": "Broadcast",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2017-06-23",
             "artist-credit": [
               {
@@ -333,9 +327,7 @@
             "id": "8d78e923-08b2-4e23-ac89-c3d23cf59c61",
             "title": "Bravado (Fffrrannno remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2021-11-12",
             "artist-credit": [
               {
@@ -387,9 +379,7 @@
             "id": "b1073154-dda9-45b5-9c68-4716f9c3e8b9",
             "title": "2017-08-13: Outside Lands Music & Arts Festival",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2017-09-01",
             "artist-credit": [
               {
@@ -407,9 +397,7 @@
             "id": "1ae8aca1-b9e0-43dc-bf9d-7028a8fdc818",
             "title": "Green Light (Crystal Skies remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2017-04-06",
             "artist-credit": [
               {
@@ -427,9 +415,7 @@
             "id": "273aa49a-5f6d-4511-8fad-c6ff99ef87ba",
             "title": "2022-11-06: Primavera Sound Festival, Sao Paulo, Brazil",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2023-10-06",
             "artist-credit": [
               {
@@ -498,9 +484,7 @@
             "id": "83ec7478-a375-4ee1-9bf8-a49e1b5cc3f7",
             "title": "Green Light (Chromeo remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2017-05-19",
             "artist-credit": [
               {
@@ -518,9 +502,7 @@
             "id": "9d89c92b-4776-4f04-b4c9-aa9676f2702c",
             "title": "Royals (You Can Call Me Queen remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2014-01-01",
             "artist-credit": [
               {
@@ -555,9 +537,7 @@
             "id": "a760ee4a-d295-4b92-b3b4-de02008ce9e9",
             "title": "Royals (Ross Horkings Remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2013-11-18",
             "artist-credit": [
               {
@@ -575,9 +555,7 @@
             "id": "5a69da96-f40a-457f-afc7-ec3142d61467",
             "title": "Yellow Flicker Beat",
             "primary-type": "Single",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2014-09-29",
             "artist-credit": [
               {
@@ -595,9 +573,7 @@
             "id": "bd0bba3d-e589-4897-b1c0-1dfa110cf99f",
             "title": "Buzzcut Season (Teddy Midnight remix)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2014-02-04",
             "artist-credit": [
               {
@@ -615,9 +591,7 @@
             "id": "71f0ef6c-c86f-496a-8aa8-ebbbbbeeff29",
             "title": "Lorde",
             "primary-type": "EP",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2013",
             "artist-credit": [
               {
@@ -1319,9 +1293,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -1361,9 +1333,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1403,9 +1373,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -1445,9 +1413,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1487,9 +1453,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -1529,9 +1493,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -1571,9 +1533,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1613,9 +1573,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1655,9 +1613,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1697,9 +1653,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1819,9 +1773,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -1861,9 +1813,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1903,9 +1853,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -1945,9 +1893,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -1987,9 +1933,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -2029,9 +1973,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -2071,9 +2013,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2113,9 +2053,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2155,9 +2093,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2197,9 +2133,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2312,9 +2246,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -2354,9 +2286,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2396,9 +2326,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -2438,9 +2366,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2480,9 +2406,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -2522,9 +2446,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -2564,9 +2486,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2606,9 +2526,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2648,9 +2566,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2690,9 +2606,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2805,9 +2719,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -2847,9 +2759,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2889,9 +2799,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -2931,9 +2839,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -2973,9 +2879,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -3015,9 +2919,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -3057,9 +2959,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3099,9 +2999,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3141,9 +3039,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3183,9 +3079,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3305,9 +3199,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -3347,9 +3239,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3389,9 +3279,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -3431,9 +3319,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3473,9 +3359,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -3515,9 +3399,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -3557,9 +3439,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3599,9 +3479,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3641,9 +3519,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3683,9 +3559,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3798,9 +3672,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -3840,9 +3712,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3882,9 +3752,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -3924,9 +3792,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -3966,9 +3832,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -4008,9 +3872,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -4050,9 +3912,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4092,9 +3952,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4134,9 +3992,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4176,9 +4032,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4291,9 +4145,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -4333,9 +4185,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4375,9 +4225,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -4417,9 +4265,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4459,9 +4305,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -4501,9 +4345,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -4543,9 +4385,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4585,9 +4425,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4627,9 +4465,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4669,9 +4505,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4784,9 +4618,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -4826,9 +4658,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4868,9 +4698,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -4910,9 +4738,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -4952,9 +4778,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -4994,9 +4818,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -5036,9 +4858,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5078,9 +4898,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5120,9 +4938,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5162,9 +4978,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5284,9 +5098,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -5326,9 +5138,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5368,9 +5178,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -5410,9 +5218,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5452,9 +5258,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -5494,9 +5298,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -5536,9 +5338,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5578,9 +5378,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5620,9 +5418,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5662,9 +5458,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5777,9 +5571,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -5819,9 +5611,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5861,9 +5651,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -5903,9 +5691,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -5945,9 +5731,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -5987,9 +5771,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -6029,9 +5811,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6071,9 +5851,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6113,9 +5891,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6155,9 +5931,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6270,9 +6044,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100627"
-                  ],
+                  "isrcs": ["NZUM72100627"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6312,9 +6084,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 234000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100628"
-                  ],
+                  "isrcs": ["NZUM72100628"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6354,9 +6124,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100629"
-                  ],
+                  "isrcs": ["NZUM72100629"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6396,9 +6164,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 259000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100630"
-                  ],
+                  "isrcs": ["NZUM72100630"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6438,9 +6204,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 247000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100631"
-                  ],
+                  "isrcs": ["NZUM72100631"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6480,9 +6244,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 193000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100632"
-                  ],
+                  "isrcs": ["NZUM72100632"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6522,9 +6284,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 211000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100633"
-                  ],
+                  "isrcs": ["NZUM72100633"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6564,9 +6324,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 188000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100634"
-                  ],
+                  "isrcs": ["NZUM72100634"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6606,9 +6364,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 217000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100635"
-                  ],
+                  "isrcs": ["NZUM72100635"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6648,9 +6404,7 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 294000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM72100636"
-                  ],
+                  "isrcs": ["NZUM72100636"],
                   "first-release-date": "2021-12-01",
                   "artist-credit": [
                     {
@@ -6763,9 +6517,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -6805,9 +6557,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6847,9 +6597,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -6889,9 +6637,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -6931,9 +6677,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -6973,9 +6717,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -7015,9 +6757,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7057,9 +6797,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7099,9 +6837,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7141,9 +6877,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7183,9 +6917,7 @@
                   "disambiguation": "",
                   "length": 221408,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200030"
-                  ],
+                  "isrcs": ["NZUM71200030"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -7225,9 +6957,7 @@
                   "disambiguation": "",
                   "length": 222000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300024"
-                  ],
+                  "isrcs": ["NZUM71300024"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -7267,9 +6997,7 @@
                   "disambiguation": "",
                   "length": 221865,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300003"
-                  ],
+                  "isrcs": ["NZUM71300003"],
                   "first-release-date": "2013-03-08",
                   "artist-credit": [
                     {
@@ -7382,9 +7110,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -7424,9 +7150,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7466,9 +7190,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -7508,9 +7230,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7550,9 +7270,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -7592,9 +7310,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -7634,9 +7350,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7676,9 +7390,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7718,9 +7430,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7760,9 +7470,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -7802,9 +7510,7 @@
                   "disambiguation": "",
                   "length": 221408,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200030"
-                  ],
+                  "isrcs": ["NZUM71200030"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -7844,9 +7550,7 @@
                   "disambiguation": "",
                   "length": 222000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300024"
-                  ],
+                  "isrcs": ["NZUM71300024"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -7886,9 +7590,7 @@
                   "disambiguation": "",
                   "length": 221865,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300003"
-                  ],
+                  "isrcs": ["NZUM71300003"],
                   "first-release-date": "2013-03-08",
                   "artist-credit": [
                     {
@@ -8001,9 +7703,7 @@
                   "disambiguation": "",
                   "length": 198907,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300023"
-                  ],
+                  "isrcs": ["NZUM71300023"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -8043,9 +7743,7 @@
                   "disambiguation": "",
                   "length": 234286,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300121"
-                  ],
+                  "isrcs": ["NZUM71300121"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8085,9 +7783,7 @@
                   "disambiguation": "",
                   "length": 190000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200031"
-                  ],
+                  "isrcs": ["NZUM71200031"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {
@@ -8127,9 +7823,7 @@
                   "disambiguation": "",
                   "length": 258969,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300122"
-                  ],
+                  "isrcs": ["NZUM71300122"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8169,9 +7863,7 @@
                   "disambiguation": "",
                   "length": 246755,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300123"
-                  ],
+                  "isrcs": ["NZUM71300123"],
                   "first-release-date": "2013-09-26",
                   "artist-credit": [
                     {
@@ -8211,9 +7903,7 @@
                   "disambiguation": "",
                   "length": 193058,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300124"
-                  ],
+                  "isrcs": ["NZUM71300124"],
                   "first-release-date": "2013-09-13",
                   "artist-credit": [
                     {
@@ -8253,9 +7943,7 @@
                   "disambiguation": "",
                   "length": 210738,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300125"
-                  ],
+                  "isrcs": ["NZUM71300125"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8295,9 +7983,7 @@
                   "disambiguation": "",
                   "length": 188133,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300126"
-                  ],
+                  "isrcs": ["NZUM71300126"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8337,9 +8023,7 @@
                   "disambiguation": "",
                   "length": 216600,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300127"
-                  ],
+                  "isrcs": ["NZUM71300127"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8379,9 +8063,7 @@
                   "disambiguation": "",
                   "length": 294222,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300128"
-                  ],
+                  "isrcs": ["NZUM71300128"],
                   "first-release-date": "2013-09-27",
                   "artist-credit": [
                     {
@@ -8421,9 +8103,7 @@
                   "disambiguation": "",
                   "length": 221408,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200030"
-                  ],
+                  "isrcs": ["NZUM71200030"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -8463,9 +8143,7 @@
                   "disambiguation": "",
                   "length": 138210,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200033"
-                  ],
+                  "isrcs": ["NZUM71200033"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -8505,9 +8183,7 @@
                   "disambiguation": "",
                   "length": 201433,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200034"
-                  ],
+                  "isrcs": ["NZUM71200034"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -8547,9 +8223,7 @@
                   "disambiguation": "",
                   "length": 213665,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71200032"
-                  ],
+                  "isrcs": ["NZUM71200032"],
                   "first-release-date": "2012-11-21",
                   "artist-credit": [
                     {
@@ -8589,9 +8263,7 @@
                   "disambiguation": "",
                   "length": 222000,
                   "video": false,
-                  "isrcs": [
-                    "NZUM71300024"
-                  ],
+                  "isrcs": ["NZUM71300024"],
                   "first-release-date": "2012",
                   "artist-credit": [
                     {

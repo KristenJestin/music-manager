@@ -224,9 +224,7 @@
             "id": "ee8ac150-01c1-4b73-9948-ec57a0a172da",
             "title": "Endgame / Appeal to Reason / Siren Song of the Counter Culture / The Sufferer & The Witness",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2012-01-01",
             "artist-credit": [
               {
@@ -253,9 +251,7 @@
             "id": "201b01f1-0149-3812-84d3-afb92ec04e1e",
             "title": "2006-07-23: Denver, CO, USA",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "artist-credit": [
               {
                 "name": "Rise Against",
@@ -303,9 +299,7 @@
             "id": "1d5cb744-f83d-423b-ae30-28fa2db809ea",
             "title": "The Collection",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2014-07-15",
             "artist-credit": [
               {
@@ -386,9 +380,7 @@
             "id": "f55a53c6-2d17-400d-b337-94c22f10f6ba",
             "title": "AOL Music Sessions: Undercover",
             "primary-type": "EP",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2007-03-27",
             "artist-credit": [
               {
@@ -437,9 +429,7 @@
             "id": "26cc46e0-5156-4d58-9163-b3ffbf0125f9",
             "title": "2011-06-04: KROQ Weenie Roast 2011",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2011-06-04",
             "artist-credit": [
               {
@@ -456,9 +446,7 @@
             "id": "e48402bd-37d3-3a6b-8b5c-41289cad5bc5",
             "title": "Live in Toronto",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "artist-credit": [
               {
                 "name": "Rise Against",
@@ -490,9 +478,7 @@
             "id": "5820d9ff-6312-485a-a2b8-fba1422496da",
             "title": "2008-06-22: Southside Festival, Neuhausen ob Eck, Germany",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "artist-credit": [
               {
                 "name": "Rise Against",
@@ -588,9 +574,7 @@
             "id": "911a1d85-190c-43cc-9fe7-6da51126fd41",
             "title": "2009-03-27: Live at the Wireless, Festival Hall, Melbourne, Aus",
             "primary-type": "Broadcast",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2009-03-27",
             "artist-credit": [
               {
@@ -607,9 +591,7 @@
             "id": "2a4feb5e-b14c-432c-ade6-928bab08a2d4",
             "title": "Audience of One (live at MMVA 09)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2009",
             "artist-credit": [
               {
@@ -626,9 +608,7 @@
             "id": "7fc16812-586e-4a4f-9074-30f3433ef9f0",
             "title": "House on Fire (Ghost Note Symphonies)",
             "primary-type": "Single",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2017",
             "artist-credit": [
               {
@@ -1280,9 +1260,7 @@
               "id": "ee8ac150-01c1-4b73-9948-ec57a0a172da",
               "title": "Endgame / Appeal to Reason / Siren Song of the Counter Culture / The Sufferer & The Witness",
               "primary-type": "Album",
-              "secondary-types": [
-                "Compilation"
-              ]
+              "secondary-types": ["Compilation"]
             },
             "media": [
               {
@@ -1390,9 +1368,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1432,9 +1408,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1474,9 +1448,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -1516,9 +1488,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1558,9 +1528,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1600,9 +1568,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1642,9 +1608,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1684,9 +1648,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1726,9 +1688,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1768,9 +1728,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1810,9 +1768,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1852,9 +1808,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1894,9 +1848,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -1936,10 +1888,7 @@
                   "disambiguation": "",
                   "length": 234823,
                   "video": false,
-                  "isrcs": [
-                    "USUM70831762",
-                    "USUM71307889"
-                  ],
+                  "isrcs": ["USUM70831762", "USUM71307889"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {
@@ -2044,9 +1993,7 @@
           "id": "ee8ac150-01c1-4b73-9948-ec57a0a172da",
           "title": "Endgame / Appeal to Reason / Siren Song of the Counter Culture / The Sufferer & The Witness",
           "primary-type": "Album",
-          "secondary-types": [
-            "Compilation"
-          ],
+          "secondary-types": ["Compilation"],
           "first-release-date": "2012-01-01",
           "disambiguation": "",
           "artist-credit": [
@@ -2094,9 +2041,7 @@
                   "disambiguation": "",
                   "length": 222626,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101030"
-                  ],
+                  "isrcs": ["USUM71101030"],
                   "first-release-date": "2011-02-15",
                   "artist-credit": [
                     {
@@ -2136,9 +2081,7 @@
                   "disambiguation": "",
                   "length": 237480,
                   "video": false,
-                  "isrcs": [
-                    "USUM71100543"
-                  ],
+                  "isrcs": ["USUM71100543"],
                   "first-release-date": "2011-01-25",
                   "artist-credit": [
                     {
@@ -2178,9 +2121,7 @@
                   "disambiguation": "",
                   "length": 234786,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101041"
-                  ],
+                  "isrcs": ["USUM71101041"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2220,9 +2161,7 @@
                   "disambiguation": "",
                   "length": 228640,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101040"
-                  ],
+                  "isrcs": ["USUM71101040"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2262,9 +2201,7 @@
                   "disambiguation": "",
                   "length": 238573,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101043"
-                  ],
+                  "isrcs": ["USUM71101043"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2304,9 +2241,7 @@
                   "disambiguation": "",
                   "length": 257560,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101042"
-                  ],
+                  "isrcs": ["USUM71101042"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2346,9 +2281,7 @@
                   "disambiguation": "",
                   "length": 239893,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101044"
-                  ],
+                  "isrcs": ["USUM71101044"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2388,9 +2321,7 @@
                   "disambiguation": "",
                   "length": 234693,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101035"
-                  ],
+                  "isrcs": ["USUM71101035"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2430,9 +2361,7 @@
                   "disambiguation": "",
                   "length": 219693,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101046"
-                  ],
+                  "isrcs": ["USUM71101046"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2472,9 +2401,7 @@
                   "disambiguation": "",
                   "length": 226146,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101024"
-                  ],
+                  "isrcs": ["USUM71101024"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2514,9 +2441,7 @@
                   "disambiguation": "",
                   "length": 221200,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101045"
-                  ],
+                  "isrcs": ["USUM71101045"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2556,9 +2481,7 @@
                   "disambiguation": "",
                   "length": 204280,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101039"
-                  ],
+                  "isrcs": ["USUM71101039"],
                   "first-release-date": "2011-03-11",
                   "artist-credit": [
                     {
@@ -2598,10 +2521,7 @@
                   "disambiguation": "",
                   "length": 231740,
                   "video": false,
-                  "isrcs": [
-                    "USUM71101751",
-                    "USUM71307958"
-                  ],
+                  "isrcs": ["USUM71101751", "USUM71307958"],
                   "first-release-date": "2011-03-15",
                   "artist-credit": [
                     {
@@ -2650,9 +2570,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2692,9 +2610,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2734,9 +2650,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -2776,9 +2690,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2818,9 +2730,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2860,9 +2770,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2902,9 +2810,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2944,9 +2850,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -2986,9 +2890,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -3028,9 +2930,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -3070,9 +2970,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -3112,9 +3010,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -3154,9 +3050,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -3196,10 +3090,7 @@
                   "disambiguation": "",
                   "length": 234823,
                   "video": false,
-                  "isrcs": [
-                    "USUM70831762",
-                    "USUM71307889"
-                  ],
+                  "isrcs": ["USUM70831762", "USUM71307889"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {
@@ -3248,9 +3139,7 @@
                   "disambiguation": "",
                   "length": 139133,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400795"
-                  ],
+                  "isrcs": ["USDW10400795"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3290,9 +3179,7 @@
                   "disambiguation": "",
                   "length": 159000,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400797"
-                  ],
+                  "isrcs": ["USDW10400797"],
                   "first-release-date": "2009-07-14",
                   "artist-credit": [
                     {
@@ -3332,9 +3219,7 @@
                   "disambiguation": "",
                   "length": 224013,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400792"
-                  ],
+                  "isrcs": ["USDW10400792"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3374,9 +3259,7 @@
                   "disambiguation": "",
                   "length": 223613,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400793"
-                  ],
+                  "isrcs": ["USDW10400793"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3416,9 +3299,7 @@
                   "disambiguation": "",
                   "length": 228480,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400790"
-                  ],
+                  "isrcs": ["USDW10400790"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3458,9 +3339,7 @@
                   "disambiguation": "",
                   "length": 169426,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400799"
-                  ],
+                  "isrcs": ["USDW10400799"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3500,9 +3379,7 @@
                   "disambiguation": "",
                   "length": 229013,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400798"
-                  ],
+                  "isrcs": ["USDW10400798"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3542,9 +3419,7 @@
                   "disambiguation": "",
                   "length": 218120,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400820"
-                  ],
+                  "isrcs": ["USDW10400820"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3584,9 +3459,7 @@
                   "disambiguation": "",
                   "length": 170733,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400821"
-                  ],
+                  "isrcs": ["USDW10400821"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3626,9 +3499,7 @@
                   "disambiguation": "",
                   "length": 241440,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400791"
-                  ],
+                  "isrcs": ["USDW10400791"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3668,9 +3539,7 @@
                   "disambiguation": "",
                   "length": 200066,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400796"
-                  ],
+                  "isrcs": ["USDW10400796"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3710,9 +3579,7 @@
                   "disambiguation": "",
                   "length": 254280,
                   "video": false,
-                  "isrcs": [
-                    "USDW10400794"
-                  ],
+                  "isrcs": ["USDW10400794"],
                   "first-release-date": "2004-08-10",
                   "artist-credit": [
                     {
@@ -3761,9 +3628,7 @@
                   "disambiguation": "",
                   "length": 214906,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603967"
-                  ],
+                  "isrcs": ["USUM70603967"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -3803,9 +3668,7 @@
                   "disambiguation": "",
                   "length": 199213,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603968"
-                  ],
+                  "isrcs": ["USUM70603968"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -3845,9 +3708,7 @@
                   "disambiguation": "",
                   "length": 227706,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603572"
-                  ],
+                  "isrcs": ["USUM70603572"],
                   "first-release-date": "2006-06-15",
                   "artist-credit": [
                     {
@@ -3887,9 +3748,7 @@
                   "disambiguation": "",
                   "length": 90853,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603969"
-                  ],
+                  "isrcs": ["USUM70603969"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -3929,9 +3788,7 @@
                   "disambiguation": "",
                   "length": 165173,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603970"
-                  ],
+                  "isrcs": ["USUM70603970"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -3971,9 +3828,7 @@
                   "disambiguation": "",
                   "length": 199386,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603971"
-                  ],
+                  "isrcs": ["USUM70603971"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4013,9 +3868,7 @@
                   "disambiguation": "",
                   "length": 181600,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603972"
-                  ],
+                  "isrcs": ["USUM70603972"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4055,9 +3908,7 @@
                   "disambiguation": "",
                   "length": 224746,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603973"
-                  ],
+                  "isrcs": ["USUM70603973"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4097,9 +3948,7 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603974"
-                  ],
+                  "isrcs": ["USUM70603974"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4139,9 +3988,7 @@
                   "disambiguation": "",
                   "length": 195120,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603975"
-                  ],
+                  "isrcs": ["USUM70603975"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4181,9 +4028,7 @@
                   "disambiguation": "",
                   "length": 201026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603976"
-                  ],
+                  "isrcs": ["USUM70603976"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4223,9 +4068,7 @@
                   "disambiguation": "",
                   "length": 181453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603977"
-                  ],
+                  "isrcs": ["USUM70603977"],
                   "first-release-date": "2006-07-04",
                   "artist-credit": [
                     {
@@ -4265,9 +4108,7 @@
                   "disambiguation": "",
                   "length": 220493,
                   "video": false,
-                  "isrcs": [
-                    "USUM70603978"
-                  ],
+                  "isrcs": ["USUM70603978"],
                   "first-release-date": "2006-07-03",
                   "artist-credit": [
                     {
@@ -4307,10 +4148,7 @@
                   "disambiguation": "",
                   "length": 167051,
                   "video": false,
-                  "isrcs": [
-                    "USUM70604027",
-                    "USUM71307964"
-                  ],
+                  "isrcs": ["USUM70604027", "USUM71307964"],
                   "first-release-date": "2006-07-04",
                   "artist-credit": [
                     {
@@ -4423,9 +4261,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4465,9 +4301,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4507,9 +4341,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -4549,9 +4381,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4591,9 +4421,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4633,9 +4461,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4675,9 +4501,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4717,9 +4541,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4759,9 +4581,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4801,9 +4621,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4843,9 +4661,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4885,9 +4701,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4927,9 +4741,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -4969,10 +4781,7 @@
                   "disambiguation": "",
                   "length": 234823,
                   "video": false,
-                  "isrcs": [
-                    "USUM70831762",
-                    "USUM71307889"
-                  ],
+                  "isrcs": ["USUM70831762", "USUM71307889"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {
@@ -5085,9 +4894,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5127,9 +4934,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5169,9 +4974,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -5211,9 +5014,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5253,9 +5054,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5295,9 +5094,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5337,9 +5134,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5379,9 +5174,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5421,9 +5214,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5463,9 +5254,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5505,9 +5294,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5547,9 +5334,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5589,9 +5374,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5631,10 +5414,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5747,9 +5527,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5789,9 +5567,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5831,9 +5607,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -5873,9 +5647,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5915,9 +5687,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5957,9 +5727,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -5999,9 +5767,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6041,9 +5807,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6083,9 +5847,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6125,9 +5887,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6167,9 +5927,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6209,9 +5967,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6251,9 +6007,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6293,10 +6047,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6409,9 +6160,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6451,9 +6200,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6493,9 +6240,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -6535,9 +6280,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6577,9 +6320,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6619,9 +6360,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6661,9 +6400,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6703,9 +6440,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6745,9 +6480,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6787,9 +6520,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6829,9 +6560,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6871,9 +6600,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6913,9 +6640,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -6955,10 +6680,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7078,9 +6800,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7120,9 +6840,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7162,9 +6880,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -7204,9 +6920,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7246,9 +6960,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7288,9 +7000,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7330,9 +7040,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7372,9 +7080,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7414,9 +7120,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7456,9 +7160,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7498,9 +7200,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7540,9 +7240,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7582,9 +7280,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7697,9 +7393,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7739,9 +7433,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7781,9 +7473,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -7823,9 +7513,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7865,9 +7553,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7907,9 +7593,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7949,9 +7633,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -7991,9 +7673,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8033,9 +7713,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8075,9 +7753,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8117,9 +7793,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8159,9 +7833,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8201,9 +7873,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8316,9 +7986,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8358,9 +8026,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8400,9 +8066,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -8442,9 +8106,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8484,9 +8146,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8526,9 +8186,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8568,9 +8226,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8610,9 +8266,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8652,9 +8306,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8694,9 +8346,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8736,9 +8386,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8778,9 +8426,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8820,9 +8466,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8935,9 +8579,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -8977,9 +8619,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9019,9 +8659,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -9061,9 +8699,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9103,9 +8739,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9145,9 +8779,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9187,9 +8819,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9229,9 +8859,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9271,9 +8899,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9313,9 +8939,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9355,9 +8979,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9397,9 +9019,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9439,9 +9059,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9481,10 +9099,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9597,9 +9212,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9639,9 +9252,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9681,9 +9292,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -9723,9 +9332,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9765,9 +9372,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9807,9 +9412,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9849,9 +9452,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9891,9 +9492,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9933,9 +9532,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -9975,9 +9572,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10017,9 +9612,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10059,9 +9652,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10101,9 +9692,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10143,10 +9732,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10259,9 +9845,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10301,9 +9885,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10343,9 +9925,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -10385,9 +9965,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10427,9 +10005,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10469,9 +10045,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10511,9 +10085,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10553,9 +10125,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10595,9 +10165,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10637,9 +10205,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10679,9 +10245,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10721,9 +10285,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10763,9 +10325,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10805,10 +10365,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -10848,9 +10405,7 @@
                   "disambiguation": "",
                   "length": 235677,
                   "video": false,
-                  "isrcs": [
-                    "USUM71307957"
-                  ],
+                  "isrcs": ["USUM71307957"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {
@@ -10963,9 +10518,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11005,9 +10558,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11047,9 +10598,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -11089,9 +10638,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11131,9 +10678,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11173,9 +10718,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11215,9 +10758,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11257,9 +10798,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11299,9 +10838,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11341,9 +10878,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11383,9 +10918,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11425,9 +10958,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11467,9 +10998,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11582,9 +11111,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11624,9 +11151,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11666,9 +11191,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -11708,9 +11231,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11750,9 +11271,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11792,9 +11311,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11834,9 +11351,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11876,9 +11391,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11918,9 +11431,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -11960,9 +11471,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12002,9 +11511,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12044,9 +11551,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12086,9 +11591,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12201,9 +11704,7 @@
                   "disambiguation": "",
                   "length": 199000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832575"
-                  ],
+                  "isrcs": ["USUM70832575"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12243,9 +11744,7 @@
                   "disambiguation": "",
                   "length": 241560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832576"
-                  ],
+                  "isrcs": ["USUM70832576"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12285,9 +11784,7 @@
                   "disambiguation": "",
                   "length": 222453,
                   "video": false,
-                  "isrcs": [
-                    "USUM70828859"
-                  ],
+                  "isrcs": ["USUM70828859"],
                   "first-release-date": "2008-08-25",
                   "artist-credit": [
                     {
@@ -12327,9 +11824,7 @@
                   "disambiguation": "",
                   "length": 189080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832577"
-                  ],
+                  "isrcs": ["USUM70832577"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12369,9 +11864,7 @@
                   "disambiguation": "",
                   "length": 184760,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832578"
-                  ],
+                  "isrcs": ["USUM70832578"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12411,9 +11904,7 @@
                   "disambiguation": "",
                   "length": 222373,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832579"
-                  ],
+                  "isrcs": ["USUM70832579"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12453,9 +11944,7 @@
                   "disambiguation": "",
                   "length": 207026,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832580"
-                  ],
+                  "isrcs": ["USUM70832580"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12495,9 +11984,7 @@
                   "disambiguation": "",
                   "length": 245480,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832581"
-                  ],
+                  "isrcs": ["USUM70832581"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12537,9 +12024,7 @@
                   "disambiguation": "",
                   "length": 214666,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832582"
-                  ],
+                  "isrcs": ["USUM70832582"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12579,9 +12064,7 @@
                   "disambiguation": "",
                   "length": 253080,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832583"
-                  ],
+                  "isrcs": ["USUM70832583"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12621,9 +12104,7 @@
                   "disambiguation": "",
                   "length": 242280,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832584"
-                  ],
+                  "isrcs": ["USUM70832584"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12663,9 +12144,7 @@
                   "disambiguation": "",
                   "length": 242560,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832585"
-                  ],
+                  "isrcs": ["USUM70832585"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12705,9 +12184,7 @@
                   "disambiguation": "",
                   "length": 242000,
                   "video": false,
-                  "isrcs": [
-                    "USUM70832586"
-                  ],
+                  "isrcs": ["USUM70832586"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12747,10 +12224,7 @@
                   "disambiguation": "",
                   "length": 202752,
                   "video": false,
-                  "isrcs": [
-                    "USUM70830283",
-                    "USUM71307949"
-                  ],
+                  "isrcs": ["USUM70830283", "USUM71307949"],
                   "first-release-date": "2008-10-02",
                   "artist-credit": [
                     {
@@ -12790,9 +12264,7 @@
                   "disambiguation": "",
                   "length": 235677,
                   "video": false,
-                  "isrcs": [
-                    "USUM71307957"
-                  ],
+                  "isrcs": ["USUM71307957"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {
@@ -12832,10 +12304,7 @@
                   "disambiguation": "",
                   "length": 234823,
                   "video": false,
-                  "isrcs": [
-                    "USUM70831762",
-                    "USUM71307889"
-                  ],
+                  "isrcs": ["USUM70831762", "USUM71307889"],
                   "first-release-date": "2008-10-06",
                   "artist-credit": [
                     {

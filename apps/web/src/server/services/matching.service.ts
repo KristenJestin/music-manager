@@ -145,10 +145,7 @@ export function recordingLookupLimitOf(settings: Settings): number {
  * read only from the rung that was climbed, and only once it has come back with something.
  * *Hotel Deluxe* never reaches this code, because the rung above it answers.
  */
-function editionProvenByFallback(
-  hints: AlbumHints,
-  fallback: MatchFallback | null,
-): AlbumHints {
+function editionProvenByFallback(hints: AlbumHints, fallback: MatchFallback | null): AlbumHints {
   if (fallback === null || fallback.kind !== "bare-title") return hints;
   const removed = fallback.from.slice(fallback.to.length);
   const announced = editionTokensIn(removed).filter(

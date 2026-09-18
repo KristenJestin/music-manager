@@ -1317,7 +1317,11 @@ describe("“Artist mismatch” and `artistDisagrees` are one statement", () => 
       },
     ] as unknown as Parameters<typeof releaseGroups.searchScore>[0];
 
-    const scored = releaseGroups.searchScore(groups, { album: "Soleil bleu", artist: "Bleu Soleil" }, 10);
+    const scored = releaseGroups.searchScore(
+      groups,
+      { album: "Soleil bleu", artist: "Bleu Soleil" },
+      10,
+    );
     const right = scored.find((entry) => entry.id === "g-right");
     const wrong = scored.find((entry) => entry.id === "g-wrong");
 
@@ -1326,7 +1330,6 @@ describe("“Artist mismatch” and `artistDisagrees` are one statement", () => 
     expect(wrong?.artistDisagrees).toBe(true);
     expect(wrong?.why).toContain("Artist mismatch (credited to VSO)");
   });
-
 
   it("never ticks a candidate that carries the flag, on any recorded scenario", () => {
     for (const name of ALBUMS) {

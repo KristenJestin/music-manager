@@ -319,7 +319,8 @@ function explain(
     if (candidate.signals.artist >= 0.99) why.push("Artist matches exactly");
     // The sentence and the veto are the same comparison, read from the same threshold, so the
     // card can never say “Artist mismatch” about a candidate the engine went on to tick.
-    else if (candidate.artistDisagrees) why.push(`Artist mismatch (credited to ${candidate.artist})`);
+    else if (candidate.artistDisagrees)
+      why.push(`Artist mismatch (credited to ${candidate.artist})`);
   }
 
   if (fitSignal === null) {

@@ -315,9 +315,7 @@
             "id": "3ff8f632-fe05-4dcd-9c2b-0e98393b446c",
             "title": "Stardew Valley Piano Collections",
             "primary-type": "Album",
-            "secondary-types": [
-              "Remix"
-            ],
+            "secondary-types": ["Remix"],
             "first-release-date": "2018-10-05",
             "artist-credit": [
               {
@@ -353,9 +351,7 @@
             "id": "8b6cdffa-2111-4776-b4c3-a4cbb79cc7c0",
             "title": "Stardew Valley: Original Soundtrack - Update 1.4",
             "primary-type": "EP",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2019-11-26",
             "artist-credit": [
               {
@@ -373,9 +369,7 @@
             "id": "ccb58dd2-1f45-4076-bf04-3834f846f751",
             "title": "Stardew Valley: Original Soundtrack - Update 1.3",
             "primary-type": "EP",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2018-08-08",
             "artist-credit": [
               {
@@ -393,9 +387,7 @@
             "id": "cd30727a-128b-4c27-8c04-ce3ba7051519",
             "title": "Stardew Valley: Original Soundtrack - Update 1.1",
             "primary-type": "EP",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2017-11-02",
             "artist-credit": [
               {
@@ -413,9 +405,7 @@
             "id": "b6c548af-9f33-44f8-a4d3-c842135096c4",
             "title": "Stardew Valley: Original Soundtrack - Update 1.5",
             "primary-type": "EP",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2020-12-21",
             "artist-credit": [
               {
@@ -433,9 +423,7 @@
             "id": "6b464009-bd38-4a83-90b9-42a3ef822370",
             "title": "Stardew Valley 1.4 & 1.5 Soundtrack",
             "primary-type": "EP",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2022-02-25",
             "artist-credit": [
               {
@@ -453,9 +441,7 @@
             "id": "0c023b13-0789-4c22-85f7-a522917e4df3",
             "title": "Stardew Valley (Festival of Seasons)",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2025-08-29",
             "artist-credit": [
               {
@@ -473,9 +459,7 @@
             "id": "2acca63c-829e-4305-9e9a-875f210851ba",
             "title": "Stardew Valley: Original Soundtrack",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2015-11-07",
             "artist-credit": [
               {
@@ -540,9 +524,7 @@
               "id": "3ff8f632-fe05-4dcd-9c2b-0e98393b446c",
               "title": "Stardew Valley Piano Collections",
               "primary-type": "Album",
-              "secondary-types": [
-                "Remix"
-              ]
+              "secondary-types": ["Remix"]
             },
             "media": [
               {
@@ -592,9 +574,7 @@
               "id": "3ff8f632-fe05-4dcd-9c2b-0e98393b446c",
               "title": "Stardew Valley Piano Collections",
               "primary-type": "Album",
-              "secondary-types": [
-                "Remix"
-              ]
+              "secondary-types": ["Remix"]
             },
             "media": [
               {
@@ -660,9 +640,7 @@
           "id": "3ff8f632-fe05-4dcd-9c2b-0e98393b446c",
           "title": "Stardew Valley Piano Collections",
           "primary-type": "Album",
-          "secondary-types": [
-            "Remix"
-          ],
+          "secondary-types": ["Remix"],
           "first-release-date": "2018-10-05",
           "disambiguation": "",
           "artist-credit": [
@@ -730,9 +708,7 @@
                   "disambiguation": "",
                   "length": 147880,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801441"
-                  ],
+                  "isrcs": ["QZ6K41801441"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -792,9 +768,7 @@
                   "disambiguation": "",
                   "length": 211627,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801442"
-                  ],
+                  "isrcs": ["QZ6K41801442"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -854,9 +828,7 @@
                   "disambiguation": "",
                   "length": 264480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801443"
-                  ],
+                  "isrcs": ["QZ6K41801443"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -916,9 +888,7 @@
                   "disambiguation": "",
                   "length": 250120,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801444"
-                  ],
+                  "isrcs": ["QZ6K41801444"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -978,9 +948,7 @@
                   "disambiguation": "",
                   "length": 152187,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801445"
-                  ],
+                  "isrcs": ["QZ6K41801445"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1040,9 +1008,7 @@
                   "disambiguation": "",
                   "length": 257320,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801446"
-                  ],
+                  "isrcs": ["QZ6K41801446"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1102,9 +1068,7 @@
                   "disambiguation": "",
                   "length": 242347,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801447"
-                  ],
+                  "isrcs": ["QZ6K41801447"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1164,9 +1128,7 @@
                   "disambiguation": "",
                   "length": 210853,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801448"
-                  ],
+                  "isrcs": ["QZ6K41801448"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1226,9 +1188,7 @@
                   "disambiguation": "",
                   "length": 182000,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801449"
-                  ],
+                  "isrcs": ["QZ6K41801449"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1288,9 +1248,7 @@
                   "disambiguation": "",
                   "length": 112973,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801450"
-                  ],
+                  "isrcs": ["QZ6K41801450"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1350,9 +1308,7 @@
                   "disambiguation": "",
                   "length": 118413,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801451"
-                  ],
+                  "isrcs": ["QZ6K41801451"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1412,9 +1368,7 @@
                   "disambiguation": "",
                   "length": 225533,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801452"
-                  ],
+                  "isrcs": ["QZ6K41801452"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1474,9 +1428,7 @@
                   "disambiguation": "",
                   "length": 149600,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801453"
-                  ],
+                  "isrcs": ["QZ6K41801453"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1536,9 +1488,7 @@
                   "disambiguation": "",
                   "length": 189187,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801454"
-                  ],
+                  "isrcs": ["QZ6K41801454"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1598,9 +1548,7 @@
                   "disambiguation": "",
                   "length": 163480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801455"
-                  ],
+                  "isrcs": ["QZ6K41801455"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1660,9 +1608,7 @@
                   "disambiguation": "",
                   "length": 210440,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801456"
-                  ],
+                  "isrcs": ["QZ6K41801456"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1722,9 +1668,7 @@
                   "disambiguation": "",
                   "length": 181040,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801457"
-                  ],
+                  "isrcs": ["QZ6K41801457"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1784,9 +1728,7 @@
                   "disambiguation": "",
                   "length": 202107,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801458"
-                  ],
+                  "isrcs": ["QZ6K41801458"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1846,9 +1788,7 @@
                   "disambiguation": "",
                   "length": 152080,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801459"
-                  ],
+                  "isrcs": ["QZ6K41801459"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1908,9 +1848,7 @@
                   "disambiguation": "",
                   "length": 87733,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801460"
-                  ],
+                  "isrcs": ["QZ6K41801460"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -1970,9 +1908,7 @@
                   "disambiguation": "",
                   "length": 146480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801461"
-                  ],
+                  "isrcs": ["QZ6K41801461"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2032,9 +1968,7 @@
                   "disambiguation": "",
                   "length": 140813,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801462"
-                  ],
+                  "isrcs": ["QZ6K41801462"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2119,9 +2053,7 @@
           "id": "3ff8f632-fe05-4dcd-9c2b-0e98393b446c",
           "title": "Stardew Valley Piano Collections",
           "primary-type": "Album",
-          "secondary-types": [
-            "Remix"
-          ],
+          "secondary-types": ["Remix"],
           "first-release-date": "2018-10-05",
           "disambiguation": "",
           "artist-credit": [
@@ -2189,9 +2121,7 @@
                   "disambiguation": "",
                   "length": 147880,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801441"
-                  ],
+                  "isrcs": ["QZ6K41801441"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2251,9 +2181,7 @@
                   "disambiguation": "",
                   "length": 211627,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801442"
-                  ],
+                  "isrcs": ["QZ6K41801442"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2313,9 +2241,7 @@
                   "disambiguation": "",
                   "length": 264480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801443"
-                  ],
+                  "isrcs": ["QZ6K41801443"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2375,9 +2301,7 @@
                   "disambiguation": "",
                   "length": 250120,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801444"
-                  ],
+                  "isrcs": ["QZ6K41801444"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2437,9 +2361,7 @@
                   "disambiguation": "",
                   "length": 152187,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801445"
-                  ],
+                  "isrcs": ["QZ6K41801445"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2499,9 +2421,7 @@
                   "disambiguation": "",
                   "length": 257320,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801446"
-                  ],
+                  "isrcs": ["QZ6K41801446"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2561,9 +2481,7 @@
                   "disambiguation": "",
                   "length": 242347,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801447"
-                  ],
+                  "isrcs": ["QZ6K41801447"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2623,9 +2541,7 @@
                   "disambiguation": "",
                   "length": 210853,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801448"
-                  ],
+                  "isrcs": ["QZ6K41801448"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2685,9 +2601,7 @@
                   "disambiguation": "",
                   "length": 182000,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801449"
-                  ],
+                  "isrcs": ["QZ6K41801449"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2747,9 +2661,7 @@
                   "disambiguation": "",
                   "length": 112973,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801450"
-                  ],
+                  "isrcs": ["QZ6K41801450"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2809,9 +2721,7 @@
                   "disambiguation": "",
                   "length": 118413,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801451"
-                  ],
+                  "isrcs": ["QZ6K41801451"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2871,9 +2781,7 @@
                   "disambiguation": "",
                   "length": 225533,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801452"
-                  ],
+                  "isrcs": ["QZ6K41801452"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2933,9 +2841,7 @@
                   "disambiguation": "",
                   "length": 149600,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801453"
-                  ],
+                  "isrcs": ["QZ6K41801453"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -2995,9 +2901,7 @@
                   "disambiguation": "",
                   "length": 189187,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801454"
-                  ],
+                  "isrcs": ["QZ6K41801454"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3057,9 +2961,7 @@
                   "disambiguation": "",
                   "length": 163480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801455"
-                  ],
+                  "isrcs": ["QZ6K41801455"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3119,9 +3021,7 @@
                   "disambiguation": "",
                   "length": 210440,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801456"
-                  ],
+                  "isrcs": ["QZ6K41801456"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3181,9 +3081,7 @@
                   "disambiguation": "",
                   "length": 181040,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801457"
-                  ],
+                  "isrcs": ["QZ6K41801457"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3243,9 +3141,7 @@
                   "disambiguation": "",
                   "length": 202107,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801458"
-                  ],
+                  "isrcs": ["QZ6K41801458"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3305,9 +3201,7 @@
                   "disambiguation": "",
                   "length": 152080,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801459"
-                  ],
+                  "isrcs": ["QZ6K41801459"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3367,9 +3261,7 @@
                   "disambiguation": "",
                   "length": 87733,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801460"
-                  ],
+                  "isrcs": ["QZ6K41801460"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3429,9 +3321,7 @@
                   "disambiguation": "",
                   "length": 146480,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801461"
-                  ],
+                  "isrcs": ["QZ6K41801461"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {
@@ -3491,9 +3381,7 @@
                   "disambiguation": "",
                   "length": 140813,
                   "video": false,
-                  "isrcs": [
-                    "QZ6K41801462"
-                  ],
+                  "isrcs": ["QZ6K41801462"],
                   "first-release-date": "2018-10-05",
                   "artist-credit": [
                     {

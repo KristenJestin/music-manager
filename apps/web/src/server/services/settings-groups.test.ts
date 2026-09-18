@@ -112,7 +112,10 @@ describe("coverage", () => {
 
   it("…and each of them has a field on the page, not just a place on the list", () => {
     const page = readFileSync(
-      resolve(fileURLToPath(new URL(".", import.meta.url)), "../../routes/_app.settings.metadata.tsx"),
+      resolve(
+        fileURLToPath(new URL(".", import.meta.url)),
+        "../../routes/_app.settings.metadata.tsx",
+      ),
       "utf8",
     );
     for (const key of ADDED) expect(page).toContain(`testId="setting-${key}"`);

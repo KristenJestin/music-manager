@@ -264,9 +264,7 @@
             "id": "4866fa38-c5d8-45ff-95d6-34ac50a6ae25",
             "title": "Cars 3 (original score)",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2017-06-16",
             "artist-credit": [
               {
@@ -294,9 +292,7 @@
             "id": "61e875ab-c8c1-343f-9262-55f800c3659f",
             "title": "Air Force One (Unused Music for the Motion Picture)",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "disambiguation": "rejected score",
             "artist-credit": [
               {
@@ -314,9 +310,7 @@
             "id": "ae231f2a-45f1-417e-8913-54c6ea9edbd8",
             "title": "Original Album Series",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2011-09-12",
             "artist-credit": [
               {
@@ -334,9 +328,7 @@
             "id": "5b6220a9-0f7c-3122-81bc-56358cd7fa01",
             "title": "Randy Newman",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "artist-credit": [
               {
                 "name": "Randy Newman",
@@ -370,9 +362,7 @@
             "id": "3badce83-7463-4be6-9149-70b392c5291c",
             "title": "The People Dressed Like Monkeys",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2014-11-04",
             "artist-credit": [
               {
@@ -390,9 +380,7 @@
             "id": "d384dfbb-07d5-404c-bb8e-7a6a8b38d850",
             "title": "Cold Turkey",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2007-11-26",
             "artist-credit": [
               {
@@ -410,9 +398,7 @@
             "id": "4d4b843c-1bf7-34f0-abed-b43468c1e3b6",
             "title": "The Best of Randy Newman",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2001-09-18",
             "artist-credit": [
               {
@@ -447,9 +433,7 @@
             "id": "fc246e0b-4224-3951-a619-dc0e78be77cc",
             "title": "Randy Newman Live",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "1971-06",
             "artist-credit": [
               {
@@ -485,9 +469,7 @@
             "id": "8def86ca-3cdc-44b8-8383-3736c96b76d2",
             "title": "The Meyerowitz Stories (New and Selected)",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2017-10-20",
             "artist-credit": [
               {
@@ -505,9 +487,7 @@
             "id": "e65efe51-9c7f-451f-9170-57e7e74a9862",
             "title": "James y el melocotón gigante: Banda sonora original y en español",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "1996",
             "disambiguation": "James and the Giant Peach, Spanish lyrics",
             "artist-credit": [
@@ -543,9 +523,7 @@
             "id": "8a078d31-9d93-44ad-b5f8-347af4098f23",
             "title": "The Randy Newman Songbook",
             "primary-type": "Album",
-            "secondary-types": [
-              "Compilation"
-            ],
+            "secondary-types": ["Compilation"],
             "first-release-date": "2016-09-23",
             "artist-credit": [
               {
@@ -563,9 +541,7 @@
             "id": "9e708dcc-f261-4a0f-888e-c89109a51ee5",
             "title": "Live In Germany 2006",
             "primary-type": "Album",
-            "secondary-types": [
-              "Live"
-            ],
+            "secondary-types": ["Live"],
             "first-release-date": "2013",
             "artist-credit": [
               {
@@ -600,9 +576,7 @@
             "id": "4daf349c-4181-4739-8853-e19d5c01540e",
             "title": "La Princesse et la Grenouille (Bande originale française du film)",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2009",
             "disambiguation": "The Princess and the Frog, French lyrics",
             "artist-credit": [
@@ -621,9 +595,7 @@
             "id": "6d651a80-d430-44a0-b278-8a7dc08df058",
             "title": "Küss den Frosch",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2009-12-11",
             "disambiguation": "The Princess and the Frog, German lyrics",
             "artist-credit": [
@@ -642,9 +614,7 @@
             "id": "30bcf49f-1a63-4d37-86ad-34dbe6a8725f",
             "title": "Tiana y el sapo",
             "primary-type": "Album",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "2010-02-02",
             "disambiguation": "The Princess and the Frog, Spanish lyrics",
             "artist-credit": [
@@ -714,9 +684,7 @@
             "id": "d3d6aab5-9e7c-44e7-b670-6689e9845ed6",
             "title": "The Natural",
             "primary-type": "Single",
-            "secondary-types": [
-              "Soundtrack"
-            ],
+            "secondary-types": ["Soundtrack"],
             "first-release-date": "1984",
             "artist-credit": [
               {
@@ -807,9 +775,7 @@
               "id": "4866fa38-c5d8-45ff-95d6-34ac50a6ae25",
               "title": "Cars 3 (original score)",
               "primary-type": "Album",
-              "secondary-types": [
-                "Soundtrack"
-              ]
+              "secondary-types": ["Soundtrack"]
             },
             "media": [
               {
@@ -851,9 +817,7 @@
               "id": "4866fa38-c5d8-45ff-95d6-34ac50a6ae25",
               "title": "Cars 3 (original score)",
               "primary-type": "Album",
-              "secondary-types": [
-                "Soundtrack"
-              ]
+              "secondary-types": ["Soundtrack"]
             },
             "media": [
               {
@@ -909,9 +873,7 @@
           "id": "4866fa38-c5d8-45ff-95d6-34ac50a6ae25",
           "title": "Cars 3 (original score)",
           "primary-type": "Album",
-          "secondary-types": [
-            "Soundtrack"
-          ],
+          "secondary-types": ["Soundtrack"],
           "first-release-date": "2017-06-16",
           "disambiguation": "",
           "artist-credit": [
@@ -1824,9 +1786,7 @@
           "id": "4866fa38-c5d8-45ff-95d6-34ac50a6ae25",
           "title": "Cars 3 (original score)",
           "primary-type": "Album",
-          "secondary-types": [
-            "Soundtrack"
-          ],
+          "secondary-types": ["Soundtrack"],
           "first-release-date": "2017-06-16",
           "disambiguation": "",
           "artist-credit": [
