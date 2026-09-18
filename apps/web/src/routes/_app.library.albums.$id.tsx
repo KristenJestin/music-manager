@@ -840,9 +840,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
         // The credited artist, which on a compilation is not the album artist — and on `Cars`
         // it is the whole of what tells Chuck Berry's *Route 66* from John Mayer's.
         <span className={slot.kind === "missing" ? "text-fg-3" : "text-fg-2"}>
-          {slot.kind === "missing"
-            ? (slot.track.artist ?? album.album.albumArtist)
-            : (slot.track.artist ?? album.album.albumArtist)}
+          {slot.track.artist ?? album.album.albumArtist}
         </span>
       ),
     },
@@ -890,9 +888,9 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
       key: "recording",
       header: "Recording",
       cell: (slot) => (
-        <span className="font-mono text-2xs text-fg-3">
-          {short(slot.kind === "missing" ? slot.track.recordingMbid : slot.track.recordingMbid)}
-        </span>
+        // Both kinds carry one: a missing track's comes from the release, which is how you go
+        // and look the recording up before deciding what file to give it.
+        <span className="font-mono text-2xs text-fg-3">{short(slot.track.recordingMbid)}</span>
       ),
     },
     {
