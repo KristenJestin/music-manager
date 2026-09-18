@@ -248,8 +248,9 @@ export interface AdoptLibraryTrackResult extends AdoptResult {
  * with exactly the options any other caller would pass it.
  *
  * What comes back is one track resuming the pipeline **on its own**: `fingerprint`, then `tag`,
- * then `place`, on the per-track queue. The album's other fifteen files are not touched, not
- * re-tagged and not re-placed.
+ * then `place`, on the per-track queue. The album's other files are not touched, not re-tagged
+ * and not re-placed — `download` recognises each of them where `place` left it and counts it as
+ * present, which is what makes "for this track alone" true rather than merely intended.
  */
 export async function adoptLibraryTrack(
   options: AdoptLibraryTrackOptions,
