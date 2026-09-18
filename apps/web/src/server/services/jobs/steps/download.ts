@@ -243,8 +243,23 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
      * It is not counted as `skipped` either, and that distinction is deliberate: `skipped`
      * means "already in the library, spared", and this means "waiting for somebody to give it
      * a source". The state stays `sourceless` so the page keeps offering the adoption.
+     *
+     * **"No url" is not enough on its own; it has to have no file either.** A sourceless row
+     * that somebody has since adopted onto keeps `url: null` for ever — it never had a video
+     * and never pretends it did — while its state becomes `downloaded` and a file appears at
+     * the work path. Skipping on the url alone therefore skipped precisely the tracks this
+     * feature exists to rescue: the adopted file was never announced on the per-track queue,
+     * so `fingerprint` never ran for it, `aggregateStatus` never reached `done`, and the
+     * re-opened import hung at `fingerprint` for ever. Caught by `e2e-fixture` § 11.
+     *
+     * Asking the filesystem is also the right question rather than a cheaper proxy, for the
+     * reason `fileReady` exists at all: this step trusts the disk over its own row.
      */
-    if (track.state === "sourceless" || track.url === null) {
+    if (
+      track.url === null &&
+      fileOnDisk(ctx.paths, track.libraryPath) === null &&
+      fileReady(ctx, track) === null
+    ) {
       sourceless += 1;
       continue;
     }

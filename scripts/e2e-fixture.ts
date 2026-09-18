@@ -1371,28 +1371,41 @@ async function main(): Promise<void> {
       "…and `raw` remembers the address, so a rebuild months later says the same thing",
       `${provenance[0]?.n ?? "?"} record(s)`,
     );
-  }
 
-  // The same gesture on an ordinary failed video, and the sentence it writes into the file.
-  // Read with ffprobe off a placed file: the database was never the thing in doubt.
-  const replaced = await sql<{ path: string }[]>`
-    select lt.path
-      from library_tracks lt
-      join import_tracks it on it.id = lt.import_track_id
-     where it.raw -> 'mm_adoption' ->> 'via' = 'url'
-     limit 1`;
-  if ((replaced[0]?.path ?? "") !== "") {
-    const tags = await probe(replaced[0]?.path ?? "");
-    const comment = tags.tags["COMMENT"] ?? "";
+    /*
+     * And the adopted row rejoins the pipeline with no further gesture.
+     *
+     * Adopting re-opens a finished import and re-queues it, so the worker picks this track up
+     * and carries it on. That it does is asserted here; **that it is skipped by `download`
+     * before it can** was a real defect this section caught — the first version of the
+     * sourceless guard keyed on `url is null` alone, which is still true of an adopted row
+     * (it never had a video and never pretends it did), so the file was never announced on
+     * the per-track queue and the re-opened import hung at `fingerprint` for ever.
+     *
+     * What is deliberately *not* asserted here is the placed file and its COMMENT. A `?gap=`
+     * listing steers the matcher to an edition of the record whose MusicBrainz document is not
+     * in the recorded set, so `tag` fails the album on `OFFLINE_CACHE_MISS` — a fact about
+     * fixture coverage and nothing to do with adoption. That claim is made where it can be
+     * made honestly: `adopt.integration.test.ts` takes a replacement download all the way to
+     * `place` and reads *Downloaded from … · original source … unavailable* back off the file
+     * with ffprobe.
+     */
+    await waitFor(
+      gapJob,
+      (row) => row.status !== "pending",
+      "the re-opened import to be picked up again",
+    );
+    const resumed = await sql<{ state: string; url: string | null }[]>`
+      select state::text as state, url from import_tracks where id = ${gapTrack} limit 1`;
     check(
-      comment.startsWith("Downloaded from"),
-      "a replaced track's COMMENT names the address the bytes really came from",
-      comment.slice(0, 140),
+      resumed[0]?.state !== "sourceless",
+      "the re-opened import carries it on rather than skipping it back to `sourceless`",
+      resumed[0]?.state ?? "?",
     );
     check(
-      !comment.startsWith("Source:") && !comment.includes("Adopted local file"),
-      "…and claims neither to be its own video nor to be a file off a disk",
-      comment.slice(0, 140),
+      resumed[0]?.url === null,
+      "…while the row still admits it never had a video of its own",
+      String(resumed[0]?.url),
     );
   }
 
