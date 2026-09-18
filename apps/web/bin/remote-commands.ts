@@ -352,6 +352,50 @@ async function cmdRetry(api: ApiClient, args: RemoteArgs): Promise<number> {
 }
 
 /**
+ * The body a remote adoption posts, from `--file`, `--server-path` or `--from-url`.
+ *
+ * Shared by `mm adopt` and `mm library adopt`, because they send the same union to two
+ * different routes. A second copy of "which flag means which `source`" is how those two came
+ * to disagree about the address form in the first place, and it is the same argument that put
+ * `adoptSourceOf` in `adopt.ts` rather than beside one route.
+ *
+ * **`--from-url`, never `--url`.** `--url` is taken, globally and irrevocably: it is how this
+ * CLI is pointed at the installation it is talking to, and it is read before the command name.
+ * `mm --url https://mine library adopt … --url https://youtu.be/…` would be read as two
+ * installations and never reach this function.
+ *
+ * The shape is written out here rather than imported from `server/services/adopt.ts`: this
+ * file imports **nothing** from `#/server/**` on purpose (see the note at the top), and a
+ * structural type that the API's own zod schema validates on arrival is the honest price of
+ * that rule. A field renamed on the server is a 400 from the far end, not a silent success.
+ */
+type RemoteAdoptBody =
+  | { readonly source: "path"; readonly path: string }
+  | { readonly source: "upload"; readonly filename: string; readonly content: string }
+  | { readonly source: "url"; readonly url: string };
+
+function adoptBodyFrom(args: RemoteArgs, usage: string): RemoteAdoptBody {
+  const file = flagString(args, "file");
+  const serverPath = flagString(args, "server-path");
+  const from = flagString(args, "from-url");
+
+  // Exactly one, and a refusal rather than a precedence order: silently ignoring one of two
+  // supplied sources is how somebody uploads a file and believes they adopted a different one.
+  const given = [file, serverPath, from].filter((one) => one !== undefined);
+  if (given.length !== 1) throw new Error(usage);
+
+  if (from !== undefined) return { source: "url", url: from };
+  if (serverPath !== undefined) return { source: "path", path: serverPath };
+  return {
+    source: "upload",
+    filename: (file ?? "").split(/[/\\]/).pop() ?? "adopted",
+    // `node:fs`, not `Bun.file`: `bin/` is the one place in this app that really does run
+    // under Bun, and it is still not worth a second way of reading a file.
+    content: readFileSync(file ?? "").toString("base64"),
+  };
+}
+
+/**
  * `mm adopt <id> <track id> --file <path> | --server-path <path> | --from-url <address>`
  * against another installation.
  *
@@ -367,33 +411,15 @@ async function cmdRetry(api: ApiClient, args: RemoteArgs): Promise<number> {
 async function cmdAdopt(api: ApiClient, args: RemoteArgs): Promise<number> {
   const id = args.positional[1];
   const trackId = args.positional[2];
-  const file = flagString(args, "file");
-  const serverPath = flagString(args, "server-path");
-  const from = flagString(args, "from-url");
-  const given = [file, serverPath, from].filter((value) => value !== undefined);
-  if (id === undefined || trackId === undefined || given.length !== 1) {
-    throw new Error(
-      "usage: mm adopt <id> <track id> --file <path here>\n" +
-        "       mm adopt <id> <track id> --server-path <path there>\n" +
-        "       mm adopt <id> <track id> --from-url <address the server downloads from>\n" +
-        "\n" +
-        "`--from-url`, never `--url`: you are already using `--url` to name the installation " +
-        "this command is talking to, and it is read before the command name.",
-    );
-  }
-
-  const body =
-    from !== undefined
-      ? { source: "url" as const, url: from }
-      : serverPath !== undefined
-        ? { source: "path" as const, path: serverPath }
-        : {
-            source: "upload" as const,
-            filename: (file ?? "").split(/[/\\]/).pop() ?? "adopted",
-            // `node:fs`, not `Bun.file`: `bin/` is the one place in this app that really does
-            // run under Bun, and it is still not worth a second way of reading a file.
-            content: readFileSync(file ?? "").toString("base64"),
-          };
+  const usage =
+    "usage: mm adopt <id> <track id> --file <path here>\n" +
+    "       mm adopt <id> <track id> --server-path <path there>\n" +
+    "       mm adopt <id> <track id> --from-url <address the server downloads from>\n" +
+    "\n" +
+    "`--from-url`, never `--url`: you are already using `--url` to name the installation " +
+    "this command is talking to, and it is read before the command name.";
+  if (id === undefined || trackId === undefined) throw new Error(usage);
+  const body = adoptBodyFrom(args, usage);
 
   const result = await api.post<{
     path: string;
@@ -617,7 +643,127 @@ async function cmdLibrary(api: ApiClient, args: RemoteArgs): Promise<number> {
     return dump(payload);
   }
 
-  throw new Error("usage: mm library albums|tracks|artists|show <id>|search <q>|retag|verify");
+  /*
+   * `mm library missing <album id>` — which tracks of the release the far end has not got.
+   *
+   * The remote twin of the local command, and it exists for the same reason the whole feature
+   * does: the owner drives a deployed installation from his own machine, and an album with
+   * holes in it is exactly the thing you find from a terminal and want to fix from a terminal.
+   * `GET` only, offline on the server, so it is cheap to run over every album a
+   * `--filter incomplete` listing named.
+   */
+  if (sub === "missing") {
+    const id = args.positional[2];
+    if (id === undefined) throw new Error("usage: mm library missing <album id> [--json]");
+    const payload = await api.get<{
+      releaseMbid: string | null;
+      trackCount: number;
+      presentCount: number;
+      mediumCount: number;
+      unavailable: string | null;
+      missing: {
+        mediumPosition: number;
+        trackPosition: number;
+        title: string;
+        artist: string | null;
+      }[];
+    }>(`/library/albums/${id}/missing`);
+    if (asJson(args)) return dump(payload);
+
+    line(
+      `${String(payload.presentCount)}/${String(payload.trackCount)} track(s) present · release ${payload.releaseMbid ?? "—"}`,
+    );
+    if (payload.unavailable !== null) {
+      line("");
+      // Said, rather than left as an empty list: "nothing printed" and "nothing is missing"
+      // look identical on a terminal, and only one of them is good news.
+      line(
+        payload.unavailable === "no-release"
+          ? "  This album has no MusicBrainz release, so there is no tracklist to compare it against."
+          : "  The release is not in that installation's cache, so its tracklist cannot be read offline.",
+      );
+      return 0;
+    }
+    if (payload.missing.length === 0) {
+      line("");
+      line("  Every track of the release is accounted for.");
+      return 0;
+    }
+    line("");
+    const multi = payload.mediumCount > 1;
+    line(`${multi ? "DISC  " : ""}  #  TITLE                          ARTIST`);
+    for (const track of payload.missing) {
+      line(
+        `${multi ? `${String(track.mediumPosition).padStart(4)}  ` : ""}` +
+          `${String(track.trackPosition).padStart(3)}  ` +
+          `${track.title.slice(0, 30).padEnd(30)} ${track.artist ?? ""}`,
+      );
+    }
+    line("");
+    line("  mm library adopt <album id> <disc> <position> --file <path here>   to fill one");
+    return 0;
+  }
+
+  /*
+   * `mm library adopt <album id> <disc> <position>` — fill one of them, from here.
+   *
+   * Three ways in, and the default is the opposite of the local command's for the reason
+   * `cmdAdopt` above gives: remote mode is the case where the file and the library really are
+   * on two machines, so `--file` is read *from this machine* and uploaded. `--server-path` is
+   * the file already on the far end, and it still has to pass that installation's
+   * `adoptSourceRoots`; `--url` is the address the far end fetches for itself, which on a
+   * track the playlist never published is usually the only one of the three that applies.
+   */
+  if (sub === "adopt") {
+    const usage =
+      "usage: mm library adopt <album id> <disc> <position> --file <path here>\n" +
+      "       mm library adopt <album id> <disc> <position> --server-path <path there>\n" +
+      "       mm library adopt <album id> <disc> <position> --url <address>";
+    const id = args.positional[2];
+    const medium = Number(args.positional[3]);
+    const position = Number(args.positional[4]);
+    if (id === undefined || !Number.isInteger(medium) || !Number.isInteger(position)) {
+      throw new Error(usage);
+    }
+
+    const result = await api.post<{
+      trackTitle: string;
+      mediumPosition: number;
+      trackPosition: number;
+      path: string;
+      bytes: number;
+      codec: string | null;
+      originalName: string;
+      materialised: boolean;
+      nextStep: string | null;
+      queued: boolean;
+      counters: { presentCount: number; trackCount: number };
+    }>(
+      `/library/albums/${id}/missing/${String(medium)}/${String(position)}/file`,
+      adoptBodyFrom(args, usage),
+    );
+
+    if (asJson(args)) return dump(result);
+    line(`adopted ${result.originalName} for “${result.trackTitle}”`);
+    line(`  slot     disc ${String(result.mediumPosition)}, track ${String(result.trackPosition)}`);
+    line(
+      `  file     ${result.path} (${String(Math.round(result.bytes / 1024))} KiB, ${result.codec ?? "?"})`,
+    );
+    if (result.materialised) {
+      line("  row      created with no source: that playlist never published this track");
+    }
+    line(`  next     ${result.nextStep ?? "nothing left"}${result.queued ? " (queued)" : ""}`);
+    line("");
+    line(
+      `The album says ${String(result.counters.presentCount)}/${String(result.counters.trackCount)} until \`place\` files this one.`,
+    );
+    return 0;
+  }
+
+  throw new Error(
+    "usage: mm library albums|tracks|artists|show <id>|search <q>|missing <id>|" +
+      "adopt <id> <disc> <pos>|retag|verify",
+  );
 }
 
 async function cmdSettings(api: ApiClient, args: RemoteArgs): Promise<number> {
@@ -727,6 +873,10 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
   mm inbox resolve --all --accept [--import <id>]
   mm library albums|tracks|artists [--filter f] [--search s] [--limit n]
   mm library show <album id> | search <text>
+  mm library missing <album id> [--json]               which tracks of the release it has not got
+  mm library adopt <album id> <disc> <position> --file <path here>
+  mm library adopt <album id> <disc> <position> --server-path <path there> | --url <address>
+                                                       fill one of them, that track alone
   mm library retag [--album <id>] [--dry-run] [--now] | verify [--album <id>]
   mm settings list|get [key]|set <key> <value>|schema
   mm tools status|update|selftest|scan|errors|cookies|url <url>
