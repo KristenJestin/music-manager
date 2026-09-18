@@ -641,9 +641,18 @@ pas concerné : il n'ouvre aucun chemin.
 1. Ouvrez l'import : **Jobs → l'import → tableau Tracks**.
 2. Sur la ligne de la piste en échec (badge `Failed`, code d'erreur en dessous), deux boutons :
    **Retry track**, et à côté l'icône **« Adopt a local file »**.
-3. La boîte de dialogue propose **Upload a file** (le fichier est sur votre poste) ou **A path
-   on the server** (il est déjà sur la machine).
+3. La boîte de dialogue propose trois entrées : **Upload a file** (le fichier est sur votre
+   poste), **A path on the server** (il est déjà sur la machine) et **Another address** (vous
+   n'avez aucun fichier, mais la même chanson existe ailleurs sur YouTube).
 4. Validez. La piste repasse en `downloaded`, l'erreur est effacée, et l'empreinte démarre.
+
+**Another address** est la réponse au cas le plus fréquent : la vidéo est supprimée, sous
+vérification d'âge ou réservée à Music Premium, et le même titre est en ligne sous un autre
+envoi. Le serveur télécharge depuis cette adresse-là ; la provenance déclarée de la piste
+reste la vidéo d'origine. C'est la seule des trois qui prend le créneau de téléchargement
+unique, donc elle prend du temps et peut répondre `LOCKED` si un autre téléchargement tourne —
+dans ce cas, réessayez un peu plus tard. Le bouton dit « Download it » et non « Adopt this
+file », parce que c'est bien un téléchargement que le clic lance.
 
 ### Depuis l'API
 
@@ -658,7 +667,21 @@ curl -sS -X POST "$MM_URL/api/v1/imports/imp_01.../tracks/itr_01.../file" \
   -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
   -d "$(jq -n --arg n '03.flac' --arg c "$(base64 -w0 03.flac)" \
         '{source:"upload",filename:$n,content:$c}')"
+
+# il n'existe aucun fichier : le serveur télécharge depuis un autre envoi du même titre
+curl -sS -X POST "$MM_URL/api/v1/imports/imp_01.../tracks/itr_01.../file" \
+  -H "x-api-key: $MM_TOKEN" -H 'content-type: application/json' \
+  -d '{"source":"url","url":"https://www.youtube.com/watch?v=kJQP7kiw5Fk"}'
 ```
+
+`source: "url"` n'accepte que `http://` et `https://` (et `fixture://` en mode fixtures) ;
+tout autre schéma est refusé en `INVALID_INPUT`, avant le moindre appel au toolbox. C'est
+délibérément une liste fermée : yt-dlp sait lire bien plus que des adresses web — `file://`
+notamment — et un champ qui se contenterait de « ressembler à une URL » recréerait par cette
+porte-là exactement la primitive de lecture de fichier que `adoptSourceRoots` interdit par
+l'autre. C'est aussi la seule des trois formes qui prend le créneau de téléchargement unique,
+donc la seule qui peut répondre **409 `LOCKED`** : ce n'est pas une erreur d'appel, c'est une
+file d'attente — réessayez.
 
 La réponse donne le chemin retenu, la taille, le codec lu par ffprobe et l'étape suivante :
 
@@ -687,25 +710,41 @@ bun run mm -- adopt imp_01... itr_01... --file '/srv/ancienne-bibliotheque/.../0
 bun run mm -- --url https://music.exemple.fr --token mm_… \
   adopt imp_01... itr_01... --file './03.flac'
 # …ou --server-path pour un fichier déjà présent là-bas
+
+# aucun fichier : le serveur télécharge depuis un autre envoi du même titre
+bun run mm -- adopt imp_01... itr_01... --from-url 'https://www.youtube.com/watch?v=kJQP7kiw5Fk'
 ```
 
-Un agent MCP dispose du même outil, `adopt_track_file`.
+**`--from-url`, et non `--url`.** `--url` est déjà pris, globalement : `mm --url <base>
+--token mm_… <commande>` est la façon de piloter _une autre installation_, et ce drapeau est
+lu avant même que le nom de la commande soit regardé. Un `--url` sur `adopt` n'atteindrait
+donc jamais la commande — il serait compris comme « pilote l'installation qui se trouve à
+youtu.be ». Les deux modes, local et distant, emploient la même orthographe.
+
+Un agent MCP dispose du même outil, `adopt_track_file`, avec les trois entrées : `path`,
+`content` et `url`.
 
 ### Ce que les tags diront
 
 Le document de métadonnées dit la vérité sur la provenance, et il continue de la dire après un
 re-tag : la trace est écrite dans `import_tracks.raw`, d'où le document est reconstruit.
 
-| Champ                    | Fichier téléchargé                                   | Fichier adopté                                                                                                |
-| ------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `COMMENT`                | `Source: youtu.be/… · imported … by Music Manager …` | `Adopted local file "03.flac" on 2026-09-17 · not downloaded from youtu.be/… · imported … by Music Manager …` |
-| `ORIGINALFILENAME`       | `<id vidéo>.<ext>`                                   | le nom du fichier adopté                                                                                      |
-| `ENCODEDBY`              | la version de yt-dlp                                 | n/a — « the file was adopted from disk, not downloaded »                                                      |
-| `MUSICMANAGER_SOURCEURL` | l'URL de la vidéo                                    | **inchangé** : l'URL de la vidéo                                                                              |
+| Champ                    | Fichier téléchargé                                   | Fichier adopté (`path`, `upload`)                                                                             | Adresse de remplacement (`url`)                                                             |
+| ------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `COMMENT`                | `Source: youtu.be/… · imported … by Music Manager …` | `Adopted local file "03.flac" on 2026-09-17 · not downloaded from youtu.be/… · imported … by Music Manager …` | `Downloaded from youtu.be/XXX · original source youtu.be/YYY unavailable · imported … by …` |
+| `ORIGINALFILENAME`       | `<id vidéo>.<ext>`                                   | le nom du fichier adopté                                                                                      | `<id de l'autre envoi>.<ext>`                                                               |
+| `ENCODEDBY`              | la version de yt-dlp                                 | n/a — « the file was adopted from disk, not downloaded »                                                      | la version de yt-dlp : il a bel et bien téléchargé celui-ci                                 |
+| `MUSICMANAGER_SOURCEURL` | l'URL de la vidéo                                    | **inchangé** : l'URL de la vidéo                                                                              | **inchangé** : l'URL de la vidéo d'origine                                                  |
 
-`MUSICMANAGER_SOURCEURL` reste l'URL de la vidéo à dessein. C'est l'**identité** de la piste —
-ce sur quoi la reprise v1, le scan de bibliothèque et le re-tag se recalent — et non une
-affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en toutes lettres.
+`MUSICMANAGER_SOURCEURL` reste l'URL de la vidéo à dessein, y compris pour une adresse de
+remplacement. C'est l'**identité** de la piste — ce sur quoi la reprise v1, le scan de
+bibliothèque et le re-tag se recalent — et non une affirmation sur l'origine des octets ;
+c'est `COMMENT` qui porte celle-là, en toutes lettres, et qui nomme les deux adresses : celle
+qui a fourni le son, puis celle que la piste _est_ et qui n'a rien voulu donner.
+
+Une adresse de remplacement est un autre envoi de la même chanson, jamais une autre piste :
+`ENCODERSETTINGS` est donc n/a plutôt que recopié de la vidéo d'origine, dont le format décrit
+un fichier qui n'a jamais été produit.
 
 ### Les refus, et ce qu'ils demandent
 
@@ -716,7 +755,32 @@ affirmation sur l'origine des octets ; c'est `COMMENT` qui porte celle-là, en t
 | `ADOPT_CONFLICT` (409)     | La piste a déjà un fichier, dans le répertoire de travail ou dans la bibliothèque.     | **Retry track** d'abord : c'est ce qui efface le fichier existant.                                                                                                          |
 | `ADOPT_PATH_REFUSED` (403) | Le chemin est hors bibliothèque et hors `adoptSourceRoots`.                            | Ajouter le dossier au réglage, ou téléverser le fichier.                                                                                                                    |
 | `ADOPT_NOT_READY` (409)    | L'import est annulé, ou pas encore confirmé, ou cette vidéo n'est liée à aucune piste. | Confirmer la sortie et le mapping d'abord : sans enregistrement MusicBrainz lié, il n'y a rien à quoi rattacher le fichier.                                                 |
+| `LOCKED` (409)             | `source: "url"` a demandé le créneau de téléchargement pendant qu'un autre l'occupait. | Attendre et réessayer. Il n'y a qu'un créneau, et ce n'est pas une erreur d'appel : lancer plusieurs adoptions par adresse en parallèle ne fait que les mettre en file.     |
+| `INVALID_INPUT` (400)      | L'adresse n'est ni `http://` ni `https://`.                                            | Donner l'adresse de la page d'un autre envoi. `file://`, `data:` et les autres schémas sont refusés avant tout appel au toolbox.                                            |
 | `413`                      | Le téléversement dépasse 64 Mo.                                                        | Poser le fichier sur le serveur et l'adopter par chemin.                                                                                                                    |
+
+### Une piste que la playlist ne contenait pas
+
+YouTube publie dix-neuf titres ; la sortie MusicBrainz confirmée en compte vingt. Le vingtième
+était jusqu'ici inatteignable, même en ayant le fichier sous la main : une ligne
+`import_tracks` naît d'une vidéo, il n'existait donc aucun identifiant de piste à qui donner
+quoi que ce soit, et l'adoption répondait `ADOPT_NOT_READY`.
+
+**À la confirmation**, chaque piste de la sortie retenue qu'aucune vidéo ne couvre reçoit
+désormais une ligne à elle, sans `video_id` ni `url`, dans l'état `sourceless`. Elle porte sa
+position sur le disque (medium + piste), son titre, son enregistrement et sa durée attendue.
+
+- Elle **n'est jamais téléchargée** : l'étape `download` la compte (`… , 1 with no source yet`)
+  et passe son chemin.
+- Elle **ne fait pas échouer l'import** et ne le laisse pas inachevé : elle est terminale, au
+  même titre qu'une piste `skipped`, donc les étapes par piste peuvent finir. Un album à trou
+  se termine et annonce 19 sur 20, au lieu de rester `running` indéfiniment.
+- Elle reste **visible** : grisée dans le tableau Tracks avec le badge « No source » et le
+  bouton d'adoption, et l'item Inbox `uncovered_tracks` reste ouvert.
+
+Pour la combler, c'est le geste ci-dessus, avec un fichier ou une adresse de remplacement.
+Depuis un agent, `get_import` renvoie ces pistes avec le même `id` que les autres — c'est le
+`trackId` que prend `adopt_track_file` — et `sourcelessCount` dit combien il en reste.
 
 ### Reprendre une bibliothèque existante, piste par piste
 
