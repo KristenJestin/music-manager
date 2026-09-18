@@ -51,6 +51,8 @@ export const METADATA_KEYS = [
   "matchLookupLimit",
   "matchSearchLimit",
   "matchGroupLimit",
+  "matchArtistLadder",
+  "matchArtistVeto",
   "matchReleaseWeights",
   "matchRecordingWeights",
   "matchMappingWeights",

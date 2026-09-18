@@ -185,6 +185,26 @@ export interface MatchingPreferences {
   readonly countries: readonly string[];
   readonly format: string;
   readonly explicit: "either" | "explicit" | "clean";
+  /**
+   * Refuse to *preselect* a candidate whose artist signal says the artist disagrees.
+   *
+   * The seventh owner review, in one field. The engine already wrote the sentence that
+   * condemns the candidate — “Artist mismatch (credited to VSO)” — on the card of the very
+   * candidate it had ticked in advance, at 0.725, which is above `matchPreselectionFloor` and
+   * therefore invisible to the only guard there was. A disagreement about *who made the
+   * record* is not a matter of score, so no floor can be set high enough to catch it without
+   * also refusing the ordinary case where MusicBrainz spells a name differently.
+   *
+   * What it does is narrow on purpose: the candidate stays in the list, in its ranked place,
+   * with its score and its reasons. It is simply not ticked in advance, and `preselected`
+   * falls through to the best candidate that *does* carry the artist — or to `null`, which is
+   * the honest answer when the whole list is somebody else's records.
+   *
+   * `true` by default and a setting (`matchArtistVeto`), because an operator whose library is
+   * mostly soundtracks — where “Various Artists” disagrees with every credit YouTube writes —
+   * may legitimately want the tick back.
+   */
+  readonly artistVeto: boolean;
 }
 
 export interface MatchingThresholds {
@@ -206,6 +226,16 @@ export interface MatchingThresholds {
   readonly coveragePenalty: number;
   /** What one surplus video costs relative to one missing track, inside `trackCount`. */
   readonly trackSurplusCost: number;
+  /**
+   * Below this the artist signal stops being a deduction and becomes a **disagreement**.
+   *
+   * One number, read in exactly two places per scorer, and that is the whole reason it is here
+   * rather than inlined twice: it is the threshold that makes the “Artist mismatch” line appear
+   * in `why`, *and* the threshold that raises `artistDisagrees`. Written once, the sentence and
+   * the flag cannot drift apart — and drifting apart is the failure this is for, in its worst
+   * shape: three scorers printing the sentence and nothing at all reading it.
+   */
+  readonly artistDisagreement: number;
 }
 
 /** Everything the pure engine needs to be reproducible. Every field has a documented default. */
@@ -358,6 +388,17 @@ export interface ReleaseCandidate {
   readonly signals: ReleaseSignals;
   readonly penalties: readonly Penalty[];
   readonly why: readonly string[];
+  /**
+   * The structured form of the “Artist mismatch” line in `why` — `signals.artist` below
+   * `thresholds.artistDisagreement`.
+   *
+   * It exists so that a *veto* can be written against the signal instead of against the
+   * prose. Reading `why.includes("Artist mismatch")` would work today and rot the first time
+   * somebody rewords the sentence, translates it, or adds the credited name to it — and it
+   * would rot silently, into exactly the behaviour this replaces. `matching.test.ts` asserts
+   * the two are the same statement in both directions.
+   */
+  readonly artistDisagrees: boolean;
   readonly preselected: boolean;
   readonly safe: boolean;
   /**
@@ -396,6 +437,8 @@ export interface ReleaseGroupCandidate {
   /** What the group looked like *before* any release of it was looked up. Ordered the search. */
   readonly searchScore: number;
   /** Its releases, best first. `releases[0]` is what selecting the group selects. */
+  /** See `ReleaseCandidate.artistDisagrees`. A group disagrees when its best release does. */
+  readonly artistDisagrees: boolean;
   readonly releases: readonly ReleaseCandidate[];
   /** How many of its releases got a tracklist lookup. */
   readonly detailedCount: number;
@@ -453,6 +496,8 @@ export interface RecordingCandidate {
   readonly signals: RecordingSignals;
   readonly penalties: readonly Penalty[];
   readonly why: readonly string[];
+  /** See `ReleaseCandidate.artistDisagrees`: the same statement, on the single path. */
+  readonly artistDisagrees: boolean;
   readonly preselected: boolean;
   readonly safe: boolean;
   readonly releases: readonly BorrowRelease[];

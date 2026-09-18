@@ -413,6 +413,43 @@ function MetadataSettings() {
           />
         </FormRow>
         <FormRow
+          label="Degrade the artist, never drop it"
+          help="When a search comes back empty, ask again with a shorter credit: the first credited name, the whole credit, then each of the other names the source lists — and finally the album title with its trailing edition word treated as noise. Every rung still names an artist."
+        >
+          <Toggle
+            testId="setting-matchArtistLadder"
+            checked={value("matchArtistLadder", true)}
+            onChange={(next) => {
+              set("matchArtistLadder", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Never preselect an artist mismatch"
+          help="A candidate whose own reasons say the artist does not match stays in the list, with its score and its explanation — it is simply not ticked in advance. Turn this off if your library is mostly soundtracks, where “Various Artists” disagrees with every credit YouTube writes."
+        >
+          <Toggle
+            testId="setting-matchArtistVeto"
+            checked={value("matchArtistVeto", true)}
+            onChange={(next) => {
+              set("matchArtistVeto", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Binding floor"
+          help="A video/track pair below this is not bound at all; the video becomes an extra rather than a bad guess."
+        >
+          <NumberField
+            testId="setting-matchBindingFloor"
+            value={value("matchBindingFloor", 0.35)}
+            step={0.05}
+            onChange={(next) => {
+              set("matchBindingFloor", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
           label="Release signal weights"
           help="The tracklist fit (`durations`) is the decisive one; that is the whole design of docs/04."
         >

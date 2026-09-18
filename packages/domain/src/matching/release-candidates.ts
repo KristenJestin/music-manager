@@ -316,7 +316,9 @@ function explain(
     if (candidate.signals.title >= 0.99) why.push("Album title matches exactly");
     else if (candidate.signals.title < 0.5) why.push("Title does not match");
     if (candidate.signals.artist >= 0.99) why.push("Artist matches exactly");
-    else if (candidate.signals.artist < 0.5) why.push("Artist mismatch");
+    // The sentence and the veto are the same comparison, read from the same threshold, so the
+    // card can never say “Artist mismatch” about a candidate the engine went on to tick.
+    else if (candidate.artistDisagrees) why.push(`Artist mismatch (credited to ${candidate.artist})`);
   }
 
   if (fitSignal === null) {
@@ -599,6 +601,7 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
       signals,
       penalties,
       why: [],
+      artistDisagrees: signals.artist < config.thresholds.artistDisagreement,
       preselected: false,
       safe: false,
       detailed: fitSignal !== null,
@@ -673,15 +676,34 @@ export function score(input: ReleaseScoreInput, options: DeepPartialConfig = {})
   const margin =
     first === undefined || second === undefined ? null : round3(first.score - second.score);
 
+  /*
+   * Which candidate is **ticked**, which is a different question from which is first.
+   *
+   * The seventh owner review: ten homonyms for “Soleil bleu” by Bleu Soleil, the first of them
+   * VSO at 0.725, its own card reading “Artist mismatch (credited to VSO)” — and ticked. The
+   * engine wrote the sentence that condemns the candidate and then preselected it anyway,
+   * because the only guard was a numeric floor and 0.725 clears it. A disagreement about who
+   * made the record is not a quantity; it cannot be thresholded into submission.
+   *
+   * So the tick walks down the ranking past every candidate whose artist disagrees, and stops
+   * at the first one that carries it. Nothing is removed and nothing is reordered: the list is
+   * the list, VSO is still first and still says why. What changes is that a person is asked.
+   * When *every* candidate disagrees the answer is `null` — “I have not found this record, I
+   * have found records with this name” — and the caller has to say so out loud.
+   */
+  const vetoed = (candidate: ReleaseCandidate): boolean =>
+    config.preferences.artistVeto && candidate.artistDisagrees;
+  const tick = ranked.findIndex((candidate) => !vetoed(candidate));
+
   const candidates = ranked.map((candidate, index) => ({
     ...candidate,
-    preselected: index === 0,
-    safe: index === 0 && candidate.score >= config.thresholds.safe,
+    preselected: index === tick,
+    safe: index === tick && candidate.score >= config.thresholds.safe,
   }));
 
   return {
     candidates,
-    preselected: candidates[0] ?? null,
+    preselected: tick === -1 ? null : (candidates[tick] ?? null),
     ambiguous:
       margin !== null &&
       margin < config.thresholds.ambiguityMargin &&

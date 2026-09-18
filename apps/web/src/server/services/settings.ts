@@ -239,6 +239,16 @@ export const SETTING_DEFINITIONS = {
     DEFAULT_GROUP_LIMIT,
     "How many release groups get a release search of their own — the first level of the match.",
   ),
+  matchArtistLadder: define(
+    z.boolean(),
+    true,
+    "When a search comes back empty, ask again with a shorter artist credit instead of giving up: the first credited name, the whole credit, then each of the other names the source lists, and finally the album title with its trailing edition word treated as noise. Every rung still carries an `artist:` clause — the artist is degraded, never dropped. Off, the search stops after the first credited name and the whole credit, which is what left *Stardew Valley Piano Collections* with seven searches and no candidate over a release MusicBrainz has had since 2018.",
+  ),
+  matchArtistVeto: define(
+    z.boolean(),
+    true,
+    "Never preselect a candidate whose own reasons say the artist does not match. The candidate stays in the list with its score and its explanation; it is simply not ticked in advance, and when no candidate carries the artist nothing is ticked at all. This is not a score gate — `matchPreselectionFloor` cannot catch it, because a homonym like VSO for *Soleil bleu* by Bleu Soleil scores 0.725 and clears any floor an ordinary album would survive. Turn it off if your library is mostly soundtracks, where “Various Artists” disagrees with every credit YouTube writes.",
+  ),
   matchCoveragePenalty: define(
     z.number().min(0).max(1),
     DEFAULT_THRESHOLDS.coveragePenalty,

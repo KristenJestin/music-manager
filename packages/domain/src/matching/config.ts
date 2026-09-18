@@ -167,6 +167,21 @@ export const DEFAULT_THRESHOLDS: MatchingThresholds = {
    * which is the "pénalité dérisoire" of the third owner review (D3).
    */
   trackSurplusCost: 0.7,
+  /**
+   * `0.5`, and it is not a new number — it is the one the three scorers were already using.
+   *
+   * `recording-candidates.ts`, `release-candidates.ts` and `release-groups.ts` each tested
+   * `artist < 0.5` to decide whether to print “Artist mismatch”, three times over, as a
+   * literal. Naming it here does two things at once: the same comparison now raises
+   * `artistDisagrees`, so the sentence and the veto are one statement; and the number becomes
+   * something an operator can move rather than something only a release can.
+   *
+   * Why 0.5 is the right place for it is `artistScore`'s doing: an exact normalised match is
+   * 1, one credit containing the other is at least 0.8, and a genuinely different name falls
+   * to the raw string similarity — “Laufey” against “Laura Fygi” lands well under a half.
+   * Everything between 0.5 and 0.8 is a spelling, and a spelling must never be a veto.
+   */
+  artistDisagreement: 0.5,
 };
 
 export const DEFAULT_PREFERENCES: MatchingPreferences = {
@@ -175,6 +190,8 @@ export const DEFAULT_PREFERENCES: MatchingPreferences = {
   /** `docs/04`: "Digital Media préféré pour une source YouTube Music". */
   format: "Digital Media",
   explicit: "either",
+  /** Never tick a candidate whose artist disagrees. See `MatchingPreferences.artistVeto`. */
+  artistVeto: true,
 };
 
 export const DEFAULT_CONFIG: MatchingConfig = {

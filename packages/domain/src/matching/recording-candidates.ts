@@ -265,7 +265,8 @@ function explain(
 
   if (candidate.signals.artist >= 0.99) {
     why.push(`Uploader “${video.uploader ?? video.ytArtist ?? "?"}” matches the artist credit`);
-  } else if (candidate.signals.artist < 0.5) {
+  } else if (candidate.artistDisagrees) {
+    // Same comparison as the veto, read from the same threshold: see `artistDisagrees`.
     why.push(`Artist mismatch (credited to ${candidate.artist})`);
   }
 
@@ -389,6 +390,7 @@ export function score(
       signals,
       penalties,
       why: [],
+      artistDisagrees: signals.artist < config.thresholds.artistDisagreement,
       preselected: false,
       safe: false,
       releases,
@@ -403,15 +405,25 @@ export function score(
   const margin =
     first === undefined || second === undefined ? null : round3(first.score - second.score);
 
+  /*
+   * The tick skips every candidate whose artist disagrees — see `release-candidates.ts`, where
+   * the same rule is written out at length. The single path needs it just as much: the wide
+   * recording search exists precisely to surface other people's recordings of the same title,
+   * and one of them being first is a question for a person, never a preselection.
+   */
+  const vetoed = (candidate: RecordingCandidate): boolean =>
+    config.preferences.artistVeto && candidate.artistDisagrees;
+  const tick = ranked.findIndex((candidate) => !vetoed(candidate));
+
   const candidates = ranked.map((candidate, index) => ({
     ...candidate,
-    preselected: index === 0,
-    safe: index === 0 && candidate.score >= config.thresholds.safe,
+    preselected: index === tick,
+    safe: index === tick && candidate.score >= config.thresholds.safe,
   }));
 
   return {
     candidates,
-    preselected: candidates[0] ?? null,
+    preselected: tick === -1 ? null : (candidates[tick] ?? null),
     ambiguous: margin !== null && margin < config.thresholds.ambiguityMargin,
     margin,
   };

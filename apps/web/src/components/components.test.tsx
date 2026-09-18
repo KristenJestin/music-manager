@@ -116,6 +116,7 @@ const candidate: ReleaseCandidate = {
   ],
   penalties: [],
   why: ["Album title and artist match exactly", "13/14 tracks are covered by a video within ±2s"],
+  artistDisagrees: false,
   preselected: true,
   safe: true,
   detailed: true,
@@ -327,6 +328,7 @@ describe("ReleaseGroupCard", () => {
     searchScore: 0.97,
     releases: [inGroup({ id: "r-album", title: "Bad Ideas", preselected: true })],
     detailedCount: 1,
+    artistDisagrees: false,
     preselected: true,
     why: ["Title matches exactly"],
   };

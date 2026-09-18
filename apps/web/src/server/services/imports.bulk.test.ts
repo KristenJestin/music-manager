@@ -110,6 +110,7 @@ function recording(patch: Partial<RecordingCandidate> = {}): RecordingCandidate 
     signals: { title: 1, artist: 1, duration: 1, ytTags: 1, isrc: 0 },
     penalties: [],
     why: [],
+    artistDisagrees: false,
     preselected: true,
     safe: true,
     releases: [],

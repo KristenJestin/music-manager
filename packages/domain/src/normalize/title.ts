@@ -198,8 +198,13 @@ const EDITION_QUALIFIERS: readonly string[] = [
 /** A qualifier optionally prefixed by a year or an ordinal: "10th Anniversary Edition". */
 const QUALIFIER_PREFIX = String.raw`(?:\d{1,4}(?:st|nd|rd|th)?\s+)?`;
 
+/** Escape one literal term for use inside a regular expression. */
+function escapeForRegExp(term: string): string {
+  return term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** The qualifier alternation, longest first, as one non-capturing group. */
-const QUALIFIER_BODY = EDITION_QUALIFIERS.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+const QUALIFIER_BODY = EDITION_QUALIFIERS.map(escapeForRegExp)
   .map((term) => term.replace(/ /g, String.raw`\s+`))
   .join("|");
 
@@ -256,6 +261,59 @@ export function stripEditionQualifier(raw: string): string {
       .trim();
     if (next === out || next === "") return out;
     out = next;
+  }
+}
+
+/**
+ * The single-word qualifiers, as one alternation.
+ *
+ * They are plain words — "deluxe", "remaster", "remastered", "expanded" — so the escaping the
+ * bracketed and separated forms do above has nothing to bite on here. Escaped anyway, through
+ * the same helper, because the list is editable and the day somebody adds "12\"" to it is the
+ * day an unescaped alternation becomes a silently wrong regular expression.
+ */
+const SINGLE_WORD_QUALIFIERS = EDITION_QUALIFIERS.filter((term) => !term.includes(" "))
+  .map(escapeForRegExp)
+  .join("|");
+
+/**
+ * A **bare** trailing single-word qualifier — "AFTERCARE DELUXE", "Sremmlife 2 Remastered".
+ *
+ * Deliberately absent from `stripEditionQualifier`, and the reason written above it still
+ * holds: a bare "Deluxe" with no bracket and no separator is how *Deluxe* (Harmonia, 1975) is
+ * spelled, and stripping it everywhere would take a word off a real name.
+ *
+ * It is safe **here**, as the last title rung of a ladder, for a reason that has nothing to do
+ * with how likely the word is to be a qualifier: this question is only ever asked once every
+ * narrower one has come back with nothing at all, and it still carries the artist clause. If
+ * the record really is called *Hotel Deluxe*, the rung above it already found it and this one
+ * is never reached; if it is not, `releasegroup:"Hotel" AND artist:"…"` is a strict question
+ * about one artist's catalogue, not the title-only search this file forbids. The cost of being
+ * wrong is one search that finds nothing. The cost of not asking was six searches and an
+ * import stuck on *AFTERCARE DELUXE* by Nessa Barrett, whose release group MusicBrainz has had
+ * all along under the name *AFTERCARE*.
+ */
+const BARE_SINGLE_QUALIFIER = new RegExp(
+  String.raw`\s+${QUALIFIER_PREFIX}(?:${SINGLE_WORD_QUALIFIERS})\s*$`,
+  "i",
+);
+
+/**
+ * `stripEditionQualifier`, plus the bare single-word qualifier it refuses to touch.
+ *
+ * For the **last title rung of the search ladder only**. Everything else — the display name,
+ * `titleKeywordPenalties`, `disambiguationPenalties` — keeps using the narrow one, or a
+ * pressing that announces itself as deluxe stops being recognisable as one.
+ *
+ * Returns the input unchanged when the narrow strip already handled it, when there is nothing
+ * bare to take, and when taking it would leave nothing.
+ */
+export function stripEditionQualifierLoosely(raw: string): string {
+  let out = stripEditionQualifier(raw);
+  for (;;) {
+    const next = out.replace(BARE_SINGLE_QUALIFIER, "").trim();
+    if (next === out || next === "") return out;
+    out = stripEditionQualifier(next);
   }
 }
 
@@ -382,6 +440,57 @@ export function primaryArtist(raw: string | null | undefined): string | null {
   const parts = splitArtistCredit(raw);
   if (parts.length < 2) return null;
   return parts[0] ?? null;
+}
+
+/**
+ * The artist clauses to try, narrowest plausible first — the rungs of the artist ladder.
+ *
+ * The seventh owner review's first defect. A credit that matches nothing at MusicBrainz used
+ * to be tried twice, as the first name and as the whole string, and then **dropped**: the
+ * search fell through to the title alone by way of the recordings, and on
+ * *Stardew Valley Piano Collections* it fell through to nothing at all. Seven searches, no
+ * candidate, over a release MusicBrainz has had since 2018 — because YouTube credits
+ * "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales" and MusicBrainz credits
+ * "Augustine Mayuga Gonzales, Matthew Bridgham". The two strings share a name. Neither of the
+ * two rungs asked for it, because it is the *third* one written.
+ *
+ * So the credit is degraded name by name instead of being thrown away:
+ *
+ *  1. the **first credited name** — "Laufey" out of "Laufey, Spencer Stewart". YouTube lists
+ *     whoever the label listed, producers included, and MusicBrainz almost never publishes a
+ *     composite credit. The narrowest plausible question first;
+ *  2. the **whole credit**, because some records really are credited to a pair and
+ *     "Macklemore & Ryan Lewis" is one of them;
+ *  3. **each of the other names, alone**, in the order the credit lists them. A collaborative
+ *     record is filed under one of its collaborators and there is no rule saying which, so the
+ *     only honest thing is to ask about each.
+ *
+ * Every rung is an `artist:` clause, and that is what separates this from the widening that was
+ * deleted: `releasegroup:"Bewitched"` with no artist returned a hundred and forty-two records
+ * by everybody who ever used the word, while `releasegroup:"X" AND artist:"Augustine Mayuga
+ * Gonzales"` is exactly as strict as the first rung — it is asked about a **shorter credit**,
+ * not about no credit. A shorter credit cannot return somebody else's record unless that
+ * somebody else is named on the source. See `lucene.ts`, which explains what must never come
+ * back.
+ *
+ * `limit` caps it, because every rung is a second through the MusicBrainz gate and a credit
+ * listing eight session musicians is not eight hypotheses worth a second each.
+ */
+export function artistLadder(raw: string | null | undefined, limit = 4): string[] {
+  const names = splitArtistCredit(raw);
+  const whole = (raw ?? "").replace(/\s*-\s*topic\s*$/i, "").trim();
+  if (names.length === 0) return whole === "" ? [] : [whole];
+
+  const rungs: string[] = [];
+  const push = (value: string): void => {
+    const trimmed = value.trim();
+    if (trimmed !== "" && !rungs.includes(trimmed)) rungs.push(trimmed);
+  };
+
+  push(names[0] ?? "");
+  push(whole);
+  for (const name of names.slice(1)) push(name);
+  return rungs.slice(0, Math.max(1, limit));
 }
 
 /**

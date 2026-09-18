@@ -32,6 +32,7 @@
  * has been seeded from the cassettes, and a request that tried to leave would throw.
  */
 import {
+  artistLadder,
   creditCarriesArtist,
   DEFAULT_GROUP_LIMIT,
   DEFAULT_LOOKUP_LIMIT,
@@ -45,6 +46,7 @@ import {
   releaseGroups,
   stripArtistPrefix,
   stripEditionQualifier,
+  stripEditionQualifierLoosely,
   titleScore,
   type AlbumHints,
   type DeepPartialConfig,
@@ -96,6 +98,7 @@ export function configFromSettings(settings: Settings): DeepPartialConfig {
       countries: settings.preferredCountries,
       format: settings.preferredFormat,
       explicit: settings.explicitPreference,
+      artistVeto: settings.matchArtistVeto,
     },
   };
 }
@@ -127,6 +130,19 @@ export function recordingLookupLimitOf(settings: Settings): number {
 export function groupLimitOf(settings: Settings): number {
   return settings.matchGroupLimit > 0 ? settings.matchGroupLimit : DEFAULT_GROUP_LIMIT;
 }
+
+/**
+ * How many names of a composite credit ever become a rung of their own.
+ *
+ * Four, and it is a budget number rather than a statistical one. Every rung is a second
+ * through the MusicBrainz gate, and it is only ever spent on an album *nothing above it could
+ * find*, so the ordinary import never pays any of it. But a YouTube credit can list eight
+ * session musicians, and eight hypotheses are not worth eight seconds when the honest answer
+ * after four of them is "hand this to a person". Four covers the shape this actually takes —
+ * an artist, a producer, and one or two collaborators — which is what the *Stardew Valley*
+ * credit is: the name MusicBrainz files the record under is the third of three.
+ */
+export const CREDIT_LADDER_LIMIT = 4;
 
 /**
  * The budget an album match is allowed to spend, before it spends any of it.
@@ -212,7 +228,9 @@ function releasesOf(result: MbSearchResult | null): readonly MbRelease[] {
  */
 export type MatchFallback =
   | { readonly kind: "primary-artist"; readonly from: string; readonly to: string }
+  | { readonly kind: "credited-artist"; readonly from: string; readonly to: string }
   | { readonly kind: "base-title"; readonly from: string; readonly to: string }
+  | { readonly kind: "bare-title"; readonly from: string; readonly to: string }
   | {
       readonly kind: "recordings";
       readonly sampled: number;
@@ -225,8 +243,12 @@ export function describeFallback(fallback: MatchFallback): string {
   switch (fallback.kind) {
     case "primary-artist":
       return `The credit “${fallback.from}” names more than one artist, so MusicBrainz was asked for the first of them, “${fallback.to}” — a composite credit is almost never one it publishes.`;
+    case "credited-artist":
+      return `Neither “${fallback.from}” nor the first name in it matched anything, so MusicBrainz was asked for another name the source credits, “${fallback.to}” — a collaboration is filed under one of its collaborators and there is no rule saying which.`;
     case "base-title":
       return `The search came back empty for “${fallback.from}”, so it fell back to the base title, “${fallback.to}” — the edition qualifier was treated as noise.`;
+    case "bare-title":
+      return `Nothing matched “${fallback.from}”, so the trailing edition word was treated as noise too and the search asked for “${fallback.to}”, still by the same artist.`;
     case "recordings":
       return (
         `The album search came back empty, so ${String(fallback.sampled)} track${fallback.sampled === 1 ? "" : "s"} ` +
@@ -373,8 +395,8 @@ async function convergeThroughRecordings(
  * common album title ("Discovery" is also a Mr. Children record; "Bad Ideas" is an album and a
  * single by the same artist) that is the difference between one candidate and the right one.
  *
- * **Four rungs, and every one of them names an artist.** Each is asked only when the one above
- * it came back empty, so the ordinary album still costs exactly one search:
+ * **A ladder, and every rung of it names an artist.** Each is asked only when the one above it
+ * came back empty, so the ordinary album still costs exactly one search:
  *
  *  1. the album title and the **first credited artist** — "Laufey" out of "Laufey, Spencer
  *     Stewart". YouTube credits whoever the label listed, producers included, and a composite
@@ -384,7 +406,25 @@ async function convergeThroughRecordings(
  *  3. the **base title** and the first credited artist, the edition qualifier treated as noise:
  *     "Let Go (Expanded Edition)" is a name MusicBrainz does not publish, and forty of the
  *     owner's imports were stuck on that alone.
- *  4. the **recordings**, in `convergeThroughRecordings` — the album found through its tracks.
+ *  4. the album title, then the base title, and **each of the other names the source credits**,
+ *     one at a time (`artistLadder`). This rung is the seventh owner review's first defect:
+ *     *Stardew Valley Piano Collections* is credited by YouTube to "ConcernedApe, Meadow
+ *     Bridgham, Augustine Mayuga Gonzales" and by MusicBrainz to "Augustine Mayuga Gonzales,
+ *     Matthew Bridgham". The two strings agree on a name — the *third* one written — and
+ *     neither of the rungs above ever asks for it, so seven searches found nothing at all over
+ *     a release MusicBrainz has had since 2018.
+ *  5. the **bare base title**: the trailing edition word stripped even without a bracket or a
+ *     separator to mark it (`stripEditionQualifierLoosely`), still with the first credited
+ *     artist. *AFTERCARE DELUXE* by Nessa Barrett is filed as *AFTERCARE*, with the deluxe
+ *     pressing inside the group, and six searches never asked for that name.
+ *  6. the **recordings**, in `convergeThroughRecordings` — the album found through its tracks.
+ *
+ * Rungs 4 and 5 are the answer to "the artist must never simply be thrown away": it is
+ * **degraded**, name by name, and a shorter credit is not a wider query. `artist:"Augustine
+ * Mayuga Gonzales"` is exactly as strict as `artist:"ConcernedApe"` — it asks about a shorter
+ * credit, not about no credit, and it cannot return a stranger's record unless that stranger is
+ * named on the source. That is the whole distinction between this and the
+ * `releaseGroupQueryWide` that was deleted, and `lucene.ts` states it from the other side.
  *
  * What is deliberately *not* a rung, at any point, is the title on its own. That question was
  * the cause of the worst class of failure this matcher has: an album by a different artist,
@@ -397,12 +437,14 @@ async function findReleaseGroups(
   limit: number,
   queries: string[],
   config: DeepPartialConfig,
+  ladderOn = true,
 ): Promise<{ groups: GroupSearchScore[]; fallback: MatchFallback | null }> {
   const album = (hints.album ?? "").trim();
   if (album === "") return { groups: [], fallback: null };
   const credit = (hints.artist ?? "").trim();
   const primary = primaryArtist(credit);
   const base = stripEditionQualifier(album);
+  const bare = stripEditionQualifierLoosely(album);
 
   /*
    * The one search in this function that can end up with no artist clause is the one where the
@@ -428,6 +470,28 @@ async function findReleaseGroups(
     });
   }
 
+  if (ladderOn) {
+    /*
+     * The rest of the credit, name by name, against the album title and then the base title.
+     *
+     * `artistLadder` returns the first name and the whole credit first — the two rungs already
+     * above — so `slice(2)` is exactly "the names nobody has asked for yet", in the order the
+     * source lists them. It is empty for a single-name credit, which is why the ordinary album
+     * is untouched by this and still costs one search.
+     */
+    for (const name of artistLadder(credit, CREDIT_LADDER_LIMIT).slice(2)) {
+      const fallback: MatchFallback = { kind: "credited-artist", from: credit, to: name };
+      rungs.push({ query: lucene.releaseGroupQuery(album, name), fallback });
+      if (base !== album) rungs.push({ query: lucene.releaseGroupQuery(base, name), fallback });
+    }
+    if (bare !== base && bare !== album) {
+      rungs.push({
+        query: lucene.releaseGroupQuery(bare, primary ?? credit),
+        fallback: { kind: "bare-title", from: album, to: bare },
+      });
+    }
+  }
+
   for (const rung of rungs) {
     if (rung.query === "") continue;
     queries.push(rung.query);
@@ -435,14 +499,14 @@ async function findReleaseGroups(
     const found: readonly MbReleaseGroup[] = answer?.["release-groups"] ?? [];
     if (found.length === 0) continue;
     return {
-      groups: releaseGroups.searchScore(found, hints, videos.length),
+      groups: releaseGroups.searchScore(found, hints, videos.length, config),
       fallback: rung.fallback,
     };
   }
 
   const converged = await convergeThroughRecordings(mb, hints, videos, limit, queries, config);
   return {
-    groups: releaseGroups.searchScore(converged.groups, hints, videos.length),
+    groups: releaseGroups.searchScore(converged.groups, hints, videos.length, config),
     fallback: converged.fallback,
   };
 }
@@ -562,7 +626,19 @@ export async function exploreReleases(
 
   let stoppedBecause: Exploration["stoppedBecause"] = "exhausted";
   for (;;) {
-    const leader = ranking.preselected;
+    /*
+     * The **leader**, which since the artist veto is no longer the same thing as the tick.
+     *
+     * `ranking.preselected` answers "which box is ticked", and a candidate whose artist
+     * disagrees is deliberately not ticked even when it is first and perfect. This loop is
+     * asking a different question — "is there anything left that could still beat what I have
+     * already read" — and that one is about the ranking, not about the tick. Reading the tick
+     * here would make a Various Artists soundtrack spend the whole ceiling, fourteen lookups
+     * at a second each, to learn nothing: the leader is complete and exact, nothing unopened
+     * can beat it, and the fact that a person still has to confirm who made it changes none of
+     * that.
+     */
+    const leader = ranking.candidates[0] ?? null;
     const exact = leader !== null && leader.uncovered === 0 && leader.leftOver === 0;
     if (
       attempted.size >= MIN_EXPLORED &&
@@ -637,6 +713,7 @@ export async function matchAlbum(
     settings.matchSearchLimit,
     queries,
     config,
+    settings.matchArtistLadder,
   );
   const kept = groupScores.slice(0, groupLimit);
   hooks.onPlan?.({
@@ -658,19 +735,32 @@ export async function matchAlbum(
 
   if (kept.length === 0) {
     /*
-     * No group at all, after four rungs. The direct release search is the last thing left, and
+     * No group at all, after every rung. The direct release search is the last thing left, and
      * it still carries the artist: an album this repository cannot find by name, by base name
      * or through its own tracks is an album to hand to a person, not an excuse to ask
      * MusicBrainz for every record that ever used the word.
+     *
+     * The artist it carries walks the same ladder the group search walked, for the same
+     * reason and with the same stop-at-the-first-answer rule. Asking the release index for
+     * "the first credited name" only, when the group index has just been asked for every name
+     * and answered nothing, would make the last question narrower than the ones before it.
      */
-    const direct = lucene.releaseQuery({
-      album: stripEditionQualifier(input.hints.album ?? ""),
-      artist: primaryArtist(input.hints.artist ?? "") ?? input.hints.artist ?? null,
-      year: input.hints.year ?? null,
-    });
-    if (direct !== "" && (input.hints.artist ?? "").trim() !== "") {
+    const album = stripEditionQualifierLoosely(input.hints.album ?? "");
+    const credit = (input.hints.artist ?? "").trim();
+    const names = settings.matchArtistLadder
+      ? artistLadder(credit, CREDIT_LADDER_LIMIT)
+      : [primaryArtist(credit) ?? credit];
+    for (const name of names) {
+      const direct = lucene.releaseQuery({
+        album,
+        artist: name,
+        year: input.hints.year ?? null,
+      });
+      if (direct === "" || name === "") continue;
       queries.push(direct);
-      collect(releasesOf(await mb.search("release", direct, settings.matchSearchLimit)));
+      const answer = releasesOf(await mb.search("release", direct, settings.matchSearchLimit));
+      collect(answer);
+      if (answer.length > 0) break;
     }
   } else {
     for (const group of kept) {
@@ -679,7 +769,29 @@ export async function matchAlbum(
         releaseGroupId: group.id,
       });
       queries.push(query);
-      collect(releasesOf(await mb.search("release", query, settings.matchSearchLimit)));
+      const answer = releasesOf(await mb.search("release", query, settings.matchSearchLimit));
+      collect(answer);
+      /*
+       * A release group that exists and whose release search answers nothing.
+       *
+       * `releaseQuery` appends `status:Official` unless it is told not to, which is right
+       * everywhere else and wrong here: the group was found by *name and artist*, so it is
+       * already the record we are looking for, and there is nothing left for the status clause
+       * to protect against. When every pressing MusicBrainz has of it is a promo, a bootleg or
+       * simply unset — which is common on a self-released digital record — the group is on the
+       * screen with no releases under it and the match ends with no candidate, having spent a
+       * search proving the record exists. So the same group is asked again without the clause,
+       * and only when the first ask came back empty.
+       */
+      if (answer.length === 0) {
+        const anyStatus = lucene.releaseQuery({
+          album: input.hints.album ?? "",
+          releaseGroupId: group.id,
+          officialOnly: false,
+        });
+        queries.push(anyStatus);
+        collect(releasesOf(await mb.search("release", anyStatus, settings.matchSearchLimit)));
+      }
     }
   }
 
@@ -692,7 +804,7 @@ export async function matchAlbum(
 
   // 4 — fold the flat ranking back into the groups the screen shows.
   const index = new Map(groupScores.map((group) => [group.id, group]));
-  const grouped = releaseGroups.group(ranking.candidates, index);
+  const grouped = releaseGroups.group(ranking.candidates, index, config);
 
   // 5 — the mapping, against the preselected release.
   const winner = ranking.preselected;

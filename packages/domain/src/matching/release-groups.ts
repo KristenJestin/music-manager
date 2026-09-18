@@ -21,6 +21,7 @@
  * `apps/web/src/server/services/matching.service.ts`.
  */
 
+import { withDefaults, type DeepPartialConfig } from "./config.ts";
 import { artistScore, round3, titleScore, unit, yearOf } from "./signals.ts";
 import type {
   AlbumHints,
@@ -78,6 +79,8 @@ export interface GroupSearchScore {
   readonly firstReleaseDate: string | null;
   readonly score: number;
   readonly why: readonly string[];
+  /** See `ReleaseCandidate.artistDisagrees`: the same statement, one level up. */
+  readonly artistDisagrees: boolean;
 }
 
 /**
@@ -91,7 +94,9 @@ export function searchScore(
   groups: readonly MbReleaseGroup[],
   hints: AlbumHints,
   videoCount: number,
+  options: DeepPartialConfig = {},
 ): GroupSearchScore[] {
+  const config = withDefaults(options);
   const album = (hints.album ?? "").trim();
   const artist = (hints.artist ?? "").trim();
 
@@ -109,11 +114,15 @@ export function searchScore(
     const primary = primaryTypeScore(group["primary-type"], videoCount);
     const secondary = secondaryTypeScore(group["secondary-types"]);
 
+    // The sentence and the flag are one comparison, against one named threshold — the third
+    // of the three places that used to spell `< 0.5` out by hand and answer to nothing.
+    const artistDisagrees = artist !== "" && credit < config.thresholds.artistDisagreement;
+
     const why: string[] = [];
     if (title >= 0.99) why.push("Title matches exactly");
     else if (title < 0.5) why.push("Title does not match");
     if (credit >= 0.99) why.push("Artist matches exactly");
-    else if (credit < 0.5) why.push("Artist mismatch");
+    else if (artistDisagrees) why.push(`Artist mismatch (credited to ${artistName})`);
     if (group["primary-type"] != null && group["primary-type"] !== "") {
       why.push(
         `Filed as a ${group["primary-type"]}${
@@ -132,6 +141,7 @@ export function searchScore(
       firstReleaseDate: group["first-release-date"] ?? null,
       score: round3(unit((title * 0.36 + credit * 0.34 + primary * 0.2) * (0.7 + 0.3 * secondary))),
       why,
+      artistDisagrees,
     });
   }
 
@@ -163,7 +173,9 @@ export type GroupIndex = ReadonlyMap<string, GroupSearchScore>;
 export function group(
   candidates: readonly ReleaseCandidate[],
   index: GroupIndex = new Map(),
+  options: DeepPartialConfig = {},
 ): ReleaseGroupRanking {
+  const config = withDefaults(options);
   const buckets = new Map<string, ReleaseCandidate[]>();
   for (const candidate of candidates) {
     const key = candidate.releaseGroupId ?? "";
@@ -209,6 +221,16 @@ export function group(
       year: yearOf(known?.firstReleaseDate ?? best.date),
       score: best.score,
       searchScore: known?.score ?? best.score,
+      /*
+       * A group disagrees when the pressing that would be imported disagrees.
+       *
+       * `best` is what selecting this group imports (`releases[0]`), so it is the only release
+       * whose credit the tick is about. The group search's own verdict corroborates it and is
+       * kept for the cards that have no release yet, but it cannot overrule a release that was
+       * actually read: a group stub carries a credit joined with spaces and no join phrases,
+       * which is the weaker of the two statements.
+       */
+      artistDisagrees: best.artistDisagrees,
       releases,
       detailedCount,
       preselected: false,
@@ -222,13 +244,18 @@ export function group(
       b.score - a.score ||
       (a.id ?? "").localeCompare(b.id ?? ""),
   );
-  const withFlag = ranked.map((entry, position) => ({ ...entry, preselected: position === 0 }));
+  // The same tick rule as the flat list, so the two agree: the preselected release is always
+  // inside the preselected group, and when no release is ticked no group is either.
+  const tick = ranked.findIndex(
+    (entry) => !(config.preferences.artistVeto && entry.artistDisagrees),
+  );
+  const withFlag = ranked.map((entry, position) => ({ ...entry, preselected: position === tick }));
   const first = withFlag[0];
   const second = withFlag[1];
 
   return {
     groups: withFlag,
-    preselected: first ?? null,
+    preselected: tick === -1 ? null : (withFlag[tick] ?? null),
     margin: first === undefined || second === undefined ? null : round3(first.score - second.score),
   };
 }
