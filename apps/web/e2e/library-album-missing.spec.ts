@@ -39,9 +39,10 @@ import {
  * album short breaks the ones after it. No file is moved and no row is deleted, so the inverse
  * is exact.
  *
- * **Nothing is adopted for real.** The last thing the page does here is submit a path the
- * server's allow-list must refuse, which drives the whole chain — dialog, server function,
- * `adoptLibraryTrack`, the slot lookup, `resolveSourcePath` — and writes nothing. The
+ * **Nothing is adopted for real.** The last thing the page does here is submit a path the server
+ * must refuse, which drives the whole chain — dialog, server function, `adoptLibraryTrack`, the
+ * slot lookup — and writes nothing. Which refusal comes back depends on the seed, and the
+ * assertion accepts either; see the comment at that step for why both are right. The
  * *successful* path is proved where it can be proved without disturbing a shared library:
  * `server/services/album-missing.integration.test.ts` carries one adopted track through
  * `fingerprint`, `tag` and `place` and checks that `present_count` moves by exactly one.
@@ -133,11 +134,23 @@ test.describe("an album that is missing tracks", () => {
       await dialog.getByTestId("adopt-mode-path").click();
       await dialog.getByTestId("adopt-path-input").fill("/definitely/not/allowed/track.opus");
       await dialog.getByTestId("adopt-file-confirm").click();
-      // The server's own refusal, reaching the browser through the server function: the
-      // allow-list is empty by default and this path is outside the library.
-      await expect(page.getByTestId("toaster")).toContainText(/not allowed|No such file/, {
-        timeout: 30_000,
-      });
+      /*
+       * A refusal from the *server*, reaching the browser through the server function — which
+       * is what proves the chain, dialog to `adoptLibraryTrack`, without writing anything.
+       *
+       * Two of them are correct here and which one arrives depends on the seed. This spec
+       * detaches a `library_tracks` row, so the track's `import_tracks` row is still there and
+       * still filed: the album is short of it only as far as the library is concerned, and
+       * `adoptLibraryTrack` says so and points at `repair-orphans` before it ever looks at the
+       * path. On a track the playlist genuinely never published there is no row, and the
+       * allow-list refuses the path instead. Both are the server talking.
+       */
+      await expect(page.getByTestId("toaster")).toContainText(
+        /already has a row|not allowed|No such file/,
+        {
+          timeout: 30_000,
+        },
+      );
       await page.keyboard.press("Escape");
 
       /* ---- the API answers the same question, for the agent that has no screen ---- */

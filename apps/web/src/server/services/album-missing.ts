@@ -352,11 +352,26 @@ export async function adoptLibraryTrack(
     });
     track = made.created[0] ?? null;
     if (track === null) {
+      /*
+       * The album is short of this track and the import is not: a row sits at the slot and has
+       * already been filed, but no `library_tracks` row points at it.
+       *
+       * Adoption is the wrong tool for that. Nothing has been lost — the file is where `place`
+       * left it — and giving the slot a *second* row would turn a bookkeeping gap into two
+       * tracks claiming one position. `repair-orphans` is the door for it, because the repair
+       * needed is to re-attach the row rather than to fetch audio.
+       */
       throw new MMError(
         "ADOPT_CONFLICT",
-        `Disc ${String(wanted.mediumPosition)} track ${String(wanted.trackPosition)} already has a row on import ${importId}.`,
+        `Disc ${String(wanted.mediumPosition)} track ${String(wanted.trackPosition)} already has a row on import ${importId}, so the album is missing it only as far as the library is concerned.`,
         {
-          hint: "Something is already mapped to that position. Read the import's tracklist before adopting for it.",
+          hint: "The audio is already imported; what is missing is the `library_tracks` row that points at it. Run `mm library repair-orphans --apply`, which re-attaches a filed track from its own tags, rather than adopting a second copy.",
+          action: "Repair the orphaned row",
+          details: {
+            importId,
+            mediumPosition: wanted.mediumPosition,
+            trackPosition: wanted.trackPosition,
+          },
           status: 409,
         },
       );
