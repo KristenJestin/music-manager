@@ -170,7 +170,16 @@ export function AdoptFileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-1.5" role="radiogroup" aria-label="Where the file is">
+        {/*
+          `flex-wrap`, and it is not cosmetic: a `Button` is `whitespace-nowrap` and `shrink-0`,
+          so three of them in a row cannot shrink below ~420px together — and `DialogContent`
+          is a grid with a single column, sized to its widest child's minimum. Without the wrap
+          the row did not overflow *itself*: it widened the column, so the description above it
+          wrapped at 420px and was painted 70px outside the 380px panel, over whatever was
+          behind it. Wrapping keeps the row's minimum at one button, which the panel holds, and
+          the next label to grow wraps instead of pushing the panel open again.
+        */}
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Where the file is">
           <Button
             size="sm"
             variant={mode === "upload" ? "default" : "outline"}

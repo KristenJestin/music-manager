@@ -124,6 +124,32 @@ test.describe("an album that is missing tracks", () => {
         await expect(dialog.getByTestId(`adopt-mode-${mode}`)).toBeVisible();
       }
 
+      /*
+       * And nothing it holds may be painted outside it.
+       *
+       * The three ways in are `whitespace-nowrap` buttons — the widest thing this dialog has —
+       * and they used to widen the dialog's content column instead of wrapping: the description
+       * then wrapped at that wider width and was drawn past the panel, over whatever was behind
+       * it. `DialogContent` is a grid whose single column is sized to its widest child's
+       * minimum, so this is a property of the *dialog*, not of the row that happened to be
+       * guilty: comparing each child's edges to the panel's catches the next too-wide child too.
+       * Nothing else can catch it — overflow is invisible to the DOM and to every unit test,
+       * and only a browser that has laid the page out can say where the pixels went.
+       */
+      const escaping = await dialog.evaluate((panel) => {
+        const box = panel.getBoundingClientRect();
+        return Array.from(panel.children)
+          .map((child) => ({ child, rect: child.getBoundingClientRect() }))
+          .filter(({ rect }) => rect.right > box.right + 1 || rect.left < box.left - 1)
+          .map(
+            ({ child, rect }) =>
+              `${child.getAttribute("data-testid") ?? child.tagName} is ${String(
+                Math.round(rect.right - box.right),
+              )}px past the right edge`,
+          );
+      });
+      expect(escaping, "no child of the dialog is painted outside it").toEqual([]);
+
       /* ---- an address is offered, because there is often no local file ---- */
 
       await dialog.getByTestId("adopt-mode-url").click();
