@@ -95,6 +95,34 @@ const LIBRARY_DEBOUNCE_MS = 150;
  */
 const REF_DEBOUNCE_MS = 400;
 
+/**
+ * What paints one row, and why the cursor was on every row until it did.
+ *
+ * cmdk writes `data-selected={!!selected}` on **every** option, so an unselected row carries
+ * `data-selected="false"` and the attribute is present on the whole list. Tailwind's bare
+ * `data-selected:` variant compiles to `[data-selected]` — presence, not value — so the shared
+ * `CommandItem`'s `data-selected:bg-muted` raised all fourteen rows of *Go to* at once and the
+ * highlight was nowhere. `data-[selected=true]:` / `data-[selected=false]:` read the value, and
+ * the `!` is what lets them win over the primitive's blanket rule from here, rather than by
+ * hand-editing `components/ui/`, which is re-added with the shadcn CLI and not maintained here.
+ *
+ * cmdk's `aria-selected` was right the whole time: only the paint was wrong.
+ *
+ * A surface change alone would still not be a cursor. The list already sits on a raised popover,
+ * so the selected row also takes the Console amber on its border and an accent bar down its left
+ * edge — the same `border-primary` / `bg-primary-soft` pair the review card marks a chosen answer
+ * with. Nothing here transitions, so there is nothing for `prefers-reduced-motion` to turn off.
+ *
+ * Keyboard and mouse cannot disagree, because they are one state: the arrows set cmdk's `value`
+ * and so does `onPointerMove` on the row under the cursor. Both land in `onValueChange` → `chosen`.
+ */
+const ROW_PAINT = [
+  "border border-transparent data-[selected=false]:bg-transparent!",
+  "before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-transparent",
+  "data-[selected=true]:border-primary data-[selected=true]:bg-primary-soft!",
+  "data-[selected=true]:before:bg-primary",
+].join(" ");
+
 interface Destination {
   readonly to: string;
   readonly label: string;
@@ -955,6 +983,7 @@ export function CommandPalette() {
                 <CommandItem
                   key={row.key}
                   value={row.key}
+                  className={ROW_PAINT}
                   disabled={row.disabled ?? false}
                   {...(row.testId === undefined ? {} : { "data-testid": testId(row.testId) })}
                   onSelect={row.run}
