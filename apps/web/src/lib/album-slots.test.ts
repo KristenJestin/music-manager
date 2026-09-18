@@ -42,7 +42,11 @@ function release(...media: string[][]): MbRelease {
 }
 
 /** A held row. `trackMbid` defaults to the id the release above would have given it. */
-function held(discNumber: number | null, trackNumber: number | null, trackMbid?: string): HeldTrack {
+function held(
+  discNumber: number | null,
+  trackNumber: number | null,
+  trackMbid?: string,
+): HeldTrack {
   return {
     discNumber,
     trackNumber,
