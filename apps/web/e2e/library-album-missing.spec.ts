@@ -155,7 +155,16 @@ test.describe("an album that is missing tracks", () => {
       };
       expect(body.unavailable).toBeNull();
       expect(body.missing).toHaveLength(before + 1);
-      expect(body.presentCount).toBeLessThan(body.trackCount);
+      /*
+       * `presentCount` and `trackCount` are deliberately *not* asserted here.
+       *
+       * They are `library_albums` columns, and `album-counters.ts` is their only writer — this
+       * spec's seed detaches a row and leaves them exactly as they were, on purpose, so that
+       * re-attaching is an exact inverse. So the album still reports `14/14` while the
+       * tracklist honestly shows fifteen slots, and that disagreement is the seed's, not the
+       * feature's: the counters move when `place` files a track, which is the path
+       * `album-missing.integration.test.ts` drives and checks.
+       */
       // The couple, not a flat index: it is what the adoption route's path takes.
       const slot = body.missing.find((track) => track.title === detached?.title);
       expect(slot, "the API names the same track the page does").toBeDefined();
