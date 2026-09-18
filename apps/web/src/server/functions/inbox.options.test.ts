@@ -113,10 +113,47 @@ describe("optionsFor", () => {
     expect(options[1]?.value).toEqual({ releaseMbid: "rel-b" });
   });
 
-  it("falls back to cancelling when an ambiguous release has no candidates at all", () => {
+  /**
+   * The card the owner's eight YouTube playlists sat on, and the answer it was missing.
+   *
+   * `match` can build the album from the source's own tags — that is `options.untaggedFallback`,
+   * on by default for a folder and off for a URL — and until now the only ways to ask for it
+   * were `mm import <url> --untagged`, the API and a button inside the wizard. An import started
+   * from a batch met none of the three, so the card that says "MusicBrainz has nothing" offered
+   * cancelling and nothing else.
+   *
+   * Two things are asserted and both matter: the answer is **there**, and it is **not** the
+   * preselection. Enter on this card must not file an album under a title nobody chose; the
+   * offer is for somebody who has read it.
+   */
+  it("offers the untagged import when an ambiguous release has no candidates at all", () => {
     const options = optionsFor(item({ type: "ambiguous_release", payload: {} }));
-    expect(options).toHaveLength(1);
+    expect(options.map((option) => option.id)).toEqual(["cancel", "untagged"]);
     expect(options[0]?.value["action"]).toBe("cancel");
+    expect(options[0]?.preselected).toBe(true);
+
+    const untagged = options[1];
+    expect(untagged?.preselected).toBe(false);
+    // The door the pin button and the qualifier search already use, plus the flag.
+    expect(untagged?.value).toEqual({
+      action: "retry",
+      step: "match",
+      untaggedFallback: true,
+    });
+    // Said as what it does, because it is a lesser outcome somebody is choosing deliberately.
+    expect(untagged?.label).toMatch(/YouTube tags/i);
+    expect(untagged?.detail).toMatch(/untagged/);
+  });
+
+  /** A card that *has* candidates asks which one; it must not also offer to give up on them. */
+  it("does not offer the untagged import when there is a release to choose", () => {
+    const options = optionsFor(
+      item({
+        type: "ambiguous_release",
+        payload: { candidates: [{ id: "rel-a", title: "Discovery", score: 0.9 }] },
+      }),
+    );
+    expect(options.map((option) => option.id)).not.toContain("untagged");
   });
 
   it("believes the confirmed mapping over the fingerprint, by default", () => {

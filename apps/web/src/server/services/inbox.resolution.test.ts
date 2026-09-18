@@ -84,6 +84,20 @@ describe("planResolution — an answer no branch handles", () => {
       expect(failure.message).toContain("stays open");
     }
   });
+
+  /**
+   * The untagged offer is a `retry` carrying a flag, and it has to stay one.
+   *
+   * Reworded into a verb of its own — `{action: "import_untagged"}` reads well enough that
+   * somebody will try it — it is an answer no branch handles, and this is what says so on the
+   * first click instead of closing the card and leaving the import parked where it was.
+   */
+  it("refuses the untagged offer written as a verb nothing carries out", () => {
+    expect(() => planResolution(on("ambiguous_release"), { action: "import_untagged" })).toThrow(
+      /import_untagged/,
+    );
+    expect(() => planResolution(on("ambiguous_release"), { action: "untagged" })).toThrow(MMError);
+  });
 });
 
 describe("planResolution — the verbs", () => {
@@ -92,10 +106,41 @@ describe("planResolution — the verbs", () => {
     expect(planResolution(on("job_failed"), { action: "retry", step: "match" })).toEqual({
       kind: "retry",
       step: "match",
+      untaggedFallback: false,
     });
     expect(planResolution(on("awaiting_confirm"), { action: "confirm" })).toEqual({
       kind: "confirm",
     });
+  });
+
+  /**
+   * The way out of "MusicBrainz does not know this playlist", read off the answer.
+   *
+   * It is the *same* verb the candidateless card's other two answers send — rewind to `match`
+   * and run it again — with `options.untaggedFallback` riding on it, which is why it belongs to
+   * the `retry` branch rather than to a verb of its own. The flag has to be read strictly:
+   * anything that is not `true` leaves the pipeline's default alone, because the default is
+   * "ask" and filing an album under a title nobody chose is worse than parking it.
+   */
+  it("carries the untagged fallback on a retry, and only when it is stated", () => {
+    expect(
+      planResolution(on("ambiguous_release"), {
+        action: "retry",
+        step: "match",
+        untaggedFallback: true,
+      }),
+    ).toEqual({ kind: "retry", step: "match", untaggedFallback: true });
+
+    for (const stated of [false, "true", 1, null, undefined]) {
+      expect(
+        planResolution(on("ambiguous_release"), {
+          action: "retry",
+          step: "match",
+          untaggedFallback: stated,
+        }),
+        String(stated),
+      ).toEqual({ kind: "retry", step: "match", untaggedFallback: false });
+    }
   });
 
   it("maps the ones that act on the library", () => {
