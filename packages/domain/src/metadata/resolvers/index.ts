@@ -102,7 +102,7 @@ export type {
 export { fromRsgain } from "./rsgain.ts";
 export type { RsgainOptions, RsgainResult } from "./rsgain.ts";
 
-export { fromYouTubeEntry } from "./youtube.ts";
+export { fromYouTubeEntry, shortenSourceUrl } from "./youtube.ts";
 export type { AdoptedFile, YouTubeResolverOptions, YtdlpEntry } from "./youtube.ts";
 
 export { creditFromRelation, creditsFromRelations } from "./relations.ts";

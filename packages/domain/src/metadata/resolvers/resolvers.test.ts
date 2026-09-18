@@ -35,6 +35,7 @@ import {
   fromMusicBrainzWork,
   fromRsgain,
   fromYouTubeEntry,
+  shortenSourceUrl,
   type MbRecording,
   type MbRelease,
 } from "./index.ts";
@@ -379,6 +380,84 @@ describe("fromYouTubeEntry", () => {
     it("still reads the description for the musical metadata", () => {
       expect(adopted("copyright")).toContain("℗ 2001 Daft Life Ltd.");
     });
+  });
+
+  /**
+   * The audio was downloaded, just not from the video this track *is*.
+   *
+   * The distinction the sentence has to carry is the whole point: "adopted from disk" and
+   * "fetched from another upload" are two different answers to "where did this file come
+   * from", and the second one has an address a person can go and check. Saying *Adopted local
+   * file* for it would be as false as saying *Source: youtu.be/…* was for the first.
+   */
+  describe("when the audio came from a replacement address", () => {
+    const replacedPatch = fromYouTubeEntry(video, {
+      fetchedAt: at,
+      appVersion: "2.0.0",
+      importedOn: "2026-09-05",
+      ytdlpVersion: "yt-dlp 2026.08.31",
+      adopted: {
+        originalName: "kJQP7kiw5Fk.opus",
+        adoptedOn: "2026-09-17",
+        downloadedFrom: "https://www.youtube.com/watch?v=kJQP7kiw5Fk",
+      },
+    });
+    const replaced = (name: string): unknown => replacedPatch.fields?.[name]?.value;
+
+    it("names the address the bytes came from, then the one that would not give them up", () => {
+      expect(replaced("comment")).toBe(
+        "Downloaded from youtu.be/kJQP7kiw5Fk · original source youtu.be/FGBhQbmPwH8 " +
+          "unavailable · imported 2026-09-05 by Music Manager 2.0.0",
+      );
+      // Same trap as the adopted case: `Source:` is the prefix the v1 reconciliation and
+      // `services/repair.ts` read a video id out of, and this file's bytes are not from it.
+      expect(String(replaced("comment")).startsWith("Source:")).toBe(false);
+      // And it must not claim to be an adopted *file*, which is the other sentence entirely.
+      expect(String(replaced("comment"))).not.toContain("Adopted local file");
+    });
+
+    it("keeps the original video as the track's identity, exactly as an adopted file does", () => {
+      // This is the field the scan, the re-tag and the v1 reconciliation match on. A
+      // replacement address is where the audio came from; it is never what the track is.
+      expect(replaced("musicmanager_sourceurl")).toBe(
+        "https://www.youtube.com/watch?v=FGBhQbmPwH8",
+      );
+    });
+
+    it("credits yt-dlp, which really did encode this one, but invents no format", () => {
+      // The contrast with the adopted-from-disk case above: there, nothing of ours encoded
+      // the file and `encodedby` is n/a. Here yt-dlp fetched it, so its version is a fact.
+      expect(replaced("encodedby")).toBe("yt-dlp 2026.08.31");
+      // The *format* is not a fact: `entry` describes the video that could not be downloaded,
+      // so its `acodec`/`abr` describe a file that was never produced.
+      expect(replaced("encodersettings")).toBeUndefined();
+      expect(replacedPatch.na?.["encodersettings"]?.reason).toContain("replacement address");
+    });
+  });
+});
+
+describe("shortenSourceUrl", () => {
+  it("shortens every shape of YouTube address to the id a COMMENT can carry", () => {
+    expect(shortenSourceUrl("https://www.youtube.com/watch?v=kJQP7kiw5Fk")).toBe(
+      "youtu.be/kJQP7kiw5Fk",
+    );
+    expect(shortenSourceUrl("https://youtu.be/kJQP7kiw5Fk")).toBe("youtu.be/kJQP7kiw5Fk");
+    expect(shortenSourceUrl("https://www.youtube.com/watch?list=OLAK5uy_&v=kJQP7kiw5Fk")).toBe(
+      "youtu.be/kJQP7kiw5Fk",
+    );
+    expect(shortenSourceUrl("https://www.youtube.com/shorts/kJQP7kiw5Fk")).toBe(
+      "youtu.be/kJQP7kiw5Fk",
+    );
+  });
+
+  it("leaves anything that is not a YouTube address alone rather than inventing an id", () => {
+    // A `fixture://` URL and a self-hosted mirror are both legitimate replacement addresses,
+    // and printing `youtu.be/<something>` for either would name a video that does not exist —
+    // the exact defect the `fromYouTube` guard above exists to prevent on the other side.
+    expect(shortenSourceUrl("fixture://skinny-love")).toBe("fixture://skinny-love");
+    expect(shortenSourceUrl("https://media.example.test/song.opus")).toBe(
+      "https://media.example.test/song.opus",
+    );
   });
 });
 

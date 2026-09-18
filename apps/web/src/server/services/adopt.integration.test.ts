@@ -110,6 +110,12 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
   let importId = "";
   let trackId = "";
   let trackTitle = "";
+  /** The second import, whose one taken-over track exercises the replacement address. */
+  let urlImportId = "";
+  /** The track that address is adopted onto. */
+  let urlTrackId = "";
+  /** That track's own video URL — the provenance a replacement must *not* overwrite. */
+  let urlTrackUrl = "";
 
   beforeAll(async () => {
     const admin = postgres(BASE_URL, { max: 1, onnotice: () => undefined });
@@ -156,6 +162,54 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
     expect(first).toBeDefined();
     trackId = first?.id ?? "";
     trackTitle = first?.sourceTitle ?? "";
+
+    /*
+     * A second import for the replacement-address half, with **fingerprinting off**.
+     *
+     * Its own import rather than a second track of the first, for a reason that is itself a
+     * fact about the feature: a replacement address is by definition a *different upload*, so
+     * its audio does not fingerprint as the recording the track is mapped to, and
+     * `fingerprint` correctly answers `blocked` with a mismatch to decide. That is right, and
+     * it is what the fixtures reproduce — `fixture://skinny-love` downloaded onto a Discovery
+     * track really is the wrong audio.
+     *
+     * The owner's own `fingerprint: false` is therefore what this half runs under: it is a
+     * real per-import option, it is the one an owner replacing a dead video would use, and it
+     * lets the track reach `place` so the COMMENT can be read back off a real file. The
+     * mismatch behaviour is not being hidden — it is simply a different test's subject.
+     */
+    const forUrl = await imports.createImport("fixture://discovery", {
+      autoConfirm: true,
+      confirmedBy: "test",
+      replaygain: false,
+      fingerprint: false,
+    });
+    urlImportId = forUrl.job.id;
+    for (const step of ["match", "confirm"] as const) {
+      const outcome = await jobs.runStep(urlImportId, step, { db: db() });
+      expect(outcome.status, `${step}: ${outcome.message ?? ""}`).not.toBe("failed");
+    }
+    // A *different* track of the record from the one the first half takes over. Both imports
+    // are the same fixture album, so track 1 of each would be filed at the same library path
+    // and the second `place` would land on the first one's file.
+    const forUrlMapped = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(
+        and(eq(schema.importTracks.importId, urlImportId), eq(schema.importTracks.role, "mapped")),
+      )
+      .orderBy(schema.importTracks.trackPosition);
+    const target = forUrlMapped[2];
+    expect(target).toBeDefined();
+    urlTrackId = target?.id ?? "";
+    urlTrackUrl = target?.url ?? "";
+    await db()
+      .update(schema.importTracks)
+      .set({
+        state: "failed",
+        error: { code: "YTDLP_UNAVAILABLE", message: "Video unavailable" },
+      })
+      .where(eq(schema.importTracks.id, urlTrackId));
 
     // The state the owner is actually in: this one video will not download.
     await db()
@@ -375,5 +429,130 @@ describe.skipIf(unavailable !== null)("adopting a local file", () => {
     // Nothing of ours encoded this file.
     expect(tags["ENCODEDBY"] ?? "").not.toMatch(/yt-dlp|\d{4}\.\d{2}\.\d{2}/);
     expect(trackTitle).not.toBe("");
+  }, 120_000);
+
+  /* ------------------------------------------------------------------ */
+  /* the third kind: a replacement address                               */
+  /* ------------------------------------------------------------------ */
+
+  /*
+   * The case the owner actually has nineteen times over: there is no file anywhere, the video
+   * is gone, and the same song is still on YouTube under another upload.
+   *
+   * `fixture://skinny-love` stands in for that other upload. It is a real round trip through
+   * `POST /download` — the toolbox takes its single slot, streams NDJSON, and copies its
+   * bundled Opus sample — so what is being tested is the actual download path and not a mock
+   * of it. No network: `AGENTS.md` § Testing.
+   */
+  const REPLACEMENT = "fixture://skinny-love";
+
+  it("refuses a scheme the toolbox must never be handed, before any download", async () => {
+    for (const address of ["file:///etc/shadow", "data:audio/opus;base64,AAAA", "/etc/shadow"]) {
+      const code = await refusalOf(
+        async () =>
+          await adoptTrackFile({
+            importId: urlImportId,
+            trackId: urlTrackId,
+            source: { kind: "url", url: address },
+            adoptedBy: "test",
+            db: db(),
+            queue: false,
+          }),
+      );
+      expect(code, address).toBe("INVALID_INPUT");
+    }
+    // And nothing was staged for any of them: the refusal is before the toolbox is called.
+    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(false);
+  });
+
+  it("downloads from the replacement address into the work path, as a file would have", async () => {
+    const result = await adoptTrackFile({
+      importId: urlImportId,
+      trackId: urlTrackId,
+      source: { kind: "url", url: REPLACEMENT },
+      adoptedBy: "test",
+      db: db(),
+      queue: false,
+    });
+
+    expect(result.via).toBe("url");
+    expect(result.downloadedFrom).toBe(REPLACEMENT);
+    // Exactly where a file adopted from disk lands, and exactly what `fileReady` probes for —
+    // which is what lets the rest of the pipeline not know the difference.
+    expect(result.path).toBe(`.mm-work/${urlImportId}/${urlTrackId}.opus`);
+    expect(result.codec).toBe("opus");
+    expect(result.nextStep).toBe("fingerprint");
+    expect(existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.opus`))).toBe(true);
+    // The staging stem is gone. It exists so a half-finished download is invisible to
+    // `fileReady` and to `workPathOf`; leaving one behind would be a file nobody accepted.
+    expect(
+      existsSync(join(LIBRARY_HOST, ".mm-work", urlImportId, `${urlTrackId}.adopting.opus`)),
+    ).toBe(false);
+
+    const [row] = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.id, urlTrackId));
+    expect(row?.state).toBe("downloaded");
+    expect(row?.downloadPath).toBe(result.path);
+    expect(row?.error).toBeNull();
+    // **The declared provenance did not move.** This is the claim the whole design rests on.
+    expect(row?.url).toBe(urlTrackUrl);
+
+    const adoption = adoptionOf(row?.raw);
+    expect(adoption?.via).toBe("url");
+    expect(adoption?.url).toBe(REPLACEMENT);
+    // The yt-dlp entry of the *original* video is still there, untouched: it is the identity.
+    expect((row?.raw as { id?: string }).id).not.toBeUndefined();
+  }, 120_000);
+
+  it("refuses a second source for a track the replacement already filled", async () => {
+    const code = await refusalOf(
+      async () =>
+        await adoptTrackFile({
+          importId: urlImportId,
+          trackId: urlTrackId,
+          source: { kind: "url", url: REPLACEMENT },
+          adoptedBy: "test",
+          db: db(),
+          queue: false,
+        }),
+    );
+    expect(code).toBe("ADOPT_CONFLICT");
+  });
+
+  it("carries the replaced track through fingerprint, tag and place too", async () => {
+    for (const step of ["fingerprint", "tag", "place"] as const) {
+      const outcome = await jobs.runTrackStep(urlImportId, urlTrackId, step, { db: db() });
+      expect(["done", "skipped"], `${step}: ${outcome.result.message ?? ""}`).toContain(
+        outcome.result.status,
+      );
+    }
+    const [row] = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.id, urlTrackId));
+    expect(row?.state).toBe("placed");
+    expect(existsSync(join(LIBRARY_HOST, row?.libraryPath ?? "nowhere"))).toBe(true);
+  }, 300_000);
+
+  it("writes a COMMENT naming the address that gave up the bytes, read back off the file", async () => {
+    const [row] = await db()
+      .select()
+      .from(schema.importTracks)
+      .where(eq(schema.importTracks.id, urlTrackId));
+    const probe = await toolbox().probe(containerPath(paths, row?.libraryPath ?? ""));
+    const tags: Readonly<Record<string, string>> = probe.tags ?? {};
+    const comment = tags["COMMENT"] ?? tags["DESCRIPTION"] ?? "";
+
+    expect(comment).toContain("Downloaded from");
+    expect(comment).toContain(REPLACEMENT);
+    expect(comment).toContain("unavailable");
+    // It was downloaded, so it must not claim to be a file taken off a disk…
+    expect(comment).not.toContain("Adopted local file");
+    // …and it must not answer to the `Source:` prefix that `repair.ts` reads a video id from.
+    expect(comment.startsWith("Source:")).toBe(false);
+    // The identity is still the original video, not the address the audio came from.
+    expect(tags["MUSICMANAGER_SOURCEURL"] ?? "").toBe(urlTrackUrl);
   }, 120_000);
 });
