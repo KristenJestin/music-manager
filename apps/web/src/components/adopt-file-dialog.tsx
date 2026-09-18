@@ -172,12 +172,14 @@ export function AdoptFileDialog({
 
         {/*
           `flex-wrap`, and it is not cosmetic: a `Button` is `whitespace-nowrap` and `shrink-0`,
-          so three of them in a row cannot shrink below ~420px together — and `DialogContent`
-          is a grid with a single column, sized to its widest child's minimum. Without the wrap
-          the row did not overflow *itself*: it widened the column, so the description above it
-          wrapped at 420px and was painted 70px outside the 380px panel, over whatever was
-          behind it. Wrapping keeps the row's minimum at one button, which the panel holds, and
-          the next label to grow wraps instead of pushing the panel open again.
+          so the three ways in cannot shrink below ~430px together — measured on the screenshot
+          that reported this, they are 114 + 163 + 140px plus two 6px gaps — while `DialogContent`
+          is a grid whose single column is sized to its widest child's minimum. Without the wrap
+          the row did not overflow *itself*: it widened the column to 430px inside a 348px content
+          box, so the description, the field and the footer were laid out at that width too and
+          were painted up to 65px outside the panel, over whatever was behind it. Wrapping keeps
+          the row's minimum at one button, which the panel holds, and the next label to grow wraps
+          instead of pushing the panel open again.
         */}
         <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Where the file is">
           <Button
