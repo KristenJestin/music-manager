@@ -1005,6 +1005,9 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
             adopted: {
               originalName: adoption.originalName,
               adoptedOn: adoption.adoptedAt.slice(0, 10),
+              // Present only for `via: "url"`, and it is what switches `COMMENT` from
+              // "Adopted local file …" to "Downloaded from … · original source … unavailable".
+              ...(adoption.url === undefined ? {} : { downloadedFrom: adoption.url }),
             },
           }),
     },

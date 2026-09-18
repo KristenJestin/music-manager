@@ -678,38 +678,64 @@ async function cmdRetry(args: Args): Promise<number> {
 }
 
 /**
- * `mm adopt <import id> <track id> --file <path>` — give one track a file you already have.
+ * `mm adopt <import id> <track id> --file <path> | --from-url <address>` — give one track
+ * audio from somewhere other than its own video.
  *
- * The CLI runs *on the server*, which is the whole reason it only offers the path form: the
- * files of a library being taken over are on this disk, and base64-ing them through the local
- * HTTP API to a process with the same filesystem would be ceremony. `--upload` exists for the
- * remote case (`--url`), where the machine holding the file and the machine holding the
- * library really are two machines; it is in `remote-commands.ts`.
+ * The CLI runs *on the server*, which is the whole reason the file form is a path and not an
+ * upload: the files of a library being taken over are on this disk, and base64-ing them
+ * through the local HTTP API to a process with the same filesystem would be ceremony.
+ * `--upload` exists for the remote case, where the machine holding the file and the machine
+ * holding the library really are two machines; it is in `remote-commands.ts`.
  *
- * The allow-list still applies. `mm` has a database handle, not a licence: the same
- * `adoptSourceRoots` check runs here as on the HTTP route, because "which folders may the
- * application read from" is a property of the installation, not of the door.
+ * **`--from-url` and not `--url`.** `--url` is already taken, globally and irrevocably:
+ * `mm --url http://host:3000 --token mm_… <anything>` is how this CLI drives *another
+ * installation*, and `maybeRemote` reads that flag off the command line before a command name
+ * is even looked at (see the bottom of this file). A `--url` on `adopt` would therefore never
+ * reach `cmdAdopt` at all — `mm adopt imp_1 itr_2 --url https://youtu.be/…` would be read as
+ * "drive the installation at youtu.be", which fails somewhere unrecognisable. `--from-url`
+ * says the same thing, pairs with `--file`, and cannot be mistaken for the other one. The
+ * remote command uses the same spelling, so the two modes stay the same commands.
+ *
+ * The allow-list still applies to `--file`. `mm` has a database handle, not a licence: the
+ * same `adoptSourceRoots` check runs here as on the HTTP route, because "which folders may
+ * the application read from" is a property of the installation, not of the door. `--from-url`
+ * is checked differently and just as closed — see `adoptUrlSchema`.
  */
 async function cmdAdopt(args: Args): Promise<number> {
   const importId = args.positional[1];
   const trackId = args.positional[2];
   const file = flagString(args, "file");
-  if (importId === undefined || trackId === undefined || file === undefined) {
+  const from = flagString(args, "from-url");
+  if (
+    importId === undefined ||
+    trackId === undefined ||
+    (file === undefined) === (from === undefined)
+  ) {
     throw new MMError(
       "INVALID_INPUT",
-      "usage: mm adopt <import id> <track id> --file <path on this server>",
+      "usage: mm adopt <import id> <track id> (--file <path on this server> | --from-url <address>)",
+      {
+        hint:
+          file !== undefined && from !== undefined
+            ? "Give one or the other: the bytes come from a file or from an address, not both."
+            : "`--file` for audio already on this server, `--from-url` to download another upload of the same song.",
+      },
     );
   }
 
   const result = await adoptTrackFile({
     importId,
     trackId,
-    source: { kind: "path", path: file },
+    source: file === undefined ? { kind: "url", url: from ?? "" } : { kind: "path", path: file },
     adoptedBy: "cli adopt",
     db: db(),
   });
 
-  line(`adopted ${result.originalName} for ${result.trackId}`);
+  line(
+    result.downloadedFrom === null
+      ? `adopted ${result.originalName} for ${result.trackId}`
+      : `downloaded ${result.originalName} from ${result.downloadedFrom} for ${result.trackId}`,
+  );
   line(`  file     ${result.path}`);
   line(
     `  audio    ${result.codec ?? "?"}` +
@@ -718,7 +744,11 @@ async function cmdAdopt(args: Args): Promise<number> {
   );
   line(`  next     ${result.nextStep ?? "nothing left"}${result.queued ? " (queued)" : ""}`);
   line("");
-  line("The tags will say this file was adopted, not downloaded.");
+  line(
+    result.downloadedFrom === null
+      ? "The tags will say this file was adopted, not downloaded."
+      : "The tags will name the address it came from, and say the original source was unavailable.",
+  );
   return 0;
 }
 
@@ -1763,6 +1793,10 @@ const USAGE = `mm — Music Manager
                                           source that would not read
   mm adopt <id> <track id> --file <path>   give one track a file you already have
                                           (deleted video, age check, an existing library)
+  mm adopt <id> <track id> --from-url <address>   download this track from another upload
+                                          of the same song; the original stays its source
+                                          (--from-url, not --url: --url selects a remote
+                                          installation. It spends the download slot.)
   mm inbox list [--all]
   mm inbox resolve <id> --accept [--follow]
   mm inbox resolve <id> --untagged        on a card MusicBrainz found nothing for: build the

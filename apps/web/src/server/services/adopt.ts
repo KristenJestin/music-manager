@@ -16,13 +16,30 @@
  *
  * ## How the bytes arrive
  *
- * Two ways, one schema, one code path (`AdoptSource`):
+ * Three ways, one schema, one code path (`AdoptSource`):
  *
  *  - **a path on this server** (`{ kind: "path" }`) — the honest answer to "take over my
  *    library", because the files are already here and copying two hundred of them through an
  *    HTTP body to a process running on the same disk is ceremony, not safety;
  *  - **an upload** (`{ kind: "upload" }`) — the honest answer for the Console and for anyone
- *    who does not have a shell on the machine.
+ *    who does not have a shell on the machine;
+ *  - **a replacement address** (`{ kind: "url" }`) — the honest answer when the owner has no
+ *    file at all, which is the ordinary case for a dead video: the same song is almost always
+ *    still on YouTube under another upload. The bytes are fetched from *that* address into
+ *    the same work path, and the original URL stays the track's declared provenance.
+ *
+ * The third is a member of the union rather than a second service, on purpose. `path` and
+ * `upload` already reach five surfaces — service, `/api/v1`, MCP, `mm`, the Console dialog —
+ * and everything after "the bytes are at the work path" is identical for all three: the
+ * container check, ffprobe, the row, the provenance record, the re-open, the queue. A second
+ * pipeline would have to re-derive each of those, and would drift from this one.
+ *
+ * **The replacement download spends the single download slot** (`CLAUDE.md` § One
+ * orchestrator), which the other two kinds never do. It is `POST /download` on the toolbox
+ * like any other fetch, so a `409 LOCKED` is possible; it is surfaced as itself rather than
+ * waited out, because this call is interactive — a dialog, a CLI invocation, an MCP tool —
+ * and a caller told "the slot is busy, try again" is better served than a request held open
+ * for minutes. See `downloadReplacement`.
  *
  * A path is validated against the library root and `adoptSourceRoots` before anything opens
  * it. **A path taken from an HTTP body and opened is a file-read primitive**: without the
@@ -68,6 +85,7 @@ import {
 import { isAbsolute, resolve as resolvePath } from "node:path";
 import { MMError } from "@mm/contracts";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { importTracks, type Import, type ImportTrack } from "#/server/db/schema/index.ts";
 import {
@@ -77,9 +95,11 @@ import {
   TAGGABLE_SUFFIXES,
   taggable,
   toPosix,
+  toRelative,
   workFolder,
   type PathMap,
 } from "#/server/paths.ts";
+import { cookieJar } from "#/server/services/cookies.ts";
 import { emit } from "#/server/services/events.ts";
 import { enqueue, enqueueTrack } from "#/server/services/queue.ts";
 import { loadSettings, type Settings } from "#/server/services/settings.ts";
@@ -104,9 +124,72 @@ export const MAX_ADOPT_UPLOAD_BYTES = 64 * 1024 * 1024;
 /** The containers this route accepts, sorted — for error messages and for the API document. */
 export const ADOPTABLE_SUFFIXES: readonly string[] = [...TAGGABLE_SUFFIXES].sort();
 
+/**
+ * Where the bytes of an adopted track come from.
+ *
+ * Exported, and only ever extended additively: a caller that resolves something else — a
+ * *library* track, for instance — to an import track and then delegates here must keep
+ * working without knowing which member it is handing over.
+ */
 export type AdoptSource =
   | { readonly kind: "path"; readonly path: string }
-  | { readonly kind: "upload"; readonly filename: string; readonly bytes: Uint8Array };
+  | { readonly kind: "upload"; readonly filename: string; readonly bytes: Uint8Array }
+  | { readonly kind: "url"; readonly url: string };
+
+/** How the bytes arrived, as the row, the API and the provenance record all spell it. */
+export type AdoptVia = AdoptSource["kind"];
+
+/**
+ * The address schemes the toolbox may be asked to download from.
+ *
+ * `http(s)` is every real case; `fixture://` is how the offline end-to-end run and the
+ * integration tests exercise this path with no network (`AGENTS.md` § Testing). Everything
+ * else is refused **here**, before the string reaches `POST /download`.
+ *
+ * That closed list is the whole security argument for this kind, and it is a different
+ * argument from the one `resolveSourcePath` makes. A path from an HTTP body is a file-read
+ * primitive, and the answer to it is an operator-configured allow-list. An address is not —
+ * but yt-dlp accepts far more than a web address, and `file:///etc/shadow` handed to it would
+ * re-create exactly the primitive the allow-list exists to deny, through a field that merely
+ * had to look like a URL. So the schemes are enumerated rather than filtered: a scheme nobody
+ * listed is refused, which is the only form of this check that stays correct as yt-dlp grows
+ * new protocols.
+ */
+const ADOPT_URL_SHAPE = /^(?:https?:\/\/|fixture:\/\/)/i;
+
+/** The longest address worth entertaining. Past this it is not a URL, it is a payload. */
+export const MAX_ADOPT_URL_LENGTH = 2048;
+
+/** The sentence every surface says when it refuses an address, so all five say the same one. */
+export const ADOPT_URL_MESSAGE =
+  "A replacement address must be an `http://` or `https://` URL (or a `fixture://` one, in " +
+  "fixtures mode). Any other scheme is refused.";
+
+/**
+ * Is this a replacement address we are willing to hand to the toolbox?
+ *
+ * The predicate rather than the schema, because `/api/v1` builds its own field with
+ * `@hono/zod-openapi`'s `z` and the Console's dialog has no zod at all. One rule, three
+ * spellings of the boundary that applies it — and `adoptTrackFile` applies it again itself,
+ * because a service that trusts its callers to have validated is a service with one unchecked
+ * caller away from the bug this guard exists for.
+ */
+export function isAdoptableUrl(value: string): boolean {
+  const trimmed = value.trim();
+  return (
+    trimmed !== "" &&
+    trimmed.length <= MAX_ADOPT_URL_LENGTH &&
+    !trimmed.includes("\0") &&
+    ADOPT_URL_SHAPE.test(trimmed)
+  );
+}
+
+export const adoptUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(MAX_ADOPT_URL_LENGTH, "That address is longer than any real one.")
+  .refine(isAdoptableUrl, { message: ADOPT_URL_MESSAGE });
 
 export interface AdoptOptions {
   readonly importId: string;
@@ -135,7 +218,15 @@ export interface AdoptResult {
   readonly container: string;
   readonly codec: string | null;
   readonly durationSeconds: number | null;
-  readonly via: "path" | "upload";
+  readonly via: AdoptVia;
+  /**
+   * The address the bytes were downloaded from, for `via: "url"`. `null` for the other two.
+   *
+   * Reported separately from `originalName` because they answer different questions: the name
+   * is what the file is called, this is where it came from, and on a replacement download the
+   * second is the only one a person has any use for.
+   */
+  readonly downloadedFrom: string | null;
   readonly originalName: string;
   /** The step this track will run next, or `null` when there is nothing left for it. */
   readonly nextStep: "fingerprint" | "tag" | "place" | null;
@@ -312,6 +403,41 @@ function resolveAllowed(
   throw refused();
 }
 
+/**
+ * A file name for a replacement download, derived from the address it came from.
+ *
+ * Nobody supplies one: a replacement is an address, not a file, and the name it is given here
+ * is what ends up in `ORIGINALFILENAME` and in the provenance record. `<videoId>.<ext>` is
+ * the answer, because that is exactly what the *ordinary* download path writes for a track it
+ * fetched itself (`resolvers/youtube.ts`, the non-adopted branch: `${entry.id}.${entry.ext}`),
+ * and a replacement is an ordinary download of a different video.
+ *
+ * `v=` first — `youtube.com/watch?v=ID` is the long form and the one a person pastes — then
+ * the last path segment, which covers `youtu.be/ID` and `fixture://name`. Anything unusable
+ * degrades to `download`, never to an empty name: this string reaches `suffixOf`, and a name
+ * with no stem would be refused for a file that is perfectly fine.
+ */
+export function nameFromUrl(url: string, container: string): string {
+  const stem = ((): string => {
+    try {
+      const parsed = new URL(url);
+      const query = parsed.searchParams.get("v");
+      if (query !== null && query.trim() !== "") return query;
+      const segments = parsed.pathname.split("/").filter((part) => part !== "");
+      const last = segments.at(-1) ?? parsed.hostname;
+      return last === "" ? parsed.hostname : last;
+    } catch {
+      return "";
+    }
+  })()
+    // The result becomes a filename, so it may not carry a separator, a drive letter or a NUL
+    // whatever the address held. The stem is decoration; the destination name is the track id.
+    .replace(/[^A-Za-z0-9._-]/g, "")
+    .replace(/^[._]+/, "")
+    .slice(0, 80);
+  return `${stem === "" ? "download" : stem}${container}`;
+}
+
 /** The basename of a path or of an uploaded filename, with any directory part discarded. */
 export function baseNameOf(value: string): string {
   const cleaned = toPosix(value).replace(/\/+$/, "");
@@ -390,6 +516,210 @@ function workPathOf(paths: PathMap, track: ImportTrack): string | null {
 }
 
 /* ------------------------------------------------------------------ */
+/* getting the bytes to the work path                                  */
+/* ------------------------------------------------------------------ */
+
+/** The file is at the work path, whole, and this is what it turned out to be. */
+interface Placed {
+  /** Library-relative, forward slashes: `.mm-work/imp_…/itr_….opus`. */
+  readonly relative: string;
+  readonly container: string;
+  readonly originalName: string;
+  /** The address the bytes came from, for `via: "url"`. `null` for a file. */
+  readonly downloadedFrom: string | null;
+}
+
+interface PlaceContext {
+  readonly paths: PathMap;
+  readonly settings: Settings;
+  readonly folder: string;
+  readonly trackId: string;
+}
+
+/** `\`.flac\` is not a container the tagger can write to.` — the same refusal for all three kinds. */
+function refuseContainer(name: string, container: string): MMError {
+  return new MMError(
+    "ADOPT_UNSUPPORTED",
+    container === ""
+      ? `\`${name}\` has no extension, so there is no way to tell what it is.`
+      : `\`${container}\` is not a container the tagger can write to.`,
+    {
+      hint: `Convert it to one of: ${ADOPTABLE_SUFFIXES.join(", ")}. Remuxing a .webm to .opus with ffmpeg is a stream copy and loses nothing.`,
+      action: "Convert the file",
+      details: { container, accepted: [...ADOPTABLE_SUFFIXES] },
+      status: 415,
+    },
+  );
+}
+
+/**
+ * A path on this server or an upload, copied into the work directory.
+ *
+ * Unchanged from the day this module was written, only lifted out of `adoptTrackFile` so that
+ * the third kind is a sibling of it rather than a branch inside it.
+ */
+function copyIntoWork(
+  source: Extract<AdoptSource, { kind: "path" | "upload" }>,
+  ctx: PlaceContext,
+): Placed {
+  const originalName = baseNameOf(source.kind === "path" ? source.path : source.filename);
+  const sourcePath =
+    source.kind === "path"
+      ? resolveSourcePath(source.path, adoptRoots(ctx.paths, ctx.settings))
+      : null;
+
+  if (source.kind === "upload") {
+    if (source.bytes.byteLength === 0) {
+      throw new MMError("INVALID_INPUT", "The uploaded file is empty.", { status: 400 });
+    }
+    if (source.bytes.byteLength > MAX_ADOPT_UPLOAD_BYTES) {
+      throw new MMError(
+        "INVALID_INPUT",
+        `The upload is ${String(Math.round(source.bytes.byteLength / 1024 / 1024))} MB; the limit is ${String(MAX_ADOPT_UPLOAD_BYTES / 1024 / 1024)} MB.`,
+        {
+          hint: "Put the file on the server and adopt it by path instead.",
+          status: 413,
+        },
+      );
+    }
+  }
+
+  /* ---- a container the toolbox can write tags to, decided before a byte is copied ---- */
+  const container = suffixOf(originalName);
+  if (!taggable(originalName)) throw refuseContainer(originalName, container);
+
+  const relative = `${ctx.folder}/${ctx.trackId}${container}`;
+  const absolute = hostPath(ctx.paths, relative);
+  // `fileReady` believes any non-empty file at this path, so nothing half-written may ever
+  // *be* at this path: write beside it and rename, which is atomic on one filesystem.
+  const pending = `${absolute}.part`;
+  rmSync(pending, { force: true });
+  try {
+    if (sourcePath !== null) copyFileSync(sourcePath, pending);
+    else if (source.kind === "upload") writeFileSync(pending, source.bytes);
+    renameSync(pending, absolute);
+  } catch (error) {
+    rmSync(pending, { force: true });
+    throw new MMError("UNKNOWN", `The file could not be copied into the work directory.`, {
+      hint: MMError.from(error).message,
+      details: { path: relative },
+      status: 500,
+    });
+  }
+
+  return { relative, container, originalName, downloadedFrom: null };
+}
+
+/**
+ * A replacement address, fetched into the work directory by the toolbox.
+ *
+ * The one kind that spends the single download slot, and the one whose container is not known
+ * before the bytes arrive: yt-dlp picks the format, so the extension is an *outcome*. That
+ * inverts the order the other two kinds use — they refuse an unsupported container before
+ * copying anything, this one has to fetch first and refuse after — and it is why the file is
+ * fetched under a **staging stem** (`<trackId>.adopting`) and renamed into place afterwards.
+ *
+ * The staging stem is not decoration. `fileReady` and `refuseAdoption`'s `workPathOf` both
+ * look for `<trackId><suffix>` exactly, so nothing under `<trackId>.adopting.opus` is visible
+ * to them: a download that dies halfway, a container the tagger cannot write, or a file that
+ * turns out not to be audio all leave the track exactly as adoptable as it was, instead of
+ * leaving a corpse that the *next* attempt would refuse with `ADOPT_CONFLICT` naming a file
+ * the owner never accepted. The rename at the end is the same atomic hand-off the `.part`
+ * sibling gives the other two kinds.
+ *
+ * A `409 LOCKED` is re-thrown as itself. `download.ts` waits one out, deliberately, because it
+ * is a worker with nobody watching; this is a person or an agent holding a request open, and
+ * telling them the slot is busy is both faster and truer than a request that hangs for minutes
+ * and may still fail (`CLAUDE.md` § One orchestrator).
+ */
+async function downloadReplacement(
+  url: string,
+  ctx: PlaceContext & { readonly toolbox: ToolboxClient },
+): Promise<Placed> {
+  const parsed = adoptUrlSchema.safeParse(url);
+  if (!parsed.success) {
+    throw new MMError("INVALID_INPUT", parsed.error.issues[0]?.message ?? "Unusable address.", {
+      hint: "Paste the address of another upload of the same song — the page URL, not a file path.",
+      details: { url },
+      status: 400,
+    });
+  }
+  const address = parsed.data;
+
+  const stem = `${ctx.trackId}.adopting`;
+  const staged = (suffix: string): string => `${ctx.folder}/${stem}${suffix}`;
+  const sweep = (): void => {
+    for (const suffix of TAGGABLE_SUFFIXES) {
+      rmSync(hostPath(ctx.paths, staged(suffix)), { force: true });
+      rmSync(`${hostPath(ctx.paths, staged(suffix))}.part`, { force: true });
+    }
+  };
+  sweep();
+
+  let donePath: string | null = null;
+  try {
+    for await (const event of ctx.toolbox.download({
+      url: address,
+      destDir: containerPath(ctx.paths, ctx.folder),
+      id: stem,
+      format: ctx.settings.downloadFormat,
+      // The configured session, exactly as `download.ts` sends it: a replacement upload is as
+      // likely to want a cookie jar as the original was.
+      cookies: cookieJar(ctx.settings),
+    })) {
+      if (event.event === "done") donePath = event.path;
+      else if (event.event === "error") {
+        throw MMError.fromBody(event, "The replacement download failed.");
+      }
+    }
+  } catch (error) {
+    sweep();
+    const failure = MMError.from(error);
+    if (failure.code === "LOCKED") {
+      throw new MMError("LOCKED", "A download is already running.", {
+        hint: "There is one download slot. Wait for the current one to finish and adopt this address again.",
+        action: "Try again shortly",
+        status: 409,
+      });
+    }
+    throw failure;
+  }
+
+  if (donePath === null) {
+    sweep();
+    throw new MMError("UNKNOWN", "The toolbox never reported the downloaded file.", {
+      hint: `Nothing was fetched from ${address}.`,
+      details: { url: address },
+      status: 502,
+    });
+  }
+
+  const from = toRelative(ctx.paths, donePath) ?? staged(".opus");
+  const container = suffixOf(from);
+  const originalName = nameFromUrl(address, container);
+  if (!taggable(from)) {
+    sweep();
+    throw refuseContainer(originalName, container);
+  }
+
+  const relative = `${ctx.folder}/${ctx.trackId}${container}`;
+  try {
+    rmSync(hostPath(ctx.paths, relative), { force: true });
+    renameSync(hostPath(ctx.paths, from), hostPath(ctx.paths, relative));
+  } catch (error) {
+    sweep();
+    throw new MMError("UNKNOWN", "The downloaded file could not be moved into position.", {
+      hint: MMError.from(error).message,
+      details: { path: relative },
+      status: 500,
+    });
+  }
+  sweep();
+
+  return { relative, container, originalName, downloadedFrom: address };
+}
+
+/* ------------------------------------------------------------------ */
 /* the service                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -412,66 +742,25 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
   const refusal = refuseAdoption(job, track, paths);
   if (refusal !== null) throw refusal;
 
-  /* ---- where the bytes are, and whether we are allowed to read them ---- */
+  /* ---- get the bytes to the work path, however they were offered ---- */
   const source = options.source;
-  const originalName = baseNameOf(source.kind === "path" ? source.path : source.filename);
-  const sourcePath =
-    source.kind === "path" ? resolveSourcePath(source.path, adoptRoots(paths, settings)) : null;
-
-  if (source.kind === "upload") {
-    if (source.bytes.byteLength === 0) {
-      throw new MMError("INVALID_INPUT", "The uploaded file is empty.", { status: 400 });
-    }
-    if (source.bytes.byteLength > MAX_ADOPT_UPLOAD_BYTES) {
-      throw new MMError(
-        "INVALID_INPUT",
-        `The upload is ${String(Math.round(source.bytes.byteLength / 1024 / 1024))} MB; the limit is ${String(MAX_ADOPT_UPLOAD_BYTES / 1024 / 1024)} MB.`,
-        {
-          hint: "Put the file on the server and adopt it by path instead.",
-          status: 413,
-        },
-      );
-    }
-  }
-
-  /* ---- a container the toolbox can write tags to, decided before a byte is copied ---- */
-  const container = suffixOf(originalName);
-  if (!taggable(originalName)) {
-    throw new MMError(
-      "ADOPT_UNSUPPORTED",
-      container === ""
-        ? `\`${originalName}\` has no extension, so there is no way to tell what it is.`
-        : `\`${container}\` is not a container the tagger can write to.`,
-      {
-        hint: `Convert it to one of: ${ADOPTABLE_SUFFIXES.join(", ")}. Remuxing a .webm to .opus with ffmpeg is a stream copy and loses nothing.`,
-        action: "Convert the file",
-        details: { container, accepted: [...ADOPTABLE_SUFFIXES] },
-        status: 415,
-      },
-    );
-  }
-
-  /* ---- copy it into the work directory, where `place` expects to find it ---- */
   const folder = workFolder(paths, job.id);
   mkdirSync(hostPath(paths, folder), { recursive: true });
-  const relative = `${folder}/${track.id}${container}`;
+
+  const placed =
+    source.kind === "url"
+      ? await downloadReplacement(source.url, {
+          paths,
+          settings,
+          toolbox: toolboxClient,
+          folder,
+          trackId: track.id,
+        })
+      : copyIntoWork(source, { paths, settings, folder, trackId: track.id });
+
+  const { relative, container, originalName } = placed;
+  const downloadedFrom = placed.downloadedFrom;
   const absolute = hostPath(paths, relative);
-  // `fileReady` believes any non-empty file at this path, so nothing half-written may ever
-  // *be* at this path: write beside it and rename, which is atomic on one filesystem.
-  const pending = `${absolute}.part`;
-  rmSync(pending, { force: true });
-  try {
-    if (sourcePath !== null) copyFileSync(sourcePath, pending);
-    else if (source.kind === "upload") writeFileSync(pending, source.bytes);
-    renameSync(pending, absolute);
-  } catch (error) {
-    rmSync(pending, { force: true });
-    throw new MMError("UNKNOWN", `The file could not be copied into the work directory.`, {
-      hint: MMError.from(error).message,
-      details: { path: relative },
-      status: 500,
-    });
-  }
 
   /* ---- and is it audio at all? ---- */
   //
@@ -518,6 +807,7 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
     container,
     codec,
     adoptedBy: options.adoptedBy,
+    ...(downloadedFrom === null ? {} : { url: downloadedFrom }),
   };
   const raw: Record<string, unknown> = {
     ...(typeof track.raw === "object" && track.raw !== null ? track.raw : {}),
@@ -537,7 +827,10 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
       // leaving them would make the Console show a red line under a track that is fine.
       attempts: 0,
       error: null,
-      note: `adopted from a local file (${originalName})`,
+      note:
+        downloadedFrom === null
+          ? `adopted from a local file (${originalName})`
+          : `downloaded from a replacement address (${downloadedFrom})`,
       updatedAt: new Date(),
     })
     .where(eq(importTracks.id, track.id));
@@ -548,7 +841,10 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
       trackId: track.id,
       step: "download",
       type: "track.adopted",
-      message: `${track.sourceTitle}: adopted "${originalName}"`,
+      message:
+        downloadedFrom === null
+          ? `${track.sourceTitle}: adopted "${originalName}"`
+          : `${track.sourceTitle}: downloaded from ${downloadedFrom}`,
       data: {
         stage: "adopted",
         via: source.kind,
@@ -556,6 +852,7 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
         container,
         codec,
         path: relative,
+        downloadedFrom,
         adoptedBy: options.adoptedBy,
       },
     },
@@ -618,6 +915,7 @@ export async function adoptTrackFile(options: AdoptOptions): Promise<AdoptResult
     codec,
     durationSeconds,
     via: source.kind,
+    downloadedFrom,
     originalName,
     nextStep,
     queued,

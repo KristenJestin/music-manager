@@ -352,51 +352,62 @@ async function cmdRetry(api: ApiClient, args: RemoteArgs): Promise<number> {
 }
 
 /**
- * `mm adopt <id> <track id> --file <path>` against another installation.
+ * `mm adopt <id> <track id> --file <path> | --server-path <path> | --from-url <address>`
+ * against another installation.
  *
  * Remote mode is the case where the file and the library are genuinely on two machines, so
  * the default here is the opposite of the local command's: `--file` is read *from this
  * machine* and uploaded. `--server-path` is the escape hatch for the file that is already on
  * the far end, and it still has to pass that installation's `adoptSourceRoots`.
+ *
+ * `--from-url` is neither: the far end downloads it, so nothing crosses this wire but the
+ * address. The flag is spelled exactly as the local command spells it, and for the same
+ * reason — `--url` is how this CLI was pointed at that installation in the first place.
  */
 async function cmdAdopt(api: ApiClient, args: RemoteArgs): Promise<number> {
   const id = args.positional[1];
   const trackId = args.positional[2];
   const file = flagString(args, "file");
   const serverPath = flagString(args, "server-path");
-  if (
-    id === undefined ||
-    trackId === undefined ||
-    (file === undefined) === (serverPath === undefined)
-  ) {
+  const from = flagString(args, "from-url");
+  const given = [file, serverPath, from].filter((value) => value !== undefined);
+  if (id === undefined || trackId === undefined || given.length !== 1) {
     throw new Error(
       "usage: mm adopt <id> <track id> --file <path here>\n" +
-        "       mm adopt <id> <track id> --server-path <path there>",
+        "       mm adopt <id> <track id> --server-path <path there>\n" +
+        "       mm adopt <id> <track id> --from-url <address the server downloads from>",
     );
   }
 
   const body =
-    serverPath === undefined
-      ? {
-          source: "upload" as const,
-          filename: (file ?? "").split(/[/\\]/).pop() ?? "adopted",
-          // `node:fs`, not `Bun.file`: `bin/` is the one place in this app that really does
-          // run under Bun, and it is still not worth a second way of reading a file.
-          content: readFileSync(file ?? "").toString("base64"),
-        }
-      : { source: "path" as const, path: serverPath };
+    from !== undefined
+      ? { source: "url" as const, url: from }
+      : serverPath !== undefined
+        ? { source: "path" as const, path: serverPath }
+        : {
+            source: "upload" as const,
+            filename: (file ?? "").split(/[/\\]/).pop() ?? "adopted",
+            // `node:fs`, not `Bun.file`: `bin/` is the one place in this app that really does
+            // run under Bun, and it is still not worth a second way of reading a file.
+            content: readFileSync(file ?? "").toString("base64"),
+          };
 
   const result = await api.post<{
     path: string;
     bytes: number;
     codec: string | null;
     originalName: string;
+    downloadedFrom: string | null;
     nextStep: string | null;
     queued: boolean;
   }>(`/imports/${id}/tracks/${trackId}/file`, body);
 
   if (asJson(args)) return dump(result);
-  line(`adopted ${result.originalName}`);
+  line(
+    result.downloadedFrom === null
+      ? `adopted ${result.originalName}`
+      : `downloaded ${result.originalName} from ${result.downloadedFrom}`,
+  );
   line(
     `  file     ${result.path} (${String(Math.round(result.bytes / 1024))} KiB, ${result.codec ?? "?"})`,
   );
@@ -706,6 +717,8 @@ export const REMOTE_USAGE = `mm — Music Manager (remote)
   mm retry <id> --step <step>
   mm adopt <id> <track id> --file <path here>          upload a file as that track's source
   mm adopt <id> <track id> --server-path <path there>  …or one already on the server
+  mm adopt <id> <track id> --from-url <address>        …or let the server download it from
+                                                       another upload of the same song
   mm cancel|pause|bump <id>
   mm inbox list [--all] | mm inbox resolve <id> --accept [--follow]
   mm inbox resolve --all --accept [--import <id>]

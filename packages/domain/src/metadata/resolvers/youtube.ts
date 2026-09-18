@@ -46,6 +46,25 @@ export interface AdoptedFile {
   readonly originalName: string;
   /** `YYYY-MM-DD`. */
   readonly adoptedOn: string;
+  /**
+   * The bytes were **downloaded from this address** instead of taken from a file on disk.
+   *
+   * The fourth case, and the common one: the video is gone, and the same song is still on
+   * YouTube under another upload. Nothing was adopted from a disk, so "Adopted local file" is
+   * the wrong sentence — but the track is still the original video, and `COMMENT` has to name
+   * both addresses, because a person reading the tag needs to know which one supplied the
+   * audio and which one the track claims to be.
+   */
+  readonly downloadedFrom?: string;
+}
+
+/** `youtu.be/<id>` for a YouTube address, and the address unchanged for anything else. */
+export function shortenSourceUrl(url: string): string {
+  const video =
+    /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/))([\w-]{6,})/i.exec(
+      url,
+    )?.[1];
+  return video === undefined ? url : `youtu.be/${video}`;
 }
 
 export interface YouTubeResolverOptions {
@@ -112,22 +131,60 @@ export function fromYouTubeEntry(
      * and the re-tag match on — and rewriting it to say "a file" would break every one of them
      * to restate something `COMMENT` has just said in words.
      */
-    patch.set(
-      "comment",
-      `Adopted local file "${adopted.originalName}" on ${adopted.adoptedOn}` +
-        // "not downloaded from <a file on the same disk>" is a sentence about nothing. The
-        // clause exists to name the video the bytes are *not* from — which on a folder import
-        // there never was, because the file itself is the source.
-        (shortUrl === null || !fromYouTube ? "" : ` · not downloaded from ${shortUrl}`) +
-        ` · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
-      { confidence: 1 },
-    );
-    // The file's own name, which is the honest answer here and is more use than `<id>.<ext>`:
-    // on a take-over it is how the owner finds the track again in the library it came from.
-    patch.set("originalfilename", adopted.originalName, { confidence: 1 });
-    // Neither of these is knowable: nothing of ours encoded this file.
-    patch.setOrNa("encodedby", undefined, "the file was adopted from disk, not downloaded");
-    patch.setOrNa("encodersettings", undefined, "the file was adopted from disk, not downloaded");
+    const replacement = adopted.downloadedFrom;
+    if (replacement !== undefined && replacement !== "") {
+      /*
+       * A replacement address: the audio *was* downloaded, just not from here.
+       *
+       * Two addresses in one sentence, and the order matters — the one that supplied the
+       * bytes first, because that is the question "where did this file come from" actually
+       * asks, then the one this track claims to be and the reason it is not the answer.
+       * `MUSICMANAGER_SOURCEURL` below still holds the second, unchanged, for the same reason
+       * it does on an adopted file: it is the machine-readable identity, and the reconciliation,
+       * the scan and the re-tag all match on it.
+       */
+      patch.set(
+        "comment",
+        `Downloaded from ${shortenSourceUrl(replacement)}` +
+          (shortUrl === null ? "" : ` · original source ${shortUrl} unavailable`) +
+          ` · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
+        { confidence: 1 },
+      );
+      // `<id>.<ext>` of the upload the bytes came from — which is what the ordinary download
+      // branch below writes, because a replacement download is an ordinary download of a
+      // different video.
+      patch.set("originalfilename", adopted.originalName, { confidence: 1 });
+      // yt-dlp really did fetch and encode this one, so its version is knowable and true.
+      // The *format* is not: `entry` describes the video that could not be downloaded, and
+      // reading its `acodec`/`abr` here would describe a file that was never produced.
+      patch.setOrNa(
+        "encodedby",
+        options.ytdlpVersion,
+        "the download did not report a yt-dlp version",
+      );
+      patch.setOrNa(
+        "encodersettings",
+        undefined,
+        "the audio came from a replacement address, so the source entry's format is not this file's",
+      );
+    } else {
+      patch.set(
+        "comment",
+        `Adopted local file "${adopted.originalName}" on ${adopted.adoptedOn}` +
+          // "not downloaded from <a file on the same disk>" is a sentence about nothing. The
+          // clause exists to name the video the bytes are *not* from — which on a folder import
+          // there never was, because the file itself is the source.
+          (shortUrl === null || !fromYouTube ? "" : ` · not downloaded from ${shortUrl}`) +
+          ` · imported ${options.importedOn} by Music Manager ${options.appVersion}`,
+        { confidence: 1 },
+      );
+      // The file's own name, which is the honest answer here and is more use than `<id>.<ext>`:
+      // on a take-over it is how the owner finds the track again in the library it came from.
+      patch.set("originalfilename", adopted.originalName, { confidence: 1 });
+      // Neither of these is knowable: nothing of ours encoded this file.
+      patch.setOrNa("encodedby", undefined, "the file was adopted from disk, not downloaded");
+      patch.setOrNa("encodersettings", undefined, "the file was adopted from disk, not downloaded");
+    }
   } else {
     if (shortUrl !== null) {
       patch.set(

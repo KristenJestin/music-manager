@@ -232,10 +232,14 @@ function JobPage() {
             source:
               choice.kind === "path"
                 ? { kind: "path", path: choice.path }
-                : { kind: "upload", filename: choice.filename, content: choice.content },
+                : choice.kind === "url"
+                  ? { kind: "url", url: choice.url }
+                  : { kind: "upload", filename: choice.filename, content: choice.content },
           },
         }),
-      "File adopted; the track carries on from here.",
+      choice.kind === "url"
+        ? "Downloaded from the address you gave; the track carries on from here."
+        : "File adopted; the track carries on from here.",
     );
     setAdopting(null);
   };

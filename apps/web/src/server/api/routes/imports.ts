@@ -23,7 +23,7 @@ import { db } from "#/server/db/client.ts";
 import type { Import, ImportStatus, StepName } from "#/server/db/schema/index.ts";
 import { createImport, getImport } from "#/server/services/imports.ts";
 import { confirmBest, createImportsBatch, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
-import { adoptTrackFile } from "#/server/services/adopt.ts";
+import { adoptTrackFile, type AdoptSource } from "#/server/services/adopt.ts";
 import {
   bumpImport,
   cancelImport,
@@ -97,6 +97,27 @@ function toImport(job: Import): z.infer<typeof importSchema> {
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
   };
+}
+
+/**
+ * The validated body of the adopt route → the service's own `AdoptSource`.
+ *
+ * A `switch` over the discriminant rather than a ternary, so that a fourth member of
+ * `AdoptSource` is a compile error here instead of a body silently read as an upload.
+ */
+function sourceOf(body: z.infer<typeof adoptFileSchema>): AdoptSource {
+  switch (body.source) {
+    case "path":
+      return { kind: "path", path: body.path };
+    case "url":
+      return { kind: "url", url: body.url };
+    case "upload":
+      return {
+        kind: "upload",
+        filename: body.filename,
+        bytes: new Uint8Array(Buffer.from(body.content, "base64")),
+      };
+  }
 }
 
 export function importRoutes(): OpenAPIHono<ApiEnv> {
@@ -646,12 +667,12 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       method: "post",
       path: "/{id}/tracks/{trackId}/file",
       tags: [TAG],
-      summary: "Adopt a local file as this track's source",
+      summary: "Adopt a file, or a replacement address, as this track's source",
       description:
-        "Gives one track a file you already have, instead of downloading it. For a video that " +
-        "has been deleted, a video behind an age check, and for taking over an existing " +
-        "library track by track.\n\n" +
-        "**The bytes arrive one of two ways**, chosen by `source`:\n\n" +
+        "Gives one track audio from somewhere other than its own video. For a video that " +
+        "has been deleted, a video behind an age check or behind Music Premium, and for " +
+        "taking over an existing library track by track.\n\n" +
+        "**The bytes arrive one of three ways**, chosen by `source`:\n\n" +
         "- `path` — an absolute path *on the server*. The honest answer when the files are " +
         "already on the machine. It is resolved through `realpath` and refused with **403 " +
         "`ADOPT_PATH_REFUSED`** unless it lands inside the library or inside one of the " +
@@ -659,21 +680,29 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         "until an operator names a folder in Settings, this route will not read anything " +
         "outside the library.\n" +
         "- `upload` — the file's bytes, base64, up to 64 MB. The honest answer for a browser " +
-        "or for a caller with no shell on the machine.\n\n" +
+        "or for a caller with no shell on the machine.\n" +
+        "- `url` — a **replacement address** to download from, for when you have no file at " +
+        "all. A deleted or age-checked video is almost always still on YouTube under another " +
+        "upload; this fetches *that* one. Only `http://`, `https://` and (in fixtures mode) " +
+        "`fixture://` are accepted, and any other scheme is refused with `INVALID_INPUT`. " +
+        "Unlike the other two, **this one spends the single download slot** and so can " +
+        "answer **409 `LOCKED`** — retry it when the slot is free.\n\n" +
         "The file lands in `<library>/.mm-work/<import>/<trackId><ext>`, which is where " +
-        "`place` expects to find it and what `download` probes for, so **the download slot is " +
-        "never spent**. The track resumes at the step *after* `download` — `fingerprint`, " +
-        "then `tag`, then `place` — on the per-track queue.\n\n" +
-        '**The document says so.** The track\'s `COMMENT` becomes *Adopted local file "…" · ' +
-        "not downloaded from youtu.be/…* instead of *Source: youtu.be/…*, `ORIGINALFILENAME` " +
-        "becomes the file's own name, and `ENCODEDBY` is n/a — nothing of ours encoded it. " +
-        "`MUSICMANAGER_SOURCEURL` still carries the video's URL, because that is the track's " +
-        "identity and not a claim about where the audio came from.\n\n" +
+        "`place` expects to find it and what `download` probes for. The track resumes at the " +
+        "step *after* `download` — `fingerprint`, then `tag`, then `place` — on the per-track " +
+        "queue, and **the track's own video is never fetched**.\n\n" +
+        "**The document says so, and says which address gave up the bytes.** For `path` and " +
+        '`upload` the track\'s `COMMENT` becomes *Adopted local file "…" · not downloaded ' +
+        "from youtu.be/…*; for `url` it becomes *Downloaded from youtu.be/… · original " +
+        "source youtu.be/… unavailable*. Either way `MUSICMANAGER_SOURCEURL` still carries " +
+        "the **original** video's URL, because that is the track's identity and not a claim " +
+        "about where the audio came from.\n\n" +
         "**Refusals**, each with its own code so the fix is unambiguous: `ADOPT_UNSUPPORTED` " +
         "(a container the tagger cannot write to), `ADOPT_NOT_AUDIO` (ffprobe found no audio " +
         "stream), `ADOPT_CONFLICT` (the track already has a file — retry it first), " +
-        "`ADOPT_PATH_REFUSED` (outside the allow-list) and `ADOPT_NOT_READY` (the import is " +
-        "cancelled, or has not been confirmed, or this video is not bound to a track).",
+        "`ADOPT_PATH_REFUSED` (outside the allow-list), `LOCKED` (a download is already " +
+        "running) and `ADOPT_NOT_READY` (the import is cancelled, or has not been confirmed, " +
+        "or this video is not bound to a track).",
       middleware: [requireScope("imports:write")] as const,
       request: {
         params: z.object({ id: idParam, trackId: idParam }),
@@ -693,7 +722,9 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
         },
         409: {
           content: { "application/json": { schema: errorSchema } },
-          description: "`ADOPT_CONFLICT` or `ADOPT_NOT_READY`",
+          description:
+            '`ADOPT_CONFLICT`, `ADOPT_NOT_READY`, or `LOCKED` when `source: "url"` asked ' +
+            "for the download slot and something else was holding it",
         },
         413: {
           content: { "application/json": { schema: errorSchema } },
@@ -711,14 +742,7 @@ export function importRoutes(): OpenAPIHono<ApiEnv> {
       const result = await adoptTrackFile({
         importId: id,
         trackId,
-        source:
-          body.source === "path"
-            ? { kind: "path", path: body.path }
-            : {
-                kind: "upload",
-                filename: body.filename,
-                bytes: new Uint8Array(Buffer.from(body.content, "base64")),
-              },
+        source: sourceOf(body),
         adoptedBy: "api",
         db: db(),
       });

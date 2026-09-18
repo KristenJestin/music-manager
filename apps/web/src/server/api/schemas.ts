@@ -20,6 +20,11 @@ import { IMPORT_STATUSES, INBOX_TYPES, RETAG_SELECTIONS } from "#/server/db/sche
 // The batch cap and the coverage bar belong to the service that enforces them; restating them
 // here would be a second copy to keep in step with the OpenAPI text that quotes them.
 import { DEFAULT_MIN_COVERAGE, MAX_BATCH_URLS } from "#/server/services/imports.bulk.ts";
+import {
+  ADOPT_URL_MESSAGE,
+  isAdoptableUrl,
+  MAX_ADOPT_URL_LENGTH,
+} from "#/server/services/adopt.ts";
 import type {
   ApiKeyView,
   ApiPrincipal,
@@ -481,7 +486,7 @@ export const retryStepSchema = z
 /**
  * `POST /imports/{id}/tracks/{trackId}/file` — adopt a local file as this track's source.
  *
- * **One content type, two ways for the bytes to arrive**, discriminated on `source`. JSON and
+ * **One content type, three ways for the bytes to arrive**, discriminated on `source`. JSON and
  * not `multipart/form-data` for a reason worth writing down: every boundary in this
  * application is a zod schema (`CLAUDE.md` § Code style), there is no multipart parser
  * anywhere in it, and adding one for a single route would make this the only body in the app
@@ -529,6 +534,27 @@ export const adoptFileSchema = z
           .openapi({ description: "The file's bytes, base64. 64 MB before encoding." }),
       })
       .openapi("AdoptFileUpload"),
+    z
+      .object({
+        source: z.literal("url"),
+        url: z
+          .string()
+          .trim()
+          .min(1)
+          .max(MAX_ADOPT_URL_LENGTH)
+          .refine(isAdoptableUrl, ADOPT_URL_MESSAGE)
+          .openapi({
+            example: "https://youtu.be/dQw4w9WgXcQ",
+            description:
+              "A **replacement address** to download the audio from, for a track whose own " +
+              "video is deleted, age-checked or behind Music Premium. The bytes come from " +
+              "here; the track's declared provenance stays the original video, and its " +
+              "`COMMENT` names both. Only `http://`, `https://` and (in fixtures mode) " +
+              "`fixture://` are accepted — any other scheme is refused. " +
+              "**This spends the single download slot**, so it can answer `409 LOCKED`.",
+          }),
+      })
+      .openapi("AdoptFileByUrl"),
   ])
   .openapi("AdoptFile");
 
@@ -542,7 +568,9 @@ export const adoptFileResultSchema = z
     container: z.string(),
     codec: z.string().nullable(),
     durationSeconds: z.number().nullable(),
-    via: z.enum(["path", "upload"]),
+    via: z.enum(["path", "upload", "url"]),
+    /** The replacement address the bytes came from, for `via: "url"`. `null` otherwise. */
+    downloadedFrom: z.string().nullable(),
     originalName: z.string(),
     /** The step the track runs next — `fingerprint` unless the options turned it off. */
     nextStep: z.string().nullable(),

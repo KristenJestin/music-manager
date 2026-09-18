@@ -45,7 +45,7 @@ import {
   DEFAULT_MIN_COVERAGE,
   MAX_BATCH_URLS,
 } from "#/server/services/imports.bulk.ts";
-import { adoptTrackFile } from "#/server/services/adopt.ts";
+import { adoptTrackFile, type AdoptSource } from "#/server/services/adopt.ts";
 import {
   createWatchedSource,
   getWatchedSource,
@@ -839,49 +839,77 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
     {
       name: "adopt_track_file",
       scope: "imports:write",
-      title: "Adopt a local file as one track's source",
+      title: "Adopt a file, or a replacement address, as one track's source",
       description:
-        "Gives one track a file that already exists, instead of downloading it. This is the " +
-        "answer for a video that has been **deleted**, for a video behind an **age check** " +
-        "that no cookie jar gets past, and for **taking over an existing library** track by " +
-        "track.\n\n" +
-        "**Two ways for the bytes to arrive**, and you almost always want the first:\n\n" +
+        "Gives one track audio from somewhere other than its own video. This is the answer " +
+        "for a video that has been **deleted**, for a video behind an **age check** that no " +
+        "cookie jar gets past, for one behind **Music Premium**, and for **taking over an " +
+        "existing library** track by track.\n\n" +
+        "**Three ways for the bytes to arrive.** Give exactly one of `path`, `content` and " +
+        "`url`:\n\n" +
         "- `path` — an absolute path *on the server running this application*. Not on your " +
         "machine. It is resolved through `realpath` and refused unless it lands inside the " +
         "library or inside a directory the operator listed in the `adoptSourceRoots` setting, " +
         "which is **empty by default**. A refusal here is `ADOPT_PATH_REFUSED` and it is not " +
         "something you can work around: ask the operator to add the folder.\n" +
         "- `content` — the file's bytes, base64, up to 64 MB, with `filename` for its name. " +
-        "Use it when you hold the bytes and the server cannot see them.\n\n" +
-        "Give exactly one of `path` and `content`.\n\n" +
-        "The file lands where `download` would have put it, so **the single download slot is " +
-        "never spent**, and the track resumes at `fingerprint` → `tag` → `place`.\n\n" +
-        '**The tags say it was adopted.** `COMMENT` becomes *Adopted local file "…" · not ' +
-        "downloaded from youtu.be/…*, `ORIGINALFILENAME` becomes the file's own name, and " +
-        "`ENCODEDBY` is n/a. Do not describe an adopted file as downloaded.\n\n" +
+        "Use it when you hold the bytes and the server cannot see them.\n" +
+        "- `url` — a **replacement address** to download the audio from, for when there is no " +
+        "file anywhere. A dead video is almost always still on YouTube under another upload; " +
+        "find that one and give its address here. Only `http://`, `https://` and (in fixtures " +
+        "mode) `fixture://` are accepted.\n\n" +
+        "The file lands where `download` would have put it, and the track resumes at " +
+        "`fingerprint` → `tag` → `place`. **The track's own video is never fetched.**\n\n" +
+        "**`path` and `content` never spend the single download slot. `url` does** — it is a " +
+        "real download — so it can fail with `LOCKED` when something else is using the slot. " +
+        "That is a *wait and retry*, not a problem with your arguments: no other tool call " +
+        "will fix it, and running several `url` adoptions at once only makes them queue.\n\n" +
+        "**The tags say where the bytes came from, and you must not contradict them.** For " +
+        '`path` and `content`, `COMMENT` becomes *Adopted local file "…" · not downloaded ' +
+        "from youtu.be/…* and `ENCODEDBY` is n/a — do not describe such a file as downloaded. " +
+        "For `url`, `COMMENT` becomes *Downloaded from youtu.be/… · original source " +
+        "youtu.be/… unavailable* — it **was** downloaded, just not from the track's own " +
+        "video. In every case `MUSICMANAGER_SOURCEURL` keeps pointing at the **original** " +
+        "video, because that is the track's identity; a replacement address is where the " +
+        "audio came from and never what the track is.\n\n" +
         "Refusals, each with its own code: `ADOPT_UNSUPPORTED` (a container the tagger cannot " +
         "write — convert it), `ADOPT_NOT_AUDIO` (ffprobe found no audio stream), " +
         "`ADOPT_CONFLICT` (the track already has a file — `retry_step` it first), " +
-        "`ADOPT_PATH_REFUSED`, `ADOPT_NOT_READY` (the import is cancelled, or not yet " +
-        "confirmed, or this video is not bound to a track).",
+        "`ADOPT_PATH_REFUSED`, `LOCKED` (`url` only; the download slot is busy), " +
+        "`ADOPT_NOT_READY` (the import is cancelled, or not yet confirmed, or this video is " +
+        "not bound to a track).",
       inputSchema: {
         importId: z.string().min(1),
-        trackId: z.string().min(1).describe("An `import_tracks` id, as `get_import` lists it."),
+        trackId: z
+          .string()
+          .min(1)
+          .describe(
+            "An `import_tracks` id, as `get_import` lists it — including a `sourceless` " +
+              "track, which has no video of its own and exists precisely to be given one.",
+          ),
         path: z
           .string()
           .min(1)
           .optional()
-          .describe("Absolute path on the server. Mutually exclusive with `content`."),
+          .describe("Absolute path on the server. Mutually exclusive with `content` and `url`."),
         filename: z
           .string()
           .min(1)
           .optional()
-          .describe("The file's own name. Required with `content`, ignored with `path`."),
+          .describe("The file's own name. Required with `content`, ignored otherwise."),
         content: z
           .string()
           .min(1)
           .optional()
-          .describe("The file's bytes, base64, 64 MB at most. Mutually exclusive with `path`."),
+          .describe("The file's bytes, base64, 64 MB at most. Mutually exclusive with the others."),
+        url: z
+          .string()
+          .min(1)
+          .optional()
+          .describe(
+            "A replacement address to download the audio from — another upload of the same " +
+              "song. `http(s)://` only. Spends the download slot; may answer `LOCKED`.",
+          ),
       },
       run: async (args: {
         importId: string;
@@ -889,16 +917,31 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         path?: string;
         filename?: string;
         content?: string;
+        url?: string;
       }) => {
-        // The schema cannot state "exactly one of these two" in a way the MCP SDK renders
+        // The schema cannot state "exactly one of these three" in a way the MCP SDK renders
         // usefully, so it is stated here — and as a refusal, not as a preference, because
         // silently ignoring one of two supplied sources is how an agent uploads a file and
-        // believes it adopted a different one.
-        if ((args.path === undefined) === (args.content === undefined)) {
-          throw new MMError("INVALID_INPUT", "Give exactly one of `path` and `content`.", {
-            hint: "`path` for a file already on the server, `content` (with `filename`) to upload one.",
-            status: 400,
-          });
+        // believes it adopted a different one. Counting rather than the old XOR: with three
+        // members, "exactly one" is the only spelling that stays right when a fourth arrives.
+        const given = [
+          args.path === undefined ? null : "path",
+          args.content === undefined ? null : "content",
+          args.url === undefined ? null : "url",
+        ].filter((name): name is string => name !== null);
+        if (given.length !== 1) {
+          throw new MMError(
+            "INVALID_INPUT",
+            given.length === 0
+              ? "Give exactly one of `path`, `content` and `url`."
+              : `Give exactly one of \`path\`, \`content\` and \`url\` — you gave ${given.join(" and ")}.`,
+            {
+              hint:
+                "`path` for a file already on the server, `content` (with `filename`) to " +
+                "upload one, `url` to download from another upload of the same song.",
+              status: 400,
+            },
+          );
         }
         if (args.content !== undefined && args.filename === undefined) {
           throw new MMError("INVALID_INPUT", "`content` needs `filename`.", {
@@ -906,17 +949,20 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
             status: 400,
           });
         }
-        return await adoptTrackFile({
-          importId: args.importId,
-          trackId: args.trackId,
-          source:
-            args.path === undefined
-              ? {
+        const source: AdoptSource =
+          args.path !== undefined
+            ? { kind: "path", path: args.path }
+            : args.url !== undefined
+              ? { kind: "url", url: args.url }
+              : {
                   kind: "upload",
                   filename: args.filename ?? "adopted",
                   bytes: new Uint8Array(Buffer.from(args.content ?? "", "base64")),
-                }
-              : { kind: "path", path: args.path },
+                };
+        return await adoptTrackFile({
+          importId: args.importId,
+          trackId: args.trackId,
+          source,
           adoptedBy: "mcp",
           db: db(),
         });

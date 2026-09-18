@@ -49,7 +49,11 @@ import {
 } from "#/server/services/console.queries.ts";
 import { enqueue, enqueueAll } from "#/server/services/queue.ts";
 import { confirmProposed } from "#/server/services/confirm.ts";
-import { adoptTrackFile as adoptFile } from "#/server/services/adopt.ts";
+import {
+  adoptTrackFile as adoptFile,
+  adoptUrlSchema,
+  type AdoptSource,
+} from "#/server/services/adopt.ts";
 
 const statusFilter = z.enum([
   "all",
@@ -355,11 +359,18 @@ export const retryTrack = createServerFn({ method: "POST", strict: STRICT })
   });
 
 /**
- * Adopt a local file as one track's source, from the Console.
+ * Adopt a file, or a replacement address, as one track's source, from the Console.
  *
  * The Console's half of `POST /api/v1/imports/{id}/tracks/{trackId}/file`, and it reaches the
- * same `adoptTrackFile` service, so the refusals, the allow-list and the provenance are one
- * implementation rather than three.
+ * same `adoptTrackFile` service, so the refusals, the allow-list, the accepted URL schemes and
+ * the provenance are one implementation rather than three.
+ *
+ * `kind: "url"` is the one that can take a while — it is a real download, holding the single
+ * slot — and it is still a server function rather than a queued job. That is deliberate and it
+ * is within the rule `CLAUDE.md` states: the ceiling is `MM_REQUEST_TIMEOUT_S` (240 s by
+ * default), a single track is well inside it, and the alternative costs the dialog its answer.
+ * The slot being busy comes back as `LOCKED` immediately rather than being waited out, so the
+ * worst case here is one track's download and not an unbounded queue.
  *
  * The browser sends the bytes base64 in the RPC body rather than as a multipart upload: the
  * app has no multipart parser, every other boundary in it is a zod schema, and the one
@@ -381,29 +392,41 @@ export const adoptTrackFile = createServerFn({ method: "POST", strict: STRICT })
           filename: z.string().min(1),
           content: z.string().min(1),
         }),
+        z.object({ kind: z.literal("url"), url: adoptUrlSchema }),
       ]),
     }),
   )
   .handler(
-    async ({ data }): Promise<{ path: string; originalName: string; nextStep: string | null }> => {
+    async ({
+      data,
+    }): Promise<{
+      path: string;
+      originalName: string;
+      downloadedFrom: string | null;
+      nextStep: string | null;
+    }> => {
       try {
-        const result = await adoptFile({
-          importId: data.id,
-          trackId: data.trackId,
-          source:
-            data.source.kind === "path"
-              ? { kind: "path", path: data.source.path }
+        const source: AdoptSource =
+          data.source.kind === "path"
+            ? { kind: "path", path: data.source.path }
+            : data.source.kind === "url"
+              ? { kind: "url", url: data.source.url }
               : {
                   kind: "upload",
                   filename: data.source.filename,
                   bytes: new Uint8Array(Buffer.from(data.source.content, "base64")),
-                },
+                };
+        const result = await adoptFile({
+          importId: data.id,
+          trackId: data.trackId,
+          source,
           adoptedBy: "console",
           db: db(),
         });
         return {
           path: result.path,
           originalName: result.originalName,
+          downloadedFrom: result.downloadedFrom,
           nextStep: result.nextStep,
         };
       } catch (error) {

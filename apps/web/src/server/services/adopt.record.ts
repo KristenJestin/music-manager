@@ -1,5 +1,6 @@
 /**
- * What `import_tracks.raw` remembers about a file that was adopted rather than downloaded.
+ * What `import_tracks.raw` remembers about audio that was adopted rather than downloaded from
+ * the video the track *is*.
  *
  * `raw` is the yt-dlp entry, kept verbatim (`docs/03-metadonnees.md` § raw cache), and it is
  * what `services/documents.ts` rebuilds a track's metadata document from — months later, with
@@ -12,6 +13,11 @@
  * `MUSICMANAGER_SOURCEURL` come from, and on a deleted or age-checked video it is still the
  * thing the owner is importing. What changed is only where the bytes came from, and `COMMENT`
  * is where a person reads that (see `packages/domain/.../resolvers/youtube.ts`).
+ *
+ * That holds for all three kinds, including `url`. A replacement address is *another upload of
+ * the same song*, not another track: it gave up the audio, and it is named in `COMMENT` for
+ * that, but it never becomes the track's identity. Which is why `url` is a field beside `via`
+ * rather than something that overwrites the entry.
  *
  * Its own module, and a very small one, because both `services/adopt.ts` (which writes it) and
  * `services/documents.ts` (which reads it) need it, and `adopt.ts` reaches the job machine
@@ -28,8 +34,23 @@ export const adoptionSchema = z.object({
   adoptedAt: z.string().min(1),
   /** The file's own name when it was adopted — basename only, never a path. */
   originalName: z.string().min(1),
-  /** How the bytes arrived: a path on the server, or an upload through the API. */
-  via: z.enum(["path", "upload"]),
+  /**
+   * How the bytes arrived: a path on the server, an upload through the API, or a replacement
+   * address the toolbox downloaded from.
+   */
+  via: z.enum(["path", "upload", "url"]),
+  /**
+   * For `via: "url"`: the address the bytes were actually fetched from.
+   *
+   * The *declared* provenance does not move — `MUSICMANAGER_SOURCEURL` stays the video this
+   * track is, and the yt-dlp entry beside this record is still its identity. This is the
+   * second half of the same sentence: which upload gave up the audio when the first one
+   * could not. `COMMENT` prints both, because on a deleted video the pair is the only record
+   * of what happened, and a rebuild months later has to be able to say it again.
+   *
+   * Optional, and absent on `path` and `upload`, where there is no such address to name.
+   */
+  url: z.string().min(1).optional(),
   /** Size of the adopted file, in bytes. */
   bytes: z.number().int().min(0),
   /** `.opus`, `.flac`… the container it was adopted in. */

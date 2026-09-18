@@ -5,7 +5,7 @@
  * is where the need is felt: the owner is looking at `YTDLP_AGE` or `YTDLP_UNAVAILABLE` on one
  * line of a fourteen-track album and has the file on their disk.
  *
- * Two ways in, and the dialog says which one to use rather than making it a preference:
+ * Three ways in, and the dialog says which one to use rather than making it a preference:
  *
  *  - **Upload a file** — the browser reads it and sends the bytes. The right answer when the
  *    file is on the machine you are sitting at, which for a Console user it almost always is.
@@ -13,9 +13,15 @@
  *    machine running Music Manager: an existing library being taken over, a NAS mount. The
  *    server will refuse a path outside its `adoptSourceRoots` allow-list, and the dialog says
  *    so before you try rather than after.
+ *  - **Another address** — the right answer when there is no file anywhere, which is the
+ *    ordinary case for a deleted or age-checked video: the same song is still on YouTube under
+ *    a different upload, and the server downloads *that* one. It is the only one of the three
+ *    that takes time and that can come back "a download is already running", so the button
+ *    says "Download it" rather than "Adopt this file" — pressing it starts a fetch, and a
+ *    label that hid that would be a lie about what the click costs.
  */
 import { useState } from "react";
-import { FileUp, FolderOpen, Upload } from "lucide-react";
+import { FileUp, FolderOpen, Link2, Upload } from "lucide-react";
 import { Button } from "#/components/ui/button.tsx";
 import {
   Dialog,
@@ -35,9 +41,22 @@ const MAX_UPLOAD_BYTES = 64 * 1024 * 1024;
 /** Mirrors `TAGGABLE_SUFFIXES` in `server/paths.ts` — the containers the tagger can write to. */
 const ACCEPTED = ".opus,.ogg,.oga,.flac,.mp3,.mp2,.m4a,.mp4,.m4b,.aac";
 
+/**
+ * Mirrors `isAdoptableUrl` in `server/services/adopt.ts`.
+ *
+ * Mirrored rather than imported, like the two constants above and for the same reason: this
+ * file reaches the browser, and `client-boundary.guard.test.ts` lets it value-import
+ * `#/server/**` only from a module it can prove is pure — which `adopt.ts`, with Drizzle and
+ * the toolbox client behind it, emphatically is not. The copy is a *courtesy*, not the guard:
+ * the server validates the same string again with the real schema, so a stale mirror here
+ * costs a round trip and never a bad download.
+ */
+const ADOPTABLE_URL = /^(?:https?:\/\/|fixture:\/\/)/i;
+
 export type AdoptFileChoice =
   | { readonly kind: "path"; readonly path: string }
-  | { readonly kind: "upload"; readonly filename: string; readonly content: string };
+  | { readonly kind: "upload"; readonly filename: string; readonly content: string }
+  | { readonly kind: "url"; readonly url: string };
 
 export interface AdoptFileDialogProps {
   readonly open: boolean;
@@ -71,8 +90,9 @@ export function AdoptFileDialog({
   busy = false,
   onAdopt,
 }: AdoptFileDialogProps) {
-  const [mode, setMode] = useState<"upload" | "path">("upload");
+  const [mode, setMode] = useState<"upload" | "path" | "url">("upload");
   const [path, setPath] = useState("");
+  const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -84,6 +104,19 @@ export function AdoptFileDialog({
         return;
       }
       onAdopt({ kind: "path", path: path.trim() });
+      return;
+    }
+    if (mode === "url") {
+      const address = url.trim();
+      if (address === "") {
+        setProblem("Paste the address of another upload of the same song.");
+        return;
+      }
+      if (!ADOPTABLE_URL.test(address)) {
+        setProblem("That is not a web address. It has to start with http:// or https://.");
+        return;
+      }
+      onAdopt({ kind: "url", url: address });
       return;
     }
     if (file === null) {
@@ -117,9 +150,9 @@ export function AdoptFileDialog({
         <DialogHeader>
           <DialogTitle>Adopt a file for this track</DialogTitle>
           <DialogDescription>
-            Give <b className="text-fg-1">{trackTitle}</b> a file you already have, instead of
-            downloading it. The track carries on from fingerprinting, and its tags will say the file
-            was adopted rather than downloaded.
+            Give <b className="text-fg-1">{trackTitle}</b> audio from somewhere other than its own
+            video — a file you already have, or another address to download from. The track carries
+            on from fingerprinting, and its tags will say where the audio really came from.
           </DialogDescription>
         </DialogHeader>
 
@@ -150,6 +183,19 @@ export function AdoptFileDialog({
           >
             <FolderOpen className="size-3.5" aria-hidden="true" /> A path on the server
           </Button>
+          <Button
+            size="sm"
+            variant={mode === "url" ? "default" : "outline"}
+            role="radio"
+            aria-checked={mode === "url"}
+            data-testid="adopt-mode-url"
+            onClick={() => {
+              setMode("url");
+              setProblem(null);
+            }}
+          >
+            <Link2 className="size-3.5" aria-hidden="true" /> Another address
+          </Button>
         </div>
 
         {mode === "upload" ? (
@@ -171,7 +217,7 @@ export function AdoptFileDialog({
               to is refused before anything is copied.
             </p>
           </div>
-        ) : (
+        ) : mode === "path" ? (
           <div className="flex flex-col gap-2">
             <Label htmlFor="adopt-path-input">Absolute path, on the server</Label>
             <Input
@@ -187,6 +233,25 @@ export function AdoptFileDialog({
             <p className="text-2xs text-fg-2">
               Only the library and the folders listed in <code>adoptSourceRoots</code> may be read
               from. Add yours in Settings first, or upload the file instead.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="adopt-url-input">Address to download from</Label>
+            <Input
+              id="adopt-url-input"
+              data-testid="adopt-url-input"
+              placeholder="https://www.youtube.com/watch?v=…"
+              value={url}
+              onChange={(event) => {
+                setUrl(event.currentTarget.value);
+                setProblem(null);
+              }}
+            />
+            <p className="text-2xs text-fg-2">
+              Another upload of the same song. The audio comes from this address; the track keeps
+              its own video as its source, and the tags will say so. There is one download slot, so
+              this waits its turn if something else is downloading.
             </p>
           </div>
         )}
@@ -212,7 +277,13 @@ export function AdoptFileDialog({
           </Button>
           <Button disabled={busy} onClick={submit} data-testid="adopt-file-confirm">
             <FileUp className="size-3.5" aria-hidden="true" />
-            {busy ? "Adopting…" : "Adopt this file"}
+            {mode === "url"
+              ? busy
+                ? "Downloading…"
+                : "Download it"
+              : busy
+                ? "Adopting…"
+                : "Adopt this file"}
           </Button>
         </DialogFooter>
       </DialogContent>
