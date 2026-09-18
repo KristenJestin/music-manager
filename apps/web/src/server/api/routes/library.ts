@@ -252,6 +252,11 @@ export function libraryRoutes(): OpenAPIHono<ApiEnv> {
         "`present_count` and `completeness` move when `place` files it, which is after this " +
         "call returns — the `counters` on the answer are the album as it is *now*, not a " +
         "prediction.\n\n" +
+        "**`reopened: true` means the import behind the album had already finished and was " +
+        "put back on the line.** That re-downloads, re-tags and re-places nothing that is " +
+        "already filed — `download` finds each placed file where `place` left it and counts " +
+        "it as present — but it *does* try the album's other failed videos again, which " +
+        "after a person has intervened is the right default.\n\n" +
         "A track the album's playlist never published has no `import_tracks` row at all; one " +
         "is created with no source, and `materialised` says so.",
       middleware: [requireScope("library:write")] as const,

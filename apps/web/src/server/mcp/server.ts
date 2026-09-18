@@ -1513,6 +1513,11 @@ export function toolTable(principal?: ApiPrincipal): ToolSpec[] {
         "download slot for the duration.\n\n" +
         "**One track, on its own.** What is queued is that track's `fingerprint` -> `tag` -> " +
         "`place`. The album's other files are not re-tagged, not re-placed, not touched.\n\n" +
+        "**`reopened: true` means the import behind the album had already finished and was " +
+        "put back on the line.** That does not re-download, re-tag or re-place anything that " +
+        "is already filed — `download` finds each placed file where `place` left it and " +
+        "counts it as present — but it *does* try the album's other failed videos again, " +
+        "which after a person has intervened is the right default.\n\n" +
         "**`counters` is the album as it is now, not a prediction.** `presentCount` moves " +
         "when `place` files the track, on the worker, after this call has returned. Call " +
         "`get_album` or `list_missing_tracks` again to see it, and `get_status.worker` to " +
