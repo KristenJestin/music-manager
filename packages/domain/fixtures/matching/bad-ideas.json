@@ -1953,7 +1953,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "0a62a04b-560b-45ed-a082-2120ed074609",
@@ -1967,7 +1968,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Single, which is a poor shape for 11 videos"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "6c98c809-0cfe-4809-836f-0d7c872bf5d5",
@@ -1980,7 +1982,8 @@
       "why": [
         "Artist matches exactly",
         "Filed as a EP"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "cca1a1ec-0400-4f03-ac4f-8a2b6c245091",
@@ -1996,7 +1999,8 @@
         "Artist matches exactly",
         "Filed as a EP",
         "Secondary type Remix"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

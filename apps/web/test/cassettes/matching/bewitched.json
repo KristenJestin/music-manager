@@ -1,7 +1,7 @@
 {
   "name": "bewitched",
   "kind": "album",
-  "recordedAt": "2026-09-17T09:50:26.320Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_bewitched",
     "album": "Bewitched",
@@ -224,7 +224,9 @@
             "id": "7262d96a-3e56-40f3-a93f-95c378f79c1c",
             "title": "Bewitched (rework)",
             "primary-type": "Single",
-            "secondary-types": ["Remix"],
+            "secondary-types": [
+              "Remix"
+            ],
             "first-release-date": "2024-06-07",
             "artist-credit": [
               {
@@ -243,6 +245,425 @@
                   "name": "Víkingur Ólafsson",
                   "sort-name": "Víkingur Ólafsson",
                   "disambiguation": "pianist"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Laufey\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-18T09:25:27.733Z",
+        "count": 56,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "e7076c32-c650-4a58-8f7e-efa18b7f8786",
+            "title": "Everything I Know About Love",
+            "primary-type": "Single",
+            "first-release-date": "2022-04-21",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "51dd4af9-3d23-442e-8fa2-5faba3b60e49",
+            "title": "California and Me",
+            "primary-type": "Single",
+            "first-release-date": "2023-08-24",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "f51c1686-7be5-41b4-b1dc-29496edc993d",
+            "title": "Dear Soulmate",
+            "primary-type": "Single",
+            "first-release-date": "2022-07-06",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "0f0cb019-3622-4b4c-872d-2752a332ac4b",
+            "title": "my future",
+            "primary-type": "Single",
+            "first-release-date": "2021-01-03",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "14e236af-6f1f-4bfd-ae15-7aca77731bf2",
+            "title": "Snow White",
+            "primary-type": "Single",
+            "first-release-date": "2025-08-07",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "287bc09e-695e-419e-97ba-9c81fb5f7189",
+            "title": "Lover Girl",
+            "primary-type": "Single",
+            "first-release-date": "2025-06-25",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2b0d809d-3af3-43c3-a3b7-c213452abe02",
+            "title": "like the movies",
+            "primary-type": "Single",
+            "first-release-date": "2020-05-05",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "86421b21-bdab-40d0-8381-d5714b67278a",
+            "title": "Savior Complex (triple j Like a Version)",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2024-09-27",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2ee3202d-0f2e-40f6-a3c8-c7fca3f2c1c7",
+            "title": "Songline",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2025-09-26",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "9af52ad5-e631-4098-bbb9-3739146190b9",
+            "title": "Someone New",
+            "primary-type": "Single",
+            "first-release-date": "2020-05-25",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "3339798c-d577-421e-a069-fa018dd63ac4",
+            "title": "Falling Behind",
+            "primary-type": "Single",
+            "first-release-date": "2022-08-11",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "f77ee6fb-f5d7-4bcf-addc-abdaa8ae9f0e",
+            "title": "From the Start",
+            "primary-type": "Single",
+            "first-release-date": "2023-05-11",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "268b129d-2039-431c-b2fd-f3a8781f50b8",
+            "title": "All at Once",
+            "primary-type": "Single",
+            "first-release-date": "2020-07-03",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2fda654f-9863-450a-9687-1655b192182a",
+            "title": "Silver Lining",
+            "primary-type": "Single",
+            "first-release-date": "2025-04-03",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "78e50a67-3992-4f24-ab0e-ca8491d5ab1a",
+            "title": "Winter Wonderland",
+            "primary-type": "Single",
+            "first-release-date": "2023-11-14",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "631edbc7-6141-4c53-9851-190a9cc3bbad",
+            "title": "Goddess (live) | CURVED | Amazon Music",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2024-04-01",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5379cdd2-a51e-4513-b40f-bc13424e1898",
+            "title": "what are you doing new years eve ?",
+            "primary-type": "Single",
+            "first-release-date": "2020-12-29",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "dac8708e-5ba5-4f9a-b71d-2485c256e08f",
+            "title": "Santa Baby",
+            "primary-type": "Single",
+            "first-release-date": "2024-11-01",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "6cbfe76c-012b-41bb-b6fd-c1bc89267898",
+            "title": "Street by Street",
+            "primary-type": "Single",
+            "first-release-date": "2020-04-06",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "be250401-56e7-4af4-ae4a-a7516bf6b5d8",
+            "title": "just my luck",
+            "primary-type": "Single",
+            "first-release-date": "2020-03-25",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "9cf121f0-ef12-431c-b6af-3a5a821c5548",
+            "title": "Day by Day",
+            "primary-type": "Single",
+            "first-release-date": "2017-04-22",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "141f2cf2-0309-485d-a177-8938695a75e3",
+            "title": "Tough Luck",
+            "primary-type": "Single",
+            "first-release-date": "2025-05-15",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "fb8beef5-fb9f-4cf0-bc5c-b1529cc6ae39",
+            "title": "Where or When",
+            "primary-type": "Single",
+            "first-release-date": "2024-07-19",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "fb36bfc2-79ac-4670-be96-520f8b314fc2",
+            "title": "Promise",
+            "primary-type": "Single",
+            "first-release-date": "2023-06-14",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
+                }
+              }
+            ]
+          },
+          {
+            "id": "d6e00d29-6714-4c17-af4a-ff52056c6a4e",
+            "title": "night poem",
+            "primary-type": "Single",
+            "first-release-date": "2020-05-10",
+            "artist-credit": [
+              {
+                "name": "Laufey",
+                "artist": {
+                  "id": "21a89505-10a9-4ac0-8388-833bc07b9f86",
+                  "name": "Laufey",
+                  "sort-name": "Laufey"
                 }
               }
             ]
@@ -982,7 +1403,9 @@
               "id": "7262d96a-3e56-40f3-a93f-95c378f79c1c",
               "title": "Bewitched (rework)",
               "primary-type": "Single",
-              "secondary-types": ["Remix"]
+              "secondary-types": [
+                "Remix"
+              ]
             },
             "media": [
               {
@@ -1032,7 +1455,9 @@
               "id": "7262d96a-3e56-40f3-a93f-95c378f79c1c",
               "title": "Bewitched (rework)",
               "primary-type": "Single",
-              "secondary-types": ["Remix"]
+              "secondary-types": [
+                "Remix"
+              ]
             },
             "media": [
               {
@@ -1136,7 +1561,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1176,7 +1604,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1216,7 +1647,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1256,7 +1690,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1296,7 +1733,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1336,7 +1776,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1386,7 +1829,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -1436,7 +1882,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1476,7 +1925,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -1516,7 +1968,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -1556,7 +2011,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1596,7 +2054,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1636,7 +2097,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -1676,7 +2140,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -1789,7 +2256,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -1829,7 +2299,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -1869,7 +2342,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -1944,7 +2420,9 @@
           "id": "7262d96a-3e56-40f3-a93f-95c378f79c1c",
           "title": "Bewitched (rework)",
           "primary-type": "Single",
-          "secondary-types": ["Remix"],
+          "secondary-types": [
+            "Remix"
+          ],
           "first-release-date": "2024-06-07",
           "disambiguation": "",
           "artist-credit": [
@@ -2012,7 +2490,9 @@
                   "disambiguation": "",
                   "length": 262876,
                   "video": false,
-                  "isrcs": ["QM6N22490056"],
+                  "isrcs": [
+                    "QM6N22490056"
+                  ],
                   "first-release-date": "2024-06-07",
                   "artist-credit": [
                     {
@@ -2062,7 +2542,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -2175,7 +2658,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2215,7 +2701,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2255,7 +2744,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2295,7 +2787,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2335,7 +2830,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2375,7 +2873,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2425,7 +2926,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -2475,7 +2979,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2515,7 +3022,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -2555,7 +3065,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -2595,7 +3108,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2635,7 +3151,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2675,7 +3194,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -2715,7 +3237,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -3447,7 +3972,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3487,7 +4015,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3527,7 +4058,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3567,7 +4101,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3607,7 +4144,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3647,7 +4187,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3697,7 +4240,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -3747,7 +4293,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3787,7 +4336,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -3827,7 +4379,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -3867,7 +4422,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3907,7 +4465,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3947,7 +4508,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -3987,7 +4551,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -4100,7 +4667,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4140,7 +4710,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4180,7 +4753,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4220,7 +4796,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4260,7 +4839,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4300,7 +4882,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4350,7 +4935,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -4400,7 +4988,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4440,7 +5031,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -4480,7 +5074,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -4520,7 +5117,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4560,7 +5160,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4600,7 +5203,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4640,7 +5246,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -4753,7 +5362,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4793,7 +5405,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4833,7 +5448,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4873,7 +5491,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4913,7 +5534,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -4953,7 +5577,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5003,7 +5630,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -5053,7 +5683,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5093,7 +5726,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -5133,7 +5769,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -5173,7 +5812,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5213,7 +5855,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5253,7 +5898,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5293,7 +5941,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -5406,7 +6057,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 211000,
                   "video": false,
-                  "isrcs": ["QMDA62329769"],
+                  "isrcs": [
+                    "QMDA62329769"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5446,7 +6099,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 205000,
                   "video": false,
-                  "isrcs": ["QMDA62329770"],
+                  "isrcs": [
+                    "QMDA62329770"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5486,7 +6141,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 201000,
                   "video": false,
-                  "isrcs": ["QMDA62329771"],
+                  "isrcs": [
+                    "QMDA62329771"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5526,7 +6183,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 185000,
                   "video": false,
-                  "isrcs": ["QMDA62329772"],
+                  "isrcs": [
+                    "QMDA62329772"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5566,7 +6225,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 177000,
                   "video": false,
-                  "isrcs": ["QMDA62329773"],
+                  "isrcs": [
+                    "QMDA62329773"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5606,7 +6267,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 225000,
                   "video": false,
-                  "isrcs": ["QMDA62329774"],
+                  "isrcs": [
+                    "QMDA62329774"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5656,7 +6319,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 216000,
                   "video": false,
-                  "isrcs": ["QMDA62329775"],
+                  "isrcs": [
+                    "QMDA62329775"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5706,7 +6371,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 144000,
                   "video": false,
-                  "isrcs": ["QMDA62329776"],
+                  "isrcs": [
+                    "QMDA62329776"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5746,7 +6413,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 234000,
                   "video": false,
-                  "isrcs": ["QMDA62329777"],
+                  "isrcs": [
+                    "QMDA62329777"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5786,7 +6455,10 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 170000,
                   "video": false,
-                  "isrcs": ["QM6P42363003", "QMDA62329778"],
+                  "isrcs": [
+                    "QM6P42363003",
+                    "QMDA62329778"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -5826,7 +6498,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QMDA62329779"],
+                  "isrcs": [
+                    "QMDA62329779"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5866,7 +6540,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["QMDA62329780"],
+                  "isrcs": [
+                    "QMDA62329780"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5906,7 +6582,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 263000,
                   "video": false,
-                  "isrcs": ["QMDA62329781"],
+                  "isrcs": [
+                    "QMDA62329781"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -5946,7 +6624,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 247000,
                   "video": false,
-                  "isrcs": ["QMDA62329782"],
+                  "isrcs": [
+                    "QMDA62329782"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6059,7 +6739,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6099,7 +6782,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6139,7 +6825,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6179,7 +6868,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6219,7 +6911,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6259,7 +6954,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6309,7 +7007,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -6359,7 +7060,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6399,7 +7103,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -6439,7 +7146,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -6479,7 +7189,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6519,7 +7232,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6559,7 +7275,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6599,7 +7318,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -6639,7 +7361,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -6679,7 +7403,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -6719,7 +7445,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -6759,7 +7487,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -6872,7 +7602,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6912,7 +7645,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6952,7 +7688,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -6992,7 +7731,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7032,7 +7774,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7072,7 +7817,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7122,7 +7870,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -7172,7 +7923,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7212,7 +7966,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -7252,7 +8009,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -7292,7 +8052,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7332,7 +8095,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7372,7 +8138,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7412,7 +8181,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -7452,7 +8224,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -7492,7 +8266,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -7532,7 +8308,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -7572,7 +8350,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -7685,7 +8465,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7725,7 +8508,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7765,7 +8551,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7805,7 +8594,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7845,7 +8637,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7885,7 +8680,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -7935,7 +8733,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -7985,7 +8786,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8025,7 +8829,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -8065,7 +8872,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -8105,7 +8915,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8145,7 +8958,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8185,7 +9001,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8225,7 +9044,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -8265,7 +9087,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -8305,7 +9129,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -8345,7 +9171,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -8385,7 +9213,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -8498,7 +9328,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8538,7 +9371,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8578,7 +9414,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8618,7 +9457,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8658,7 +9500,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8698,7 +9543,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8748,7 +9596,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -8798,7 +9649,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8838,7 +9692,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -8878,7 +9735,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -8918,7 +9778,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8958,7 +9821,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -8998,7 +9864,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9038,7 +9907,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -9078,7 +9950,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -9118,7 +9992,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -9158,7 +10034,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -9198,7 +10076,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -9311,7 +10191,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9351,7 +10234,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9391,7 +10277,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9431,7 +10320,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9471,7 +10363,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9511,7 +10406,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9551,7 +10449,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -9601,7 +10502,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9641,7 +10545,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -9690,7 +10597,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -9730,7 +10640,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9770,7 +10683,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9810,7 +10726,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -9850,7 +10769,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -9890,7 +10812,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -9930,7 +10854,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -9970,7 +10896,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -10010,7 +10938,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -10123,7 +11053,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10163,7 +11096,10 @@
                   "disambiguation": "",
                   "length": 204000,
                   "video": false,
-                  "isrcs": ["QM6P42387647", "QMDA62312085"],
+                  "isrcs": [
+                    "QM6P42387647",
+                    "QMDA62312085"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10203,7 +11139,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10243,7 +11182,10 @@
                   "disambiguation": "",
                   "length": 184000,
                   "video": false,
-                  "isrcs": ["QM6P42387613", "QMDA62312087"],
+                  "isrcs": [
+                    "QM6P42387613",
+                    "QMDA62312087"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10283,7 +11225,10 @@
                   "disambiguation": "",
                   "length": 177493,
                   "video": false,
-                  "isrcs": ["QM6P42387615", "QMDA62312088"],
+                  "isrcs": [
+                    "QM6P42387615",
+                    "QMDA62312088"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10323,7 +11268,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10373,7 +11321,10 @@
                   "disambiguation": "",
                   "length": 216306,
                   "video": false,
-                  "isrcs": ["QM6P42387618", "QMDA62312090"],
+                  "isrcs": [
+                    "QM6P42387618",
+                    "QMDA62312090"
+                  ],
                   "first-release-date": "2023-08-24",
                   "artist-credit": [
                     {
@@ -10423,7 +11374,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10463,7 +11417,10 @@
                   "disambiguation": "",
                   "length": 234266,
                   "video": false,
-                  "isrcs": ["QM6P42387620", "QMDA62312092"],
+                  "isrcs": [
+                    "QM6P42387620",
+                    "QMDA62312092"
+                  ],
                   "first-release-date": "2023-06-14",
                   "artist-credit": [
                     {
@@ -10503,7 +11460,10 @@
                   "disambiguation": "",
                   "length": 169000,
                   "video": false,
-                  "isrcs": ["QM6N22309399", "QMDA62312093"],
+                  "isrcs": [
+                    "QM6N22309399",
+                    "QMDA62312093"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -10543,7 +11503,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10583,7 +11546,10 @@
                   "disambiguation": "",
                   "length": 219000,
                   "video": false,
-                  "isrcs": ["QM6P42387623", "QMDA62312095"],
+                  "isrcs": [
+                    "QM6P42387623",
+                    "QMDA62312095"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10623,7 +11589,10 @@
                   "disambiguation": "",
                   "length": 262000,
                   "video": false,
-                  "isrcs": ["QM6P42387624", "QMDA62312096"],
+                  "isrcs": [
+                    "QM6P42387624",
+                    "QMDA62312096"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -10663,7 +11632,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -10703,7 +11675,9 @@
                   "disambiguation": "",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TW2430371"],
+                  "isrcs": [
+                    "QM4TW2430371"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -10743,7 +11717,9 @@
                   "disambiguation": "",
                   "length": 171000,
                   "video": false,
-                  "isrcs": ["QM4TW2430373"],
+                  "isrcs": [
+                    "QM4TW2430373"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -10783,7 +11759,9 @@
                   "disambiguation": "",
                   "length": 127000,
                   "video": false,
-                  "isrcs": ["QM4TW2430374"],
+                  "isrcs": [
+                    "QM4TW2430374"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -10823,7 +11801,9 @@
                   "disambiguation": "explicit",
                   "length": 267866,
                   "video": false,
-                  "isrcs": ["QM4TW2430375"],
+                  "isrcs": [
+                    "QM4TW2430375"
+                  ],
                   "first-release-date": "2024-03-06",
                   "artist-credit": [
                     {
@@ -10863,7 +11843,9 @@
                   "disambiguation": "",
                   "length": 283000,
                   "video": false,
-                  "isrcs": ["QM6N22462550"],
+                  "isrcs": [
+                    "QM6N22462550"
+                  ],
                   "first-release-date": "2024-07-03",
                   "artist-credit": [
                     {
@@ -10903,7 +11885,9 @@
                   "disambiguation": "",
                   "length": 221000,
                   "video": false,
-                  "isrcs": ["QM6N22462551"],
+                  "isrcs": [
+                    "QM6N22462551"
+                  ],
                   "first-release-date": "2024-07-03",
                   "artist-credit": [
                     {
@@ -10943,7 +11927,9 @@
                   "disambiguation": "",
                   "length": 180000,
                   "video": false,
-                  "isrcs": ["QM6N22462553"],
+                  "isrcs": [
+                    "QM6N22462553"
+                  ],
                   "first-release-date": "2024-07-03",
                   "artist-credit": [
                     {
@@ -10983,7 +11969,9 @@
                   "disambiguation": "",
                   "length": 142000,
                   "video": false,
-                  "isrcs": ["QM6N22462554"],
+                  "isrcs": [
+                    "QM6N22462554"
+                  ],
                   "first-release-date": "2024-07-03",
                   "artist-credit": [
                     {
@@ -11023,7 +12011,9 @@
                   "disambiguation": "",
                   "length": 176000,
                   "video": false,
-                  "isrcs": ["QM6N22462567"],
+                  "isrcs": [
+                    "QM6N22462567"
+                  ],
                   "first-release-date": "2024-07-03",
                   "artist-credit": [
                     {
@@ -11136,7 +12126,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 211000,
                   "video": false,
-                  "isrcs": ["QMDA62329769"],
+                  "isrcs": [
+                    "QMDA62329769"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11176,7 +12168,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 205000,
                   "video": false,
-                  "isrcs": ["QMDA62329770"],
+                  "isrcs": [
+                    "QMDA62329770"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11216,7 +12210,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 201000,
                   "video": false,
-                  "isrcs": ["QMDA62329771"],
+                  "isrcs": [
+                    "QMDA62329771"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11256,7 +12252,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 185000,
                   "video": false,
-                  "isrcs": ["QMDA62329772"],
+                  "isrcs": [
+                    "QMDA62329772"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11296,7 +12294,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 177000,
                   "video": false,
-                  "isrcs": ["QMDA62329773"],
+                  "isrcs": [
+                    "QMDA62329773"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11336,7 +12336,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 225000,
                   "video": false,
-                  "isrcs": ["QMDA62329774"],
+                  "isrcs": [
+                    "QMDA62329774"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11386,7 +12388,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 216000,
                   "video": false,
-                  "isrcs": ["QMDA62329775"],
+                  "isrcs": [
+                    "QMDA62329775"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11436,7 +12440,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 144000,
                   "video": false,
-                  "isrcs": ["QMDA62329776"],
+                  "isrcs": [
+                    "QMDA62329776"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11476,7 +12482,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 234000,
                   "video": false,
-                  "isrcs": ["QMDA62329777"],
+                  "isrcs": [
+                    "QMDA62329777"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11516,7 +12524,10 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 170000,
                   "video": false,
-                  "isrcs": ["QM6P42363003", "QMDA62329778"],
+                  "isrcs": [
+                    "QM6P42363003",
+                    "QMDA62329778"
+                  ],
                   "first-release-date": "2023-05-11",
                   "artist-credit": [
                     {
@@ -11556,7 +12567,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QMDA62329779"],
+                  "isrcs": [
+                    "QMDA62329779"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11596,7 +12609,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["QMDA62329780"],
+                  "isrcs": [
+                    "QMDA62329780"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11636,7 +12651,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 263000,
                   "video": false,
-                  "isrcs": ["QMDA62329781"],
+                  "isrcs": [
+                    "QMDA62329781"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11676,7 +12693,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 247000,
                   "video": false,
-                  "isrcs": ["QMDA62329782"],
+                  "isrcs": [
+                    "QMDA62329782"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11716,7 +12735,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 213000,
                   "video": false,
-                  "isrcs": ["QM4TX2433321"],
+                  "isrcs": [
+                    "QM4TX2433321"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -11756,7 +12777,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 172000,
                   "video": false,
-                  "isrcs": ["QM4TX2433323"],
+                  "isrcs": [
+                    "QM4TX2433323"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -11796,7 +12819,9 @@
                   "disambiguation": "Dolby Atmos mix",
                   "length": 128000,
                   "video": false,
-                  "isrcs": ["QM4TX2433324"],
+                  "isrcs": [
+                    "QM4TX2433324"
+                  ],
                   "first-release-date": "2024-04-26",
                   "artist-credit": [
                     {
@@ -11836,7 +12861,9 @@
                   "disambiguation": "Dolby Atmos mix, explicit",
                   "length": 268000,
                   "video": false,
-                  "isrcs": ["QM4TX2433325"],
+                  "isrcs": [
+                    "QM4TX2433325"
+                  ],
                   "first-release-date": "2024-03-08",
                   "artist-credit": [
                     {
@@ -11949,7 +12976,10 @@
                   "disambiguation": "",
                   "length": 200000,
                   "video": false,
-                  "isrcs": ["QM6P42387611", "QMDA62312086"],
+                  "isrcs": [
+                    "QM6P42387611",
+                    "QMDA62312086"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -11989,7 +13019,10 @@
                   "disambiguation": "",
                   "length": 210000,
                   "video": false,
-                  "isrcs": ["QM6P42387612", "QMDA62312084"],
+                  "isrcs": [
+                    "QM6P42387612",
+                    "QMDA62312084"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -12029,7 +13062,10 @@
                   "disambiguation": "",
                   "length": 225360,
                   "video": false,
-                  "isrcs": ["QM6P42387616", "QMDA62312089"],
+                  "isrcs": [
+                    "QM6P42387616",
+                    "QMDA62312089"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -12069,7 +13105,10 @@
                   "disambiguation": "",
                   "length": 144066,
                   "video": false,
-                  "isrcs": ["QM6P42387619", "QMDA62312091"],
+                  "isrcs": [
+                    "QM6P42387619",
+                    "QMDA62312091"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -12109,7 +13148,10 @@
                   "disambiguation": "",
                   "length": 209000,
                   "video": false,
-                  "isrcs": ["QM6P42387621", "QMDA62312094"],
+                  "isrcs": [
+                    "QM6P42387621",
+                    "QMDA62312094"
+                  ],
                   "first-release-date": "2023-09-08",
                   "artist-credit": [
                     {
@@ -12149,7 +13191,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {
@@ -12262,7 +13307,10 @@
                   "disambiguation": "",
                   "length": 246000,
                   "video": false,
-                  "isrcs": ["QM6P42387635", "QMDA62312097"],
+                  "isrcs": [
+                    "QM6P42387635",
+                    "QMDA62312097"
+                  ],
                   "first-release-date": "2023-07-26",
                   "artist-credit": [
                     {

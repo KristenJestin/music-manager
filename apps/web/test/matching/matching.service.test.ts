@@ -12,7 +12,7 @@
  * making a different match.
  */
 import { describe, expect, it } from "vitest";
-import { albumHints, type AlbumHints, type MbRelease } from "@mm/domain";
+import { albumHints, recordingCandidates, type AlbumHints, type MbRelease } from "@mm/domain";
 import { cassetteGateway, type MbGateway } from "#/server/services/matching.gateway.ts";
 import {
   cassetteNameOf,
@@ -859,6 +859,250 @@ describe("artistVerdict", () => {
 
   it("refuses an empty list when the source does name somebody", () => {
     expect(artistVerdict("Laufey", []).carried).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the seventh owner review: the artist ladder                         */
+/* ------------------------------------------------------------------ */
+
+describe("Stardew Valley Piano Collections — the name is the third one credited", () => {
+  const recorded = cassette("stardew-valley");
+
+  it("climbs past the first name and the whole credit to a name MusicBrainz does know", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    // The three questions that answer nothing, in order, then the one that answers. Asserted
+    // as the whole list because the *order* is the rule: narrowest plausible question first.
+    expect(result.queries.slice(0, 4)).toEqual([
+      'releasegroup:"Stardew Valley Piano Collections" AND artist:"ConcernedApe"',
+      'releasegroup:"Stardew Valley Piano Collections" AND artist:"ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales"',
+      'releasegroup:"Stardew Valley Piano Collections" AND artist:"Meadow Bridgham"',
+      'releasegroup:"Stardew Valley Piano Collections" AND artist:"Augustine Mayuga Gonzales"',
+    ]);
+    expect(result.fallback).toEqual({
+      kind: "credited-artist",
+      from: "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales",
+      to: "Augustine Mayuga Gonzales",
+    });
+  });
+
+  it("finds the release the owner named, where seven searches used to find nothing", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    expect(result.ranking.candidates.length).toBeGreaterThan(0);
+    expect(result.ranking.preselected?.id).toBe("02f4383d-21d1-4179-90c9-1fb307cfdbc6");
+    expect(result.ranking.preselected?.tracks).toBe(22);
+    expect(result.ranking.preselected?.format).toBe("Digital Media");
+    expect(result.ranking.preselected?.year).toBe(2018);
+    // 22 videos, 22 tracks, nothing left over on either side.
+    expect(result.ranking.preselected?.leftOver).toBe(0);
+    expect(result.ranking.preselected?.uncovered).toBe(0);
+  });
+
+  it("does not call it an artist mismatch, because the two credits share a name", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+    const winner = result.ranking.preselected;
+
+    // MusicBrainz credits "Augustine Mayuga Gonzales & Matthew Bridgham" and YouTube credits
+    // three other words around one of those names. As *strings* they barely resemble each
+    // other; as credits they agree, and the card must not accuse the right answer.
+    expect(winner?.artist).toContain("Augustine Mayuga Gonzales");
+    expect(winner?.artistDisagrees).toBe(false);
+    expect(winner?.why.some((line) => line.startsWith("Artist mismatch"))).toBe(false);
+    expect(result.artist.carried).toBe(true);
+  });
+
+  it("falls straight through to the recordings when the ladder is switched off", async () => {
+    const off: Settings = { ...settings, matchArtistLadder: false };
+
+    /*
+     * The old behaviour, and the owner's seven searches: two rungs that answer nothing, then
+     * the recording convergence, then the direct release search. The cassette holds no
+     * document for a convergence query — nothing recorded one, because the ladder now answers
+     * two rungs earlier — so the replay fails on exactly the request the old code would have
+     * spent. That failure *is* the assertion: with the ladder off, the next thing this match
+     * does is give up on the album's name and go looking through its tracks.
+     */
+    await expect(
+      matchAlbum(cassetteGateway(recorded), albumInput(recorded), off),
+    ).rejects.toThrow(/no document for "search\/recording\?query=recording:/);
+  });
+});
+
+describe("AFTERCARE DELUXE — a bare edition word in the title", () => {
+  const recorded = cassette("aftercare");
+
+  it("asks for the base name once the full one answers nothing, still by the artist", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    expect(result.queries.slice(0, 2)).toEqual([
+      'releasegroup:"AFTERCARE DELUXE" AND artist:"Nessa Barrett"',
+      'releasegroup:"AFTERCARE" AND artist:"Nessa Barrett"',
+    ]);
+    // Both rungs name the artist. That is the property `lucene.ts` protects, and a rung that
+    // dropped it would be the deleted `releaseGroupQueryWide` under another name. (The release
+    // searches below them carry an `rgid:` instead, which *is* the record's identity.)
+    for (const query of result.queries.filter((q) => q.startsWith("releasegroup:"))) {
+      expect(query).toContain('artist:"Nessa Barrett"');
+    }
+    expect(result.fallback).toEqual({
+      kind: "bare-title",
+      from: "AFTERCARE DELUXE",
+      to: "AFTERCARE",
+    });
+  });
+
+  it("reaches the release group the owner named, and the deluxe pressing inside it", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    expect(result.groups.groups.map((group) => group.id)).toContain(
+      "7f40718f-2b31-4d9b-88a7-b7f49cb8a330",
+    );
+    expect(result.ranking.preselected?.id).toBe("0a6776c7-fb09-4dd1-b402-07b6b65fe583");
+  });
+
+  it("prefers the deluxe pressing, because the bare rung proved the source asked for it", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+    const winner = result.ranking.preselected;
+
+    // 21 videos, 21 tracks, nothing over on either side, and an exact fit stops the
+    // exploration — which is why the fifteen-track pressings below never need a lookup.
+    expect(winner?.tracks).toBe(21);
+    expect(winner?.leftOver).toBe(0);
+    expect(winner?.uncovered).toBe(0);
+    expect(winner?.score).toBe(1);
+
+    // The fifteen-track standard album is in the list and loses. Before the bare rung taught
+    // the scorer what the source announced, the deluxe pressing was marked down for saying it
+    // was deluxe and this candidate won by 0.034, leaving six of the videos nowhere to go.
+    const standard = result.ranking.candidates.filter((c) => c.tracks === 15);
+    expect(standard.length).toBeGreaterThan(0);
+    for (const candidate of standard) {
+      expect(candidate.score).toBeLessThan(winner?.score ?? 0);
+      expect(candidate.preselected).toBe(false);
+    }
+  });
+
+  it("falls through to the recordings when the ladder is off — the owner's six searches", async () => {
+    const off: Settings = { ...settings, matchArtistLadder: false };
+
+    // One rung, then the convergence. Same reasoning as the Stardew case above: the cassette
+    // has no document for a question the fixed matcher never asks.
+    await expect(
+      matchAlbum(cassetteGateway(recorded), albumInput(recorded), off),
+    ).rejects.toThrow(/no document for "search\/recording\?query=recording:/);
+  });
+});
+
+describe("Soleil bleu — the sentence that condemns the candidate", () => {
+  const recorded = cassette("soleil-bleu");
+  const video = recorded.videos[0];
+
+  it("flags VSO, the homonym the engine used to tick, on the signal and in the prose", async () => {
+    if (video === undefined) throw new Error("no video");
+    const result = await matchSingle(cassetteGateway(recorded), { video }, settings);
+    const vso = result.ranking.candidates.find((c) => c.artist === "VSO");
+
+    expect(vso).toBeDefined();
+    // The candidate is still in the list, with its score and its reasons: nothing is hidden.
+    expect(vso?.score).toBeGreaterThan(settings.matchPreselectionFloor);
+    expect(vso?.why).toContain("Artist mismatch (credited to VSO)");
+    expect(vso?.artistDisagrees).toBe(true);
+    // And it is not ticked. 0.727 clears every floor in the settings, which is the whole
+    // reason a floor was never going to catch this.
+    expect(vso?.preselected).toBe(false);
+  });
+
+  it("ticks the recording that carries the artist, at the exact length", async () => {
+    if (video === undefined) throw new Error("no video");
+    const result = await matchSingle(cassetteGateway(recorded), { video }, settings);
+
+    expect(result.ranking.preselected?.id).toBe("e23b0075-8466-4bd4-8b73-f9af7918cb63");
+    expect(result.ranking.preselected?.artist).toBe("Bleu Soleil & Luiza");
+    expect(result.ranking.preselected?.length).toBe(246);
+    expect(result.ranking.preselected?.artistDisagrees).toBe(false);
+  });
+
+  it("ticks nothing at all when the list is the ten homonyms the owner was shown", async () => {
+    if (video === undefined) throw new Error("no video");
+    const full = await matchSingle(cassetteGateway(recorded), { video }, settings);
+
+    /*
+     * The owner's screen, reconstructed from the recording rather than invented: the recorded
+     * candidates with the ones that carry the artist taken out. What is left is VSO, Sylvie
+     * Vartan, Molécule, LÜNE, Bruno Mursic and the rest — the list they were asked to choose
+     * from, with VSO ticked at 0.725 and its own card saying why it should not be.
+     */
+    const homonyms = full.ranking.candidates.filter((c) => c.artistDisagrees);
+    expect(homonyms.length).toBeGreaterThanOrEqual(5);
+
+    const ranking = recordingCandidates.score(
+      {
+        video,
+        candidates: homonyms.map((c) => ({
+          id: c.id,
+          title: c.title,
+          artist: c.artist,
+          disambiguation: c.disambiguation,
+          lengthMs: c.length === null ? null : c.length * 1000,
+          isrcs: c.isrc === null ? [] : [c.isrc],
+          searchScore: null,
+          releases: [],
+        })),
+      },
+      configFromSettings(settings),
+    );
+
+    expect(ranking.candidates[0]?.artist).toBe("VSO");
+    expect(ranking.candidates[0]?.score).toBeGreaterThan(settings.matchPreselectionFloor);
+    expect(ranking.preselected).toBeNull();
+    expect(ranking.candidates.every((c) => !c.preselected)).toBe(true);
+
+    // And with the veto off, the old behaviour is back, exactly: VSO ticked, above the floor,
+    // with "Artist mismatch" printed on the card that was ticked.
+    const without = recordingCandidates.score(
+      { video, candidates: ranking.candidates.map((c) => ({ id: c.id, title: c.title, artist: c.artist, disambiguation: c.disambiguation, lengthMs: c.length === null ? null : c.length * 1000, isrcs: [], searchScore: null, releases: [] })) },
+      { ...configFromSettings({ ...settings, matchArtistVeto: false }) },
+    );
+    expect(without.preselected?.artist).toBe("VSO");
+    expect(without.preselected?.why).toContain("Artist mismatch (credited to VSO)");
+  });
+});
+
+describe("Cars — the limit this branch does not lift, recorded", () => {
+  const recorded = cassette("cars");
+
+  it("stops at the first rung, because the first rung answers — with the wrong film", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    // One group search, and it is not empty, so no rung below it is ever climbed. That is the
+    // property that keeps an ordinary album at one search and it is also why Cars is stuck.
+    expect(result.queries[0]).toBe('releasegroup:"Cars" AND artist:"Randy Newman"');
+    expect(result.fallback).toBeNull();
+    expect(result.groups.groups.map((group) => group.title)).toEqual(["Cars 3 (original score)"]);
+  });
+
+  it("cannot reach the Various Artists soundtrack, and does not pretend otherwise", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    // `ac0830de` is credited to Various Artists, which is the name MusicBrainz indexes for it,
+    // so no query carrying `artist:"Randy Newman"` returns it. Reaching it would mean dropping
+    // the artist, which is the one widening `lucene.ts` forbids.
+    expect(result.ranking.candidates.map((c) => c.id)).not.toContain(
+      "ac0830de-51e0-43ee-b8ce-65c2b7f2b170",
+    );
+  });
+
+  it("is at least no longer silent: the fit puts the wrong film under the floor", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+    const chosen = result.ranking.preselected;
+
+    // The artist agrees — it is the right composer — so the veto has nothing to say here. What
+    // stops the import is the tracklist: five of twenty-one tracks, eleven videos left over.
+    expect(chosen?.artistDisagrees).toBe(false);
+    expect(chosen?.score ?? 1).toBeLessThan(settings.matchPreselectionFloor);
+    expect(chosen?.leftOver ?? 0).toBeGreaterThan(0);
   });
 });
 

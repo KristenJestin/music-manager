@@ -260,7 +260,9 @@
     "year": 2025,
     "label": "Warner Records",
     "releasedOn": "2025-02-07",
-    "edition": []
+    "edition": [
+      "deluxe"
+    ]
   },
   "candidates": [
     {
@@ -5149,11 +5151,11 @@
     }
   ],
   "lookedUp": [
-    "99baaf51-915d-4817-85ac-454a2acae4e5",
-    "1cecc3a4-00e4-40d0-9534-d86815988333",
     "0a6776c7-fb09-4dd1-b402-07b6b65fe583",
+    "1cecc3a4-00e4-40d0-9534-d86815988333",
     "a22256b5-b0b9-4a00-8bde-c2c4bde0e2b8",
-    "41736631-b932-4380-ad4f-85a0e41dc770",
-    "11420f5b-59ce-4538-8b47-1244aaabc81d"
+    "11420f5b-59ce-4538-8b47-1244aaabc81d",
+    "99baaf51-915d-4817-85ac-454a2acae4e5",
+    "41736631-b932-4380-ad4f-85a0e41dc770"
   ]
 }

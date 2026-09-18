@@ -1,7 +1,7 @@
 {
   "name": "aftercare",
   "kind": "album",
-  "recordedAt": "2026-09-18T09:20:33.428Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_aftercare-deluxe",
     "album": "AFTERCARE DELUXE",
@@ -976,1144 +976,6 @@
               {
                 "format": "Digital Media",
                 "track-count": 8
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "release/99baaf51-915d-4817-85ac-454a2acae4e5?inc=releaseFull",
-      "payload": {
-        "id": "99baaf51-915d-4817-85ac-454a2acae4e5",
-        "title": "AFTERCARE",
-        "disambiguation": "",
-        "date": "2024-11-15",
-        "country": "XW",
-        "status": "Official",
-        "barcode": "093624852452",
-        "packaging": "None",
-        "quality": "normal",
-        "cover-art-archive": {
-          "darkened": false,
-          "count": 1,
-          "artwork": true,
-          "back": false,
-          "front": true
-        },
-        "artist-credit": [
-          {
-            "name": "Nessa Barrett",
-            "joinphrase": "",
-            "artist": {
-              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-              "name": "Nessa Barrett",
-              "sort-name": "Barrett, Nessa",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": null,
-            "label": {
-              "id": "d4cd174f-784d-48d7-91c6-7427bd5d57fe",
-              "name": "Warner Records"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "7f40718f-2b31-4d9b-88a7-b7f49cb8a330",
-          "title": "AFTERCARE",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2024-11-15",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Nessa Barrett",
-              "joinphrase": "",
-              "artist": {
-                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                "name": "Nessa Barrett",
-                "sort-name": "Barrett, Nessa",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "Digital Media",
-            "title": "",
-            "track-count": 15,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "c2346193-be92-4542-afb7-76627b1273f5",
-                "position": 1,
-                "number": "1",
-                "title": "AFTERCARE",
-                "length": 93947,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "dcef9adf-ef59-47dd-ada1-24fa889bd0a7",
-                  "title": "AFTERCARE",
-                  "disambiguation": "",
-                  "length": 93947,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404158"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "47d21a28-a01f-4d67-88dc-075fc3980432",
-                "position": 2,
-                "number": "2",
-                "title": "P*RNSTAR",
-                "length": 149440,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "2da6cbad-c4f7-41a2-a762-3b4cfccf467d",
-                  "title": "P*RNSTAR",
-                  "disambiguation": "",
-                  "length": 149440,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404159"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "48c85938-92e7-432f-bb50-25a4691c28e4",
-                "position": 3,
-                "number": "3",
-                "title": "HEARTBEAT",
-                "length": 189293,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "8cca021a-dbb7-4f56-8320-6177bc2e71e6",
-                  "title": "HEARTBEAT",
-                  "disambiguation": "",
-                  "length": 189293,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404160"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "bb638016-eaa3-4713-8084-931e11ac4e7b",
-                "position": 4,
-                "number": "4",
-                "title": "DISCO",
-                "length": 197587,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": " ft. ",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  },
-                  {
-                    "name": "Tommy Genesis",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
-                      "name": "Tommy Genesis",
-                      "sort-name": "Genesis, Tommy",
-                      "disambiguation": "rapper"
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9d2f3b39-22ad-4f74-ab28-f6567b53e887",
-                  "title": "DISCO",
-                  "disambiguation": "",
-                  "length": 197586,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404161"
-                  ],
-                  "first-release-date": "2024-10-18",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": " ft. ",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    },
-                    {
-                      "name": "Tommy Genesis",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
-                        "name": "Tommy Genesis",
-                        "sort-name": "Genesis, Tommy",
-                        "disambiguation": "rapper"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "955df553-4be6-4a02-ad0c-8353d30fe55d",
-                "position": 5,
-                "number": "5",
-                "title": "PASSENGER PRINCESS",
-                "length": 155578,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "15e18388-a650-450e-a6d1-ac96e43ce555",
-                  "title": "PASSENGER PRINCESS",
-                  "disambiguation": "",
-                  "length": 155578,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12402947"
-                  ],
-                  "first-release-date": "2024-07-26",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "1724fac8-142a-49b2-9490-3f5be415de8c",
-                "position": 6,
-                "number": "6",
-                "title": "MUSTANG BABY",
-                "length": 191680,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": " ft. ",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  },
-                  {
-                    "name": "Artemas",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
-                      "name": "Artemas",
-                      "sort-name": "Artemas",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "3d7319a3-fd30-4a89-baf7-30d1181d4253",
-                  "title": "MUSTANG BABY",
-                  "disambiguation": "",
-                  "length": 191680,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404162"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": " ft. ",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    },
-                    {
-                      "name": "Artemas",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
-                        "name": "Artemas",
-                        "sort-name": "Artemas",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "cc2c15b6-bd30-40b6-8cd7-6b98a360b904",
-                "position": 7,
-                "number": "7",
-                "title": "RUSSIAN ROULETTE",
-                "length": 160360,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9d9e0854-83f0-40c4-97ce-eb943ef04092",
-                  "title": "RUSSIAN ROULETTE",
-                  "disambiguation": "",
-                  "length": 160360,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404163"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "a04c0bfc-8e11-43ff-ada4-8894ff875e3d",
-                "position": 8,
-                "number": "8",
-                "title": "S.L.U.T.",
-                "length": 148467,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4d4120f3-15e1-49b2-8a8b-91205a473394",
-                  "title": "S.L.U.T.",
-                  "disambiguation": "",
-                  "length": 148467,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404164"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "952f6fbd-7883-430f-a898-cdc9af821e34",
-                "position": 9,
-                "number": "9",
-                "title": "BABYDOLL",
-                "length": 219000,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "8b408398-c057-4dd6-a171-c69ebd3b2f98",
-                  "title": "BABYDOLL",
-                  "disambiguation": "",
-                  "length": 219000,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404165"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "61ebf9d9-a39c-427c-a108-cddf57df0dfe",
-                "position": 10,
-                "number": "10",
-                "title": "GIVEN ENOUGH",
-                "length": 204480,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "dc585a4c-55b7-4484-b4f1-cc3deaed74e0",
-                  "title": "GIVEN ENOUGH",
-                  "disambiguation": "",
-                  "length": 204480,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404166"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "180a3f39-d76c-466e-bbd6-cf1c91f1298d",
-                "position": 11,
-                "number": "11",
-                "title": "EDWARD SCISSORHANDS",
-                "length": 211147,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c3f4ba0b-c630-4565-a8f0-c6d0c1e465f7",
-                  "title": "EDWARD SCISSORHANDS",
-                  "disambiguation": "",
-                  "length": 211147,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404167"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "9de7b114-1fcf-43cd-9729-a69af3f8ec7d",
-                "position": 12,
-                "number": "12",
-                "title": "GLITTER AND VIOLENCE",
-                "length": 184933,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9b1d5271-0136-48fb-9f1b-02a563dbb2b5",
-                  "title": "GLITTER AND VIOLENCE",
-                  "disambiguation": "",
-                  "length": 184933,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404168"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "0c2303be-8982-4f53-8ccc-a4bd6f866d26",
-                "position": 13,
-                "number": "13",
-                "title": "PINS AND NEEDLES",
-                "length": 201747,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "e69843ea-7375-40c3-9782-b68f74a4aae5",
-                  "title": "PINS AND NEEDLES",
-                  "disambiguation": "",
-                  "length": 201747,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404169"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "67628fa9-d664-4afe-9d8e-57731f942a05",
-                "position": 14,
-                "number": "14",
-                "title": "STAY ALIVE",
-                "length": 190893,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "202d2eec-db83-4aec-9d66-2ad6f66b64eb",
-                  "title": "STAY ALIVE",
-                  "disambiguation": "",
-                  "length": 190893,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404170"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "547210eb-d8c2-49a6-95c2-cb0432f7e0fd",
-                "position": 15,
-                "number": "15",
-                "title": "DIRTY LITTLE SECRET",
-                "length": 214840,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "0afce13d-d5c4-4172-be2e-0fcefa8e3d72",
-                  "title": "DIRTY LITTLE SECRET",
-                  "disambiguation": "",
-                  "length": 214840,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12403884"
-                  ],
-                  "first-release-date": "2024-09-20",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "release/1cecc3a4-00e4-40d0-9534-d86815988333?inc=releaseFull",
-      "payload": {
-        "id": "1cecc3a4-00e4-40d0-9534-d86815988333",
-        "title": "AFTERCARE TOUR (LIVE IN LOS ANGELES)",
-        "disambiguation": "",
-        "date": "2025-08-15",
-        "country": "XW",
-        "status": "Official",
-        "barcode": "093624827450",
-        "packaging": "None",
-        "quality": "normal",
-        "cover-art-archive": {
-          "back": false,
-          "darkened": false,
-          "count": 1,
-          "front": true,
-          "artwork": true
-        },
-        "artist-credit": [
-          {
-            "name": "Nessa Barrett",
-            "joinphrase": "",
-            "artist": {
-              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-              "name": "Nessa Barrett",
-              "sort-name": "Barrett, Nessa",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [
-          {
-            "catalog-number": null,
-            "label": {
-              "id": "c595c289-47ce-4fba-b999-b87503e8cb71",
-              "name": "Warner Bros. Records"
-            }
-          }
-        ],
-        "release-group": {
-          "id": "85ecbd44-ee97-4f17-9847-d656637ad7c9",
-          "title": "AFTERCARE TOUR (LIVE IN LOS ANGELES)",
-          "primary-type": "Album",
-          "secondary-types": [
-            "Live"
-          ],
-          "first-release-date": "2025-08-15",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Nessa Barrett",
-              "joinphrase": "",
-              "artist": {
-                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                "name": "Nessa Barrett",
-                "sort-name": "Barrett, Nessa",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "Digital Media",
-            "title": "",
-            "track-count": 8,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "f8f94061-f1b0-4c42-8821-3e5ee6807d32",
-                "position": 1,
-                "number": "1",
-                "title": "P*RNSTAR - Live",
-                "length": 247696,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "8757698b-f034-44a3-878d-ded141b9aae1",
-                  "title": "P*RNSTAR - Live",
-                  "disambiguation": "",
-                  "length": 247696,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "5a687723-217a-445f-bfce-956a90adc337",
-                "position": 2,
-                "number": "2",
-                "title": "HEARTBREAK IN THE HAMPTONS - Live",
-                "length": 114519,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "2c4bfd5c-9f34-4fd8-a4de-dd5486006b7d",
-                  "title": "HEARTBREAK IN THE HAMPTONS - Live",
-                  "disambiguation": "",
-                  "length": 114519,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "efe1a615-c9a6-421e-adff-0d5706662cff",
-                "position": 3,
-                "number": "3",
-                "title": "GLORY BOX - Live",
-                "length": 112425,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "e6265b2d-bc21-495f-a495-23babc149f8c",
-                  "title": "GLORY BOX - Live",
-                  "disambiguation": "",
-                  "length": 112425,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f1aa8dad-296a-4a10-844d-e55ef5e08b81",
-                "position": 4,
-                "number": "4",
-                "title": "GIVEN ENOUGH - Live",
-                "length": 206717,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c7a4b5e9-3569-4abc-9ee4-f9a3c0e4e827",
-                  "title": "GIVEN ENOUGH - Live",
-                  "disambiguation": "",
-                  "length": 206717,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "384914d1-02a9-4c1a-ad92-13b2f0b06d09",
-                "position": 5,
-                "number": "5",
-                "title": "AMERICAN BEAUTY - Live",
-                "length": 199452,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "a99aea5f-46d6-4883-9c03-c553220a4a8f",
-                  "title": "AMERICAN BEAUTY - Live",
-                  "disambiguation": "",
-                  "length": 199452,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f28b98c0-b0fd-4888-99c5-4d138322af61",
-                "position": 6,
-                "number": "6",
-                "title": "LOVE LOOKS PRETTY ON YOU - Live",
-                "length": 135484,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "5eae2c1f-e3f0-4621-b843-21e34e3c8205",
-                  "title": "LOVE LOOKS PRETTY ON YOU - Live",
-                  "disambiguation": "",
-                  "length": 135484,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f0c84e9f-5ffc-4e61-8111-9944e4de3377",
-                "position": 7,
-                "number": "7",
-                "title": "GASLIGHT - Live",
-                "length": 214493,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "1b665242-5230-419c-8d34-35d7ebd9d420",
-                  "title": "GASLIGHT - Live",
-                  "disambiguation": "",
-                  "length": 214493,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "23f502b9-a9a6-4506-9921-72129e50a6ce",
-                "position": 8,
-                "number": "8",
-                "title": "PINS AND NEEDLES - Live",
-                "length": 201047,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "e19dc9eb-645f-4fd9-a751-50946dbb004e",
-                  "title": "PINS AND NEEDLES - Live",
-                  "disambiguation": "",
-                  "length": 201047,
-                  "video": false,
-                  "isrcs": [],
-                  "first-release-date": "2025-08-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
               }
             ]
           }
@@ -3096,6 +1958,401 @@
                     "USWB12405135"
                   ],
                   "first-release-date": "2024",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/1cecc3a4-00e4-40d0-9534-d86815988333?inc=releaseFull",
+      "payload": {
+        "id": "1cecc3a4-00e4-40d0-9534-d86815988333",
+        "title": "AFTERCARE TOUR (LIVE IN LOS ANGELES)",
+        "disambiguation": "",
+        "date": "2025-08-15",
+        "country": "XW",
+        "status": "Official",
+        "barcode": "093624827450",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "back": false,
+          "darkened": false,
+          "count": 1,
+          "front": true,
+          "artwork": true
+        },
+        "artist-credit": [
+          {
+            "name": "Nessa Barrett",
+            "joinphrase": "",
+            "artist": {
+              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+              "name": "Nessa Barrett",
+              "sort-name": "Barrett, Nessa",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "c595c289-47ce-4fba-b999-b87503e8cb71",
+              "name": "Warner Bros. Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "85ecbd44-ee97-4f17-9847-d656637ad7c9",
+          "title": "AFTERCARE TOUR (LIVE IN LOS ANGELES)",
+          "primary-type": "Album",
+          "secondary-types": [
+            "Live"
+          ],
+          "first-release-date": "2025-08-15",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Nessa Barrett",
+              "joinphrase": "",
+              "artist": {
+                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                "name": "Nessa Barrett",
+                "sort-name": "Barrett, Nessa",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 8,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "f8f94061-f1b0-4c42-8821-3e5ee6807d32",
+                "position": 1,
+                "number": "1",
+                "title": "P*RNSTAR - Live",
+                "length": 247696,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8757698b-f034-44a3-878d-ded141b9aae1",
+                  "title": "P*RNSTAR - Live",
+                  "disambiguation": "",
+                  "length": 247696,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "5a687723-217a-445f-bfce-956a90adc337",
+                "position": 2,
+                "number": "2",
+                "title": "HEARTBREAK IN THE HAMPTONS - Live",
+                "length": 114519,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "2c4bfd5c-9f34-4fd8-a4de-dd5486006b7d",
+                  "title": "HEARTBREAK IN THE HAMPTONS - Live",
+                  "disambiguation": "",
+                  "length": 114519,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "efe1a615-c9a6-421e-adff-0d5706662cff",
+                "position": 3,
+                "number": "3",
+                "title": "GLORY BOX - Live",
+                "length": 112425,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "e6265b2d-bc21-495f-a495-23babc149f8c",
+                  "title": "GLORY BOX - Live",
+                  "disambiguation": "",
+                  "length": 112425,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "f1aa8dad-296a-4a10-844d-e55ef5e08b81",
+                "position": 4,
+                "number": "4",
+                "title": "GIVEN ENOUGH - Live",
+                "length": 206717,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c7a4b5e9-3569-4abc-9ee4-f9a3c0e4e827",
+                  "title": "GIVEN ENOUGH - Live",
+                  "disambiguation": "",
+                  "length": 206717,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "384914d1-02a9-4c1a-ad92-13b2f0b06d09",
+                "position": 5,
+                "number": "5",
+                "title": "AMERICAN BEAUTY - Live",
+                "length": 199452,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "a99aea5f-46d6-4883-9c03-c553220a4a8f",
+                  "title": "AMERICAN BEAUTY - Live",
+                  "disambiguation": "",
+                  "length": 199452,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "f28b98c0-b0fd-4888-99c5-4d138322af61",
+                "position": 6,
+                "number": "6",
+                "title": "LOVE LOOKS PRETTY ON YOU - Live",
+                "length": 135484,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "5eae2c1f-e3f0-4621-b843-21e34e3c8205",
+                  "title": "LOVE LOOKS PRETTY ON YOU - Live",
+                  "disambiguation": "",
+                  "length": 135484,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "f0c84e9f-5ffc-4e61-8111-9944e4de3377",
+                "position": 7,
+                "number": "7",
+                "title": "GASLIGHT - Live",
+                "length": 214493,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "1b665242-5230-419c-8d34-35d7ebd9d420",
+                  "title": "GASLIGHT - Live",
+                  "disambiguation": "",
+                  "length": 214493,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "23f502b9-a9a6-4506-9921-72129e50a6ce",
+                "position": 8,
+                "number": "8",
+                "title": "PINS AND NEEDLES - Live",
+                "length": 201047,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "e19dc9eb-645f-4fd9-a751-50946dbb004e",
+                  "title": "PINS AND NEEDLES - Live",
+                  "disambiguation": "",
+                  "length": 201047,
+                  "video": false,
+                  "isrcs": [],
+                  "first-release-date": "2025-08-15",
                   "artist-credit": [
                     {
                       "name": "Nessa Barrett",
@@ -4103,741 +3360,6 @@
       }
     },
     {
-      "key": "release/41736631-b932-4380-ad4f-85a0e41dc770?inc=releaseFull",
-      "payload": {
-        "id": "41736631-b932-4380-ad4f-85a0e41dc770",
-        "title": "AFTERCARE",
-        "disambiguation": "translucent glitter",
-        "date": "2025-02-07",
-        "country": "US",
-        "status": "Official",
-        "barcode": "093624852414",
-        "packaging": null,
-        "quality": "normal",
-        "cover-art-archive": {
-          "artwork": true,
-          "back": false,
-          "count": 1,
-          "darkened": false,
-          "front": true
-        },
-        "artist-credit": [
-          {
-            "name": "Nessa Barrett",
-            "joinphrase": "",
-            "artist": {
-              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-              "name": "Nessa Barrett",
-              "sort-name": "Barrett, Nessa",
-              "disambiguation": ""
-            }
-          }
-        ],
-        "label-info": [],
-        "release-group": {
-          "id": "7f40718f-2b31-4d9b-88a7-b7f49cb8a330",
-          "title": "AFTERCARE",
-          "primary-type": "Album",
-          "secondary-types": [],
-          "first-release-date": "2024-11-15",
-          "disambiguation": "",
-          "artist-credit": [
-            {
-              "name": "Nessa Barrett",
-              "joinphrase": "",
-              "artist": {
-                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                "name": "Nessa Barrett",
-                "sort-name": "Barrett, Nessa",
-                "disambiguation": ""
-              }
-            }
-          ]
-        },
-        "media": [
-          {
-            "position": 1,
-            "format": "12\" Vinyl",
-            "title": "",
-            "track-count": 15,
-            "track-offset": 0,
-            "tracks": [
-              {
-                "id": "21a77f73-896b-47c4-8f9f-5712ec70ec18",
-                "position": 1,
-                "number": "A1",
-                "title": "AFTERCARE",
-                "length": 93947,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "dcef9adf-ef59-47dd-ada1-24fa889bd0a7",
-                  "title": "AFTERCARE",
-                  "disambiguation": "",
-                  "length": 93947,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404158"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "bfb52b77-1f76-4b38-9071-ef30369e2d07",
-                "position": 2,
-                "number": "A2",
-                "title": "P*RNSTAR",
-                "length": 149440,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "2da6cbad-c4f7-41a2-a762-3b4cfccf467d",
-                  "title": "P*RNSTAR",
-                  "disambiguation": "",
-                  "length": 149440,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404159"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "bfade8fa-f508-487a-901c-de0b353db7e5",
-                "position": 3,
-                "number": "A3",
-                "title": "HEARTBEAT",
-                "length": 189293,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "8cca021a-dbb7-4f56-8320-6177bc2e71e6",
-                  "title": "HEARTBEAT",
-                  "disambiguation": "",
-                  "length": 189293,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404160"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c97079a6-97bb-4155-8ae7-36328f4ba2a1",
-                "position": 4,
-                "number": "A4",
-                "title": "DISCO",
-                "length": 197587,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": " ft. ",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  },
-                  {
-                    "name": "Tommy Genesis",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
-                      "name": "Tommy Genesis",
-                      "sort-name": "Genesis, Tommy",
-                      "disambiguation": "rapper"
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9d2f3b39-22ad-4f74-ab28-f6567b53e887",
-                  "title": "DISCO",
-                  "disambiguation": "",
-                  "length": 197586,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404161"
-                  ],
-                  "first-release-date": "2024-10-18",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": " ft. ",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    },
-                    {
-                      "name": "Tommy Genesis",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
-                        "name": "Tommy Genesis",
-                        "sort-name": "Genesis, Tommy",
-                        "disambiguation": "rapper"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "c3949612-e351-4991-8efe-4d8ab4b4a945",
-                "position": 5,
-                "number": "A5",
-                "title": "PASSENGER PRINCESS",
-                "length": 155578,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "15e18388-a650-450e-a6d1-ac96e43ce555",
-                  "title": "PASSENGER PRINCESS",
-                  "disambiguation": "",
-                  "length": 155578,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12402947"
-                  ],
-                  "first-release-date": "2024-07-26",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "6605a210-703d-43bf-b3be-6e613e4b8e30",
-                "position": 6,
-                "number": "a6",
-                "title": "MUSTANG BABY",
-                "length": 191680,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": " ft. ",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  },
-                  {
-                    "name": "Artemas",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
-                      "name": "Artemas",
-                      "sort-name": "Artemas",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "3d7319a3-fd30-4a89-baf7-30d1181d4253",
-                  "title": "MUSTANG BABY",
-                  "disambiguation": "",
-                  "length": 191680,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404162"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": " ft. ",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    },
-                    {
-                      "name": "Artemas",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
-                        "name": "Artemas",
-                        "sort-name": "Artemas",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "7d9081a6-1910-470e-80d4-dcd0269dc6ce",
-                "position": 7,
-                "number": "A7",
-                "title": "RUSSIAN ROULETTE",
-                "length": 160360,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9d9e0854-83f0-40c4-97ce-eb943ef04092",
-                  "title": "RUSSIAN ROULETTE",
-                  "disambiguation": "",
-                  "length": 160360,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404163"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "50928f2c-297d-41ac-8954-61066884f7f0",
-                "position": 8,
-                "number": "A8",
-                "title": "S.L.U.T.",
-                "length": 148467,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "4d4120f3-15e1-49b2-8a8b-91205a473394",
-                  "title": "S.L.U.T.",
-                  "disambiguation": "",
-                  "length": 148467,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404164"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "36929814-6864-4e11-9f62-4db9b7a714c1",
-                "position": 9,
-                "number": "B1",
-                "title": "BABYDOLL",
-                "length": 219000,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "8b408398-c057-4dd6-a171-c69ebd3b2f98",
-                  "title": "BABYDOLL",
-                  "disambiguation": "",
-                  "length": 219000,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404165"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "e639e5ac-74a7-452b-a67f-ac847f41b815",
-                "position": 10,
-                "number": "B2",
-                "title": "GIVEN ENOUGH",
-                "length": 204480,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "dc585a4c-55b7-4484-b4f1-cc3deaed74e0",
-                  "title": "GIVEN ENOUGH",
-                  "disambiguation": "",
-                  "length": 204480,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404166"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "0aeb57ca-f033-47e9-955a-ecba80e08857",
-                "position": 11,
-                "number": "B3",
-                "title": "EDWARD SCISSORHANDS",
-                "length": 211147,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "c3f4ba0b-c630-4565-a8f0-c6d0c1e465f7",
-                  "title": "EDWARD SCISSORHANDS",
-                  "disambiguation": "",
-                  "length": 211147,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404167"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "811aa742-3da8-4d5d-a8d8-93c4e59a5287",
-                "position": 12,
-                "number": "B4",
-                "title": "GLITTER AND VIOLENCE",
-                "length": 184933,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "9b1d5271-0136-48fb-9f1b-02a563dbb2b5",
-                  "title": "GLITTER AND VIOLENCE",
-                  "disambiguation": "",
-                  "length": 184933,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404168"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "b8483efd-a79d-4747-b7ec-01c978644510",
-                "position": 13,
-                "number": "B5",
-                "title": "PINS AND NEEDLES",
-                "length": 201747,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "e69843ea-7375-40c3-9782-b68f74a4aae5",
-                  "title": "PINS AND NEEDLES",
-                  "disambiguation": "",
-                  "length": 201747,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404169"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "f6abfb69-b96f-4c1a-9e7b-17ec65091aad",
-                "position": 14,
-                "number": "B6",
-                "title": "STAY ALIVE",
-                "length": 190893,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "202d2eec-db83-4aec-9d66-2ad6f66b64eb",
-                  "title": "STAY ALIVE",
-                  "disambiguation": "",
-                  "length": 190893,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12404170"
-                  ],
-                  "first-release-date": "2024-11-15",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "2aee072d-8add-414c-ac92-969f9496e9e1",
-                "position": 15,
-                "number": "B7",
-                "title": "DIRTY LITTLE SECRET",
-                "length": 214840,
-                "artist-credit": [
-                  {
-                    "name": "Nessa Barrett",
-                    "joinphrase": "",
-                    "artist": {
-                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                      "name": "Nessa Barrett",
-                      "sort-name": "Barrett, Nessa",
-                      "disambiguation": ""
-                    }
-                  }
-                ],
-                "recording": {
-                  "id": "0afce13d-d5c4-4172-be2e-0fcefa8e3d72",
-                  "title": "DIRTY LITTLE SECRET",
-                  "disambiguation": "",
-                  "length": 214840,
-                  "video": false,
-                  "isrcs": [
-                    "USWB12403884"
-                  ],
-                  "first-release-date": "2024-09-20",
-                  "artist-credit": [
-                    {
-                      "name": "Nessa Barrett",
-                      "joinphrase": "",
-                      "artist": {
-                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
-                        "name": "Nessa Barrett",
-                        "sort-name": "Barrett, Nessa",
-                        "disambiguation": ""
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
       "key": "release/11420f5b-59ce-4538-8b47-1244aaabc81d?inc=releaseFull",
       "payload": {
         "id": "11420f5b-59ce-4538-8b47-1244aaabc81d",
@@ -5813,6 +4335,1484 @@
                     "USWB12405135"
                   ],
                   "first-release-date": "2024",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/99baaf51-915d-4817-85ac-454a2acae4e5?inc=releaseFull",
+      "payload": {
+        "id": "99baaf51-915d-4817-85ac-454a2acae4e5",
+        "title": "AFTERCARE",
+        "disambiguation": "",
+        "date": "2024-11-15",
+        "country": "XW",
+        "status": "Official",
+        "barcode": "093624852452",
+        "packaging": "None",
+        "quality": "normal",
+        "cover-art-archive": {
+          "darkened": false,
+          "count": 1,
+          "artwork": true,
+          "back": false,
+          "front": true
+        },
+        "artist-credit": [
+          {
+            "name": "Nessa Barrett",
+            "joinphrase": "",
+            "artist": {
+              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+              "name": "Nessa Barrett",
+              "sort-name": "Barrett, Nessa",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [
+          {
+            "catalog-number": null,
+            "label": {
+              "id": "d4cd174f-784d-48d7-91c6-7427bd5d57fe",
+              "name": "Warner Records"
+            }
+          }
+        ],
+        "release-group": {
+          "id": "7f40718f-2b31-4d9b-88a7-b7f49cb8a330",
+          "title": "AFTERCARE",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2024-11-15",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Nessa Barrett",
+              "joinphrase": "",
+              "artist": {
+                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                "name": "Nessa Barrett",
+                "sort-name": "Barrett, Nessa",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "Digital Media",
+            "title": "",
+            "track-count": 15,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "c2346193-be92-4542-afb7-76627b1273f5",
+                "position": 1,
+                "number": "1",
+                "title": "AFTERCARE",
+                "length": 93947,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "dcef9adf-ef59-47dd-ada1-24fa889bd0a7",
+                  "title": "AFTERCARE",
+                  "disambiguation": "",
+                  "length": 93947,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404158"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "47d21a28-a01f-4d67-88dc-075fc3980432",
+                "position": 2,
+                "number": "2",
+                "title": "P*RNSTAR",
+                "length": 149440,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "2da6cbad-c4f7-41a2-a762-3b4cfccf467d",
+                  "title": "P*RNSTAR",
+                  "disambiguation": "",
+                  "length": 149440,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404159"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "48c85938-92e7-432f-bb50-25a4691c28e4",
+                "position": 3,
+                "number": "3",
+                "title": "HEARTBEAT",
+                "length": 189293,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8cca021a-dbb7-4f56-8320-6177bc2e71e6",
+                  "title": "HEARTBEAT",
+                  "disambiguation": "",
+                  "length": 189293,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404160"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bb638016-eaa3-4713-8084-931e11ac4e7b",
+                "position": 4,
+                "number": "4",
+                "title": "DISCO",
+                "length": 197587,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": " ft. ",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  },
+                  {
+                    "name": "Tommy Genesis",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
+                      "name": "Tommy Genesis",
+                      "sort-name": "Genesis, Tommy",
+                      "disambiguation": "rapper"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9d2f3b39-22ad-4f74-ab28-f6567b53e887",
+                  "title": "DISCO",
+                  "disambiguation": "",
+                  "length": 197586,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404161"
+                  ],
+                  "first-release-date": "2024-10-18",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": " ft. ",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Tommy Genesis",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
+                        "name": "Tommy Genesis",
+                        "sort-name": "Genesis, Tommy",
+                        "disambiguation": "rapper"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "955df553-4be6-4a02-ad0c-8353d30fe55d",
+                "position": 5,
+                "number": "5",
+                "title": "PASSENGER PRINCESS",
+                "length": 155578,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "15e18388-a650-450e-a6d1-ac96e43ce555",
+                  "title": "PASSENGER PRINCESS",
+                  "disambiguation": "",
+                  "length": 155578,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12402947"
+                  ],
+                  "first-release-date": "2024-07-26",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "1724fac8-142a-49b2-9490-3f5be415de8c",
+                "position": 6,
+                "number": "6",
+                "title": "MUSTANG BABY",
+                "length": 191680,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": " ft. ",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  },
+                  {
+                    "name": "Artemas",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
+                      "name": "Artemas",
+                      "sort-name": "Artemas",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3d7319a3-fd30-4a89-baf7-30d1181d4253",
+                  "title": "MUSTANG BABY",
+                  "disambiguation": "",
+                  "length": 191680,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404162"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": " ft. ",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Artemas",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
+                        "name": "Artemas",
+                        "sort-name": "Artemas",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cc2c15b6-bd30-40b6-8cd7-6b98a360b904",
+                "position": 7,
+                "number": "7",
+                "title": "RUSSIAN ROULETTE",
+                "length": 160360,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9d9e0854-83f0-40c4-97ce-eb943ef04092",
+                  "title": "RUSSIAN ROULETTE",
+                  "disambiguation": "",
+                  "length": 160360,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404163"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "a04c0bfc-8e11-43ff-ada4-8894ff875e3d",
+                "position": 8,
+                "number": "8",
+                "title": "S.L.U.T.",
+                "length": 148467,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4d4120f3-15e1-49b2-8a8b-91205a473394",
+                  "title": "S.L.U.T.",
+                  "disambiguation": "",
+                  "length": 148467,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404164"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "952f6fbd-7883-430f-a898-cdc9af821e34",
+                "position": 9,
+                "number": "9",
+                "title": "BABYDOLL",
+                "length": 219000,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8b408398-c057-4dd6-a171-c69ebd3b2f98",
+                  "title": "BABYDOLL",
+                  "disambiguation": "",
+                  "length": 219000,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404165"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "61ebf9d9-a39c-427c-a108-cddf57df0dfe",
+                "position": 10,
+                "number": "10",
+                "title": "GIVEN ENOUGH",
+                "length": 204480,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "dc585a4c-55b7-4484-b4f1-cc3deaed74e0",
+                  "title": "GIVEN ENOUGH",
+                  "disambiguation": "",
+                  "length": 204480,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404166"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "180a3f39-d76c-466e-bbd6-cf1c91f1298d",
+                "position": 11,
+                "number": "11",
+                "title": "EDWARD SCISSORHANDS",
+                "length": 211147,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c3f4ba0b-c630-4565-a8f0-c6d0c1e465f7",
+                  "title": "EDWARD SCISSORHANDS",
+                  "disambiguation": "",
+                  "length": 211147,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404167"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "9de7b114-1fcf-43cd-9729-a69af3f8ec7d",
+                "position": 12,
+                "number": "12",
+                "title": "GLITTER AND VIOLENCE",
+                "length": 184933,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9b1d5271-0136-48fb-9f1b-02a563dbb2b5",
+                  "title": "GLITTER AND VIOLENCE",
+                  "disambiguation": "",
+                  "length": 184933,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404168"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0c2303be-8982-4f53-8ccc-a4bd6f866d26",
+                "position": 13,
+                "number": "13",
+                "title": "PINS AND NEEDLES",
+                "length": 201747,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "e69843ea-7375-40c3-9782-b68f74a4aae5",
+                  "title": "PINS AND NEEDLES",
+                  "disambiguation": "",
+                  "length": 201747,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404169"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "67628fa9-d664-4afe-9d8e-57731f942a05",
+                "position": 14,
+                "number": "14",
+                "title": "STAY ALIVE",
+                "length": 190893,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "202d2eec-db83-4aec-9d66-2ad6f66b64eb",
+                  "title": "STAY ALIVE",
+                  "disambiguation": "",
+                  "length": 190893,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404170"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "547210eb-d8c2-49a6-95c2-cb0432f7e0fd",
+                "position": 15,
+                "number": "15",
+                "title": "DIRTY LITTLE SECRET",
+                "length": 214840,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "0afce13d-d5c4-4172-be2e-0fcefa8e3d72",
+                  "title": "DIRTY LITTLE SECRET",
+                  "disambiguation": "",
+                  "length": 214840,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12403884"
+                  ],
+                  "first-release-date": "2024-09-20",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "release/41736631-b932-4380-ad4f-85a0e41dc770?inc=releaseFull",
+      "payload": {
+        "id": "41736631-b932-4380-ad4f-85a0e41dc770",
+        "title": "AFTERCARE",
+        "disambiguation": "translucent glitter",
+        "date": "2025-02-07",
+        "country": "US",
+        "status": "Official",
+        "barcode": "093624852414",
+        "packaging": null,
+        "quality": "normal",
+        "cover-art-archive": {
+          "artwork": true,
+          "back": false,
+          "count": 1,
+          "darkened": false,
+          "front": true
+        },
+        "artist-credit": [
+          {
+            "name": "Nessa Barrett",
+            "joinphrase": "",
+            "artist": {
+              "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+              "name": "Nessa Barrett",
+              "sort-name": "Barrett, Nessa",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "label-info": [],
+        "release-group": {
+          "id": "7f40718f-2b31-4d9b-88a7-b7f49cb8a330",
+          "title": "AFTERCARE",
+          "primary-type": "Album",
+          "secondary-types": [],
+          "first-release-date": "2024-11-15",
+          "disambiguation": "",
+          "artist-credit": [
+            {
+              "name": "Nessa Barrett",
+              "joinphrase": "",
+              "artist": {
+                "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                "name": "Nessa Barrett",
+                "sort-name": "Barrett, Nessa",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        "media": [
+          {
+            "position": 1,
+            "format": "12\" Vinyl",
+            "title": "",
+            "track-count": 15,
+            "track-offset": 0,
+            "tracks": [
+              {
+                "id": "21a77f73-896b-47c4-8f9f-5712ec70ec18",
+                "position": 1,
+                "number": "A1",
+                "title": "AFTERCARE",
+                "length": 93947,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "dcef9adf-ef59-47dd-ada1-24fa889bd0a7",
+                  "title": "AFTERCARE",
+                  "disambiguation": "",
+                  "length": 93947,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404158"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bfb52b77-1f76-4b38-9071-ef30369e2d07",
+                "position": 2,
+                "number": "A2",
+                "title": "P*RNSTAR",
+                "length": 149440,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "2da6cbad-c4f7-41a2-a762-3b4cfccf467d",
+                  "title": "P*RNSTAR",
+                  "disambiguation": "",
+                  "length": 149440,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404159"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "bfade8fa-f508-487a-901c-de0b353db7e5",
+                "position": 3,
+                "number": "A3",
+                "title": "HEARTBEAT",
+                "length": 189293,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8cca021a-dbb7-4f56-8320-6177bc2e71e6",
+                  "title": "HEARTBEAT",
+                  "disambiguation": "",
+                  "length": 189293,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404160"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c97079a6-97bb-4155-8ae7-36328f4ba2a1",
+                "position": 4,
+                "number": "A4",
+                "title": "DISCO",
+                "length": 197587,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": " ft. ",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  },
+                  {
+                    "name": "Tommy Genesis",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
+                      "name": "Tommy Genesis",
+                      "sort-name": "Genesis, Tommy",
+                      "disambiguation": "rapper"
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9d2f3b39-22ad-4f74-ab28-f6567b53e887",
+                  "title": "DISCO",
+                  "disambiguation": "",
+                  "length": 197586,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404161"
+                  ],
+                  "first-release-date": "2024-10-18",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": " ft. ",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Tommy Genesis",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "6281bbf0-3279-42b5-8692-a82a7296b3a1",
+                        "name": "Tommy Genesis",
+                        "sort-name": "Genesis, Tommy",
+                        "disambiguation": "rapper"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "c3949612-e351-4991-8efe-4d8ab4b4a945",
+                "position": 5,
+                "number": "A5",
+                "title": "PASSENGER PRINCESS",
+                "length": 155578,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "15e18388-a650-450e-a6d1-ac96e43ce555",
+                  "title": "PASSENGER PRINCESS",
+                  "disambiguation": "",
+                  "length": 155578,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12402947"
+                  ],
+                  "first-release-date": "2024-07-26",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "6605a210-703d-43bf-b3be-6e613e4b8e30",
+                "position": 6,
+                "number": "a6",
+                "title": "MUSTANG BABY",
+                "length": 191680,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": " ft. ",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  },
+                  {
+                    "name": "Artemas",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
+                      "name": "Artemas",
+                      "sort-name": "Artemas",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "3d7319a3-fd30-4a89-baf7-30d1181d4253",
+                  "title": "MUSTANG BABY",
+                  "disambiguation": "",
+                  "length": 191680,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404162"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": " ft. ",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    },
+                    {
+                      "name": "Artemas",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "0211be88-dc0f-4002-a1de-4001bb359d51",
+                        "name": "Artemas",
+                        "sort-name": "Artemas",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "7d9081a6-1910-470e-80d4-dcd0269dc6ce",
+                "position": 7,
+                "number": "A7",
+                "title": "RUSSIAN ROULETTE",
+                "length": 160360,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9d9e0854-83f0-40c4-97ce-eb943ef04092",
+                  "title": "RUSSIAN ROULETTE",
+                  "disambiguation": "",
+                  "length": 160360,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404163"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "50928f2c-297d-41ac-8954-61066884f7f0",
+                "position": 8,
+                "number": "A8",
+                "title": "S.L.U.T.",
+                "length": 148467,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "4d4120f3-15e1-49b2-8a8b-91205a473394",
+                  "title": "S.L.U.T.",
+                  "disambiguation": "",
+                  "length": 148467,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404164"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "36929814-6864-4e11-9f62-4db9b7a714c1",
+                "position": 9,
+                "number": "B1",
+                "title": "BABYDOLL",
+                "length": 219000,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "8b408398-c057-4dd6-a171-c69ebd3b2f98",
+                  "title": "BABYDOLL",
+                  "disambiguation": "",
+                  "length": 219000,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404165"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "e639e5ac-74a7-452b-a67f-ac847f41b815",
+                "position": 10,
+                "number": "B2",
+                "title": "GIVEN ENOUGH",
+                "length": 204480,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "dc585a4c-55b7-4484-b4f1-cc3deaed74e0",
+                  "title": "GIVEN ENOUGH",
+                  "disambiguation": "",
+                  "length": 204480,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404166"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "0aeb57ca-f033-47e9-955a-ecba80e08857",
+                "position": 11,
+                "number": "B3",
+                "title": "EDWARD SCISSORHANDS",
+                "length": 211147,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "c3f4ba0b-c630-4565-a8f0-c6d0c1e465f7",
+                  "title": "EDWARD SCISSORHANDS",
+                  "disambiguation": "",
+                  "length": 211147,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404167"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "811aa742-3da8-4d5d-a8d8-93c4e59a5287",
+                "position": 12,
+                "number": "B4",
+                "title": "GLITTER AND VIOLENCE",
+                "length": 184933,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "9b1d5271-0136-48fb-9f1b-02a563dbb2b5",
+                  "title": "GLITTER AND VIOLENCE",
+                  "disambiguation": "",
+                  "length": 184933,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404168"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "b8483efd-a79d-4747-b7ec-01c978644510",
+                "position": 13,
+                "number": "B5",
+                "title": "PINS AND NEEDLES",
+                "length": 201747,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "e69843ea-7375-40c3-9782-b68f74a4aae5",
+                  "title": "PINS AND NEEDLES",
+                  "disambiguation": "",
+                  "length": 201747,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404169"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "f6abfb69-b96f-4c1a-9e7b-17ec65091aad",
+                "position": 14,
+                "number": "B6",
+                "title": "STAY ALIVE",
+                "length": 190893,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "202d2eec-db83-4aec-9d66-2ad6f66b64eb",
+                  "title": "STAY ALIVE",
+                  "disambiguation": "",
+                  "length": 190893,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12404170"
+                  ],
+                  "first-release-date": "2024-11-15",
+                  "artist-credit": [
+                    {
+                      "name": "Nessa Barrett",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                        "name": "Nessa Barrett",
+                        "sort-name": "Barrett, Nessa",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "2aee072d-8add-414c-ac92-969f9496e9e1",
+                "position": 15,
+                "number": "B7",
+                "title": "DIRTY LITTLE SECRET",
+                "length": 214840,
+                "artist-credit": [
+                  {
+                    "name": "Nessa Barrett",
+                    "joinphrase": "",
+                    "artist": {
+                      "id": "da0c8f4f-f4f4-4e91-86ca-e31108bb5706",
+                      "name": "Nessa Barrett",
+                      "sort-name": "Barrett, Nessa",
+                      "disambiguation": ""
+                    }
+                  }
+                ],
+                "recording": {
+                  "id": "0afce13d-d5c4-4172-be2e-0fcefa8e3d72",
+                  "title": "DIRTY LITTLE SECRET",
+                  "disambiguation": "",
+                  "length": 214840,
+                  "video": false,
+                  "isrcs": [
+                    "USWB12403884"
+                  ],
+                  "first-release-date": "2024-09-20",
                   "artist-credit": [
                     {
                       "name": "Nessa Barrett",

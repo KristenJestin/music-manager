@@ -12107,7 +12107,8 @@
       "why": [
         "Title matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "00db1a59-cd26-49ca-8906-3ea9849521fa",
@@ -12120,7 +12121,8 @@
       "why": [
         "Title matches exactly",
         "Filed as a Single, which is a poor shape for 14 videos"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "7262d96a-3e56-40f3-a93f-95c378f79c1c",
@@ -12133,10 +12135,10 @@
       "firstReleaseDate": "2024-06-07",
       "score": 0.386,
       "why": [
-        "Artist mismatch",
         "Filed as a Single, which is a poor shape for 14 videos",
         "Secondary type Remix"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

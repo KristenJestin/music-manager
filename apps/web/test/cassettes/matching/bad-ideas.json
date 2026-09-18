@@ -1,7 +1,7 @@
 {
   "name": "bad-ideas",
   "kind": "album",
-  "recordedAt": "2026-09-17T09:50:25.835Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_lMECD_tHQnZ8tr8_mQZr2I8usqrw9eCrs",
     "album": "Bad Ideas",
@@ -204,8 +204,423 @@
             "id": "cca1a1ec-0400-4f03-ac4f-8a2b6c245091",
             "title": "Bad Ideas (the remixes)",
             "primary-type": "EP",
-            "secondary-types": ["Remix"],
+            "secondary-types": [
+              "Remix"
+            ],
             "first-release-date": "2019-07-26",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Tessa Violet\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-18T09:25:03.614Z",
+        "count": 40,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "0a62a04b-560b-45ed-a082-2120ed074609",
+            "title": "Bad Ideas",
+            "primary-type": "Single",
+            "first-release-date": "2018-11-30",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "b3e0a15b-f85c-45cb-8b54-ceba412cc822",
+            "title": "Dream",
+            "primary-type": "Single",
+            "first-release-date": "2016-09-16",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "c38dbb48-2387-4004-9fe6-6c81cb003599",
+            "title": "Halloway",
+            "primary-type": "EP",
+            "first-release-date": "2016-10-14",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "cca1a1ec-0400-4f03-ac4f-8a2b6c245091",
+            "title": "Bad Ideas (the remixes)",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2019-07-26",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ee28c3d4-6a17-4e39-b86f-c60f4d267964",
+            "title": "I Like (the Idea of) You",
+            "primary-type": "Single",
+            "first-release-date": "2019-05-03",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "0f09ef1e-bb94-4b65-976b-4ee95f64a228",
+            "title": "kitchen song (voice memo)",
+            "primary-type": "Single",
+            "first-release-date": "2022-08-16",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "b92221df-7fe3-4075-894f-b29640f6c438",
+            "title": "Bored",
+            "primary-type": "Single",
+            "first-release-date": "2020-05-24",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "58fd1c90-be85-42e2-a206-ad3b4f908a21",
+            "title": "Grow",
+            "primary-type": "EP",
+            "first-release-date": "2026-05-05",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5eec067a-7889-45ea-90c5-4bfe58c662d5",
+            "title": "Sunshine (Just Right) – Geometry Dash",
+            "primary-type": "Single",
+            "first-release-date": "2026-05-15",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "f4ac1d89-7da9-4c24-8f6b-a2792b68092e",
+            "title": "YES MOM",
+            "primary-type": "EP",
+            "first-release-date": "2022",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "7e06201f-8d0e-4dfb-a1b6-95313eba6904",
+            "title": "I Love Being Wrong",
+            "primary-type": "Single",
+            "first-release-date": "2026-02-03",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "05ebd50f-abb9-4828-9232-a7f45e7e6dfb",
+            "title": "Halloway B‐Sides",
+            "primary-type": "EP",
+            "first-release-date": "2018-04-21",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "66e683cd-3349-4864-883e-2183ef42e6ef",
+            "title": "You Are Not My Friend",
+            "primary-type": "Single",
+            "first-release-date": "2023-03-21",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2c02dcef-663c-4599-98b0-c250d0b6a3e2",
+            "title": "Knowing",
+            "primary-type": "Single",
+            "first-release-date": "2026-01-06",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "abc993d1-c7ea-4454-a417-049914c528a3",
+            "title": "Maybe Trapped Mostly Troubled",
+            "primary-type": "Album",
+            "first-release-date": "2014-03-18",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5ec1d844-e5a4-475b-b5ec-2c3f6c175ab4",
+            "title": "BREAKDOWN",
+            "primary-type": "Single",
+            "first-release-date": "2022-05-24",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "6aa1121d-40ea-4fc2-9810-c552f6aeb7df",
+            "title": "Crush",
+            "primary-type": "Single",
+            "first-release-date": "2018-06-15",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "6c98c809-0cfe-4809-836f-0d7c872bf5d5",
+            "title": "Bad Ideas (Act One)",
+            "primary-type": "EP",
+            "first-release-date": "2019-07-26",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "087455c0-854d-423b-aef6-a9dca6f7490b",
+            "title": "MY GOD!",
+            "primary-type": "Single",
+            "first-release-date": "2023-06-09",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "599a6202-e0dd-46ed-bfce-edbe1d5af63c",
+            "title": "Clean Up Song",
+            "primary-type": "Single",
+            "first-release-date": "2026-03-03",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "e0176fc2-7341-4b2f-8012-3032ae8d8cd3",
+            "title": "Something to Lose",
+            "primary-type": "Single",
+            "first-release-date": "2026-07-07",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "11af5cec-f987-484b-a138-42f9e5bbbcb3",
+            "title": "Games",
+            "primary-type": "Single",
+            "first-release-date": "2019-09-27",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "9d7a0a7f-de7e-4c6f-8e06-f35df6543686",
+            "title": "Kitchen Song",
+            "primary-type": "Single",
+            "first-release-date": "2022-08-09",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "94d9613c-1108-46d4-ad6d-0c5fc31de559",
+            "title": "YES MOM",
+            "primary-type": "Single",
+            "first-release-date": "2022-02-16",
+            "artist-credit": [
+              {
+                "name": "Tessa Violet",
+                "artist": {
+                  "id": "b4246b6b-b1fd-4401-b438-d12f98e5e2a4",
+                  "name": "Tessa Violet",
+                  "sort-name": "Violet, Tessa"
+                }
+              }
+            ]
+          },
+          {
+            "id": "71ee5b08-3fbb-4cd4-a2fe-dad0645fa4cf",
+            "title": "Oh, Tommy",
+            "primary-type": "Single",
+            "first-release-date": "2013-07-27",
             "artist-credit": [
               {
                 "name": "Tessa Violet",
@@ -445,7 +860,9 @@
               "id": "cca1a1ec-0400-4f03-ac4f-8a2b6c245091",
               "title": "Bad Ideas (the remixes)",
               "primary-type": "EP",
-              "secondary-types": ["Remix"]
+              "secondary-types": [
+                "Remix"
+              ]
             },
             "media": [
               {
@@ -542,7 +959,9 @@
                   "disambiguation": "",
                   "length": 63965,
                   "video": false,
-                  "isrcs": ["USANG1906357"],
+                  "isrcs": [
+                    "USANG1906357"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -582,7 +1001,9 @@
                   "disambiguation": "",
                   "length": 216000,
                   "video": false,
-                  "isrcs": ["US3DF1813109"],
+                  "isrcs": [
+                    "US3DF1813109"
+                  ],
                   "first-release-date": "2018-06-15",
                   "artist-credit": [
                     {
@@ -622,7 +1043,9 @@
                   "disambiguation": "",
                   "length": 179173,
                   "video": false,
-                  "isrcs": ["US3DF1813108"],
+                  "isrcs": [
+                    "US3DF1813108"
+                  ],
                   "first-release-date": "2018-11-30",
                   "artist-credit": [
                     {
@@ -662,7 +1085,9 @@
                   "disambiguation": "",
                   "length": 168480,
                   "video": false,
-                  "isrcs": ["US3DF1939970"],
+                  "isrcs": [
+                    "US3DF1939970"
+                  ],
                   "first-release-date": "2019-05-03",
                   "artist-credit": [
                     {
@@ -702,7 +1127,9 @@
                   "disambiguation": "",
                   "length": 221051,
                   "video": false,
-                  "isrcs": ["US3DF1996237"],
+                  "isrcs": [
+                    "US3DF1996237"
+                  ],
                   "first-release-date": "2019-09-27",
                   "artist-credit": [
                     {
@@ -742,7 +1169,9 @@
                   "disambiguation": "",
                   "length": 184488,
                   "video": false,
-                  "isrcs": ["USANG1906362"],
+                  "isrcs": [
+                    "USANG1906362"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -782,7 +1211,9 @@
                   "disambiguation": "",
                   "length": 124365,
                   "video": false,
-                  "isrcs": ["USANG1906363"],
+                  "isrcs": [
+                    "USANG1906363"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -822,7 +1253,9 @@
                   "disambiguation": "",
                   "length": 183000,
                   "video": false,
-                  "isrcs": ["USANG1906364"],
+                  "isrcs": [
+                    "USANG1906364"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -862,7 +1295,9 @@
                   "disambiguation": "",
                   "length": 195110,
                   "video": false,
-                  "isrcs": ["USANG1906365"],
+                  "isrcs": [
+                    "USANG1906365"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -902,7 +1337,9 @@
                   "disambiguation": "",
                   "length": 252146,
                   "video": false,
-                  "isrcs": ["USANG1906366"],
+                  "isrcs": [
+                    "USANG1906366"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -942,7 +1379,9 @@
                   "disambiguation": "",
                   "length": 169723,
                   "video": false,
-                  "isrcs": ["USANG1906367"],
+                  "isrcs": [
+                    "USANG1906367"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -1048,7 +1487,9 @@
                   "disambiguation": "",
                   "length": 179173,
                   "video": false,
-                  "isrcs": ["US3DF1813108"],
+                  "isrcs": [
+                    "US3DF1813108"
+                  ],
                   "first-release-date": "2018-11-30",
                   "artist-credit": [
                     {
@@ -1154,7 +1595,9 @@
                   "disambiguation": "",
                   "length": 216000,
                   "video": false,
-                  "isrcs": ["US3DF1813109"],
+                  "isrcs": [
+                    "US3DF1813109"
+                  ],
                   "first-release-date": "2018-06-15",
                   "artist-credit": [
                     {
@@ -1194,7 +1637,9 @@
                   "disambiguation": "",
                   "length": 179173,
                   "video": false,
-                  "isrcs": ["US3DF1813108"],
+                  "isrcs": [
+                    "US3DF1813108"
+                  ],
                   "first-release-date": "2018-11-30",
                   "artist-credit": [
                     {
@@ -1234,7 +1679,9 @@
                   "disambiguation": "",
                   "length": 168480,
                   "video": false,
-                  "isrcs": ["US3DF1939970"],
+                  "isrcs": [
+                    "US3DF1939970"
+                  ],
                   "first-release-date": "2019-05-03",
                   "artist-credit": [
                     {
@@ -1274,7 +1721,9 @@
                   "disambiguation": "",
                   "length": 306000,
                   "video": false,
-                  "isrcs": ["US3DF1973811"],
+                  "isrcs": [
+                    "US3DF1973811"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1314,7 +1763,9 @@
                   "disambiguation": "",
                   "length": 196000,
                   "video": false,
-                  "isrcs": ["US3DF1973812"],
+                  "isrcs": [
+                    "US3DF1973812"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1354,7 +1805,9 @@
                   "disambiguation": "",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["US3DF1973813"],
+                  "isrcs": [
+                    "US3DF1973813"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1412,7 +1865,9 @@
           "id": "cca1a1ec-0400-4f03-ac4f-8a2b6c245091",
           "title": "Bad Ideas (the remixes)",
           "primary-type": "EP",
-          "secondary-types": ["Remix"],
+          "secondary-types": [
+            "Remix"
+          ],
           "first-release-date": "2019-07-26",
           "disambiguation": "",
           "artist-credit": [
@@ -1460,7 +1915,9 @@
                   "disambiguation": "",
                   "length": 306000,
                   "video": false,
-                  "isrcs": ["US3DF1973811"],
+                  "isrcs": [
+                    "US3DF1973811"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1500,7 +1957,9 @@
                   "disambiguation": "",
                   "length": 196000,
                   "video": false,
-                  "isrcs": ["US3DF1973812"],
+                  "isrcs": [
+                    "US3DF1973812"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1540,7 +1999,9 @@
                   "disambiguation": "",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["US3DF1973813"],
+                  "isrcs": [
+                    "US3DF1973813"
+                  ],
                   "first-release-date": "2019-07-26",
                   "artist-credit": [
                     {
@@ -1646,7 +2107,9 @@
                   "disambiguation": "",
                   "length": 63965,
                   "video": false,
-                  "isrcs": ["USANG1906357"],
+                  "isrcs": [
+                    "USANG1906357"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -1686,7 +2149,9 @@
                   "disambiguation": "",
                   "length": 216000,
                   "video": false,
-                  "isrcs": ["US3DF1813109"],
+                  "isrcs": [
+                    "US3DF1813109"
+                  ],
                   "first-release-date": "2018-06-15",
                   "artist-credit": [
                     {
@@ -1726,7 +2191,9 @@
                   "disambiguation": "",
                   "length": 179173,
                   "video": false,
-                  "isrcs": ["US3DF1813108"],
+                  "isrcs": [
+                    "US3DF1813108"
+                  ],
                   "first-release-date": "2018-11-30",
                   "artist-credit": [
                     {
@@ -1766,7 +2233,9 @@
                   "disambiguation": "",
                   "length": 168480,
                   "video": false,
-                  "isrcs": ["US3DF1939970"],
+                  "isrcs": [
+                    "US3DF1939970"
+                  ],
                   "first-release-date": "2019-05-03",
                   "artist-credit": [
                     {
@@ -1806,7 +2275,9 @@
                   "disambiguation": "",
                   "length": 221051,
                   "video": false,
-                  "isrcs": ["US3DF1996237"],
+                  "isrcs": [
+                    "US3DF1996237"
+                  ],
                   "first-release-date": "2019-09-27",
                   "artist-credit": [
                     {
@@ -1846,7 +2317,9 @@
                   "disambiguation": "",
                   "length": 184488,
                   "video": false,
-                  "isrcs": ["USANG1906362"],
+                  "isrcs": [
+                    "USANG1906362"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -1886,7 +2359,9 @@
                   "disambiguation": "",
                   "length": 124365,
                   "video": false,
-                  "isrcs": ["USANG1906363"],
+                  "isrcs": [
+                    "USANG1906363"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -1926,7 +2401,9 @@
                   "disambiguation": "",
                   "length": 183000,
                   "video": false,
-                  "isrcs": ["USANG1906364"],
+                  "isrcs": [
+                    "USANG1906364"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -1966,7 +2443,9 @@
                   "disambiguation": "",
                   "length": 195110,
                   "video": false,
-                  "isrcs": ["USANG1906365"],
+                  "isrcs": [
+                    "USANG1906365"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -2006,7 +2485,9 @@
                   "disambiguation": "",
                   "length": 252146,
                   "video": false,
-                  "isrcs": ["USANG1906366"],
+                  "isrcs": [
+                    "USANG1906366"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {
@@ -2046,7 +2527,9 @@
                   "disambiguation": "",
                   "length": 169723,
                   "video": false,
-                  "isrcs": ["USANG1906367"],
+                  "isrcs": [
+                    "USANG1906367"
+                  ],
                   "first-release-date": "2019-10-25",
                   "artist-credit": [
                     {

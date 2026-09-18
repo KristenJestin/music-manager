@@ -7530,7 +7530,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

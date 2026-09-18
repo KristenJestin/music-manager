@@ -1,7 +1,7 @@
 {
   "name": "formidable",
   "kind": "single",
-  "recordedAt": "2026-09-07T16:00:40.484Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://www.youtube.com/watch?v=formidable",
     "note": "Album version 3:34 against the single edit 3:33 — one second apart, which is inside the tolerance."
@@ -32,7 +32,9 @@
             "length": 214000,
             "video": null,
             "score": 100,
-            "isrcs": ["BET671300161"],
+            "isrcs": [
+              "BET671300161"
+            ],
             "first-release-date": "2013-06-01",
             "artist-credit": [
               {
@@ -64,7 +66,9 @@
                   "id": "3661e5eb-45ba-4e0a-a3c1-1348819c0a06",
                   "title": "Karaoké en français",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -96,7 +100,9 @@
                   "id": "1981bd12-6a80-4aac-8ffa-537fdf09927f",
                   "title": "Love songs 2000s",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -126,7 +132,9 @@
                   "id": "452e4b26-ca18-4ca6-95fe-38f73ea57e82",
                   "title": "Französische Hits",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -158,7 +166,9 @@
                   "id": "e508b5f8-2971-4467-8b6a-59290742817f",
                   "title": "NRJ Music Awards 15TH Edition",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -190,7 +200,9 @@
                   "id": "ffeb4cb9-8e90-495e-9f8b-d7b6307625d1",
                   "title": "Playlist Hits 2014",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -222,7 +234,9 @@
                   "id": "2f6ece53-3eee-46de-a114-beb773b16756",
                   "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -254,7 +268,9 @@
                   "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
                   "title": "Bravo Hits 84",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -284,7 +300,9 @@
                   "id": "2f6ece53-3eee-46de-a114-beb773b16756",
                   "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -316,7 +334,9 @@
                   "id": "d07bdf95-f095-4ac6-9fa1-3c631acbdb68",
                   "title": "Ultratop 1001 Hits, Volume 4",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -378,7 +398,9 @@
                   "id": "a975870f-c401-493a-99ec-073c024ab9a5",
                   "title": "Les Artistes Bel RTL",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -410,7 +432,9 @@
                   "id": "d07bdf95-f095-4ac6-9fa1-3c631acbdb68",
                   "title": "Ultratop 1001 Hits, Volume 4",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -440,7 +464,9 @@
                   "id": "3cf4733d-b967-4215-86a3-953c2d47019f",
                   "title": "Morning Coffee",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -472,7 +498,9 @@
                   "id": "f3052095-4ed1-47d9-af4b-4fdcef894238",
                   "title": "La Bande‐son de l’été 2013",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -595,7 +623,9 @@
                   "id": "3d411ef4-f7ea-4545-abe6-cb72b5ff674a",
                   "title": "MNM Big Hits 2013, Vol. 3",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -627,7 +657,9 @@
                   "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
                   "title": "Bravo Hits 84",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -689,7 +721,9 @@
                   "id": "38a8b4c4-ec5d-4a4a-93eb-f3011edd9045",
                   "title": "De tijdloze, vol. 3",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -721,7 +755,9 @@
                   "id": "14bef637-763d-4e11-a8e3-27c3d7e420bb",
                   "title": "Het beste uit de nostalgie 1000, vol. 3",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -753,7 +789,9 @@
                   "id": "eb90062d-8d01-425c-a9cb-f26dd3ca602d",
                   "title": "Het beste uit radio1 classics 100, volume 2",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -784,7 +822,9 @@
                 "release-group": {
                   "id": "6fb4ab0f-cfaf-4fed-b4b9-4fce472d5e9e",
                   "title": "RTL : 50 Ans de chanson française",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -816,7 +856,9 @@
                   "id": "22316f8e-42ff-4151-86c1-7b7a03e8212a",
                   "title": "France Hits",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -848,7 +890,9 @@
                   "id": "7fcbe814-4d02-4443-83a7-0a5d1de2cd50",
                   "title": "NRJ Music Awards: Le coffret best of des 20 éditions",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -880,7 +924,9 @@
                   "id": "cb93bbe6-9db5-4796-b4ad-e805c2daa9bf",
                   "title": "Belpop 100",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -912,7 +958,9 @@
                   "id": "526060e3-aa45-45d6-8dbd-76d17ff3a1db",
                   "title": "Het beste uit De MNM 1000 (2016)",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -974,7 +1022,9 @@
                   "id": "5e790c94-22d6-4889-a49b-e811163a6ec3",
                   "title": "Top 2000, Volume 10",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1006,7 +1056,9 @@
                   "id": "b2ab0a94-fb2c-4e85-bbdb-639ed549c660",
                   "title": "Veronica top 1000 allertijden: Editie 2018",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1038,7 +1090,9 @@
                   "id": "0dee6fbc-37f2-4103-8b2a-59f545a06a97",
                   "title": "Sanremo 2014",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1070,7 +1124,9 @@
                   "id": "a3532083-503e-4e6d-aa96-227426a6cff2",
                   "title": "Joe Top 2000, Volume 9",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1102,7 +1158,9 @@
                   "id": "508b0ac4-d7c3-4eb4-b703-a3e003a7fe22",
                   "title": "Radio 538 Hitzone: Best of 2014",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1194,7 +1252,9 @@
                   "id": "fe6eb8df-9539-4a16-a11b-0391c036d773",
                   "title": "100X Winter 2015",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1226,7 +1286,9 @@
                   "id": "168431c3-abb9-4af7-b3c9-4e38a0ee0871",
                   "title": "W9 Hits 2014",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1258,7 +1320,9 @@
                   "id": "32b90669-0635-4c5e-b6b8-f6081b70d7bb",
                   "title": "Talents France Bleu 2017, Vol. 2",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1290,7 +1354,9 @@
                   "id": "5899c636-db55-435c-b4bd-e4c903712bb7",
                   "title": "Maximum Hit Music Best of 2013",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1322,7 +1388,9 @@
                   "id": "13b8cd38-a94f-43ff-9490-f8cc7488c5cf",
                   "title": "Matuschkes Lieblinge, Vol. 4",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1354,7 +1422,9 @@
                   "id": "f42ee259-ff2f-4a68-a66d-3ca7da2d19cf",
                   "title": "Chartboxx 2/2014",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1386,7 +1456,9 @@
                   "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
                   "title": "Radio 538: Hitzone 68",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1418,7 +1490,9 @@
                   "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
                   "title": "Radio 538: Hitzone 68",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1450,7 +1524,9 @@
                   "id": "ca2a7489-825d-484d-a426-1daa9d9f1d98",
                   "title": "The Dome, Volume 68",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1510,7 +1586,9 @@
                   "id": "aca936cc-474d-4d51-acb4-83e071907ead",
                   "title": "NRJ 200% Hits 2013, Volume 2",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1688,7 +1766,9 @@
                   "id": "be135c71-56bc-31ac-99b5-0512cf1786cd",
                   "title": "Das Beste auf Deutsch",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1819,7 +1899,9 @@
                   "id": "961324e1-66e8-40db-837c-42dee4e22475",
                   "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
                   "primary-type": "Other",
-                  "secondary-types": ["Live"]
+                  "secondary-types": [
+                    "Live"
+                  ]
                 },
                 "media": [
                   {
@@ -1918,7 +2000,9 @@
             "length": 233142,
             "video": null,
             "score": 100,
-            "isrcs": ["CA5KR2316390"],
+            "isrcs": [
+              "CA5KR2316390"
+            ],
             "first-release-date": "2023-01-20",
             "artist-credit": [
               {
@@ -1952,7 +2036,9 @@
                   "id": "047607ba-f5cd-4832-86a7-ba185a06c19a",
                   "title": "Toxic Volume 1",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -1971,7 +2057,10 @@
             "length": 140000,
             "video": null,
             "score": 100,
-            "isrcs": ["FRZ082500596", "FRZ052500293"],
+            "isrcs": [
+              "FRZ082500596",
+              "FRZ052500293"
+            ],
             "first-release-date": "2025-10-31",
             "artist-credit": [
               {
@@ -2063,7 +2152,9 @@
             "length": 140000,
             "video": null,
             "score": 100,
-            "isrcs": ["FRZ052500293"],
+            "isrcs": [
+              "FRZ052500293"
+            ],
             "first-release-date": "2025-10-31",
             "artist-credit": [
               {
@@ -2188,7 +2279,9 @@
                   "id": "c44de0cd-0963-4768-9516-7b94efb5c2f3",
                   "title": "Complete Live At The Olympia 1958",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -2311,7 +2404,9 @@
                   "id": "2950d766-63e8-4a02-b7f9-24176c58dbb2",
                   "title": "Best Of",
                   "primary-type": "Album",
-                  "secondary-types": ["Live"]
+                  "secondary-types": [
+                    "Live"
+                  ]
                 },
                 "media": [
                   {
@@ -2666,7 +2761,9 @@
             "length": 220027,
             "video": null,
             "score": 100,
-            "isrcs": ["FR8Y72200234"],
+            "isrcs": [
+              "FR8Y72200234"
+            ],
             "first-release-date": "2022-06-17",
             "artist-credit": [
               {
@@ -2759,7 +2856,9 @@
                   "id": "eb7da159-c97a-40f8-86b0-a7dd5262e0ed",
                   "title": "Retrieving Beirut Part 4/4",
                   "primary-type": "Album",
-                  "secondary-types": ["Compilation"]
+                  "secondary-types": [
+                    "Compilation"
+                  ]
                 },
                 "media": [
                   {
@@ -2776,6 +2875,2812 @@
       }
     },
     {
+      "key": "search/recording?query=artist:\"Stromae\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-18T09:24:41.227Z",
+        "count": 225,
+        "offset": 0,
+        "recordings": [
+          {
+            "id": "ad1c70ae-191f-477f-983c-bad3d6eb4170",
+            "title": "Alors on danse (DJ Pomeha club remix)",
+            "length": 247000,
+            "video": null,
+            "score": 100,
+            "first-release-date": "2010-08-12",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a2b4ca08-757c-4643-b4d0-2397619f6466",
+                "title": "Feel the Music, Volume 1",
+                "date": "2010-08-12",
+                "country": "XW",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "fe38b9fe-0021-4235-a751-315204e2aa48",
+                  "title": "Feel the Music, Volume 1",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "track-count": 14,
+                    "track-offset": 9
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "17e876f6-343d-45c2-96d0-52a459b456b7",
+            "title": "Alors on danse (UK club mix - radio edit)",
+            "length": 150706,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671000137"
+            ],
+            "first-release-date": "2010-11-29",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "5679afc4-8767-4862-a0c6-4fbce306e3e7",
+                "title": "Floorfillers 2011",
+                "date": "2010-11-29",
+                "country": "GB",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "456bdbe0-7044-4062-947b-2dc4b8687be2",
+                  "title": "Floorfillers 2011",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 20,
+                    "track-offset": 14
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "8d075d0f-ceac-45fd-baed-c9abd935775d",
+            "title": "Papaoutai (Amaury Lacroix Remix)",
+            "length": 231000,
+            "video": null,
+            "score": 100,
+            "first-release-date": "2020-02-12",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ca5547b5-1c18-4e85-aef4-22481e789df1",
+                "title": "Papaoutai (Amaury Lacroix Remix)",
+                "date": "2020-02-12",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "dfafab62-264e-4b73-9200-b69fe5df08af",
+                  "title": "Papaoutai (Amaury Lacroix Remix)",
+                  "primary-type": "Single",
+                  "secondary-types": [
+                    "Remix"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 1,
+                    "track-offset": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "d54669e6-1acd-4848-acf0-59a20c0972dd",
+            "title": "Santé",
+            "length": 191000,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET672100001"
+            ],
+            "first-release-date": "2021-10-15",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "6e72e2d6-be48-4b6a-80a5-d782700f8674",
+                "title": "Französische Hits",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "452e4b26-ca18-4ca6-95fe-38f73ea57e82",
+                  "title": "Französische Hits",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 80,
+                    "track-offset": 36
+                  }
+                ]
+              },
+              {
+                "id": "dd595456-0c31-4675-9e1b-2a2f619481ed",
+                "title": "French Spring",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "64d69c36-674d-4667-bae7-13492c3c2c6c",
+                  "title": "French Spring",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 48,
+                    "track-offset": 5
+                  }
+                ]
+              },
+              {
+                "id": "7c5a2357-66e9-4647-8bac-a4f567761646",
+                "title": "Festival Season",
+                "status": "Withdrawn",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "708c0a4c-e46f-4b89-8599-db96687d1efa",
+                  "title": "Festival Season",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 59,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "254987d0-8f1d-4a09-b3d2-c8018b44b6c3",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "XE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "12\" Vinyl",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "bead80bc-73dd-43a1-b0db-19bce3074f5e",
+                "title": "NRJ Latino Hits 2022",
+                "date": "2022-07-15",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "b7a656b1-540f-46be-a49d-f0ed5e1364d5",
+                  "title": "NRJ Latino Hits 2022",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 19,
+                    "track-offset": 15
+                  }
+                ]
+              },
+              {
+                "id": "be747d77-d6eb-45a9-b2bd-c993b04265eb",
+                "title": "W9 Hits Rentrée 2022",
+                "date": "2022-09-02",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ae45c707-4c43-40bf-82e0-e1f12a561415",
+                  "title": "W9 Hits Rentrée 2022",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 3,
+                    "format": "CD",
+                    "track-count": 26,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "3b0a80bc-c08d-4a87-b14b-fc989d668136",
+                "title": "MNM Big Hits 2022 Summer Edition",
+                "date": "2022-06-10",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ae55d7b5-0800-48b1-aa93-3fb054890c63",
+                  "title": "MNM Big Hits Summer Edition 2022",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 23,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "f44a6be3-939e-4180-a4d7-e189849050a9",
+                "title": "Multitude",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 13,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "fab3dca8-deb3-4390-98a3-24f45d0b1eb8",
+                "title": "MNM Big Hits Summer Edition 2022",
+                "date": "2022-06-10",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ae55d7b5-0800-48b1-aa93-3fb054890c63",
+                  "title": "MNM Big Hits Summer Edition 2022",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 23,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "2cc15d57-74bf-4b2a-ac0b-f6cc196cf4ce",
+                "title": "Multitude",
+                "date": "2022",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "c0647bf9-5fb2-4a68-83de-80eaeea65cc8",
+                "title": "Fresh Finds Hits",
+                "date": "2021-12-08",
+                "country": "AR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "c7b067df-d72e-41ec-a666-a017b17ec383",
+                  "title": "Fresh Finds Hits",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 36,
+                    "track-offset": 33
+                  }
+                ]
+              },
+              {
+                "id": "15a89dfd-51ad-40ff-82f1-171de31f5031",
+                "title": "Multitude",
+                "disambiguation": "44.1kHz/24bit",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "0f8ec06c-ba96-44c8-89d0-edd743ce017e",
+                "title": "Multitude",
+                "date": "2022-03-03",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "78ff42d3-cb7b-416b-b3d1-a3f0535468af",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "499199b4-f0c7-4cb8-be21-d85c33b12f04",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "85177852-faf9-4180-ad2a-9a604b33961f",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée Exclusivité Fnac",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 1
+                  }
+                ]
+              },
+              {
+                "id": "b1d5f42c-d44a-4ed2-8873-00be3f0964a7",
+                "title": "Santé",
+                "date": "2021-10-15",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d643ce1f-c1e8-4c44-8a68-d3ab4cc25833",
+                  "title": "Santé",
+                  "primary-type": "Single"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 1,
+                    "track-offset": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "a2695609-0571-41e8-b80b-93d214033af1",
+            "title": "Ta Fête",
+            "length": 175426,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671300190"
+            ],
+            "first-release-date": "2026-05-22",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "6ea72c2b-b77a-4948-81d6-7e6f8b51be45",
+                "title": "Dance/Electro Hits",
+                "date": "2026-05-22",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "332498dd-dff2-481d-a8e4-a970e6172834",
+                  "title": "Dance/Electro Hits",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 31,
+                    "track-offset": 24
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "d7202cf2-5e1c-444e-ac54-474e8d8f0bed",
+            "title": "Peace or Violence (Shameboy remix)",
+            "length": 367000,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671000161"
+            ],
+            "first-release-date": "2011-05-27",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "5bed9050-df49-40c1-8a8b-3679ccf9266d",
+                "title": "Peace or Violence (Remixes)",
+                "date": "2011-05-27",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "1f1d4f31-c497-4226-a470-b781ea53c158",
+                  "title": "Peace or Violence (Remixes)",
+                  "primary-type": "EP",
+                  "secondary-types": [
+                    "Remix"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 6,
+                    "track-offset": 5
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4261a42a-34d4-464c-b907-8a5336d7bee3",
+            "title": "Pas vraiment",
+            "length": 162626,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET672100007"
+            ],
+            "first-release-date": "2022-03-03",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "254987d0-8f1d-4a09-b3d2-c8018b44b6c3",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "XE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "12\" Vinyl",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "f44a6be3-939e-4180-a4d7-e189849050a9",
+                "title": "Multitude",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 13,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "2cc15d57-74bf-4b2a-ac0b-f6cc196cf4ce",
+                "title": "Multitude",
+                "date": "2022",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "15a89dfd-51ad-40ff-82f1-171de31f5031",
+                "title": "Multitude",
+                "disambiguation": "44.1kHz/24bit",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "0f8ec06c-ba96-44c8-89d0-edd743ce017e",
+                "title": "Multitude",
+                "date": "2022-03-03",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "85177852-faf9-4180-ad2a-9a604b33961f",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée Exclusivité Fnac",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "499199b4-f0c7-4cb8-be21-d85c33b12f04",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              },
+              {
+                "id": "78ff42d3-cb7b-416b-b3d1-a3f0535468af",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 6
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "d530b345-3529-4658-b67d-930de77acd81",
+            "title": "Fils de joie",
+            "length": 195440,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET672100004"
+            ],
+            "first-release-date": "2022-03-03",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "254987d0-8f1d-4a09-b3d2-c8018b44b6c3",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "XE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "12\" Vinyl",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "f44a6be3-939e-4180-a4d7-e189849050a9",
+                "title": "Multitude",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 13,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "2cc15d57-74bf-4b2a-ac0b-f6cc196cf4ce",
+                "title": "Multitude",
+                "date": "2022",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "15a89dfd-51ad-40ff-82f1-171de31f5031",
+                "title": "Multitude",
+                "disambiguation": "44.1kHz/24bit",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "0f8ec06c-ba96-44c8-89d0-edd743ce017e",
+                "title": "Multitude",
+                "date": "2022-03-03",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "85177852-faf9-4180-ad2a-9a604b33961f",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée Exclusivité Fnac",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "499199b4-f0c7-4cb8-be21-d85c33b12f04",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              },
+              {
+                "id": "78ff42d3-cb7b-416b-b3d1-a3f0535468af",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 3
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2055f3e5-3e3e-4f41-8d4e-94789da5eda7",
+            "title": "Riez",
+            "length": 201160,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET672100008"
+            ],
+            "first-release-date": "2022-03-03",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "254987d0-8f1d-4a09-b3d2-c8018b44b6c3",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "XE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "12\" Vinyl",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "f44a6be3-939e-4180-a4d7-e189849050a9",
+                "title": "Multitude",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 13,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "2cc15d57-74bf-4b2a-ac0b-f6cc196cf4ce",
+                "title": "Multitude",
+                "date": "2022",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "78ff42d3-cb7b-416b-b3d1-a3f0535468af",
+                "title": "Multitude",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "15a89dfd-51ad-40ff-82f1-171de31f5031",
+                "title": "Multitude",
+                "disambiguation": "44.1kHz/24bit",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "0f8ec06c-ba96-44c8-89d0-edd743ce017e",
+                "title": "Multitude",
+                "date": "2022-03-03",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "85177852-faf9-4180-ad2a-9a604b33961f",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée Exclusivité Fnac",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "499199b4-f0c7-4cb8-be21-d85c33b12f04",
+                "title": "Multitude",
+                "disambiguation": "Édition Limitée",
+                "date": "2022-03-04",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "d6cfccc8-026d-4028-b567-4f762354ff91",
+                  "title": "Multitude",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Vinyl",
+                    "track-count": 12,
+                    "track-offset": 7
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "64ff91ba-38bc-4eed-8c75-ba1fc95f9c79",
+            "title": "Peace or Violence",
+            "length": 189440,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671000014"
+            ],
+            "first-release-date": "2010-06-14",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "64d4bae4-721d-4a19-b571-2ef533fd0990",
+                "title": "Cheese",
+                "date": "2010-06-14",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 12,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "799db366-42e1-49fe-94a5-fdd5807df4cb",
+                "title": "Hit Connection: Best of 2011",
+                "date": "2011",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "43bcb7ad-cca9-46a8-86d5-f9e1d997c07b",
+                  "title": "Hit Connection: Best of 2011",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 2,
+                    "format": "CD",
+                    "track-count": 21,
+                    "track-offset": 7
+                  }
+                ]
+              },
+              {
+                "id": "d634ac02-4ce8-4946-8aaf-c6038aba7c89",
+                "title": "Cheese",
+                "disambiguation": "version deluxe",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 17,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "724785a5-3ef7-4c77-ba46-21bb359cef28",
+                "title": "Cheese",
+                "date": "2013-05-14",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 16,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "b9ee27aa-4898-4ada-8e09-954b60569b03",
+                "title": "Cheese",
+                "date": "2010-06-25",
+                "country": "XE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 11,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "28830b6f-aa99-4e57-80e5-b85415074828",
+                "title": "Contact Play & Dance 2011",
+                "date": "2011-08-22",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "6000e028-69bc-455b-b642-59e9615d8f36",
+                  "title": "Contact Play & Dance 2011",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 2,
+                    "format": "CD",
+                    "track-count": 22,
+                    "track-offset": 19
+                  }
+                ]
+              },
+              {
+                "id": "93ae4c1d-28db-4232-94a8-2094ca8c3083",
+                "title": "Cheese",
+                "disambiguation": "deluxe edition",
+                "date": "2013-05-14",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 16,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "019f547c-8d6b-4865-a2da-f73a4568c18b",
+                "title": "Cheese",
+                "date": "2010-06-21",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 2
+                  }
+                ]
+              },
+              {
+                "id": "d5e6bdee-fe20-4b4b-afcd-69447020726e",
+                "title": "Cheese",
+                "date": "2010-06-21",
+                "country": "FR",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 12,
+                    "track-offset": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "00ea7f9f-9798-4bb3-bde1-221f439b9ca8",
+            "title": "Ave Cesaria",
+            "disambiguation": "live, 2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+            "length": 274608,
+            "video": null,
+            "score": 100,
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a583ad58-32b8-4aec-aa04-aae372a1cf36",
+                "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "795a8d6f-0d4d-4023-bf2e-a6e2dc24e498",
+                  "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "track-count": 11,
+                    "track-offset": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "ba55e9c2-7d58-423a-9d9c-4b5e74ef867b",
+            "title": "Alors on danse",
+            "disambiguation": "live, 2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+            "length": 272808,
+            "video": null,
+            "score": 100,
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a583ad58-32b8-4aec-aa04-aae372a1cf36",
+                "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "795a8d6f-0d4d-4023-bf2e-a6e2dc24e498",
+                  "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "track-count": 11,
+                    "track-offset": 8
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "380aefd2-84de-4071-8286-4739ba4f37d5",
+            "title": "Ave Cesaria (Major Lazer remix)",
+            "length": 178400,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671300191"
+            ],
+            "first-release-date": "2015-06-12",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a63601fe-811d-4cda-a83c-826682e3b097",
+                "title": "Ultratop: Hit Connection 2015.2",
+                "date": "2016-06-15",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "68ea9310-94f2-4b8a-be92-1e7ecebf5ba9",
+                  "title": "Ultratop: Hit Connection 2015.2",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 23,
+                    "track-offset": 22
+                  }
+                ]
+              },
+              {
+                "id": "dcab67cb-e169-419c-baa3-4fd864afc852",
+                "title": "De Maxx Long Player 34: The Rap Edition",
+                "date": "2015-06-12",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Various Artists",
+                    "artist": {
+                      "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                      "name": "Various Artists",
+                      "sort-name": "Various Artists",
+                      "disambiguation": "add compilations to this artist"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "32cccc32-48f2-420b-a9a8-87293adc3af8",
+                  "title": "De Maxx Long Player 34: The Rap Edition",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Compilation"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 21,
+                    "track-offset": 7
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "bb7b0433-fba5-43c2-b8b0-43d9a211a85a",
+            "title": "(Rappel)",
+            "disambiguation": "live, 2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+            "length": 68640,
+            "video": null,
+            "score": 100,
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a583ad58-32b8-4aec-aa04-aae372a1cf36",
+                "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "795a8d6f-0d4d-4023-bf2e-a6e2dc24e498",
+                  "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "track-count": 11,
+                    "track-offset": 9
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5737d58b-3faa-4855-8ae1-5b3cd782bb02",
+            "title": "Formidable",
+            "disambiguation": "live, 2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+            "length": 415272,
+            "video": null,
+            "score": 100,
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "a583ad58-32b8-4aec-aa04-aae372a1cf36",
+                "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                "status": "Bootleg",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "795a8d6f-0d4d-4023-bf2e-a6e2dc24e498",
+                  "title": "2015-04-19: Coachella Valley Music & Arts Festival, Indio, CA, USA",
+                  "primary-type": "Album",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "track-count": 11,
+                    "track-offset": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "677f8b0c-f149-4a0a-a4ad-29da1f4123df",
+            "title": "Ouais j’suis yo’",
+            "length": 253000,
+            "video": null,
+            "score": 100,
+            "first-release-date": "2007",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "15179be1-010a-4e15-85b4-709c887bcb53",
+                "title": "Juste un cerveau, un flow, un fond et un mic…",
+                "date": "2007",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "3d22d7d9-80bc-45fb-9128-17c2ef68a893",
+                  "title": "Juste un cerveau, un flow, un fond et un mic…",
+                  "primary-type": "EP"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 4,
+                    "track-offset": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "57f2fca3-afd5-42de-b19e-d07714ec9944",
+            "title": "C’est Stromae",
+            "length": 228000,
+            "video": null,
+            "score": 100,
+            "first-release-date": "2007",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "15179be1-010a-4e15-85b4-709c887bcb53",
+                "title": "Juste un cerveau, un flow, un fond et un mic…",
+                "date": "2007",
+                "country": "BE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "3d22d7d9-80bc-45fb-9128-17c2ef68a893",
+                  "title": "Juste un cerveau, un flow, un fond et un mic…",
+                  "primary-type": "EP"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "CD",
+                    "track-count": 4,
+                    "track-offset": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "c78a0056-a343-421d-bd1a-7ed11d072b0a",
+            "title": "House'llelujah (Shameboy remix)",
+            "length": 394000,
+            "video": null,
+            "score": 100,
+            "isrcs": [
+              "BET671000154"
+            ],
+            "first-release-date": "2010-12",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "d634ac02-4ce8-4946-8aaf-c6038aba7c89",
+                "title": "Cheese",
+                "disambiguation": "version deluxe",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 17,
+                    "track-offset": 15
+                  }
+                ]
+              },
+              {
+                "id": "724785a5-3ef7-4c77-ba46-21bb359cef28",
+                "title": "Cheese",
+                "date": "2013-05-14",
+                "country": "US",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 16,
+                    "track-offset": 15
+                  }
+                ]
+              },
+              {
+                "id": "93ae4c1d-28db-4232-94a8-2094ca8c3083",
+                "title": "Cheese",
+                "disambiguation": "deluxe edition",
+                "date": "2013-05-14",
+                "country": "XW",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "ce87cfa3-42cc-411b-b8bc-2d92aaa73c81",
+                  "title": "Cheese",
+                  "primary-type": "Album"
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Digital Media",
+                    "track-count": 16,
+                    "track-offset": 15
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "6d7417b0-e7c5-4262-bf41-fc5ba8125827",
+            "title": "Sommeil",
+            "length": 230544,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 8
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "03220179-d3da-4d18-acd2-9501cafdeb80",
+            "title": "Carmen",
+            "length": 273912,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 15
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "f9623ebc-be8c-4115-8eb0-70a9f9e17239",
+            "title": "- rappel - Papaoutai (a cappella)",
+            "length": 311544,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 23
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "19bd63db-0513-4643-bc2b-c006e513b6d9",
+            "title": "Bâtard",
+            "length": 265656,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "9f596667-6c8e-41ef-974d-d5769fc3bcf9",
+            "title": "Te Quiero",
+            "length": 256128,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "f72c5717-5031-447c-a6bf-b4ecc460599d",
+            "title": "Quand c'est",
+            "length": 265344,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 9
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "9798f1e8-0674-45c5-a4fd-d7b215070fc3",
+            "title": "Intro.",
+            "length": 221736,
+            "video": true,
+            "score": 100,
+            "first-release-date": "2015-12-11",
+            "artist-credit": [
+              {
+                "name": "Stromae",
+                "artist": {
+                  "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                  "name": "Stromae",
+                  "sort-name": "Stromae"
+                }
+              }
+            ],
+            "releases": [
+              {
+                "id": "ce6cbf91-ea52-46f0-9e2d-ec472ff3d36f",
+                "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                "date": "2015-12-11",
+                "country": "DE",
+                "status": "Official",
+                "artist-credit": [
+                  {
+                    "name": "Stromae",
+                    "artist": {
+                      "id": "ab2528d9-719f-4261-8098-21849222a0f2",
+                      "name": "Stromae",
+                      "sort-name": "Stromae"
+                    }
+                  }
+                ],
+                "release-group": {
+                  "id": "961324e1-66e8-40db-837c-42dee4e22475",
+                  "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
+                  "primary-type": "Other",
+                  "secondary-types": [
+                    "Live"
+                  ]
+                },
+                "media": [
+                  {
+                    "position": 1,
+                    "format": "Blu-ray",
+                    "track-count": 24,
+                    "track-offset": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "key": "recording/16afa384-174e-435e-bfa3-5591accda31c?inc=recordingBorrow",
       "payload": {
         "id": "16afa384-174e-435e-bfa3-5591accda31c",
@@ -2783,7 +5688,9 @@
         "disambiguation": "",
         "length": 214000,
         "video": false,
-        "isrcs": ["BET671300161"],
+        "isrcs": [
+          "BET671300161"
+        ],
         "first-release-date": "2013-06-01",
         "artist-credit": [
           {
@@ -2897,7 +5804,9 @@
               "id": "f3052095-4ed1-47d9-af4b-4fdcef894238",
               "title": "La Bande‐son de l’été 2013",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013-07-10",
               "disambiguation": "",
               "artist-credit": [
@@ -3262,7 +6171,9 @@
               "id": "aca936cc-474d-4d51-acb4-83e071907ead",
               "title": "NRJ 200% Hits 2013, Volume 2",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013-09-16",
               "disambiguation": "",
               "artist-credit": [
@@ -3335,7 +6246,9 @@
               "id": "3d411ef4-f7ea-4545-abe6-cb72b5ff674a",
               "title": "MNM Big Hits 2013, Vol. 3",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013-09-27",
               "disambiguation": "",
               "artist-credit": [
@@ -3408,7 +6321,9 @@
               "id": "168431c3-abb9-4af7-b3c9-4e38a0ee0871",
               "title": "W9 Hits 2014",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013-10-21",
               "disambiguation": "",
               "artist-credit": [
@@ -3481,7 +6396,9 @@
               "id": "ca2a7489-825d-484d-a426-1daa9d9f1d98",
               "title": "The Dome, Volume 68",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013-12-06",
               "disambiguation": "",
               "artist-credit": [
@@ -3554,7 +6471,9 @@
               "id": "5899c636-db55-435c-b4bd-e4c903712bb7",
               "title": "Maximum Hit Music Best of 2013",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013",
               "disambiguation": "",
               "artist-credit": [
@@ -3627,7 +6546,9 @@
               "id": "e508b5f8-2971-4467-8b6a-59290742817f",
               "title": "NRJ Music Awards 15TH Edition",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013",
               "disambiguation": "",
               "artist-credit": [
@@ -3700,7 +6621,9 @@
               "id": "ffeb4cb9-8e90-495e-9f8b-d7b6307625d1",
               "title": "Playlist Hits 2014",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2013",
               "disambiguation": "",
               "artist-credit": [
@@ -3846,7 +6769,9 @@
               "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
               "title": "Radio 538: Hitzone 68",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-02-07",
               "disambiguation": "",
               "artist-credit": [
@@ -3919,7 +6844,9 @@
               "id": "85f47020-5b40-45d4-9eb6-5f6212273839",
               "title": "Radio 538: Hitzone 68",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-02-07",
               "disambiguation": "",
               "artist-credit": [
@@ -3992,7 +6919,9 @@
               "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
               "title": "Bravo Hits 84",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-02-14",
               "disambiguation": "",
               "artist-credit": [
@@ -4065,7 +6994,9 @@
               "id": "0c2fdbce-04a5-4c91-bf7b-cb9670b0a7e3",
               "title": "Bravo Hits 84",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-02-14",
               "disambiguation": "",
               "artist-credit": [
@@ -4211,7 +7142,9 @@
               "id": "0dee6fbc-37f2-4103-8b2a-59f545a06a97",
               "title": "Sanremo 2014",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-02-27",
               "disambiguation": "",
               "artist-credit": [
@@ -4284,7 +7217,9 @@
               "id": "2f6ece53-3eee-46de-a114-beb773b16756",
               "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-04",
               "disambiguation": "",
               "artist-credit": [
@@ -4357,7 +7292,9 @@
               "id": "508b0ac4-d7c3-4eb4-b703-a3e003a7fe22",
               "title": "Radio 538 Hitzone: Best of 2014",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-11-14",
               "disambiguation": "",
               "artist-credit": [
@@ -4430,7 +7367,9 @@
               "id": "f42ee259-ff2f-4a68-a66d-3ca7da2d19cf",
               "title": "Chartboxx 2/2014",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014",
               "disambiguation": "",
               "artist-credit": [
@@ -4503,7 +7442,9 @@
               "id": "2f6ece53-3eee-46de-a114-beb773b16756",
               "title": "Formidable! 40 Franse chansons van Stromae tot Aznavour",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2014-04",
               "disambiguation": "",
               "artist-credit": [
@@ -4969,7 +7910,9 @@
               "id": "be135c71-56bc-31ac-99b5-0512cf1786cd",
               "title": "Das Beste auf Deutsch",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"],
+              "secondary-types": [
+                "Compilation"
+              ],
               "first-release-date": "2004-10-21",
               "disambiguation": "",
               "artist-credit": [
@@ -5266,7 +8209,9 @@
               "id": "961324e1-66e8-40db-837c-42dee4e22475",
               "title": "Live au Centre Bell de Montréal, Québec, Canada - 28 & 29 septembre 2015",
               "primary-type": "Other",
-              "secondary-types": ["Live"],
+              "secondary-types": [
+                "Live"
+              ],
               "first-release-date": "2015-12-11",
               "disambiguation": "",
               "artist-credit": [
@@ -5503,6 +8448,1017 @@
                           "name": "Rodrigo",
                           "sort-name": "Rodrigo",
                           "disambiguation": "French"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/cbe7232c-8a8e-4eec-97c0-f7c850f356e1?inc=recordingBorrow",
+      "payload": {
+        "id": "cbe7232c-8a8e-4eec-97c0-f7c850f356e1",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 233142,
+        "video": false,
+        "isrcs": [
+          "CA5KR2316390"
+        ],
+        "first-release-date": "2023-01-20",
+        "artist-credit": [
+          {
+            "name": "unisixn",
+            "joinphrase": "",
+            "artist": {
+              "id": "22812933-c257-4042-a918-fe10342d8b3a",
+              "name": "unisixn",
+              "sort-name": "unisixn",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "0474e62f-0762-486f-8067-dc30d564228c",
+            "title": "Toxic Volume 1",
+            "disambiguation": "",
+            "date": "2023-01-20",
+            "country": "XW",
+            "status": "Official",
+            "barcode": "795397559971",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Various Artists",
+                "joinphrase": "",
+                "artist": {
+                  "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                  "name": "Various Artists",
+                  "sort-name": "Various Artists",
+                  "disambiguation": "add compilations to this artist"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "047607ba-f5cd-4832-86a7-ba185a06c19a",
+              "title": "Toxic Volume 1",
+              "primary-type": "Album",
+              "secondary-types": [
+                "Compilation"
+              ],
+              "first-release-date": "2023-01-20",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Various Artists",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                    "name": "Various Artists",
+                    "sort-name": "Various Artists",
+                    "disambiguation": "add compilations to this artist"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 10,
+                "track-offset": 2,
+                "tracks": [
+                  {
+                    "id": "bf870fb7-3577-4a68-baa0-fa3a5262b2f5",
+                    "position": 3,
+                    "number": "3",
+                    "title": "Formidable",
+                    "length": 233142,
+                    "artist-credit": [
+                      {
+                        "name": "unisixn",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "22812933-c257-4042-a918-fe10342d8b3a",
+                          "name": "unisixn",
+                          "sort-name": "unisixn",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/391cf1a9-08d9-4537-80b9-cf3ec57aaeba?inc=recordingBorrow",
+      "payload": {
+        "id": "391cf1a9-08d9-4537-80b9-cf3ec57aaeba",
+        "title": "FORMIDABLE",
+        "disambiguation": "",
+        "length": 140000,
+        "video": false,
+        "isrcs": [
+          "FRZ052500293",
+          "FRZ082500596"
+        ],
+        "first-release-date": "2025-10-31",
+        "artist-credit": [
+          {
+            "name": "Kyo",
+            "joinphrase": " & ",
+            "artist": {
+              "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+              "name": "Kyo",
+              "sort-name": "Kyo",
+              "disambiguation": "French pop-rock band"
+            }
+          },
+          {
+            "name": "Mdns",
+            "joinphrase": "",
+            "artist": {
+              "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+              "name": "MDNS",
+              "sort-name": "MDNS",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "0d7eb2de-7cf1-4db2-86cb-1934e5e5b3b2",
+            "title": "ULTRAVIOLENT",
+            "disambiguation": "",
+            "date": "2025-10-31",
+            "country": "FR",
+            "status": "Official",
+            "barcode": "196873459004",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Kyo",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                  "name": "Kyo",
+                  "sort-name": "Kyo",
+                  "disambiguation": "French pop-rock band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+              "title": "ULTRAVIOLENT",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2025-10-31",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Kyo",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                    "name": "Kyo",
+                    "sort-name": "Kyo",
+                    "disambiguation": "French pop-rock band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 12,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "8aa22c82-7d30-429a-8468-5326f0499389",
+                    "position": 10,
+                    "number": "10",
+                    "title": "FORMIDABLE",
+                    "length": 140373,
+                    "artist-credit": [
+                      {
+                        "name": "Kyo",
+                        "joinphrase": " & ",
+                        "artist": {
+                          "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                          "name": "Kyo",
+                          "sort-name": "Kyo",
+                          "disambiguation": "French pop-rock band"
+                        }
+                      },
+                      {
+                        "name": "Mdns",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+                          "name": "MDNS",
+                          "sort-name": "MDNS",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "54dd3059-b330-4ac3-9e79-302161613f1c",
+            "title": "ULTRAVIOLENT",
+            "disambiguation": "Tidal-only Dolby Atmos",
+            "date": "2025-10-31",
+            "country": null,
+            "status": "Official",
+            "barcode": "196873648736",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Kyo",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                  "name": "Kyo",
+                  "sort-name": "Kyo",
+                  "disambiguation": "French pop-rock band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+              "title": "ULTRAVIOLENT",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2025-10-31",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Kyo",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                    "name": "Kyo",
+                    "sort-name": "Kyo",
+                    "disambiguation": "French pop-rock band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 12,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "35a73e1f-27f3-46e8-b2f1-54a79e338acc",
+                    "position": 10,
+                    "number": "10",
+                    "title": "FORMIDABLE",
+                    "length": 140000,
+                    "artist-credit": [
+                      {
+                        "name": "Kyo",
+                        "joinphrase": " & ",
+                        "artist": {
+                          "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                          "name": "Kyo",
+                          "sort-name": "Kyo",
+                          "disambiguation": "French pop-rock band"
+                        }
+                      },
+                      {
+                        "name": "MDNS",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+                          "name": "MDNS",
+                          "sort-name": "MDNS",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4f05507c-ff82-41f0-8eb3-599bfc1364f9",
+            "title": "ULTRAVIOLENT",
+            "disambiguation": "",
+            "date": "2025-10-31",
+            "country": "XE",
+            "status": "Official",
+            "barcode": "198029565621",
+            "packaging": "Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Kyo",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                  "name": "Kyo",
+                  "sort-name": "Kyo",
+                  "disambiguation": "French pop-rock band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+              "title": "ULTRAVIOLENT",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2025-10-31",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Kyo",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                    "name": "Kyo",
+                    "sort-name": "Kyo",
+                    "disambiguation": "French pop-rock band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 12,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "569fd7ca-3ad8-41dd-82d3-3819145b31b6",
+                    "position": 10,
+                    "number": "10",
+                    "title": "FORMIDABLE",
+                    "length": 140000,
+                    "artist-credit": [
+                      {
+                        "name": "Kyo",
+                        "joinphrase": " & ",
+                        "artist": {
+                          "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                          "name": "Kyo",
+                          "sort-name": "Kyo",
+                          "disambiguation": "French pop-rock band"
+                        }
+                      },
+                      {
+                        "name": "MDNS",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+                          "name": "MDNS",
+                          "sort-name": "MDNS",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/2f87f4b3-0440-4448-ada6-4f37a37f3e5a?inc=recordingBorrow",
+      "payload": {
+        "id": "2f87f4b3-0440-4448-ada6-4f37a37f3e5a",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 140000,
+        "video": false,
+        "isrcs": [
+          "FRZ052500293"
+        ],
+        "first-release-date": "2025-10-31",
+        "artist-credit": [
+          {
+            "name": "Kyo",
+            "joinphrase": " (feat. ",
+            "artist": {
+              "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+              "name": "Kyo",
+              "sort-name": "Kyo",
+              "disambiguation": "French pop-rock band"
+            }
+          },
+          {
+            "name": "Mdns",
+            "joinphrase": ")",
+            "artist": {
+              "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+              "name": "MDNS",
+              "sort-name": "MDNS",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "72c4587b-8d49-482b-9f93-d3d1e9474a7f",
+            "title": "ULTRAVIOLENT",
+            "disambiguation": "",
+            "date": "2025-10-31",
+            "country": "XW",
+            "status": "Official",
+            "barcode": "196873459004",
+            "packaging": "None",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Kyo",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                  "name": "Kyo",
+                  "sort-name": "Kyo",
+                  "disambiguation": "French pop-rock band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9b594d7b-cb00-49e0-a612-07f87cff7747",
+              "title": "ULTRAVIOLENT",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2025-10-31",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Kyo",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                    "name": "Kyo",
+                    "sort-name": "Kyo",
+                    "disambiguation": "French pop-rock band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "Digital Media",
+                "title": "",
+                "track-count": 12,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "a60cc098-22fb-4f75-876c-0cc6f768e487",
+                    "position": 10,
+                    "number": "10",
+                    "title": "FORMIDABLE",
+                    "length": 140000,
+                    "artist-credit": [
+                      {
+                        "name": "Kyo",
+                        "joinphrase": " feat. ",
+                        "artist": {
+                          "id": "c5d581b7-3b8b-414b-92ae-8f8ed6198901",
+                          "name": "Kyo",
+                          "sort-name": "Kyo",
+                          "disambiguation": "French pop-rock band"
+                        }
+                      },
+                      {
+                        "name": "Mdns",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "b6f60529-a335-4497-96f7-546b4e1ea5ae",
+                          "name": "MDNS",
+                          "sort-name": "MDNS",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/771dd185-27c7-4afc-ba51-fd80faa2bd85?inc=recordingBorrow",
+      "payload": {
+        "id": "771dd185-27c7-4afc-ba51-fd80faa2bd85",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 173000,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "2011",
+        "artist-credit": [
+          {
+            "name": "Metamorfózy",
+            "joinphrase": "",
+            "artist": {
+              "id": "b0735eb9-8e91-4528-8fe3-77d5ef375e74",
+              "name": "Metamorfózy",
+              "sort-name": "Metamorfózy",
+              "disambiguation": "Norwegian duo Øyvind Blikstad & Rune Lindbæk"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "53d720d6-8f9c-4339-b671-3f068ea12eb2",
+            "title": "Decasia",
+            "disambiguation": "",
+            "date": "2011",
+            "country": "NO",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Metamorfózy",
+                "joinphrase": "",
+                "artist": {
+                  "id": "b0735eb9-8e91-4528-8fe3-77d5ef375e74",
+                  "name": "Metamorfózy",
+                  "sort-name": "Metamorfózy",
+                  "disambiguation": "Norwegian duo Øyvind Blikstad & Rune Lindbæk"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "0a9e7bb2-f999-489c-a957-18904d53d564",
+              "title": "Decasia",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "2011",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Metamorfózy",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "b0735eb9-8e91-4528-8fe3-77d5ef375e74",
+                    "name": "Metamorfózy",
+                    "sort-name": "Metamorfózy",
+                    "disambiguation": "Norwegian duo Øyvind Blikstad & Rune Lindbæk"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 11,
+                "track-offset": 6,
+                "tracks": [
+                  {
+                    "id": "b36d897e-33d1-4b0d-b524-51e6bedb295a",
+                    "position": 7,
+                    "number": "7",
+                    "title": "Formidable",
+                    "length": 173000,
+                    "artist-credit": [
+                      {
+                        "name": "Metamorfózy",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "b0735eb9-8e91-4528-8fe3-77d5ef375e74",
+                          "name": "Metamorfózy",
+                          "sort-name": "Metamorfózy",
+                          "disambiguation": "Norwegian duo Øyvind Blikstad & Rune Lindbæk"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/0137928f-5df4-4a59-93d4-ab39a4b44e74?inc=recordingBorrow",
+      "payload": {
+        "id": "0137928f-5df4-4a59-93d4-ab39a4b44e74",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 554000,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "2010",
+        "artist-credit": [
+          {
+            "name": "Donald Byrd Quintet",
+            "joinphrase": "",
+            "artist": {
+              "id": "9adfa27b-4903-4c93-ae5f-f0749887fc8b",
+              "name": "Donald Byrd Quintet",
+              "sort-name": "Donald Byrd Quintet",
+              "disambiguation": ""
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "e894c545-c057-4486-a742-fdbf5949bf45",
+            "title": "Complete Live At The Olympia 1958",
+            "disambiguation": "",
+            "date": "2010",
+            "country": "XE",
+            "status": null,
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Donald Byrd Quintet",
+                "joinphrase": "",
+                "artist": {
+                  "id": "9adfa27b-4903-4c93-ae5f-f0749887fc8b",
+                  "name": "Donald Byrd Quintet",
+                  "sort-name": "Donald Byrd Quintet",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "release-group": {
+              "id": "c44de0cd-0963-4768-9516-7b94efb5c2f3",
+              "title": "Complete Live At The Olympia 1958",
+              "primary-type": "Album",
+              "secondary-types": [
+                "Compilation"
+              ],
+              "first-release-date": "2010",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Donald Byrd Quintet",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "9adfa27b-4903-4c93-ae5f-f0749887fc8b",
+                    "name": "Donald Byrd Quintet",
+                    "sort-name": "Donald Byrd Quintet",
+                    "disambiguation": ""
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 20,
+                "track-offset": 9,
+                "tracks": [
+                  {
+                    "id": "159028a4-7e81-4b63-97fd-eae3af8c3d0d",
+                    "position": 10,
+                    "number": "10",
+                    "title": "Formidable",
+                    "length": 554000,
+                    "artist-credit": [
+                      {
+                        "name": "Donald Byrd Quintet",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "9adfa27b-4903-4c93-ae5f-f0749887fc8b",
+                          "name": "Donald Byrd Quintet",
+                          "sort-name": "Donald Byrd Quintet",
+                          "disambiguation": ""
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/34e7ae94-22b1-46d5-84a5-54bc50f911f1?inc=recordingBorrow",
+      "payload": {
+        "id": "34e7ae94-22b1-46d5-84a5-54bc50f911f1",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 20000,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "1997",
+        "artist-credit": [
+          {
+            "name": "Captain",
+            "joinphrase": "",
+            "artist": {
+              "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+              "name": "Captain",
+              "sort-name": "Captain",
+              "disambiguation": "funk/soul band"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "3ca1edc9-c688-45d8-bed3-3cb705ec9e93",
+            "title": "Rhythm & Soul Vol 1 & 2",
+            "disambiguation": "",
+            "date": "1997",
+            "country": "FR",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Captain",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                  "name": "Captain",
+                  "sort-name": "Captain",
+                  "disambiguation": "funk/soul band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9a4629c8-6311-483a-a86d-9bf1ddbf5db0",
+              "title": "Rhythm & Soul Vol 1 & 2",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "1997",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Captain",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                    "name": "Captain",
+                    "sort-name": "Captain",
+                    "disambiguation": "funk/soul band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 2,
+                "format": "CD",
+                "title": "Volume 2",
+                "track-count": 63,
+                "track-offset": 44,
+                "tracks": [
+                  {
+                    "id": "0939a339-4221-44ee-9cf3-05a549648276",
+                    "position": 45,
+                    "number": "45",
+                    "title": "Formidable",
+                    "length": 20000,
+                    "artist-credit": [
+                      {
+                        "name": "Captain",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                          "name": "Captain",
+                          "sort-name": "Captain",
+                          "disambiguation": "funk/soul band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/49ef3deb-5824-4f20-b47f-9e2e4f5291e9?inc=recordingBorrow",
+      "payload": {
+        "id": "49ef3deb-5824-4f20-b47f-9e2e4f5291e9",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 10000,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "1997",
+        "artist-credit": [
+          {
+            "name": "Captain",
+            "joinphrase": "",
+            "artist": {
+              "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+              "name": "Captain",
+              "sort-name": "Captain",
+              "disambiguation": "funk/soul band"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "3ca1edc9-c688-45d8-bed3-3cb705ec9e93",
+            "title": "Rhythm & Soul Vol 1 & 2",
+            "disambiguation": "",
+            "date": "1997",
+            "country": "FR",
+            "status": "Official",
+            "barcode": null,
+            "packaging": null,
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Captain",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                  "name": "Captain",
+                  "sort-name": "Captain",
+                  "disambiguation": "funk/soul band"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "9a4629c8-6311-483a-a86d-9bf1ddbf5db0",
+              "title": "Rhythm & Soul Vol 1 & 2",
+              "primary-type": "Album",
+              "secondary-types": [],
+              "first-release-date": "1997",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Captain",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                    "name": "Captain",
+                    "sort-name": "Captain",
+                    "disambiguation": "funk/soul band"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 2,
+                "format": "CD",
+                "title": "Volume 2",
+                "track-count": 63,
+                "track-offset": 62,
+                "tracks": [
+                  {
+                    "id": "a933f243-adb1-49c3-a195-a834be9ca1e8",
+                    "position": 63,
+                    "number": "63",
+                    "title": "Formidable",
+                    "length": 10000,
+                    "artist-credit": [
+                      {
+                        "name": "Captain",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "f23c23b2-dc4c-4112-ad70-c3df27b16174",
+                          "name": "Captain",
+                          "sort-name": "Captain",
+                          "disambiguation": "funk/soul band"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "recording/4c662213-0500-4b0e-b195-2a6fe3ba5b97?inc=recordingBorrow",
+      "payload": {
+        "id": "4c662213-0500-4b0e-b195-2a6fe3ba5b97",
+        "title": "Formidable",
+        "disambiguation": "",
+        "length": 224000,
+        "video": false,
+        "isrcs": [],
+        "first-release-date": "2022",
+        "artist-credit": [
+          {
+            "name": "Gents Universitair Koor",
+            "joinphrase": "",
+            "artist": {
+              "id": "1b5471e0-5571-43ac-a5ab-145638b0c02f",
+              "name": "Gents Universitair Koor",
+              "sort-name": "Gents Universitair Koor",
+              "disambiguation": "Belgian choir"
+            }
+          }
+        ],
+        "releases": [
+          {
+            "id": "ebc1e199-8840-407c-b951-f49be7e05ccd",
+            "title": "Best Of",
+            "disambiguation": "",
+            "date": "2022",
+            "country": "BE",
+            "status": null,
+            "barcode": "",
+            "packaging": "Slim Jewel Case",
+            "quality": "normal",
+            "artist-credit": [
+              {
+                "name": "Gents Universitair Koor",
+                "joinphrase": "",
+                "artist": {
+                  "id": "1b5471e0-5571-43ac-a5ab-145638b0c02f",
+                  "name": "Gents Universitair Koor",
+                  "sort-name": "Gents Universitair Koor",
+                  "disambiguation": "Belgian choir"
+                }
+              }
+            ],
+            "release-group": {
+              "id": "2950d766-63e8-4a02-b7f9-24176c58dbb2",
+              "title": "Best Of",
+              "primary-type": "Album",
+              "secondary-types": [
+                "Live"
+              ],
+              "first-release-date": "2022",
+              "disambiguation": "",
+              "artist-credit": [
+                {
+                  "name": "Gents Universitair Koor",
+                  "joinphrase": "",
+                  "artist": {
+                    "id": "1b5471e0-5571-43ac-a5ab-145638b0c02f",
+                    "name": "Gents Universitair Koor",
+                    "sort-name": "Gents Universitair Koor",
+                    "disambiguation": "Belgian choir"
+                  }
+                }
+              ]
+            },
+            "media": [
+              {
+                "position": 1,
+                "format": "CD",
+                "title": "",
+                "track-count": 20,
+                "track-offset": 18,
+                "tracks": [
+                  {
+                    "id": "ff00167e-4779-43d4-bf4c-60812d1af2a4",
+                    "position": 19,
+                    "number": "19",
+                    "title": "Formidable",
+                    "length": 224000,
+                    "artist-credit": [
+                      {
+                        "name": "Gents Universitair Koor",
+                        "joinphrase": "",
+                        "artist": {
+                          "id": "1b5471e0-5571-43ac-a5ab-145638b0c02f",
+                          "name": "Gents Universitair Koor",
+                          "sort-name": "Gents Universitair Koor",
+                          "disambiguation": "Belgian choir"
                         }
                       }
                     ]

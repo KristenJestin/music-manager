@@ -13242,7 +13242,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "be3df8a5-39cb-4a8c-bb17-a079b13faf74",
@@ -13258,7 +13259,8 @@
         "Artist matches exactly",
         "Filed as a Album",
         "Secondary type Remix"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "84216190-e46f-4cf1-8a28-76910183be38",
@@ -13271,7 +13273,8 @@
       "why": [
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
@@ -13287,7 +13290,8 @@
         "Artist matches exactly",
         "Filed as a Album",
         "Secondary type Compilation"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "2292c05e-299a-4c03-8688-3bf3d0a01277",
@@ -13305,7 +13309,8 @@
         "Filed as a Album",
         "Secondary type Remix",
         "Secondary type Mixtape/Street"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "2dda747c-d6b3-44e6-a1ce-d1dcc15055ff",
@@ -13321,7 +13326,8 @@
         "Artist matches exactly",
         "Filed as a Album",
         "Secondary type Compilation"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "df7d1104-7543-4868-b6c4-92ab83ad27f3",
@@ -13335,7 +13341,8 @@
         "Title does not match",
         "Artist matches exactly",
         "Filed as a EP"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "2a7840ab-9567-37f4-85b8-3208db09434b",
@@ -13352,7 +13359,8 @@
         "Artist matches exactly",
         "Filed as a Album",
         "Secondary type Remix"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

@@ -1,7 +1,7 @@
 {
   "name": "discovery",
   "kind": "album",
-  "recordedAt": "2026-09-17T09:50:21.341Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_discovery",
     "album": "Discovery",
@@ -221,7 +221,9 @@
             "id": "be3df8a5-39cb-4a8c-bb17-a079b13faf74",
             "title": "Re-Discovery",
             "primary-type": "Album",
-            "secondary-types": ["Remix"],
+            "secondary-types": [
+              "Remix"
+            ],
             "first-release-date": "2011-08-05",
             "artist-credit": [
               {
@@ -239,7 +241,10 @@
             "id": "2292c05e-299a-4c03-8688-3bf3d0a01277",
             "title": "Discovery Remixed",
             "primary-type": "Album",
-            "secondary-types": ["Remix", "Mixtape/Street"],
+            "secondary-types": [
+              "Remix",
+              "Mixtape/Street"
+            ],
             "first-release-date": "2012-03-10",
             "artist-credit": [
               {
@@ -257,7 +262,9 @@
             "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
             "title": "Homework / Discovery",
             "primary-type": "Album",
-            "secondary-types": ["Compilation"],
+            "secondary-types": [
+              "Compilation"
+            ],
             "first-release-date": "2001-10-15",
             "artist-credit": [
               {
@@ -308,7 +315,9 @@
             "id": "2a7840ab-9567-37f4-85b8-3208db09434b",
             "title": "Discovery: Bonus Tracks From daftclub.com",
             "primary-type": "Album",
-            "secondary-types": ["Remix"],
+            "secondary-types": [
+              "Remix"
+            ],
             "first-release-date": "2001",
             "artist-credit": [
               {
@@ -326,8 +335,93 @@
             "id": "2dda747c-d6b3-44e6-a1ce-d1dcc15055ff",
             "title": "Discovery / Human After All",
             "primary-type": "Album",
-            "secondary-types": ["Compilation"],
+            "secondary-types": [
+              "Compilation"
+            ],
             "first-release-date": "2011",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Daft Punk\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-06T00:48:29.236Z",
+        "count": 4,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "48117b90-a16e-34ca-a514-19c702df1158",
+            "title": "Discovery",
+            "primary-type": "Album",
+            "first-release-date": "2001-02-26",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "be3df8a5-39cb-4a8c-bb17-a079b13faf74",
+            "title": "Re-Discovery",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2011-08-05",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
+            "title": "Homework / Discovery",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "first-release-date": "2001-10-15",
+            "artist-credit": [
+              {
+                "name": "Daft Punk",
+                "artist": {
+                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
+                  "name": "Daft Punk",
+                  "sort-name": "Daft Punk",
+                  "disambiguation": "French electronic duo"
+                }
+              }
+            ]
+          },
+          {
+            "id": "84216190-e46f-4cf1-8a28-76910183be38",
+            "title": "Discovery (Beta Version)",
+            "primary-type": "Album",
             "artist-credit": [
               {
                 "name": "Daft Punk",
@@ -1416,7 +1510,9 @@
               "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
               "title": "Homework / Discovery",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"]
+              "secondary-types": [
+                "Compilation"
+              ]
             },
             "media": [
               {
@@ -1462,7 +1558,9 @@
               "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
               "title": "Homework / Discovery",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"]
+              "secondary-types": [
+                "Compilation"
+              ]
             },
             "media": [
               {
@@ -1508,7 +1606,9 @@
               "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
               "title": "Homework / Discovery",
               "primary-type": "Album",
-              "secondary-types": ["Compilation"]
+              "secondary-types": [
+                "Compilation"
+              ]
             },
             "media": [
               {
@@ -1609,7 +1709,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -1649,7 +1752,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1689,7 +1795,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1729,7 +1837,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1769,7 +1880,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1809,7 +1922,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1849,7 +1964,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1889,7 +2006,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1929,7 +2048,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -1969,7 +2091,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2009,7 +2133,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2049,7 +2175,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2089,7 +2217,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2129,7 +2259,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2187,7 +2319,9 @@
           "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
           "title": "Homework / Discovery",
           "primary-type": "Album",
-          "secondary-types": ["Compilation"],
+          "secondary-types": [
+            "Compilation"
+          ],
           "first-release-date": "2001-10-15",
           "disambiguation": "",
           "artist-credit": [
@@ -2235,7 +2369,10 @@
                   "disambiguation": "",
                   "length": 164560,
                   "video": false,
-                  "isrcs": ["FRS949600380", "GBDUW0600003"],
+                  "isrcs": [
+                    "FRS949600380",
+                    "GBDUW0600003"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2275,7 +2412,10 @@
                   "disambiguation": "",
                   "length": 28293,
                   "video": false,
-                  "isrcs": ["FRS949600390", "GBDUW0600004"],
+                  "isrcs": [
+                    "FRS949600390",
+                    "GBDUW0600004"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2315,7 +2455,11 @@
                   "disambiguation": "",
                   "length": 326573,
                   "video": false,
-                  "isrcs": ["FRS949600400", "GBDUW0600005", "GBDUW0600046"],
+                  "isrcs": [
+                    "FRS949600400",
+                    "GBDUW0600005",
+                    "GBDUW0600046"
+                  ],
                   "first-release-date": "1996",
                   "artist-credit": [
                     {
@@ -2355,7 +2499,11 @@
                   "disambiguation": "",
                   "length": 329000,
                   "video": false,
-                  "isrcs": ["FRS949600410", "FRZ111002044", "GBDUW0600006"],
+                  "isrcs": [
+                    "FRS949600410",
+                    "FRZ111002044",
+                    "GBDUW0600006"
+                  ],
                   "first-release-date": "1995-10-30",
                   "artist-credit": [
                     {
@@ -2395,7 +2543,10 @@
                   "disambiguation": "",
                   "length": 297106,
                   "video": false,
-                  "isrcs": ["FRS949600420", "GBDUW0600007"],
+                  "isrcs": [
+                    "FRS949600420",
+                    "GBDUW0600007"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2435,7 +2586,10 @@
                   "disambiguation": "",
                   "length": 244400,
                   "video": false,
-                  "isrcs": ["FRS949600430", "GBDUW0600008"],
+                  "isrcs": [
+                    "FRS949600430",
+                    "GBDUW0600008"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2475,7 +2629,10 @@
                   "disambiguation": "",
                   "length": 429506,
                   "video": false,
-                  "isrcs": ["FRS949600440", "GBDUW0600009"],
+                  "isrcs": [
+                    "FRS949600440",
+                    "GBDUW0600009"
+                  ],
                   "first-release-date": "1996",
                   "artist-credit": [
                     {
@@ -2515,7 +2672,10 @@
                   "disambiguation": "",
                   "length": 447533,
                   "video": false,
-                  "isrcs": ["FRS949600450", "GBDUW0600010"],
+                  "isrcs": [
+                    "FRS949600450",
+                    "GBDUW0600010"
+                  ],
                   "first-release-date": "1995-12-07",
                   "artist-credit": [
                     {
@@ -2555,7 +2715,10 @@
                   "disambiguation": "",
                   "length": 173493,
                   "video": false,
-                  "isrcs": ["FRS949600460", "GBDUW0600037"],
+                  "isrcs": [
+                    "FRS949600460",
+                    "GBDUW0600037"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2595,7 +2758,10 @@
                   "disambiguation": "",
                   "length": 362333,
                   "video": false,
-                  "isrcs": ["FRS949600470", "GBDUW0600012"],
+                  "isrcs": [
+                    "FRS949600470",
+                    "GBDUW0600012"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2635,7 +2801,10 @@
                   "disambiguation": "",
                   "length": 453826,
                   "video": false,
-                  "isrcs": ["FRS949600480", "GBDUW0600013"],
+                  "isrcs": [
+                    "FRS949600480",
+                    "GBDUW0600013"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2675,7 +2844,10 @@
                   "disambiguation": "",
                   "length": 121200,
                   "video": false,
-                  "isrcs": ["FRS949600490", "GBDUW0600014"],
+                  "isrcs": [
+                    "FRS949600490",
+                    "GBDUW0600014"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2715,7 +2887,11 @@
                   "disambiguation": "",
                   "length": 413666,
                   "video": false,
-                  "isrcs": ["FRS949600500", "GBDUW0600015", "GBDUW0600040"],
+                  "isrcs": [
+                    "FRS949600500",
+                    "GBDUW0600015",
+                    "GBDUW0600040"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2755,7 +2931,10 @@
                   "disambiguation": "",
                   "length": 274733,
                   "video": false,
-                  "isrcs": ["FRS949600510", "GBDUW0600016"],
+                  "isrcs": [
+                    "FRS949600510",
+                    "GBDUW0600016"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2795,7 +2974,10 @@
                   "disambiguation": "",
                   "length": 315266,
                   "video": false,
-                  "isrcs": ["FRS949600520", "GBDUW0600017"],
+                  "isrcs": [
+                    "FRS949600520",
+                    "GBDUW0600017"
+                  ],
                   "first-release-date": "1994-04-11",
                   "artist-credit": [
                     {
@@ -2835,7 +3017,10 @@
                   "disambiguation": "",
                   "length": 51240,
                   "video": false,
-                  "isrcs": ["FRS949600530", "GBDUW0600018"],
+                  "isrcs": [
+                    "FRS949600530",
+                    "GBDUW0600018"
+                  ],
                   "first-release-date": "1997-01-20",
                   "artist-credit": [
                     {
@@ -2884,7 +3069,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -2924,7 +3112,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -2964,7 +3155,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3004,7 +3197,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3044,7 +3240,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3084,7 +3282,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3124,7 +3324,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3164,7 +3366,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3204,7 +3408,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3244,7 +3451,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3284,7 +3493,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3324,7 +3535,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3364,7 +3577,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3404,7 +3619,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3524,7 +3741,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -3564,7 +3784,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3644,7 +3867,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3684,7 +3910,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3724,7 +3952,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3764,7 +3994,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3804,7 +4036,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3844,7 +4078,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3884,7 +4121,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3924,7 +4163,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -3964,7 +4205,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4004,7 +4247,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4044,7 +4289,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4157,7 +4404,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -4197,7 +4447,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4237,7 +4490,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4277,7 +4532,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4317,7 +4575,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4357,7 +4617,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4397,7 +4659,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4437,7 +4701,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4477,7 +4743,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4517,7 +4786,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4557,7 +4828,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4597,7 +4870,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4637,7 +4912,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4677,7 +4954,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4783,7 +5062,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -4823,7 +5105,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4863,7 +5148,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4903,7 +5190,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4943,7 +5233,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -4983,7 +5275,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5023,7 +5317,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5063,7 +5359,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5103,7 +5401,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5143,7 +5444,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5183,7 +5486,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5223,7 +5528,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5263,7 +5570,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5303,7 +5612,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5423,7 +5734,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -5463,7 +5777,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5503,7 +5820,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5543,7 +5862,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5583,7 +5905,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5623,7 +5947,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5663,7 +5989,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5703,7 +6031,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5743,7 +6073,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5783,7 +6116,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5823,7 +6158,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5863,7 +6200,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5903,7 +6242,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -5943,7 +6284,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6049,7 +6392,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -6089,7 +6435,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6129,7 +6478,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6169,7 +6520,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6209,7 +6563,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6249,7 +6605,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6289,7 +6647,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6329,7 +6689,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6369,7 +6731,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6409,7 +6774,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6449,7 +6816,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6489,7 +6858,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6529,7 +6900,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6569,7 +6942,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6682,7 +7057,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -6722,7 +7100,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6762,7 +7143,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6802,7 +7185,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6842,7 +7228,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6882,7 +7270,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6922,7 +7312,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -6962,7 +7354,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7002,7 +7396,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7042,7 +7439,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7082,7 +7481,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7122,7 +7523,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7162,7 +7565,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7202,7 +7607,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7322,7 +7729,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -7362,7 +7772,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7402,7 +7815,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7442,7 +7857,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7482,7 +7900,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7522,7 +7942,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7562,7 +7984,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7602,7 +8026,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7642,7 +8068,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7682,7 +8111,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7722,7 +8153,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7762,7 +8195,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7802,7 +8237,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7842,7 +8279,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -7955,7 +8394,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -7995,7 +8437,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8035,7 +8480,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8075,7 +8522,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8115,7 +8565,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8155,7 +8607,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8195,7 +8649,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8235,7 +8691,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8275,7 +8733,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8315,7 +8776,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8355,7 +8818,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8395,7 +8860,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8435,7 +8902,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8475,7 +8944,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8588,7 +9059,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -8628,7 +9102,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8668,7 +9145,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8708,7 +9187,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8748,7 +9230,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8788,7 +9272,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8828,7 +9314,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8868,7 +9356,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8908,7 +9398,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8948,7 +9441,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -8988,7 +9483,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9028,7 +9525,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9068,7 +9567,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9108,7 +9609,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9214,7 +9717,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -9254,7 +9760,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9294,7 +9803,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9334,7 +9845,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9374,7 +9888,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9414,7 +9930,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9454,7 +9972,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9494,7 +10014,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9534,7 +10056,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9574,7 +10099,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9614,7 +10141,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9654,7 +10183,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9694,7 +10225,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9734,7 +10267,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9840,7 +10375,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -9880,7 +10418,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9920,7 +10461,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -9960,7 +10503,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10000,7 +10546,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10040,7 +10588,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10080,7 +10630,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10120,7 +10672,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10160,7 +10714,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10200,7 +10757,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10240,7 +10799,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10280,7 +10841,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10320,7 +10883,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10360,7 +10925,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10466,7 +11033,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -10506,7 +11076,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10546,7 +11119,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10586,7 +11161,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10626,7 +11204,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10666,7 +11246,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10706,7 +11288,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10746,7 +11330,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10786,7 +11372,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10826,7 +11415,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10866,7 +11457,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10906,7 +11499,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10946,7 +11541,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -10986,7 +11583,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11092,7 +11691,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -11132,7 +11734,10 @@
                   "disambiguation": "",
                   "length": 207533,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11172,7 +11777,9 @@
                   "disambiguation": "The intros of 4:58 and 5:01 sound different",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11212,7 +11819,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11252,7 +11862,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11292,7 +11904,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11332,7 +11946,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11372,7 +11988,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11412,7 +12030,10 @@
                   "disambiguation": "album version",
                   "length": 231026,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11452,7 +12073,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11492,7 +12115,9 @@
                   "disambiguation": "",
                   "length": 344893,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11532,7 +12157,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11572,7 +12199,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11612,7 +12241,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11732,7 +12363,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -11772,7 +12406,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11812,7 +12449,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11852,7 +12491,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11892,7 +12534,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11932,7 +12576,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -11972,7 +12618,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12012,7 +12660,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12052,7 +12702,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12092,7 +12745,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12132,7 +12787,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12172,7 +12829,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12212,7 +12871,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12252,7 +12913,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12372,7 +13035,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -12412,7 +13078,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12452,7 +13121,9 @@
                   "disambiguation": "starts with a carry over",
                   "length": 298333,
                   "video": false,
-                  "isrcs": ["GBDUW0000058"],
+                  "isrcs": [
+                    "GBDUW0000058"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12492,7 +13163,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12532,7 +13206,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12572,7 +13248,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12612,7 +13290,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12661,7 +13341,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12701,7 +13383,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12741,7 +13426,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12781,7 +13468,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12821,7 +13510,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12861,7 +13552,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -12901,7 +13594,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13014,7 +13709,10 @@
                   "disambiguation": "",
                   "length": 320746,
                   "video": false,
-                  "isrcs": ["GBAHT1305744", "GBDUW0000053"],
+                  "isrcs": [
+                    "GBAHT1305744",
+                    "GBDUW0000053"
+                  ],
                   "first-release-date": "2000",
                   "artist-credit": [
                     {
@@ -13054,7 +13752,10 @@
                   "disambiguation": "",
                   "length": 207626,
                   "video": false,
-                  "isrcs": ["GATIW0000057", "GBDUW0000057"],
+                  "isrcs": [
+                    "GATIW0000057",
+                    "GBDUW0000057"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13134,7 +13835,10 @@
                   "disambiguation": "",
                   "length": 224293,
                   "video": false,
-                  "isrcs": ["GBDUW0000059", "GBDUW0600059"],
+                  "isrcs": [
+                    "GBDUW0000059",
+                    "GBDUW0600059"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13174,7 +13878,9 @@
                   "disambiguation": "",
                   "length": 211640,
                   "video": false,
-                  "isrcs": ["GBDUW0000060"],
+                  "isrcs": [
+                    "GBDUW0000060"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13214,7 +13920,9 @@
                   "disambiguation": "",
                   "length": 104466,
                   "video": false,
-                  "isrcs": ["GBDUW0000061"],
+                  "isrcs": [
+                    "GBDUW0000061"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13254,7 +13962,9 @@
                   "disambiguation": "",
                   "length": 237800,
                   "video": false,
-                  "isrcs": ["GBDUW0000062"],
+                  "isrcs": [
+                    "GBDUW0000062"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13294,7 +14004,9 @@
                   "disambiguation": "",
                   "length": 201800,
                   "video": false,
-                  "isrcs": ["GBDUW0000063"],
+                  "isrcs": [
+                    "GBDUW0000063"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13334,7 +14046,10 @@
                   "disambiguation": "album version",
                   "length": 231066,
                   "video": false,
-                  "isrcs": ["GBDUW0000064", "GBDUW0600064"],
+                  "isrcs": [
+                    "GBDUW0000064",
+                    "GBDUW0600064"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13374,7 +14089,9 @@
                   "disambiguation": "",
                   "length": 227866,
                   "video": false,
-                  "isrcs": ["GBDUW0000065"],
+                  "isrcs": [
+                    "GBDUW0000065"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13414,7 +14131,9 @@
                   "disambiguation": "",
                   "length": 344933,
                   "video": false,
-                  "isrcs": ["GBDUW0000066"],
+                  "isrcs": [
+                    "GBDUW0000066"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13454,7 +14173,9 @@
                   "disambiguation": "",
                   "length": 206866,
                   "video": false,
-                  "isrcs": ["GBDUW0000067"],
+                  "isrcs": [
+                    "GBDUW0000067"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13494,7 +14215,9 @@
                   "disambiguation": "",
                   "length": 240173,
                   "video": false,
-                  "isrcs": ["GBDUW0000068"],
+                  "isrcs": [
+                    "GBDUW0000068"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13534,7 +14257,9 @@
                   "disambiguation": "",
                   "length": 600293,
                   "video": false,
-                  "isrcs": ["GBDUW0000069"],
+                  "isrcs": [
+                    "GBDUW0000069"
+                  ],
                   "first-release-date": "2001-02-26",
                   "artist-credit": [
                     {
@@ -13548,85 +14273,6 @@
                       }
                     }
                   ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "key": "search/release-group?query=artist:\"Daft Punk\"&limit=25&offset=0",
-      "payload": {
-        "created": "2026-09-06T00:48:29.236Z",
-        "count": 4,
-        "offset": 0,
-        "release-groups": [
-          {
-            "id": "48117b90-a16e-34ca-a514-19c702df1158",
-            "title": "Discovery",
-            "primary-type": "Album",
-            "first-release-date": "2001-02-26",
-            "artist-credit": [
-              {
-                "name": "Daft Punk",
-                "artist": {
-                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
-                  "name": "Daft Punk",
-                  "sort-name": "Daft Punk",
-                  "disambiguation": "French electronic duo"
-                }
-              }
-            ]
-          },
-          {
-            "id": "be3df8a5-39cb-4a8c-bb17-a079b13faf74",
-            "title": "Re-Discovery",
-            "primary-type": "Album",
-            "secondary-types": ["Remix"],
-            "first-release-date": "2011-08-05",
-            "artist-credit": [
-              {
-                "name": "Daft Punk",
-                "artist": {
-                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
-                  "name": "Daft Punk",
-                  "sort-name": "Daft Punk",
-                  "disambiguation": "French electronic duo"
-                }
-              }
-            ]
-          },
-          {
-            "id": "1ed45c8c-9abd-4ec3-9ff6-43d264f0e6b7",
-            "title": "Homework / Discovery",
-            "primary-type": "Album",
-            "secondary-types": ["Compilation"],
-            "first-release-date": "2001-10-15",
-            "artist-credit": [
-              {
-                "name": "Daft Punk",
-                "artist": {
-                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
-                  "name": "Daft Punk",
-                  "sort-name": "Daft Punk",
-                  "disambiguation": "French electronic duo"
-                }
-              }
-            ]
-          },
-          {
-            "id": "84216190-e46f-4cf1-8a28-76910183be38",
-            "title": "Discovery (Beta Version)",
-            "primary-type": "Album",
-            "artist-credit": [
-              {
-                "name": "Daft Punk",
-                "artist": {
-                  "id": "056e4f3e-d505-4dad-8ec1-d04f521cbb56",
-                  "name": "Daft Punk",
-                  "sort-name": "Daft Punk",
-                  "disambiguation": "French electronic duo"
                 }
               }
             ]

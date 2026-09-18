@@ -139,6 +139,7 @@ export type {
 export {
   artistLadder,
   creditCarriesArtist,
+  editionTokensIn,
   hasEditionQualifier,
   normalizeArtist,
   normalizeTitle,

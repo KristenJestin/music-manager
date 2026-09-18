@@ -11743,7 +11743,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "7613a79a-cd8d-4354-a72a-6af94e709296",
@@ -11756,7 +11757,8 @@
       "why": [
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "ee8ac150-01c1-4b73-9948-ec57a0a172da",
@@ -11773,7 +11775,8 @@
         "Artist matches exactly",
         "Filed as a Album",
         "Secondary type Compilation"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

@@ -2743,9 +2743,13 @@
         {
           "id": "68b338cd-26c2-4534-885a-d64c43fa4ce5",
           "title": "Fidelity!",
+          "disambiguation": "",
           "date": "2010-11-01",
           "country": "XE",
           "status": "Official",
+          "barcode": "4029759057802",
+          "packaging": null,
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "JP Jones",
@@ -2769,24 +2773,103 @@
             },
             {
               "name": "The Fairground Boys",
+              "joinphrase": "",
               "artist": {
                 "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
                 "name": "The Fairground Boys",
-                "sort-name": "Fairground Boys, The"
+                "sort-name": "Fairground Boys, The",
+                "disambiguation": ""
               }
             }
           ],
           "release-group": {
             "id": "570a4425-3bf8-4eb0-9039-a230f2f2f887",
             "title": "Fidelity!",
-            "primary-type": "Album"
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2010-09-10",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "JP Jones",
+                "joinphrase": ", ",
+                "artist": {
+                  "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                  "name": "John-Paul Jones",
+                  "sort-name": "Jones, John-Paul",
+                  "disambiguation": "of British indie rock group Grace"
+                }
+              },
+              {
+                "name": "Chrissie Hynde",
+                "joinphrase": " & ",
+                "artist": {
+                  "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                  "name": "Chrissie Hynde",
+                  "sort-name": "Hynde, Chrissie",
+                  "disambiguation": "rock singer-songwriter and founder of Pretenders"
+                }
+              },
+              {
+                "name": "The Fairground Boys",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                  "name": "The Fairground Boys",
+                  "sort-name": "Fairground Boys, The",
+                  "disambiguation": ""
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "CD",
+              "title": "",
               "track-count": 12,
-              "track-offset": 11
+              "track-offset": 11,
+              "tracks": [
+                {
+                  "id": "2c3d3ab1-e6d0-305c-9793-c4b833ac0ec8",
+                  "position": 12,
+                  "number": "12",
+                  "title": "Skinny Love",
+                  "length": 299680,
+                  "artist-credit": [
+                    {
+                      "name": "JP Jones",
+                      "joinphrase": ", ",
+                      "artist": {
+                        "id": "c469fb35-6904-44f4-9c5d-51418ad42fd3",
+                        "name": "John-Paul Jones",
+                        "sort-name": "Jones, John-Paul",
+                        "disambiguation": "of British indie rock group Grace"
+                      }
+                    },
+                    {
+                      "name": "Chrissie Hynde",
+                      "joinphrase": " & ",
+                      "artist": {
+                        "id": "a5d79c54-81c3-4a73-af6a-ad5c143d3f21",
+                        "name": "Chrissie Hynde",
+                        "sort-name": "Hynde, Chrissie",
+                        "disambiguation": "rock singer-songwriter and founder of Pretenders"
+                      }
+                    },
+                    {
+                      "name": "The Fairground Boys",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8d4e845b-f688-41b8-a930-98fa4a71920d",
+                        "name": "The Fairground Boys",
+                        "sort-name": "Fairground Boys, The",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2804,19 +2887,73 @@
         {
           "id": "801b32fb-db3f-4b95-8233-8bba14ec03aa",
           "title": "My Home",
+          "disambiguation": "",
           "date": "",
           "country": "AU",
+          "status": null,
+          "barcode": "",
+          "packaging": "Plastic Sleeve",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Axel Winter",
+              "joinphrase": "",
+              "artist": {
+                "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                "name": "Axel Winter",
+                "sort-name": "Winter, Axel",
+                "disambiguation": "Australian Singer Songwriter"
+              }
+            }
+          ],
           "release-group": {
             "id": "cd513657-93b9-4524-9591-7d17571953b5",
             "title": "My Home",
-            "primary-type": "EP"
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Axel Winter",
+                "joinphrase": "",
+                "artist": {
+                  "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                  "name": "Axel Winter",
+                  "sort-name": "Winter, Axel",
+                  "disambiguation": "Australian Singer Songwriter"
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "CD",
+              "title": "",
               "track-count": 11,
-              "track-offset": 9
+              "track-offset": 9,
+              "tracks": [
+                {
+                  "id": "d65e217e-db98-46d1-8fa0-b083bbb70693",
+                  "position": 10,
+                  "number": "10",
+                  "title": "Skinny Love",
+                  "length": 264000,
+                  "artist-credit": [
+                    {
+                      "name": "Axel Winter",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "3bc409c6-7d50-41bf-bbc6-aa3803167697",
+                        "name": "Axel Winter",
+                        "sort-name": "Winter, Axel",
+                        "disambiguation": "Australian Singer Songwriter"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2834,28 +2971,73 @@
         {
           "id": "94cefeee-1a4c-42bd-be9f-1ff84c713738",
           "title": "Skinny Love (Bon Iver Cover)",
+          "disambiguation": "",
+          "date": "2014",
+          "country": null,
           "status": "Promotion",
+          "barcode": "",
+          "packaging": null,
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "Saya",
+              "joinphrase": "",
               "artist": {
                 "id": "c3594878-f698-4f05-8205-3d553498251d",
                 "name": "Saya Santaquilani",
-                "sort-name": "Santaquilani, Saya"
+                "sort-name": "Santaquilani, Saya",
+                "disambiguation": ""
               }
             }
           ],
           "release-group": {
             "id": "e7206ebb-5626-4519-a455-810944eb3a65",
             "title": "Skinny Love (Bon Iver Cover)",
-            "primary-type": "Single"
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2014",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Saya",
+                "joinphrase": "",
+                "artist": {
+                  "id": "c3594878-f698-4f05-8205-3d553498251d",
+                  "name": "Saya Santaquilani",
+                  "sort-name": "Santaquilani, Saya",
+                  "disambiguation": ""
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "Digital Media",
+              "title": "",
               "track-count": 1,
-              "track-offset": 0
+              "track-offset": 0,
+              "tracks": [
+                {
+                  "id": "8eae5da3-b7e1-4e45-87f6-defdae625f98",
+                  "position": 1,
+                  "number": "1",
+                  "title": "Skinny Love",
+                  "length": 202187,
+                  "artist-credit": [
+                    {
+                      "name": "Saya Santaquilani",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "c3594878-f698-4f05-8205-3d553498251d",
+                        "name": "Saya Santaquilani",
+                        "sort-name": "Santaquilani, Saya",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2873,11 +3055,17 @@
         {
           "id": "13bfc3c8-292b-4bf2-b50b-5a2460aac5f6",
           "title": "On the Bumpy Road",
+          "disambiguation": "",
           "date": "2017",
           "country": "US",
+          "status": null,
+          "barcode": null,
+          "packaging": null,
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "The Whiffenpoofs",
+              "joinphrase": "",
               "artist": {
                 "id": "8e50d034-9913-4902-b7f6-a3162b347bda",
                 "name": "The Whiffenpoofs",
@@ -2889,14 +3077,51 @@
           "release-group": {
             "id": "ce38bf00-b167-4040-93fa-525037184ec2",
             "title": "On the Bumpy Road",
-            "primary-type": "Album"
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2017",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "The Whiffenpoofs",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8e50d034-9913-4902-b7f6-a3162b347bda",
+                  "name": "The Whiffenpoofs",
+                  "sort-name": "Whiffenpoofs, The",
+                  "disambiguation": "Yale A Capella"
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "CD",
+              "title": "",
               "track-count": 16,
-              "track-offset": 3
+              "track-offset": 3,
+              "tracks": [
+                {
+                  "id": "e12ade91-e520-402b-9787-98727fe94ce5",
+                  "position": 4,
+                  "number": "4",
+                  "title": "Skinny Love",
+                  "length": 238306,
+                  "artist-credit": [
+                    {
+                      "name": "The Whiffenpoofs",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8e50d034-9913-4902-b7f6-a3162b347bda",
+                        "name": "The Whiffenpoofs",
+                        "sort-name": "Whiffenpoofs, The",
+                        "disambiguation": "Yale A Capella"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2914,20 +3139,73 @@
         {
           "id": "552e900b-d8cf-460a-a0db-8df66a56248a",
           "title": "Anastasia",
+          "disambiguation": "",
           "date": "2012-12-01",
           "country": "XW",
           "status": "Official",
+          "barcode": "",
+          "packaging": "None",
+          "quality": "normal",
+          "artist-credit": [
+            {
+              "name": "Anastasia Falcón",
+              "joinphrase": "",
+              "artist": {
+                "id": "6ca3cbf1-ce15-4672-9ed7-b0a02532e062",
+                "name": "Anastasia Falcon",
+                "sort-name": "Falcon, Anastasia",
+                "disambiguation": ""
+              }
+            }
+          ],
           "release-group": {
             "id": "f4041ec2-fa4d-4e86-94e1-d8ec995ad15d",
             "title": "Anastasia",
-            "primary-type": "EP"
+            "primary-type": "EP",
+            "secondary-types": [],
+            "first-release-date": "2012-12-01",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Anastacia Falcón",
+                "joinphrase": "",
+                "artist": {
+                  "id": "6ca3cbf1-ce15-4672-9ed7-b0a02532e062",
+                  "name": "Anastasia Falcon",
+                  "sort-name": "Falcon, Anastasia",
+                  "disambiguation": ""
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "Digital Media",
+              "title": "",
               "track-count": 4,
-              "track-offset": 2
+              "track-offset": 2,
+              "tracks": [
+                {
+                  "id": "bd89a88b-9501-4716-945f-703de10ddc7a",
+                  "position": 3,
+                  "number": "3",
+                  "title": "Skinny Love",
+                  "length": 174000,
+                  "artist-credit": [
+                    {
+                      "name": "Anastasia Falcón",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "6ca3cbf1-ce15-4672-9ed7-b0a02532e062",
+                        "name": "Anastasia Falcon",
+                        "sort-name": "Falcon, Anastasia",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2945,12 +3223,17 @@
         {
           "id": "741b800c-8c07-482a-bd70-c07c7e081947",
           "title": "Music Up!",
+          "disambiguation": "",
           "date": "2012",
           "country": "GB",
           "status": "Official",
+          "barcode": null,
+          "packaging": "Jewel Case",
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "Out of the Blue",
+              "joinphrase": "",
               "artist": {
                 "id": "f4342f22-eaa6-43fd-93e0-761a7de96468",
                 "name": "Out of the Blue",
@@ -2962,14 +3245,51 @@
           "release-group": {
             "id": "509a0eda-75b6-4460-a07c-e7e1b046a41f",
             "title": "Music Up!",
-            "primary-type": "Album"
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2012",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Out of the Blue",
+                "joinphrase": "",
+                "artist": {
+                  "id": "f4342f22-eaa6-43fd-93e0-761a7de96468",
+                  "name": "Out of the Blue",
+                  "sort-name": "Out of the Blue",
+                  "disambiguation": "The Oxford University acapella group"
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "CD",
+              "title": "",
               "track-count": 11,
-              "track-offset": 6
+              "track-offset": 6,
+              "tracks": [
+                {
+                  "id": "b1e34260-6130-4483-b8b4-dac56798e4df",
+                  "position": 7,
+                  "number": "7",
+                  "title": "Skinny Love",
+                  "length": 232000,
+                  "artist-credit": [
+                    {
+                      "name": "Out of the Blue",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "f4342f22-eaa6-43fd-93e0-761a7de96468",
+                        "name": "Out of the Blue",
+                        "sort-name": "Out of the Blue",
+                        "disambiguation": "The Oxford University acapella group"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2989,12 +3309,17 @@
         {
           "id": "25d22d48-e9c3-4aa2-bfc8-1b79c487bd81",
           "title": "vol. 21",
+          "disambiguation": "",
           "date": "2021-11-26",
           "country": "XW",
           "status": "Official",
+          "barcode": "198001565830",
+          "packaging": "None",
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "stories",
+              "joinphrase": "",
               "artist": {
                 "id": "7f1bf01b-3dcb-4f63-a398-027912b41c0c",
                 "name": "stories",
@@ -3006,14 +3331,61 @@
           "release-group": {
             "id": "03ff5ffa-b972-4212-bc38-d379175fce14",
             "title": "vol. 21",
-            "primary-type": "Album"
+            "primary-type": "Album",
+            "secondary-types": [],
+            "first-release-date": "2021-11-26",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "stories",
+                "joinphrase": "",
+                "artist": {
+                  "id": "7f1bf01b-3dcb-4f63-a398-027912b41c0c",
+                  "name": "stories",
+                  "sort-name": "stories",
+                  "disambiguation": "Acoustic cover band"
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "Digital Media",
+              "title": "",
               "track-count": 10,
-              "track-offset": 9
+              "track-offset": 9,
+              "tracks": [
+                {
+                  "id": "0c9c74d2-e008-4e39-9a86-e7526733d957",
+                  "position": 10,
+                  "number": "10",
+                  "title": "Skinny Love",
+                  "length": 221776,
+                  "artist-credit": [
+                    {
+                      "name": "stories",
+                      "joinphrase": " feat. ",
+                      "artist": {
+                        "id": "7f1bf01b-3dcb-4f63-a398-027912b41c0c",
+                        "name": "stories",
+                        "sort-name": "stories",
+                        "disambiguation": "Acoustic cover band"
+                      }
+                    },
+                    {
+                      "name": "Sarah Isen",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "e6316700-1197-4fd9-9cf3-e83b60201b2a",
+                        "name": "Sarah Isen",
+                        "sort-name": "Isen, Sarah",
+                        "disambiguation": ""
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -3033,12 +3405,17 @@
         {
           "id": "23eef223-c395-4ba6-8932-476e225a798d",
           "title": "Spotify Singles",
+          "disambiguation": "",
           "date": "2022-03-30",
           "country": "XW",
           "status": "Official",
+          "barcode": "656605162560",
+          "packaging": "None",
+          "quality": "normal",
           "artist-credit": [
             {
               "name": "Japanese Breakfast",
+              "joinphrase": "",
               "artist": {
                 "id": "8c529495-91f5-4e2f-b71b-adcb66878d04",
                 "name": "Japanese Breakfast",
@@ -3050,14 +3427,51 @@
           "release-group": {
             "id": "37e607ea-01a2-4aab-83eb-fc7b8bc5762f",
             "title": "Spotify Singles",
-            "primary-type": "Single"
+            "primary-type": "Single",
+            "secondary-types": [],
+            "first-release-date": "2022-03-30",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "Japanese Breakfast",
+                "joinphrase": "",
+                "artist": {
+                  "id": "8c529495-91f5-4e2f-b71b-adcb66878d04",
+                  "name": "Japanese Breakfast",
+                  "sort-name": "Japanese Breakfast",
+                  "disambiguation": "Michelle Zauner's solo project and band"
+                }
+              }
+            ]
           },
           "media": [
             {
               "position": 1,
               "format": "Digital Media",
+              "title": "",
               "track-count": 2,
-              "track-offset": 1
+              "track-offset": 1,
+              "tracks": [
+                {
+                  "id": "5d64fa75-916a-4db6-b748-0cd3a98f8dc7",
+                  "position": 2,
+                  "number": "2",
+                  "title": "Skinny Love",
+                  "length": 226981,
+                  "artist-credit": [
+                    {
+                      "name": "Japanese Breakfast",
+                      "joinphrase": "",
+                      "artist": {
+                        "id": "8c529495-91f5-4e2f-b71b-adcb66878d04",
+                        "name": "Japanese Breakfast",
+                        "sort-name": "Japanese Breakfast",
+                        "disambiguation": "Michelle Zauner's solo project and band"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -4209,6 +4623,4059 @@
               "format": "Digital Media",
               "track-count": 7,
               "track-offset": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "77e3e29b-7909-4d70-b0a5-7a96500a2e41",
+      "title": "Snap Snack",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 239000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "2363658a-cd02-40bb-9d3a-aae53c768576",
+          "title": "On the Move",
+          "date": "1980",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "953618a9-3116-4078-b4c7-4844a1ac2937",
+            "title": "On the Move",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 10,
+              "track-offset": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3498b815-cc5c-4205-b649-acb871cd4063",
+      "title": "Oiseau Bleu (Casino Royal mix)",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 411000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "ab521848-2540-43c8-be02-f289e414d2b6",
+          "title": "Oiseau Bleu",
+          "date": "2000-11",
+          "country": "SE",
+          "status": "Official",
+          "release-group": {
+            "id": "df9d40f7-a0cb-31c1-b57a-f66b500021db",
+            "title": "Oiseau Bleu",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 2,
+              "track-offset": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8ccac58a-7bff-40c6-b466-a763895b9b2f",
+      "title": "Sprightly Dance",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 195000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "fb38c026-5d28-4cf1-a56b-90ff8e359f86",
+          "title": "Floating on High",
+          "date": "1986",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f3c64679-3c44-4795-85ff-4340dcee1aac",
+            "title": "Floating on High",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4b1254ad-f368-439b-a5a8-d398890310ce",
+      "title": "Walking on Air",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 281000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a2ff8ef9-7f50-4aaa-be4c-252d8337162f",
+          "title": "Second Flight",
+          "date": "1982",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "44904660-3294-441f-bdd5-707ab5b969c9",
+            "title": "Second Flight",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 9,
+              "track-offset": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "70346395-7fbc-4661-842d-2ce6ed59a714",
+      "title": "Joy Ride Boogie",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 202000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "fb38c026-5d28-4cf1-a56b-90ff8e359f86",
+          "title": "Floating on High",
+          "date": "1986",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f3c64679-3c44-4795-85ff-4340dcee1aac",
+            "title": "Floating on High",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f866eb57-8667-4a4b-be35-82761d216c84",
+      "title": "Sparkling Moments",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 229000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "fb38c026-5d28-4cf1-a56b-90ff8e359f86",
+          "title": "Floating on High",
+          "date": "1986",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f3c64679-3c44-4795-85ff-4340dcee1aac",
+            "title": "Floating on High",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5b13113a-5ae8-4c90-9dbd-54e704e5d586",
+      "title": "Second Flight",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 200000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a2ff8ef9-7f50-4aaa-be4c-252d8337162f",
+          "title": "Second Flight",
+          "date": "1982",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "44904660-3294-441f-bdd5-707ab5b969c9",
+            "title": "Second Flight",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 9,
+              "track-offset": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a3f6e9c9-7768-46e6-8b9a-935a365670aa",
+      "title": "Hover High",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 220000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "2363658a-cd02-40bb-9d3a-aae53c768576",
+          "title": "On the Move",
+          "date": "1980",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "953618a9-3116-4078-b4c7-4844a1ac2937",
+            "title": "On the Move",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 10,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "85fd0b01-d86f-4154-9266-165f0fa65a9f",
+      "title": "Opening: Climbing the Hight",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 157000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a2ff8ef9-7f50-4aaa-be4c-252d8337162f",
+          "title": "Second Flight",
+          "date": "1982",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "44904660-3294-441f-bdd5-707ab5b969c9",
+            "title": "Second Flight",
+            "primary-type": "Other"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 9,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f25192bc-f70b-46f2-84c0-f4779bcf7a69",
+      "title": "Wings",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 252106,
+      "isrcs": [
+        "GBAHS1300286"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "211ee49f-ca80-4050-bf6c-ff0ac551bb46",
+          "title": "Rainy Melodies",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "8f1fd611-2a85-45df-8452-f8d71cc52718",
+            "title": "Rainy Melodies",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 34,
+              "track-offset": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c8a5483e-52b7-4552-9cef-81e48a71ea9d",
+      "title": "Maybe",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 194960,
+      "isrcs": [
+        "GBAHS1300292"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "140f2250-b41e-49e4-923d-5802f360b825",
+          "title": "Fire Within",
+          "date": "2013-09-16",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "1d731e97-0027-4117-82e2-178da9669f4a",
+          "title": "Fire Within",
+          "disambiguation": "deluxe",
+          "date": "2013-09-23",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 16,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "34769b2f-3118-48f8-a43b-e3a6f8517794",
+          "title": "Fire Within",
+          "date": "2013",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "1afe43a5-a55c-4ece-aad5-be58a398d3d7",
+          "title": "Fire Within",
+          "disambiguation": "limited edition box set",
+          "date": "2013-09-25",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "6cd5eede-f533-4ce0-b9d5-115a20459702",
+          "title": "Fire Within",
+          "disambiguation": "deluxe version",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 15,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "90e8a7b0-c5db-4c69-9414-382ffd198cf3",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "a851f0c5-b602-4086-ae67-110b79bf433c",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "cd11a290-3460-4517-a6c0-f573f6f4efd3",
+          "title": "Fire Within",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 7
+            }
+          ]
+        },
+        {
+          "id": "75fcf5ae-1a62-4eb6-87b7-2c555dc3f92f",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "484d3a75-bf6a-4195-b63c-82b1b9b658d4",
+          "title": "Fire Within",
+          "disambiguation": "edition collector",
+          "date": "2013-11-29",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "501f2b09-f028-4e1a-8cb2-bde839637edb",
+          "title": "Fire Within",
+          "date": "2014-05-27",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bab91d6c-07aa-44a8-8001-3f45045de2df",
+      "title": "Shine",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 245213,
+      "isrcs": [
+        "GBAHS1300296"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "140f2250-b41e-49e4-923d-5802f360b825",
+          "title": "Fire Within",
+          "date": "2013-09-16",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "1d731e97-0027-4117-82e2-178da9669f4a",
+          "title": "Fire Within",
+          "disambiguation": "deluxe",
+          "date": "2013-09-23",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 16,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "34769b2f-3118-48f8-a43b-e3a6f8517794",
+          "title": "Fire Within",
+          "date": "2013",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "1afe43a5-a55c-4ece-aad5-be58a398d3d7",
+          "title": "Fire Within",
+          "disambiguation": "limited edition box set",
+          "date": "2013-09-25",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "6cd5eede-f533-4ce0-b9d5-115a20459702",
+          "title": "Fire Within",
+          "disambiguation": "deluxe version",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 15,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "90e8a7b0-c5db-4c69-9414-382ffd198cf3",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "a851f0c5-b602-4086-ae67-110b79bf433c",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "75fcf5ae-1a62-4eb6-87b7-2c555dc3f92f",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "cd3279a1-7b73-4e79-b45b-1ad10e3a4bf2",
+          "title": "Breathe",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "86407e8a-c24d-4e0c-b77d-f7444da9b6df",
+            "title": "Breathe",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "track-count": 5,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "cd11a290-3460-4517-a6c0-f573f6f4efd3",
+          "title": "Fire Within",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 11
+            }
+          ]
+        },
+        {
+          "id": "484d3a75-bf6a-4195-b63c-82b1b9b658d4",
+          "title": "Fire Within",
+          "disambiguation": "edition collector",
+          "date": "2013-11-29",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "501f2b09-f028-4e1a-8cb2-bde839637edb",
+          "title": "Fire Within",
+          "date": "2014-05-27",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "947ad949-e571-4520-bbdc-fb4a7c95d003",
+      "title": "Strange Birds",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 183680,
+      "isrcs": [
+        "GBAHS1300291"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "140f2250-b41e-49e4-923d-5802f360b825",
+          "title": "Fire Within",
+          "date": "2013-09-16",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "1d731e97-0027-4117-82e2-178da9669f4a",
+          "title": "Fire Within",
+          "disambiguation": "deluxe",
+          "date": "2013-09-23",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 16,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "34769b2f-3118-48f8-a43b-e3a6f8517794",
+          "title": "Fire Within",
+          "date": "2013",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "1afe43a5-a55c-4ece-aad5-be58a398d3d7",
+          "title": "Fire Within",
+          "disambiguation": "limited edition box set",
+          "date": "2013-09-25",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "6cd5eede-f533-4ce0-b9d5-115a20459702",
+          "title": "Fire Within",
+          "disambiguation": "deluxe version",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 15,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "90e8a7b0-c5db-4c69-9414-382ffd198cf3",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "9eac5044-1530-4db8-b5a7-81ad2919c5cd",
+          "title": "Fire: Sagittarius’ Songs",
+          "date": "2021-11-26",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "d68ba38f-827a-41e8-876e-b4eaab46ce7f",
+            "title": "Fire: Sagittarius’ Songs",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "a851f0c5-b602-4086-ae67-110b79bf433c",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 15,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "cd11a290-3460-4517-a6c0-f573f6f4efd3",
+          "title": "Fire Within",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "75fcf5ae-1a62-4eb6-87b7-2c555dc3f92f",
+          "title": "Fire Within",
+          "date": "2013-09-23",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "484d3a75-bf6a-4195-b63c-82b1b9b658d4",
+          "title": "Fire Within",
+          "disambiguation": "edition collector",
+          "date": "2013-11-29",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "501f2b09-f028-4e1a-8cb2-bde839637edb",
+          "title": "Fire Within",
+          "date": "2014-05-27",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7bf95a3e-34bc-4e22-ae6e-d11432c694d8",
+      "title": "People Help the People",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 256000,
+      "isrcs": [
+        "GBAHS1400077",
+        "GBAHS1300235",
+        "GBAHS1100351"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "9f0285c0-d94b-4644-9a4f-c6045d185e5d",
+          "title": "Birdy",
+          "disambiguation": "Deluxe Version",
+          "date": "2011-11-15",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "1ffb3073-2d2d-4597-abde-ba44928b5462",
+          "title": "20 Ans RTL2 le Son Pop-Rock",
+          "date": "2015-12-04",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "285eb271-d09d-416a-91d6-fb754a4d9e4a",
+            "title": "20 Ans RTL2 le Son Pop-Rock",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 4,
+              "format": "CD",
+              "track-count": 21,
+              "track-offset": 13
+            }
+          ]
+        },
+        {
+          "id": "af0ccad4-8560-4e1e-9e2d-330c36b5a93b",
+          "title": "Los números 1 de Cadena 100 (2015)",
+          "date": "2015-04-20",
+          "country": "ES",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "66540065-1e27-4f19-b526-ec9d5aeba620",
+            "title": "Los números 1 de Cadena 100",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 22,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "716afd88-a5f8-4a34-b2f2-eea715487e0d",
+          "title": "NRJ Hits 2013",
+          "date": "2012-12-03",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "0153da2f-96c5-4712-994d-a46cce1d22f7",
+            "title": "NRJ Hits 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 18
+            }
+          ]
+        },
+        {
+          "id": "d9cbeb55-f519-4552-a36a-ecea137891e2",
+          "title": "NRJ Music Awards 2013",
+          "date": "2012-12-24",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "084be7af-9a32-4ca8-a136-f231eecfa94e",
+            "title": "NRJ Music Awards 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 22,
+              "track-offset": 19
+            }
+          ]
+        },
+        {
+          "id": "bfda0702-1cef-4f6e-a549-c262a85d3950",
+          "title": "This Is Acoustic",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "ec557011-2aec-4d23-b39e-37dd7d8bee1a",
+            "title": "This Is Acoustic",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "Live"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "45b3b11c-d86b-4dc2-9949-5221becff0e1",
+          "title": "NRJ Hit Music Only! 2013",
+          "date": "2013",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "8d84271d-4276-4493-bc31-007fbf2ad45f",
+            "title": "NRJ Hit Music Only! 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 19,
+              "track-offset": 16
+            }
+          ]
+        },
+        {
+          "id": "5985037f-0499-4639-acda-2ff0938f181d",
+          "title": "Festivals",
+          "date": "2013-07-16",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5ec57c94-22ed-4d0c-9dfd-6c0e381b42fe",
+            "title": "Festivals: The Collection",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 60,
+              "track-offset": 14
+            }
+          ]
+        },
+        {
+          "id": "81e945b8-967d-40ec-af27-424c036c72e5",
+          "title": "Festivals: The Collection",
+          "date": "2013",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5ec57c94-22ed-4d0c-9dfd-6c0e381b42fe",
+            "title": "Festivals: The Collection",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 3,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 7
+            }
+          ]
+        },
+        {
+          "id": "13ac9d37-a40e-4505-b32c-96b2551058d6",
+          "title": "Virgin Radio: La Playlist Pop Music",
+          "date": "2013-05-21",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "6e0147c1-427c-43f5-a929-63cbbf7df285",
+            "title": "Virgin Radio: La Playlist Pop Music",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 7
+            }
+          ]
+        },
+        {
+          "id": "50b0b7d9-a623-4a97-8bfb-ed9075a3cd9f",
+          "title": "Bravo Hits 80",
+          "date": "2013-02-08",
+          "country": "CH",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
+            "title": "Bravo Hits 80",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "7248fa23-c371-4fab-82ba-159f3983f588",
+          "title": "Virgin Radio Les 10 Ans",
+          "date": "2018",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "379b65e0-6b1e-4466-bc86-c9af06f5a50f",
+            "title": "Virgin Radio Les 10 Ans",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 4,
+              "format": "CD",
+              "track-count": 19,
+              "track-offset": 16
+            }
+          ]
+        },
+        {
+          "id": "79c3f403-0603-4b3c-9772-754eba8ea91f",
+          "title": "Birdy",
+          "date": "2013-11-20",
+          "country": "AL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "a62d5752-8dbc-4efa-aaef-614df3a89b75",
+          "title": "Birdy",
+          "disambiguation": "deluxe version",
+          "date": "2013-11-21",
+          "country": "AL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "5affc22f-fb06-4227-a2b1-a3dc06da1192",
+          "title": "Earth: Virgo’s Songs",
+          "date": "2021-08-27",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "4a50b7ad-ed5c-4cd8-ac8d-4fa1a6b06662",
+            "title": "Earth: Virgo’s Songs",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "91a45f73-e9e1-41f9-8797-9f1771d222f7",
+          "title": "NRJ Music Awards: Le coffret best of des 20 éditions",
+          "date": "2018",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "7fcbe814-4d02-4443-83a7-0a5d1de2cd50",
+            "title": "NRJ Music Awards: Le coffret best of des 20 éditions",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 5,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 10
+            }
+          ]
+        },
+        {
+          "id": "cae815a7-4e32-473b-86c8-c38330faa553",
+          "title": "Massive Hits: Songs",
+          "date": "2014",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "9f212a3b-1a0e-4f30-b06b-6a5bdfbfc36b",
+            "title": "Massive Hits: Songs",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 17,
+              "track-offset": 8
+            }
+          ]
+        },
+        {
+          "id": "e8175993-5c89-42c3-87d0-6cfad8bc3ebf",
+          "title": "Heart & Soul",
+          "date": "2014-02-04",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f9772db6-767e-4f57-8e8b-9fae11ece907",
+            "title": "Heart & Soul",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "79da8f8f-3371-4be5-92da-49aeeacc6690",
+          "title": "Maximum Hit Music: 02 2012",
+          "date": "2012-05-28",
+          "country": "BE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "3697b557-2e11-4de3-9c2d-399a228a7d07",
+            "title": "Maximum Hit Music: 02 2012",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 22,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "012c095f-3537-41a1-a6b7-d52804d21096",
+          "title": "Spring Break Hits 2013",
+          "date": "2013-04-22",
+          "country": "FR",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "398ade82-5b20-4347-868f-2952a9e4b123",
+            "title": "Spring Break Hits 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 17,
+              "track-offset": 5
+            }
+          ]
+        },
+        {
+          "id": "e328d147-5ca3-47b3-9522-ef4301f03c61",
+          "title": "Birdy",
+          "date": "2012-12-18",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "1d2b9813-5cc3-4408-b222-2a3f5b0768f6",
+          "title": "Birdy",
+          "date": "2011-11-07",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "c8670fc7-036d-407b-9bb3-a545e8cc672c",
+          "title": "Life Is Music 2012.1",
+          "date": "2012",
+          "country": "BE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "219edfe6-bbc5-4bb9-9686-67a770847b40",
+            "title": "Life Is Music 2012.1",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 16
+            }
+          ]
+        },
+        {
+          "id": "1b2ae090-650d-4e3c-8ece-72fcb391b396",
+          "title": "Un printemps 2012",
+          "date": "2012-03-14",
+          "country": "FR",
+          "status": "Promotion",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "83228c67-fbdd-4534-bc0a-555ebc39bbe7",
+            "title": "Un printemps 2012",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 16,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "ca0a0daa-ff77-4e09-982c-00f7beed49e2",
+          "title": "Birdy",
+          "date": "2011",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "f00498d4-3190-4f83-acf7-bad4b5e6f938",
+          "title": "Knuffelrock 2013",
+          "date": "2013-04-26",
+          "country": "NL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "05bfc22f-d385-459d-9a71-a0364f73575c",
+            "title": "Knuffelrock 2013",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ],
+            "disambiguation": "Netherlands"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "b10df3b5-4da3-48b5-a5a6-633c27a5c67f",
+          "title": "Bravo Hits 80",
+          "date": "2013-02-08",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
+            "title": "Bravo Hits 80",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "025336ab-9983-4896-8157-cd5df4294251",
+          "title": "Bravo Hits 80",
+          "date": "2013-02-08",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "904ab76b-dab2-4405-8098-ee08a64f542d",
+            "title": "Bravo Hits 80",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "a2263957-3434-40ed-b14f-1e1cba5c9a85",
+          "title": "Birdy",
+          "disambiguation": "deluxe edition",
+          "date": "2012-11-16",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "abf2e7f9-b3c7-44b9-9e3d-adf517dbea96",
+          "title": "People Help the People",
+          "date": "2012-11-30",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "94ebe37a-fb6a-43ed-90f9-fc92afd69b76",
+            "title": "People Help the People",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 4,
+              "track-offset": 1
+            }
+          ]
+        },
+        {
+          "id": "a0171b0a-71a8-44e8-9507-9b9a731c0046",
+          "title": "People Help the People",
+          "date": "2011-10-28",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "94ebe37a-fb6a-43ed-90f9-fc92afd69b76",
+            "title": "People Help the People",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "ea063e74-e123-4d3d-9288-fe1ec479da9f",
+          "title": "Birdy",
+          "disambiguation": "special edition",
+          "date": "",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "f51a95d4-98a5-43f1-8c4a-c2cab20a9cbd",
+          "title": "Birdy",
+          "date": "2011-11-07",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "aaa8c338-1443-48a6-952a-0d5bc5e7791b",
+          "title": "MNM Big Hits 2012•2",
+          "date": "2012-06-07",
+          "country": "BE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "f29b7d00-6920-46ba-aaf9-3872a2d91136",
+            "title": "MNM Big Hits 2012.2",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 22,
+              "track-offset": 19
+            }
+          ]
+        },
+        {
+          "id": "4f9e5b5c-6258-4d0d-8e5f-804e57dab258",
+          "title": "Radio 538: Hitzone 61",
+          "date": "2012-04-20",
+          "country": "NL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5b0772d3-054a-4e02-a357-dd795ca43894",
+            "title": "Radio 538: Hitzone 61",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "ba8b27cd-cad0-4ee4-bc5b-be763f5d6dc8",
+          "title": "MNM Big Hits Best of 2012",
+          "date": "2012-11-23",
+          "country": "BE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "dbf41907-581f-4c73-97ae-81247e7857fd",
+            "title": "MNM Big Hits Best of 2012",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 22,
+              "track-offset": 13
+            }
+          ]
+        },
+        {
+          "id": "128d7276-da6c-4a3d-b5a6-eb2c0ffcae50",
+          "title": "Birdy",
+          "date": "2012-03-12",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "cd11a290-3460-4517-a6c0-f573f6f4efd3",
+          "title": "Fire Within",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "501f2b09-f028-4e1a-8cb2-bde839637edb",
+          "title": "Fire Within",
+          "date": "2014-05-27",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 12
+            }
+          ]
+        },
+        {
+          "id": "310d1fb7-3e10-4644-a76d-3a1b1fc4f2df",
+          "title": "Pure FM: 10 Years",
+          "date": "2014-03-15",
+          "country": "BE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e892e72e-37c5-4df8-af76-cef3dcce3206",
+            "title": "Pure FM: 10 Years",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 3,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 0
+            }
+          ]
+        },
+        {
+          "id": "484d3a75-bf6a-4195-b63c-82b1b9b658d4",
+          "title": "Fire Within",
+          "disambiguation": "edition collector",
+          "date": "2013-11-29",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 10,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1c338a42-6dad-4800-b59c-b4b101ab9ecf",
+      "title": "People Help the People (RAK Studios session)",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 256266,
+      "isrcs": [
+        "GBAHS1100380"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "128ee898-9b41-4ef3-908c-b0a9742a2632",
+          "title": "Birdy",
+          "date": "2011-11-04",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 2
+            }
+          ]
+        },
+        {
+          "id": "9f0285c0-d94b-4644-9a4f-c6045d185e5d",
+          "title": "Birdy",
+          "disambiguation": "Deluxe Version",
+          "date": "2011-11-15",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 13
+            }
+          ]
+        },
+        {
+          "id": "a62d5752-8dbc-4efa-aaef-614df3a89b75",
+          "title": "Birdy",
+          "disambiguation": "deluxe version",
+          "date": "2013-11-21",
+          "country": "AL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 13
+            }
+          ]
+        },
+        {
+          "id": "a2263957-3434-40ed-b14f-1e1cba5c9a85",
+          "title": "Birdy",
+          "disambiguation": "deluxe edition",
+          "date": "2012-11-16",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 13
+            }
+          ]
+        },
+        {
+          "id": "ea063e74-e123-4d3d-9288-fe1ec479da9f",
+          "title": "Birdy",
+          "disambiguation": "special edition",
+          "date": "",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0a7d5ee9-ea5e-4a45-829f-d449e747ffe3",
+      "title": "Without a Word",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 286693,
+      "isrcs": [
+        "GBAHS1100347"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "128ee898-9b41-4ef3-908c-b0a9742a2632",
+          "title": "Birdy",
+          "date": "2011-11-04",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 13,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "9f0285c0-d94b-4644-9a4f-c6045d185e5d",
+          "title": "Birdy",
+          "disambiguation": "Deluxe Version",
+          "date": "2011-11-15",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "e328d147-5ca3-47b3-9522-ef4301f03c61",
+          "title": "Birdy",
+          "date": "2012-12-18",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "79c3f403-0603-4b3c-9772-754eba8ea91f",
+          "title": "Birdy",
+          "date": "2013-11-20",
+          "country": "AL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "a62d5752-8dbc-4efa-aaef-614df3a89b75",
+          "title": "Birdy",
+          "disambiguation": "deluxe version",
+          "date": "2013-11-21",
+          "country": "AL",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 14,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "560658b4-35a4-48ed-8b40-edfee47a91e1",
+          "title": "Water: Pisces’ Songs",
+          "date": "2022-02-25",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "23633306-5e5f-4796-932c-6bdc79436dd5",
+            "title": "Water: Pisces’ Songs",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 1
+            }
+          ]
+        },
+        {
+          "id": "1d2b9813-5cc3-4408-b222-2a3f5b0768f6",
+          "title": "Birdy",
+          "date": "2011-11-07",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "ca0a0daa-ff77-4e09-982c-00f7beed49e2",
+          "title": "Birdy",
+          "date": "2011",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "a2263957-3434-40ed-b14f-1e1cba5c9a85",
+          "title": "Birdy",
+          "disambiguation": "deluxe edition",
+          "date": "2012-11-16",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "ea063e74-e123-4d3d-9288-fe1ec479da9f",
+          "title": "Birdy",
+          "disambiguation": "special edition",
+          "date": "",
+          "country": "FR",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 14,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "f51a95d4-98a5-43f1-8c4a-c2cab20a9cbd",
+          "title": "Birdy",
+          "date": "2011-11-07",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "a0171b0a-71a8-44e8-9507-9b9a731c0046",
+          "title": "People Help the People",
+          "date": "2011-10-28",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "94ebe37a-fb6a-43ed-90f9-fc92afd69b76",
+            "title": "People Help the People",
+            "primary-type": "Single"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "128d7276-da6c-4a3d-b5a6-eb2c0ffcae50",
+          "title": "Birdy",
+          "date": "2012-03-12",
+          "country": "US",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "06ef6e2b-d593-4923-8791-99c41f748320",
+            "title": "Birdy",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 11,
+              "track-offset": 9
+            }
+          ]
+        },
+        {
+          "id": "484d3a75-bf6a-4195-b63c-82b1b9b658d4",
+          "title": "Fire Within",
+          "disambiguation": "edition collector",
+          "date": "2013-11-29",
+          "country": "XE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "e55b6687-4245-4baa-8acf-287b245423b3",
+            "title": "Fire Within",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 10,
+              "track-offset": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7c7ec153-1155-4c7b-8c2b-1b117db336c4",
+      "title": "My Brave Face",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 218960,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "d962a719-d585-4138-b0f9-f91ab2084e30",
+          "title": "Supernominal Parapernalia",
+          "date": "1999",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "7d6502f0-22ae-4218-b1b2-3b2cb2f18ccd",
+            "title": "Supernominal Parapernalia",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "241fb6fc-a8d3-44fb-9a52-fd72f0e06ff1",
+      "title": "Perfect Hand",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 171866,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "d962a719-d585-4138-b0f9-f91ab2084e30",
+          "title": "Supernominal Parapernalia",
+          "date": "1999",
+          "country": "US",
+          "status": "Official",
+          "release-group": {
+            "id": "7d6502f0-22ae-4218-b1b2-3b2cb2f18ccd",
+            "title": "Supernominal Parapernalia",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 9,
+              "track-offset": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "df84d9ec-8cf3-4b08-befe-81781202884a",
+      "title": "Oiseau Bleu",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 319586,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "f0c9d09d-0466-4c93-aced-16498bbd1cbe",
+          "title": "The Collection 1 - of 25 timeless techno tunes",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "9c4cf5e6-41b6-44ad-8e96-77a8c9ea5e7d",
+            "title": "The Collection 1 - of 25 timeless techno tunes",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 13,
+              "track-offset": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "196ede66-06d6-487d-84b4-13677769c40f",
+      "title": "Work Out",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 222000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "0d0ba80d-68fe-4b3a-8d72-18d0db7946f4",
+          "title": "Focus",
+          "date": "1984",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "70b71047-5c50-4012-b456-336f05f5d6e9",
+            "title": "Focus",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 10,
+              "track-offset": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11940909-9f17-45d2-8a6e-7a537c79176e",
+      "title": "Mainline Malibu",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 273000,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "90fc2dd3-774a-4a97-bbf7-cb18d74852e7",
+          "title": "Windows On The World",
+          "date": "1987",
+          "country": "DE",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "8eb56255-3e4a-40c3-9d59-fbf91fc582c0",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "Eddy F. Mueller"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "5472d479-6af9-4c28-8cf2-acb5aecf05f2",
+            "title": "Windows On The World",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "12\" Vinyl",
+              "track-count": 11,
+              "track-offset": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "061721d8-c460-4ef8-a036-962ee92d189e",
+      "title": "Words As Weapons (Live)",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 258948,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "04dd8920-245d-4435-8821-662866c12521",
+          "title": "Amazon Lounge Live - EP",
+          "date": "2013-09-09",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "56b8c953-b1d3-44de-a126-be9e65431336",
+            "title": "Amazon Lounge Live - EP",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 3,
+              "track-offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "238d81b9-94fc-434f-a1d0-4a7d8a652ba0",
+      "title": "Strange Birds (Live)",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 180860,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "04dd8920-245d-4435-8821-662866c12521",
+          "title": "Amazon Lounge Live - EP",
+          "date": "2013-09-09",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "56b8c953-b1d3-44de-a126-be9e65431336",
+            "title": "Amazon Lounge Live - EP",
+            "primary-type": "EP"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 3,
+              "track-offset": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8b9f2343-6834-45d8-b2d5-0763e3287e8d",
+      "title": "Winter",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": 306386,
+      "isrcs": [
+        "GBAHS1600034"
+      ],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "a500d157-851d-4d02-88fe-16956556aa7a",
+          "title": "SNOW DAY",
+          "date": "2024-09-05",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "04834465-04a7-4278-82c0-5f94b12661f1",
+            "title": "SNOW DAY",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 23,
+              "track-offset": 6
+            }
+          ]
+        },
+        {
+          "id": "91702884-8be9-4e56-98d2-ac3b70034b34",
+          "title": "Fire: Leo’s Songs",
+          "date": "2021-07-23",
+          "country": "XW",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "995f0fc5-e9ab-4e7c-a3c1-5f53624399b9",
+            "title": "Fire: Leo’s Songs",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 4,
+              "track-offset": 3
+            }
+          ]
+        },
+        {
+          "id": "a7327fd4-a43d-4131-9562-4b37fbd8be7a",
+          "title": "Beautiful Lies",
+          "disambiguation": "iTunes deluxe",
+          "date": "2016-03-25",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2b7989c8-3a17-4e9e-a9aa-2d1032bc0ce5",
+            "title": "Beautiful Lies",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 19,
+              "track-offset": 15
+            }
+          ]
+        },
+        {
+          "id": "41151806-8c11-4616-a854-a410e34f8a81",
+          "title": "Beautiful Lies",
+          "disambiguation": "Deluxe Edition",
+          "date": "2016-03-25",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2b7989c8-3a17-4e9e-a9aa-2d1032bc0ce5",
+            "title": "Beautiful Lies",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "Digital Media",
+              "track-count": 18,
+              "track-offset": 15
+            }
+          ]
+        },
+        {
+          "id": "ce682648-5ef2-46ef-807e-a675d9526b48",
+          "title": "Beautiful Lies",
+          "disambiguation": "Deluxe Edition",
+          "date": "2016-03-25",
+          "country": "GB",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2b7989c8-3a17-4e9e-a9aa-2d1032bc0ce5",
+            "title": "Beautiful Lies",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 18,
+              "track-offset": 15
+            }
+          ]
+        },
+        {
+          "id": "928357fc-4181-41b4-a35a-18fafd7da324",
+          "title": "Beautiful Lies",
+          "date": "2016-04-20",
+          "country": "JP",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Birdy",
+              "artist": {
+                "id": "1b8bdee5-783a-4eca-88e5-3e9460739546",
+                "name": "Birdy",
+                "sort-name": "Birdy",
+                "disambiguation": "UK singer Jasmine van den Bogaerde"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "2b7989c8-3a17-4e9e-a9aa-2d1032bc0ce5",
+            "title": "Beautiful Lies",
+            "primary-type": "Album"
+          },
+          "media": [
+            {
+              "position": 1,
+              "format": "CD",
+              "track-count": 20,
+              "track-offset": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2b2bf299-ca97-4eb6-a0b4-194c90a980e6",
+      "title": "Skinny Love",
+      "artist": "Birdy",
+      "disambiguation": "",
+      "lengthMs": null,
+      "isrcs": [],
+      "searchScore": 100,
+      "releases": [
+        {
+          "id": "b98d23a8-9ce4-4ea7-9510-42d772a7af19",
+          "title": "Throwback Covers",
+          "date": "2017",
+          "country": "AU",
+          "status": "Official",
+          "artist-credit": [
+            {
+              "name": "Various Artists",
+              "artist": {
+                "id": "89ad4ac3-39f7-470e-963a-56509c546377",
+                "name": "Various Artists",
+                "sort-name": "Various Artists",
+                "disambiguation": "add compilations to this artist"
+              }
+            }
+          ],
+          "release-group": {
+            "id": "37fc2608-2d1c-4387-93b6-b793c689078f",
+            "title": "Throwback Covers",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation"
+            ]
+          },
+          "media": [
+            {
+              "position": 2,
+              "format": "CD",
+              "track-count": 19,
+              "track-offset": 1
             }
           ]
         }

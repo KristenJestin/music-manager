@@ -822,17 +822,28 @@ async function matchOneAlbum(
         importId: ctx.job.id,
         title: `No MusicBrainz release matches “${hints.album ?? ctx.job.url}”`,
         /*
+         * Two different silences, and they must not read the same.
+         *
          * The sentence used to end with "Supply one with `mm import --release <mbid>`", which
          * sent the reader out of the Console to do the one thing the card is for. The card now
-         * takes a release id and offers the qualifier search itself; the summary says what
-         * happened and lets the card say what can be done about it.
+         * takes a release id and offers the qualifier search itself.
+         *
+         * Since the artist veto there is a second way to arrive here with nothing chosen: the
+         * search *did* come back, and every candidate it came back with is credited to
+         * somebody else, so none of them was ticked. Saying "nothing came back" about a list
+         * of ten homonyms is the kind of untruth that makes a person distrust the whole
+         * screen — and it is exactly the complaint this rule answers, one layer along.
          */
-        summary: `Searched for “${hints.album ?? ctx.job.url}” and nothing came back.`,
+        summary:
+          result.ranking.candidates.length === 0
+            ? `Searched for “${hints.album ?? ctx.job.url}” and nothing came back.`
+            : `${String(result.ranking.candidates.length)} release(s) came back for “${hints.album ?? ctx.job.url}” and none of them is credited to ${result.artist.wanted ?? "the artist the source names"}, so none was preselected. Pick one, or reject this import.`,
         payload: {
           url: ctx.job.url,
           album: hints.album,
           queries: result.queries,
           videos: videos.length,
+          candidates: keep<ReleaseCandidate>(result.ranking.candidates),
         },
       },
       ctx.db,
@@ -1049,7 +1060,17 @@ async function matchOneRecording(
         importId: ctx.job.id,
         trackId: row.id,
         title: `No MusicBrainz recording matches “${video.title}”`,
-        summary: "Nothing scored high enough to propose, or nothing it found is on a release.",
+        /*
+         * Since the artist veto, "nothing to propose" has a third cause worth naming: every
+         * candidate the wide search surfaced is by somebody else, so the tick had nowhere to
+         * land. The ten homonyms of “Soleil bleu” are still in the list; saying only that
+         * nothing scored high enough would describe the one case that is not what happened.
+         */
+        summary:
+          result.ranking.candidates.length > 0 &&
+          result.ranking.candidates.every((candidate) => candidate.artistDisagrees)
+            ? `${String(result.ranking.candidates.length)} recording(s) came back and every one of them is credited to somebody else, so none was preselected.`
+            : "Nothing scored high enough to propose, or nothing it found is on a release.",
         payload: {
           queries: result.queries,
           candidates: keep<RecordingCandidate>(result.ranking.candidates),

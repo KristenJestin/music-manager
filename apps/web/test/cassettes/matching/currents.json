@@ -1,7 +1,7 @@
 {
   "name": "currents",
   "kind": "album",
-  "recordedAt": "2026-09-17T09:50:23.802Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_currents",
     "album": "Currents",
@@ -172,8 +172,472 @@
             "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
             "title": "Currents B‐Sides & Remixes",
             "primary-type": "EP",
-            "secondary-types": ["Remix"],
+            "secondary-types": [
+              "Remix"
+            ],
             "first-release-date": "2017-11-16",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Tame Impala\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-18T09:24:35.410Z",
+        "count": 83,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "6459a8a3-072e-4bb6-8a8c-66e0edf8bf0c",
+            "title": "Live at the Corner",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2010-05",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5ca6d46d-fd25-445c-8902-8d474213f873",
+            "title": "Keep On Lying",
+            "primary-type": "Single",
+            "first-release-date": "2013",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "b5bf4e3d-0fa8-4bef-8523-ccfd31129fe2",
+            "title": "Be Above It",
+            "primary-type": "Single",
+            "first-release-date": "2013-12-06",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ac593a6d-7688-45a2-9a58-d2fffd1ca252",
+            "title": "Demos",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Demo"
+            ],
+            "first-release-date": "2009",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "4de090f4-44f8-498c-bdc4-335b6f28290b",
+            "title": "Daytrotter Session",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2010-12-10",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "feab7dcb-f8f8-4d56-9983-8b446ebe7cf0",
+            "title": "A Transparent Night",
+            "primary-type": "Album",
+            "first-release-date": "2013",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "a8eeb11d-7a36-407a-8752-6ea66713dbb7",
+            "title": "2015-10-07: The Late Show with Stephen Colbert, New York, NY, USA",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2015-10-07",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "7d9db66b-c946-4efb-b9d3-2ce30b9c548e",
+            "title": "Tame Impala",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2008-08",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "f8dd0fd5-2deb-42dc-a424-f5f91cd14215",
+            "title": "2019-03-30: Saturday Night Live: New York, NY, USA",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2019-03-30",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2b585b25-7abc-4b7b-a6f3-a2a66da345b6",
+            "title": "Let It Happen",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2015-10-02",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "b4acc9c6-5b7a-4b4c-9600-93b836fc3747",
+            "title": "Sessions",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Compilation",
+              "Live"
+            ],
+            "first-release-date": "2015",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ae4f174f-6274-43f6-a7e3-718ec1de2ae3",
+            "title": "Let It Happen",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2015-04-15",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2ed83caf-c908-4f4c-af99-39ef9faa839d",
+            "title": "2019-06-28: Glastonbury Festival of Contemporary Performing Arts, UK",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2019-06-28",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "60084d17-2558-4d1b-93ff-0ef1b3fcd961",
+            "title": "Let It Happen (Tinlicker edit)",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2016-01-28",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5178de25-a01b-4617-84ed-13ad3a07dda0",
+            "title": "2017-07-31: The Tonight Show Starring Jimmy Fallon, Los Angeles, CA, USA",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2017-07-31",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2068a13c-5392-4620-b35b-a6482ae094cc",
+            "title": "’Cause I’m a Man (HAIM remix)",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2015-09-21",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "1ff5a210-a80e-411d-a1d4-8bd62d0e3213",
+            "title": "Journey to the Real World",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Soundtrack"
+            ],
+            "first-release-date": "2023-07-21",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "b690079f-c7e1-4e98-9936-86a088d207aa",
+            "title": "Paradise Course",
+            "primary-type": "Single",
+            "first-release-date": "2010",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "388e245f-b1e1-4068-858d-237b276f21fc",
+            "title": "Innerspeaker: Demos",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Demo"
+            ],
+            "first-release-date": "2010",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "652b6cb6-96a3-4847-afa0-db98d8db63a1",
+            "title": "Wings of Time (Music from the Motion Picture Dungeons & Dragons: Honor Among Thieves)",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Soundtrack"
+            ],
+            "first-release-date": "2023-03-10",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "16ea5368-3f3a-4c8a-a9e1-ad0518e2e6e1",
+            "title": "InnerSpeaker (Live from Wave House)",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2022-03-11",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "09cf67bf-859c-4c3b-a8cf-61a2eba2ca6a",
+            "title": "The Less I Know The Better",
+            "primary-type": "Single",
+            "first-release-date": "2015-11-29",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "03d4edd8-007e-493c-9910-0ef1add76c8e",
+            "title": "Elephant",
+            "primary-type": "Single",
+            "first-release-date": "2012-07-25",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "3b61a7a2-67c9-408c-a698-77af87581785",
+            "title": "Feels Like We Only Go Backwards",
+            "primary-type": "Single",
+            "first-release-date": "2012-12",
+            "artist-credit": [
+              {
+                "name": "Tame Impala",
+                "artist": {
+                  "id": "63aa26c3-d59b-4da4-84ac-716b54f1ef4d",
+                  "name": "Tame Impala",
+                  "sort-name": "Tame Impala"
+                }
+              }
+            ]
+          },
+          {
+            "id": "6d60cd7b-16d3-45cc-8bc5-6a3e6956e0f8",
+            "title": "Eventually",
+            "primary-type": "Single",
+            "first-release-date": "2015-05-08",
             "artist-credit": [
               {
                 "name": "Tame Impala",
@@ -985,7 +1449,9 @@
               "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
               "title": "Currents B‐Sides & Remixes",
               "primary-type": "EP",
-              "secondary-types": ["Remix"]
+              "secondary-types": [
+                "Remix"
+              ]
             },
             "media": [
               {
@@ -1033,7 +1499,9 @@
               "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
               "title": "Currents B‐Sides & Remixes",
               "primary-type": "EP",
-              "secondary-types": ["Remix"]
+              "secondary-types": [
+                "Remix"
+              ]
             },
             "media": [
               {
@@ -1130,7 +1598,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -1170,7 +1640,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1210,7 +1682,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1250,7 +1724,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1290,7 +1766,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -1330,7 +1808,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1370,7 +1850,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1410,7 +1892,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1450,7 +1934,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -1490,7 +1976,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -1530,7 +2018,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1570,7 +2060,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1610,7 +2102,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -1668,7 +2162,9 @@
           "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
           "title": "Currents B‐Sides & Remixes",
           "primary-type": "EP",
-          "secondary-types": ["Remix"],
+          "secondary-types": [
+            "Remix"
+          ],
           "first-release-date": "2017-11-16",
           "disambiguation": "",
           "artist-credit": [
@@ -1716,7 +2212,9 @@
                   "disambiguation": "",
                   "length": 280000,
                   "video": false,
-                  "isrcs": ["AUUM71700373"],
+                  "isrcs": [
+                    "AUUM71700373"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -1756,7 +2254,9 @@
                   "disambiguation": "",
                   "length": 258000,
                   "video": false,
-                  "isrcs": ["AUUM71700375"],
+                  "isrcs": [
+                    "AUUM71700375"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -1796,7 +2296,9 @@
                   "disambiguation": "",
                   "length": 287000,
                   "video": false,
-                  "isrcs": ["AUUM71700374"],
+                  "isrcs": [
+                    "AUUM71700374"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -1836,7 +2338,9 @@
                   "disambiguation": "",
                   "length": 304000,
                   "video": false,
-                  "isrcs": ["AUUM71700372"],
+                  "isrcs": [
+                    "AUUM71700372"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -1876,7 +2380,9 @@
                   "disambiguation": "",
                   "length": 557000,
                   "video": false,
-                  "isrcs": ["AUUM71501365"],
+                  "isrcs": [
+                    "AUUM71501365"
+                  ],
                   "first-release-date": "2015-10-02",
                   "artist-credit": [
                     {
@@ -1996,7 +2502,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -2036,7 +2544,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2076,7 +2586,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2116,7 +2628,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2156,7 +2670,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -2196,7 +2712,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2236,7 +2754,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2276,7 +2796,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2316,7 +2838,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -2356,7 +2880,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -2396,7 +2922,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2436,7 +2964,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2476,7 +3006,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2582,7 +3114,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -2622,7 +3156,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2662,7 +3198,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2702,7 +3240,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2742,7 +3282,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -2782,7 +3324,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2822,7 +3366,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2862,7 +3408,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -2902,7 +3450,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -2942,7 +3492,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -2982,7 +3534,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3022,7 +3576,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3062,7 +3618,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3168,7 +3726,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -3208,7 +3768,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3248,7 +3810,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3288,7 +3852,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3328,7 +3894,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -3368,7 +3936,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3408,7 +3978,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3448,7 +4020,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3488,7 +4062,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -3528,7 +4104,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -3568,7 +4146,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3608,7 +4188,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3648,7 +4230,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3754,7 +4338,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -3794,7 +4380,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3834,7 +4422,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3874,7 +4464,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3914,7 +4506,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -3954,7 +4548,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -3994,7 +4590,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4034,7 +4632,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4074,7 +4674,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -4114,7 +4716,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -4154,7 +4758,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4194,7 +4800,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4234,7 +4842,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4340,7 +4950,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -4380,7 +4992,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4420,7 +5034,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4460,7 +5076,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4500,7 +5118,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -4540,7 +5160,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4580,7 +5202,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4620,7 +5244,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4660,7 +5286,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -4700,7 +5328,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -4740,7 +5370,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4780,7 +5412,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4820,7 +5454,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -4933,7 +5569,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -4973,7 +5611,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5013,7 +5653,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5053,7 +5695,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5093,7 +5737,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -5133,7 +5779,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5173,7 +5821,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5213,7 +5863,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5253,7 +5905,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -5293,7 +5947,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -5333,7 +5989,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5373,7 +6031,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5413,7 +6073,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5519,7 +6181,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -5559,7 +6223,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5599,7 +6265,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5639,7 +6307,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5679,7 +6349,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -5719,7 +6391,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5759,7 +6433,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5799,7 +6475,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5839,7 +6517,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -5879,7 +6559,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -5919,7 +6601,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5959,7 +6643,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -5999,7 +6685,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6112,7 +6800,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -6152,7 +6842,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6192,7 +6884,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6232,7 +6926,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6272,7 +6968,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -6312,7 +7010,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6361,7 +7061,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6401,7 +7103,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6441,7 +7145,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -6481,7 +7187,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -6521,7 +7229,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6561,7 +7271,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6601,7 +7313,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6714,7 +7428,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -6754,7 +7470,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6794,7 +7512,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6834,7 +7554,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6874,7 +7596,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -6914,7 +7638,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -6963,7 +7689,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7003,7 +7731,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7043,7 +7773,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -7083,7 +7815,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -7123,7 +7857,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7163,7 +7899,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7203,7 +7941,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7309,7 +8049,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -7349,7 +8091,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7389,7 +8133,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7429,7 +8175,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7469,7 +8217,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -7509,7 +8259,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7549,7 +8301,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7589,7 +8343,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7629,7 +8385,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -7669,7 +8427,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -7709,7 +8469,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7749,7 +8511,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7789,7 +8553,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7916,7 +8682,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -7956,7 +8724,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -7996,7 +8766,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8036,7 +8808,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8076,7 +8850,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -8116,7 +8892,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8165,7 +8943,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8205,7 +8985,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8245,7 +9027,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -8285,7 +9069,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -8325,7 +9111,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8365,7 +9153,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8405,7 +9195,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8518,7 +9310,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -8558,7 +9352,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8598,7 +9394,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8638,7 +9436,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8678,7 +9478,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -8718,7 +9520,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8758,7 +9562,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8798,7 +9604,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8838,7 +9646,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -8878,7 +9688,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -8918,7 +9730,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8958,7 +9772,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -8998,7 +9814,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9118,7 +9936,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -9158,7 +9978,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9198,7 +10020,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9238,7 +10062,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9278,7 +10104,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -9318,7 +10146,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9358,7 +10188,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9398,7 +10230,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9438,7 +10272,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -9478,7 +10314,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -9518,7 +10356,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9558,7 +10398,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9598,7 +10440,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9732,7 +10576,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -9772,7 +10618,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9812,7 +10660,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9852,7 +10702,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9892,7 +10744,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -9932,7 +10786,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -9981,7 +10837,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10021,7 +10879,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10061,7 +10921,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -10101,7 +10963,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -10141,7 +11005,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10181,7 +11047,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10221,7 +11089,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10270,7 +11140,9 @@
                   "disambiguation": "",
                   "length": 557000,
                   "video": false,
-                  "isrcs": ["AUUM71501365"],
+                  "isrcs": [
+                    "AUUM71501365"
+                  ],
                   "first-release-date": "2015-10-02",
                   "artist-credit": [
                     {
@@ -10310,7 +11182,9 @@
                   "disambiguation": "",
                   "length": 304000,
                   "video": false,
-                  "isrcs": ["AUUM71700372"],
+                  "isrcs": [
+                    "AUUM71700372"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -10359,7 +11233,9 @@
                   "disambiguation": "",
                   "length": 258000,
                   "video": false,
-                  "isrcs": ["AUUM71700375"],
+                  "isrcs": [
+                    "AUUM71700375"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -10408,7 +11284,9 @@
                   "disambiguation": "",
                   "length": 280000,
                   "video": false,
-                  "isrcs": ["AUUM71700373"],
+                  "isrcs": [
+                    "AUUM71700373"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -10448,7 +11326,9 @@
                   "disambiguation": "",
                   "length": 287000,
                   "video": false,
-                  "isrcs": ["AUUM71700374"],
+                  "isrcs": [
+                    "AUUM71700374"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -10575,7 +11455,9 @@
                   "disambiguation": "",
                   "length": 466893,
                   "video": false,
-                  "isrcs": ["AUUM71500292"],
+                  "isrcs": [
+                    "AUUM71500292"
+                  ],
                   "first-release-date": "2015-03-11",
                   "artist-credit": [
                     {
@@ -10615,7 +11497,9 @@
                   "disambiguation": "",
                   "length": 107000,
                   "video": false,
-                  "isrcs": ["AUUM71500293"],
+                  "isrcs": [
+                    "AUUM71500293"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10655,7 +11539,9 @@
                   "disambiguation": "",
                   "length": 255000,
                   "video": false,
-                  "isrcs": ["AUUM71500304"],
+                  "isrcs": [
+                    "AUUM71500304"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10695,7 +11581,9 @@
                   "disambiguation": "",
                   "length": 270000,
                   "video": false,
-                  "isrcs": ["AUUM71500295"],
+                  "isrcs": [
+                    "AUUM71500295"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10735,7 +11623,9 @@
                   "disambiguation": "",
                   "length": 319000,
                   "video": false,
-                  "isrcs": ["AUUM71500296"],
+                  "isrcs": [
+                    "AUUM71500296"
+                  ],
                   "first-release-date": "2015-05-08",
                   "artist-credit": [
                     {
@@ -10775,7 +11665,9 @@
                   "disambiguation": "",
                   "length": 55000,
                   "video": false,
-                  "isrcs": ["AUUM71500299"],
+                  "isrcs": [
+                    "AUUM71500299"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10815,7 +11707,9 @@
                   "disambiguation": "",
                   "length": 217000,
                   "video": false,
-                  "isrcs": ["AUUM71500303"],
+                  "isrcs": [
+                    "AUUM71500303"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10855,7 +11749,9 @@
                   "disambiguation": "",
                   "length": 227000,
                   "video": false,
-                  "isrcs": ["AUUM71500294"],
+                  "isrcs": [
+                    "AUUM71500294"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -10895,7 +11791,9 @@
                   "disambiguation": "",
                   "length": 108000,
                   "video": false,
-                  "isrcs": ["AUUM71500297"],
+                  "isrcs": [
+                    "AUUM71500297"
+                  ],
                   "first-release-date": "2015-05-01",
                   "artist-credit": [
                     {
@@ -10935,7 +11833,9 @@
                   "disambiguation": "",
                   "length": 241000,
                   "video": false,
-                  "isrcs": ["AUUM71500298"],
+                  "isrcs": [
+                    "AUUM71500298"
+                  ],
                   "first-release-date": "2015-04-07",
                   "artist-credit": [
                     {
@@ -10975,7 +11875,9 @@
                   "disambiguation": "",
                   "length": 252000,
                   "video": false,
-                  "isrcs": ["AUUM71500300"],
+                  "isrcs": [
+                    "AUUM71500300"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -11015,7 +11917,9 @@
                   "disambiguation": "",
                   "length": 186000,
                   "video": false,
-                  "isrcs": ["AUUM71500301"],
+                  "isrcs": [
+                    "AUUM71500301"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -11055,7 +11959,9 @@
                   "disambiguation": "",
                   "length": 362000,
                   "video": false,
-                  "isrcs": ["AUUM71500302"],
+                  "isrcs": [
+                    "AUUM71500302"
+                  ],
                   "first-release-date": "2015-07-15",
                   "artist-credit": [
                     {
@@ -11104,7 +12010,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 357000,
                   "video": false,
-                  "isrcs": ["AUUM71400046"],
+                  "isrcs": [
+                    "AUUM71400046"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11144,7 +12052,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 261550,
                   "video": false,
-                  "isrcs": ["AUUM71400047"],
+                  "isrcs": [
+                    "AUUM71400047"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11184,7 +12094,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 117572,
                   "video": false,
-                  "isrcs": ["AUUM71400048"],
+                  "isrcs": [
+                    "AUUM71400048"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11224,7 +12136,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 236284,
                   "video": false,
-                  "isrcs": ["AUUM71400049"],
+                  "isrcs": [
+                    "AUUM71400049"
+                  ],
                   "first-release-date": "2014-05-16",
                   "artist-credit": [
                     {
@@ -11264,7 +12178,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 324139,
                   "video": false,
-                  "isrcs": ["AUUM71400050"],
+                  "isrcs": [
+                    "AUUM71400050"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11304,7 +12220,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 494000,
                   "video": false,
-                  "isrcs": ["AUUM71400051"],
+                  "isrcs": [
+                    "AUUM71400051"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11344,7 +12262,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 449000,
                   "video": false,
-                  "isrcs": ["AUUM71400052"],
+                  "isrcs": [
+                    "AUUM71400052"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11384,7 +12304,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 176000,
                   "video": false,
-                  "isrcs": ["AUUM71400053"],
+                  "isrcs": [
+                    "AUUM71400053"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11424,7 +12346,9 @@
                   "disambiguation": "live, 2013-10-10: Riviera Theatre, Chicago, IL, USA",
                   "length": 471775,
                   "video": false,
-                  "isrcs": ["AUUM71400054"],
+                  "isrcs": [
+                    "AUUM71400054"
+                  ],
                   "first-release-date": "2014-04-19",
                   "artist-credit": [
                     {
@@ -11496,7 +12420,9 @@
           "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
           "title": "Currents B‐Sides & Remixes",
           "primary-type": "EP",
-          "secondary-types": ["Remix"],
+          "secondary-types": [
+            "Remix"
+          ],
           "first-release-date": "2017-11-16",
           "disambiguation": "",
           "artist-credit": [
@@ -11544,7 +12470,9 @@
                   "disambiguation": "",
                   "length": 280000,
                   "video": false,
-                  "isrcs": ["AUUM71700373"],
+                  "isrcs": [
+                    "AUUM71700373"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -11584,7 +12512,9 @@
                   "disambiguation": "",
                   "length": 258000,
                   "video": false,
-                  "isrcs": ["AUUM71700375"],
+                  "isrcs": [
+                    "AUUM71700375"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -11624,7 +12554,9 @@
                   "disambiguation": "",
                   "length": 287000,
                   "video": false,
-                  "isrcs": ["AUUM71700374"],
+                  "isrcs": [
+                    "AUUM71700374"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -11664,7 +12596,9 @@
                   "disambiguation": "",
                   "length": 304000,
                   "video": false,
-                  "isrcs": ["AUUM71700372"],
+                  "isrcs": [
+                    "AUUM71700372"
+                  ],
                   "first-release-date": "2017-11-16",
                   "artist-credit": [
                     {
@@ -11704,7 +12638,9 @@
                   "disambiguation": "",
                   "length": 557000,
                   "video": false,
-                  "isrcs": ["AUUM71501365"],
+                  "isrcs": [
+                    "AUUM71501365"
+                  ],
                   "first-release-date": "2015-10-02",
                   "artist-credit": [
                     {

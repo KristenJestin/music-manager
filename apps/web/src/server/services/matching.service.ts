@@ -34,6 +34,7 @@
 import {
   artistLadder,
   creditCarriesArtist,
+  editionTokensIn,
   DEFAULT_GROUP_LIMIT,
   DEFAULT_LOOKUP_LIMIT,
   DEFAULT_RECORDING_LOOKUP_LIMIT,
@@ -124,6 +125,37 @@ export function lookupLimitOf(settings: Settings): number {
  */
 export function recordingLookupLimitOf(settings: Settings): number {
   return Math.min(lookupLimitOf(settings), DEFAULT_RECORDING_LOOKUP_LIMIT);
+}
+
+/**
+ * What the **bare** rung proves about the edition, once MusicBrainz has answered it.
+ *
+ * `sourceEdition` deliberately refuses to read a trailing edition word that carries no bracket
+ * and no separator, because *Hotel Deluxe* is a record and stripping its last word would be
+ * reading an announcement into a name. That refusal is right, and it left *AFTERCARE DELUXE*
+ * in a worse place than not finding it at all: the ladder's bare rung finds the group, and the
+ * scorer then marks the twenty-one-track deluxe pressing — the record the playlist *is* — down
+ * for carrying a qualifier "nobody asked for", so the fifteen-track standard album won and six
+ * of the twenty-one videos had nowhere to go.
+ *
+ * What resolves it is not a better guess, it is **evidence**. MusicBrainz answering
+ * `releasegroup:"AFTERCARE"` while answering nothing at all for `releasegroup:"AFTERCARE
+ * DELUXE"` is the index stating that "DELUXE" is not part of the record's name — which is
+ * exactly what `sourceEdition` could not know from the string alone. So the announcement is
+ * read only from the rung that was climbed, and only once it has come back with something.
+ * *Hotel Deluxe* never reaches this code, because the rung above it answers.
+ */
+function editionProvenByFallback(
+  hints: AlbumHints,
+  fallback: MatchFallback | null,
+): AlbumHints {
+  if (fallback === null || fallback.kind !== "bare-title") return hints;
+  const removed = fallback.from.slice(fallback.to.length);
+  const announced = editionTokensIn(removed).filter(
+    (token) => !(hints.edition ?? []).includes(token),
+  );
+  if (announced.length === 0) return hints;
+  return { ...hints, edition: [...(hints.edition ?? []), ...announced] };
 }
 
 /** How many release groups get a release search of their own (decision 151). */
@@ -695,7 +727,7 @@ export interface AlbumMatchHooks {
  */
 export async function matchAlbum(
   mb: MbGateway,
-  input: AlbumMatchInput,
+  raw: AlbumMatchInput,
   settings: Settings,
   hooks: AlbumMatchHooks = {},
 ): Promise<AlbumMatch> {
@@ -703,6 +735,7 @@ export async function matchAlbum(
   const lookupLimit = lookupLimitOf(settings);
   const groupLimit = groupLimitOf(settings);
   const queries: string[] = [];
+  let input = raw;
 
   // 1 — the release groups, down the ladder of `findReleaseGroups`. Every rung names an
   // artist; the one that dropped it is the reason this review exists.
@@ -715,6 +748,8 @@ export async function matchAlbum(
     config,
     settings.matchArtistLadder,
   );
+  // The bare rung, having answered, has told us the trailing word was an edition after all.
+  input = { ...input, hints: editionProvenByFallback(input.hints, fallback) };
   const kept = groupScores.slice(0, groupLimit);
   hooks.onPlan?.({
     searches: queries.length + (kept.length === 0 ? 1 : kept.length),

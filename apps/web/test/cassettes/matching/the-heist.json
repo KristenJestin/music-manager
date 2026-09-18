@@ -1,7 +1,7 @@
 {
   "name": "the-heist",
   "kind": "album",
-  "recordedAt": "2026-09-17T09:50:28.367Z",
+  "recordedAt": "2026-09-18T09:31:18.388Z",
   "source": {
     "url": "https://music.youtube.com/playlist?list=OLAK5uy_the-heist-deluxe",
     "album": "The Heist (Deluxe Edition)",
@@ -259,6 +259,464 @@
             "title": "The Heist",
             "primary-type": "Album",
             "first-release-date": "2012-10-09",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "search/release-group?query=artist:\"Macklemore\"&limit=25&offset=0",
+      "payload": {
+        "created": "2026-09-18T09:25:30.687Z",
+        "count": 66,
+        "offset": 0,
+        "release-groups": [
+          {
+            "id": "cdd7896a-2a47-4779-b4ac-7e510d51d7ab",
+            "title": "Wednesday Morning",
+            "primary-type": "Single",
+            "first-release-date": "2016-11-18",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "841835b1-ea23-429c-b498-45cfcd7a711b",
+            "title": "The Town",
+            "primary-type": "Single",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "c0a57c9d-dff1-48b3-9900-deda7e409c9c",
+            "title": "For My People",
+            "primary-type": "Album",
+            "first-release-date": "2014",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "04389a4b-16cd-49a9-8fb6-61e754544bf3",
+            "title": "HIND'S HALL",
+            "primary-type": "Single",
+            "first-release-date": "2024-05-10",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "99d93c5c-840e-4e35-9581-ef78d53a77c2",
+            "title": "Gemini",
+            "primary-type": "Album",
+            "first-release-date": "2017-09-22",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "a236e641-5ff3-488f-b908-e76e3d9ab836",
+            "title": "Thrift Shop (Mikael Wills Bootleg)",
+            "primary-type": "Single",
+            "secondary-types": [
+              "Remix"
+            ],
+            "first-release-date": "2013-04-28",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "90f7202b-f9cc-48e2-921c-2190a4791820",
+            "title": "Back to Basics",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Mixtape/Street"
+            ],
+            "first-release-date": "2015-08-14",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "6132cb47-2735-3d2b-ab4c-0561ec51efe4",
+            "title": "The Language of My World",
+            "primary-type": "Album",
+            "first-release-date": "2005-10-10",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "cdc6a80e-dbf2-472a-bdba-aab7a38e8269",
+            "title": "The Unplanned Mixtape",
+            "primary-type": "Album",
+            "secondary-types": [
+              "Mixtape/Street"
+            ],
+            "first-release-date": "2009-09-07",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "4e1d6387-5bc1-443f-b372-28b623f3b1c4",
+            "title": "HIND’S HALL 2",
+            "primary-type": "Single",
+            "first-release-date": "2024-09-20",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ae6967c7-4027-4358-966a-22eec39cebac",
+            "title": "Love Not War",
+            "primary-type": "Album",
+            "first-release-date": "2015",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "cbdd6d12-b7a5-4500-a672-b3a550f7c112",
+            "title": "Claiming the City",
+            "primary-type": "Single",
+            "first-release-date": "2005",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "12df2e23-ecda-4e26-9c8d-0242401a2518",
+            "title": "Ben",
+            "primary-type": "Album",
+            "first-release-date": "2023-03-03",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "30b251c7-8edc-46e3-adcb-aeb48bc6ae30",
+            "title": "fucked up",
+            "primary-type": "Single",
+            "first-release-date": "2025-02-14",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "3435bd79-0e4a-4e1b-b35a-6fa6d110472f",
+            "title": "Open Your Eyes",
+            "primary-type": "EP",
+            "secondary-types": [
+              "Mixtape/Street"
+            ],
+            "first-release-date": "2000-10-21",
+            "artist-credit": [
+              {
+                "name": "Professor Macklemore",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              }
+            ]
+          },
+          {
+            "id": "cddd7349-8945-4446-a5bd-5b38adcc6697",
+            "title": "MANIAC",
+            "primary-type": "Single",
+            "first-release-date": "2022-08-19",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "joinphrase": " feat. ",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              },
+              {
+                "name": "Windser",
+                "artist": {
+                  "id": "96d2eb96-9ab4-4e5e-bb5b-8d4d85450da8",
+                  "name": "Windser",
+                  "sort-name": "Windser",
+                  "disambiguation": "Jordan Topf"
+                }
+              }
+            ]
+          },
+          {
+            "id": "04bdc79c-f60e-4832-8efc-32a896b8e3c6",
+            "title": "Next Year",
+            "primary-type": "Single",
+            "first-release-date": "2021-10-29",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "joinphrase": " feat. ",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              },
+              {
+                "name": "Windser",
+                "artist": {
+                  "id": "96d2eb96-9ab4-4e5e-bb5b-8d4d85450da8",
+                  "name": "Windser",
+                  "sort-name": "Windser",
+                  "disambiguation": "Jordan Topf"
+                }
+              }
+            ]
+          },
+          {
+            "id": "a6d6c0b5-829d-449b-abac-695133bfbe0c",
+            "title": "Shadow (From Songland)",
+            "primary-type": "Single",
+            "first-release-date": "2019",
+            "artist-credit": [
+              {
+                "name": "Macklemore",
+                "joinphrase": " feat. ",
+                "artist": {
+                  "id": "b6d7ec94-830c-44dd-b699-ce66556b7e55",
+                  "name": "Macklemore",
+                  "sort-name": "Macklemore"
+                }
+              },
+              {
+                "name": "IRO",
+                "artist": {
+                  "id": "cffcebb9-4591-4a01-98b9-a3e0a04a992f",
+                  "name": "iRO",
+                  "sort-name": "iRO",
+                  "disambiguation": "appears on Serious Beat compilation, a track with DJ Licious"
+                }
+              }
+            ]
+          },
+          {
+            "id": "2c2cc267-8567-4700-94a7-bf46faf106ed",
+            "title": "Tiny Desk Concert",
+            "primary-type": "Broadcast",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2012-12-03",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "e6c51635-9eaf-4096-8413-101eefbb6fb6",
+            "title": "Make the Money",
+            "primary-type": "Single",
+            "first-release-date": "2011-09-21",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "03d443a0-f76c-44a7-bf49-aea7586af45e",
+            "title": "The Vs. EP",
+            "primary-type": "EP",
+            "first-release-date": "2009",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "8fab94b5-9a8f-4f85-bf2e-4121cf4b8f54",
+            "title": "My Oh My",
+            "primary-type": "Single",
+            "first-release-date": "2010-12-23",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "1797d8ef-9bde-472e-b62e-ae104b341d58",
+            "title": "Macklemore & Ryan Lewis Live on KEXP",
+            "primary-type": "Other",
+            "secondary-types": [
+              "Live"
+            ],
+            "first-release-date": "2011-07-21",
+            "disambiguation": "(July 20th, 2011)",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "541e3876-2cbc-49c3-b62a-ea7bea19c011",
+            "title": "Can't Hold Us",
+            "primary-type": "Single",
+            "first-release-date": "2011-08-16",
+            "artist-credit": [
+              {
+                "name": "Macklemore & Ryan Lewis",
+                "artist": {
+                  "id": "97b226c8-7140-4da3-91ac-15e62e131a81",
+                  "name": "Macklemore & Ryan Lewis",
+                  "sort-name": "Macklemore & Lewis, Ryan"
+                }
+              }
+            ]
+          },
+          {
+            "id": "9e54fb08-c111-463d-918d-01fd85a612f1",
+            "title": "The VS. Redux",
+            "primary-type": "EP",
+            "first-release-date": "2010-10-20",
             "artist-credit": [
               {
                 "name": "Macklemore & Ryan Lewis",
@@ -770,7 +1228,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -820,7 +1280,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -880,7 +1343,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -940,7 +1406,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1000,7 +1468,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -1050,7 +1521,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -1100,7 +1573,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1160,7 +1635,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1230,7 +1708,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1300,7 +1780,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1350,7 +1832,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1400,7 +1885,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1460,7 +1947,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1520,7 +2009,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1570,7 +2061,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1610,7 +2104,9 @@
                   "disambiguation": "",
                   "length": 257959,
                   "video": false,
-                  "isrcs": ["GMM881200016"],
+                  "isrcs": [
+                    "GMM881200016"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1650,7 +2146,9 @@
                   "disambiguation": "",
                   "length": 257000,
                   "video": false,
-                  "isrcs": ["GMM881200017"],
+                  "isrcs": [
+                    "GMM881200017"
+                  ],
                   "first-release-date": "2010-12-23",
                   "artist-credit": [
                     {
@@ -1690,7 +2188,9 @@
                   "disambiguation": "",
                   "length": 213718,
                   "video": false,
-                  "isrcs": ["GMM881200018"],
+                  "isrcs": [
+                    "GMM881200018"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1863,7 +2363,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -1913,7 +2415,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -1973,7 +2478,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -2033,7 +2541,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2093,7 +2603,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -2143,7 +2656,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -2193,7 +2708,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2253,7 +2770,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2323,7 +2843,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2393,7 +2915,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2443,7 +2967,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2493,7 +3020,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2553,7 +3082,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2613,7 +3144,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2663,7 +3196,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2703,7 +3239,9 @@
                   "disambiguation": "",
                   "length": 257959,
                   "video": false,
-                  "isrcs": ["GMM881200016"],
+                  "isrcs": [
+                    "GMM881200016"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2743,7 +3281,9 @@
                   "disambiguation": "",
                   "length": 257000,
                   "video": false,
-                  "isrcs": ["GMM881200017"],
+                  "isrcs": [
+                    "GMM881200017"
+                  ],
                   "first-release-date": "2010-12-23",
                   "artist-credit": [
                     {
@@ -2783,7 +3323,9 @@
                   "disambiguation": "",
                   "length": 213718,
                   "video": false,
-                  "isrcs": ["GMM881200018"],
+                  "isrcs": [
+                    "GMM881200018"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2896,7 +3438,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -2946,7 +3490,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -3006,7 +3553,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -3066,7 +3616,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3126,7 +3678,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -3176,7 +3731,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -3226,7 +3783,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3286,7 +3845,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3356,7 +3918,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3426,7 +3990,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3476,7 +4042,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3526,7 +4095,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3586,7 +4157,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3646,7 +4219,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3696,7 +4271,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3736,7 +4314,9 @@
                   "disambiguation": "",
                   "length": 257959,
                   "video": false,
-                  "isrcs": ["GMM881200016"],
+                  "isrcs": [
+                    "GMM881200016"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3776,7 +4356,9 @@
                   "disambiguation": "",
                   "length": 257000,
                   "video": false,
-                  "isrcs": ["GMM881200017"],
+                  "isrcs": [
+                    "GMM881200017"
+                  ],
                   "first-release-date": "2010-12-23",
                   "artist-credit": [
                     {
@@ -3816,7 +4398,9 @@
                   "disambiguation": "",
                   "length": 213718,
                   "video": false,
-                  "isrcs": ["GMM881200018"],
+                  "isrcs": [
+                    "GMM881200018"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3929,7 +4513,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -3969,7 +4555,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -4019,7 +4608,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -4069,7 +4661,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4119,7 +4713,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -4169,7 +4766,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -4209,7 +4808,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4259,7 +4860,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4318,7 +4922,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4378,7 +4984,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4428,7 +5036,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4468,7 +5079,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4518,7 +5131,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4568,7 +5183,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4618,7 +5235,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4658,7 +5278,9 @@
                   "disambiguation": "",
                   "length": 257959,
                   "video": false,
-                  "isrcs": ["GMM881200016"],
+                  "isrcs": [
+                    "GMM881200016"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4698,7 +5320,9 @@
                   "disambiguation": "",
                   "length": 257000,
                   "video": false,
-                  "isrcs": ["GMM881200017"],
+                  "isrcs": [
+                    "GMM881200017"
+                  ],
                   "first-release-date": "2010-12-23",
                   "artist-credit": [
                     {
@@ -4738,7 +5362,9 @@
                   "disambiguation": "",
                   "length": 213718,
                   "video": false,
-                  "isrcs": ["GMM881200018"],
+                  "isrcs": [
+                    "GMM881200018"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4851,7 +5477,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -4901,7 +5529,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -4961,7 +5592,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -5021,7 +5655,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5081,7 +5717,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -5131,7 +5770,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -5181,7 +5822,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5241,7 +5884,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5311,7 +5957,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5381,7 +6029,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5431,7 +6081,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5481,7 +6134,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5541,7 +6196,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5601,7 +6258,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5651,7 +6310,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5764,7 +6426,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5814,7 +6478,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -5874,7 +6541,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -5934,7 +6604,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -5994,7 +6666,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -6044,7 +6719,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -6094,7 +6771,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6154,7 +6833,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6224,7 +6906,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6294,7 +6978,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6344,7 +7030,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6394,7 +7083,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6454,7 +7145,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6514,7 +7207,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6564,7 +7259,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6677,7 +7375,9 @@
                   "disambiguation": "clean",
                   "length": 249882,
                   "video": false,
-                  "isrcs": ["GMM881200020"],
+                  "isrcs": [
+                    "GMM881200020"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6727,7 +7427,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -6787,7 +7490,9 @@
                   "disambiguation": "clean",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200022"],
+                  "isrcs": [
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6847,7 +7552,9 @@
                   "disambiguation": "clean",
                   "length": 255612,
                   "video": false,
-                  "isrcs": ["GMM881200023"],
+                  "isrcs": [
+                    "GMM881200023"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -6907,7 +7614,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -6957,7 +7667,9 @@
                   "disambiguation": "clean",
                   "length": 223820,
                   "video": false,
-                  "isrcs": ["GMM881200025"],
+                  "isrcs": [
+                    "GMM881200025"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7007,7 +7719,9 @@
                   "disambiguation": "clean",
                   "length": 273292,
                   "video": false,
-                  "isrcs": ["GMM881200026"],
+                  "isrcs": [
+                    "GMM881200026"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7067,7 +7781,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7137,7 +7854,9 @@
                   "disambiguation": "clean",
                   "length": 219425,
                   "video": false,
-                  "isrcs": ["GMM881200028"],
+                  "isrcs": [
+                    "GMM881200028"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7207,7 +7926,9 @@
                   "disambiguation": "clean",
                   "length": 233949,
                   "video": false,
-                  "isrcs": ["GMM881200029"],
+                  "isrcs": [
+                    "GMM881200029"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7257,7 +7978,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7307,7 +8031,9 @@
                   "disambiguation": "clean",
                   "length": 225526,
                   "video": false,
-                  "isrcs": ["GMM881200031"],
+                  "isrcs": [
+                    "GMM881200031"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7367,7 +8093,9 @@
                   "disambiguation": "clean",
                   "length": 252080,
                   "video": false,
-                  "isrcs": ["GMM881200032"],
+                  "isrcs": [
+                    "GMM881200032"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7427,7 +8155,9 @@
                   "disambiguation": "clean",
                   "length": 251127,
                   "video": false,
-                  "isrcs": ["GMM881200033"],
+                  "isrcs": [
+                    "GMM881200033"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7477,7 +8207,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7590,7 +8323,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7640,7 +8375,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -7700,7 +8438,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -7760,7 +8501,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7820,7 +8563,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -7870,7 +8616,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -7920,7 +8668,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -7980,7 +8730,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8050,7 +8803,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8120,7 +8875,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8170,7 +8927,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8220,7 +8980,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8280,7 +9042,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8340,7 +9104,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8390,7 +9156,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8503,7 +9272,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8553,7 +9324,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -8613,7 +9387,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -8673,7 +9450,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8733,7 +9512,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -8783,7 +9565,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -8833,7 +9617,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8893,7 +9679,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -8963,7 +9752,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9033,7 +9824,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9083,7 +9876,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9133,7 +9929,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9193,7 +9991,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9253,7 +10053,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9303,7 +10105,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9426,7 +10231,9 @@
                   "disambiguation": "explicit",
                   "length": 249533,
                   "video": false,
-                  "isrcs": ["GMM881200001"],
+                  "isrcs": [
+                    "GMM881200001"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9476,7 +10283,10 @@
                   "disambiguation": "",
                   "length": 258426,
                   "video": false,
-                  "isrcs": ["GMM881200002", "GMM881200021"],
+                  "isrcs": [
+                    "GMM881200002",
+                    "GMM881200021"
+                  ],
                   "first-release-date": "2011-08-16",
                   "artist-credit": [
                     {
@@ -9536,7 +10346,10 @@
                   "disambiguation": "explicit",
                   "length": 235982,
                   "video": false,
-                  "isrcs": ["GMM881200003", "GMM881200022"],
+                  "isrcs": [
+                    "GMM881200003",
+                    "GMM881200022"
+                  ],
                   "first-release-date": "2012-08-01",
                   "artist-credit": [
                     {
@@ -9596,7 +10409,9 @@
                   "disambiguation": "explicit",
                   "length": 256173,
                   "video": false,
-                  "isrcs": ["GMM881200004"],
+                  "isrcs": [
+                    "GMM881200004"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9656,7 +10471,10 @@
                   "disambiguation": "",
                   "length": 319613,
                   "video": false,
-                  "isrcs": ["GMM881200005", "GMM881200024"],
+                  "isrcs": [
+                    "GMM881200005",
+                    "GMM881200024"
+                  ],
                   "first-release-date": "2012-07-24",
                   "artist-credit": [
                     {
@@ -9716,7 +10534,9 @@
                   "disambiguation": "explicit",
                   "length": 224826,
                   "video": false,
-                  "isrcs": ["GMM881200006"],
+                  "isrcs": [
+                    "GMM881200006"
+                  ],
                   "first-release-date": "2011-09-21",
                   "artist-credit": [
                     {
@@ -9766,7 +10586,9 @@
                   "disambiguation": "explicit",
                   "length": 274280,
                   "video": false,
-                  "isrcs": ["GMM881200007"],
+                  "isrcs": [
+                    "GMM881200007"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9826,7 +10648,10 @@
                   "disambiguation": "",
                   "length": 295666,
                   "video": false,
-                  "isrcs": ["GMM881200008", "GMM881200027"],
+                  "isrcs": [
+                    "GMM881200008",
+                    "GMM881200027"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9886,7 +10711,9 @@
                   "disambiguation": "explicit",
                   "length": 220000,
                   "video": false,
-                  "isrcs": ["GMM881200009"],
+                  "isrcs": [
+                    "GMM881200009"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -9956,7 +10783,9 @@
                   "disambiguation": "explicit",
                   "length": 233186,
                   "video": false,
-                  "isrcs": ["GMM881200010"],
+                  "isrcs": [
+                    "GMM881200010"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -10016,7 +10845,10 @@
                   "disambiguation": "",
                   "length": 299586,
                   "video": false,
-                  "isrcs": ["GMM881200011", "GMM881200030"],
+                  "isrcs": [
+                    "GMM881200011",
+                    "GMM881200030"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -10066,7 +10898,9 @@
                   "disambiguation": "explicit",
                   "length": 226040,
                   "video": false,
-                  "isrcs": ["GMM881200012"],
+                  "isrcs": [
+                    "GMM881200012"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -10126,7 +10960,9 @@
                   "disambiguation": "explicit",
                   "length": 251506,
                   "video": false,
-                  "isrcs": ["GMM881200013"],
+                  "isrcs": [
+                    "GMM881200013"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -10186,7 +11022,9 @@
                   "disambiguation": "explicit",
                   "length": 251186,
                   "video": false,
-                  "isrcs": ["GMM881200014"],
+                  "isrcs": [
+                    "GMM881200014"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {
@@ -10236,7 +11074,10 @@
                   "disambiguation": "",
                   "length": 257853,
                   "video": false,
-                  "isrcs": ["GMM881200015", "GMM881200034"],
+                  "isrcs": [
+                    "GMM881200015",
+                    "GMM881200034"
+                  ],
                   "first-release-date": "2012-10-09",
                   "artist-credit": [
                     {

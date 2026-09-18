@@ -11305,7 +11305,8 @@
         "Title matches exactly",
         "Artist matches exactly",
         "Filed as a Album"
-      ]
+      ],
+      "artistDisagrees": false
     },
     {
       "id": "4c00be6d-b764-4a4f-a4ef-c431b6d0ac3c",
@@ -11321,7 +11322,8 @@
         "Artist matches exactly",
         "Filed as a EP",
         "Secondary type Remix"
-      ]
+      ],
+      "artistDisagrees": false
     }
   ],
   "lookedUp": [

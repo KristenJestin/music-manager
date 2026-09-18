@@ -43,6 +43,7 @@ import {
 import {
   artistLadder,
   creditCarriesArtist,
+  editionTokensIn,
   primaryArtist,
   stripArtistPrefix,
   stripEditionQualifier,
@@ -957,7 +958,8 @@ async function recordAlbum(
   // Derived exactly as `match` and `mm match` derive them. Deriving them differently here is
   // what made the first recording unreplayable: a label read in one place and left null in the
   // other reordered two near-identical pressings and sent the lookups to different candidates.
-  const hints = albumHints(scenario.videos);
+  const base0 = albumHints(scenario.videos);
+  const hints = { ...base0, edition: [...(base0.edition ?? [])] };
 
   async function document<T>(key: string, path: string, query: Record<string, string>): Promise<T> {
     const cached = known.get(key);
@@ -1012,10 +1014,30 @@ async function recordAlbum(
   }
 
   let rawGroups: readonly { id?: string; title?: string }[] = [];
+  /** The rung that answered, so the fixture's hints are the ones the service would score with. */
+  let answeredRung: string | null = null;
   for (const rung of rungs) {
     const answer = await searchDocument("release-group", rung);
     rawGroups = answer["release-groups"] ?? [];
-    if (rawGroups.length > 0) break;
+    if (rawGroups.length > 0) {
+      answeredRung = rung;
+      break;
+    }
+  }
+
+  /*
+   * The bare rung, having answered, proves the trailing word was an edition after all.
+   *
+   * `editionProvenByFallback` in `matching.service.ts` does exactly this, for exactly the
+   * reason written there, and the fixture has to carry the hints the service would score with
+   * or the pure-engine test and the service test disagree about *AFTERCARE DELUXE* by 0.27.
+   */
+  if (answeredRung !== null && bare !== base && bare !== album) {
+    if (answeredRung === lucene.releaseGroupQuery(bare, primary ?? credit)) {
+      for (const token of editionTokensIn(album.slice(bare.length))) {
+        if (!hints.edition.includes(token)) hints.edition.push(token);
+      }
+    }
   }
 
   if (rawGroups.length === 0) {

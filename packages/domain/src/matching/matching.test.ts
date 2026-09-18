@@ -9,7 +9,12 @@
  */
 import { describe, expect, it } from "vitest";
 import { readFixture } from "../testing/fixtures.ts";
-import { flattenTracks } from "./signals.ts";
+import {
+  artistLadder,
+  stripEditionQualifier,
+  stripEditionQualifierLoosely,
+} from "../normalize/title.ts";
+import { artistDisagrees, flattenTracks } from "./signals.ts";
 import { assign } from "./mapping.ts";
 import * as releaseCandidates from "./release-candidates.ts";
 import * as recordingCandidates from "./recording-candidates.ts";
@@ -1212,5 +1217,317 @@ describe("a disambiguation penalty is relative to what the source announced", ()
     };
     const ranking = rank("Record (Deluxe Edition)", [wrongDeluxe, pressing("standard", "")]);
     expect(ranking.preselected?.id).toBe("standard");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the artist disagreement: one statement, two forms                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The invariant the seventh owner review asks for, in as many words.
+ *
+ * The defect was never that the engine did not know: it *said* "Artist mismatch" on the card
+ * of the candidate it had ticked. The sentence and the decision were two independent pieces of
+ * code reading the same number, and only one of them acted on it. So the rule to keep is not
+ * "vetoes happen" — it is that **the sentence and the flag are the same statement**, checked
+ * in both directions, over every scenario recorded from the real MusicBrainz.
+ *
+ * Deliberately *not* written as `why.includes("Artist mismatch")` anywhere but here. This is
+ * the one test allowed to read the prose, and it reads it precisely so that nothing else has
+ * to: the moment somebody rewords the line, translates it, or adds the credited name to it,
+ * this fails instead of the veto silently becoming a no-op.
+ */
+describe("“Artist mismatch” and `artistDisagrees` are one statement", () => {
+  const ALBUMS = [
+    "aftercare",
+    "bad-ideas",
+    "bewitched",
+    "cars",
+    "currents",
+    "discovery",
+    "pure-heroine",
+    "rise-against",
+    "stardew-valley",
+    "the-heist",
+  ] as const;
+  const SINGLES = ["formidable", "skinny-love", "soleil-bleu"] as const;
+
+  const saysMismatch = (why: readonly string[]): boolean =>
+    why.some((line) => line.startsWith("Artist mismatch"));
+
+  it("agrees in both directions on every recorded release candidate", () => {
+    let disagreeing = 0;
+    for (const name of ALBUMS) {
+      const fixture = album(name);
+      const ranking = releaseCandidates.score(fixture);
+      for (const candidate of ranking.candidates) {
+        expect(
+          saysMismatch(candidate.why),
+          `${name}/${candidate.id}: why=${JSON.stringify(candidate.why)} flag=${String(candidate.artistDisagrees)}`,
+        ).toBe(candidate.artistDisagrees);
+        if (candidate.artistDisagrees) disagreeing += 1;
+      }
+    }
+    // A test that passes because nothing ever disagrees would prove nothing at all.
+    expect(disagreeing).toBeGreaterThan(0);
+  });
+
+  it("agrees in both directions on every recorded recording candidate", () => {
+    let disagreeing = 0;
+    for (const name of SINGLES) {
+      const fixture = single(name);
+      const ranking = recordingCandidates.score(fixture);
+      for (const candidate of ranking.candidates) {
+        expect(
+          saysMismatch(candidate.why),
+          `${name}/${candidate.id}: why=${JSON.stringify(candidate.why)} flag=${String(candidate.artistDisagrees)}`,
+        ).toBe(candidate.artistDisagrees);
+        if (candidate.artistDisagrees) disagreeing += 1;
+      }
+    }
+    expect(disagreeing).toBeGreaterThan(0);
+  });
+
+  it("carries the flag up from the release a group would actually import", () => {
+    for (const name of ALBUMS) {
+      const ranking = releaseGroups.group(releaseCandidates.score(album(name)).candidates);
+      for (const entry of ranking.groups) {
+        // `releases[0]` is what selecting this group imports, so it is the only credit the
+        // tick is about. No recorded scenario has a disagreeing best release, which is why the
+        // constructed case below is the one that proves the flag can be raised at all.
+        expect(entry.artistDisagrees).toBe(entry.releases[0]?.artistDisagrees ?? false);
+      }
+    }
+  });
+
+  it("agrees in both directions in the group search, before any release is read", () => {
+    const groups = [
+      {
+        id: "g-right",
+        title: "Soleil bleu",
+        "primary-type": "Album",
+        "artist-credit": [{ name: "Bleu Soleil" }],
+      },
+      {
+        id: "g-wrong",
+        title: "Soleil bleu",
+        "primary-type": "Album",
+        "artist-credit": [{ name: "VSO" }],
+      },
+    ] as unknown as Parameters<typeof releaseGroups.searchScore>[0];
+
+    const scored = releaseGroups.searchScore(groups, { album: "Soleil bleu", artist: "Bleu Soleil" }, 10);
+    const right = scored.find((entry) => entry.id === "g-right");
+    const wrong = scored.find((entry) => entry.id === "g-wrong");
+
+    expect(right?.artistDisagrees).toBe(false);
+    expect(saysMismatch(right?.why ?? [])).toBe(false);
+    expect(wrong?.artistDisagrees).toBe(true);
+    expect(wrong?.why).toContain("Artist mismatch (credited to VSO)");
+  });
+
+
+  it("never ticks a candidate that carries the flag, on any recorded scenario", () => {
+    for (const name of ALBUMS) {
+      const ranking = releaseCandidates.score(album(name));
+      expect(ranking.preselected?.artistDisagrees ?? false).toBe(false);
+      for (const candidate of ranking.candidates) {
+        if (candidate.preselected) expect(candidate.artistDisagrees).toBe(false);
+      }
+    }
+    for (const name of SINGLES) {
+      const ranking = recordingCandidates.score(single(name));
+      expect(ranking.preselected?.artistDisagrees ?? false).toBe(false);
+      for (const candidate of ranking.candidates) {
+        if (candidate.preselected) expect(candidate.artistDisagrees).toBe(false);
+      }
+    }
+  });
+
+  it("moves the tick down the list rather than reordering it", () => {
+    /*
+     * Two recordings of one title: a homonym that scores higher on everything the engine can
+     * see, and the right artist below it. The list is not touched — the homonym is still first
+     * and still says why it is wrong — and the tick is on the second.
+     */
+    const video: MatchVideo = {
+      id: "v",
+      index: 0,
+      title: "Soleil bleu",
+      durationSeconds: 246,
+      uploader: "Bleu Soleil - Topic",
+      ytArtist: "Bleu Soleil",
+    };
+    const candidates: RecordingCandidateInput[] = [
+      {
+        id: "homonym",
+        title: "Soleil bleu",
+        artist: "VSO",
+        disambiguation: "",
+        lengthMs: 246_000,
+        isrcs: [],
+        searchScore: 100,
+        releases: [],
+      },
+      {
+        id: "right",
+        title: "Soleil bleu",
+        artist: "Bleu Soleil & Luiza",
+        // A live take, three quarters of a minute off: on every signal the engine can measure
+        // this is the weaker candidate, and it is still the only one it may tick.
+        disambiguation: "live version",
+        lengthMs: 200_000,
+        isrcs: [],
+        searchScore: 90,
+        releases: [],
+      },
+    ];
+
+    const ranking = recordingCandidates.score({ video, candidates });
+    expect(ranking.candidates[0]?.id).toBe("homonym");
+    expect(ranking.candidates[0]?.score).toBeGreaterThan(ranking.candidates[1]?.score ?? 1);
+    expect(ranking.preselected?.id).toBe("right");
+    expect(ranking.candidates[0]?.preselected).toBe(false);
+
+    // With the veto off, the old behaviour — the ticked card explaining why it is wrong.
+    const old = recordingCandidates.score(
+      { video, candidates },
+      { preferences: { artistVeto: false } },
+    );
+    expect(old.preselected?.id).toBe("homonym");
+    expect(old.preselected?.artistDisagrees).toBe(true);
+    expect(saysMismatch(old.preselected?.why ?? [])).toBe(true);
+  });
+
+  it("ticks nothing when every candidate is somebody else's", () => {
+    const video: MatchVideo = {
+      id: "v",
+      index: 0,
+      title: "Soleil bleu",
+      durationSeconds: 246,
+      uploader: "Bleu Soleil - Topic",
+      ytArtist: "Bleu Soleil",
+    };
+    const homonyms: RecordingCandidateInput[] = ["VSO", "Sylvie Vartan", "Molécule"].map(
+      (artist, index) => ({
+        id: `h${String(index)}`,
+        title: "Soleil bleu",
+        artist,
+        disambiguation: "",
+        lengthMs: 246_000,
+        isrcs: [],
+        searchScore: 100 - index,
+        releases: [],
+      }),
+    );
+
+    const ranking = recordingCandidates.score({ video, candidates: homonyms });
+    expect(ranking.candidates).toHaveLength(3);
+    expect(ranking.preselected).toBeNull();
+    expect(ranking.candidates.every((candidate) => !candidate.preselected)).toBe(true);
+    // Nothing was hidden: all three are still there, ranked, with their reasons.
+    expect(ranking.candidates.every((candidate) => saysMismatch(candidate.why))).toBe(true);
+  });
+
+  it("is not a spelling test: two credits that share a name still agree", () => {
+    /*
+     * *Stardew Valley Piano Collections*, from the recording. YouTube writes "ConcernedApe,
+     * Meadow Bridgham, Augustine Mayuga Gonzales" and MusicBrainz writes "Augustine Mayuga
+     * Gonzales & Matthew Bridgham". The similarity between those two strings is well under a
+     * half — and they name the same person, so this must not be a disagreement. A veto that
+     * fired here would refuse the right answer, which is the same bug facing the other way.
+     */
+    const thresholds = DEFAULT_CONFIG.thresholds;
+    expect(
+      artistDisagrees(
+        ["ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales"],
+        "Augustine Mayuga Gonzales & Matthew Bridgham",
+        0.2,
+        thresholds,
+      ),
+    ).toBe(false);
+    // Whereas two names that merely look alike do disagree, however low the bar goes.
+    expect(artistDisagrees(["Laufey, Spencer Stewart"], "Laura Fygi", 0.2, thresholds)).toBe(true);
+    // A source that names nobody has nothing to disagree with.
+    expect(artistDisagrees([null, ""], "Laura Fygi", 0, thresholds)).toBe(false);
+    // And above the threshold it is a spelling, not an accusation, whatever the names are.
+    expect(artistDisagrees(["Bleu Soleil"], "VSO", 0.9, thresholds)).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the artist ladder                                                   */
+/* ------------------------------------------------------------------ */
+
+describe("artistLadder — the credit degraded name by name", () => {
+  it("asks the first name, then the whole credit, then the others in order", () => {
+    expect(artistLadder("ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales")).toEqual([
+      "ConcernedApe",
+      "ConcernedApe, Meadow Bridgham, Augustine Mayuga Gonzales",
+      "Meadow Bridgham",
+      "Augustine Mayuga Gonzales",
+    ]);
+  });
+
+  it("has exactly one rung for a credit that names one artist, so nothing changes", () => {
+    expect(artistLadder("Nessa Barrett")).toEqual(["Nessa Barrett"]);
+    expect(artistLadder("Daft Punk - Topic")).toEqual(["Daft Punk"]);
+    expect(artistLadder("")).toEqual([]);
+    expect(artistLadder(null)).toEqual([]);
+  });
+
+  it("splits on every separator a credit really uses, and never repeats a rung", () => {
+    expect(artistLadder("Macklemore & Ryan Lewis")).toEqual([
+      "Macklemore",
+      "Macklemore & Ryan Lewis",
+      "Ryan Lewis",
+    ]);
+    expect(artistLadder("Daft Punk feat. Julian Casablancas")).toEqual([
+      "Daft Punk",
+      "Daft Punk feat. Julian Casablancas",
+      "Julian Casablancas",
+    ]);
+  });
+
+  it("is bounded, because every rung is a second through the MusicBrainz gate", () => {
+    const long = "A, B, C, D, E, F, G, H";
+    expect(artistLadder(long)).toHaveLength(4);
+    expect(artistLadder(long, 2)).toEqual(["A", long]);
+  });
+
+  it("never offers a rung with no artist in it, whatever it is given", () => {
+    for (const credit of ["", "   ", ",,,", "- Topic", "A,,B", null, undefined]) {
+      for (const rung of artistLadder(credit)) expect(rung.trim()).not.toBe("");
+    }
+  });
+});
+
+describe("stripEditionQualifierLoosely — the last title rung", () => {
+  it("takes the bare trailing edition word the narrow strip leaves alone", () => {
+    expect(stripEditionQualifierLoosely("AFTERCARE DELUXE")).toBe("AFTERCARE");
+    expect(stripEditionQualifierLoosely("Nevermind Remastered")).toBe("Nevermind");
+  });
+
+  it("still refuses to leave nothing, so a record called Deluxe keeps its name", () => {
+    expect(stripEditionQualifierLoosely("Deluxe")).toBe("Deluxe");
+    expect(stripEditionQualifierLoosely("Remastered")).toBe("Remastered");
+  });
+
+  it("agrees with the narrow strip wherever the narrow strip has an opinion", () => {
+    for (const title of [
+      "Let Go (Expanded Edition)",
+      "The Heist (Deluxe Edition)",
+      "Abbey Road - Remastered",
+      "Discovery",
+      "Appeal to Reason",
+    ]) {
+      expect(stripEditionQualifierLoosely(title)).toBe(stripEditionQualifier(title));
+    }
+  });
+
+  it("is idempotent, like the narrow one", () => {
+    const once = stripEditionQualifierLoosely("AFTERCARE DELUXE");
+    expect(stripEditionQualifierLoosely(once)).toBe(once);
   });
 });
