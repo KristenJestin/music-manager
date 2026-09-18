@@ -131,19 +131,28 @@ function autoDescription(of: AlbumCommon & { track: string }): string {
   ].join("\n");
 }
 
-/** Build an album's video list from `[title, seconds]` pairs, all sharing the YouTube tags. */
+/**
+ * Build an album's video list from `[title, seconds]` pairs, all sharing the YouTube tags.
+ *
+ * The fourth element is that track's **own** artist, for the one shape where the album's credit
+ * and the track's credit are different facts: a Various Artists compilation. YouTube Music tags
+ * each video of one with the performer, not with the album's credit, and the matcher's
+ * recording rung asks with the video's own tags — so a scenario that flattened them would be
+ * recording a playlist YouTube does not serve. Left out, every video carries the album credit,
+ * which is what an ordinary album looks like.
+ */
 function albumVideos(
-  entries: readonly (readonly [string, number, string?])[],
+  entries: readonly (readonly [string, number, string?, string?])[],
   common: AlbumCommon,
 ): MatchVideo[] {
-  return entries.map(([title, duration, trackTag], index) => ({
+  return entries.map(([title, duration, trackTag, trackArtist], index) => ({
     id: `yt-${common.album.toLowerCase().replace(/\W+/g, "-")}-${String(index + 1)}`,
     index,
     title,
     durationSeconds: duration,
     uploader: common.uploader,
     ytTrack: trackTag ?? title,
-    ytArtist: common.artist,
+    ytArtist: trackArtist ?? common.artist,
     ytAlbum: common.album,
     ytReleaseYear: common.year,
     description: autoDescription({ ...common, track: trackTag ?? title }),
@@ -689,26 +698,31 @@ const AFTERCARE: AlbumScenario = {
 };
 
 /**
- * The seventh owner review's second defect, and the half of it this branch does **not** fix.
+ * The seventh owner review's second defect: a compilation reached through its tracks.
  *
  * The playlist is Pixar's *Cars*: Sheryl Crow's "Real Gone", Rascal Flatts' "Life is a
  * Highway", James Taylor's "Our Town", Brad Paisley's "Find Yourself" and Randy Newman's score
- * cuts. YouTube credits the album to **Randy Newman**, who wrote the score; MusicBrainz
- * credits the 2006 soundtrack `ac0830de-51e0-43ee-b8ce-65c2b7f2b170` to **Various Artists**,
- * in release group `b0629c4f-8e28-3066-99d6-ebcf0b2e601c`. The engine preselected *Cars 3
- * (Original Score)* — a different film, by the right composer.
+ * cuts. YouTube credits the album to **Randy Newman**, who wrote the score; MusicBrainz credits
+ * the 2006 soundtrack `ac0830de-51e0-43ee-b8ce-65c2b7f2b170` to **Various Artists**, in release
+ * group `b0629c4f-8e28-3066-99d6-ebcf0b2e601c`. The engine preselected *Cars 3 (Original
+ * Score)* — a different film, by the right composer.
  *
- * Recorded because it is the evidence for a limit rather than for a fix. `releasegroup:"Cars"
- * AND artist:"Randy Newman"` **answers**, with Randy Newman's own records, so no rung below it
- * is ever climbed — the ladder stops at the first question with an answer, which is the
- * property that keeps the ordinary album at one search. And no artist-carrying query built
- * from "Randy Newman" reaches a group credited to Various Artists, because that is the name
- * MusicBrainz indexes for it. Reaching it would take dropping the artist, which is the one
- * thing `lucene.ts` forbids and for good reason.
+ * Two things had to change and both are measured against the live index rather than guessed:
  *
- * What this branch does change here is that the wrong answer is no longer *silent*: the
- * tracklist fit puts *Cars 3* well under `matchPreselectionFloor`, and the review card now
- * says why nothing is ticked instead of showing an unexplained list.
+ *  - `releasegroup:"Cars" AND artist:"Randy Newman"` **answers**, with one group, *Cars 3
+ *    (original score)*, and the ladder used to stop at the first rung with any answer at all.
+ *    `titleScore("Cars", "Cars 3 (original score)")` is **0.3** against a 0.87 floor: that is
+ *    not this record under another name, it is a different record, so the ladder carries on;
+ *  - and the rung below it used to ask about every track with the **album's** credit:
+ *    `recording:"Life is a Highway" AND artist:"Randy Newman"` returns **count 0**, while
+ *    `artist:"Rascal Flatts"` returns it at score 100 *carrying `ac0830de` on the search result
+ *    itself*. Same for "Real Gone"/Sheryl Crow, "Our Town"/James Taylor and "Find
+ *    Yourself"/Brad Paisley — four independent votes on the release the owner named.
+ *
+ * So the videos here carry their **own** artists, because that is what YouTube Music serves for
+ * a compilation and flattening them would be recording a playlist that does not exist. Nothing
+ * about the query widened: it still names an artist, and the artist it names is one the source
+ * itself credits — for that track rather than for the record.
  *
  * The tracklist is the 2006 soundtrack's own twenty tracks; the owner's playlist had sixteen
  * of them.
@@ -722,30 +736,30 @@ const CARS: AlbumScenario = {
     artist: "Randy Newman",
     year: 2006,
     label: "Walt Disney Records",
-    note: "A Various Artists soundtrack credited by YouTube to the score's composer. The group search answers with his own records, so no fallback rung is ever reached: the known limit, recorded (owner review 7, D2).",
+    note: "A Various Artists soundtrack credited by YouTube to the score's composer. The group search answers with his own records at a title score of 0.3, and the tracks name the right release once they are asked about with their own artists (owner review 7, D2).",
   },
   videos: albumVideos(
     [
-      ["Real Gone", 201],
-      ["Route 66", 171],
-      ["Life is a Highway", 276],
-      ["Behind the Clouds", 249],
-      ["Our Town", 247],
-      ["Sh‐Boom", 147],
-      ["Route 66", 205],
-      ["Find Yourself", 250],
-      ["Opening Race", 125],
-      ["McQueen’s Lost", 149],
-      ["My Heart Would Know", 148],
-      ["Bessie", 59],
-      ["Dirt Is Different", 87],
-      ["New Road", 77],
-      ["Tractor Tipping", 80],
-      ["McQueen and Sally", 119],
-      ["Goodbye", 161],
-      ["Pre‐Race Pageantry", 90],
-      ["The Piston Cup", 112],
-      ["The Big Race", 187],
+      ["Real Gone", 201, undefined, "Sheryl Crow"],
+      ["Route 66", 171, undefined, "Chuck Berry"],
+      ["Life is a Highway", 276, undefined, "Rascal Flatts"],
+      ["Behind the Clouds", 249, undefined, "Brad Paisley"],
+      ["Our Town", 247, undefined, "James Taylor"],
+      ["Sh‐Boom", 147, undefined, "The Chords"],
+      ["Route 66", 205, undefined, "John Mayer"],
+      ["Find Yourself", 250, undefined, "Brad Paisley"],
+      ["Opening Race", 125, undefined, "Randy Newman"],
+      ["McQueen’s Lost", 149, undefined, "Randy Newman"],
+      ["My Heart Would Know", 148, undefined, "Hank Williams & Drifting Cowboys"],
+      ["Bessie", 59, undefined, "Randy Newman"],
+      ["Dirt Is Different", 87, undefined, "Randy Newman"],
+      ["New Road", 77, undefined, "Randy Newman"],
+      ["Tractor Tipping", 80, undefined, "Randy Newman"],
+      ["McQueen and Sally", 119, undefined, "Randy Newman"],
+      ["Goodbye", 161, undefined, "Randy Newman"],
+      ["Pre‐Race Pageantry", 90, undefined, "Randy Newman"],
+      ["The Piston Cup", 112, undefined, "Randy Newman"],
+      ["The Big Race", 187, undefined, "Randy Newman"],
     ],
     {
       album: "Cars",
@@ -1020,13 +1034,29 @@ async function recordAlbum(
   let rawGroups: readonly { id?: string; title?: string }[] = [];
   /** The rung that answered, so the fixture's hints are the ones the service would score with. */
   let answeredRung: string | null = null;
+  /*
+   * "Answered" means answered with something bearing the album's name — the same test
+   * `findReleaseGroups` applies, for the same reason: `releasegroup:"Cars" AND artist:"Randy
+   * Newman"` answers with *Cars 3 (original score)*, which scores 0.3 against a 0.87 floor and
+   * is a different record rather than this one under another name. A weak answer is kept in
+   * case the recording rung below finds nothing either.
+   */
+  const titleFloor = 0.87;
+  const bearsTheName = (group: { title?: string }): boolean =>
+    [album, base, bare].some((name) => titleScore(name, group.title ?? "") >= titleFloor);
+
+  let weakGroups: readonly { id?: string; title?: string }[] = [];
+
   for (const rung of rungs) {
     const answer = await searchDocument("release-group", rung);
-    rawGroups = answer["release-groups"] ?? [];
-    if (rawGroups.length > 0) {
+    const found = answer["release-groups"] ?? [];
+    if (found.length === 0) continue;
+    if (found.some(bearsTheName)) {
+      rawGroups = found;
       answeredRung = rung;
       break;
     }
+    if (weakGroups.length === 0) weakGroups = found;
   }
 
   /*
@@ -1056,11 +1086,14 @@ async function recordAlbum(
     // ranking the service never computes.
     const converged = new Map<string, { voters: Set<number>; group: MbReleaseGroup }>();
     for (const video of sample) {
+      // The video's own artist when it has one, exactly as `convergeThroughRecordings` asks.
+      const own = (video.ytArtist ?? video.uploader ?? "").trim();
+      const askedFor = own === "" ? (primary ?? credit) : (primaryArtist(own) ?? own);
       const answer = await searchDocument(
         "recording",
         lucene.recordingQuery({
-          title: stripArtistPrefix(video.ytTrack ?? video.title, primary ?? credit),
-          artist: primary ?? credit,
+          title: stripArtistPrefix(video.ytTrack ?? video.title, askedFor),
+          artist: askedFor,
           durationSeconds: video.durationSeconds,
         }),
       );
@@ -1071,7 +1104,8 @@ async function recordAlbum(
           .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
           .join("")
           .trim();
-        if (!creditCarriesArtist(credit, name)) continue;
+        if (!creditCarriesArtist(askedFor, name) && !creditCarriesArtist(credit, name)) continue;
+
         for (const release of (recording as { releases?: readonly MbRelease[] }).releases ?? []) {
           const group = release["release-group"];
           const id = group?.id;
@@ -1092,6 +1126,7 @@ async function recordAlbum(
       .filter((entry) => entry.voters.size >= 2)
       .sort((a, b) => b.voters.size - a.voters.size)
       .map((entry) => entry.group);
+    if (rawGroups.length === 0) rawGroups = weakGroups;
   }
 
   /*

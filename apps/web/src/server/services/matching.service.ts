@@ -338,6 +338,31 @@ function convergenceSample(videos: readonly MatchVideo[]): MatchVideo[] {
  * bears the album's name, so the fallback cannot wander off to the artist's other records.
  * From there the match resumes exactly where the first rung would have left it: these are
  * release groups, and the edition selection that follows is unchanged.
+ *
+ * ## Each video is asked about with **its own** artist
+ *
+ * Measured against the live index, on the owner's *Cars* import. YouTube credits the album to
+ * Randy Newman, who wrote the score, and MusicBrainz credits the 2006 soundtrack
+ * `ac0830de-51e0-43ee-b8ce-65c2b7f2b170` to Various Artists — a name no query built from
+ * "Randy Newman" can reach. But the *tracks* are not by Various Artists, and YouTube Music
+ * tags each of them with the artist who actually performs it:
+ *
+ *     recording:"Life is a Highway" AND artist:"Randy Newman"   → count 0
+ *     recording:"Life is a Highway" AND artist:"Rascal Flatts"  → score 100, on ac0830de
+ *     recording:"Real Gone"     AND artist:"Sheryl Crow"        → score 100, on ac0830de
+ *     recording:"Our Town"      AND artist:"James Taylor"       → score 100, on ac0830de
+ *     recording:"Find Yourself" AND artist:"Brad Paisley"       → score 100, on ac0830de
+ *
+ * Four independent votes, all on the release the owner named, and the releases come back on
+ * the search result itself — no lookup. The album credit was the wrong credit to ask with,
+ * and a compilation is exactly the shape where the album credit and the track credit are
+ * different facts.
+ *
+ * This is **narrower** than what it replaces, not wider, and the distinction is the same one
+ * `lucene.ts` protects: the query still carries an `artist:` clause, and the artist it carries
+ * is one the source itself names — for that track, which is more specific than the one it
+ * names for the record. The vote filter moves with it, or a search asked about Rascal Flatts
+ * would throw away every answer for not being Randy Newman.
  */
 async function convergeThroughRecordings(
   mb: MbGateway,
@@ -359,9 +384,16 @@ async function convergeThroughRecordings(
   const votes = new Map<string, { voters: Set<number>; group: MbReleaseGroup }>();
 
   for (const video of sample) {
+    /*
+     * The artist to ask about for *this* track: the video's own tags when it has them, the
+     * album's credit otherwise. On an ordinary album the two are the same string and nothing
+     * changes; on a compilation they are different facts and the track's is the true one.
+     */
+    const own = (video.ytArtist ?? video.uploader ?? "").trim();
+    const askedFor = own === "" ? artist : (primaryArtist(own) ?? own);
     const query = lucene.recordingQuery({
-      title: stripArtistPrefix(video.ytTrack ?? video.title, artist),
-      artist,
+      title: stripArtistPrefix(video.ytTrack ?? video.title, askedFor),
+      artist: askedFor,
       durationSeconds: video.durationSeconds,
     });
     queries.push(query);
@@ -374,9 +406,16 @@ async function convergeThroughRecordings(
         .map((entry) => `${entry.name ?? entry.artist?.name ?? ""}${entry.joinphrase ?? ""}`)
         .join("")
         .trim();
-      // A recording by somebody else is exactly what this fallback must not vote on: the
-      // search is forgiving, and "Bewitched" by Laura Fygi comes back for a Laufey query too.
-      if (!creditCarriesArtist(credit, name)) continue;
+      /*
+       * A recording by somebody else is exactly what this fallback must not vote on: the
+       * search is forgiving, and "Bewitched" by Laura Fygi comes back for a Laufey query too.
+       *
+       * The credit it is held to is **the one the query asked for** — the album's on an
+       * ordinary album, the track's on a compilation. Holding a Rascal Flatts answer to
+       * "Randy Newman" would discard every vote this rung exists to collect, and holding it to
+       * nothing at all would let the homonym back in.
+       */
+      if (!creditCarriesArtist(askedFor, name) && !creditCarriesArtist(credit, name)) continue;
 
       for (const release of (recording as { releases?: readonly MbRelease[] }).releases ?? []) {
         const group = release["release-group"];
@@ -521,19 +560,46 @@ async function findReleaseGroups(
     }
   }
 
+  /*
+   * An answer that is not an answer, kept in case nothing better turns up.
+   *
+   * A rung is supposed to stop the ladder, and stopping at the first rung with *any* result is
+   * what keeps an ordinary album at one search. It is also how the owner's *Cars* import
+   * reached a different film: `releasegroup:"Cars" AND artist:"Randy Newman"` answers, with
+   * exactly one group — **Cars 3 (original score)** — so no rung below it was ever climbed.
+   *
+   * `titleScore("Cars", "Cars 3 (original score)")` is **0.3**, against a `titleMatch` floor of
+   * 0.87. The index did not hand back the record under another name; it handed back a different
+   * record. So the ladder now carries on when *nothing it found bears the album's name* — and
+   * keeps the weak answer, because a match that showed *Cars 3* is still better than a match
+   * that shows nothing, and this must never be able to take something away.
+   */
+  const bearsTheName = (group: GroupSearchScore): boolean => {
+    const titleFloor = config.thresholds?.titleMatch ?? 0.87;
+    // All three names this ladder is willing to ask by, because a rung that asked for the bare
+    // title must be allowed to answer with it: MusicBrainz files *AFTERCARE DELUXE* as
+    // *AFTERCARE*, and judging that answer against the full title would throw away the very
+    // rung that found it.
+    return [album, base, bare].some((name) => titleScore(name, group.title) >= titleFloor);
+  };
+
+  let weak: { groups: GroupSearchScore[]; fallback: MatchFallback | null } | null = null;
+
   for (const rung of rungs) {
     if (rung.query === "") continue;
     queries.push(rung.query);
     const answer = await mb.search("release-group", rung.query, limit);
     const found: readonly MbReleaseGroup[] = answer?.["release-groups"] ?? [];
     if (found.length === 0) continue;
-    return {
-      groups: releaseGroups.searchScore(found, hints, videos.length, config),
-      fallback: rung.fallback,
-    };
+    const scored = releaseGroups.searchScore(found, hints, videos.length, config);
+    if (!ladderOn || scored.some(bearsTheName)) {
+      return { groups: scored, fallback: rung.fallback };
+    }
+    weak ??= { groups: scored, fallback: rung.fallback };
   }
 
   const converged = await convergeThroughRecordings(mb, hints, videos, limit, queries, config);
+  if (converged.groups.length === 0 && weak !== null) return weak;
   return {
     groups: releaseGroups.searchScore(converged.groups, hints, videos.length, config),
     fallback: converged.fallback,

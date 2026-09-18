@@ -1083,39 +1083,94 @@ describe("Soleil bleu — the sentence that condemns the candidate", () => {
   });
 });
 
-describe("Cars — the limit this branch does not lift, recorded", () => {
+describe("Cars — a compilation reached through its tracks", () => {
   const recorded = cassette("cars");
 
-  it("stops at the first rung, because the first rung answers — with the wrong film", async () => {
+  it("refuses to stop at an answer that is not called what the source calls it", async () => {
     const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
 
-    // One group search, and it is not empty, so no rung below it is ever climbed. That is the
-    // property that keeps an ordinary album at one search and it is also why Cars is stuck.
+    // The first rung answers — that is the whole problem. `titleScore("Cars", "Cars 3
+    // (original score)")` is 0.3 against a 0.87 floor: not this record under another name, a
+    // different record. So the ladder carries on instead of stopping on it.
     expect(result.queries[0]).toBe('releasegroup:"Cars" AND artist:"Randy Newman"');
-    expect(result.fallback).toBeNull();
-    expect(result.groups.groups.map((group) => group.title)).toEqual(["Cars 3 (original score)"]);
+    expect(result.groups.groups.map((group) => group.title)).not.toContain(
+      "Cars 3 (original score)",
+    );
   });
 
-  it("cannot reach the Various Artists soundtrack, and does not pretend otherwise", async () => {
+  it("asks about each track with the artist that track names, not the album's", async () => {
     const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
 
-    // `ac0830de` is credited to Various Artists, which is the name MusicBrainz indexes for it,
-    // so no query carrying `artist:"Randy Newman"` returns it. Reaching it would mean dropping
-    // the artist, which is the one widening `lucene.ts` forbids.
-    expect(result.ranking.candidates.map((c) => c.id)).not.toContain(
+    /*
+     * The measurement this rung exists for, against the real index:
+     *   recording:"Life is a Highway" AND artist:"Randy Newman"  → count 0
+     *   recording:"Life is a Highway" AND artist:"Rascal Flatts" → 100, carrying ac0830de
+     * The album credit was the wrong credit to ask with. Every rung still names an artist —
+     * it names the one the source credits for *that track*, which is narrower, not wider.
+     */
+    expect(result.queries).toContain(
+      'recording:"Life is a Highway" AND artist:"Rascal Flatts" AND dur:[271000 TO 281000]',
+    );
+    expect(result.queries).toContain(
+      'recording:"Our Town" AND artist:"James Taylor" AND dur:[242000 TO 252000]',
+    );
+    // And never with the album's composer, which is the query that answers nothing.
+    expect(result.queries).not.toContain(
+      'recording:"Life is a Highway" AND artist:"Randy Newman" AND dur:[271000 TO 281000]',
+    );
+    expect(result.fallback?.kind).toBe("recordings");
+  });
+
+  it("converges on the soundtrack's own release group, and reaches the owner's release", async () => {
+    const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
+
+    expect(result.groups.groups.map((group) => group.id)).toContain(
+      "b0629c4f-8e28-3066-99d6-ebcf0b2e601c",
+    );
+    // The release the owner named is a candidate now. It was reachable by no query at all
+    // before, because it is credited to Various Artists and every rung carried "Randy Newman".
+    expect(result.ranking.candidates.map((c) => c.id)).toContain(
       "ac0830de-51e0-43ee-b8ce-65c2b7f2b170",
     );
   });
 
-  it("is at least no longer silent: the fit puts the wrong film under the floor", async () => {
+  it("preselects the pressing of that record whose credit is the one YouTube wrote", async () => {
     const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), settings);
     const chosen = result.ranking.preselected;
 
-    // The artist agrees — it is the right composer — so the veto has nothing to say here. What
-    // stops the import is the tracklist: five of twenty-one tracks, eleven videos left over.
+    /*
+     * `6c6974d0` and `ac0830de` are the same record: one release group, one date, one country,
+     * the same twenty tracks. MusicBrainz credits the first to **Randy Newman** and the second
+     * to **Various Artists**, and the source says Randy Newman — so the veto leaves the first
+     * ticked and the owner's is one row below it, in the list, selectable. Which of two
+     * identical pressings to file under is the ordinary edition question; *which film* was the
+     * defect, and it is answered.
+     */
+    expect(chosen?.releaseGroupId).toBe("b0629c4f-8e28-3066-99d6-ebcf0b2e601c");
+    expect(chosen?.id).toBe("6c6974d0-f7b2-4ee1-acfc-37d2723f00d3");
     expect(chosen?.artistDisagrees).toBe(false);
-    expect(chosen?.score ?? 1).toBeLessThan(settings.matchPreselectionFloor);
-    expect(chosen?.leftOver ?? 0).toBeGreaterThan(0);
+    expect(chosen?.score ?? 0).toBeGreaterThan(settings.matchPreselectionFloor);
+    // Every video finds a track — which is what the owner said should happen and did not.
+    expect(chosen?.leftOver).toBe(0);
+  });
+
+  it("keeps the weak answer when the tracks find nothing, so this can only ever add", async () => {
+    /*
+     * The safety on carrying past a badly-named answer: with the ladder off, the recording rung
+     * is not climbed at all and the match is exactly what it was before this branch — *Cars 3*,
+     * found by the first rung. Carrying on must never be able to take away what stopping found.
+     */
+    const off: Settings = { ...settings, matchArtistLadder: false };
+
+    /*
+     * With the ladder off the badly-named answer is accepted as it always was, and the match
+     * goes straight to *Cars 3*'s own release group — `4866fa38`. The cassette no longer holds
+     * that release search, because the fixed matcher never asks it, so the replay fails on
+     * exactly the request the old code spent. That failure is the assertion.
+     */
+    await expect(matchAlbum(cassetteGateway(recorded), albumInput(recorded), off)).rejects.toThrow(
+      /rgid:4866fa38-c5d8-45ff-95d6-34ac50a6ae25/,
+    );
   });
 });
 
