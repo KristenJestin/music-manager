@@ -194,19 +194,24 @@ export function AdoptFileDialog({
           position you are in lit in amber.
 
           It replaces a row of three `Button`s, and the reason is measured rather than aesthetic.
-          A `Button` is `whitespace-nowrap shrink-0`, and with an icon each the three needed
-          114 + 163 + 140px plus two gaps: about 430px in the 348px a `max-w-form` dialog gives its
-          content. `DialogContent` is a grid whose single column is sized to its widest child's
-          minimum, so that row widened the column and the description, the field and the footer
-          were painted up to 65px outside the panel. Letting the row wrap cured the overflow but
-          put "Another address" on a line of its own, which is what this replaces.
+          A `Button` is `whitespace-nowrap shrink-0`, and with an icon each the three measured
+          115 + 164 + 143px in the browser that reported this — about 430px in a panel whose
+          content box is 352px. `DialogContent` is a grid whose single column is sized to its
+          widest child's minimum, so that row widened the column instead of overflowing itself, and
+          the header, the mode row, the field and the footer were all painted 66px outside the
+          panel. Letting the row wrap cured the overflow but put "Another address" on a line of its
+          own, which is what this replaces.
           Without the icons, at `text-xs` and at 6px of side padding — `filter-chips` uses 8px, but
-          a preset's name is shorter than "A path on the server" — those same three labels come to
-          ~284px in the browser that reported the bug (their widths were read off that screenshot).
-          With the padding and the dividers the strip is ~322px of a 348px content box: one line,
-          inside the dialog, 26px to spare. `min-w-0` and `overflow-x-auto` are the belt to those
+          a preset's name is shorter than "A path on the server" — the same three labels measure
+          351px of buttons in that browser, 339px once `grow` stops sharing out the free space: one
+          line of the 352px available, 13px to spare, and the same `getBoundingClientRect` reads
+          zero children outside the panel. `min-w-0` and `overflow-x-auto` are the belt to those
           braces, exactly as in `filter-chips`: if a label ever grows again, the strip scrolls
           rather than pushing the dialog open.
+          (Note the panel measures 384px, not the 380px of `max-w-form` the caller passes: at `sm`
+          and up the `sm:max-w-sm` `DialogContent` already carries comes later in the sheet and
+          wins. Four pixels, so nobody notices — but the caller's intent is not what is applied,
+          and this comment used to say 348px of content because of it.)
         */}
         <div
           role="radiogroup"
