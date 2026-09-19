@@ -28,6 +28,21 @@ describe("toPosix", () => {
   });
 });
 
+describe("pathMap", () => {
+  it("reads a Windows root as absolute on any host", () => {
+    // `node:path`'s `isAbsolute` answers for the host platform only, so on Linux this root was
+    // resolved against the cwd and became `/work/mm/D:\srv\…`. The map is string work over two
+    // configured roots: it must not depend on which of the two worlds is asking.
+    expect(windows.host).toBe("D:\\srv\\music-manager\\library");
+    expect(toPosix(windows.host)).toBe("D:/srv/music-manager/library");
+  });
+
+  it("still resolves a relative root against the cwd", () => {
+    const local = pathMap({ host: "./.local/library", container: "/library", cwd: "/srv/mm" });
+    expect(toPosix(local.host)).toBe("/srv/mm/.local/library");
+  });
+});
+
 describe("hostPath / containerPath", () => {
   it("renders a library-relative path for each side", () => {
     const relative = "Daft Punk/Discovery (2001)/01 One More Time.opus";

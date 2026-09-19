@@ -12,7 +12,7 @@
  *
  * Pure string functions over an explicit `PathMap`; the filesystem is never touched here.
  */
-import { isAbsolute, resolve, sep } from "node:path";
+import { isAbsolute, resolve, sep, win32 } from "node:path";
 
 export interface PathMap {
   /** Library root as this process sees it. Absolute after `pathMap()` has normalised it. */
@@ -37,6 +37,13 @@ function trimTrailing(value: string): string {
  * Build the map from the two roots. The host root is resolved against `cwd` so that the
  * default `./.local/library` works from the repository root, from `apps/web`, and from a
  * `bun run` script alike.
+ *
+ * "Absolute" is asked of both platforms, not of the host one. `node:path`'s `isAbsolute`
+ * answers for the machine the process runs on, so a Windows root — the developer's
+ * `D:\srv\music-manager\library` — came back relative on Linux and was resolved against the
+ * cwd, producing `/work/mm/D:\srv\…`: not a path either side can use, and four assertions of
+ * `paths.test.ts` failed on any non-Windows host for that reason alone. The map is pure
+ * string work over two configured roots, so it reads the shape of the root and nothing else.
  */
 export function pathMap(options: {
   host: string;
@@ -44,9 +51,10 @@ export function pathMap(options: {
   workDir?: string;
   cwd?: string;
 }): PathMap {
-  const host = isAbsolute(options.host)
-    ? trimTrailing(options.host)
-    : trimTrailing(resolve(options.cwd ?? process.cwd(), options.host));
+  const host =
+    isAbsolute(options.host) || win32.isAbsolute(options.host)
+      ? trimTrailing(options.host)
+      : trimTrailing(resolve(options.cwd ?? process.cwd(), options.host));
   return {
     host,
     container: trimTrailing(toPosix(options.container)),
