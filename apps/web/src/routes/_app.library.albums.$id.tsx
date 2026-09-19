@@ -1065,7 +1065,7 @@ function TracksTab({ album }: { readonly album: AlbumData }) {
             if (!open) setAdopting(null);
           }}
           trackTitle={adopting.title}
-          description={`“${adopting.title}” is on this album's release and was never downloaded — the playlist did not publish it. Give it a file you already have, or an address to fetch it from, and it alone is downloaded, tagged and filed.`}
+          description={`“${adopting.title}” is on this album's release and no file of it is in the library yet. Give it a file you already have, or an address to fetch it from, and it alone is downloaded, tagged and filed.`}
           busy={busy}
           onAdopt={adopt}
         />

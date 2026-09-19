@@ -11,6 +11,7 @@ import {
   jitterMs,
   nextStep,
   resumePoint,
+  stepFraction,
   stepsFrom,
   STEP_ORDER,
   transition,
@@ -293,7 +294,27 @@ describe("aggregateStatus — the derived job_steps row", () => {
 
   it("ignores the tracks that were already present: they are not this album's work", () => {
     const tally = aggregateStatus(states("skipped", "placed"), "place");
-    expect(tally).toEqual({ status: "done", done: 1, total: 1 });
+    expect(tally).toEqual({ status: "done", done: 1, total: 1, spared: 1 });
     expect(aggregateStatus(states("skipped", "skipped"), "place").status).toBe("skipped");
+  });
+
+  it("counts the spared tracks, so a row cannot read 5/5 on a six-track album", () => {
+    /*
+     * The owner's report: `mm retry --step tag` announced "5/5" on a six-track album while one
+     * track sat at `skipped`, and nothing in the row said so. The fraction was true about the
+     * tracks this step owed work to, and silent about the one it had been spared.
+     */
+    const tally = aggregateStatus(
+      [...states("placed", "placed", "placed", "placed", "placed"), { state: "skipped" as const }],
+      "place",
+    );
+    expect(tally).toEqual({ status: "done", done: 5, total: 5, spared: 1 });
+    expect(stepFraction(tally)).toBe(
+      "5/5 track(s) · 1 spared (already present, or with no source)",
+    );
+  });
+
+  it("says nothing extra when no track was spared", () => {
+    expect(stepFraction(aggregateStatus(states("placed", "placed"), "place"))).toBe("2/2 track(s)");
   });
 });

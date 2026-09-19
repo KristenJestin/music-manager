@@ -16,9 +16,9 @@
  *    costs at most one partial file, which yt-dlp's `--continue` picks up anyway.
  */
 import { existsSync, mkdirSync, statSync } from "node:fs";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { MMError } from "@mm/contracts";
-import { libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
+import { libraryAlbums, libraryTracks, type ImportTrack } from "#/server/db/schema/index.ts";
 import { containerPath, hostPath, taggable, toRelative, workFolder } from "#/server/paths.ts";
 import { cookieJar } from "#/server/services/cookies.ts";
 import { adoptionOf } from "#/server/services/adopt.record.ts";
@@ -48,13 +48,68 @@ const SLOT_POLL_MS = 3_000;
  */
 const SLOT_MAX_WAIT_MS = 60 * 60_000;
 
-/** True when this recording is already sitting in the library. */
-async function alreadyInLibrary(ctx: StepContext, recordingMbid: string | null): Promise<boolean> {
+/**
+ * The album row this import is filing into, or `null` when there is not one.
+ *
+ * The whole of the `ADOPT_CONFLICT` bug turns on this. `alreadyInLibrary` used to ask its
+ * question with no album in it at all — *does this recording exist anywhere in the library* —
+ * and on a record the owner is re-taking from v1, a song he also has on a compilation answered
+ * yes. The shortcut then skipped the track, so `download` never looked at the file waiting for
+ * it in `.mm-work`; adopting that file was refused with `ADOPT_CONFLICT: This track already has
+ * a file` — a sentence about a file this pipeline had left there itself; `mm retry --step tag`
+ * walked past the row; and the album stayed holed until somebody typed an `update` into the
+ * database by hand.
+ *
+ * **A song on a compilation is not a reason to hole the album it came from.** The question the
+ * shortcut is really asking is "is this record already filed", so it is asked of the album this
+ * import resolves to — `library_albums.release_mbid`, the same binding `place` writes.
+ *
+ * `null` disables the shortcut rather than widening it, and both cases that answer null are
+ * honest ones: an untagged import has no release to resolve (and its album's identity is its
+ * title and artist, which is not a question `library_tracks` can be asked), and an album that
+ * is not in the library yet has nothing to spare. Neither is a reason to skip a track on the
+ * strength of a recording match somewhere else in the library.
+ */
+async function filedAlbum(ctx: StepContext): Promise<string | null> {
+  const releaseMbid = ctx.job.releaseMbid;
+  if (releaseMbid === null || releaseMbid === "") return null;
+  const [album] = await ctx.db
+    .select({ id: libraryAlbums.id })
+    .from(libraryAlbums)
+    .where(eq(libraryAlbums.releaseMbid, releaseMbid))
+    .limit(1);
+  return album?.id ?? null;
+}
+
+/**
+ * True when this recording is already sitting in the library **on the disc being filed**.
+ *
+ * `albumId` comes from `filedAlbum`; the disc is the track's own `mediumPosition`, which is
+ * what the release says and what `place` writes into `library_tracks.disc_number`. Both halves
+ * are needed. Bounding by the album alone still skips a track because the same recording sits
+ * on *another disc of the same record* — a compilation released as disc 2 of a box, which is
+ * exactly the shape of the report on *Soleil bleu*: the title track was spared because the same
+ * recording existed under another disc, and the album was left with a hole in the middle.
+ */
+async function alreadyInLibrary(
+  ctx: StepContext,
+  track: ImportTrack,
+  albumId: string | null,
+): Promise<boolean> {
+  const recordingMbid = track.recordingMbid;
   if (recordingMbid === null || recordingMbid === "") return false;
+  if (albumId === null) return false;
+  const disc = track.mediumPosition;
   const [row] = await ctx.db
     .select({ path: libraryTracks.path })
     .from(libraryTracks)
-    .where(eq(libraryTracks.recordingMbid, recordingMbid))
+    .where(
+      and(
+        eq(libraryTracks.albumId, albumId),
+        eq(libraryTracks.recordingMbid, recordingMbid),
+        disc === null ? isNull(libraryTracks.discNumber) : eq(libraryTracks.discNumber, disc),
+      ),
+    )
     .limit(1);
   if (row === undefined) return false;
   // A row whose file has been deleted behind our back is not "already present".
@@ -294,7 +349,7 @@ export async function downloadStep(ctx: StepContext): Promise<StepResult> {
       continue;
     }
 
-    if (!force && (await alreadyInLibrary(ctx, track.recordingMbid))) {
+    if (!force && (await alreadyInLibrary(ctx, track, await filedAlbum(ctx)))) {
       // A track *this* import has already filed must not be demoted to `skipped`. Since
       // `place` runs per track (decision 147), a worker restarted mid-album meets its own
       // earlier work in the library, and rewriting `placed` to `skipped` would lose the one
