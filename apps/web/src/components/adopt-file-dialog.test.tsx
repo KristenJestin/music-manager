@@ -106,6 +106,23 @@ describe("AdoptFileDialog", () => {
     expect(screen.getByTestId("adopt-file-confirm").textContent).toContain("Download it");
   });
 
+  it("says which position is on, for a reader that cannot see the amber", () => {
+    /*
+     * The strip is one control with three positions, drawn with a colour for the chosen one. The
+     * colour is the whole of the signal unless `aria-checked` moves with it, so that is what is
+     * asserted — and exactly one position at a time, not merely "this one is on".
+     */
+    open();
+    expect(screen.getByTestId("adopt-mode-upload").getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByTestId("adopt-mode-path").getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByTestId("adopt-mode-url").getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(screen.getByTestId("adopt-mode-url"));
+
+    expect(screen.getByTestId("adopt-mode-url").getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByTestId("adopt-mode-upload").getAttribute("aria-checked")).toBe("false");
+  });
+
   it("still hands up a `path` choice, so the third kind cost the first nothing", () => {
     const { onAdopt } = open();
     fireEvent.click(screen.getByTestId("adopt-mode-path"));

@@ -21,7 +21,8 @@
  *    label that hid that would be a lie about what the click costs.
  */
 import { useState } from "react";
-import { FileUp, FolderOpen, Link2, Upload } from "lucide-react";
+import { FileUp } from "lucide-react";
+import { cn } from "cn";
 import { Button } from "#/components/ui/button.tsx";
 import {
   Dialog,
@@ -52,6 +53,23 @@ const ACCEPTED = ".opus,.ogg,.oga,.flac,.mp3,.mp2,.m4a,.mp4,.m4b,.aac";
  * costs a round trip and never a bad download.
  */
 const ADOPTABLE_URL = /^(?:https?:\/\/|fixture:\/\/)/i;
+
+/**
+ * The three ways in, in the order they are offered, and what each position is called.
+ *
+ * A table rather than three hand-written buttons: the strip is drawn once, the state's type comes
+ * from it (`Mode` below), and a fourth way in would be one line here instead of another copy of
+ * the same six props. The labels are the copy and not decoration — the file's header says why
+ * they name the source rather than the mechanism.
+ */
+const MODES = [
+  { value: "upload", label: "Upload a file" },
+  { value: "path", label: "A path on the server" },
+  { value: "url", label: "Another address" },
+] as const;
+
+/** Which of the three is chosen. Derived, so the table above cannot drift from the state. */
+type Mode = (typeof MODES)[number]["value"];
 
 export type AdoptFileChoice =
   | { readonly kind: "path"; readonly path: string }
@@ -99,7 +117,7 @@ export function AdoptFileDialog({
   busy = false,
   onAdopt,
 }: AdoptFileDialogProps) {
-  const [mode, setMode] = useState<"upload" | "path" | "url">("upload");
+  const [mode, setMode] = useState<Mode>("upload");
   const [path, setPath] = useState("");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -171,56 +189,56 @@ export function AdoptFileDialog({
         </DialogHeader>
 
         {/*
-          `flex-wrap`, and it is not cosmetic: a `Button` is `whitespace-nowrap` and `shrink-0`,
-          so the three ways in cannot shrink below ~430px together — measured on the screenshot
-          that reported this, they are 114 + 163 + 140px plus two 6px gaps — while `DialogContent`
-          is a grid whose single column is sized to its widest child's minimum. Without the wrap
-          the row did not overflow *itself*: it widened the column to 430px inside a 348px content
-          box, so the description, the field and the footer were laid out at that width too and
-          were painted up to 65px outside the panel, over whatever was behind it. Wrapping keeps
-          the row's minimum at one button, which the panel holds, and the next label to grow wraps
-          instead of pushing the panel open again.
+          One line, three positions: a segmented control, the shape the Console already uses for
+          "one of N" (`library/filter-chips.tsx`) — a single border, hairline dividers, and the
+          position you are in lit in amber.
+
+          It replaces a row of three `Button`s, and the reason is measured rather than aesthetic.
+          A `Button` is `whitespace-nowrap shrink-0`, and with an icon each the three measured
+          115 + 164 + 143px in the browser that reported this — about 430px in a panel whose
+          content box is 352px. `DialogContent` is a grid whose single column is sized to its
+          widest child's minimum, so that row widened the column instead of overflowing itself, and
+          the header, the mode row, the field and the footer were all painted 66px outside the
+          panel. Letting the row wrap cured the overflow but put "Another address" on a line of its
+          own, which is what this replaces.
+          Without the icons, at `text-xs` and at 6px of side padding — `filter-chips` uses 8px, but
+          a preset's name is shorter than "A path on the server" — the same three labels measure
+          351px of buttons in that browser, 339px once `grow` stops sharing out the free space: one
+          line of the 352px available, 13px to spare, and the same `getBoundingClientRect` reads
+          zero children outside the panel. `min-w-0` and `overflow-x-auto` are the belt to those
+          braces, exactly as in `filter-chips`: if a label ever grows again, the strip scrolls
+          rather than pushing the dialog open.
+          (Note the panel measures 384px, not the 380px of `max-w-form` the caller passes: at `sm`
+          and up the `sm:max-w-sm` `DialogContent` already carries comes later in the sheet and
+          wins. Four pixels, so nobody notices — but the caller's intent is not what is applied,
+          and this comment used to say 348px of content because of it.)
         */}
-        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Where the file is">
-          <Button
-            size="sm"
-            variant={mode === "upload" ? "default" : "outline"}
-            role="radio"
-            aria-checked={mode === "upload"}
-            data-testid="adopt-mode-upload"
-            onClick={() => {
-              setMode("upload");
-              setProblem(null);
-            }}
-          >
-            <Upload className="size-3.5" aria-hidden="true" /> Upload a file
-          </Button>
-          <Button
-            size="sm"
-            variant={mode === "path" ? "default" : "outline"}
-            role="radio"
-            aria-checked={mode === "path"}
-            data-testid="adopt-mode-path"
-            onClick={() => {
-              setMode("path");
-              setProblem(null);
-            }}
-          >
-            <FolderOpen className="size-3.5" aria-hidden="true" /> A path on the server
-          </Button>
-          <Button
-            size="sm"
-            variant={mode === "url" ? "default" : "outline"}
-            role="radio"
-            aria-checked={mode === "url"}
-            data-testid="adopt-mode-url"
-            onClick={() => {
-              setMode("url");
-              setProblem(null);
-            }}
-          >
-            <Link2 className="size-3.5" aria-hidden="true" /> Another address
-          </Button>
+        <div
+          role="radiogroup"
+          aria-label="Where the file is"
+          className="flex min-w-0 shrink items-stretch overflow-x-auto rounded-lg border border-line-strong bg-surface-2"
+        >
+          {MODES.map((position) => (
+            <button
+              key={position.value}
+              type="button"
+              role="radio"
+              aria-checked={mode === position.value}
+              data-testid={`adopt-mode-${position.value}`}
+              onClick={() => {
+                setMode(position.value);
+                setProblem(null);
+              }}
+              className={cn(
+                "inline-flex h-7 grow shrink-0 items-center justify-center border-r border-line px-1.5 text-xs whitespace-nowrap last:border-r-0 focus-visible:z-1 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                mode === position.value
+                  ? "bg-primary-soft text-primary"
+                  : "text-fg-2 hover:bg-surface-3 hover:text-fg-1",
+              )}
+            >
+              {position.label}
+            </button>
+          ))}
         </div>
 
         {mode === "upload" ? (
