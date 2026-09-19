@@ -161,16 +161,30 @@ def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
     export to paste into the Console, not a path that happens to exist inside this container
     (owner review B6). It is written 0600 to the system temp directory and removed on the way
     out, so it never lands in the library, in a log, or in an image layer.
+
+    **A path is copied before it is used, never handed to yt-dlp directly.** yt-dlp does not
+    only read a jar, it rewrites it — expiring cookies it found dead, refreshing the ones it
+    renewed — and on a real installation the file is a mount the operator made read-only on
+    purpose. Handing over the operator's own path made every download die with
+    `OSError: [Errno 30] Read-only file system` at the *end* of a successful fetch, which reads
+    as a download failure and is nothing of the sort. The copy is what a pasted jar already
+    got; a path now gets the same treatment, and the operator's file is never touched.
     """
     content = options.cookies_content
-    if not content:
+    if not content and not options.cookies:
         yield {}
         return
     handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
         "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
     )
     try:
-        handle.write(content if content.endswith("\n") else f"{content}\n")
+        if content:
+            handle.write(content if content.endswith("\n") else f"{content}\n")
+        else:
+            source = Path(str(options.cookies))
+            if not source.is_file():
+                raise ValueError(f"Cookies file not found: {source}")
+            handle.write(source.read_text(encoding="utf-8", errors="replace"))
         handle.close()
         Path(handle.name).chmod(0o600)
         yield {"cookiefile": handle.name}

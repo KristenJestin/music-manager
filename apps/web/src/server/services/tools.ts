@@ -325,6 +325,35 @@ export interface CookiesStatus {
 }
 
 /**
+ * Why a jar that parsed is still not a session, with the numbers the toolbox already computed.
+ *
+ * "The jar was read but is not a usable session" is true and useless: the owner reading it on
+ * `mm tools status` cannot tell a jar that expired this morning from one that never carried a
+ * `SAPISID` at all, and the two need different fixes (export a fresh jar / log in before
+ * exporting). The toolbox answers both — `cookies`, `domains`, `expired`, `problems` — and
+ * nothing was reading them out.
+ *
+ * Every figure here is one the toolbox returned; nothing is computed twice and no cookie value
+ * is ever named.
+ */
+export function unusableJarSentence(result: {
+  readonly cookies: number;
+  readonly domains: readonly string[];
+  readonly authenticated: boolean;
+  readonly expired: number;
+  readonly expires_at?: string | null;
+  readonly problems?: readonly string[];
+}): string {
+  const counts =
+    `${String(result.cookies)} cookie(s) · ${String(result.domains.length)} domain(s)` +
+    ` · ${result.authenticated ? "a session cookie" : "no session cookie"}` +
+    ` · ${String(result.expired)} expired`;
+  const problems = result.problems ?? [];
+  const why = problems.length === 0 ? "" : ` — ${problems.join("; ")}`;
+  return `The jar was read but is not a usable session (${counts})${why}.`;
+}
+
+/**
  * Test the cookie jar, or explain that there is not one.
  *
  * Anonymous is a legitimate, and the default, way to run: most of YouTube needs no session.
@@ -383,8 +412,8 @@ export async function cookiesStatus(deps: ToolsDeps = {}): Promise<CookiesStatus
       expired: result.expired,
       problems: result.problems ?? [],
       note: result.ok
-        ? "A usable YouTube session."
-        : "The jar was read but is not a usable session.",
+        ? `A usable YouTube session (${String(result.cookies)} cookie(s), ${String(result.domains.length)} domain(s)${result.expires_at === null ? "" : `, lapses ${result.expires_at}`}).`
+        : unusableJarSentence(result),
     };
   } catch (error) {
     return {

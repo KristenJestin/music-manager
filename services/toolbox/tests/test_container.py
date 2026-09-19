@@ -269,12 +269,39 @@ def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
     assert not seen.exists()
 
 
-def test_a_path_is_passed_straight_through_and_an_absent_jar_adds_nothing():
-    with cookie_jar(YtdlpOptions(cookies="/data/cookies.txt")) as jar:
-        assert jar == {}
-    assert build_options(YtdlpOptions(cookies="/data/cookies.txt"))["cookiefile"] == (
-        "/data/cookies.txt"
-    )
+def test_a_path_is_read_through_a_private_copy_and_the_original_is_never_touched(tmp_path: Path):
+    """A jar on disk is copied, because yt-dlp *rewrites* the jar it is given.
+
+    On a real installation that file is a mount the operator made read-only on purpose, so
+    handing over the operator's own path made every download die with
+    `OSError: [Errno 30] Read-only file system` at the end of a successful fetch.
+    """
+    jar_text = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tFALSE\t0\tSAPISID\tsecret\n"
+    source = tmp_path / "cookies.txt"
+    source.write_text(jar_text, encoding="utf-8")
+    source.chmod(0o444)  # the operator's mount, in miniature
+
+    with cookie_jar(YtdlpOptions(cookies=str(source))) as jar:
+        copy = Path(str(jar["cookiefile"]))
+        assert copy != source
+        assert copy.read_text(encoding="utf-8") == jar_text
+        # What yt-dlp does to the jar it was handed — which the original must not suffer.
+        copy.write_text("# rewritten by yt-dlp\n", encoding="utf-8")
+        assert source.read_text(encoding="utf-8") == jar_text
+    assert not copy.exists()
+    assert source.read_text(encoding="utf-8") == jar_text
+
+
+def test_a_path_that_is_not_there_says_so_rather_than_failing_inside_ytdlp(tmp_path: Path):
+    missing = tmp_path / "absent.txt"
+    with (
+        pytest.raises(ValueError, match="Cookies file not found"),
+        cookie_jar(YtdlpOptions(cookies=str(missing))),
+    ):
+        pass
+
+
+def test_an_absent_jar_adds_nothing():
     with cookie_jar(YtdlpOptions()) as jar:
         assert jar == {}
     assert "cookiefile" not in build_options(YtdlpOptions())

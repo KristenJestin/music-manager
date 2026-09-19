@@ -171,6 +171,36 @@ describe("cookiesStatus", () => {
     expect(status.expiresAt).toBe("2026-10-01T00:00:00Z");
   });
 
+  it("names what the toolbox counted when the jar is not a session", async () => {
+    /*
+     * "The jar was read but is not a usable session" is true and useless on `mm tools status`:
+     * the owner cannot tell a jar that expired this morning from one that never carried a
+     * session cookie, and the two need different fixes.
+     */
+    const status = await cookiesStatus({
+      settings: settings({ cookiesMode: "file", cookiesFile: "/data/cookies.txt" }),
+      toolbox: fakeToolbox({
+        testCookies: () =>
+          Promise.resolve({
+            ok: false,
+            cookies: 7,
+            domains: [".youtube.com", ".google.com"],
+            authenticated: false,
+            expires_at: null,
+            expired: 7,
+            problems: ["No session cookie (SAPISID) was found"],
+          }),
+      }),
+    });
+    expect(status.ok).toBe(false);
+    expect(status.note).toContain("7 cookie(s)");
+    expect(status.note).toContain("2 domain(s)");
+    expect(status.note).toContain("no session cookie");
+    expect(status.note).toContain("7 expired");
+    expect(status.note).toContain("No session cookie (SAPISID) was found");
+    expect(status.note, "and it still never names a cookie").not.toContain("SAPISID=");
+  });
+
   it("turns an unreadable file into a problem, not an exception", async () => {
     const status = await cookiesStatus({
       settings: settings({ cookiesMode: "file", cookiesFile: "/nope.txt" }),

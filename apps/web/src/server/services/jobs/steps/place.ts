@@ -34,7 +34,7 @@ import {
   type ImportTrack,
 } from "#/server/db/schema/index.ts";
 import { newId } from "#/server/ids.ts";
-import { containerPath, hostPath, toRelative, workFolder } from "#/server/paths.ts";
+import { containerPath, hostPath, toRelative, workFolder, type PathMap } from "#/server/paths.ts";
 import { recountAlbum } from "#/server/services/album-counters.ts";
 import { getOrFetch } from "#/server/services/cache.ts";
 import { writeArtistImageSidecar } from "#/server/services/artist-image.ts";
@@ -352,6 +352,36 @@ async function upsertLibraryTrack(
     .where(eq(metadataDocuments.importTrackId, track.id));
 }
 
+/**
+ * The `cover_path` patch for an album row, answered by the filesystem and never by intent.
+ *
+ * `library_albums.cover_path` is a claim about a file that is on disk, so it has to be read
+ * off the disk. It used to be `` `${folder}/cover.jpg` `` written unconditionally, and
+ * `writeCover` above declines for four ordinary reasons — `writeCover` is off in Settings,
+ * the release has no front cover, the artwork fetch failed (which `writeCover` journals and
+ * survives on purpose), or the folder is `null` because no track was placeable. Every one of
+ * those left a row pointing at a file nobody wrote: the Console showed a broken image,
+ * `/api/cover` answered 404 for it, and the `hasCover` filter matched an album with no cover
+ * at all. Eight albums carried over from v1 were exactly this.
+ *
+ * The three other writers of the column already answer it this way — `migration/v1`'s
+ * `refreshAlbumCounters`, `relocate.ts`, and `library.setCover`, which writes the bytes before
+ * it writes the path. This is the same rule, in the same shape: the path when the file is
+ * there, and **no key at all** otherwise, so a value an earlier run wrote correctly is never
+ * cleared by a later run that merely skipped the write. `null` is reserved for the one case
+ * where the album genuinely has no folder to look in.
+ *
+ * Pure, so the property "no path without a file" is asserted without a database.
+ */
+export function coverPathPatch(
+  paths: PathMap,
+  folder: string | null,
+): Partial<{ coverPath: string | null }> {
+  if (folder === null) return { coverPath: null };
+  const cover = `${folder}/cover.jpg`;
+  return existsSync(hostPath(paths, cover)) ? { coverPath: cover } : {};
+}
+
 /** `cover.jpg` next to the tracks. Written once per album, from the cached artwork. */
 async function writeCover(ctx: StepContext, folder: string, url: string | null): Promise<boolean> {
   if (!ctx.settings.writeCover || url === null) return false;
@@ -615,7 +645,7 @@ export async function placeStep(ctx: StepContext): Promise<StepResult> {
     await ctx.db
       .update(libraryAlbums)
       .set({
-        coverPath: folder === null ? null : `${folder}/cover.jpg`,
+        ...coverPathPatch(ctx.paths, folder),
         updatedAt: new Date(),
       })
       .where(eq(libraryAlbums.id, albumId));
