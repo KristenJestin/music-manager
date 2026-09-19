@@ -80,6 +80,10 @@ services:
       MM_TOOLBOX_FIXTURE_DELAY_MS: ${MM_TOOLBOX_FIXTURE_DELAY_MS:-20}
       # AcoustID key for /fingerprint. Without it the fingerprint is still computed.
       MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
+      # The same two switches as in production: the level floor of the JSON logs, and
+      # yt-dlp's own debug stream when one extraction has to be read line by line.
+      MM_LOG_LEVEL: ${MM_LOG_LEVEL:-info}
+      MM_YTDLP_VERBOSE: ${MM_YTDLP_VERBOSE:-0}
     ports:
       - "${MM_TOOLBOX_PORT:-8100}:8100"
     volumes:

@@ -14,13 +14,14 @@ from __future__ import annotations
 
 import re
 import tempfile
-from collections.abc import Callable, Generator, Mapping
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Final, cast
 
 from yt_dlp import YoutubeDL  # pyright: ignore[reportMissingTypeStubs]
 
+from toolbox.config import ytdlp_verbose
 from toolbox.errors import ErrorCode, classify_message, strip_ytdlp_prefix
 from toolbox.models import ExtractEntry, ExtractGap, ExtractResult, Thumbnail, YtdlpOptions
 from toolbox.tagging import TAGGABLE_SUFFIXES
@@ -30,10 +31,14 @@ __all__ = [
     "audio_extraction_codec",
     "build_options",
     "cookie_jar",
+    "cookie_secrets",
+    "cookie_shape",
     "downloaded_path",
     "entry_from_info",
     "extract_info",
     "is_unavailable",
+    "jar_secret_values",
+    "redact_cookies",
     "result_from_info",
     "yt_dlp_version",
 ]
@@ -68,6 +73,38 @@ _ERROR_PREFIX: Final[re.Pattern[str]] = re.compile(r"^ERROR:\s*", re.IGNORECASE)
 #: Eleven characters is the YouTube video id, and nothing else in these messages has that
 #: shape between a bracket and a colon.
 _ERROR_ID: Final[re.Pattern[str]] = re.compile(r"\[[^\]]+\]\s+([A-Za-z0-9_-]{11}):")
+#: Field index of the value in a Netscape jar line — domain, flag, path, secure, expiry, name,
+#: value. Everything before it is metadata; the field itself is the credential.
+_JAR_VALUE_INDEX: Final[int] = 6
+#: `Cookie: …`, `'Cookie': '…'`, `Set-Cookie: …` — redacted from the header name to the end of
+#: the line. Blunt on purpose: it catches the shapes yt-dlp formats itself, which are the ones
+#: no caller can know about, and a line carrying a cookie is not worth keeping.
+_COOKIE_HEADER: Final[re.Pattern[str]] = re.compile(r"""(?i)\b((?:set-)?cookie)['"]?\s*[:=]\s.*$""")
+
+
+def jar_secret_values(text: str) -> list[str]:
+    """The cookie values of a Netscape jar, so they can be kept out of the logs.
+
+    Every one of them is a credential: a YouTube session cookie in `docker logs` is a session
+    anybody reading the log can use. They are read from the jar the toolbox itself just wrote,
+    so what gets redacted is exactly what was handed to yt-dlp rather than a guess at what a
+    request header looks like.
+    """
+    values: list[str] = []
+    for line in text.splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) > _JAR_VALUE_INDEX and fields[_JAR_VALUE_INDEX].strip():
+            values.append(fields[_JAR_VALUE_INDEX])
+    return values
+
+
+def redact_cookies(line: str, secrets: Sequence[str]) -> str:
+    """A yt-dlp line with the jar's values, and any cookie header, taken out of it."""
+    for value in secrets:
+        line = line.replace(value, "<redacted>")
+    return _COOKIE_HEADER.sub(r"\1: <redacted>", line)
 
 
 class ExtractionLog:
@@ -76,10 +113,8 @@ class ExtractionLog:
     ``ignoreerrors`` is the difference between "one dead video kills the playlist" and
     "nineteen of twenty come back", but it buys that by turning an exception into a line on
     stderr. yt-dlp's ``logger`` option is the documented way to intercept that line, so this
-    object *is* the option: ``report_error`` arrives at :meth:`error`, and everything else —
-    progress, warnings, debug chatter — is dropped on the floor.
-
-    Two readers, both in :mod:`toolbox.extract`:
+    object *is* the option: ``report_error`` arrives at :meth:`error`, and the messages are kept
+    for the two readers in :mod:`toolbox.extract` —
 
     - when yt-dlp came back with **nothing at all**, the first message here is the only
       statement of why, and it is what the error is classified from. Without it the caller
@@ -88,25 +123,58 @@ class ExtractionLog:
     - when yt-dlp came back with a **playlist minus some entries**, one message was logged per
       entry it gave up on, in the order it tried them, which is how a gap gets an id and a
       sentence instead of only a position.
+
+    **Keeping a message is not the same as being able to read it.** The owner's complaint was an
+    import that produced nothing and a `docker logs` that said nothing, while the refusals
+    yt-dlp had already named sat in this list. Every line is therefore also forwarded to a
+    structlog logger when one is given: `error` lines whatever the configured level, because
+    the sentence is the whole point, and the rest only when ``verbose`` — yt-dlp's own debug
+    stream, thousands of lines per download, request headers included, which is why
+    :meth:`add_secrets` exists and why the jar's values are stripped out of every line before it
+    is logged.
     """
 
-    __slots__ = ("messages",)
+    __slots__ = ("_log", "_secrets", "_verbose", "messages")
 
-    def __init__(self) -> None:
+    def __init__(self, log: Any | None = None, *, verbose: bool = False) -> None:
         self.messages: list[str] = []
+        self._log = log
+        self._verbose = verbose
+        self._secrets: list[str] = []
 
-    # -- yt-dlp's logger protocol; only `error` carries anything we keep ----------------
+    def add_secrets(self, values: Iterable[str]) -> None:
+        """Register cookie values to keep out of every line forwarded from now on."""
+        self._secrets.extend(value for value in values if value)
+
+    def _emit(self, level: str, msg: str) -> None:
+        """Forward one yt-dlp line, redacted, if the level and the verbosity want it."""
+        if self._log is None or (level != "error" and not self._verbose):
+            return
+        line = redact_cookies(str(msg), self._secrets).rstrip()
+        if not line:
+            return
+        if level == "debug":
+            self._log.debug("ytdlp", line=line)
+        elif level == "info":
+            self._log.info("ytdlp", line=line)
+        elif level == "warning":
+            self._log.warning("ytdlp", line=line)
+        else:
+            self._log.error("ytdlp", line=line)
+
+    # -- yt-dlp's logger protocol; only `error` is also kept ----------------------------
     def debug(self, msg: str) -> None:
-        return None
+        self._emit("debug", msg)
 
     def info(self, msg: str) -> None:
-        return None
+        self._emit("info", msg)
 
     def warning(self, msg: str) -> None:
-        return None
+        self._emit("warning", msg)
 
     def error(self, msg: str) -> None:
-        """Keep one failure, without its ``ERROR:`` prefix and without its colour."""
+        """Forward one failure, and keep it without its ``ERROR:`` prefix or its colour."""
+        self._emit("error", msg)
         clean = _ANSI.sub("", str(msg)).strip()
         if not clean.upper().startswith("ERROR:"):
             return
@@ -149,6 +217,11 @@ def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
         built["cookiefile"] = options.cookies
     if options.player_client:
         built["extractor_args"] = {"youtube": {"player_client": [options.player_client]}}
+    if ytdlp_verbose():
+        # `quiet` stays: stdout is never read, and the debug stream travels through the `logger`
+        # option. `no_warnings` has to go, or the stream arrives with its warnings cut out.
+        built["verbose"] = True
+        built["no_warnings"] = False
     built.update(options.extra_args)
     return built
 
@@ -190,6 +263,56 @@ def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
         yield {"cookiefile": handle.name}
     finally:
         Path(handle.name).unlink(missing_ok=True)
+
+
+def cookie_shape(options: YtdlpOptions) -> dict[str, Any]:
+    """What a request carried, for the log: the shape of the jar, never its content.
+
+    "I get nothing with cookies and without them" is a sentence about two different requests,
+    and the log has to be able to tell them apart: whether a jar arrived at all, which of the
+    two shapes it was, how many cookies it held, whether the path it named is even there. The
+    values are credential material and stay out of it.
+    """
+    content = options.cookies_content
+    if content:
+        return {"mode": "inline", "cookies": _cookie_lines(content), "bytes": len(content)}
+    if not options.cookies:
+        return {"mode": "none"}
+    path = Path(str(options.cookies))
+    if not path.is_file():
+        return {"mode": "path", "path": str(path), "exists": False}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return {
+        "mode": "path",
+        "path": str(path),
+        "exists": True,
+        "cookies": _cookie_lines(text),
+        "bytes": len(text),
+    }
+
+
+def cookie_secrets(options: YtdlpOptions) -> list[str]:
+    """The credential values of the jar a request carries, so the log can keep them out.
+
+    Read from the same two shapes `cookie_jar` copies: the pasted export, or the file the
+    operator mounted. A literal read an instant before yt-dlp is handed the copy, because the
+    alternative — logging request headers with a YouTube session in them — is how a `docker
+    logs` paste becomes somebody else's session.
+    """
+    content = options.cookies_content
+    if content:
+        return jar_secret_values(content)
+    if not options.cookies:
+        return []
+    path = Path(str(options.cookies))
+    if not path.is_file():
+        return []
+    return jar_secret_values(path.read_text(encoding="utf-8", errors="replace"))
+
+
+def _cookie_lines(text: str) -> int:
+    """How many cookies a jar holds — its lines that are neither blank nor a comment."""
+    return sum(1 for line in text.splitlines() if line.strip() and not line.startswith("#"))
 
 
 def extract_info(url: str, options: Mapping[str, Any], *, download: bool = False) -> InfoDict:

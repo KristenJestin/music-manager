@@ -26,15 +26,18 @@ from typing import Any, Final
 import structlog
 
 from toolbox import fixtures
-from toolbox.config import fixture_delay_seconds_for, fixtures_enabled
-from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error
+from toolbox.config import fixture_delay_seconds_for, fixtures_enabled, ytdlp_verbose
+from toolbox.errors import ErrorCode, ToolboxError, classify_ytdlp_error, describe_failure
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
 from toolbox.tagging import TAGGABLE_SUFFIXES
 from toolbox.ytdlp import (
+    ExtractionLog,
     audio_extraction_codec,
     build_options,
     cookie_jar,
+    cookie_secrets,
+    cookie_shape,
     downloaded_path,
     extract_info,
 )
@@ -116,6 +119,12 @@ class _Worker:
         self.out.put({"event": "postprocess", "step": str(status.get("postprocessor") or "")})
 
     def run(self) -> None:
+        # The logger yt-dlp reports through, and the values it must not print: it prints request
+        # headers when it is verbose, and those carry the session. Built before the `try` so that
+        # the failure below can always say which jar it was using.
+        errors = ExtractionLog(log=log, verbose=ytdlp_verbose())
+        errors.add_secrets(cookie_secrets(self.request))
+        cookies = cookie_shape(self.request)
         try:
             dest = Path(self.request.dest_dir)
             dest.mkdir(parents=True, exist_ok=True)
@@ -129,6 +138,7 @@ class _Worker:
                     progress_hooks=[self._progress],
                     postprocessor_hooks=[self._postprocess],
                     overwrites=False,
+                    logger=errors,
                     **jar,
                 )
                 # No re-encoding, ever: FFmpegExtractAudio with a `preferredcodec` that
@@ -150,9 +160,12 @@ class _Worker:
             error = (
                 exc
                 if isinstance(exc, ToolboxError)
-                else classify_ytdlp_error(exc, url=self.request.url)
+                else classify_ytdlp_error(exc, url=self.request.url, ytdlp=errors.messages[-10:])
             )
-            log.warning("download.failed", code=error.code.value, message=error.message)
+            # The same two questions a failure always raises here: with which jar, and what did
+            # yt-dlp actually say. Logged whole — the summary is what the Console shows.
+            error.details.setdefault("cookies", cookies)
+            log.error("download.failed", **describe_failure(error))
             self.out.put(
                 {
                     "event": "error",

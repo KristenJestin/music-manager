@@ -1117,7 +1117,7 @@ Les trois services écrivent du JSON sur stdout, une ligne par événement.
 ```bash
 docker compose -f docker-compose.prod.yml logs -f web
 docker compose -f docker-compose.prod.yml logs -f worker
-docker compose -f docker-compose.prod.yml logs --since 1h | grep '"level":"error"'
+docker compose -f docker-compose.prod.yml logs --since 1h | grep -E '"level": *"error"'
 ```
 
 `web` émet une ligne par requête avec sa propre durée, ce qui rend le budget de rendu serveur
@@ -1146,6 +1146,35 @@ docker compose -f docker-compose.prod.yml logs --since 1h --no-log-prefix web \
 `MM_LOG_LEVEL` (`debug` · `info` · `warn` · `error` · `silent`) vaut pour les trois services.
 Une réponse 5xx est journalisée en `error` quel que soit le niveau, et les fichiers de build en
 `debug` — sinon vingt lignes utiles disparaissent sous deux cents lignes d'assets.
+
+### Lire un échec
+
+Un échec de la toolbox sort en `error`, sous l'événement `request.failed`, avec tout ce qu'elle
+sait : le `code`, le `message` que la Console affiche, les `details` dont il a été résumé, les
+`reasons` d'une liste d'entrées illisibles — dédupliquées, avec leur nombre, parce que quinze
+refus identiques sont une phrase et non quinze lignes — et l'exception d'origine (`cause`, avec
+sa trace) quand il y en a une.
+
+```bash
+docker compose -f docker-compose.prod.yml logs --since 30m --no-log-prefix toolbox \
+  | grep '"event": *"request.failed"' \
+  | jq -r '.code, .message, (.reasons // [])[]'
+```
+
+```
+PLAYLIST_ENTRY_UNAVAILABLE
+None of the 200 entries of this playlist could be read.
+Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication. (200×)
+```
+
+Un échec écrit aussi une ligne `ytdlp` par refus que yt-dlp a lui-même signalé, au niveau
+`error` : c'est ce qui manquait quand un import ne produisait rien et que le journal ne disait
+rien.
+
+`MM_YTDLP_VERBOSE=1` fait entrer dans les journaux la sortie de débogage de yt-dlp elle-même —
+des milliers de lignes par téléchargement, à lire avec `MM_LOG_LEVEL=debug`. Les valeurs du bocal
+de cookies en sont retirées avant écriture : une session YouTube recopiée d'un journal est une
+session utilisable par quiconque le lit.
 
 **Le statut `499`.** Il n'existe pas dans la norme HTTP : c'est la convention de nginx pour
 « le client a fermé la connexion ». Rien n'est jamais envoyé sous ce code — la socket est

@@ -7,6 +7,7 @@ environment lookups.
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Final
@@ -23,7 +24,10 @@ __all__ = [
     "fixture_delay_seconds_for",
     "fixtures_enabled",
     "library_root",
+    "log_level",
+    "log_level_number",
     "toolbox_token",
+    "ytdlp_verbose",
 ]
 
 _TRUE: Final[frozenset[str]] = frozenset({"1", "true", "yes", "on"})
@@ -48,6 +52,40 @@ def fixtures_enabled() -> bool:
 def autoupdate_enabled() -> bool:
     """True when the container should refresh yt-dlp at start-up."""
     return env_flag("MM_YTDLP_AUTOUPDATE")
+
+
+#: `MM_LOG_LEVEL`'s vocabulary — the same five words `apps/web` accepts for the same variable
+#: (`#/server/http/log.ts`). One variable set on three containers has to mean one thing, and
+#: `docker-compose.prod.yml` already passes it to this one while nothing here read it.
+LOG_LEVELS: Final[dict[str, int]] = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warn": logging.WARNING,
+    "error": logging.ERROR,
+    #: Above CRITICAL: nothing this process can emit gets through.
+    "silent": logging.CRITICAL + 1,
+}
+
+
+def log_level() -> str:
+    """`MM_LOG_LEVEL`, or `info` — nonsense included, exactly as `apps/web` treats it."""
+    raw = os.environ.get("MM_LOG_LEVEL", "").strip().casefold()
+    return raw if raw in LOG_LEVELS else "info"
+
+
+def log_level_number() -> int:
+    """The stdlib level behind `log_level()`, for `structlog`'s filtering wrapper."""
+    return LOG_LEVELS[log_level()]
+
+
+def ytdlp_verbose() -> bool:
+    """True when yt-dlp's own debug stream must reach the logs (`MM_YTDLP_VERBOSE=1`).
+
+    Off by default: it is thousands of lines per download and it carries request headers. The
+    logger that forwards it redacts the jar's values first (`toolbox.ytdlp.ExtractionLog`), so
+    turning this on cannot put a YouTube session in `docker logs`.
+    """
+    return env_flag("MM_YTDLP_VERBOSE")
 
 
 def fixture_delay_seconds() -> float:

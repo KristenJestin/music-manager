@@ -388,7 +388,8 @@ thing: the single download slot.
   instant, and instant is the one speed at which a race inside `resolve` is invisible — the
   wizard's URL says `?url=` rather than `?importId=` for exactly as long as `resolve` takes.
 - Environment: `MM_TOOLBOX_TOKEN` (bearer, empty = off), `MM_TOOLBOX_FIXTURES`,
-  `MM_YTDLP_AUTOUPDATE`, `MM_ACOUSTID_KEY`, `MM_LIBRARY_ROOT`, `MM_TOOLBOX_FIXTURE_DELAY_MS`.
+  `MM_YTDLP_AUTOUPDATE`, `MM_ACOUSTID_KEY`, `MM_LIBRARY_ROOT`, `MM_TOOLBOX_FIXTURE_DELAY_MS`,
+  `MM_LOG_LEVEL`, `MM_YTDLP_VERBOSE`.
 - Tests: `uv run pytest` is offline and needs no binaries; the ones that do skip themselves.
   `pytest -m conformance` needs `docker compose up -d navidrome` and is the proof that what we write
   is what Navidrome reads.

@@ -13,12 +13,12 @@ codes instead of one borrowed from whichever video happened to be broken.
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 import structlog
 
 from toolbox import fixtures
-from toolbox.config import fixtures_enabled
+from toolbox.config import fixtures_enabled, ytdlp_verbose
 from toolbox.errors import (
     ErrorCode,
     ToolboxError,
@@ -32,6 +32,8 @@ from toolbox.ytdlp import (
     ExtractionLog,
     build_options,
     cookie_jar,
+    cookie_secrets,
+    cookie_shape,
     extract_info,
     result_from_info,
 )
@@ -82,7 +84,14 @@ _PLAYLIST_EQUIVALENT: Final[dict[ErrorCode, ErrorCode]] = {
 }
 
 
-def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool) -> ToolboxError:
+def _failure(
+    exc: Exception,
+    errors: ExtractionLog,
+    *,
+    url: str,
+    playlist: bool,
+    cookies: dict[str, Any],
+) -> ToolboxError:
     """The error to raise when the call came back with nothing, said in the right words.
 
     Three cases used to arrive here as one sentence — *"This video is not available"* — because
@@ -106,10 +115,10 @@ def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool)
         ToolboxError(
             classify_message(swallowed),
             strip_ytdlp_prefix(swallowed),
-            details={"exception": type(exc).__name__, "url": url},
+            details={"exception": type(exc).__name__, "url": url, "cookies": cookies},
         )
         if swallowed
-        else classify_ytdlp_error(exc, url=url)
+        else classify_ytdlp_error(exc, url=url, cookies=cookies)
     )
     if not playlist:
         return error
@@ -139,7 +148,11 @@ def extract(request: ExtractRequest) -> ExtractResult:
             details={"requested": request.url},
         )
 
-    errors = ExtractionLog()
+    errors = ExtractionLog(log=log, verbose=ytdlp_verbose())
+    # yt-dlp prints the request headers it sends when it is asked to be verbose, and those
+    # carry the session. It is told the values to keep out before it is handed the jar.
+    errors.add_secrets(cookie_secrets(request))
+    cookies = cookie_shape(request)
     try:
         with cookie_jar(request) as jar:
             info = extract_info(
@@ -155,7 +168,11 @@ def extract(request: ExtractRequest) -> ExtractResult:
             )
     except Exception as exc:
         raise _failure(
-            exc, errors, url=request.url, playlist=parsed.kind is UrlKind.PLAYLIST
+            exc,
+            errors,
+            url=request.url,
+            playlist=parsed.kind is UrlKind.PLAYLIST,
+            cookies=cookies,
         ) from exc
 
     result = result_from_info(info, errors=errors)
@@ -169,6 +186,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
             f"None of the {len(result.unreadable)} entries of this playlist could be read.",
             details={
                 "url": request.url,
+                "cookies": cookies,
                 "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
             },
         )
@@ -178,6 +196,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
     emit = log.info if not result.unreadable else log.warning
     emit(
         "extract.ok",
+        cookies=cookies,
         kind=result.kind,
         entries=len(result.entries),
         unreadable=len(result.unreadable),

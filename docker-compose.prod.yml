@@ -117,6 +117,7 @@ services:
       MM_YTDLP_AUTOUPDATE: ${MM_YTDLP_AUTOUPDATE:-1}
       MM_ACOUSTID_KEY: ${MM_ACOUSTID_KEY:-}
       MM_LOG_LEVEL: ${MM_LOG_LEVEL:-info}
+      MM_YTDLP_VERBOSE: ${MM_YTDLP_VERBOSE:-0}
       TMPDIR: /cache
     volumes:
       - ${MM_LIBRARY_PATH:-library}:/library
