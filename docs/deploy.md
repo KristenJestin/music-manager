@@ -445,6 +445,10 @@ Deux modes, réglés par `cookiesMode` (Settings → Downloader → Authenticati
   (`MM_COOKIES_PATH` dans `.env` pour un chemin hôte plutôt que le volume nommé par
   défaut) — voir §3.
 
+En mode `file`, le jar est **lu, jamais écrit** : la toolbox en fait une copie privée le temps
+de l'appel — yt-dlp réécrit le jar qu'on lui donne, il périme les cookies morts et rafraîchit
+les autres — donc monter ce fichier en lecture seule est le cas normal, pas une erreur.
+
 **Par l'API**, avec une clé portant `settings:write` :
 
 ```bash
