@@ -9,6 +9,7 @@
  */
 
 import type { DocumentPatch, PerformerCredit } from "../document.ts";
+import { splitArtistCredit } from "../../normalize/title.ts";
 import { parseYouTubeDescription } from "../../normalize/youtube-description.ts";
 import { PatchBuilder } from "./patch.ts";
 
@@ -227,8 +228,23 @@ export function fromYouTubeEntry(
    * name is a worse answer than an artist tag and a better one than nothing.
    */
   patch.set("title", entry.track ?? entry.title ?? null);
-  patch.set("artist", entry.artist ?? entry.uploader ?? entry.channel ?? null);
-  patch.set("albumartist", entry.artist ?? entry.uploader ?? entry.channel ?? null);
+  /*
+   * The credit line, and the list of artists behind it.
+   *
+   * `ARTISTS` and `ALBUMARTISTS` are *required* fields of the tag map and were left empty here,
+   * so every consumer that groups by artist saw a record with no artist: YouTube gives one
+   * string — `Abstract & Mltm` — and a listing imported without MusicBrainz had nothing else to
+   * derive the list from. The simple fields keep the credit line exactly as the source wrote it;
+   * the lists are `splitArtistCredit`'s answer, an addition to the document rather than a
+   * rewriting of it. Nothing is guessed: a credit line that names nobody yields an empty list.
+   *
+   * Order and spelling come from the source; a pure repeat is dropped (see `normalize/artists`).
+   */
+  const credit = entry.artist ?? entry.uploader ?? entry.channel ?? null;
+  patch.set("artist", credit);
+  patch.set("albumartist", credit);
+  patch.set("artists", credit === null ? null : splitArtistCredit(credit));
+  patch.set("albumartists", credit === null ? null : splitArtistCredit(credit));
   patch.set("album", entry.album ?? null);
   if (entry.playlist_index !== undefined && entry.playlist_index !== null) {
     patch.set("tracknumber", entry.playlist_index);
