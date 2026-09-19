@@ -65,7 +65,7 @@ function Setup() {
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Set up Music Manager</h1>
             <p className="text-xs text-fg-2">
-              Create the single administrator account. (push probe 3)
+              Create the single administrator account. (push probe 4)
             </p>
           </div>
         </div>
