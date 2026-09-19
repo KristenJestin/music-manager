@@ -220,7 +220,7 @@ export function hasPassed(state: TrackState, step: LocalStep): boolean {
 export function aggregateStatus(
   tracks: readonly { readonly state: TrackState }[],
   step: LocalStep,
-): { status: StepStatus; done: number; total: number } {
+): { status: StepStatus; done: number; total: number; spared: number } {
   /*
    * `skipped` and `sourceless` are both excluded, for the same reason and not quite the same
    * one. A skipped track is already in the library; a sourceless one has no video to put
@@ -231,16 +231,49 @@ export function aggregateStatus(
    *
    * The gap is not thereby hidden: it is a row, it is on the page greyed out, and the album's
    * completeness is measured over the *release* rather than over this projection.
+   *
+   * **The count is now reported beside the fraction**, and that is not decoration. "5/5
+   * track(s)" on a six-track album is what the owner read while `mm retry --step tag` walked
+   * past the sixth track without a word — the row was true about the tracks this step owed
+   * work to and silent about the one it had been spared, and a person reading a step row has
+   * no way to tell those two apart. `spared` is the number that was missing.
    */
+  const spared = tracks.filter(
+    (track) => track.state === "skipped" || track.state === "sourceless",
+  ).length;
   const active = tracks.filter(
     (track) => track.state !== "skipped" && track.state !== "sourceless",
   );
   const total = active.length;
-  if (total === 0) return { status: "skipped", done: 0, total: 0 };
+  if (total === 0) return { status: "skipped", done: 0, total: 0, spared };
   const done = active.filter((track) => hasPassed(track.state, step)).length;
-  if (done === total) return { status: "done", done, total };
+  if (done === total) return { status: "done", done, total, spared };
   const started = active.some((track) => (PROGRESS[track.state] ?? 0) >= 1);
-  return { status: started ? "running" : "pending", done, total };
+  return { status: started ? "running" : "pending", done, total, spared };
+}
+
+/**
+ * The sentence a step row carries: the fraction, and the tracks it was spared.
+ *
+ * `5/5 track(s)` on a six-track album is what the owner read while `mm retry --step tag` walked
+ * past the sixth track without saying so. The fraction was *true* — it counted the tracks the
+ * step owed work to — and it was the whole of what the row said, so a person had no way to tell
+ * "this step had five tracks to do and did all five" from "one track was spared and this row is
+ * not about it". The spared count is the missing half of that sentence.
+ *
+ * `spared` covers both ways off this line, and the wording says so rather than picking one: a
+ * `skipped` track is already in the library, a `sourceless` one has no video to fetch. They need
+ * two different remedies, so a row that named only one of them would send the owner looking for
+ * the wrong thing.
+ *
+ * Pure, so the sentence is asserted without a database — and so the CLI, the Console and the API
+ * cannot come to say three different things about one step row.
+ */
+export function stepFraction(tally: { done: number; total: number; spared: number }): string {
+  const head = `${String(tally.done)}/${String(tally.total)} track(s)`;
+  return tally.spared === 0
+    ? head
+    : `${head} · ${String(tally.spared)} spared (already present, or with no source)`;
 }
 
 /** Statuses from which nothing more will happen without a human. */

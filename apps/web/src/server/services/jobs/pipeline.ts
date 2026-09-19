@@ -55,6 +55,7 @@ import {
   isTrackTerminal,
   LOCAL_STEPS,
   nextTrackStep,
+  stepFraction,
   STEP_ORDER,
   type LocalStep,
   type StepResult,
@@ -204,10 +205,7 @@ export async function syncLocalSteps(
     if (status === "pending") continue;
     await upsertStepRow(db, importId, step, {
       status,
-      message:
-        status === "skipped"
-          ? "nothing to do"
-          : `${String(tally.done)}/${String(tally.total)} track(s)`,
+      message: status === "skipped" ? "nothing to do" : stepFraction(tally),
     });
   }
   return await refreshHeadStep(db, importId);
