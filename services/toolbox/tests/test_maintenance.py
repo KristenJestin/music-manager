@@ -57,6 +57,81 @@ def test_expired_cookies_are_counted():
     assert result.ok is False
 
 
+def _jar(lines: list[str]) -> str:
+    """A Netscape jar from its cookie lines, so a case reads as the cookies it carries."""
+    return "# Netscape HTTP Cookie File\n" + "".join(f"{line}\n" for line in lines)
+
+
+def test_a_lapsed_preference_cookie_does_not_condemn_a_live_session():
+    """The owner's own jar: 25 cookies, a live session cookie, three expired preferences.
+
+    `ok` used to require `expired == 0` — no expired cookie of any kind — so this jar was called
+    "not a usable session (25 cookie(s) · 1 domain(s) · a session cookie · 3 expired)" and the
+    owner was told to export a new one. Nothing about `PREF`, `SOCS` or `VISITOR_INFO1_LIVE`
+    ending says anything about being logged in; only a session cookie's lapse does.
+    """
+    lines = [f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"]
+    for index in range(21):
+        lines.append(f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tEXTRA{index}\tvalue")
+    for name in ("PREF", "SOCS", "VISITOR_INFO1_LIVE"):
+        lines.append(f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\t{name}\tvalue")
+
+    result = maintenance.cookies_test(CookiesTestRequest(content=_jar(lines)))
+
+    assert result.cookies == 25
+    assert result.expired == 3
+    assert result.authenticated is True
+    assert result.ok is True, result.problems
+    assert result.problems == []
+
+
+def test_a_lapsed_session_cookie_is_refused_and_named():
+    jar = _jar(
+        [
+            f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\tSAPISID\tvalue",
+            f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue",
+        ]
+    )
+    result = maintenance.cookies_test(CookiesTestRequest(content=jar))
+    assert result.ok is False
+    assert any("SAPISID" in problem and "expired" in problem for problem in result.problems), (
+        result.problems
+    )
+
+
+def test_a_jar_that_never_reaches_youtube_is_refused():
+    """A session cookie under `.google.com` only: yt-dlp sends a cookie to the domain it matches.
+
+    The verdict used to be "a usable session", and every extraction then failed with
+    `Sign in to confirm you're not a bot` — which reads as a YouTube problem, not as the jar.
+    """
+    jar = _jar([f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"])
+    result = maintenance.cookies_test(CookiesTestRequest(content=jar))
+    assert result.authenticated is True, "the session cookie really is there"
+    assert result.ok is False, "but yt-dlp will never send it to youtube.com"
+    assert any("youtube.com" in problem for problem in result.problems), result.problems
+
+
+def test_a_refused_jar_always_says_why():
+    """The invariant `mm tools status` broke: `ok == False` with nothing naming the cause.
+
+    Every path to a refusal — no jar, no session cookie, a lapsed session, a jar YouTube never
+    sees, a jar that does not parse — has to leave at least one sentence behind. An empty
+    `problems` beside `ok == False` is the defect, whatever the reason happens to be.
+    """
+    jars = {
+        "empty": "# nothing here\n",
+        "no session cookie": _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue"]),
+        "lapsed session": _jar([f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\tSAPISID\tvalue"]),
+        "google only": _jar([f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"]),
+        "unparseable": "this line has no tabs\n",
+    }
+    for name, jar in jars.items():
+        result = maintenance.cookies_test(CookiesTestRequest(content=jar))
+        assert result.ok is False, name
+        assert result.problems, f"{name}: refused without saying why"
+
+
 def test_malformed_lines_are_reported_not_swallowed():
     jar = "this line has no tabs\n" + SESSION_JAR
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))

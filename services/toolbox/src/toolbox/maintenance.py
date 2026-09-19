@@ -42,6 +42,21 @@ _SESSION_COOKIES: Final[frozenset[str]] = frozenset(
     {"SAPISID", "__Secure-3PSID", "__Secure-1PSID", "SID", "SSID", "HSID"}
 )
 
+
+def _covers_youtube(domain: str) -> bool:
+    """Would yt-dlp send a cookie with this domain to ``youtube.com``?
+
+    A cookie is sent to the host it was set for and to its subdomains, so `youtube.com`,
+    `.youtube.com` and `www.youtube.com` all reach it — and `.google.com` does not, however
+    healthy the session behind it is. The check used to be absent, so a jar exported from the
+    Google side alone was reported as *a usable session* and then failed every extraction with
+    `Sign in to confirm you're not a bot`, which reads as a YouTube problem rather than as the
+    jar that never reached YouTube.
+    """
+    host = domain.strip().lower().removeprefix(".")
+    return host == "youtube.com" or host.endswith(".youtube.com")
+
+
 #: A short, stable, public video used by the optional networked self-test.
 DEFAULT_SELFTEST_URL: Final[str] = "https://www.youtube.com/watch?v=BaW_jenozKc"
 
@@ -207,13 +222,42 @@ def cookies_test(request: CookiesTestRequest) -> CookiesTestResult:
     upcoming = [expiry for expiry in expiries if expiry > now]
     authenticated = any(name in _SESSION_COOKIES for _, name, _ in cookies)
 
+    # Two things were wrong with the verdict, both of them read off real jars.
+    #
+    # `ok` used to require `expired == 0` — *no* expired cookie of any kind. A jar carries two
+    # dozen cookies and most of them have nothing to do with being logged in: `PREF`, `SOCS` and
+    # `VISITOR_INFO1_LIVE` lapse on their own schedule and their expiry says nothing about the
+    # session. A jar with 25 cookies, a live `SAPISID` and three lapsed preference cookies was
+    # therefore called "not a usable session", and the owner was sent to export a new one for no
+    # reason. The expiry that matters is a **session cookie's**: it is the one whose lapse ends
+    # the login, and it is the only one that fails the jar now.
+    #
+    # And the reason was never stated. `problems` only ever received "no cookies found" and "no
+    # session cookie present", so `ok == False` could come back with an empty list: the message
+    # gave the counts and no cause, which is exactly the "muet en ligne de commande" of the
+    # backlog. Every way `ok` can be false now leaves a sentence naming it.
+    lapsed_session = sorted(
+        {name for _, name, expiry in cookies if 0 < expiry <= now and name in _SESSION_COOKIES}
+    )
+    youtube_domains = [domain for domain, _, _ in cookies if _covers_youtube(domain)]
+
     if not cookies:
         problems.append("no cookies found")
     if not authenticated:
         problems.append("no YouTube session cookie (SAPISID / __Secure-3PSID) present")
+    if lapsed_session:
+        problems.append(
+            f"the session cookie {'/'.join(lapsed_session)} has expired: export a fresh jar"
+        )
+    if cookies and not youtube_domains:
+        problems.append(
+            "no cookie for youtube.com (the jar covers "
+            f"{', '.join(sorted({domain for domain, _, _ in cookies}))}), and yt-dlp sends a "
+            "cookie only to a domain it matches"
+        )
 
     return CookiesTestResult(
-        ok=bool(cookies) and authenticated and expired == 0,
+        ok=bool(cookies) and authenticated and not lapsed_session and bool(youtube_domains),
         cookies=len(cookies),
         domains=sorted({domain for domain, _, _ in cookies}),
         authenticated=authenticated,
