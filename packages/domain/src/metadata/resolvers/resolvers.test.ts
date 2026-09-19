@@ -322,6 +322,45 @@ describe("fromYouTubeEntry", () => {
     expect(value("encodersettings")).toBe("yt-dlp format 251, opus, 141 kbps, 48000 Hz");
   });
 
+  /*
+   * Backlog 40. An import without MusicBrainz took YouTube's own `artist` tag — one string,
+   * a credit line — and left `ARTISTS` and `ALBUMARTISTS` empty, although the tag map calls
+   * both *required*. Every consumer that groups by artist read the list, and saw nobody.
+   */
+  it("writes the artist list behind the credit line, and keeps the credit line verbatim", () => {
+    const patch = fromYouTubeEntry(
+      { ...video, artist: "Abstract & Mltm" },
+      { fetchedAt: at, appVersion: "2.0.0", importedOn: "2026-09-05", ytdlpVersion: "yt-dlp" },
+    );
+    const value = (name: string): unknown => patch.fields?.[name]?.value;
+    expect(value("artist"), "the credit line as the source wrote it").toBe("Abstract & Mltm");
+    expect(value("albumartist")).toBe("Abstract & Mltm");
+    expect(value("artists"), "and the two names it credits").toEqual(["Abstract", "Mltm"]);
+    expect(value("albumartists")).toEqual(["Abstract", "Mltm"]);
+  });
+
+  it("names one artist when the credit names one", () => {
+    const patch = fromYouTubeEntry(
+      { ...video, artist: "Maticulous feat. Jp" },
+      { fetchedAt: at, appVersion: "2.0.0", importedOn: "2026-09-05", ytdlpVersion: "yt-dlp" },
+    );
+    expect(patch.fields?.["artists"]?.value).toEqual(["Maticulous", "Jp"]);
+    const single = fromYouTubeEntry(
+      { ...video, artist: "Max" },
+      { fetchedAt: at, appVersion: "2.0.0", importedOn: "2026-09-05", ytdlpVersion: "yt-dlp" },
+    );
+    expect(single.fields?.["artists"]?.value, "a name is not a separator").toEqual(["Max"]);
+  });
+
+  it("invents no artist when the source names none", () => {
+    const bare = fromYouTubeEntry(
+      { id: "abc", title: "Untitled", ext: "webm" },
+      { fetchedAt: at, appVersion: "2.0.0", importedOn: "2026-09-05", ytdlpVersion: "yt-dlp" },
+    );
+    expect(bare.fields?.["artists"]?.value ?? []).toEqual([]);
+    expect(bare.fields?.["artist"]?.value ?? null).toBeNull();
+  });
+
   it("reads the description as a fallback source of musical metadata", () => {
     expect(value("copyright")).toContain("℗ 2001 Daft Life Ltd.");
     expect(value("label")).toEqual(["Daft Life Ltd./ADA France"]);
