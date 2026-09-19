@@ -1135,12 +1135,24 @@ function short(value: unknown): string {
 
 async function cmdDoc(args: Args): Promise<number> {
   const sub = args.positional[1];
+
+  /*
+   * `fields` comes before the `<id>` guard: it is the one `doc` subcommand that takes no id,
+   * and it exists precisely so that a person can read the scope of a field *before* running
+   * `mm doc set` and being refused for getting it wrong.
+   */
+  if (sub === "fields") {
+    const { cmdDocFields } = await import("./commands/doc-fields.ts");
+    return await cmdDocFields({ positional: args.positional, flags: args.flags });
+  }
+
   const id = args.positional[2];
   if (sub === undefined || id === undefined) {
     throw new MMError(
       "INVALID_INPUT",
-      "usage: mm doc build <id> | mm doc show <id> [--missing] [--json] | mm doc rebuild <id> " +
-        "[--offline] | mm doc set <id> <field> <value…> | mm doc lock <id> <field> | " +
+      "usage: mm doc fields [--album|--track] [--json] | mm doc build <id> | " +
+        "mm doc show <id> [--missing] [--json] | mm doc rebuild <id> [--offline] | " +
+        "mm doc set <id> <field> <value…> | mm doc lock <id> <field> | " +
         "mm doc unlock <id> <field>",
     );
   }
@@ -1254,7 +1266,7 @@ async function cmdDoc(args: Args): Promise<number> {
   }
 
   throw new MMError("INVALID_INPUT", `Unknown doc subcommand "${sub}".`, {
-    hint: "build, show, rebuild, set, lock or unlock.",
+    hint: "build, show, rebuild, set, lock or unlock. `mm doc fields` lists them with their scope.",
   });
 }
 
@@ -1280,7 +1292,9 @@ async function cmdDocOverride(
       "INVALID_INPUT",
       `usage: mm doc ${sub} <id> <field>${sub === "set" ? " <value…>" : ""}`,
       {
-        hint: "The field is the tag map's name (`album`), not the Vorbis key (`ALBUM`).",
+        hint:
+          "The field is the tag map's name (`album`), not the Vorbis key (`ALBUM`). " +
+          "`mm doc fields` lists every field and whether it belongs to the album or to the track.",
       },
     );
   }
