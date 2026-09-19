@@ -1164,8 +1164,11 @@ docker compose -f docker-compose.prod.yml logs --since 30m --no-log-prefix toolb
 ```
 PLAYLIST_ENTRY_UNAVAILABLE
 None of the 200 entries of this playlist could be read.
-Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication. (200×)
+Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication. … (200×)
 ```
+
+La troisième ligne est la phrase de yt-dlp telle quelle, coupée ici avant les deux liens de son wiki
+(« See https://github.com/yt-dlp/yt-dlp/wiki/… ») : dans le journal, elle est écrite en entier.
 
 Un échec écrit aussi une ligne `ytdlp` par refus que yt-dlp a lui-même signalé, au niveau
 `error` : c'est ce qui manquait quand un import ne produisait rien et que le journal ne disait
