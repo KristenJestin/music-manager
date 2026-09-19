@@ -141,12 +141,19 @@ def yt_dlp_version() -> str | None:
 def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
     """Assemble the yt-dlp option dict. ``extra_args`` is merged last, on purpose.
 
-    ``cookiefile`` may be supplied through ``overrides`` — that is how :func:`cookie_jar`
-    hands over the temporary file it wrote for an inline jar.
+    ``cookiefile`` arrives through ``overrides``, and its only author is :func:`cookie_jar` —
+    the private copy it writes for either shape of jar. There is deliberately **no fallback**
+    to ``options.cookies``: a raw path is the operator's own file, which yt-dlp rewrites, and
+    on a real installation that file is a read-only mount. Handing it over *is* the failure the
+    copy exists to prevent, so a caller that forgot the copy is refused here by name rather
+    than quietly given the original.
     """
+    if "cookiefile" not in overrides and options.cookies:
+        raise ValueError(
+            "Pass the jar as the `cookiefile` override that `cookie_jar()` yields: yt-dlp "
+            "rewrites the file it is given, and `options.cookies` is the operator's own."
+        )
     built: dict[str, Any] = {**_BASE, **overrides}
-    if "cookiefile" not in built and options.cookies:
-        built["cookiefile"] = options.cookies
     if options.player_client:
         built["extractor_args"] = {"youtube": {"player_client": [options.player_client]}}
     built.update(options.extra_args)
@@ -169,21 +176,33 @@ def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
     `OSError: [Errno 30] Read-only file system` at the *end* of a successful fetch, which reads
     as a download failure and is nothing of the sort. The copy is what a pasted jar already
     got; a path now gets the same treatment, and the operator's file is never touched.
+
+    A jar that is not there is named by this function, before any temporary file is opened,
+    rather than surfacing later inside yt-dlp — the check below says why the order matters.
     """
     content = options.cookies_content
     if not content and not options.cookies:
         yield {}
         return
+    text = "" if content is None else content
+    source: Path | None = None
+    if text == "" and options.cookies:
+        source = Path(str(options.cookies))
+
+    # Answered *before* the temporary file is opened, and not only for tidiness: raising with
+    # the handle still held would leave the clean-up below to fail in the raiser's place
+    # (Windows refuses to unlink a file another handle has open), and the operator would read a
+    # permission error where the truth is "that path is not there".
+    if source is not None and not source.is_file():
+        raise ValueError(f"Cookies file not found: {source}")
+
     handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
         "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
     )
     try:
-        if content:
-            handle.write(content if content.endswith("\n") else f"{content}\n")
+        if source is None:
+            handle.write(text if text.endswith("\n") else f"{text}\n")
         else:
-            source = Path(str(options.cookies))
-            if not source.is_file():
-                raise ValueError(f"Cookies file not found: {source}")
             handle.write(source.read_text(encoding="utf-8", errors="replace"))
         handle.close()
         Path(handle.name).chmod(0o600)
