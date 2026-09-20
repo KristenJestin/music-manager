@@ -13,6 +13,7 @@ codes instead of one borrowed from whichever video happened to be broken.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Final
 
 import structlog
@@ -26,7 +27,7 @@ from toolbox.errors import (
     classify_ytdlp_error,
     strip_ytdlp_prefix,
 )
-from toolbox.models import ExtractRequest, ExtractResult
+from toolbox.models import ExtractGap, ExtractRequest, ExtractResult
 from toolbox.urls import UrlKind, is_fixture_url, parse_url
 from toolbox.ytdlp import (
     ExtractionLog,
@@ -119,6 +120,18 @@ def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool)
     )
 
 
+def _shared_reason(gaps: Sequence[ExtractGap]) -> str | None:
+    """The one sentence every unreadable entry answered, when they all answered the same.
+
+    `None` when they disagree, or when any of them came back without a sentence at all: a
+    "shared" reason that half the entries do not carry is not shared.
+    """
+    reasons = {gap.reason for gap in gaps if gap.reason}
+    if len(reasons) != 1 or any(gap.reason is None for gap in gaps):
+        return None
+    return next(iter(reasons))
+
+
 def extract(request: ExtractRequest) -> ExtractResult:
     """Resolve ``url`` into entries. Fixture URLs answer from disk in either mode."""
     if is_fixture_url(request.url):
@@ -164,9 +177,27 @@ def extract(request: ExtractRequest) -> ExtractResult:
     # must not be left to tell the two apart. Its own code, rather than reaching the
     # orchestrator as the generic "the URL resolved to no videos".
     if not result.entries and result.unreadable:
+        shared = _shared_reason(result.unreadable)
         raise ToolboxError(
             ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
             f"None of the {len(result.unreadable)} entries of this playlist could be read.",
+            # The catalog's hint blames "one of the videos inside it", which is right when a few
+            # entries are lost and the rest came back, and wrong when *every* entry failed — and
+            # wrongest when they all answered one sentence of YouTube's own. The owner of a
+            # fifteen-track album is then told about a single dead video while the actual
+            # refusal — "The page needs to be reloaded." — points at the session or the player,
+            # and the hint sends him looking for the wrong thing.
+            hint=(
+                None
+                if shared is None
+                else (
+                    "The playlist itself was read: every entry answered the same thing — "
+                    f"“{shared}”. That is YouTube refusing the request rather than a deleted "
+                    "video, so look at the session (the cookies) and at the player client."
+                )
+            ),
+            # Nothing came back, so "Import what came back" is not an offer that can be taken.
+            action="Retry the listing",
             details={
                 "url": request.url,
                 "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
