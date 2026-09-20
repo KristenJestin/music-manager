@@ -119,8 +119,10 @@ class _Worker:
         try:
             dest = Path(self.request.dest_dir)
             dest.mkdir(parents=True, exist_ok=True)
-            # The jar lives exactly as long as the download: an inline one is a temporary
-            # file this block writes and removes (`cookie_jar`), a path is passed through.
+            # The jar lives exactly as long as the download: `cookie_jar` writes a private
+            # temporary copy of it — inline content, or a path the operator mounted read-only
+            # and which yt-dlp would otherwise rewrite in place — and removes it on the way
+            # out. yt-dlp is handed the copy, never the original.
             with cookie_jar(self.request) as jar:
                 options = build_options(
                     self.request,

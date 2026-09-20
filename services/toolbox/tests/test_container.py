@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
@@ -299,6 +300,41 @@ def test_a_path_that_is_not_there_says_so_rather_than_failing_inside_ytdlp(tmp_p
         cookie_jar(YtdlpOptions(cookies=str(missing))),
     ):
         pass
+
+
+def test_a_missing_jar_is_answered_before_the_private_copy_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The path is checked *before* the temporary file is opened, and that order is the point.
+
+    Raising with the handle still held is a platform bug rather than a detail: Windows refuses
+    to unlink a file another handle has open, so the `finally` below would replace `Cookies file
+    not found` with a permission error — on the owner's own machine, and only there. The
+    temporary file is therefore never opened, and this test says so by refusing to let one be:
+    against the previous order it fails here, on Linux, where the message alone still looks
+    right.
+    """
+
+    def refuse(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("a temporary file was opened for a jar that is not there")
+
+    monkeypatch.setattr(tempfile, "NamedTemporaryFile", refuse)
+    with (
+        pytest.raises(ValueError, match="Cookies file not found"),
+        cookie_jar(YtdlpOptions(cookies=str(tmp_path / "absent.txt"))),
+    ):
+        pass
+
+
+def test_build_options_refuses_a_path_that_did_not_come_through_cookie_jar():
+    """`cookiefile` has exactly one author: the private copy.
+
+    Both call sites pass the override (`download.py`, `extract.py`), so this guards the next
+    one. Handing yt-dlp `options.cookies` directly is the read-only-mount failure the copy
+    exists to prevent, and forgetting the override must not be a way to get it back.
+    """
+    with pytest.raises(ValueError, match="cookie_jar"):
+        build_options(YtdlpOptions(cookies="/data/cookies.txt"))
 
 
 def test_an_absent_jar_adds_nothing():
