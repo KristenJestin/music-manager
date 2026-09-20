@@ -12,8 +12,10 @@ value crossing its boundary is narrowed here.
 
 from __future__ import annotations
 
+import hashlib
 import re
 import tempfile
+import threading
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
@@ -69,9 +71,9 @@ _ERROR_PREFIX: Final[re.Pattern[str]] = re.compile(r"^ERROR:\s*", re.IGNORECASE)
 #: Eleven characters is the YouTube video id, and nothing else in these messages has that
 #: shape between a bracket and a colon.
 _ERROR_ID: Final[re.Pattern[str]] = re.compile(r"\[[^\]]+\]\s+([A-Za-z0-9_-]{11}):")
-#: yt-dlp's one sentence about a jar the browser has rotated since it was exported. It is a
-#: *warning*, printed before the extraction goes on as if signed out, so the failure that
-#: follows is a bot check or an age gate and never mentions the cookies again.
+#: yt-dlp's one sentence about a jar YouTube no longer honours — its response emptied the
+#: auth cookies. It is a *warning*, printed before the extraction goes on as if signed out, so
+#: the failure that follows is a bot check or an age gate and never mentions the cookies again.
 _STALE_COOKIES: Final[re.Pattern[str]] = re.compile(
     r"cookies are no longer valid|likely been rotated in the browser", re.IGNORECASE
 )
@@ -158,10 +160,10 @@ def blame_stale_cookies(error: ToolboxError, errors: ExtractionLog) -> ToolboxEr
 
     The owner pasted a fresh export, imported one album, and every album after it came back
     as *"Sign in to confirm you're not a bot"* — the same code, the same "Configure cookies"
-    button, and no way to tell a jar that was never there from a jar the browser had rotated
-    ten minutes after the export. yt-dlp does say which: one warning, before the failure. This
-    reads it, and only re-labels the failures a signed-out session accounts for; a deleted
-    video is deleted whatever the cookies say.
+    button, and no way to tell a jar that was never there from a session YouTube had signed
+    out (see :func:`cookie_jar` for why it did). yt-dlp does say which: one warning, before
+    the failure. This reads it, and only re-labels the failures a signed-out session accounts
+    for; a deleted video is deleted whatever the cookies say.
     """
     if not errors.stale_cookies or error.code not in _STALE_EXPLAINS:
         return error
@@ -195,29 +197,102 @@ def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
     return built
 
 
-@contextmanager
-def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
-    """Yield the ``cookiefile`` override for this call, cleaning up after itself.
+#: Serialises the reads and writes of a live jar. Two calls may run at once (a listing while
+#: a download is going), each on its own working copy; only the write-back is exclusive.
+_JAR_LOCK: Final[threading.Lock] = threading.Lock()
 
-    Inline content is the case that matters: on a real server the operator has a browser
-    export to paste into the Console, not a path that happens to exist inside this container
-    (owner review B6). It is written 0600 to the system temp directory and removed on the way
-    out, so it never lands in the library, in a log, or in an image layer.
-    """
-    content = options.cookies_content
-    if not content:
-        yield {}
-        return
+
+def _jar_store() -> Path:
+    """Where the live jars live: under ``TMPDIR``, which the image points at ``/cache``."""
+    return Path(tempfile.gettempdir()) / "mm-cookies"
+
+
+def _seed(options: YtdlpOptions) -> str | None:
+    """The jar as the operator supplied it: pasted content first, else the file at the path."""
+    if options.cookies_content:
+        return options.cookies_content
+    if options.cookies:
+        try:
+            return Path(options.cookies).read_text(encoding="utf-8")
+        except OSError:
+            # Unreadable, so nothing to keep alive; `build_options` still passes the path
+            # through and yt-dlp reports the missing file in its own words.
+            return None
+    return None
+
+
+def _write_private(path: Path, content: str) -> None:
+    """Write ``content`` to ``path`` atomically and 0600: a jar is a credential."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
-        "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
+        "w", dir=path.parent, prefix=f".{path.name}.", encoding="utf-8", delete=False
     )
     try:
         handle.write(content if content.endswith("\n") else f"{content}\n")
         handle.close()
         Path(handle.name).chmod(0o600)
-        yield {"cookiefile": handle.name}
+        Path(handle.name).replace(path)
     finally:
         Path(handle.name).unlink(missing_ok=True)
+
+
+@contextmanager
+def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
+    """Yield the ``cookiefile`` override for this call, and keep the jar alive between calls.
+
+    Inline content is the case that matters: on a real server the operator has a browser
+    export to paste into the Console, not a path that happens to exist inside this container
+    (owner review B6). It used to be written to a throwaway temporary file per call, which was
+    private and tidy and **killed the session within the hour**. YouTube rotates a signed-in
+    session's cookies on nearly every response (``SIDCC``, ``__Secure-*PSIDCC``), yt-dlp
+    saves the rotated jar back to ``cookiefile`` when it closes, and the toolbox deleted that
+    file and re-sent the export's original values on the next call. A session that keeps
+    presenting cookies YouTube has already replaced is, to YouTube, a replayed one: it signs
+    it out, every auth cookie comes back ``EXPIRED``, and the operator — who exported from a
+    private window in a browser they never reopened — is told to configure cookies.
+
+    So the jar now lives. The export the operator supplied is the *seed*; it is copied once to
+    a **live jar** under ``TMPDIR`` (``/cache`` in the image), named after the seed's hash so
+    a new paste is a new jar and an old one is never resurrected. Each call works on a private
+    copy of the live jar, and what yt-dlp wrote back is folded into the live jar on the way
+    out. Two concurrent calls each carry a valid recent rotation; the later write wins, which
+    is fine — either is a rotation YouTube issued, and YouTube tolerates the previous one.
+
+    ``cookiesMode: file`` takes the same road, and needs it more: its mount is read-only, so
+    yt-dlp's save used to fail on every call. The file on disk is read as the seed and never
+    written to.
+
+    Still 0600, still under a private directory, still never in the library or a log. The
+    live jar outlives the call and the container, not the cache volume: wiping ``/cache``
+    re-seeds from the export, whose cookies YouTube may or may not still accept.
+    """
+    seed = _seed(options)
+    if seed is None:
+        yield {}
+        return
+    key = hashlib.sha256(seed.encode("utf-8")).hexdigest()[:16]
+    live = _jar_store() / f"{key}.txt"
+    with _JAR_LOCK:
+        if not live.is_file():
+            _write_private(live, seed)
+        current = live.read_text(encoding="utf-8")
+    work = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
+        "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
+    )
+    try:
+        work.write(current)
+        work.close()
+        Path(work.name).chmod(0o600)
+        yield {"cookiefile": work.name}
+    finally:
+        try:
+            rotated = Path(work.name).read_text(encoding="utf-8")
+        except OSError:
+            rotated = current
+        if rotated.strip() and rotated != current:
+            with _JAR_LOCK:
+                _write_private(live, rotated)
+        Path(work.name).unlink(missing_ok=True)
 
 
 def extract_info(url: str, options: Mapping[str, Any], *, download: bool = False) -> InfoDict:

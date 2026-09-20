@@ -259,7 +259,7 @@ def test_a_bot_check_after_a_stale_jar_warning_is_reported_as_stale_cookies(
     assert stream[0]["event"] == "error"
     assert stream[0]["code"] == ErrorCode.YTDLP_COOKIES_STALE.value
     assert stream[0]["action"] == "Configure cookies"
-    assert "private window" in stream[0]["hint"]
+    assert "signed this session out" in stream[0]["hint"]
     assert DOWNLOAD_LOCK.held is False
 
 

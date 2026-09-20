@@ -35,7 +35,7 @@ class ErrorCode(StrEnum):
     """Every failure mode the toolbox knows how to name."""
 
     YTDLP_BOT_CHECK = "YTDLP_BOT_CHECK"
-    #: The jar the call was given is one the browser has already rotated. Read off yt-dlp's
+    #: The jar the call was given is one YouTube has signed out. Read off yt-dlp's
     #: *warning*, not off the error that follows it: what follows is a plain bot check or an
     #: age gate, and the operator who just pasted fresh cookies is told to configure cookies.
     YTDLP_COOKIES_STALE = "YTDLP_COOKIES_STALE"
@@ -86,8 +86,8 @@ ERROR_CATALOG: Final[tuple[ErrorSpec, ...]] = (
         code=ErrorCode.YTDLP_COOKIES_STALE,
         message="The YouTube cookies this call was given are no longer valid.",
         hint=(
-            "The browser rotated them after the export, so YouTube treats the jar as signed "
-            "out. Export again from a private window, close that window, and paste the new jar."
+            "YouTube signed this session out. Export a fresh jar from a private window and "
+            "paste it; the toolbox keeps it up to date from then on."
         ),
         action="Configure cookies",
         status=403,

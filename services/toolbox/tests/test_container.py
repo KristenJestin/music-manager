@@ -246,7 +246,14 @@ def test_the_remux_copies_the_stream_instead_of_re_encoding_it(webm_file: Path):
 # --------------------------------------------------------------------------------------
 
 
-def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing():
+@pytest.fixture
+def jar_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """A private `TMPDIR` for the live jars, so tests never share one with each other."""
+    monkeypatch.setattr("tempfile.tempdir", str(tmp_path))
+    return tmp_path / "mm-cookies"
+
+
+def test_a_pasted_jar_becomes_a_private_working_copy_that_stops_existing(jar_store: Path):
     """`cookies_content` is the case a real server has: an export to paste, not a path."""
     options = YtdlpOptions(cookies_content="# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/")
     with cookie_jar(options) as jar:
@@ -256,10 +263,59 @@ def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing()
         assert path.read_text(encoding="utf-8").endswith("\n")
         if os.name != "nt":  # Windows has no POSIX mode bits to speak of
             assert path.stat().st_mode & 0o077 == 0
+            assert (next(jar_store.glob("*.txt")).stat().st_mode & 0o077) == 0
     assert not path.exists()
 
 
-def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
+def test_what_yt_dlp_wrote_back_is_the_jar_the_next_call_starts_from(jar_store: Path):
+    """The defect: YouTube rotates the session's cookies on every response, yt-dlp saves the
+    rotation into `cookiefile`, and a jar re-created from the export on each call re-sends
+    values YouTube has already replaced — until it signs the session out."""
+    options = YtdlpOptions(cookies_content=".youtube.com\tTRUE\t/\tTRUE\t0\tSIDCC\told\n")
+    with cookie_jar(options) as jar:
+        # What yt-dlp does on close: the jar, with the rotation YouTube just issued.
+        Path(str(jar["cookiefile"])).write_text(
+            ".youtube.com\tTRUE\t/\tTRUE\t0\tSIDCC\tnew\n", encoding="utf-8"
+        )
+    with cookie_jar(options) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8").endswith("SIDCC\tnew\n")
+    assert len(list(jar_store.glob("*.txt"))) == 1
+
+
+def test_a_new_paste_is_a_new_live_jar_and_the_old_one_is_not_resurrected(jar_store: Path):
+    first = YtdlpOptions(cookies_content="SIDCC\tone\n")
+    second = YtdlpOptions(cookies_content="SIDCC\ttwo\n")
+    with cookie_jar(first) as jar:
+        Path(str(jar["cookiefile"])).write_text("SIDCC\tone-rotated\n", encoding="utf-8")
+    with cookie_jar(second) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "SIDCC\ttwo\n"
+    assert len(list(jar_store.glob("*.txt"))) == 2
+
+
+def test_a_call_that_left_the_working_copy_empty_does_not_erase_the_live_jar(jar_store: Path):
+    options = YtdlpOptions(cookies_content="SIDCC\tkept\n")
+    with cookie_jar(options) as jar:
+        Path(str(jar["cookiefile"])).write_text("", encoding="utf-8")
+    with cookie_jar(options) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "SIDCC\tkept\n"
+
+
+def test_a_mounted_file_is_the_seed_and_is_never_written_to(jar_store: Path, tmp_path: Path):
+    """`cookiesMode: file` mounts `/data` read-only; yt-dlp's save must land elsewhere."""
+    mounted = tmp_path / "cookies.txt"
+    mounted.write_text("SIDCC\tfrom-disk\n", encoding="utf-8")
+    options = YtdlpOptions(cookies=str(mounted))
+    with cookie_jar(options) as jar:
+        work = Path(str(jar["cookiefile"]))
+        assert work != mounted
+        assert work.read_text(encoding="utf-8") == "SIDCC\tfrom-disk\n"
+        work.write_text("SIDCC\trotated\n", encoding="utf-8")
+    assert mounted.read_text(encoding="utf-8") == "SIDCC\tfrom-disk\n"
+    with cookie_jar(options) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "SIDCC\trotated\n"
+
+
+def test_the_working_copy_is_removed_even_when_the_download_blows_up(jar_store: Path):
     options = YtdlpOptions(cookies_content="x")
     seen: Path | None = None
     with pytest.raises(RuntimeError), cookie_jar(options) as jar:
@@ -269,7 +325,9 @@ def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
     assert not seen.exists()
 
 
-def test_a_path_is_passed_straight_through_and_an_absent_jar_adds_nothing():
+def test_an_unreadable_path_is_passed_straight_through_and_an_absent_jar_adds_nothing(
+    jar_store: Path,
+):
     with cookie_jar(YtdlpOptions(cookies="/data/cookies.txt")) as jar:
         assert jar == {}
     assert build_options(YtdlpOptions(cookies="/data/cookies.txt"))["cookiefile"] == (
@@ -280,7 +338,7 @@ def test_a_path_is_passed_straight_through_and_an_absent_jar_adds_nothing():
     assert "cookiefile" not in build_options(YtdlpOptions())
 
 
-def test_inline_content_wins_over_a_path_that_the_container_cannot_see():
+def test_inline_content_wins_over_a_path_that_the_container_cannot_see(jar_store: Path):
     options = YtdlpOptions(cookies="/not/in/this/container.txt", cookies_content="pasted")
     with cookie_jar(options) as jar:
         built = build_options(options, **jar)

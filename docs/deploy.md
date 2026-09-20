@@ -416,13 +416,8 @@ dont l'historique YouTube tolère ce qui va être téléchargé) :
 chrome` fonctionne aussi si `yt-dlp` tourne sur la machine qui a le navigateur, ce qui n'est
    en général pas le cas du toolbox (il tourne dans un conteneur sans profil de navigateur).
 2. **Dans une fenêtre de navigation privée**, ouvrez `youtube.com` et connectez-vous au bon
-   compte. C'est le point qui compte : un navigateur qui reste connecté fait tourner ses
-   cookies de session (`SIDCC`, `__Secure-*PSIDCC`…) au fil de la navigation, et l'export
-   d'un onglet ordinaire cesse d'être accepté par YouTube en quelques minutes. Le symptôme est
-   reconnaissable : le jar fraîchement collé fonctionne pour un import, puis tout repasse en
-   « Sign in to confirm you're not a bot ». Le toolbox le nomme `YTDLP_COOKIES_STALE`
-   (yt-dlp l'annonce d'un avertissement, « The provided YouTube account cookies are no
-   longer valid », que le toolbox lit avant l'erreur qui suit).
+   compte. Un navigateur qui reste connecté fait tourner ses cookies de session au fil de la
+   navigation ; une fenêtre privée fermée ensuite ne touche plus à rien.
 3. Exportez : l'extension produit un fichier texte commençant par
    `# Netscape HTTP Cookie File`, une ligne par cookie, sept champs séparés par des
    tabulations (`domaine, sous-domaines, chemin, sécurisé, expiration, nom, valeur`).
@@ -430,6 +425,28 @@ chrome` fonctionne aussi si `yt-dlp` tourne sur la machine qui a le navigateur, 
    fermer la fenêtre les laisse tels quels, et plus aucun navigateur ne les fait tourner.
 5. Gardez ce fichier hors du dépôt. Ce n'est l'affaire de personne d'autre que de
    l'installation elle-même — voir l'avertissement plus bas.
+
+### Le jar vit : ce que le toolbox en fait
+
+YouTube fait tourner les cookies d'une session connectée à presque chaque réponse (`SIDCC`,
+`__Secure-1PSIDCC`, `__Secure-3PSIDCC`), et yt-dlp réécrit le jar avec ces nouvelles valeurs
+quand il se ferme. Un client qui continue de présenter les anciennes valeurs après plusieurs
+rotations est, pour YouTube, une session rejouée : il la déconnecte, tous les cookies
+d'authentification reviennent `EXPIRED`, et yt-dlp l'annonce d'un avertissement, « The
+provided YouTube account cookies are no longer valid », que le toolbox lit avant l'erreur qui
+suit et nomme `YTDLP_COOKIES_STALE`. C'est le symptôme « le jar fraîchement collé fonctionne
+pour un import, puis tout repasse en bot check », et il n'a rien à voir avec le navigateur
+d'origine.
+
+Le toolbox garde donc un **jar vivant** : l'export collé (ou le fichier monté) n'est que la
+graine, copiée une fois dans `/cache/mm-cookies/<hash>.txt` ; chaque appel travaille sur une
+copie et y reverse ce que yt-dlp a réécrit. Un nouveau collage est un nouveau jar. Conséquences
+pratiques :
+
+- le volume `cache` doit survivre aux redéploiements (§3 : c'est déjà le cas avec le volume
+  nommé) ; le vider, c'est repartir de la graine, que YouTube n'accepte plus forcément ;
+- en mode `file`, le fichier monté n'est jamais réécrit — la monture est en lecture seule et
+  c'est très bien ainsi.
 
 ### Quand l'adresse IP elle-même est marquée
 
