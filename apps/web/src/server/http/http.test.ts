@@ -99,9 +99,21 @@ describe("bucketFor", () => {
     expect(bucketFor("GET", "/api/v1/imports")).toBe("api");
     expect(bucketFor("POST", "/mcp")).toBe("api");
     expect(bucketFor("GET", "/api/openapi.json")).toBe("api");
+    expect(bucketFor("GET", "/api/docs")).toBe("api");
     expect(bucketFor("GET", "/health")).toBeNull();
     expect(bucketFor("GET", "/library")).toBeNull();
     expect(bucketFor("GET", "/_build/assets/app.js")).toBeNull();
+  });
+
+  it("leaves the Console's own media and event endpoints alone", () => {
+    // A library page is hundreds of covers; a player is a range request per seek. Counting
+    // them against the agent bucket made the six-hundred-and-first request — the stream — a
+    // 429, which the player reported as "This file could not be loaded".
+    expect(bucketFor("GET", "/api/cover")).toBeNull();
+    expect(bucketFor("GET", "/api/artist-image")).toBeNull();
+    expect(bucketFor("GET", "/api/stream")).toBeNull();
+    expect(bucketFor("GET", "/api/events")).toBeNull();
+    expect(bucketFor("GET", "/api/match-progress")).toBeNull();
   });
 });
 

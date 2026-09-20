@@ -89,7 +89,17 @@ export function bucketFor(method: string, pathname: string): Bucket | null {
     return "login";
   }
   if (path === "/login" && method === "POST") return "login";
-  if (path.startsWith("/api/")) return "api";
+  // The agent surface, and only it. `/api/` also carries what the Console itself is made of —
+  // `/api/cover` and `/api/artist-image` (one request per tile on a library page, hundreds
+  // of them in a scroll), `/api/stream` (a byte-range request per seek), `/api/events` and
+  // `/api/match-progress` (long-lived). Counting those was the defect the owner reported as
+  // "This file could not be loaded": a library page spent the six hundred on covers, and the
+  // player's next range request was the six-hundred-and-first. Those endpoints answer only
+  // to a session, and a session is the owner.
+  if (path.startsWith("/api/v1/")) return "api";
+  if (path === "/api/openapi.json" || path === "/api/docs" || path.startsWith("/api/docs/")) {
+    return "api";
+  }
   if (path === "/mcp" || path.startsWith("/mcp/")) return "api";
   return null;
 }
