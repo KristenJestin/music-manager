@@ -84,6 +84,16 @@ _PLAYLIST_EQUIVALENT: Final[dict[ErrorCode, ErrorCode]] = {
     ErrorCode.UNKNOWN: ErrorCode.PLAYLIST_UNAVAILABLE,
 }
 
+#: Added to a hint when yt-dlp said the jar it was given is no longer a session. The sentence is
+#: quoted rather than paraphrased because the export tips at its end — yt-dlp's own wiki page —
+#: are the ones the reader needs, and because a paraphrase of somebody else's diagnosis is how a
+#: right answer becomes an arguable one.
+_SESSION_REJECTED: Final[str] = (
+    "yt-dlp named the session itself: “{verdict}” — so the jar is not a session any more, and "
+    "the refusal is YouTube answering as if nobody were signed in. Export a fresh one (signed "
+    "in, httpOnly cookies included) and paste it again."
+)
+
 
 def _failure(
     exc: Exception,
@@ -122,10 +132,11 @@ def _failure(
         else classify_ytdlp_error(exc, url=url, cookies=cookies)
     )
     if not playlist:
-        return error
+        return _explained(error, errors)
     promoted = _PLAYLIST_EQUIVALENT.get(error.code)
-    return (
-        error if promoted is None else ToolboxError(promoted, error.message, details=error.details)
+    return _explained(
+        error if promoted is None else ToolboxError(promoted, error.message, details=error.details),
+        errors,
     )
 
 
@@ -139,6 +150,46 @@ def _shared_reason(gaps: Sequence[ExtractGap]) -> str | None:
     if len(reasons) != 1 or any(gap.reason is None for gap in gaps):
         return None
     return next(iter(reasons))
+
+
+def _refusal_hint(shared: str | None, errors: ExtractionLog) -> str | None:
+    """The hint for "every entry answered the same refusal", plus yt-dlp's reason if it had one.
+
+    The shared sentence is the *what*; the session verdict is the *why*, and a hint that gives
+    the first without the second is what sends an operator to his player client while YouTube is
+    refusing the session he has just pasted.
+    """
+    verdict = errors.session_verdict
+    explained = None if verdict is None else _SESSION_REJECTED.format(verdict=verdict)
+    if shared is None:
+        return explained
+    refusal = (
+        "The playlist itself was read: every entry answered the same thing — "
+        f"“{shared}”. That is YouTube refusing the request rather than a deleted "
+        "video, so look at the session (the cookies) and at the player client."
+    )
+    return refusal if explained is None else f"{refusal} {explained}"
+
+
+def _explained(error: ToolboxError, errors: ExtractionLog) -> ToolboxError:
+    """The same failure, with the sentence that explains it, when yt-dlp said one.
+
+    Only the raise site can add this: the catalog answers by *code*, and `YTDLP_BOT_CHECK` is
+    three situations — no jar at all, a jar of anonymous cookies, a session YouTube no longer
+    accepts — that want three different words. `session` goes into the details too, so whoever
+    reads the JSON does not have to parse the hint to learn which of the three it was.
+    """
+    verdict = errors.session_verdict
+    if verdict is None:
+        return error
+    return ToolboxError(
+        error.code,
+        error.message,
+        hint=f"{error.hint} {_SESSION_REJECTED.format(verdict=verdict)}",
+        action=error.action,
+        status=error.status,
+        details={**error.details, "session": {"cookies_rejected": True, "reason": verdict}},
+    )
 
 
 def extract(request: ExtractRequest) -> ExtractResult:
@@ -195,7 +246,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
     # orchestrator as the generic "the URL resolved to no videos".
     if not result.entries and result.unreadable:
         shared = _shared_reason(result.unreadable)
-        raise ToolboxError(
+        failure = ToolboxError(
             ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
             f"None of the {len(result.unreadable)} entries of this playlist could be read.",
             # The catalog's hint blames "one of the videos inside it", which is right when a few
@@ -204,15 +255,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
             # fifteen-track album is then told about a single dead video while the actual
             # refusal — "The page needs to be reloaded." — points at the session or the player,
             # and the hint sends him looking for the wrong thing.
-            hint=(
-                None
-                if shared is None
-                else (
-                    "The playlist itself was read: every entry answered the same thing — "
-                    f"“{shared}”. That is YouTube refusing the request rather than a deleted "
-                    "video, so look at the session (the cookies) and at the player client."
-                )
-            ),
+            hint=_refusal_hint(shared, errors),
             # Nothing came back, so "Import what came back" is not an offer that can be taken.
             action="Retry the listing",
             details={
@@ -221,6 +264,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
                 "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
             },
         )
+        raise _explained(failure, errors)
 
     # `warning` when something was lost, so a partial listing is visible in the JSON logs
     # without anyone having to diff two counts.

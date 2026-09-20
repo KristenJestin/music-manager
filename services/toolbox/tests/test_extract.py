@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -234,6 +234,9 @@ class _FakeYoutubeDL:
 
     _PLAN: tuple[list[str], dict[str, Any] | None] = ([], None)
 
+    #: Warnings it reports through the same logger: the *why* beside the refusals.
+    _WARNINGS: ClassVar[list[str]] = []
+
     def __init__(self, params: dict[str, Any]) -> None:
         self.params = params
 
@@ -250,6 +253,8 @@ class _FakeYoutubeDL:
         assert logger is not None, "`extract` must hand yt-dlp a logger, or a gap has no reason"
         for message in messages:
             logger.error(message)
+        for warning in self._WARNINGS:
+            logger.warning(warning)
         return info
 
     def sanitize_info(self, info: dict[str, Any]) -> dict[str, Any]:
@@ -260,11 +265,17 @@ def _plan(
     monkeypatch: pytest.MonkeyPatch,
     messages: list[str],
     info: dict[str, Any] | None,
+    *,
+    warnings: list[str] | None = None,
 ) -> None:
     """Make the next `extract()` call run against a yt-dlp that behaves like this."""
     from toolbox import ytdlp as ytdlp_module
 
-    planned = type("_Planned", (_FakeYoutubeDL,), {"_PLAN": (messages, info)})
+    planned = type(
+        "_Planned",
+        (_FakeYoutubeDL,),
+        {"_PLAN": (messages, info), "_WARNINGS": warnings or []},
+    )
     monkeypatch.setattr(ytdlp_module, "YoutubeDL", planned)
 
 
@@ -434,6 +445,57 @@ def test_a_listing_every_entry_refused_the_same_way_quotes_that_refusal(
     assert "one of the videos" not in error.hint
     assert error.action == "Retry the listing", "nothing came back to be imported"
     assert error.message == "None of the 3 entries of this playlist could be read."
+
+
+def test_a_refusal_is_explained_by_the_warning_yt_dlp_reports_beside_it(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The run that prompted this: fifteen entries refused, and the reason in a warning nobody kept.
+
+    YouTube answers "Sign in to confirm you're not a bot" to no jar at all, to a jar of anonymous
+    cookies, and to a session rotated out from under its export. The refusals say that one
+    sentence every time; the difference arrives once, as a *warning*, and this class threw
+    warnings away unless `verbose` was on. The hint has to carry it — it is the only thing that
+    tells the three apart, and its tail is yt-dlp's own export guide.
+    """
+    refusal = "Sign in to confirm you're not a bot."
+    verdict = (
+        "The provided YouTube account cookies are no longer valid. They have likely been "
+        "rotated in the browser as a security measure."
+    )
+    _plan(
+        monkeypatch,
+        [f"ERROR: [youtube] vid0000000{index}: {refusal}" for index in range(1, 4)],
+        {"id": "OLAK5uy_ltPA", "title": "Album", "entries": [None, None, None]},
+        warnings=[verdict],
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+
+    error = raised.value
+    assert error.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
+    assert verdict in error.hint, error.hint
+    assert "not a session any more" in error.hint
+    assert error.details["session"] == {"cookies_rejected": True, "reason": verdict}
+
+
+def test_a_warning_about_anything_else_does_not_rewrite_the_hint(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """yt-dlp warns about plenty; only a refused session is quoted back at the owner."""
+    _plan(
+        monkeypatch,
+        [
+            "ERROR: [youtube] vid00000001: Private video",
+            "ERROR: [youtube] vid00000002: Private video",
+        ],
+        {"id": "OLAK5uy_x", "title": "Album", "entries": [None, None]},
+        warnings=["No title found in player responses; falling back to title from initial data"],
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert "No title found" not in raised.value.hint
+    assert "session" not in raised.value.details
 
 
 def test_a_listing_lost_for_different_reasons_keeps_the_catalog_hint(

@@ -37,7 +37,13 @@ log: structlog.stdlib.BoundLogger = structlog.get_logger("toolbox.maintenance")
 
 _UPDATE_TIMEOUT: Final[float] = 300.0
 
-#: Cookies that prove a logged-in YouTube session. Any one of them is enough.
+#: The cookie that names the account. yt-dlp's `_has_auth_cookies` requires it **and** one of
+#: `_SESSION_COOKIES`, and it is right to: YouTube hands a `SAPISID` to visitors too, so a jar
+#: carrying one is not proof that anybody is signed in.
+_LOGIN_COOKIE: Final[str] = "LOGIN_INFO"
+
+#: Cookies that sign the requests of a logged-in YouTube session. One of them, with
+#: `_LOGIN_COOKIE`, is what makes a jar a session.
 _SESSION_COOKIES: Final[frozenset[str]] = frozenset(
     {"SAPISID", "__Secure-3PSID", "__Secure-1PSID", "SID", "SSID", "HSID"}
 )
@@ -220,7 +226,12 @@ def cookies_test(request: CookiesTestRequest) -> CookiesTestResult:
     expiries = [expiry for _, _, expiry in cookies if expiry > 0]
     expired = sum(1 for expiry in expiries if expiry <= now)
     upcoming = [expiry for expiry in expiries if expiry > now]
-    authenticated = any(name in _SESSION_COOKIES for _, name, _ in cookies)
+    names = {name for _, name, _ in cookies}
+    # yt-dlp's own definition, not a guess. A jar with a session cookie and no `LOGIN_INFO` is
+    # not a signed-in session, and it used to pass this check and then be refused by YouTube
+    # with the same sentence an empty jar gets: a verdict of `ok` that ends in a bot check is
+    # worse than no verdict at all.
+    authenticated = _LOGIN_COOKIE in names and bool(names & _SESSION_COOKIES)
 
     # Two things were wrong with the verdict, both of them read off real jars.
     #
@@ -244,7 +255,14 @@ def cookies_test(request: CookiesTestRequest) -> CookiesTestResult:
     if not cookies:
         problems.append("no cookies found")
     if not authenticated:
-        problems.append("no YouTube session cookie (SAPISID / __Secure-3PSID) present")
+        if names & _SESSION_COOKIES:
+            problems.append(
+                f"the jar has a YouTube session cookie but no {_LOGIN_COOKIE}, so it is not a "
+                "signed-in session: yt-dlp will send it and YouTube will answer as if nobody "
+                "were signed in"
+            )
+        else:
+            problems.append("no YouTube session cookie (SAPISID / __Secure-3PSID) present")
     if lapsed_session:
         problems.append(
             f"the session cookie {'/'.join(lapsed_session)} has expired: export a fresh jar"

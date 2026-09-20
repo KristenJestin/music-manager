@@ -69,6 +69,17 @@ _BASE: dict[str, Any] = {
 #: escape sequence would end up quoted in the Console, so it is stripped unconditionally.
 _ANSI: Final[re.Pattern[str]] = re.compile(r"\x1b\[[0-9;]*m")
 _ERROR_PREFIX: Final[re.Pattern[str]] = re.compile(r"^ERROR:\s*", re.IGNORECASE)
+
+#: Levels that reach the log whatever ``verbose`` says: the two that carry a refusal, or the
+#: sentence that explains one. `info` and `debug` stay behind the flag — they are yt-dlp walking
+#: its own code, thousands of lines per download.
+_ALWAYS_FORWARDED: Final[frozenset[str]] = frozenset({"error", "warning"})
+
+#: yt-dlp's own words, said once per call, when YouTube refused the account cookies it was
+#: handed. Its text, not ours: it is quoted in the failure's hint.
+_COOKIES_REJECTED: Final[re.Pattern[str]] = re.compile(
+    r"account cookies are no longer valid", re.IGNORECASE
+)
 #: ``[youtube] dQw4w9WgXcQ: Private video`` — the id yt-dlp names in a failure it swallowed.
 #: Eleven characters is the YouTube video id, and nothing else in these messages has that
 #: shape between a bracket and a colon.
@@ -128,16 +139,28 @@ class ExtractionLog:
     import that produced nothing and a `docker logs` that said nothing, while the refusals
     yt-dlp had already named sat in this list. Every line is therefore also forwarded to a
     structlog logger when one is given: `error` lines whatever the configured level, because
-    the sentence is the whole point, and the rest only when ``verbose`` — yt-dlp's own debug
-    stream, thousands of lines per download, request headers included, which is why
-    :meth:`add_secrets` exists and why the jar's values are stripped out of every line before it
-    is logged.
+    the sentence is the whole point, `warning` lines for the same reason, and the rest only
+    when ``verbose`` — yt-dlp's own debug stream, thousands of lines per download, request
+    headers included, which is why :meth:`add_secrets` exists and why the jar's values are
+    stripped out of every line before it is logged.
+
+    **Warnings are in that first group because of what one of them says.** The refusals are
+    loud: yt-dlp reports one per entry, at `error`, and they are all the same sentence — *"Sign
+    in to confirm you're not a bot"* — whether the jar was a session that died, a jar of
+    anonymous cookies, or no jar at all. The line that tells those three apart is quieter: when
+    YouTube answers as if nobody were signed in, yt-dlp says so **once**, at `warning` — "The
+    provided YouTube account cookies are no longer valid" — and the toolbox used to drop it
+    unless somebody had turned ``verbose`` on. The operator was left reading fifteen identical
+    refusals with the explanation sitting in the same process, which is the complaint this
+    class exists to answer. :attr:`session_verdict` is that line, and
+    :func:`toolbox.extract.extract` quotes it in the failure's `hint`.
     """
 
-    __slots__ = ("_log", "_secrets", "_verbose", "messages")
+    __slots__ = ("_log", "_secrets", "_verbose", "messages", "warnings")
 
     def __init__(self, log: Any | None = None, *, verbose: bool = False) -> None:
         self.messages: list[str] = []
+        self.warnings: list[str] = []
         self._log = log
         self._verbose = verbose
         self._secrets: list[str] = []
@@ -148,7 +171,7 @@ class ExtractionLog:
 
     def _emit(self, level: str, msg: str) -> None:
         """Forward one yt-dlp line, redacted, if the level and the verbosity want it."""
-        if self._log is None or (level != "error" and not self._verbose):
+        if self._log is None or (level not in _ALWAYS_FORWARDED and not self._verbose):
             return
         line = redact_cookies(str(msg), self._secrets).rstrip()
         if not line:
@@ -162,7 +185,7 @@ class ExtractionLog:
         else:
             self._log.error("ytdlp", line=line)
 
-    # -- yt-dlp's logger protocol; only `error` is also kept ----------------------------
+    # -- yt-dlp's logger protocol; `error` and `warning` are also kept -------------------
     def debug(self, msg: str) -> None:
         self._emit("debug", msg)
 
@@ -170,7 +193,27 @@ class ExtractionLog:
         self._emit("info", msg)
 
     def warning(self, msg: str) -> None:
-        self._emit("warning", msg)
+        """Forward one warning, and keep it — this is where YouTube's *reason* arrives.
+
+        A warning is the one level that carries a sentence the refusals do not: yt-dlp reports
+        each refusal per entry and never says why, then says why once, here. Kept without its
+        prefix and without colour, the way :meth:`error` keeps a refusal, so
+        :attr:`session_verdict` can hand the sentence back verbatim — and redacted here rather
+        than only in the log, because that sentence ends up in a failure's `hint`, which travels
+        in the API response: a line kept for the operator is still a line that can leave the
+        process, so it leaves with the jar's values already gone.
+
+        **Once per distinct sentence**, however many entries yt-dlp repeated it for. It walks a
+        playlist entry by entry, so "no JS runtime" and "no title found" arrive once per video:
+        fifteen tracks wrote forty-six warnings on the owner's album, and a two-hundred-entry
+        playlist would write four hundred lines of the same three sentences, burying the one
+        that differs — which is the whole reason warnings are kept.
+        """
+        clean = strip_ytdlp_prefix(redact_cookies(_ANSI.sub("", str(msg)), self._secrets)).strip()
+        if not clean or clean in self.warnings:
+            return
+        self.warnings.append(clean)
+        self._emit("warning", clean)
 
     def error(self, msg: str) -> None:
         """Forward one failure, and keep it without its ``ERROR:`` prefix or its colour."""
@@ -195,6 +238,22 @@ class ExtractionLog:
         raw = self.messages[index]
         found = _ERROR_ID.search(raw)
         return (found.group(1) if found else None, strip_ytdlp_prefix(raw) or raw)
+
+    @property
+    def session_verdict(self) -> str | None:
+        """yt-dlp's own sentence when YouTube refused the session it was handed, if it said one.
+
+        It arrives once, as a warning, and it answers the only question a refusal leaves open.
+        *"Sign in to confirm you're not a bot"* is what YouTube says to a datacenter IP with no
+        jar, to a jar of anonymous cookies, **and** to a session rotated out from under the
+        export — three different cures behind one sentence. This line separates them, and it is
+        handed back verbatim rather than summarised: the export tips at its end are yt-dlp's
+        own, and they are the ones the reader needs.
+        """
+        for line in self.warnings:
+            if _COOKIES_REJECTED.search(line):
+                return line
+        return None
 
 
 def yt_dlp_version() -> str | None:

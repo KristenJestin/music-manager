@@ -61,17 +61,72 @@ class _Recorder:
 
 
 def test_yt_dlp_chatter_is_only_forwarded_when_it_is_asked_for() -> None:
+    """A refusal travels, and so does the sentence that explains it; `debug` and `info` do not.
+
+    Warnings were left behind with the chatter, and that cost the only line saying *why* a
+    refusal happened: yt-dlp reports the refusal once per entry and the reason once, as a
+    warning, on the way past.
+    """
     quiet_recorder = _Recorder()
     quiet = ExtractionLog(quiet_recorder)
     quiet.debug("Loaded 1914 extractors")
+    quiet.info("Downloading 1 format(s)")
     quiet.error("ERROR: [youtube] abc: Video unavailable")
-    assert quiet_recorder.lines == [("error", "ERROR: [youtube] abc: Video unavailable")]
+    quiet.warning("The provided YouTube account cookies are no longer valid.")
+    assert quiet_recorder.lines == [
+        ("error", "ERROR: [youtube] abc: Video unavailable"),
+        ("warning", "The provided YouTube account cookies are no longer valid."),
+    ]
 
     loud_recorder = _Recorder()
     loud = ExtractionLog(loud_recorder, verbose=True)
     loud.debug("Loaded 1914 extractors")
     loud.info("Downloading 1 format(s)")
     assert [level for level, _ in loud_recorder.lines] == ["debug", "info"]
+
+
+def test_the_session_verdict_is_kept_and_handed_back_verbatim() -> None:
+    """The one line that separates "no jar at all" from "a jar that is no longer a session"."""
+    verdict = (
+        "The provided YouTube account cookies are no longer valid. They have likely been "
+        "rotated in the browser as a security measure."
+    )
+    errors = ExtractionLog(_Recorder())
+    errors.warning("No title found in player responses; falling back to title from initial data")
+    assert errors.session_verdict is None, "a warning about anything else is not a verdict"
+
+    errors.warning(verdict)
+    assert errors.session_verdict == verdict
+
+
+def test_the_session_verdict_leaves_with_the_jar_already_redacted() -> None:
+    """It is quoted in a failure's `hint`, and a hint travels: the jar's values must not."""
+    errors = ExtractionLog(_Recorder())
+    errors.add_secrets(["SECRET-VALUE", "OTHER-VALUE"])
+    errors.warning("The provided YouTube account cookies are no longer valid. SAPISID=SECRET-VALUE")
+
+    verdict = errors.session_verdict
+    assert verdict is not None
+    assert "SECRET-VALUE" not in verdict
+    assert "<redacted>" in verdict
+
+
+def test_a_warning_repeated_per_entry_is_written_once() -> None:
+    """yt-dlp says the same thing once per video; the journal does not need it once per video."""
+    recorder = _Recorder()
+    errors = ExtractionLog(recorder)
+    errors.warning("No supported JavaScript runtime could be found.")
+    errors.warning("No supported JavaScript runtime could be found.")
+    errors.warning("The provided YouTube account cookies are no longer valid.")
+
+    assert [line for level, line in recorder.lines if level == "warning"] == [
+        "No supported JavaScript runtime could be found.",
+        "The provided YouTube account cookies are no longer valid.",
+    ]
+    assert errors.warnings == [
+        "No supported JavaScript runtime could be found.",
+        "The provided YouTube account cookies are no longer valid.",
+    ]
 
 
 def test_the_level_vocabulary_is_the_one_the_web_reads(monkeypatch: pytest.MonkeyPatch) -> None:

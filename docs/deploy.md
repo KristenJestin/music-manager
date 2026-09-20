@@ -483,11 +483,14 @@ toolbox ne fait que lire et parser le fichier :
 ```
 
 `ok` est vrai seulement si les trois tiennent à la fois : au moins un cookie a été compris,
-`authenticated` (une des six cookies de session YouTube — `SAPISID`, `__Secure-3PSID`,
-`__Secure-1PSID`, `SID`, `SSID`, `HSID` — est présente) et `expired = 0`. Un `problems`
-non vide donne la raison précise (« no YouTube session cookie present », « expected 7
-tab-separated fields »…) — c'est un jar copié à moitié ou exporté dans le mauvais format qui
-en dit le plus.
+`authenticated` et `expired = 0`. `authenticated` suit la définition de yt-dlp lui-même
+(`_has_auth_cookies`), pas une intuition : **`LOGIN_INFO` et une des cookies de session**
+(`SAPISID`, `__Secure-3PSID`, `__Secure-1PSID`, `SID`, `SSID`, `HSID`) doivent être là toutes les
+deux. YouTube pose un `SAPISID` aux visiteurs aussi : un jar qui n'a que celui-là n'est pas une
+session, et il était déclaré bon ici avant d'être refusé par YouTube avec exactement la phrase
+d'un jar vide. Un `problems` non vide donne la raison précise (« no YouTube session cookie
+present », « the jar has a YouTube session cookie but no LOGIN_INFO », « expected 7 tab-separated
+fields »…) — c'est un jar copié à moitié ou exporté dans le mauvais format qui en dit le plus.
 
 ### Durée de vie, et ce que dit l'expiration
 
@@ -502,6 +505,42 @@ cette page, l'erreur d'un import (`/imports/:id`) et le décodeur d'erreurs de T
 tous les deux un bouton « Configure cookies » qui ramène ici — pas la peine d'aller chercher
 où se trouve le formulaire. Il n'y a rien d'autre à faire que ré-exporter et recoller un jar
 frais.
+
+### Le jar est refusé : ce que le journal dit, et ce qu'il faut refaire
+
+Un refus ne dit pas _pourquoi_. YouTube répond la même phrase — « Sign in to confirm you're not a
+bot » — à une installation sans jar, à un jar de cookies anonymes, et à une session que le
+navigateur a fait tourner depuis l'export. C'est yt-dlp qui fait la différence, et il la fait
+**une fois, en avertissement** : « The provided YouTube account cookies are no longer valid. They
+have likely been rotated in the browser as a security measure. » Cet avertissement est maintenant
+écrit dans le journal (niveau `warning`, sans `MM_YTDLP_VERBOSE`), recopié dans le `hint` de
+l'échec et posé dans `details.session`. Trois cas, trois réponses :
+
+| Ce que dit le journal                                                       | Ce qui s'est passé                                                                    | Quoi faire               |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------ |
+| `details.session.cookiesRejected` à `true`                                  | le jar _était_ une session ; YouTube ne l'accepte plus                                | ré-exporter et recoller  |
+| `authenticated: false` avec `LOGIN_INFO` dans `problems`                    | le jar n'a jamais été une session (export déconnecté, ou sans les cookies `HttpOnly`) | ré-exporter **connecté** |
+| ni l'un ni l'autre, et `PO Token Providers: none` sous `MM_YTDLP_VERBOSE=1` | la session tient ; c'est l'IP qui est en cause                                        | voir ci-dessous          |
+
+Google fait tourner `__Secure-1PSIDTS` et `__Secure-3PSIDTS` à chaque passage sur YouTube dans le
+navigateur : **un jar exporté puis laissé de côté quelques heures peut être mort avant le premier
+import.** L'export qui tient est celui qu'on colle tout de suite, depuis un profil qui ne retouche
+plus à YouTube ensuite — ou, plus simple, depuis une fenêtre privée dont on ne se sert que pour
+ça. Les deux méthodes sont détaillées dans le lien que porte la phrase de yt-dlp
+(`wiki/Extractors#exporting-youtube-cookies`).
+
+L'image embarque aussi ce que yt-dlp demande désormais pour YouTube : les scripts de défi
+`yt-dlp-ejs` (l'extra `[default]` du paquet) et le runtime qui les exécute, `deno`. Sans eux,
+yt-dlp l'écrit lui-même — « YouTube extraction without a JS runtime has been deprecated, and some
+formats may be missing » — et des formats manquent pour de bon. Cela ne remplace pas une session
+valide : c'est une condition nécessaire, pas suffisante.
+
+Reste le cas où la session est bonne et le refus continue. yt-dlp le dit aussi, mais seulement en
+verbeux : `PO Token Providers: none`. YouTube réclame alors un _PO token_ que cette image ne sait
+pas fabriquer. Le levier est un service à côté — le provider `bgutil`
+(`brainicism/bgutil-ytdlp-pot-provider`) — plus son plugin dans l'image. Mesuré depuis ce réseau :
+**le PO token seul ne suffit pas**, sans session valide le refus reste, donc à n'ajouter qu'après
+avoir remis un jar frais en place.
 
 > **Avertissement.** Ce jar authentifie l'installation **en tant que le compte Google du
 > propriétaire** — c'est un mot de passe, pas un identifiant technique. Ne le collez jamais
@@ -1171,8 +1210,14 @@ La troisième ligne est la phrase de yt-dlp telle quelle, coupée ici avant les 
 (« See https://github.com/yt-dlp/yt-dlp/wiki/… ») : dans le journal, elle est écrite en entier.
 
 Un échec écrit aussi une ligne `ytdlp` par refus que yt-dlp a lui-même signalé, au niveau
-`error` : c'est ce qui manquait quand un import ne produisait rien et que le journal ne disait
-rien.
+`error`, **et une ligne par avertissement distinct**, au niveau `warning` (yt-dlp répète le même
+avertissement à chaque entrée d'une playlist ; le journal ne le répète pas) : c'est ce qui manquait quand un
+import ne produisait rien et que le journal ne disait rien. Un avertissement n'est pas du bruit
+ici — c'est le seul niveau où yt-dlp dit _pourquoi_ (« les cookies du compte ne sont plus
+valides », « aucun cookie de compte YouTube trouvé », « extraction YouTube sans runtime JS
+dépréciée »), là où les refus répètent tous la même phrase. Le seul de ces avertissements qui
+change la lecture d'un échec est recopié dans son `hint` et posé dans `details.session`
+(§ « Le jar est refusé »).
 
 `MM_YTDLP_VERBOSE=1` fait entrer dans les journaux la sortie de débogage de yt-dlp elle-même —
 des milliers de lignes par téléchargement, à lire avec `MM_LOG_LEVEL=debug`. Les valeurs du bocal
