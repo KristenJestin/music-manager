@@ -206,6 +206,15 @@ def yt_dlp_version() -> str | None:
     return str(__version__)
 
 
+def _client_list(value: str) -> list[str]:
+    """``web_safari,web_embedded,-tv_downgraded`` → three values, in order.
+
+    Empty fragments are dropped rather than passed on: ``a,,b`` is a typo, not a client whose
+    name is the empty string.
+    """
+    return [part.strip() for part in value.split(",") if part.strip()]
+
+
 def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
     """Assemble the yt-dlp option dict. ``extra_args`` is merged last, on purpose.
 
@@ -216,7 +225,17 @@ def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
     if "cookiefile" not in built and options.cookies:
         built["cookiefile"] = options.cookies
     if options.player_client:
-        built["extractor_args"] = {"youtube": {"player_client": [options.player_client]}}
+        # Split on commas, because that is what the value *is*. yt-dlp's own CLI turns
+        # `player_client=web_safari,web_embedded,-tv_downgraded` into three values, and the
+        # setting's help text documents that same comma-separated form — but this handed the
+        # whole string over as **one** element, so yt-dlp read a single client named
+        # "web_safari,web_embedded,-tv_downgraded", answered `Skipping unsupported client`, and
+        # carried on with its defaults. Silently: this toolbox runs `quiet` and `no_warnings`,
+        # so even that warning was thrown away, and the operator had every reason to believe a
+        # setting that had been applied.
+        built["extractor_args"] = {
+            "youtube": {"player_client": _client_list(options.player_client)}
+        }
     if ytdlp_verbose():
         # `quiet` stays: stdout is never read, and the debug stream travels through the `logger`
         # option. `no_warnings` has to go, or the stream arrives with its warnings cut out.
