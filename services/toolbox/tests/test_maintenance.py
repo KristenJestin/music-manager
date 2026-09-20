@@ -21,7 +21,7 @@ PAST = int((dt.datetime.now(tz=dt.UTC) - dt.timedelta(days=1)).timestamp())
 SESSION_JAR = (
     "# Netscape HTTP Cookie File\n"
     f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue\n"
-    f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE + 100}\t__Secure-3PSID\tvalue\n"
+    f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE + 100}\tLOGIN_INFO\tvalue\n"
     ".google.com\tTRUE\t/\tTRUE\t0\tSESSION_ONLY\tvalue\n"
 )
 
@@ -43,11 +43,46 @@ def test_a_session_jar_is_usable():
 
 
 def test_a_jar_without_a_session_cookie_is_not_usable():
+    """A jar of preferences only: the sentence has to say which half is missing."""
     jar = f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue\n"
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))
     assert result.ok is False
     assert result.authenticated is False
-    assert any("session cookie" in problem for problem in result.problems)
+    assert any("not a YouTube session" in problem for problem in result.problems), result.problems
+
+
+def test_a_jar_yt_dlp_would_not_accept_names_the_half_that_is_missing():
+    """What "signed in" means is yt-dlp's rule, and the verdict now says so with its own names.
+
+    A jar with `SAPISID` and no `LOGIN_INFO` is the shape an httpOnly-skipping exporter leaves
+    behind — 25 cookies, a plausible session cookie, and yt-dlp answering "The provided YouTube
+    account cookies are no longer valid. They have likely been rotated in the browser as a
+    security measure." Naming the missing cookie is the difference between redoing the export
+    and redoing it the same way.
+    """
+    without_login_info = _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"])
+    result = maintenance.cookies_test(CookiesTestRequest(content=without_login_info))
+    assert result.authenticated is False
+    assert any(
+        "LOGIN_INFO is missing" in problem and "httpOnly" in problem for problem in result.problems
+    ), result.problems
+
+    without_sapisid = _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue"])
+    result = maintenance.cookies_test(CookiesTestRequest(content=without_sapisid))
+    assert result.authenticated is False
+    assert any(
+        "no SAPISID cookie" in problem and "__Secure-3PAPISID" in problem
+        for problem in result.problems
+    ), result.problems
+
+    both_halves = _jar(
+        [
+            f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
+            f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\t__Secure-1PAPISID\tvalue",
+        ]
+    )
+    result = maintenance.cookies_test(CookiesTestRequest(content=both_halves))
+    assert result.authenticated is True, result.problems
 
 
 def test_expired_cookies_are_counted():
@@ -70,8 +105,11 @@ def test_a_lapsed_preference_cookie_does_not_condemn_a_live_session():
     owner was told to export a new one. Nothing about `PREF`, `SOCS` or `VISITOR_INFO1_LIVE`
     ending says anything about being logged in; only a session cookie's lapse does.
     """
-    lines = [f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"]
-    for index in range(21):
+    lines = [
+        f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue",
+        f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
+    ]
+    for index in range(20):
         lines.append(f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tEXTRA{index}\tvalue")
     for name in ("PREF", "SOCS", "VISITOR_INFO1_LIVE"):
         lines.append(f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\t{name}\tvalue")
@@ -105,7 +143,12 @@ def test_a_jar_that_never_reaches_youtube_is_refused():
     The verdict used to be "a usable session", and every extraction then failed with
     `Sign in to confirm you're not a bot` — which reads as a YouTube problem, not as the jar.
     """
-    jar = _jar([f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"])
+    jar = _jar(
+        [
+            f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue",
+            f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
+        ]
+    )
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))
     assert result.authenticated is True, "the session cookie really is there"
     assert result.ok is False, "but yt-dlp will never send it to youtube.com"

@@ -195,10 +195,40 @@ describe("cookiesStatus", () => {
     expect(status.ok).toBe(false);
     expect(status.note).toContain("7 cookie(s)");
     expect(status.note).toContain("2 domain(s)");
-    expect(status.note).toContain("no session cookie");
+    expect(status.note).toContain("no session yt-dlp accepts");
     expect(status.note).toContain("7 expired");
     expect(status.note).toContain("No session cookie (SAPISID) was found");
     expect(status.note, "and it still never names a cookie").not.toContain("SAPISID=");
+  });
+
+  it("carries yt-dlp's own reason up when the jar is not the session yt-dlp needs", async () => {
+    /*
+     * yt-dlp answers a jar without `LOGIN_INFO` with "The provided YouTube account cookies are
+     * no longer valid. They have likely been rotated in the browser as a security measure." — a
+     * sentence about rotation for a cookie that was never exported. The note has to repeat the
+     * toolbox's words, not soften them, or the owner redoes the same export.
+     */
+    const status = await cookiesStatus({
+      settings: settings({ cookiesMode: "file", cookiesFile: "/data/cookies.txt" }),
+      toolbox: fakeToolbox({
+        testCookies: () =>
+          Promise.resolve({
+            ok: false,
+            cookies: 25,
+            domains: [".youtube.com"],
+            authenticated: false,
+            expires_at: null,
+            expired: 0,
+            problems: [
+              "not a YouTube session: LOGIN_INFO is missing, and yt-dlp requires it beside a " +
+                "SAPISID cookie — it is httpOnly, so an export that skips them leaves it out",
+            ],
+          }),
+      }),
+    });
+    expect(status.ok).toBe(false);
+    expect(status.note).toContain("LOGIN_INFO is missing");
+    expect(status.note).toContain("httpOnly");
   });
 
   it("turns an unreadable file into a problem, not an exception", async () => {
