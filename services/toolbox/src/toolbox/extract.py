@@ -89,9 +89,11 @@ _PLAYLIST_EQUIVALENT: Final[dict[ErrorCode, ErrorCode]] = {
 #: are the ones the reader needs, and because a paraphrase of somebody else's diagnosis is how a
 #: right answer becomes an arguable one.
 _SESSION_REJECTED: Final[str] = (
-    "yt-dlp named the session itself: “{verdict}” — so the jar is not a session any more, and "
-    "the refusal is YouTube answering as if nobody were signed in. Export a fresh one (signed "
-    "in, httpOnly cookies included) and paste it again."
+    "yt-dlp named the session itself: “{verdict}” — and it says that only when the jar was a "
+    "session when the run started, so the session *was* sent and YouTube dropped it in a "
+    "response. Two readings, with opposite moves: the export is stale, or this machine is what "
+    "YouTube refuses. Export a fresh jar from a signed-in browser and retry; if the same line "
+    "comes back, run that same jar from another machine before exporting a third time."
 )
 
 
@@ -188,7 +190,19 @@ def _explained(error: ToolboxError, errors: ExtractionLog) -> ToolboxError:
         hint=f"{error.hint} {_SESSION_REJECTED.format(verdict=verdict)}",
         action=error.action,
         status=error.status,
-        details={**error.details, "session": {"cookies_rejected": True, "reason": verdict}},
+        details={
+            **error.details,
+            "session": {
+                "cookies_rejected": True,
+                # Why this is a verdict on the session and not on the export: yt-dlp prints that
+                # line only when `_initialize_cookie_auth` found LOGIN_INFO and a SAPISID cookie
+                # at the start of the run. The jar was a session, it was sent, and a *response*
+                # took it away (`Set-Cookie: LOGIN_INFO=; Expires=Mon, 25-Dec-2023 …` — read it
+                # yourself with `--print-traffic`, on your own machine).
+                "recognised_at_start": True,
+                "reason": verdict,
+            },
+        },
     )
 
 

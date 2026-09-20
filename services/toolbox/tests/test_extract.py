@@ -475,8 +475,12 @@ def test_a_refusal_is_explained_by_the_warning_yt_dlp_reports_beside_it(
     error = raised.value
     assert error.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
     assert verdict in error.hint, error.hint
-    assert "not a session any more" in error.hint
-    assert error.details["session"] == {"cookies_rejected": True, "reason": verdict}
+    assert "and YouTube dropped it in a response" in error.hint
+    assert error.details["session"] == {
+        "cookies_rejected": True,
+        "recognised_at_start": True,
+        "reason": verdict,
+    }
 
 
 def test_a_warning_about_anything_else_does_not_rewrite_the_hint(

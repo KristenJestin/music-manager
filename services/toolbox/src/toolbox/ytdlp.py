@@ -87,6 +87,35 @@ _ERROR_ID: Final[re.Pattern[str]] = re.compile(r"\[[^\]]+\]\s+([A-Za-z0-9_-]{11}
 #: Field index of the value in a Netscape jar line — domain, flag, path, secure, expiry, name,
 #: value. Everything before it is metadata; the field itself is the credential.
 _JAR_VALUE_INDEX: Final[int] = 6
+#: Field index of the name — what a jar is asked about when the question is *which* cookies it
+#: holds rather than what they say.
+_JAR_NAME_INDEX: Final[int] = 5
+#: A jar line has all seven of those fields, and nothing else in the file has.
+_JAR_ENTRY_LEN: Final[int] = 7
+#: `#HttpOnly_` prefixes the domain of a cookie the browser hides from JavaScript. It reads as a
+#: comment to `http.cookiejar`, and as a *cookie* to yt-dlp, which strips it before parsing — and
+#: in a browser export those lines are `LOGIN_INFO`, `SID`, `HSID`, `SSID` and the `__Secure-*`
+#: family. The session itself is the part of a jar that carries this prefix.
+_HTTPONLY_PREFIX: Final[str] = "#HttpOnly_"
+#: The cookies a YouTube session is made of, in the order yt-dlp names them. `LOGIN_INFO` is the
+#: account, the `SAPISID` family signs the requests, and `__Secure-1PSIDTS` / `__Secure-3PSIDTS`
+#: are the pair YouTube rotates on every visit to the site — a jar can hold every other one and
+#: still be refused because of those two.
+_AUTH_COOKIE_NAMES: Final[tuple[str, ...]] = (
+    "LOGIN_INFO",
+    "SID",
+    "HSID",
+    "SSID",
+    "SAPISID",
+    "APISID",
+    "SIDCC",
+    "__Secure-1PSID",
+    "__Secure-3PSID",
+    "__Secure-1PAPISID",
+    "__Secure-3PAPISID",
+    "__Secure-1PSIDTS",
+    "__Secure-3PSIDTS",
+)
 #: `Cookie: …`, `'Cookie': '…'`, `Set-Cookie: …` — redacted from the header name to the end of
 #: the line. Blunt on purpose: it catches the shapes yt-dlp formats itself, which are the ones
 #: no caller can know about, and a line carrying a cookie is not worth keeping.
@@ -101,14 +130,9 @@ def jar_secret_values(text: str) -> list[str]:
     so what gets redacted is exactly what was handed to yt-dlp rather than a guess at what a
     request header looks like.
     """
-    values: list[str] = []
-    for line in text.splitlines():
-        if not line.strip() or line.startswith("#"):
-            continue
-        fields = line.split("\t")
-        if len(fields) > _JAR_VALUE_INDEX and fields[_JAR_VALUE_INDEX].strip():
-            values.append(fields[_JAR_VALUE_INDEX])
-    return values
+    return [
+        fields[_JAR_VALUE_INDEX] for fields in _jar_lines(text) if fields[_JAR_VALUE_INDEX].strip()
+    ]
 
 
 def redact_cookies(line: str, secrets: Sequence[str]) -> str:
@@ -353,7 +377,7 @@ def cookie_shape(options: YtdlpOptions) -> dict[str, Any]:
     """
     content = options.cookies_content
     if content:
-        return {"mode": "inline", "cookies": _cookie_lines(content), "bytes": len(content)}
+        return {"mode": "inline", "bytes": len(content), **_jar_shape(content)}
     if not options.cookies:
         return {"mode": "none"}
     path = Path(str(options.cookies))
@@ -364,9 +388,20 @@ def cookie_shape(options: YtdlpOptions) -> dict[str, Any]:
         "mode": "path",
         "path": str(path),
         "exists": True,
-        "cookies": _cookie_lines(text),
         "bytes": len(text),
+        **_jar_shape(text),
     }
+
+
+def _jar_shape(text: str) -> dict[str, Any]:
+    """The readable half of a jar: how many cookies, and which session ones, by name.
+
+    Two jars of the same size are not the same jar: one holds `LOGIN_INFO` and the pair YouTube
+    rotates, the other is what a logged-out browser leaves behind. A count cannot tell them
+    apart; the names can, and they are what an operator needs when he is told his session is
+    refused — they say what was actually sent, without a value leaving the file.
+    """
+    return {"cookies": _cookie_lines(text), "auth_cookies": _auth_cookies(text)}
 
 
 def cookie_secrets(options: YtdlpOptions) -> list[str]:
@@ -388,9 +423,34 @@ def cookie_secrets(options: YtdlpOptions) -> list[str]:
     return jar_secret_values(path.read_text(encoding="utf-8", errors="replace"))
 
 
+def _jar_lines(text: str) -> Generator[list[str]]:
+    """The fields of every cookie line in a jar, `#HttpOnly_` lines included.
+
+    One reader for the three things this module says about a jar — how many cookies it holds,
+    which session cookies it names, and which values must never reach a log — so that the three
+    of them cannot disagree about what a cookie line is.
+    """
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith(_HTTPONLY_PREFIX):
+            line = line.removeprefix(_HTTPONLY_PREFIX)
+        elif line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) >= _JAR_ENTRY_LEN:
+            yield fields
+
+
 def _cookie_lines(text: str) -> int:
-    """How many cookies a jar holds — its lines that are neither blank nor a comment."""
-    return sum(1 for line in text.splitlines() if line.strip() and not line.startswith("#"))
+    """How many cookies a jar holds — `#HttpOnly_` ones included, they are the session."""
+    return sum(1 for _ in _jar_lines(text))
+
+
+def _auth_cookies(text: str) -> list[str]:
+    """The session cookies a jar names, in yt-dlp's order — `[]` for a jar of anonymous ones."""
+    names = {fields[_JAR_NAME_INDEX].strip() for fields in _jar_lines(text)}
+    return [name for name in _AUTH_COOKIE_NAMES if name in names]
 
 
 def extract_info(url: str, options: Mapping[str, Any], *, download: bool = False) -> InfoDict:

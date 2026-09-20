@@ -516,11 +516,18 @@ have likely been rotated in the browser as a security measure. » Cet avertissem
 écrit dans le journal (niveau `warning`, sans `MM_YTDLP_VERBOSE`), recopié dans le `hint` de
 l'échec et posé dans `details.session`. Trois cas, trois réponses :
 
-| Ce que dit le journal                                                       | Ce qui s'est passé                                                                    | Quoi faire               |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------ |
-| `details.session.cookiesRejected` à `true`                                  | le jar _était_ une session ; YouTube ne l'accepte plus                                | ré-exporter et recoller  |
-| `authenticated: false` avec `LOGIN_INFO` dans `problems`                    | le jar n'a jamais été une session (export déconnecté, ou sans les cookies `HttpOnly`) | ré-exporter **connecté** |
-| ni l'un ni l'autre, et `PO Token Providers: none` sous `MM_YTDLP_VERBOSE=1` | la session tient ; c'est l'IP qui est en cause                                        | voir ci-dessous          |
+| Ce que dit le journal                                                       | Ce qui s'est passé                                                                    | Quoi faire                                       |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `details.session.cookies_rejected` à `true`                                 | le jar _était_ une session au départ, et **une réponse de YouTube l'a jetée**         | ré-exporter, puis lire les en-têtes (ci-dessous) |
+| `details.cookies.auth_cookies` vide, ou sans `LOGIN_INFO`                   | le jar n'a jamais été une session (export déconnecté, ou sans les cookies `HttpOnly`) | ré-exporter **connecté**                         |
+| ni l'un ni l'autre, et `PO Token Providers: none` sous `MM_YTDLP_VERBOSE=1` | la session tient ; c'est l'IP qui est en cause                                        | voir ci-dessous                                  |
+
+`details.cookies.auth_cookies` nomme, dans l'ordre de yt-dlp, ceux des cookies de session que le jar
+portait vraiment : `LOGIN_INFO` (le compte), la famille `SAPISID` (la signature des requêtes), et la
+paire `__Secure-1PSIDTS` / `__Secure-3PSIDTS` que YouTube fait tourner à chaque visite. Les
+valeurs, elles, ne quittent jamais le bocal : le journal ne porte que des noms, et
+`#HttpOnly_` — le préfixe qui cache `LOGIN_INFO` et les `__Secure-*` à JavaScript — compte comme un
+cookie, pas comme un commentaire.
 
 Google fait tourner `__Secure-1PSIDTS` et `__Secure-3PSIDTS` à chaque passage sur YouTube dans le
 navigateur : **un jar exporté puis laissé de côté quelques heures peut être mort avant le premier
@@ -528,6 +535,33 @@ import.** L'export qui tient est celui qu'on colle tout de suite, depuis un prof
 plus à YouTube ensuite — ou, plus simple, depuis une fenêtre privée dont on ne se sert que pour
 ça. Les deux méthodes sont détaillées dans le lien que porte la phrase de yt-dlp
 (`wiki/Extractors#exporting-youtube-cookies`).
+
+#### La preuve, quand un jar frais est refusé quand même : lire les en-têtes
+
+`details.session.cookies_rejected` et `recognised_at_start` disent ce que `yt-dlp` peut voir de son
+côté : le bocal
+était une session au départ, et il ne l'est plus à l'arrivée. Ce qui l'a vidé est dans la réponse
+— la première requête de la lecture revient avec un lot de `Set-Cookie` qui expirent `LOGIN_INFO`,
+`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID` et `__Secure-1PAPISID`. YouTube
+efface la session, puis répond à tout ce qui suit comme à un visiteur anonyme : de là les entrées
+refusées une par une. Ça se lit avec **le même jar**, et sans rien installer de plus :
+
+    yt-dlp --cookies cookies.txt --verbose --print-traffic --flat-playlist \
+      --playlist-items 1 "https://music.youtube.com/playlist?list=OLAK5uy_…" 2>&1 \
+      | grep -iE "Found YouTube account cookies|no longer valid|Set-Cookie: (LOGIN_INFO|SAPISID|SID)="
+
+Deux sorties possibles, deux conclusions opposées :
+
+- `Set-Cookie: LOGIN_INFO=;` et `no longer valid` s'affichent → YouTube a bien jeté la session
+  qu'on lui donnait. Rejouer la même commande **depuis une autre machine** est ce qui tranche
+  entre « l'export est mort » et « c'est cette machine que YouTube refuse » ; sur le serveur,
+  aucun `player_client` ni PO token n'y changera quoi que ce soit ;
+- seul `Found YouTube account cookies` s'affiche et la playlist sort → le jar est bon ailleurs,
+  donc c'est l'IP du serveur qui est murée.
+
+À lancer **chez soi, jamais dans le conteneur** : `--print-traffic` imprime les en-têtes _envoyés_,
+donc les valeurs du bocal en clair. Rien de tout ça n'a sa place dans `docker logs`, dans un
+rapport de bug ou dans une PR.
 
 L'image embarque aussi ce que yt-dlp demande désormais pour YouTube : les scripts de défi
 `yt-dlp-ejs` (l'extra `[default]` du paquet) et le runtime qui les exécute, `deno`. Sans eux,

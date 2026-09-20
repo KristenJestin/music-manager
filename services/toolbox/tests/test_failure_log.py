@@ -32,6 +32,12 @@ JAR = (
     ".youtube.com\tTRUE\t/\tFALSE\t9999999999\tSAPISID\tSECRET-VALUE\n"
     ".youtube.com\tTRUE\t/\tFALSE\t9999999999\t__Secure-3PSID\tOTHER-VALUE\n"
 )
+HTTPONLY_JAR = (
+    "# Netscape HTTP Cookie File\n"
+    "#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t1799999999\tLOGIN_INFO\tSECRET-LOGIN\n"
+    "#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t1799999999\tSAPISID\tSECRET-SAPISID\n"
+    ".youtube.com\tTRUE\t/\tFALSE\t1799999999\tPREF\tf6=400\n"
+)
 GAPS = {
     "url": "https://www.youtube.com/playlist?list=OLAK5uy",
     "unreadable": [{"position": index, "reason": REFUSAL} for index in range(15)],
@@ -170,7 +176,12 @@ def test_a_failed_request_logs_what_the_console_only_summarises(
     assert REFUSAL in failure["message"]
     assert failure["action"] == "Configure cookies"
     # Which jar this attempt carried, without a byte of its content.
-    assert failure["details"]["cookies"] == {"mode": "inline", "cookies": 2, "bytes": len(JAR)}
+    assert failure["details"]["cookies"] == {
+        "mode": "inline",
+        "cookies": 2,
+        "auth_cookies": ["SAPISID", "__Secure-3PSID"],
+        "bytes": len(JAR),
+    }
     assert "DownloadError" in failure["cause"]
     assert "SECRET-VALUE" not in json.dumps(captured)
 
@@ -221,7 +232,12 @@ def test_the_jar_values_are_stripped_out_of_every_forwarded_line() -> None:
 
 def test_the_shape_of_a_jar_is_readable_without_its_content(tmp_path: Path) -> None:
     inline = cookie_shape(YtdlpOptions(cookies_content=JAR))
-    assert inline == {"mode": "inline", "cookies": 2, "bytes": len(JAR)}
+    assert inline == {
+        "mode": "inline",
+        "cookies": 2,
+        "auth_cookies": ["SAPISID", "__Secure-3PSID"],
+        "bytes": len(JAR),
+    }
     assert cookie_shape(YtdlpOptions()) == {"mode": "none"}
 
     on_disk = tmp_path / "cookies.txt"
@@ -232,6 +248,7 @@ def test_the_shape_of_a_jar_is_readable_without_its_content(tmp_path: Path) -> N
         "path": str(on_disk),
         "exists": True,
         "cookies": 2,
+        "auth_cookies": ["SAPISID", "__Secure-3PSID"],
         "bytes": len(JAR),
     }
 
@@ -242,3 +259,40 @@ def test_the_shape_of_a_jar_is_readable_without_its_content(tmp_path: Path) -> N
         "exists": False,
     }
     assert "SECRET-VALUE" not in json.dumps([inline, shape])
+
+
+def test_the_cookies_a_browser_hides_are_counted_named_and_redacted() -> None:
+    """`#HttpOnly_` is a comment to `http.cookiejar` and the session to yt-dlp.
+
+    A browser export hides `LOGIN_INFO`, `SID` and the `__Secure-*` family behind that prefix.
+    Read as comments, a session of 25 cookies is counted as 12 — and the cookies that carry the
+    account slip out of the redaction list, which is the one mistake this mechanism exists to
+    prevent. yt-dlp strips the prefix before parsing; so does the shape of the jar.
+    """
+    assert cookie_shape(YtdlpOptions(cookies_content=HTTPONLY_JAR)) == {
+        "mode": "inline",
+        "cookies": 3,
+        "auth_cookies": ["LOGIN_INFO", "SAPISID"],
+        "bytes": len(HTTPONLY_JAR),
+    }
+    assert jar_secret_values(HTTPONLY_JAR) == ["SECRET-LOGIN", "SECRET-SAPISID", "f6=400"]
+
+    recorder = _Recorder()
+    errors = ExtractionLog(recorder, verbose=True)
+    errors.add_secrets(cookie_secrets(YtdlpOptions(cookies_content=HTTPONLY_JAR)))
+    errors.debug("urllib request headers: {'Cookie': 'LOGIN_INFO=SECRET-LOGIN'}")
+    printed = json.dumps(recorder.lines)
+    assert "SECRET-LOGIN" not in printed
+    assert "SECRET-SAPISID" not in printed
+
+
+def test_a_jar_of_anonymous_cookies_names_no_session_cookie() -> None:
+    """What a logged-out browser leaves behind still arrives, and says so by naming nothing."""
+    anonymous = (
+        "# Netscape HTTP Cookie File\n"
+        ".youtube.com\tTRUE\t/\tFALSE\t1799999999\tPREF\tf6=400\n"
+        ".youtube.com\tTRUE\t/\tFALSE\t1799999999\tVISITOR_INFO1_LIVE\tFAKE\n"
+    )
+    shape = cookie_shape(YtdlpOptions(cookies_content=anonymous))
+    assert shape["cookies"] == 2
+    assert shape["auth_cookies"] == []
