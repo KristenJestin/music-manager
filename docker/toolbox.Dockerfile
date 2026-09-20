@@ -55,9 +55,35 @@ RUN uv sync --frozen --no-dev
 # yt-dlp is the one dependency that goes stale in days rather than months, so the image is
 # built with the newest release rather than the locked one. Pass --build-arg YTDLP_UPDATE=0
 # for a build that depends on nothing but the lockfile.
+#
+# The `[default]` extra is not decoration: it carries `yt-dlp-ejs`, the JavaScript challenge
+# scripts YouTube now asks for. Plain `yt-dlp` ships neither them nor a runtime to run them, and
+# says so itself — "YouTube extraction without a JS runtime has been deprecated, and some formats
+# may be missing" — which is the shape of an import that half works. The second install is what
+# puts the extra into the lockfile-only build too; when the first one runs, it is already there.
 ARG YTDLP_UPDATE=1
-RUN if [ "$YTDLP_UPDATE" = "1" ]; then uv pip install --no-cache --upgrade yt-dlp; fi \
+RUN if [ "$YTDLP_UPDATE" = "1" ]; then uv pip install --no-cache --upgrade "yt-dlp[default]"; fi \
+    && uv pip install --no-cache "yt-dlp[default]" \
     && python -c "import yt_dlp.version as v; print('yt-dlp', v.__version__)"
+
+# The runtime those scripts run in. `--js-runtimes` defaults to `deno` and to nothing else, so
+# installing the binary *is* the configuration, and it is one static file — this image does not
+# grow a Node.js just to extract audio. Extracted with `python -m zipfile` rather than `unzip`:
+# Python is already here, and one apt package less is one thing less to patch.
+ARG DENO_VERSION=2.9.7
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64) deno_arch=x86_64-unknown-linux-gnu ;; \
+        arm64) deno_arch=aarch64-unknown-linux-gnu ;; \
+        *) echo "no deno build for $arch" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /tmp/deno.zip \
+        "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${deno_arch}.zip"; \
+    python -m zipfile -e /tmp/deno.zip /usr/local/bin; \
+    chmod +x /usr/local/bin/deno; \
+    rm -f /tmp/deno.zip; \
+    deno --version
 
 # The service writes to /library (the placed files) and to /cache (TMPDIR: cookie jars,
 # artwork crops, rsgain/ffmpeg scratch space, and `uv`'s own temp files during
