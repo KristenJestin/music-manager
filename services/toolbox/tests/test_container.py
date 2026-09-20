@@ -247,7 +247,16 @@ def test_the_remux_copies_the_stream_instead_of_re_encoding_it(webm_file: Path):
 # --------------------------------------------------------------------------------------
 
 
-def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing():
+@pytest.fixture(autouse=True)
+def jar_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """A private `TMPDIR` for the live jars: no test shares a session with another."""
+    store = tmp_path / "tmp"
+    store.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(store))
+    return store / "mm-cookies"
+
+
+def test_a_pasted_jar_becomes_a_private_working_copy_that_then_stops_existing(jar_store: Path):
     """`cookies_content` is the case a real server has: an export to paste, not a path."""
     options = YtdlpOptions(cookies_content="# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/")
     with cookie_jar(options) as jar:
@@ -257,10 +266,58 @@ def test_a_pasted_jar_becomes_a_private_temporary_file_and_then_stops_existing()
         assert path.read_text(encoding="utf-8").endswith("\n")
         if os.name != "nt":  # Windows has no POSIX mode bits to speak of
             assert path.stat().st_mode & 0o077 == 0
+            assert next(jar_store.glob("*.txt")).stat().st_mode & 0o077 == 0
     assert not path.exists()
 
 
-def test_the_temporary_jar_is_removed_even_when_the_download_blows_up():
+def test_what_yt_dlp_wrote_back_is_the_jar_the_next_call_starts_from():
+    """The defect behind "a fresh export dies one import later".
+
+    YouTube rotates the session's cookies on every response, yt-dlp saves the rotation into
+    `cookiefile` on close, and a copy re-made from the export on each call re-sent values
+    YouTube had already replaced — until YouTube signed the session out for replaying them.
+    """
+    options = YtdlpOptions(cookies_content=".youtube.com\tTRUE\t/\tTRUE\t0\tSIDCC\told\n")
+    with cookie_jar(options) as jar:
+        # What yt-dlp does on close: the jar, with the rotation YouTube just issued.
+        Path(str(jar["cookiefile"])).write_text(
+            ".youtube.com\tTRUE\t/\tTRUE\t0\tSIDCC\tnew\n", encoding="utf-8"
+        )
+    with cookie_jar(options) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8").endswith("SIDCC\tnew\n")
+
+
+def test_a_new_paste_is_a_new_live_jar_and_the_old_one_is_not_resurrected(jar_store: Path):
+    first = YtdlpOptions(cookies_content="SIDCC\tone\n")
+    second = YtdlpOptions(cookies_content="SIDCC\ttwo\n")
+    with cookie_jar(first) as jar:
+        Path(str(jar["cookiefile"])).write_text("SIDCC\tone-rotated\n", encoding="utf-8")
+    with cookie_jar(second) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "SIDCC\ttwo\n"
+    assert len(list(jar_store.glob("*.txt"))) == 2
+
+
+def test_a_call_that_left_the_working_copy_empty_does_not_erase_the_live_jar():
+    options = YtdlpOptions(cookies_content="SIDCC\tkept\n")
+    with cookie_jar(options) as jar:
+        Path(str(jar["cookiefile"])).write_text("", encoding="utf-8")
+    with cookie_jar(options) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "SIDCC\tkept\n"
+
+
+def test_the_rotated_values_are_secrets_too():
+    """The log redacts what yt-dlp is about to *send*, which after one call is the rotation."""
+    from toolbox.ytdlp import cookie_secrets
+
+    options = YtdlpOptions(cookies_content=".youtube.com\tTRUE\t/\tTRUE\t0\tSAPISID\tseed-value\n")
+    with cookie_jar(options) as jar:
+        Path(str(jar["cookiefile"])).write_text(
+            ".youtube.com\tTRUE\t/\tTRUE\t0\tSAPISID\trotated-value\n", encoding="utf-8"
+        )
+    assert set(cookie_secrets(options)) >= {"seed-value", "rotated-value"}
+
+
+def test_the_working_copy_is_removed_even_when_the_download_blows_up():
     options = YtdlpOptions(cookies_content="x")
     seen: Path | None = None
     with pytest.raises(RuntimeError), cookie_jar(options) as jar:
@@ -291,6 +348,10 @@ def test_a_path_is_read_through_a_private_copy_and_the_original_is_never_touched
         assert source.read_text(encoding="utf-8") == jar_text
     assert not copy.exists()
     assert source.read_text(encoding="utf-8") == jar_text
+    # …and which the *next* call must start from: the mount is the seed, the live jar is the
+    # session.
+    with cookie_jar(YtdlpOptions(cookies=str(source))) as jar:
+        assert Path(str(jar["cookiefile"])).read_text(encoding="utf-8") == "# rewritten by yt-dlp\n"
 
 
 def test_a_path_that_is_not_there_says_so_rather_than_failing_inside_ytdlp(tmp_path: Path):
