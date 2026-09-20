@@ -510,11 +510,35 @@ tous les deux un bouton « Configure cookies » qui ramène ici — pas la peine
 où se trouve le formulaire. Il n'y a rien d'autre à faire que ré-exporter et recoller un jar
 frais.
 
+### Le jar vit : ce que le toolbox en fait entre deux appels
+
+YouTube fait tourner les cookies d'une session connectée à presque chaque réponse (`SIDCC`,
+`__Secure-1PSIDCC`, `__Secure-3PSIDCC`), et yt-dlp réécrit le jar avec ces nouvelles valeurs
+quand il se ferme. Un client qui continue de présenter les anciennes valeurs après plusieurs
+rotations est, pour YouTube, une session rejouée : il la déconnecte, et tous les cookies
+d'authentification reviennent `EXPIRED` (un simple `GET /` avec ce jar le montre). C'est le
+symptôme « le jar fraîchement collé fonctionne pour un import, puis tout repasse en bot
+check », et il n'a rien à voir avec le navigateur d'origine ni avec le compte : une version
+précédente du toolbox recopiait l'export dans un fichier jetable à chaque appel, et renvoyait
+donc à chaque fois les valeurs d'origine.
+
+Le toolbox garde donc un **jar vivant** : l'export collé (ou le fichier monté) n'est que la
+graine, copiée une fois dans `/cache/mm-cookies/<hash>.txt` ; chaque appel travaille sur une
+copie privée et y reverse ce que yt-dlp a réécrit. Un nouveau collage est un nouveau jar, et
+l'ancien n'est jamais ressuscité. Conséquences pratiques :
+
+- le volume `cache` (§3) porte la session : le vider, c'est repartir de la graine, que YouTube
+  n'accepte plus forcément ;
+- en mode `file`, le fichier monté n'est jamais réécrit — la monture est en lecture seule et
+  c'est très bien ainsi ;
+- les valeurs tournées sont des secrets au même titre que celles de l'export : le journal les
+  masque aussi.
+
 ### Le jar est refusé : ce que le journal dit, et ce qu'il faut refaire
 
 Un refus ne dit pas _pourquoi_. YouTube répond la même phrase — « Sign in to confirm you're not a
-bot » — à une installation sans jar, à un jar de cookies anonymes, et à une session que le
-navigateur a fait tourner depuis l'export. C'est yt-dlp qui fait la différence, et il la fait
+bot » — à une installation sans jar, à un jar de cookies anonymes, et à une session que YouTube
+a déconnectée (voir ci-dessus). C'est yt-dlp qui fait la différence, et il la fait
 **une fois, en avertissement** : « The provided YouTube account cookies are no longer valid. They
 have likely been rotated in the browser as a security measure. » Cet avertissement est maintenant
 écrit dans le journal (niveau `warning`, sans `MM_YTDLP_VERBOSE`), recopié dans le `hint` de
@@ -534,11 +558,12 @@ valeurs, elles, ne quittent jamais le bocal : le journal ne porte que des noms, 
 cookie, pas comme un commentaire.
 
 Google fait tourner `__Secure-1PSIDTS` et `__Secure-3PSIDTS` à chaque passage sur YouTube dans le
-navigateur : **un jar exporté puis laissé de côté quelques heures peut être mort avant le premier
-import.** L'export qui tient est celui qu'on colle tout de suite, depuis un profil qui ne retouche
-plus à YouTube ensuite — ou, plus simple, depuis une fenêtre privée dont on ne se sert que pour
-ça. Les deux méthodes sont détaillées dans le lien que porte la phrase de yt-dlp
-(`wiki/Extractors#exporting-youtube-cookies`).
+navigateur : l'export qui tient est celui qu'on fait depuis un profil qui ne retouche plus à
+YouTube ensuite — ou, plus simple, depuis une fenêtre privée dont on ne se sert que pour ça,
+fermée sans se déconnecter. Les deux méthodes sont détaillées dans le lien que porte la phrase
+de yt-dlp (`wiki/Extractors#exporting-youtube-cookies`). Une fois collé, c'est le toolbox qui
+entretient la session (« Le jar vit », ci-dessus) : un export fait ainsi n'a pas de raison de
+mourir tant que Google ne referme pas la session lui-même.
 
 #### La preuve, quand un jar frais est refusé quand même : lire les en-têtes
 

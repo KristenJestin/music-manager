@@ -12,8 +12,10 @@ value crossing its boundary is narrowed here.
 
 from __future__ import annotations
 
+import hashlib
 import re
 import tempfile
+import threading
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from contextlib import contextmanager
 from pathlib import Path
@@ -337,20 +339,37 @@ def build_options(options: YtdlpOptions, **overrides: Any) -> dict[str, Any]:
 
 @contextmanager
 def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
-    """Yield the ``cookiefile`` override for this call, cleaning up after itself.
+    """Yield the ``cookiefile`` override for this call, and keep the jar alive between calls.
 
     Inline content is the case that matters: on a real server the operator has a browser
     export to paste into the Console, not a path that happens to exist inside this container
-    (owner review B6). It is written 0600 to the system temp directory and removed on the way
-    out, so it never lands in the library, in a log, or in an image layer.
+    (owner review B6). It is written 0600 under the system temp directory, and yt-dlp is never
+    handed the operator's own file: a mounted path is read-only on purpose, and yt-dlp
+    *rewrites* the jar it is given, which used to end every successful fetch with
+    `OSError: [Errno 30] Read-only file system`.
 
-    **A path is copied before it is used, never handed to yt-dlp directly.** yt-dlp does not
-    only read a jar, it rewrites it — expiring cookies it found dead, refreshing the ones it
-    renewed — and on a real installation the file is a mount the operator made read-only on
-    purpose. Handing over the operator's own path made every download die with
-    `OSError: [Errno 30] Read-only file system` at the *end* of a successful fetch, which reads
-    as a download failure and is nothing of the sort. The copy is what a pasted jar already
-    got; a path now gets the same treatment, and the operator's file is never touched.
+    **Why it rewrites it is the whole point, and the copy used to throw that away.** YouTube
+    rotates a signed-in session's cookies on nearly every response (``SIDCC``,
+    ``__Secure-1PSIDCC``, ``__Secure-3PSIDCC``), and yt-dlp saves the rotated jar back to
+    ``cookiefile`` when it closes. A private copy written from the export on every call and
+    deleted after it re-sent the export's *original* values, already replaced several times
+    over. To YouTube that is a replayed session: it signs it out, every auth cookie comes back
+    ``EXPIRED`` (a plain ``GET /`` with the owner's export shows it), and the operator — who
+    exported from a private window in a browser they never reopened, on an account they use
+    for nothing else — reads *"the provided YouTube account cookies are no longer valid"* and
+    is told to export again. The next export dies the same way, one import later.
+
+    So the jar lives. What the operator supplied — pasted content, or the file at the path —
+    is the **seed**; it is copied once to a **live jar** under ``TMPDIR`` (``/cache`` in the
+    image), named after the seed's hash so a new paste is a new jar and an old one is never
+    resurrected. Each call works on a private copy of the live jar, and what yt-dlp wrote back
+    is folded into the live jar on the way out. Two concurrent calls (a listing while a
+    download runs) each carry a rotation YouTube issued; the later write wins, and YouTube
+    tolerates the previous one.
+
+    Still 0600, still never in the library, in a log or in an image layer. The live jar
+    outlives the call and the container, not the cache volume: wiping ``/cache`` re-seeds from
+    the export, whose values YouTube may or may not still accept.
 
     A jar that is not there is named by this function, before any temporary file is opened,
     rather than surfacing later inside yt-dlp — the check below says why the order matters.
@@ -359,29 +378,69 @@ def cookie_jar(options: YtdlpOptions) -> Generator[dict[str, Any]]:
     if not content and not options.cookies:
         yield {}
         return
-    text = "" if content is None else content
-    source: Path | None = None
-    if text == "" and options.cookies:
+    if content:
+        seed = content if content.endswith("\n") else f"{content}\n"
+    else:
         source = Path(str(options.cookies))
-
-    # Answered *before* the temporary file is opened, and not only for tidiness: raising with
-    # the handle still held would leave the clean-up below to fail in the raiser's place
-    # (Windows refuses to unlink a file another handle has open), and the operator would read a
-    # permission error where the truth is "that path is not there".
-    if source is not None and not source.is_file():
-        raise ValueError(f"Cookies file not found: {source}")
-
-    handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
+        # Answered *before* any temporary file is opened, and not only for tidiness: raising
+        # with a handle still held would leave the clean-up to fail in the raiser's place
+        # (Windows refuses to unlink a file another handle has open), and the operator would
+        # read a permission error where the truth is "that path is not there".
+        if not source.is_file():
+            raise ValueError(f"Cookies file not found: {source}")
+        seed = source.read_text(encoding="utf-8", errors="replace")
+    live = _live_jar_path(seed)
+    with _JAR_LOCK:
+        if not live.is_file():
+            _write_private(live, seed)
+        current = live.read_text(encoding="utf-8", errors="replace")
+    work = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
         "w", prefix="mm-cookies-", suffix=".txt", encoding="utf-8", delete=False
     )
     try:
-        if source is None:
-            handle.write(text if text.endswith("\n") else f"{text}\n")
-        else:
-            handle.write(source.read_text(encoding="utf-8", errors="replace"))
+        work.write(current)
+        work.close()
+        Path(work.name).chmod(0o600)
+        yield {"cookiefile": work.name}
+    finally:
+        try:
+            rotated = Path(work.name).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            rotated = current
+        # An empty file is a call that never got as far as saving, not a session with no
+        # cookies in it: the live jar keeps what it had.
+        if rotated.strip() and rotated != current:
+            with _JAR_LOCK:
+                _write_private(live, rotated)
+        Path(work.name).unlink(missing_ok=True)
+
+
+#: Serialises the reads and write-backs of a live jar. Calls run on their own working copies;
+#: only the moment the live file is read or replaced is exclusive.
+_JAR_LOCK: Final[threading.Lock] = threading.Lock()
+
+
+def _jar_store() -> Path:
+    """Where the live jars live: under ``TMPDIR``, which the image points at ``/cache``."""
+    return Path(tempfile.gettempdir()) / "mm-cookies"
+
+
+def _live_jar_path(seed: str) -> Path:
+    """The live jar grown from ``seed``: one per distinct export, named after its hash."""
+    return _jar_store() / f"{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:16]}.txt"
+
+
+def _write_private(path: Path, content: str) -> None:
+    """Write ``content`` to ``path`` atomically and 0600: a jar is a credential."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = tempfile.NamedTemporaryFile(  # noqa: SIM115 - closed explicitly below
+        "w", dir=path.parent, prefix=f".{path.name}.", encoding="utf-8", delete=False
+    )
+    try:
+        handle.write(content)
         handle.close()
         Path(handle.name).chmod(0o600)
-        yield {"cookiefile": handle.name}
+        Path(handle.name).replace(path)
     finally:
         Path(handle.name).unlink(missing_ok=True)
 
@@ -426,20 +485,30 @@ def _jar_shape(text: str) -> dict[str, Any]:
 def cookie_secrets(options: YtdlpOptions) -> list[str]:
     """The credential values of the jar a request carries, so the log can keep them out.
 
-    Read from the same two shapes `cookie_jar` copies: the pasted export, or the file the
-    operator mounted. A literal read an instant before yt-dlp is handed the copy, because the
-    alternative — logging request headers with a YouTube session in them — is how a `docker
-    logs` paste becomes somebody else's session.
+    Read from the same two shapes `cookie_jar` seeds from — the pasted export, or the file the
+    operator mounted — **and from the live jar grown from it**, because the values yt-dlp is
+    about to send are the rotated ones, and those are the ones a request header would leak. A
+    literal read an instant before yt-dlp is handed the copy, because the alternative —
+    logging request headers with a YouTube session in them — is how a `docker logs` paste
+    becomes somebody else's session.
     """
     content = options.cookies_content
     if content:
-        return jar_secret_values(content)
-    if not options.cookies:
+        seed = content if content.endswith("\n") else f"{content}\n"
+    elif options.cookies:
+        path = Path(str(options.cookies))
+        if not path.is_file():
+            return []
+        seed = path.read_text(encoding="utf-8", errors="replace")
+    else:
         return []
-    path = Path(str(options.cookies))
-    if not path.is_file():
-        return []
-    return jar_secret_values(path.read_text(encoding="utf-8", errors="replace"))
+    secrets = jar_secret_values(seed)
+    live = _live_jar_path(seed)
+    try:
+        rotated = jar_secret_values(live.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return secrets
+    return secrets + [value for value in rotated if value not in secrets]
 
 
 def _jar_lines(text: str) -> Generator[list[str]]:
