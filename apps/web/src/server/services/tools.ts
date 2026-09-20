@@ -346,7 +346,7 @@ export function unusableJarSentence(result: {
 }): string {
   const counts =
     `${String(result.cookies)} cookie(s) · ${String(result.domains.length)} domain(s)` +
-    ` · ${result.authenticated ? "a session cookie" : "no session cookie"}` +
+    ` · ${result.authenticated ? "a session yt-dlp accepts" : "no session yt-dlp accepts"}` +
     ` · ${String(result.expired)} expired`;
   const problems = result.problems ?? [];
   const why = problems.length === 0 ? "" : ` — ${problems.join("; ")}`;
