@@ -12,9 +12,12 @@ through the generated OpenAPI document.
 from __future__ import annotations
 
 import re
+import traceback
+from collections import Counter
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +29,7 @@ __all__ = [
     "ToolboxError",
     "classify_message",
     "classify_ytdlp_error",
+    "describe_failure",
     "spec_for",
     "strip_ytdlp_prefix",
 ]
@@ -324,3 +328,56 @@ def classify_ytdlp_error(exc: BaseException, **details: Any) -> ToolboxError:
     message = strip_ytdlp_prefix(raw) or spec_for(code).message
     payload: dict[str, Any] = {"exception": type(exc).__name__, **details}
     return ToolboxError(code, message, details=payload)
+
+
+def describe_failure(error: ToolboxError) -> dict[str, Any]:
+    """Everything a log line should say about a failure, in one payload.
+
+    `code`, `message`, `hint` and `action` are the four fields the Console shows. `details` is
+    what they were summarised *from*, and for the case that matters it is the only place the
+    reason exists: a playlist whose every entry was refused reports "None of the 15 entries
+    could be read" while the fifteen sentences yt-dlp gave sit in `unreadable`, one per gap.
+    Logging the summary alone is what left an import that produced nothing with nothing to
+    read in `docker logs`.
+
+    `reasons` is those sentences deduplicated with their count — fifteen refusals are one
+    sentence fifteen times, and the operator wants the sentence. `cause` is the exception this
+    one was raised from (`raise ... from exc`): yt-dlp's own text, which is where the real
+    message lives when the catalogue has renamed it, plus its traceback. A cookie jar's *path*
+    may appear in `details`; its values never do.
+    """
+    payload: dict[str, Any] = {
+        "code": error.code.value,
+        "message": error.message,
+        "hint": error.hint,
+        "action": error.action,
+        "status": error.status,
+        "details": error.details,
+    }
+    reasons = _reasons(error.details)
+    if reasons:
+        payload["reasons"] = reasons
+    cause = error.__cause__
+    if cause is not None:
+        payload["cause"] = "".join(traceback.format_exception_only(type(cause), cause)).strip()
+        payload["cause_traceback"] = traceback.format_exception(cause)
+    return payload
+
+
+def _reasons(details: Mapping[str, Any]) -> list[str]:
+    """The distinct per-gap sentences a listing carries, commonest first."""
+    counts: Counter[str] = Counter()
+    unreadable = details.get("unreadable")
+    if not isinstance(unreadable, list):
+        return []
+    for gap in cast("list[Any]", unreadable):
+        if not isinstance(gap, Mapping):
+            continue
+        reason = cast("Mapping[str, Any]", gap).get("reason")
+        if isinstance(reason, str) and reason.strip():
+            counts[reason.strip()] += 1
+    sentences: list[str] = []
+    for reason, count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
+        # The count is deliberate: fifteen identical refusals are one sentence, not fifteen.
+        sentences.append(reason if count == 1 else f"{reason} ({count}×)")  # noqa: RUF001
+    return sentences

@@ -14,12 +14,12 @@ codes instead of one borrowed from whichever video happened to be broken.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Final
+from typing import Any, Final
 
 import structlog
 
 from toolbox import fixtures
-from toolbox.config import fixtures_enabled
+from toolbox.config import fixtures_enabled, ytdlp_verbose
 from toolbox.errors import (
     ErrorCode,
     ToolboxError,
@@ -33,6 +33,8 @@ from toolbox.ytdlp import (
     ExtractionLog,
     build_options,
     cookie_jar,
+    cookie_secrets,
+    cookie_shape,
     extract_info,
     result_from_info,
 )
@@ -82,8 +84,27 @@ _PLAYLIST_EQUIVALENT: Final[dict[ErrorCode, ErrorCode]] = {
     ErrorCode.UNKNOWN: ErrorCode.PLAYLIST_UNAVAILABLE,
 }
 
+#: Added to a hint when yt-dlp said the jar it was given is no longer a session. The sentence is
+#: quoted rather than paraphrased because the export tips at its end — yt-dlp's own wiki page —
+#: are the ones the reader needs, and because a paraphrase of somebody else's diagnosis is how a
+#: right answer becomes an arguable one.
+_SESSION_REJECTED: Final[str] = (
+    "yt-dlp named the session itself: “{verdict}” — and it says that only when the jar was a "
+    "session when the run started, so the session *was* sent and YouTube dropped it in a "
+    "response. Two readings, with opposite moves: the export is stale, or this machine is what "
+    "YouTube refuses. Export a fresh jar from a signed-in browser and retry; if the same line "
+    "comes back, run that same jar from another machine before exporting a third time."
+)
 
-def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool) -> ToolboxError:
+
+def _failure(
+    exc: Exception,
+    errors: ExtractionLog,
+    *,
+    url: str,
+    playlist: bool,
+    cookies: dict[str, Any],
+) -> ToolboxError:
     """The error to raise when the call came back with nothing, said in the right words.
 
     Three cases used to arrive here as one sentence — *"This video is not available"* — because
@@ -107,16 +128,17 @@ def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool)
         ToolboxError(
             classify_message(swallowed),
             strip_ytdlp_prefix(swallowed),
-            details={"exception": type(exc).__name__, "url": url},
+            details={"exception": type(exc).__name__, "url": url, "cookies": cookies},
         )
         if swallowed
-        else classify_ytdlp_error(exc, url=url)
+        else classify_ytdlp_error(exc, url=url, cookies=cookies)
     )
     if not playlist:
-        return error
+        return _explained(error, errors)
     promoted = _PLAYLIST_EQUIVALENT.get(error.code)
-    return (
-        error if promoted is None else ToolboxError(promoted, error.message, details=error.details)
+    return _explained(
+        error if promoted is None else ToolboxError(promoted, error.message, details=error.details),
+        errors,
     )
 
 
@@ -130,6 +152,58 @@ def _shared_reason(gaps: Sequence[ExtractGap]) -> str | None:
     if len(reasons) != 1 or any(gap.reason is None for gap in gaps):
         return None
     return next(iter(reasons))
+
+
+def _refusal_hint(shared: str | None, errors: ExtractionLog) -> str | None:
+    """The hint for "every entry answered the same refusal", plus yt-dlp's reason if it had one.
+
+    The shared sentence is the *what*; the session verdict is the *why*, and a hint that gives
+    the first without the second is what sends an operator to his player client while YouTube is
+    refusing the session he has just pasted.
+    """
+    verdict = errors.session_verdict
+    explained = None if verdict is None else _SESSION_REJECTED.format(verdict=verdict)
+    if shared is None:
+        return explained
+    refusal = (
+        "The playlist itself was read: every entry answered the same thing — "
+        f"“{shared}”. That is YouTube refusing the request rather than a deleted "
+        "video, so look at the session (the cookies) and at the player client."
+    )
+    return refusal if explained is None else f"{refusal} {explained}"
+
+
+def _explained(error: ToolboxError, errors: ExtractionLog) -> ToolboxError:
+    """The same failure, with the sentence that explains it, when yt-dlp said one.
+
+    Only the raise site can add this: the catalog answers by *code*, and `YTDLP_BOT_CHECK` is
+    three situations — no jar at all, a jar of anonymous cookies, a session YouTube no longer
+    accepts — that want three different words. `session` goes into the details too, so whoever
+    reads the JSON does not have to parse the hint to learn which of the three it was.
+    """
+    verdict = errors.session_verdict
+    if verdict is None:
+        return error
+    return ToolboxError(
+        error.code,
+        error.message,
+        hint=f"{error.hint} {_SESSION_REJECTED.format(verdict=verdict)}",
+        action=error.action,
+        status=error.status,
+        details={
+            **error.details,
+            "session": {
+                "cookies_rejected": True,
+                # Why this is a verdict on the session and not on the export: yt-dlp prints that
+                # line only when `_initialize_cookie_auth` found LOGIN_INFO and a SAPISID cookie
+                # at the start of the run. The jar was a session, it was sent, and a *response*
+                # took it away (`Set-Cookie: LOGIN_INFO=; Expires=Mon, 25-Dec-2023 …` — read it
+                # yourself with `--print-traffic`, on your own machine).
+                "recognised_at_start": True,
+                "reason": verdict,
+            },
+        },
+    )
 
 
 def extract(request: ExtractRequest) -> ExtractResult:
@@ -152,7 +226,11 @@ def extract(request: ExtractRequest) -> ExtractResult:
             details={"requested": request.url},
         )
 
-    errors = ExtractionLog()
+    errors = ExtractionLog(log=log, verbose=ytdlp_verbose())
+    # yt-dlp prints the request headers it sends when it is asked to be verbose, and those
+    # carry the session. It is told the values to keep out before it is handed the jar.
+    errors.add_secrets(cookie_secrets(request))
+    cookies = cookie_shape(request)
     try:
         with cookie_jar(request) as jar:
             info = extract_info(
@@ -168,7 +246,11 @@ def extract(request: ExtractRequest) -> ExtractResult:
             )
     except Exception as exc:
         raise _failure(
-            exc, errors, url=request.url, playlist=parsed.kind is UrlKind.PLAYLIST
+            exc,
+            errors,
+            url=request.url,
+            playlist=parsed.kind is UrlKind.PLAYLIST,
+            cookies=cookies,
         ) from exc
 
     result = result_from_info(info, errors=errors)
@@ -178,7 +260,7 @@ def extract(request: ExtractRequest) -> ExtractResult:
     # orchestrator as the generic "the URL resolved to no videos".
     if not result.entries and result.unreadable:
         shared = _shared_reason(result.unreadable)
-        raise ToolboxError(
+        failure = ToolboxError(
             ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
             f"None of the {len(result.unreadable)} entries of this playlist could be read.",
             # The catalog's hint blames "one of the videos inside it", which is right when a few
@@ -187,28 +269,23 @@ def extract(request: ExtractRequest) -> ExtractResult:
             # fifteen-track album is then told about a single dead video while the actual
             # refusal — "The page needs to be reloaded." — points at the session or the player,
             # and the hint sends him looking for the wrong thing.
-            hint=(
-                None
-                if shared is None
-                else (
-                    "The playlist itself was read: every entry answered the same thing — "
-                    f"“{shared}”. That is YouTube refusing the request rather than a deleted "
-                    "video, so look at the session (the cookies) and at the player client."
-                )
-            ),
+            hint=_refusal_hint(shared, errors),
             # Nothing came back, so "Import what came back" is not an offer that can be taken.
             action="Retry the listing",
             details={
                 "url": request.url,
+                "cookies": cookies,
                 "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
             },
         )
+        raise _explained(failure, errors)
 
     # `warning` when something was lost, so a partial listing is visible in the JSON logs
     # without anyone having to diff two counts.
     emit = log.info if not result.unreadable else log.warning
     emit(
         "extract.ok",
+        cookies=cookies,
         kind=result.kind,
         entries=len(result.entries),
         unreadable=len(result.unreadable),

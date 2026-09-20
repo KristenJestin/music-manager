@@ -26,10 +26,10 @@ from toolbox import fingerprint as fp_module
 from toolbox import place as place_module
 from toolbox import probe as probe_module
 from toolbox import replaygain as rg_module
-from toolbox.config import fixtures_enabled, toolbox_token
+from toolbox.config import fixtures_enabled, log_level_number, toolbox_token
 from toolbox.contract import SCHEMA_VERSION, contract_hash
 from toolbox.download import MEDIA_TYPE, ndjson_download
-from toolbox.errors import ERROR_CATALOG, ErrorBody, ToolboxError
+from toolbox.errors import ERROR_CATALOG, ErrorBody, ToolboxError, describe_failure
 from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import (
     ArtworkRequest,
@@ -72,6 +72,11 @@ structlog.configure(
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.JSONRenderer(),
     ],
+    # `MM_LOG_LEVEL`, read once at start-up. `docs/deploy.md` § 7 names it as applying to the
+    # three services and `docker-compose.prod.yml` passes it to this container, but nothing
+    # here consumed it: `debug` changed the web's output and nothing of yt-dlp's, which is the
+    # half an operator reaching for it is after.
+    wrapper_class=structlog.make_filtering_bound_logger(log_level_number()),
 )
 log: structlog.stdlib.BoundLogger = structlog.get_logger("toolbox")
 
@@ -138,8 +143,15 @@ async def log_requests(request: Request, call_next: RequestResponseEndpoint) -> 
 
 @app.exception_handler(ToolboxError)
 async def toolbox_error_handler(_: Request, error: ToolboxError) -> JSONResponse:
-    """Every failure leaves as `{code, message, hint, action}` — the UI's error decoder."""
-    log.warning("request.failed", code=error.code.value, message=error.message)
+    """Every failure leaves as `{code, message, hint, action}` — the UI's error decoder.
+
+    Logged whole and at `error`: the four fields the UI shows, the `details` they were
+    summarised from, the per-entry `reasons` when a listing carries them, and the exception this
+    one was raised from. The summary alone is what made "my import does nothing" unreadable in
+    `docker logs`, while yt-dlp had already named every refusal on the way past. `error` rather
+    than `warning` because that is the level `docs/deploy.md` tells the operator to grep for.
+    """
+    log.error("request.failed", **describe_failure(error))
     return JSONResponse(status_code=error.status, content=error.body().model_dump(mode="json"))
 
 

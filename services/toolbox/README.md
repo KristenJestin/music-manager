@@ -29,3 +29,5 @@ uv run uvicorn toolbox.app:app --port 8100   # /health will report null versions
 | --------------------- | ---------------------------------------------------------------------------------- |
 | `MM_TOOLBOX_TOKEN`    | when set, every endpoint except `/health` requires `Authorization: Bearer <token>` |
 | `MM_TOOLBOX_FIXTURES` | `1` puts the service in offline fixtures mode (no network egress)                  |
+| `MM_LOG_LEVEL`        | `debug` · `info` · `warn` · `error` · `silent` — the same variable the web reads   |
+| `MM_YTDLP_VERBOSE`    | `1` sends yt-dlp's own debug stream to the logs (cookie values are stripped out)   |

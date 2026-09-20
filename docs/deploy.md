@@ -487,11 +487,14 @@ toolbox ne fait que lire et parser le fichier :
 ```
 
 `ok` est vrai seulement si les trois tiennent à la fois : au moins un cookie a été compris,
-`authenticated` (une des six cookies de session YouTube — `SAPISID`, `__Secure-3PSID`,
-`__Secure-1PSID`, `SID`, `SSID`, `HSID` — est présente) et `expired = 0`. Un `problems`
-non vide donne la raison précise (« no YouTube session cookie present », « expected 7
-tab-separated fields »…) — c'est un jar copié à moitié ou exporté dans le mauvais format qui
-en dit le plus.
+`authenticated` et `expired = 0`. `authenticated` suit la définition de yt-dlp lui-même
+(`_has_auth_cookies`), pas une intuition : **`LOGIN_INFO` et une des cookies de session**
+(`SAPISID`, `__Secure-3PSID`, `__Secure-1PSID`, `SID`, `SSID`, `HSID`) doivent être là toutes les
+deux. YouTube pose un `SAPISID` aux visiteurs aussi : un jar qui n'a que celui-là n'est pas une
+session, et il était déclaré bon ici avant d'être refusé par YouTube avec exactement la phrase
+d'un jar vide. Un `problems` non vide donne la raison précise (« no YouTube session cookie
+present », « the jar has a YouTube session cookie but no LOGIN_INFO », « expected 7 tab-separated
+fields »…) — c'est un jar copié à moitié ou exporté dans le mauvais format qui en dit le plus.
 
 ### Durée de vie, et ce que dit l'expiration
 
@@ -506,6 +509,76 @@ cette page, l'erreur d'un import (`/imports/:id`) et le décodeur d'erreurs de T
 tous les deux un bouton « Configure cookies » qui ramène ici — pas la peine d'aller chercher
 où se trouve le formulaire. Il n'y a rien d'autre à faire que ré-exporter et recoller un jar
 frais.
+
+### Le jar est refusé : ce que le journal dit, et ce qu'il faut refaire
+
+Un refus ne dit pas _pourquoi_. YouTube répond la même phrase — « Sign in to confirm you're not a
+bot » — à une installation sans jar, à un jar de cookies anonymes, et à une session que le
+navigateur a fait tourner depuis l'export. C'est yt-dlp qui fait la différence, et il la fait
+**une fois, en avertissement** : « The provided YouTube account cookies are no longer valid. They
+have likely been rotated in the browser as a security measure. » Cet avertissement est maintenant
+écrit dans le journal (niveau `warning`, sans `MM_YTDLP_VERBOSE`), recopié dans le `hint` de
+l'échec et posé dans `details.session`. Trois cas, trois réponses :
+
+| Ce que dit le journal                                                       | Ce qui s'est passé                                                                    | Quoi faire                                       |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `details.session.cookies_rejected` à `true`                                 | le jar _était_ une session au départ, et **une réponse de YouTube l'a jetée**         | ré-exporter, puis lire les en-têtes (ci-dessous) |
+| `details.cookies.auth_cookies` vide, ou sans `LOGIN_INFO`                   | le jar n'a jamais été une session (export déconnecté, ou sans les cookies `HttpOnly`) | ré-exporter **connecté**                         |
+| ni l'un ni l'autre, et `PO Token Providers: none` sous `MM_YTDLP_VERBOSE=1` | la session tient ; c'est l'IP qui est en cause                                        | voir ci-dessous                                  |
+
+`details.cookies.auth_cookies` nomme, dans l'ordre de yt-dlp, ceux des cookies de session que le jar
+portait vraiment : `LOGIN_INFO` (le compte), la famille `SAPISID` (la signature des requêtes), et la
+paire `__Secure-1PSIDTS` / `__Secure-3PSIDTS` que YouTube fait tourner à chaque visite. Les
+valeurs, elles, ne quittent jamais le bocal : le journal ne porte que des noms, et
+`#HttpOnly_` — le préfixe qui cache `LOGIN_INFO` et les `__Secure-*` à JavaScript — compte comme un
+cookie, pas comme un commentaire.
+
+Google fait tourner `__Secure-1PSIDTS` et `__Secure-3PSIDTS` à chaque passage sur YouTube dans le
+navigateur : **un jar exporté puis laissé de côté quelques heures peut être mort avant le premier
+import.** L'export qui tient est celui qu'on colle tout de suite, depuis un profil qui ne retouche
+plus à YouTube ensuite — ou, plus simple, depuis une fenêtre privée dont on ne se sert que pour
+ça. Les deux méthodes sont détaillées dans le lien que porte la phrase de yt-dlp
+(`wiki/Extractors#exporting-youtube-cookies`).
+
+#### La preuve, quand un jar frais est refusé quand même : lire les en-têtes
+
+`details.session.cookies_rejected` et `recognised_at_start` disent ce que `yt-dlp` peut voir de son
+côté : le bocal
+était une session au départ, et il ne l'est plus à l'arrivée. Ce qui l'a vidé est dans la réponse
+— la première requête de la lecture revient avec un lot de `Set-Cookie` qui expirent `LOGIN_INFO`,
+`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID` et `__Secure-1PAPISID`. YouTube
+efface la session, puis répond à tout ce qui suit comme à un visiteur anonyme : de là les entrées
+refusées une par une. Ça se lit avec **le même jar**, et sans rien installer de plus :
+
+    yt-dlp --cookies cookies.txt --verbose --print-traffic --flat-playlist \
+      --playlist-items 1 "https://music.youtube.com/playlist?list=OLAK5uy_…" 2>&1 \
+      | grep -iE "Found YouTube account cookies|no longer valid|Set-Cookie: (LOGIN_INFO|SAPISID|SID)="
+
+Deux sorties possibles, deux conclusions opposées :
+
+- `Set-Cookie: LOGIN_INFO=;` et `no longer valid` s'affichent → YouTube a bien jeté la session
+  qu'on lui donnait. Rejouer la même commande **depuis une autre machine** est ce qui tranche
+  entre « l'export est mort » et « c'est cette machine que YouTube refuse » ; sur le serveur,
+  aucun `player_client` ni PO token n'y changera quoi que ce soit ;
+- seul `Found YouTube account cookies` s'affiche et la playlist sort → le jar est bon ailleurs,
+  donc c'est l'IP du serveur qui est murée.
+
+À lancer **chez soi, jamais dans le conteneur** : `--print-traffic` imprime les en-têtes _envoyés_,
+donc les valeurs du bocal en clair. Rien de tout ça n'a sa place dans `docker logs`, dans un
+rapport de bug ou dans une PR.
+
+L'image embarque aussi ce que yt-dlp demande désormais pour YouTube : les scripts de défi
+`yt-dlp-ejs` (l'extra `[default]` du paquet) et le runtime qui les exécute, `deno`. Sans eux,
+yt-dlp l'écrit lui-même — « YouTube extraction without a JS runtime has been deprecated, and some
+formats may be missing » — et des formats manquent pour de bon. Cela ne remplace pas une session
+valide : c'est une condition nécessaire, pas suffisante.
+
+Reste le cas où la session est bonne et le refus continue. yt-dlp le dit aussi, mais seulement en
+verbeux : `PO Token Providers: none`. YouTube réclame alors un _PO token_ que cette image ne sait
+pas fabriquer. Le levier est un service à côté — le provider `bgutil`
+(`brainicism/bgutil-ytdlp-pot-provider`) — plus son plugin dans l'image. Mesuré depuis ce réseau :
+**le PO token seul ne suffit pas**, sans session valide le refus reste, donc à n'ajouter qu'après
+avoir remis un jar frais en place.
 
 > **Avertissement.** Ce jar authentifie l'installation **en tant que le compte Google du
 > propriétaire** — c'est un mot de passe, pas un identifiant technique. Ne le collez jamais
@@ -1121,7 +1194,7 @@ Les trois services écrivent du JSON sur stdout, une ligne par événement.
 ```bash
 docker compose -f docker-compose.prod.yml logs -f web
 docker compose -f docker-compose.prod.yml logs -f worker
-docker compose -f docker-compose.prod.yml logs --since 1h | grep '"level":"error"'
+docker compose -f docker-compose.prod.yml logs --since 1h | grep -E '"level": *"error"'
 ```
 
 `web` émet une ligne par requête avec sa propre durée, ce qui rend le budget de rendu serveur
@@ -1150,6 +1223,44 @@ docker compose -f docker-compose.prod.yml logs --since 1h --no-log-prefix web \
 `MM_LOG_LEVEL` (`debug` · `info` · `warn` · `error` · `silent`) vaut pour les trois services.
 Une réponse 5xx est journalisée en `error` quel que soit le niveau, et les fichiers de build en
 `debug` — sinon vingt lignes utiles disparaissent sous deux cents lignes d'assets.
+
+### Lire un échec
+
+Un échec de la toolbox sort en `error`, sous l'événement `request.failed`, avec tout ce qu'elle
+sait : le `code`, le `message` que la Console affiche, les `details` dont il a été résumé, les
+`reasons` d'une liste d'entrées illisibles — dédupliquées, avec leur nombre, parce que quinze
+refus identiques sont une phrase et non quinze lignes — et l'exception d'origine (`cause`, avec
+sa trace) quand il y en a une.
+
+```bash
+docker compose -f docker-compose.prod.yml logs --since 30m --no-log-prefix toolbox \
+  | grep '"event": *"request.failed"' \
+  | jq -r '.code, .message, (.reasons // [])[]'
+```
+
+```
+PLAYLIST_ENTRY_UNAVAILABLE
+None of the 200 entries of this playlist could be read.
+Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication. … (200×)
+```
+
+La troisième ligne est la phrase de yt-dlp telle quelle, coupée ici avant les deux liens de son wiki
+(« See https://github.com/yt-dlp/yt-dlp/wiki/… ») : dans le journal, elle est écrite en entier.
+
+Un échec écrit aussi une ligne `ytdlp` par refus que yt-dlp a lui-même signalé, au niveau
+`error`, **et une ligne par avertissement distinct**, au niveau `warning` (yt-dlp répète le même
+avertissement à chaque entrée d'une playlist ; le journal ne le répète pas) : c'est ce qui manquait quand un
+import ne produisait rien et que le journal ne disait rien. Un avertissement n'est pas du bruit
+ici — c'est le seul niveau où yt-dlp dit _pourquoi_ (« les cookies du compte ne sont plus
+valides », « aucun cookie de compte YouTube trouvé », « extraction YouTube sans runtime JS
+dépréciée »), là où les refus répètent tous la même phrase. Le seul de ces avertissements qui
+change la lecture d'un échec est recopié dans son `hint` et posé dans `details.session`
+(§ « Le jar est refusé »).
+
+`MM_YTDLP_VERBOSE=1` fait entrer dans les journaux la sortie de débogage de yt-dlp elle-même —
+des milliers de lignes par téléchargement, à lire avec `MM_LOG_LEVEL=debug`. Les valeurs du bocal
+de cookies en sont retirées avant écriture : une session YouTube recopiée d'un journal est une
+session utilisable par quiconque le lit.
 
 **Le statut `499`.** Il n'existe pas dans la norme HTTP : c'est la convention de nginx pour
 « le client a fermé la connexion ». Rien n'est jamais envoyé sous ce code — la socket est
