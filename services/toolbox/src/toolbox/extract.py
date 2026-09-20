@@ -30,6 +30,7 @@ from toolbox.models import ExtractRequest, ExtractResult
 from toolbox.urls import UrlKind, is_fixture_url, parse_url
 from toolbox.ytdlp import (
     ExtractionLog,
+    blame_stale_cookies,
     build_options,
     cookie_jar,
     extract_info,
@@ -111,12 +112,12 @@ def _failure(exc: Exception, errors: ExtractionLog, *, url: str, playlist: bool)
         if swallowed
         else classify_ytdlp_error(exc, url=url)
     )
-    if not playlist:
-        return error
-    promoted = _PLAYLIST_EQUIVALENT.get(error.code)
-    return (
-        error if promoted is None else ToolboxError(promoted, error.message, details=error.details)
-    )
+    if playlist:
+        promoted = _PLAYLIST_EQUIVALENT.get(error.code)
+        if promoted is not None:
+            error = ToolboxError(promoted, error.message, details=error.details)
+    # Last, so that it reads the code the failure ended up with, playlist or not.
+    return blame_stale_cookies(error, errors)
 
 
 def extract(request: ExtractRequest) -> ExtractResult:
@@ -164,13 +165,16 @@ def extract(request: ExtractRequest) -> ExtractResult:
     # must not be left to tell the two apart. Its own code, rather than reaching the
     # orchestrator as the generic "the URL resolved to no videos".
     if not result.entries and result.unreadable:
-        raise ToolboxError(
-            ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
-            f"None of the {len(result.unreadable)} entries of this playlist could be read.",
-            details={
-                "url": request.url,
-                "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
-            },
+        raise blame_stale_cookies(
+            ToolboxError(
+                ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
+                f"None of the {len(result.unreadable)} entries of this playlist could be read.",
+                details={
+                    "url": request.url,
+                    "unreadable": [gap.model_dump(mode="json") for gap in result.unreadable],
+                },
+            ),
+            errors,
         )
 
     # `warning` when something was lost, so a partial listing is visible in the JSON logs

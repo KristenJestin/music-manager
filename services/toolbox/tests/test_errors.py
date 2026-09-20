@@ -27,6 +27,10 @@ from toolbox.tagging import write_tags
 
 # The real messages, copied from what yt-dlp prints, one per catalogued yt-dlp failure.
 YTDLP_MESSAGES: dict[ErrorCode, str] = {
+    ErrorCode.YTDLP_COOKIES_STALE: (
+        "WARNING: [youtube] The provided YouTube account cookies are no longer valid. "
+        "They have likely been rotated in the browser as a security measure."
+    ),
     ErrorCode.YTDLP_BOT_CHECK: (
         "ERROR: [youtube] eZKgoOjJmrp: Sign in to confirm you're not a bot. "
         "Use --cookies-from-browser or --cookies for the authentication."

@@ -35,6 +35,10 @@ class ErrorCode(StrEnum):
     """Every failure mode the toolbox knows how to name."""
 
     YTDLP_BOT_CHECK = "YTDLP_BOT_CHECK"
+    #: The jar the call was given is one the browser has already rotated. Read off yt-dlp's
+    #: *warning*, not off the error that follows it: what follows is a plain bot check or an
+    #: age gate, and the operator who just pasted fresh cookies is told to configure cookies.
+    YTDLP_COOKIES_STALE = "YTDLP_COOKIES_STALE"
     YTDLP_403 = "YTDLP_403"
     YTDLP_FORMAT = "YTDLP_FORMAT"
     YTDLP_NSIG = "YTDLP_NSIG"
@@ -78,6 +82,20 @@ class ErrorSpec:
 
 #: Ordered: the first entry whose pattern matches wins, so the specific ones come first.
 ERROR_CATALOG: Final[tuple[ErrorSpec, ...]] = (
+    ErrorSpec(
+        code=ErrorCode.YTDLP_COOKIES_STALE,
+        message="The YouTube cookies this call was given are no longer valid.",
+        hint=(
+            "The browser rotated them after the export, so YouTube treats the jar as signed "
+            "out. Export again from a private window, close that window, and paste the new jar."
+        ),
+        action="Configure cookies",
+        status=403,
+        patterns=(
+            "cookies are no longer valid",
+            "have likely been rotated in the browser",
+        ),
+    ),
     ErrorSpec(
         code=ErrorCode.YTDLP_BOT_CHECK,
         message="YouTube asked this client to confirm it is not a bot.",

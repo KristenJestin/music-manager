@@ -21,13 +21,14 @@ from typing import Any, Final, cast
 
 from yt_dlp import YoutubeDL  # pyright: ignore[reportMissingTypeStubs]
 
-from toolbox.errors import ErrorCode, classify_message, strip_ytdlp_prefix
+from toolbox.errors import ErrorCode, ToolboxError, classify_message, strip_ytdlp_prefix
 from toolbox.models import ExtractEntry, ExtractGap, ExtractResult, Thumbnail, YtdlpOptions
 from toolbox.tagging import TAGGABLE_SUFFIXES
 
 __all__ = [
     "ExtractionLog",
     "audio_extraction_codec",
+    "blame_stale_cookies",
     "build_options",
     "cookie_jar",
     "downloaded_path",
@@ -68,6 +69,24 @@ _ERROR_PREFIX: Final[re.Pattern[str]] = re.compile(r"^ERROR:\s*", re.IGNORECASE)
 #: Eleven characters is the YouTube video id, and nothing else in these messages has that
 #: shape between a bracket and a colon.
 _ERROR_ID: Final[re.Pattern[str]] = re.compile(r"\[[^\]]+\]\s+([A-Za-z0-9_-]{11}):")
+#: yt-dlp's one sentence about a jar the browser has rotated since it was exported. It is a
+#: *warning*, printed before the extraction goes on as if signed out, so the failure that
+#: follows is a bot check or an age gate and never mentions the cookies again.
+_STALE_COOKIES: Final[re.Pattern[str]] = re.compile(
+    r"cookies are no longer valid|likely been rotated in the browser", re.IGNORECASE
+)
+#: The failures a rotated jar explains: every one of them is what YouTube says to a session it
+#: does not trust, and every one of them carries the action "Configure cookies" — which is the
+#: wrong advice for an operator who configured them an hour ago.
+_STALE_EXPLAINS: Final[frozenset[ErrorCode]] = frozenset(
+    {
+        ErrorCode.YTDLP_BOT_CHECK,
+        ErrorCode.YTDLP_AGE,
+        ErrorCode.YTDLP_PRIVATE,
+        ErrorCode.PLAYLIST_PRIVATE,
+        ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE,
+    }
+)
 
 
 class ExtractionLog:
@@ -90,10 +109,13 @@ class ExtractionLog:
       sentence instead of only a position.
     """
 
-    __slots__ = ("messages",)
+    __slots__ = ("messages", "stale_cookies")
 
     def __init__(self) -> None:
         self.messages: list[str] = []
+        #: yt-dlp warned that the jar it was handed is signed out. Kept apart from
+        #: :attr:`messages`, which is positional (:meth:`gap`) and must hold errors only.
+        self.stale_cookies: bool = False
 
     # -- yt-dlp's logger protocol; only `error` carries anything we keep ----------------
     def debug(self, msg: str) -> None:
@@ -103,7 +125,9 @@ class ExtractionLog:
         return None
 
     def warning(self, msg: str) -> None:
-        return None
+        """Drop every warning but the one that renames the failure that follows it."""
+        if _STALE_COOKIES.search(_ANSI.sub("", str(msg))):
+            self.stale_cookies = True
 
     def error(self, msg: str) -> None:
         """Keep one failure, without its ``ERROR:`` prefix and without its colour."""
@@ -127,6 +151,24 @@ class ExtractionLog:
         raw = self.messages[index]
         found = _ERROR_ID.search(raw)
         return (found.group(1) if found else None, strip_ytdlp_prefix(raw) or raw)
+
+
+def blame_stale_cookies(error: ToolboxError, errors: ExtractionLog) -> ToolboxError:
+    """``error``, re-said as :attr:`ErrorCode.YTDLP_COOKIES_STALE` when the log explains it.
+
+    The owner pasted a fresh export, imported one album, and every album after it came back
+    as *"Sign in to confirm you're not a bot"* — the same code, the same "Configure cookies"
+    button, and no way to tell a jar that was never there from a jar the browser had rotated
+    ten minutes after the export. yt-dlp does say which: one warning, before the failure. This
+    reads it, and only re-labels the failures a signed-out session accounts for; a deleted
+    video is deleted whatever the cookies say.
+    """
+    if not errors.stale_cookies or error.code not in _STALE_EXPLAINS:
+        return error
+    return ToolboxError(
+        ErrorCode.YTDLP_COOKIES_STALE,
+        details={**error.details, "underlying": error.code.value, "reason": error.message},
+    )
 
 
 def yt_dlp_version() -> str | None:

@@ -350,6 +350,7 @@
         "description": "Every failure mode the toolbox knows how to name.",
         "enum": [
           "YTDLP_BOT_CHECK",
+          "YTDLP_COOKIES_STALE",
           "YTDLP_403",
           "YTDLP_FORMAT",
           "YTDLP_NSIG",

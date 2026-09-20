@@ -249,7 +249,10 @@ class _FakeYoutubeDL:
         logger = self.params.get("logger")
         assert logger is not None, "`extract` must hand yt-dlp a logger, or a gap has no reason"
         for message in messages:
-            logger.error(message)
+            if message.startswith("WARNING:"):
+                logger.warning(message)
+            else:
+                logger.error(message)
         return info
 
     def sanitize_info(self, info: dict[str, Any]) -> dict[str, Any]:
@@ -405,6 +408,74 @@ def test_a_playlist_of_nothing_but_gaps_says_so(monkeypatch: pytest.MonkeyPatch)
         extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
     assert raised.value.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
     assert len(cast("list[object]", raised.value.details["unreadable"])) == 2
+
+
+STALE_WARNING = (
+    "WARNING: [youtube] The provided YouTube account cookies are no longer valid. They have "
+    "likely been rotated in the browser as a security measure."
+)
+BOT_CHECK = "Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies"
+
+
+def test_a_bot_check_after_a_stale_jar_warning_blames_the_jar(monkeypatch: pytest.MonkeyPatch):
+    """The owner's week: fresh cookies, one album, then every album a "bot check".
+
+    The rotated jar is the cause and yt-dlp names it — as a warning, a moment before the
+    failure. Without reading it the Console says "Configure cookies" to the operator who just
+    did, and the same code as an installation that never had any.
+    """
+    _plan(monkeypatch, [STALE_WARNING, f"ERROR: [youtube] eZKgoOjJmrp: {BOT_CHECK}"], None)
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url="https://youtu.be/eZKgoOjJmrp"))
+    assert raised.value.code is ErrorCode.YTDLP_COOKIES_STALE
+    assert raised.value.status == 403
+    assert raised.value.action == "Configure cookies"
+    # What YouTube actually answered is kept, for the operator who wants to see it.
+    assert raised.value.details["underlying"] == ErrorCode.YTDLP_BOT_CHECK.value
+    assert cast("str", raised.value.details["reason"]).startswith("Sign in to confirm")
+
+
+def test_a_playlist_of_nothing_but_bot_checks_after_a_stale_jar_warning_blames_the_jar(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The exact report: fifteen entries, fifteen bot checks, one warning above them all."""
+    _plan(
+        monkeypatch,
+        [
+            STALE_WARNING,
+            f"ERROR: [youtube] vid00000001: {BOT_CHECK}",
+            f"ERROR: [youtube] vid00000002: {BOT_CHECK}",
+        ],
+        {"id": "OLAK5uy_x", "title": "Album - Locked out", "entries": [None, None]},
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert raised.value.code is ErrorCode.YTDLP_COOKIES_STALE
+    assert raised.value.details["underlying"] == ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE.value
+    # The gaps travel with it: the operator still sees which entries did not come back.
+    assert len(cast("list[object]", raised.value.details["unreadable"])) == 2
+
+
+def test_a_stale_jar_does_not_rename_a_deleted_video(monkeypatch: pytest.MonkeyPatch):
+    """A rotated jar explains a locked door, not an empty room."""
+    _plan(
+        monkeypatch,
+        [STALE_WARNING, "ERROR: [youtube] eZKgoOjJmrp: Video unavailable"],
+        None,
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url="https://youtu.be/eZKgoOjJmrp"))
+    assert raised.value.code is ErrorCode.YTDLP_UNAVAILABLE
+
+
+def test_a_stale_jar_warning_alone_does_not_fail_a_listing_that_came_back(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """yt-dlp went on signed out and the public album still came back: not an error."""
+    _plan(monkeypatch, [STALE_WARNING], _playlist_of(3, dead=0))
+    result = extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    assert len(result.entries) == 3
+    assert result.unreadable == []
 
 
 def test_an_empty_playlist_is_not_a_failure(monkeypatch: pytest.MonkeyPatch):

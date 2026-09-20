@@ -241,6 +241,28 @@ def test_a_yt_dlp_failure_becomes_an_error_event(
     assert DOWNLOAD_LOCK.held is False
 
 
+def test_a_bot_check_after_a_stale_jar_warning_is_reported_as_stale_cookies(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The download path reads the same warning `/extract` does, through the same logger."""
+
+    def signed_out(_url: str, options: Mapping[str, Any], *, download: bool = False) -> Any:
+        options["logger"].warning(
+            "WARNING: [youtube] The provided YouTube account cookies are no longer valid. "
+            "They have likely been rotated in the browser as a security measure."
+        )
+        raise DownloadError("ERROR: [youtube] eZKgoOjJmrp: Sign in to confirm you're not a bot")
+
+    monkeypatch.setattr(download_module, "extract_info", signed_out)
+    stream = events(client, {"url": "https://youtu.be/x", "dest_dir": str(tmp_path), "id": "trk"})
+    assert len(stream) == 1
+    assert stream[0]["event"] == "error"
+    assert stream[0]["code"] == ErrorCode.YTDLP_COOKIES_STALE.value
+    assert stream[0]["action"] == "Configure cookies"
+    assert "private window" in stream[0]["hint"]
+    assert DOWNLOAD_LOCK.held is False
+
+
 def test_continue_is_always_on_and_the_output_template_uses_the_id(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ):

@@ -495,7 +495,7 @@ export interface components {
          * @description Every failure mode the toolbox knows how to name.
          * @enum {string}
          */
-        ErrorCode: "YTDLP_BOT_CHECK" | "YTDLP_403" | "YTDLP_FORMAT" | "YTDLP_NSIG" | "YTDLP_UNAVAILABLE" | "YTDLP_AGE" | "YTDLP_PRIVATE" | "PLAYLIST_UNAVAILABLE" | "PLAYLIST_PRIVATE" | "PLAYLIST_ENTRY_UNAVAILABLE" | "FFMPEG_MISSING" | "DOWNLOAD_CONTAINER" | "TAG_WRITE_FAILED" | "PLACE_CONFLICT" | "LOCKED" | "FIXTURE_UNKNOWN" | "UNKNOWN";
+        ErrorCode: "YTDLP_BOT_CHECK" | "YTDLP_COOKIES_STALE" | "YTDLP_403" | "YTDLP_FORMAT" | "YTDLP_NSIG" | "YTDLP_UNAVAILABLE" | "YTDLP_AGE" | "YTDLP_PRIVATE" | "PLAYLIST_UNAVAILABLE" | "PLAYLIST_PRIVATE" | "PLAYLIST_ENTRY_UNAVAILABLE" | "FFMPEG_MISSING" | "DOWNLOAD_CONTAINER" | "TAG_WRITE_FAILED" | "PLACE_CONFLICT" | "LOCKED" | "FIXTURE_UNKNOWN" | "UNKNOWN";
         /**
          * ExtractEntry
          * @description One video. `track`/`artist`/`album`/`release_year` are YouTube Music's own tags.

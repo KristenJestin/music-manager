@@ -16,6 +16,12 @@ import { z } from "zod";
 export const MM_ERROR_CODES = [
   /* --- from the toolbox --- */
   "YTDLP_BOT_CHECK",
+  /**
+   * The jar the toolbox was given is one the browser has rotated since the export. The
+   * failure underneath is a bot check or an age gate, and without this code it reads as
+   * "configure cookies" to the operator who configured them an hour ago.
+   */
+  "YTDLP_COOKIES_STALE",
   "YTDLP_NSIG",
   "YTDLP_403",
   "YTDLP_FORMAT",

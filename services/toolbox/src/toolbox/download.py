@@ -32,7 +32,9 @@ from toolbox.lock import DOWNLOAD_LOCK
 from toolbox.models import DownloadRequest
 from toolbox.tagging import TAGGABLE_SUFFIXES
 from toolbox.ytdlp import (
+    ExtractionLog,
     audio_extraction_codec,
+    blame_stale_cookies,
     build_options,
     cookie_jar,
     downloaded_path,
@@ -116,6 +118,7 @@ class _Worker:
         self.out.put({"event": "postprocess", "step": str(status.get("postprocessor") or "")})
 
     def run(self) -> None:
+        errors = ExtractionLog()
         try:
             dest = Path(self.request.dest_dir)
             dest.mkdir(parents=True, exist_ok=True)
@@ -129,6 +132,9 @@ class _Worker:
                     progress_hooks=[self._progress],
                     postprocessor_hooks=[self._postprocess],
                     overwrites=False,
+                    # Not for the errors — `ignoreerrors` is off here and a failure raises —
+                    # but for the one warning that says why it will: a rotated jar.
+                    logger=errors,
                     **jar,
                 )
                 # No re-encoding, ever: FFmpegExtractAudio with a `preferredcodec` that
@@ -147,10 +153,11 @@ class _Worker:
                 info = extract_info(self.request.url, options, download=True)
             self._finish(info)
         except BaseException as exc:
-            error = (
+            error = blame_stale_cookies(
                 exc
                 if isinstance(exc, ToolboxError)
-                else classify_ytdlp_error(exc, url=self.request.url)
+                else classify_ytdlp_error(exc, url=self.request.url),
+                errors,
             )
             log.warning("download.failed", code=error.code.value, message=error.message)
             self.out.put(

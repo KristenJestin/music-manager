@@ -246,7 +246,7 @@ function DownloaderSettings() {
            */
           <FormRow
             label="cookies.txt content"
-            help="Paste the Netscape export whole. Stored server-side; never shown again."
+            help="Paste the Netscape export whole. Stored server-side; never shown again. Export from a private window you then close: a browser that stays signed in rotates the cookies, and the pasted jar dies with them."
           >
             <div className="flex w-full max-w-form flex-col gap-1.5">
               <Textarea

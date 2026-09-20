@@ -415,12 +415,37 @@ dont l'historique YouTube tolère ce qui va être téléchargé) :
    (Chrome, Firefox) est celle utilisée pour écrire ce paragraphe. `yt-dlp --cookies-from-browser
 chrome` fonctionne aussi si `yt-dlp` tourne sur la machine qui a le navigateur, ce qui n'est
    en général pas le cas du toolbox (il tourne dans un conteneur sans profil de navigateur).
-2. Ouvrez `youtube.com`, vérifiez que vous êtes connecté au bon compte.
+2. **Dans une fenêtre de navigation privée**, ouvrez `youtube.com` et connectez-vous au bon
+   compte. C'est le point qui compte : un navigateur qui reste connecté fait tourner ses
+   cookies de session (`SIDCC`, `__Secure-*PSIDCC`…) au fil de la navigation, et l'export
+   d'un onglet ordinaire cesse d'être accepté par YouTube en quelques minutes. Le symptôme est
+   reconnaissable : le jar fraîchement collé fonctionne pour un import, puis tout repasse en
+   « Sign in to confirm you're not a bot ». Le toolbox le nomme `YTDLP_COOKIES_STALE`
+   (yt-dlp l'annonce d'un avertissement, « The provided YouTube account cookies are no
+   longer valid », que le toolbox lit avant l'erreur qui suit).
 3. Exportez : l'extension produit un fichier texte commençant par
    `# Netscape HTTP Cookie File`, une ligne par cookie, sept champs séparés par des
    tabulations (`domaine, sous-domaines, chemin, sécurisé, expiration, nom, valeur`).
-4. Gardez ce fichier hors du dépôt. Ce n'est l'affaire de personne d'autre que de
+4. **Fermez la fenêtre privée** sans vous déconnecter. Une déconnexion invalide les cookies ;
+   fermer la fenêtre les laisse tels quels, et plus aucun navigateur ne les fait tourner.
+5. Gardez ce fichier hors du dépôt. Ce n'est l'affaire de personne d'autre que de
    l'installation elle-même — voir l'avertissement plus bas.
+
+### Quand l'adresse IP elle-même est marquée
+
+Après une reprise massive (plusieurs milliers de pistes en deux jours depuis une même
+adresse), YouTube répond « Sign in to confirm you're not a bot » à _toute_ requête anonyme
+de cette adresse, y compris avec les clients `tv`, `mweb` ou `android_vr`, et y compris avec
+un jeton PO valide. Le diagnostic est simple : `yt-dlp -s "https://www.youtube.com/watch?v=…"`
+échoue de la même façon depuis n'importe quelle machine derrière la même adresse. Un serveur
+domestique partage l'adresse du poste de travail ; un test « ça passe sur mon PC » ne prouve
+donc rien de plus qu'un test sur le serveur.
+
+Dans cet état, seule une session authentifiée valide passe (un jar exporté comme ci-dessus),
+ou une autre adresse de sortie. Le marquage s'efface de lui-même, en général en un à quelques
+jours sans nouvelle rafale. Les réglages `downloadJitterMinMs`/`downloadJitterMaxMs` (Settings
+→ Downloader → Anti-ban) espacent les téléchargements ; le défaut (5 à 15 s) convient à un
+usage courant, pas à une reprise de plusieurs milliers de pistes, qu'il vaut mieux étaler.
 
 ### Le charger : Console ou API
 
