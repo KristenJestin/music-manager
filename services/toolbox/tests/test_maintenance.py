@@ -21,8 +21,7 @@ PAST = int((dt.datetime.now(tz=dt.UTC) - dt.timedelta(days=1)).timestamp())
 SESSION_JAR = (
     "# Netscape HTTP Cookie File\n"
     f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue\n"
-    f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE + 100}\t__Secure-3PSID\tvalue\n"
-    f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue\n"
+    f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE + 100}\tLOGIN_INFO\tvalue\n"
     ".google.com\tTRUE\t/\tTRUE\t0\tSESSION_ONLY\tvalue\n"
 )
 
@@ -35,7 +34,7 @@ SESSION_JAR = (
 def test_a_session_jar_is_usable():
     result = maintenance.cookies_test(CookiesTestRequest(content=SESSION_JAR))
     assert result.ok is True
-    assert result.cookies == 4
+    assert result.cookies == 3
     assert result.authenticated is True
     assert result.domains == [".google.com", ".youtube.com"]
     assert result.expires_at is not None
@@ -44,27 +43,46 @@ def test_a_session_jar_is_usable():
 
 
 def test_a_jar_without_a_session_cookie_is_not_usable():
+    """A jar of preferences only: the sentence has to say which half is missing."""
     jar = f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue\n"
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))
     assert result.ok is False
     assert result.authenticated is False
-    assert any("session cookie" in problem for problem in result.problems)
+    assert any("not a YouTube session" in problem for problem in result.problems), result.problems
 
 
-def test_a_session_cookie_without_login_info_is_not_a_session():
-    """`SAPISID` alone is a visitor's cookie, and it used to pass this check.
+def test_a_jar_yt_dlp_would_not_accept_names_the_half_that_is_missing():
+    """What "signed in" means is yt-dlp's rule, and the verdict now says so with its own names.
 
-    yt-dlp's own `_has_auth_cookies` wants `LOGIN_INFO` **and** a `SAPISID`-family cookie, and
-    YouTube hands the second one to visitors as well. A jar carrying only the second was called
-    "a usable session" here and then refused by YouTube with the same sentence an empty jar
-    gets — a green light over a red one, which is the worst kind of verdict to give somebody
-    who is about to spend an evening on the wrong thing.
+    A jar with `SAPISID` and no `LOGIN_INFO` is the shape an httpOnly-skipping exporter leaves
+    behind — 25 cookies, a plausible session cookie, and yt-dlp answering "The provided YouTube
+    account cookies are no longer valid. They have likely been rotated in the browser as a
+    security measure." Naming the missing cookie is the difference between redoing the export
+    and redoing it the same way.
     """
-    jar = _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"])
-    result = maintenance.cookies_test(CookiesTestRequest(content=jar))
+    without_login_info = _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"])
+    result = maintenance.cookies_test(CookiesTestRequest(content=without_login_info))
     assert result.authenticated is False
-    assert result.ok is False
-    assert any("LOGIN_INFO" in problem for problem in result.problems), result.problems
+    assert any(
+        "LOGIN_INFO is missing" in problem and "httpOnly" in problem for problem in result.problems
+    ), result.problems
+
+    without_sapisid = _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue"])
+    result = maintenance.cookies_test(CookiesTestRequest(content=without_sapisid))
+    assert result.authenticated is False
+    assert any(
+        "no SAPISID cookie" in problem and "__Secure-3PAPISID" in problem
+        for problem in result.problems
+    ), result.problems
+
+    both_halves = _jar(
+        [
+            f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
+            f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\t__Secure-1PAPISID\tvalue",
+        ]
+    )
+    result = maintenance.cookies_test(CookiesTestRequest(content=both_halves))
+    assert result.authenticated is True, result.problems
 
 
 def test_expired_cookies_are_counted():
@@ -108,7 +126,6 @@ def test_a_lapsed_preference_cookie_does_not_condemn_a_live_session():
 def test_a_lapsed_session_cookie_is_refused_and_named():
     jar = _jar(
         [
-            f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
             f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\tSAPISID\tvalue",
             f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue",
         ]
@@ -129,7 +146,7 @@ def test_a_jar_that_never_reaches_youtube_is_refused():
     jar = _jar(
         [
             f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue",
-            f"#HttpOnly_.google.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
+            f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
         ]
     )
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))
@@ -148,19 +165,8 @@ def test_a_refused_jar_always_says_why():
     jars = {
         "empty": "# nothing here\n",
         "no session cookie": _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tPREF\tvalue"]),
-        "lapsed session": _jar(
-            [
-                f"#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
-                f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\tSAPISID\tvalue",
-            ]
-        ),
-        "no LOGIN_INFO": _jar([f".youtube.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"]),
-        "google only": _jar(
-            [
-                f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue",
-                f"#HttpOnly_.google.com\tTRUE\t/\tTRUE\t{FUTURE}\tLOGIN_INFO\tvalue",
-            ]
-        ),
+        "lapsed session": _jar([f".youtube.com\tTRUE\t/\tTRUE\t{PAST}\tSAPISID\tvalue"]),
+        "google only": _jar([f".google.com\tTRUE\t/\tTRUE\t{FUTURE}\tSAPISID\tvalue"]),
         "unparseable": "this line has no tabs\n",
     }
     for name, jar in jars.items():
@@ -173,7 +179,7 @@ def test_malformed_lines_are_reported_not_swallowed():
     jar = "this line has no tabs\n" + SESSION_JAR
     result = maintenance.cookies_test(CookiesTestRequest(content=jar))
     assert any("7 tab-separated fields" in problem for problem in result.problems)
-    assert result.cookies == 4
+    assert result.cookies == 3
 
 
 def test_an_empty_jar_says_so():
