@@ -274,21 +274,30 @@ class ErrorBody(BaseModel):
 
 
 class ToolboxError(Exception):
-    """A failure that already knows how it should be presented."""
+    """A failure that already knows how it should be presented.
+
+    ``hint`` and ``action`` default to the catalog's and exist for the caller that knows more
+    than the code does. The catalog answers by *code*, and a code can cover two situations that
+    need different words — `PLAYLIST_ENTRY_UNAVAILABLE` is "one video of twenty is gone, import
+    the nineteen" **and** "all twenty answered the same refusal, nothing came back". Only the
+    raise site can tell them apart, so it must be able to say which one it is.
+    """
 
     def __init__(
         self,
         code: ErrorCode,
         message: str | None = None,
         *,
+        hint: str | None = None,
+        action: str | None = None,
         status: int | None = None,
         details: dict[str, Any] | None = None,
     ) -> None:
         spec = spec_for(code)
         self.code = code
         self.message = message or spec.message
-        self.hint = spec.hint
-        self.action = spec.action
+        self.hint = hint or spec.hint
+        self.action = action or spec.action
         self.status = status if status is not None else spec.status
         self.details: dict[str, Any] = details or {}
         super().__init__(f"{code}: {self.message}")

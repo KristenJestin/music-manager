@@ -307,6 +307,38 @@ def test_an_absent_jar_adds_nothing():
     assert "cookiefile" not in build_options(YtdlpOptions())
 
 
+def test_a_player_client_list_is_split_the_way_yt_dlp_splits_it():
+    """`web_safari,web_embedded,-tv_downgraded` is **three** clients, not one with commas in it.
+
+    yt-dlp's own CLI splits that value on commas — `--extractor-args
+    "youtube:player_client=bogus_a,bogus_b"` warns twice, once per bogus name — and the setting's
+    help text documents the same comma-separated form. Handed over as a single element, yt-dlp
+    answers `Skipping unsupported client "web_safari,web_embedded,-tv_downgraded"` and keeps its
+    defaults: a setting that looks applied and changes nothing, with the warning swallowed by
+    this toolbox's own `quiet` and `no_warnings`.
+    """
+    options = YtdlpOptions(player_client="web_safari,web_embedded,-tv_downgraded")
+    args = build_options(options)["extractor_args"]
+    assert args == {"youtube": {"player_client": ["web_safari", "web_embedded", "-tv_downgraded"]}}
+    for client in args["youtube"]["player_client"]:
+        assert "," not in client, "yt-dlp reads one element as one client name"
+
+
+def test_a_single_player_client_is_still_one_value():
+    built = build_options(YtdlpOptions(player_client="tv"))
+    assert built["extractor_args"] == {"youtube": {"player_client": ["tv"]}}
+
+
+def test_blank_fragments_in_a_client_list_are_dropped():
+    """`a,,b` is a typo, not a client whose name is the empty string."""
+    built = build_options(YtdlpOptions(player_client=" tv ,, web_safari "))
+    assert built["extractor_args"] == {"youtube": {"player_client": ["tv", "web_safari"]}}
+
+
+def test_no_player_client_leaves_yt_dlp_its_own_default():
+    assert "extractor_args" not in build_options(YtdlpOptions())
+
+
 def test_inline_content_wins_over_a_path_that_the_container_cannot_see():
     options = YtdlpOptions(cookies="/not/in/this/container.txt", cookies_content="pasted")
     with cookie_jar(options) as jar:

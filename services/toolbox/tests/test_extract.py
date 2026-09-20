@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from toolbox import extract as extract_module
 from toolbox.config import fixture_extract_delay_seconds
-from toolbox.errors import ErrorCode, ToolboxError
+from toolbox.errors import ErrorCode, ToolboxError, spec_for
 from toolbox.models import ExtractRequest
 from toolbox.ytdlp import result_from_info
 
@@ -405,6 +405,54 @@ def test_a_playlist_of_nothing_but_gaps_says_so(monkeypatch: pytest.MonkeyPatch)
         extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
     assert raised.value.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
     assert len(cast("list[object]", raised.value.details["unreadable"])) == 2
+
+
+def test_a_listing_every_entry_refused_the_same_way_quotes_that_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Fifteen tracks, one sentence of YouTube's own, nothing readable.
+
+    The catalog's hint — "the playlist is fine; one of the videos inside it is gone, private or
+    blocked" — describes a *few* lost entries, and the button it offers is "Import what came
+    back". With every entry refused in the same words and nothing back at all, both are wrong:
+    the sentence is YouTube's answer for the whole listing, and it points at the session or the
+    player. Quoting it is the one thing that lets the owner act.
+    """
+    refusal = "The page needs to be reloaded."
+    _plan(
+        monkeypatch,
+        [f"ERROR: [youtube] vid0000000{index}: {refusal}" for index in range(1, 4)],
+        {"id": "OLAK5uy_ltPA", "title": "Album", "entries": [None, None, None]},
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+
+    error = raised.value
+    assert error.code is ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE
+    assert refusal in error.hint, error.hint
+    assert "every entry answered the same thing" in error.hint
+    assert "one of the videos" not in error.hint
+    assert error.action == "Retry the listing", "nothing came back to be imported"
+    assert error.message == "None of the 3 entries of this playlist could be read."
+
+
+def test_a_listing_lost_for_different_reasons_keeps_the_catalog_hint(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Two entries gone for two different reasons is a playlist problem, not a session one."""
+    _plan(
+        monkeypatch,
+        [
+            "ERROR: [youtube] vid00000001: Private video",
+            "ERROR: [youtube] vid00000002: Video unavailable",
+        ],
+        {"id": "OLAK5uy_x", "title": "Album - Gone", "entries": [None, None]},
+    )
+    with pytest.raises(ToolboxError) as raised:
+        extract_module.extract(ExtractRequest(url=PLAYLIST_URL))
+    error = raised.value
+    assert error.hint == spec_for(ErrorCode.PLAYLIST_ENTRY_UNAVAILABLE).hint
+    assert error.action == "Retry the listing"
 
 
 def test_an_empty_playlist_is_not_a_failure(monkeypatch: pytest.MonkeyPatch):
