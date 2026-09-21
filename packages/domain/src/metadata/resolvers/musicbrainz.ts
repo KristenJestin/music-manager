@@ -394,7 +394,19 @@ export function fromMusicBrainzRecording(
   const fallback = { confidence: TRACKLIST_FALLBACK_CONFIDENCE };
 
   patch.set("title", recording.title, fallback);
-  patch.setOrNa("subtitle", recording.disambiguation, "the recording has no disambiguation");
+  /*
+   * D5-02 (issue #5): the disambiguation is an editor's note — MusicBrainz's way of telling two
+   * recordings apart — not a subtitle, and a player prints `SUBTITLE` under the title, which is
+   * how “explicit” and “album version” ended up there. The field keeps its mapping (`TIT3`,
+   * `----:com.apple.iTunes:SUBTITLE`) for a subtitle somebody types; no source writes it from a
+   * disambiguation any more.
+   *
+   * Where the note goes instead — decided at the review of #17: nowhere new. `albumcomment`
+   * belongs to the *release*, so a document field of its own would exist for one editor's remark
+   * and nothing else; the comment stays reachable where it is of use — in the raw cache, and on
+   * the match candidate's badge — which is enough.
+   */
+  patch.na("subtitle", "MusicBrainz disambiguation is an editor note");
   patch.set("musicbrainz_recordingid", recording.id);
   patch.setOrNa("isrc", recording.isrcs, "MusicBrainz knows no ISRC for this recording");
   patch.setOrNa("genre", topGenres(recording.genres), "MusicBrainz has no genre on the recording");

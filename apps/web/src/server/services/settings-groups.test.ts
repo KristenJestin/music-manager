@@ -140,6 +140,25 @@ describe("coverage", () => {
     );
     expect(page).toContain('testId="setting-writeWorkTags"');
   });
+
+  /**
+   * Issue #5's switch, on the same two facts. The advisory is a store convention a player now
+   * draws as a “C”/“E” badge, so whether it is written at all has to be a decision the owner can
+   * take from the Console, not only from `mm settings set`.
+   */
+  it("gives the explicit-tag switch a field on the Metadata page", () => {
+    expect(isSettingKey("writeExplicitTag")).toBe(true);
+    expect(METADATA_KEYS).toContain("writeExplicitTag");
+    expect(ungroupedKeys()).not.toContain("writeExplicitTag");
+    const page = readFileSync(
+      resolve(
+        fileURLToPath(new URL(".", import.meta.url)),
+        "../../routes/_app.settings.metadata.tsx",
+      ),
+      "utf8",
+    );
+    expect(page).toContain('testId="setting-writeExplicitTag"');
+  });
 });
 
 describe("Settings › Watched sources", () => {

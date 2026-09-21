@@ -156,6 +156,23 @@ describe("fromMusicBrainzRecording", () => {
     expect(never.na?.["work"]?.reason).toContain("disabled by settings");
   });
 
+  it("treats the disambiguation as an editor note, not a subtitle (D5-02)", () => {
+    // The recorded recording has `disambiguation: ""`, so the old code wrote `n/a` with “the
+    // recording has no disambiguation” — an editorial decision reading as missing data. Both
+    // recordings now answer the same sentence, and neither writes `SUBTITLE`.
+    expect(recording.disambiguation).toBe("");
+    expect(fromMusicBrainzRecording(recording, { fetchedAt: at }).na?.["subtitle"]?.reason).toBe(
+      "MusicBrainz disambiguation is an editor note",
+    );
+
+    const commented = fromMusicBrainzRecording(
+      { ...recording, disambiguation: "explicit" },
+      { fetchedAt: at },
+    );
+    expect(commented.fields?.["subtitle"]).toBeUndefined();
+    expect(commented.na?.["subtitle"]?.reason).toBe("MusicBrainz disambiguation is an editor note");
+  });
+
   it("marks work fields n/a when no work is linked", () => {
     const orphan: MbRecording = { id: "x", title: "Untitled", relations: [] };
     const result = fromMusicBrainzRecording(orphan, { fetchedAt: at });
@@ -278,22 +295,34 @@ describe("LRCLIB", () => {
 });
 
 describe("fromDeezerTrack", () => {
-  const patch = fromDeezerTrack(deezer, { fetchedAt: at });
+  const patch = fromDeezerTrack(deezer, { fetchedAt: at, writeExplicit: true });
 
   it("rounds the BPM to the integer TBPM expects", () => {
     expect(deezer.bpm).toBe(122.7);
     expect(patch.fields?.["bpm"]?.value).toBe(123);
   });
 
-  it("maps the explicit flag to 1 explicit / 2 clean (§2.6)", () => {
+  it("maps the explicit flag to 1 explicit / 2 clean when the setting asks for it (§2.6)", () => {
+    const on = { fetchedAt: at, writeExplicit: true } as const;
     expect(patch.fields?.["explicit"]?.value).toBe(2);
-    expect(
-      fromDeezerTrack({ explicit_content_lyrics: 1 }, { fetchedAt: at }).fields?.["explicit"]
-        ?.value,
-    ).toBe(1);
-    expect(
-      fromDeezerTrack({ explicit_lyrics: true }, { fetchedAt: at }).fields?.["explicit"]?.value,
-    ).toBe(1);
+    expect(fromDeezerTrack({ explicit_content_lyrics: 1 }, on).fields?.["explicit"]?.value).toBe(1);
+    expect(fromDeezerTrack({ explicit_lyrics: true }, on).fields?.["explicit"]?.value).toBe(1);
+  });
+
+  /*
+   * Issue #5, `## Spec · metadata.resolve`, “the explicit tag is opt-in”: the two halves of it,
+   * at the patch. Whether the *file* ends up without the tag is asserted through the projection
+   * in `../explicit.test.ts`; what the resolver owns is the field the rest of the document reads.
+   */
+  it("default installation: `explicit` is n/a (“disabled by settings”), not missing", () => {
+    const off = fromDeezerTrack({ explicit_lyrics: true }, { fetchedAt: at });
+    expect(off.fields?.["explicit"]).toBeUndefined();
+    expect(off.na?.["explicit"]?.reason).toBe("disabled by settings");
+  });
+
+  it("opted in: the recorded Deezer answer is written as it always was", () => {
+    expect(patch.fields?.["explicit"]?.value).toBe(2);
+    expect(patch.na?.["explicit"]).toBeUndefined();
   });
 
   it("produces nothing at all from an error response", () => {

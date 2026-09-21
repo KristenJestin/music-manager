@@ -22,7 +22,12 @@ import { useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { Download, Layers, ShieldCheck, Tag } from "lucide-react";
 import { cn } from "cn";
-import { DEFAULT_WRITE_WORK_TAGS, PREFERRED_LOCALES, type WriteWorkTags } from "@mm/domain";
+import {
+  DEFAULT_WRITE_EXPLICIT_TAG,
+  DEFAULT_WRITE_WORK_TAGS,
+  PREFERRED_LOCALES,
+  type WriteWorkTags,
+} from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -682,6 +687,18 @@ function MetadataSettings() {
             ]}
             onChange={(next) => {
               set("writeWorkTags", next);
+            }}
+          />
+        </FormRow>
+        <FormRow
+          label="Explicit advisory"
+          help="ITUNESADVISORY (§2.6) — the iTunes Store's 1 explicit / 2 clean. Players draw it themselves now: Symfonium badges every title of an explicit album. Matching uses explicitPreference and the release's own comment, never this tag."
+        >
+          <Toggle
+            testId="setting-writeExplicitTag"
+            checked={value("writeExplicitTag", DEFAULT_WRITE_EXPLICIT_TAG)}
+            onChange={(next) => {
+              set("writeExplicitTag", next);
             }}
           />
         </FormRow>

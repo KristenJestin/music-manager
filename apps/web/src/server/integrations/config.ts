@@ -74,6 +74,8 @@ export interface SourcesConfig {
   readonly writeAcoustidFingerprint: boolean;
   /** §2.4's work fields on this release (issue #4): the `writeWorkTags` setting. */
   readonly writeWorkTags: WriteWorkTags;
+  /** §2.6's advisory on this track (issue #5): the `writeExplicitTag` setting. */
+  readonly writeExplicitTag: boolean;
 }
 
 /**
@@ -194,6 +196,7 @@ export function sourcesConfig(
     lyricsMaxDurationDelta: settings.lyricsMaxDurationDelta,
     writeAcoustidFingerprint: settings.writeAcoustidFingerprint,
     writeWorkTags: settings.writeWorkTags,
+    writeExplicitTag: settings.writeExplicitTag,
   };
 }
 

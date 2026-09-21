@@ -32,6 +32,7 @@ import {
   type YtdlpEntry,
 } from "@mm/domain";
 import { thumbnailCoverPatch, youtubeThumbnail } from "#/server/services/documents.ts";
+import { diffProjection } from "#/server/services/retag.ts";
 import { isBehindSchema } from "#/server/services/schema-version.ts";
 import { loadCassette } from "../cassette.ts";
 
@@ -363,7 +364,7 @@ describe("the work fields", () => {
  */
 describe("a file tagged before the change", () => {
   it("is picked up by its version, and loses WORK only when it is not classical", () => {
-    expect(TAG_SCHEMA_VERSION).toBe(4);
+    expect(TAG_SCHEMA_VERSION).toBe(5);
     expect(isBehindSchema(3, TAG_SCHEMA_VERSION)).toBe(true);
     expect(isBehindSchema(TAG_SCHEMA_VERSION, TAG_SCHEMA_VERSION)).toBe(false);
 
@@ -385,6 +386,28 @@ describe("a file tagged before the change", () => {
     expect(classical.find((tag) => tag.key === "WORK")?.value).toBe("One More Time");
     // Either way the identifier survives, which is what makes the re-tag possible.
     expect(pop.find((tag) => tag.key === "MUSICBRAINZ_WORKID")?.value).toBe(WORK_ID);
+  });
+
+  /*
+   * Issue #5, the same scenario: what a v4 file carries and a v5 file does not. `clear` on the
+   * toolbox's `/tag` empties the block before writing the projection, so a tag that is no longer
+   * projected is a tag the file loses — `diffProjection` against a probe that still reports them
+   * is the proof, and it is what the re-tag screen shows the owner before anything is written.
+   */
+  it("loses the advisory and the disambiguation-subtitle, and keeps everything else", () => {
+    const projected = projectDocument(resolveTrackDocument(input()), "vorbis");
+    // What a v4 file holds: everything we project today, plus the two tags it carried then.
+    const embedded: Record<string, string> = { ITUNESADVISORY: "2", SUBTITLE: "explicit" };
+    for (const tag of projected) embedded[tag.key] = tag.value;
+
+    expect(projected.some((tag) => tag.key === "ITUNESADVISORY")).toBe(false);
+    expect(projected.some((tag) => tag.key === "SUBTITLE")).toBe(false);
+
+    const diff = diffProjection(projected, embedded);
+    const removed = diff.removed.map((change) => change.key);
+    expect(removed).toContain("ITUNESADVISORY");
+    expect(removed).toContain("SUBTITLE");
+    expect(diff.added.map((change) => change.key)).not.toContain("ITUNESADVISORY");
   });
 });
 
