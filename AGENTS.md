@@ -16,10 +16,11 @@ Two guiding facts:
 - Objective number one is the maximum of valid tags per track, written to the standard superset
   (the Picard table) and not to one server's dialect.
 
-The functional specification and the development plan are maintained outside this repository, and
-they are authoritative when they disagree with a comment here. This repository holds code, tests,
+The functional specification lives in the issues of this repository, and the way work is done in
+`docs/METHOD.md`; an issue's Proposal, Design and Spec sections are authoritative when they
+disagree with a comment here. Read `docs/METHOD.md` before touching code. This repository holds code, tests,
 configuration and operations documentation. Nothing else belongs in it: no notes, no screenshots,
-no scratch files, no agent reports. Those go wherever the specification lives.
+no scratch files, no agent reports. Evidence goes on the pull request.
 
 Operations documentation in `docs/` is written in French. Code, identifiers, the UI and commit
 messages are in English.

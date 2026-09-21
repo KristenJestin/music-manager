@@ -2,7 +2,7 @@ name: check
 
 on:
   push:
-    branches: ["main", "phase/**"]
+    branches: ["main", "dev", "phase/**"]
   pull_request:
   workflow_dispatch:
 
@@ -11,6 +11,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  commit-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Angular subjects only
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          head="${{ github.event.pull_request.head.sha || github.sha }}"
+          bad=0
+          while IFS= read -r line; do
+            subject="${line#* }"
+            case "$subject" in "Merge "*) continue;; esac
+            if ! printf '%s' "$subject" | grep -qE '^(feat|fix|refactor|test|docs|chore|build|ci|perf)(\([a-z0-9-]+\))?!?: [^ ].{0,71}$'; then
+              echo "::error::$line — expected <type>(<scope>): <subject>, type among feat fix refactor test docs chore build ci perf, subject at most 72 characters"
+              bad=1
+            fi
+          done < <(git log --format='%h %s' "$base..$head")
+          exit $bad
+
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
