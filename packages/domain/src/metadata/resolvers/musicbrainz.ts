@@ -495,21 +495,49 @@ export function releaseGenreNames(release: MbRelease | undefined): string[] {
     .filter((name) => name !== "");
 }
 
-/** What `isClassicalRelease` reads of a work: its title, its composer credit, its movements. */
-export function classicalShapeOf(work: MbWork | undefined): ClassicalWorkShape | undefined {
-  if (work === undefined) return undefined;
+/**
+ * What `isClassicalRelease` reads of a work: its title, its composer credit, its movements.
+ *
+ * The **same work reaches `resolveTrackDocument` twice**, and the two copies do not carry the
+ * same relations: a work fetched on its own (`INC_PRESETS.workFull`) has no `work-rels`, so it
+ * carries none of the relations that describe its shape, while the copy nested in a recording
+ * does — `releaseFull` and `recordingFull` both ask for `work-level-rels`, and the recorded
+ * Discovery payload says what that returns: the nested work carries its `composer` and
+ * `writer` credits *and* its work-to-work relations (`medley`, `other version`, `based on`).
+ * `parts` is one of those, so the movement half of the shape is readable there.
+ *
+ * Reading only the copy the caller prefers left `movementCount` at 0 whenever a work had been
+ * fetched separately, and a classical release whose work carries movements but no catalogue
+ * number then silently lost its `WORK` (review of pull request #14, point 1). So the shape
+ * reads **whichever copy carries each half**; passing `nested` changes nothing when the two
+ * are the same object.
+ *
+ * Widening `workFull` was the other way to fix it, and it was not taken: it changes the URL of
+ * the one work lookup recorded in `apps/web/test/cassettes/musicbrainz.json`, and a cassette
+ * key that does not match is an error there, never a pass to the network.
+ */
+export function classicalShapeOf(
+  work: MbWork | undefined,
+  /** The same work as another payload nested it, when that is not the same object. */
+  nested?: MbWork | undefined,
+): ClassicalWorkShape | undefined {
+  const copies = [work, nested].filter((held): held is MbWork => held !== undefined);
+  const first = copies[0];
+  if (first === undefined) return undefined;
   return {
-    title: work.title,
-    composer: (work.relations ?? []).some((relation) => relation.type === "composer"),
-    movements: movementCount(work),
+    title: first.title,
+    composer: copies.some((held) =>
+      (held.relations ?? []).some((relation) => relation.type === "composer"),
+    ),
+    movements: Math.max(...copies.map((held) => movementCount(held))),
   };
 }
 
 /**
  * MusicBrainz models a classical work's movements as works linked by `parts` / `part of`.
  *
- * `workFull` does not ask for `work-rels`, so the count is 0 on the ordinary path and the
- * release group's genres are what decides; it is read here for the payloads that do carry it.
+ * A work looked up on its own carries no `parts` at all — `workFull` asks for no `work-rels`;
+ * the copy nested in a recording does, through `work-level-rels`. See `classicalShapeOf`.
  */
 function movementCount(work: MbWork): number {
   return (work.relations ?? []).filter(

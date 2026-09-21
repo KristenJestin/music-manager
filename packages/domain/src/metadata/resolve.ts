@@ -130,12 +130,20 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
   // Whether the work fields are written is a property of the *release*, not of the entity that
   // happens to carry the work: the release group's genres and the work's shape decide it once,
   // here, and both resolvers below are told the answer.
-  const workOfTrack = input.work?.data ?? performedWork(input.recording?.data.relations)?.work;
+  //
+  // The work reaches us twice, and the two copies are not equivalent: `input.work` is the copy
+  // the pipeline asked for on its own (`workFull`, no `work-rels`), the recording's relation is
+  // the copy MusicBrainz nested with `work-level-rels` — where the movements, `parts`, live.
+  // The preferred copy gives the title and the credits, the shape reads whichever copy carries
+  // each half (review of pull request #14, point 1: it used to read the preferred one only, so
+  // the movement half was dead whenever a work had been fetched separately).
+  const nestedWork = performedWork(input.recording?.data.relations)?.work;
+  const workOfTrack = input.work?.data ?? nestedWork;
   const workTags: WorkTagOptions = {
     writeWorkTags: input.writeWorkTags ?? DEFAULT_WRITE_WORK_TAGS,
     classical: isClassicalRelease({
       genres: releaseGenreNames(input.release?.data),
-      work: classicalShapeOf(workOfTrack),
+      work: classicalShapeOf(workOfTrack, nestedWork),
     }),
   };
 
