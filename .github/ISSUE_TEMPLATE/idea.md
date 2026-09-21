@@ -3,6 +3,7 @@ name: Idea
 about: A feature or improvement wanted. Say what, where, and how we will know; never how to build it.
 labels: type:idea
 ---
+
 ## What I want
 
 <!-- 2–6 sentences: the outcome for the user. -->

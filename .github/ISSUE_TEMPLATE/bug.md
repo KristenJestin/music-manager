@@ -3,6 +3,7 @@ name: Bug
 about: An observed behaviour that contradicts a rule or what the library should read.
 labels: type:bug
 ---
+
 ## Symptom
 
 <!-- What is seen, where (Console, Navidrome, Symfonium, files), with an example: an album, a track, a tag value. -->

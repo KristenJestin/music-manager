@@ -16,13 +16,13 @@ An issue says **what is wanted, where it applies, how we will know it is done**,
 
 The states, in the project:
 
-| State | What it means | Who acts |
-|---|---|---|
-| Backlog | received, prioritised, not engaged | the maintainer |
-| To frame | retained; the framing assistant writes the Proposal, Design, Spec and Tasks sections in the issue with the maintainer, and ends with the points to decide; the issue stays there until the maintainer has decided | framing assistant, then maintainer |
-| Framed | decided, nothing started: the queue the developer agent picks from | developer agent |
-| In progress | branch open, tasks ticking, UI gate of phase 0, pull request in draft then ready and reviewed; at most three at a time | developer agent, then the maintainer on the pull request |
-| Done | pull request merged, or abandonment said in a comment | — |
+| State       | What it means                                                                                                                                                                                                     | Who acts                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Backlog     | received, prioritised, not engaged                                                                                                                                                                                | the maintainer                                           |
+| To frame    | retained; the framing assistant writes the Proposal, Design, Spec and Tasks sections in the issue with the maintainer, and ends with the points to decide; the issue stays there until the maintainer has decided | framing assistant, then maintainer                       |
+| Framed      | decided, nothing started: the queue the developer agent picks from                                                                                                                                                | developer agent                                          |
+| In progress | branch open, tasks ticking, UI gate of phase 0, pull request in draft then ready and reviewed; at most three at a time                                                                                            | developer agent, then the maintainer on the pull request |
+| Done        | pull request merged, or abandonment said in a comment                                                                                                                                                             | —                                                        |
 
 ## 2. Proposal, Design, Spec: three sections of the issue
 

@@ -3,6 +3,7 @@ name: Research
 about: A question to investigate before deciding.
 labels: type:research
 ---
+
 ## The question
 
 ## Why it matters now
