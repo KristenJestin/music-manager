@@ -126,6 +126,7 @@ def test_probe_batch_answers_in_the_order_it_was_asked(
     assert all(item.result is not None and item.error is None for item in result.files)
 
 
+@requires("ffprobe")
 def test_probe_batch_reports_an_unreadable_file_without_losing_the_others(
     client: TestClient, tmp_path: Path, opus_file: Path
 ):
