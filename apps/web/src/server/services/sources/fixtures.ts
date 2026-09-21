@@ -29,6 +29,7 @@ import {
   type MbRelease,
   type MbWork,
   type TrackDocument,
+  type WriteWorkTags,
   type YtdlpEntry,
 } from "@mm/domain";
 import { APP_VERSION } from "#/server/version.ts";
@@ -161,6 +162,14 @@ export interface DocumentInput {
   readonly importedOn: string;
   readonly loudness?: MeasuredLoudness;
   readonly opus: boolean;
+  /**
+   * The `writeWorkTags` setting, when the caller has it.
+   *
+   * Review of pull request #14, point 5: this builder called `resolveTrackDocument` without
+   * it, so a fixtures-mode run wrote the work fields whatever `classical` or `never` said. The
+   * fixtures answer from disk, but the setting is not a source of bytes — it is the decision.
+   */
+  readonly writeWorkTags?: WriteWorkTags;
 }
 
 /**
@@ -216,6 +225,7 @@ export function buildDocument(input: DocumentInput): TrackDocument {
           },
         }
       : {}),
+    ...(input.writeWorkTags === undefined ? {} : { writeWorkTags: input.writeWorkTags }),
     coverArt: {
       data: readFixture<CaaIndex>("coverartarchive/release-discovery.json"),
       fetchedAt: input.fetchedAt,
