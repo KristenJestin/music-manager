@@ -7,6 +7,7 @@
  * cache keeps everything and a later schema version can promote a role (§8).
  */
 
+import { isSpecialPurposeArtist } from "../special-purpose.ts";
 import type { MbRelation } from "./musicbrainz-types.ts";
 
 /** Relation types Picard maps onto a dedicated tag. */
@@ -74,6 +75,14 @@ export interface CreditFromRelation {
 /**
  * Turn one artist relation into a credit, or `null` when the role is neither mapped by Picard
  * nor a performance role — in which case it stays in the raw cache, as §2.3 requires.
+ *
+ * A relation naming a **special-purpose artist** returns `null` too (D19-01). MusicBrainz
+ * points at `[traditional]`, `[unknown]`, `[no artist]`… precisely when nobody is to be
+ * credited, so `[traditional]` is not a songwriter and `[unknown]` did not play the guitar:
+ * the row is no more a value than the `[no label]` of issue #6 was a label. It stays in the
+ * raw cache like any other unmapped relation, and the field it would have filled is `n/a`
+ * (D6-02), never a bracketed non-name. **By MBID, never by name** — `[adult swim]` is a real
+ * artist whose name happens to be bracketed (`../special-purpose.ts`).
  */
 export function creditFromRelation(relation: MbRelation): CreditFromRelation | null {
   if (relation["target-type"] !== "artist") return null;
@@ -81,6 +90,7 @@ export function creditFromRelation(relation: MbRelation): CreditFromRelation | n
   const name = artist?.name;
   const type = relation.type;
   if (name === undefined || name === "" || type === undefined) return null;
+  if (isSpecialPurposeArtist(artist?.id)) return null;
 
   const base = {
     name,
@@ -96,6 +106,18 @@ export function creditFromRelation(relation: MbRelation): CreditFromRelation | n
   }
 
   return null;
+}
+
+/**
+ * True when a relation names a special-purpose artist — a row that means “nobody”.
+ *
+ * `creditFromRelation` drops those, and the field they would have filled is `n/a`; the reason
+ * has to say *which* kind of nothing it was (D19-01): a relation list that held one of these is
+ * not a list that simply had no `writer`, so it is “MusicBrainz special-purpose artist”
+ * rather than “no such credit relation on the recording”.
+ */
+export function relationIsSpecialPurposeArtist(relation: MbRelation): boolean {
+  return relation["target-type"] === "artist" && isSpecialPurposeArtist(relation.artist?.id);
 }
 
 /**

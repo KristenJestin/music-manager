@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 6;
+export const TAG_SCHEMA_VERSION = 7;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,40 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 7,
+    at: "2026-09-21",
+    added: [],
+    changed: [
+      "ARTIST",
+      "ALBUMARTIST",
+      "COMPOSER",
+      "COMPOSERSORT",
+      "LYRICIST",
+      "WRITER",
+      "ARRANGER",
+      "CONDUCTOR",
+      "PRODUCER",
+      "ENGINEER",
+      "MIXER",
+      "REMIXER",
+      "DJMIXER",
+      "DIRECTOR",
+      "PERFORMER",
+      "MUSICBRAINZ_COMPOSERID",
+      "MUSICBRAINZ_LYRICISTID",
+      "MUSICBRAINZ_PRODUCERID",
+      "MUSICBRAINZ_ENGINEERID",
+      "MUSICBRAINZ_MIXERID",
+      "MUSICBRAINZ_REMIXERID",
+      "MUSICBRAINZ_DJMIXERID",
+      "MUSICBRAINZ_CONDUCTORID",
+      "MUSICBRAINZ_ARRANGERID",
+      "MUSICBRAINZ_PERFORMERID",
+    ],
+    removed: [],
+    note: "Issue #19: a special-purpose artist is not a credit. MusicBrainz points a relation at `[traditional]`, `[unknown]`, `[no artist]`… when nobody is to be credited, and that row was reaching the tags — a traditional song was tagged COMPOSER=[traditional] with MUSICBRAINZ_COMPOSERID pointing at a placeholder. Such a relation now produces no credit field at all: the field is n/a (“MusicBrainz special-purpose artist”) instead of carrying a bracketed non-name, and a real composer credited beside a `[traditional]` co-writer still reaches COMPOSER. Dropping a credit entry no longer takes the join phrase that joins the two names around it with it, so `A feat. [unknown] & B` reads `A & B` in ARTIST rather than `A feat. B`. The match is by MBID, never by name. The re-tag repairs the library offline from the raw cache.",
+  },
   {
     version: 6,
     at: "2026-09-21",

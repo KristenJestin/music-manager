@@ -277,19 +277,24 @@ export function joinArtistCredit(
   source: ArtistNameSource = "credited",
   locale?: LocalePreference,
 ): string | null {
-  const entries = creditedEntries(credit);
-  if (entries.length === 0) return null;
-  const discarded = (credit?.length ?? 0) - entries.length;
   // The join phrases are MusicBrainz's, untouched: translating names must never turn
-  // "Daft Punk feat. Romanthony" into "Daft Punk Romanthony". A joinphrase belongs to the
-  // entry *before* it, so dropping the entry after a “&” drops the “&” with it — keeping it
-  // would leave `Daft Punk & ` as the artist.
-  const joined = entries
-    .map((entry, index) => {
+  // "Daft Punk feat. Romanthony" into "Daft Punk Romanthony". **D19-02: a join phrase belongs
+  // to the entry before it and goes only with the entry after it**, so the text between two
+  // kept names is the join phrase of whatever entry sat right before the second one — its own
+  // when nothing was dropped between them, the dropped entry's otherwise. Dropping the middle
+  // of `A feat. [unknown] & B` therefore leaves `A & B`: not `A feat. B` (the “feat.” joined a
+  // row that is gone) and not `AB` (the “&” still joins A to B). A credit that ends on a
+  // dropped entry ends on its last kept name, with no dangling “&”.
+  const all = credit ?? [];
+  const kept = all
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => !isSpecialPurposeArtist(entry.artist?.id));
+  if (kept.length === 0) return null;
+  const joined = kept
+    .map(({ entry, index }, position) => {
       const name = translate(entry, source, locale).name;
-      const trailing =
-        discarded > 0 && index === entries.length - 1 ? "" : (entry.joinphrase ?? "");
-      return `${name}${trailing}`;
+      if (position === 0) return name;
+      return `${all[index - 1]?.joinphrase ?? ""}${name}`;
     })
     .join("");
   return joined === "" ? null : joined;
