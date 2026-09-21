@@ -56,7 +56,7 @@ Then the **task lists**, one per phase, as GitHub task lists in the issue body (
 ### Phase 0 · UI first, when the Console changes
 
 - [ ] <screen or component>: the states it can be in, on fixtures; check `bun run check` green
-- [ ] Branch pushed, **draft pull request** to `dev`, URL in the issue, comment mentioning the maintainer
+- [ ] Branch pushed, **draft pull request** to `main`, URL in the issue, comment mentioning the maintainer
 - [ ] UI gate: the maintainer validates on the pull request's preview deployment and says so in a comment
 
 ### Phase 1 · Domain and services

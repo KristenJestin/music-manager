@@ -38,7 +38,7 @@ These sections are the truth of the lot; the code conforms to them, and if a sec
 
 One task list per phase (0 · UI first when the Console changes, 1 · domain and services, 2 · wiring and migration, 3 · acceptance), as laid out in [`docs/templates/framing.md`](templates/framing.md), one item per task, each item naming its **verification** ("…; check `pnpm check` green and scenario X"). **An item is ticked only after its verification ran and its output was seen.**
 
-Phase 0 ends with a human gate when the Console changes: the developer agent pushes the branch, opens a **draft pull request** against `dev` whose description already says `Closes #<n>`, and mentions the maintainer by their GitHub login; the maintainer validates on the preview deployment of the pull request (`pr<n>-music-manager-preview.dev.krisnet.work`), and says so in a comment. The issue stays In progress meanwhile; phase 1 waits for that validation.
+Phase 0 ends with a human gate when the Console changes: the developer agent pushes the branch, opens a **draft pull request** against `main` whose description already says `Closes #<n>`, and mentions the maintainer by their GitHub login; the maintainer validates on the preview deployment of the pull request (`pr<n>-music-manager-preview.dev.krisnet.work`), and says so in a comment. The issue stays In progress meanwhile; phase 1 waits for that validation.
 
 ## 4. The evidence: attachments and comments
 
@@ -46,7 +46,7 @@ The real outputs (`bun run check`, `bun run e2e`, screenshots of the Console or 
 
 ## 5. Delivery
 
-Branch `feat/<topic>` or `fix/<topic>` from `dev`, Angular commits under the maintainer's identity (`feat fix refactor test docs chore build ci perf`, scope = an area, subject ≤ 72 characters). At the end of phase 3 the pull request goes from draft to ready: title = a plain Angular subject, description ending with `Closes #<n>`. The review happens on the pull request: it carries the state (draft, ready, approved). After acceptance, **squash merge**; `Closes #<n>` closes the issue and the project moves it to Done. `main` is production: it moves by a `dev` → `main` merge decided by the maintainer, and deploys itself.
+Branch `feat/<topic>` or `fix/<topic>` from `main`, Angular commits under the maintainer's identity (`feat fix refactor test docs chore build ci perf`, scope = an area, subject ≤ 72 characters). At the end of phase 3 the pull request goes from draft to ready: title = a plain Angular subject, description ending with `Closes #<n>`. The review happens on the pull request: it carries the state (draft, ready, approved). After acceptance, **squash merge**; `Closes #<n>` closes the issue and the project moves it to Done. There is no integration branch: `main` is production, every pull request targets it, and the merge deploys itself. The preview deployment of the pull request is where a change is seen before that.
 
 ## 6. The documents
 
