@@ -53,6 +53,37 @@ function albumInput(recorded: Cassette): {
 /* the cassettes themselves                                            */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Issue #5, `## Spec · metadata.resolve`: “matching still sees it”. The setting decides what is
+ * *written*; the ranking reads `explicitPreference` and the release's own comment, and the two
+ * settings have to produce one and the same ranking — otherwise turning the tag off would
+ * quietly change which pressing gets picked.
+ */
+describe("the explicit tag is opt-in (D5-01)", () => {
+  it("matching still sees it: the ranking is the same whichever way the setting is", async () => {
+    const off: Settings = { ...settings, writeExplicitTag: false };
+    const on: Settings = { ...settings, writeExplicitTag: true };
+
+    // The mechanism, first: the setting cannot reach the engine, because the config it feeds is
+    // the same object either way.
+    expect(configFromSettings(off)).toEqual(configFromSettings(on));
+
+    // And the same candidates come out in the same order, with the same fit and the same score.
+    const recorded = cassette("discovery");
+    const ranked = async (chosen: Settings): Promise<unknown[]> => {
+      const result = await matchAlbum(cassetteGateway(recorded), albumInput(recorded), chosen);
+      return result.ranking.candidates.map((candidate) => [
+        candidate.id,
+        candidate.fit,
+        candidate.score,
+      ]);
+    };
+    const candidates = await ranked(off);
+    expect(candidates.length).toBeGreaterThan(1);
+    expect(candidates).toEqual(await ranked(on));
+  });
+});
+
 describe("the recorded scenarios", () => {
   it("holds the four the phase specification names, plus the owner review counter-examples", () => {
     expect(cassetteNames()).toEqual([
