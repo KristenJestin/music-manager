@@ -33,6 +33,7 @@ golden tests; `golden/` is regenerated with `MM_UPDATE_GOLDEN=1` (see `../golden
 | `musicbrainz/release-tsubasa.json`          | `GET /ws/2/release/c1aea260-b33f-43c9-92e3-8e03c0a917bd?inc=…&fmt=json` (「ツバサ・クロニクル」オリジナルサウンドトラック Future Soundscape I — Official, script `Jpan`)                                                                          |
 | `musicbrainz/release-tsubasa-pseudo.json`   | `GET /ws/2/release/90f126ee-5246-471b-8745-bd7f1a39b19c?inc=…&fmt=json` (the same album as a `Pseudo-Release`, script `Latn`)                                                                                                                   |
 | `musicbrainz/search-tsubasa-pseudo.json`    | `GET /ws/2/release?query=rgid:f5952bf4-… AND status:"Pseudo-Release"&limit=25&fmt=json`                                                                                                                                                         |
+| `musicbrainz/release-suzume.json`           | `GET /ws/2/release/1b3e78eb-88d0-48a5-839b-84fecfb5aeea?inc=artists+artist-credits+aliases+recordings&fmt=json` (*Suzume* — the credited-as and tracklist fixture of #9)                                                                        |
 | `coverartarchive/release-discovery.json`    | `GET https://coverartarchive.org/release/d073287b-d1bd-4f11-a933-a4386f8cf701`                                                                                                                                                                  |
 | `lrclib/search-one-more-time.json`          | `GET https://lrclib.net/api/search?track_name=One+More+Time&artist_name=Daft+Punk` — **redacted, see below**                                                                                                                                    |
 | `deezer/track-one-more-time.json`           | `GET https://api.deezer.com/track/isrc:GBAHT1305744` (the first ISRC of the recording that Deezer answers for)                                                                                                                                  |
@@ -79,6 +80,28 @@ release exists in MusicBrainz: the only Worldwide Digital Media editions of Disc
 2005-01-24 and 2024-10-08. The fallback specified in the brief was taken — the canonical 2001
 release, i.e. the original French CD dated 2001-02-26, whose date equals the release-group's
 `first-release-date`. Consequence for the golden files: `MEDIA=CD`, `RELEASECOUNTRY=FR`.
+
+### The credited-as and tracklist fixture (#9)
+
+| Entity  | MBID                                   | Title                                                                              |
+| ------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
+| release | `1b3e78eb-88d0-48a5-839b-84fecfb5aeea` | Suzume (Motion Picture Soundtrack) — 2022-11-10, `XW`, `Official`, script `Latn`, 29 tracks |
+| artist  | `6f500293-7396-4903-b4fd-118127d06f9e` | RADWIMPS — Latin, and **no `en` alias at all**                                     |
+| artist  | `c9c59c75-f51b-4e38-bc15-b3a036f4d0ad` | 陣内一真, sort-name `Jinnouchi, Kazuma` — `en` alias `Kazuma Jinnouchi`, primary    |
+| artist  | `ddd49f88-6367-4f58-9dd9-a767e976b0b7` | 十明, sort-name `Toaka` — `en` alias `Toaka`, primary, typed `Artist name`          |
+
+One edition carries both halves of #9, which is why it is recorded whole rather than hand-built:
+
+- **the tracklist disagrees with the recordings underneath it.** The sleeve is `Latn`
+  (`The First Encounter`) while the recordings are the Japanese originals (二人の出逢い), so
+  whether the release or the recording wins is visible as a string, not as an ordering;
+- **two artists are credited under a name that is not their own**, and it is the alias:
+  `Kazuma Jinnouchi` for 陣内一真 (track 2, join phrase ` / `), `Toaka` for 十明 (track 27).
+  RADWIMPS is the control: Latin, no `en` alias, so it must come out untouched;
+- the release-level credit is a credited-as too — `RADWIMPS, Kazuma Jinnouchi` — which is what
+  makes `ALBUMARTIST` the place the `via` of §2.1 has to appear.
+
+`--only-suzume` re-records this one file alone.
 
 ### Redaction
 

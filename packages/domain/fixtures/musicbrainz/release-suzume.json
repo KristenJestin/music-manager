@@ -1,0 +1,2709 @@
+{
+  "aliases": [],
+  "title": "Suzume (Motion Picture Soundtrack)",
+  "text-representation": {
+    "language": "eng",
+    "script": "Latn"
+  },
+  "artist-credit": [
+    {
+      "artist": {
+        "name": "RADWIMPS",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "aliases": [
+          {
+            "begin": null,
+            "primary": null,
+            "ended": false,
+            "end": null,
+            "type": null,
+            "sort-name": "ラッドウィンプス",
+            "locale": null,
+            "name": "ラッドウィンプス",
+            "type-id": null
+          },
+          {
+            "begin": null,
+            "ended": false,
+            "primary": null,
+            "end": null,
+            "type": null,
+            "sort-name": "ラッドウインプス",
+            "locale": null,
+            "type-id": null,
+            "name": "ラッドウインプス"
+          }
+        ],
+        "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+        "disambiguation": "",
+        "country": "JP",
+        "type": "Group",
+        "sort-name": "RADWIMPS"
+      },
+      "name": "RADWIMPS",
+      "joinphrase": ", "
+    },
+    {
+      "artist": {
+        "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+        "disambiguation": "",
+        "aliases": [
+          {
+            "type-id": null,
+            "name": "Kazuma Jinnouchi",
+            "locale": "en",
+            "end": null,
+            "type": null,
+            "sort-name": "Jinnouchi, Kazuma",
+            "begin": null,
+            "ended": false,
+            "primary": true
+          },
+          {
+            "primary": null,
+            "ended": false,
+            "begin": null,
+            "sort-name": "陣内 一真",
+            "end": null,
+            "type": null,
+            "locale": null,
+            "name": "陣内 一真",
+            "type-id": null
+          },
+          {
+            "locale": "ja",
+            "name": "陣内一真",
+            "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+            "primary": true,
+            "ended": false,
+            "begin": null,
+            "sort-name": "ジンノウチ カズマ",
+            "type": "Artist name",
+            "end": null
+          }
+        ],
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "name": "陣内一真",
+        "sort-name": "Jinnouchi, Kazuma",
+        "type": "Person",
+        "country": "JP"
+      },
+      "joinphrase": "",
+      "name": "Kazuma Jinnouchi"
+    }
+  ],
+  "release-events": [
+    {
+      "area": {
+        "disambiguation": "",
+        "iso-3166-1-codes": [
+          "XW"
+        ],
+        "id": "525d4e18-3d00-31b9-a58b-a146a916de8f",
+        "name": "[Worldwide]",
+        "type-id": null,
+        "sort-name": "[Worldwide]",
+        "type": null
+      },
+      "date": "2022-11-10"
+    }
+  ],
+  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+  "id": "1b3e78eb-88d0-48a5-839b-84fecfb5aeea",
+  "disambiguation": "",
+  "asin": null,
+  "status": "Official",
+  "cover-art-archive": {
+    "count": 2,
+    "back": false,
+    "darkened": false,
+    "front": true,
+    "artwork": true
+  },
+  "barcode": "602448736093",
+  "quality": "normal",
+  "date": "2022-11-10",
+  "packaging": "None",
+  "country": "XW",
+  "media": [
+    {
+      "id": "02c87dfe-23de-3912-ba93-19e5676a859f",
+      "format-id": "907a28d9-b3b2-3ef6-89a8-7b18d91d4794",
+      "title": "",
+      "format": "Digital Media",
+      "track-count": 29,
+      "track-offset": 0,
+      "tracks": [
+        {
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null
+                  }
+                ],
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS"
+              }
+            }
+          ],
+          "recording": {
+            "length": 62000,
+            "title": "二人の出逢い",
+            "aliases": [],
+            "disambiguation": "",
+            "id": "9dd3c897-6227-4755-8581-d5564ebf9476",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "sort-name": "RADWIMPS",
+                  "type": "Group",
+                  "country": "JP"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "video": false
+          },
+          "number": "1",
+          "id": "55c3db4c-7447-444c-9636-ac4d7b801b62",
+          "length": 62000,
+          "title": "The First Encounter",
+          "position": 1
+        },
+        {
+          "recording": {
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": " & ",
+                "artist": {
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": ""
+                }
+              },
+              {
+                "artist": {
+                  "sort-name": "RADWIMPS",
+                  "type": "Group",
+                  "country": "JP",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS"
+                },
+                "joinphrase": "",
+                "name": "RADWIMPS"
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "title": "廃墟の温泉街",
+            "length": 237000,
+            "id": "e9381a3e-555f-4f91-bdf6-bf8c2f05f5c9",
+            "disambiguation": "",
+            "aliases": [],
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "artist": {
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person",
+                "aliases": [
+                  {
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "type": null,
+                    "end": null,
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "locale": "en"
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真",
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "type": null,
+                    "end": null
+                  },
+                  {
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "type": "Artist name",
+                    "end": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc"
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+              },
+              "joinphrase": " / ",
+              "name": "Kazuma Jinnouchi"
+            },
+            {
+              "artist": {
+                "aliases": [
+                  {
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "locale": null
+                  },
+                  {
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group"
+              },
+              "joinphrase": "",
+              "name": "RADWIMPS"
+            }
+          ],
+          "number": "2",
+          "id": "99efe3c2-2e1c-411e-a5ce-36cd41e8fbe6",
+          "position": 2,
+          "length": 237000,
+          "title": "Abandoned Resort"
+        },
+        {
+          "number": "3",
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "ラッドウィンプス"
+                  },
+                  {
+                    "type": null,
+                    "end": null,
+                    "sort-name": "ラッドウインプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null
+                  }
+                ]
+              }
+            }
+          ],
+          "recording": {
+            "title": "手当て",
+            "length": 84000,
+            "aliases": [],
+            "disambiguation": "",
+            "id": "fa670e05-cd11-47ff-96d8-d9a9c157c0f8",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "video": false
+          },
+          "length": 84000,
+          "title": "First Aid",
+          "position": 3,
+          "id": "a0612d42-1bda-4152-81d6-0b9062d49e6f"
+        },
+        {
+          "length": 135000,
+          "title": "Cat Chase",
+          "position": 4,
+          "id": "ef8a5a2d-eec1-41df-9bf6-14edb11216a9",
+          "number": "4",
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウィンプス"
+                  },
+                  {
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  }
+                ]
+              }
+            }
+          ],
+          "recording": {
+            "video": false,
+            "artist-credit": [
+              {
+                "artist": {
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS"
+                },
+                "name": "RADWIMPS",
+                "joinphrase": ""
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "length": 135000,
+            "title": "キャットチェース",
+            "aliases": [],
+            "disambiguation": "",
+            "id": "9a32e012-1242-45ff-8ff3-dbefe69bd3fa"
+          }
+        },
+        {
+          "length": 113000,
+          "title": "At Night in Ferry",
+          "position": 5,
+          "id": "d719d280-fa20-4f4c-a4c8-b3c23651a477",
+          "number": "5",
+          "artist-credit": [
+            {
+              "artist": {
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス"
+                  },
+                  {
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  }
+                ],
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "sort-name": "RADWIMPS",
+                "type": "Group",
+                "country": "JP"
+              },
+              "name": "RADWIMPS",
+              "joinphrase": ""
+            }
+          ],
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS"
+                },
+                "joinphrase": "",
+                "name": "RADWIMPS"
+              }
+            ],
+            "length": 113000,
+            "title": "夜のフェリー",
+            "disambiguation": "",
+            "id": "8005f9af-2a11-4be1-99fb-816ce7750cc0",
+            "aliases": [],
+            "video": false
+          }
+        },
+        {
+          "number": "6",
+          "artist-credit": [
+            {
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  },
+                  {
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "locale": null,
+                    "name": "ラッドウインプス",
+                    "type-id": null
+                  }
+                ],
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS"
+              },
+              "joinphrase": "",
+              "name": "RADWIMPS"
+            }
+          ],
+          "recording": {
+            "video": false,
+            "aliases": [],
+            "disambiguation": "",
+            "id": "e3797809-1769-4599-8df6-621dd165452f",
+            "title": "猫探し",
+            "length": 93000,
+            "artist-credit": [
+              {
+                "artist": {
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e"
+                },
+                "joinphrase": "",
+                "name": "RADWIMPS"
+              }
+            ],
+            "first-release-date": "2022-11-10"
+          },
+          "length": 93000,
+          "title": "Cat me if you can",
+          "position": 6,
+          "id": "0ef2d649-9184-4787-996b-8eba46f2b29f"
+        },
+        {
+          "artist-credit": [
+            {
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": "",
+              "artist": {
+                "sort-name": "Jinnouchi, Kazuma",
+                "type": "Person",
+                "country": "JP",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null,
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null
+                  },
+                  {
+                    "locale": null,
+                    "name": "陣内 一真",
+                    "type-id": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "end": null,
+                    "type": null
+                  },
+                  {
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null
+                  }
+                ],
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "name": "陣内一真"
+              }
+            }
+          ],
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "country": "JP",
+                  "type": "Person",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+                },
+                "name": "陣内一真",
+                "joinphrase": ""
+              }
+            ],
+            "title": "廃校の風景",
+            "length": 191000,
+            "aliases": [],
+            "disambiguation": "",
+            "id": "44f9bf8f-50c7-433a-88d6-dfa3a880e95a",
+            "video": false
+          },
+          "number": "7",
+          "id": "b654ee0c-277e-4c81-806d-a0372ce55c6f",
+          "length": 191000,
+          "title": "Abandoned School",
+          "position": 7
+        },
+        {
+          "position": 8,
+          "title": "Time for two",
+          "length": 176000,
+          "id": "3fe46a88-5f6a-4b5d-8688-5aa830e167f0",
+          "number": "8",
+          "recording": {
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "sort-name": "RADWIMPS",
+                  "type": "Group",
+                  "country": "JP",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "length": 176000,
+            "title": "二人の時間",
+            "aliases": [],
+            "id": "d3624073-c469-486f-8e89-07b6ae0729af",
+            "disambiguation": "",
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "country": "JP",
+                "type": "Group",
+                "sort-name": "RADWIMPS",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "aliases": [
+                  {
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "locale": null
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": ""
+              }
+            }
+          ]
+        },
+        {
+          "number": "9",
+          "recording": {
+            "video": false,
+            "length": 137000,
+            "title": "ドライブ",
+            "aliases": [],
+            "id": "4acf9905-1130-4e4c-b2c1-421ffea8ff28",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "artist": {
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Jinnouchi, Kazuma"
+                },
+                "joinphrase": "",
+                "name": "陣内一真"
+              }
+            ],
+            "first-release-date": "2022-11-10"
+          },
+          "artist-credit": [
+            {
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": "",
+              "artist": {
+                "aliases": [
+                  {
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma"
+                  },
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "type": null,
+                    "end": null,
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真"
+                  },
+                  {
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "end": null,
+                    "type": "Artist name"
+                  }
+                ],
+                "disambiguation": "",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person"
+              }
+            }
+          ],
+          "position": 9,
+          "title": "Hitchhike",
+          "length": 137000,
+          "id": "5772572c-2185-4a4e-baa4-10c47f5bdaef"
+        },
+        {
+          "title": "Two Little Terrors",
+          "length": 82000,
+          "position": 10,
+          "id": "b82355a7-c767-4211-afd0-3a011b68eca8",
+          "number": "10",
+          "artist-credit": [
+            {
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": "",
+              "artist": {
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "name": "陣内一真",
+                "disambiguation": "",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "aliases": [
+                  {
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null
+                  },
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "end": null,
+                    "type": null,
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真"
+                  },
+                  {
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "end": null,
+                    "type": "Artist name"
+                  }
+                ],
+                "type": "Person",
+                "country": "JP",
+                "sort-name": "Jinnouchi, Kazuma"
+              }
+            }
+          ],
+          "recording": {
+            "video": false,
+            "disambiguation": "",
+            "id": "f6be617c-1687-45b6-aa36-558eab6cf221",
+            "aliases": [],
+            "title": "子守り",
+            "length": 82000,
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "type": "Person",
+                  "country": "JP",
+                  "disambiguation": "",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "name": "陣内一真"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10"
+          }
+        },
+        {
+          "number": "11",
+          "artist-credit": [
+            {
+              "artist": {
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person",
+                "aliases": [
+                  {
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma"
+                  },
+                  {
+                    "type": null,
+                    "end": null,
+                    "sort-name": "陣内 一真",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "type-id": null,
+                    "name": "陣内 一真",
+                    "locale": null
+                  },
+                  {
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "locale": "ja",
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null,
+                    "primary": true,
+                    "ended": false,
+                    "begin": null
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+              },
+              "joinphrase": " / ",
+              "name": "Kazuma Jinnouchi"
+            },
+            {
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null
+                  },
+                  {
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウインプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              },
+              "name": "RADWIMPS",
+              "joinphrase": ""
+            }
+          ],
+          "recording": {
+            "video": false,
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "name": "陣内一真",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "type": "Person",
+                  "country": "JP",
+                  "sort-name": "Jinnouchi, Kazuma"
+                },
+                "joinphrase": " & ",
+                "name": "陣内一真"
+              },
+              {
+                "artist": {
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e"
+                },
+                "name": "RADWIMPS",
+                "joinphrase": ""
+              }
+            ],
+            "title": "廃遊園地",
+            "length": 291000,
+            "id": "2630e629-e6d6-45d2-8eac-0e813c1704fb",
+            "disambiguation": "",
+            "aliases": []
+          },
+          "title": "Dreaming on Ferris Wheel",
+          "length": 291000,
+          "position": 11,
+          "id": "d79aa4de-6c64-4969-a41a-eea114e34f2c"
+        },
+        {
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "sort-name": "RADWIMPS",
+                  "type": "Group",
+                  "country": "JP"
+                },
+                "name": "RADWIMPS",
+                "joinphrase": ""
+              }
+            ],
+            "aliases": [],
+            "disambiguation": "",
+            "id": "20a42ab9-5681-4803-a5bb-1704ff4f2409",
+            "title": "戦士の休息",
+            "length": 171000,
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "locale": null,
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null
+                  },
+                  {
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  }
+                ],
+                "disambiguation": "",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "number": "12",
+          "id": "9ea9929d-0270-41a7-9ccc-b39850de3e4d",
+          "position": 12,
+          "length": 171000,
+          "title": "Soldier's Break"
+        },
+        {
+          "title": "Shinkansen Super Express",
+          "length": 91000,
+          "position": 13,
+          "id": "a029dd1c-65b5-4bfc-8330-dafbe7327542",
+          "number": "13",
+          "artist-credit": [
+            {
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": "",
+              "artist": {
+                "country": "JP",
+                "type": "Person",
+                "sort-name": "Jinnouchi, Kazuma",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "aliases": [
+                  {
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null
+                  },
+                  {
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "陣内 一真",
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真"
+                  },
+                  {
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja",
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "recording": {
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "country": "JP",
+                  "type": "Person",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "length": 91000,
+            "title": "新幹線の旅",
+            "disambiguation": "",
+            "id": "2d5f6640-d655-47f1-9ff2-ac48397d18a8",
+            "aliases": [],
+            "video": false
+          }
+        },
+        {
+          "number": "14",
+          "recording": {
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "aliases": [],
+            "disambiguation": "",
+            "id": "58d1f5ca-4b07-43a5-be37-ebcc9d468ee7",
+            "length": 86000,
+            "title": "ミミズの歴史",
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス"
+                  },
+                  {
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "ラッドウインプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null
+                  }
+                ]
+              }
+            }
+          ],
+          "position": 14,
+          "title": "History of Mimizu",
+          "length": 86000,
+          "id": "095b84ac-244e-4253-b601-33d2c4a1c3a7"
+        },
+        {
+          "artist-credit": [
+            {
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": "",
+              "artist": {
+                "country": "JP",
+                "type": "Person",
+                "sort-name": "Jinnouchi, Kazuma",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "aliases": [
+                  {
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null,
+                    "type-id": null,
+                    "name": "Kazuma Jinnouchi",
+                    "locale": "en"
+                  },
+                  {
+                    "type-id": null,
+                    "name": "陣内 一真",
+                    "locale": null,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "陣内 一真",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null
+                  },
+                  {
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "recording": {
+            "disambiguation": "",
+            "id": "e68c2768-b150-46f7-9b9d-c80e1e16d77f",
+            "aliases": [],
+            "title": "予兆",
+            "length": 184000,
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Jinnouchi, Kazuma"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "video": false
+          },
+          "number": "15",
+          "id": "8ea0e05d-0430-464b-b600-7a55a3ac214a",
+          "length": 184000,
+          "title": "Significant Precursor",
+          "position": 15
+        },
+        {
+          "number": "16",
+          "recording": {
+            "disambiguation": "",
+            "id": "86af7c17-dae9-429c-a22f-eeb192e0ff1d",
+            "aliases": [],
+            "length": 254000,
+            "title": "東京上空",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "type": "Group",
+                  "country": "JP",
+                  "sort-name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "type": "Group",
+                "country": "JP",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "ラッドウィンプス",
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null
+                  },
+                  {
+                    "locale": null,
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null
+                  }
+                ],
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS"
+              }
+            }
+          ],
+          "position": 16,
+          "length": 254000,
+          "title": "Sky Over Tokyo",
+          "id": "4b597e40-7fd3-4595-8872-4a5b61251bc8"
+        },
+        {
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "country": "JP",
+                  "type": "Person"
+                },
+                "joinphrase": " & ",
+                "name": "陣内一真"
+              },
+              {
+                "artist": {
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": ""
+                },
+                "name": "RADWIMPS",
+                "joinphrase": ""
+              }
+            ],
+            "aliases": [],
+            "disambiguation": "",
+            "id": "ce25f2b3-0cc4-4532-9202-1a7bd7d98ea9",
+            "length": 329000,
+            "title": "決意〜旅立ち",
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "artist": {
+                "aliases": [
+                  {
+                    "primary": true,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null,
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null
+                  },
+                  {
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "end": null,
+                    "type": null,
+                    "locale": null,
+                    "name": "陣内 一真",
+                    "type-id": null
+                  },
+                  {
+                    "type": "Artist name",
+                    "end": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "begin": null,
+                    "ended": false,
+                    "primary": true,
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja"
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person"
+              },
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": " / "
+            },
+            {
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "type": "Group",
+                "country": "JP",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "locale": null,
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null
+                  },
+                  {
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null
+                  }
+                ],
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS"
+              },
+              "joinphrase": "",
+              "name": "RADWIMPS"
+            }
+          ],
+          "number": "17",
+          "id": "4c9ed69c-7ac1-4848-b4ee-397a82db6847",
+          "position": 17,
+          "length": 329000,
+          "title": "Suzume's Departure"
+        },
+        {
+          "title": "Posessed",
+          "length": 84000,
+          "position": 18,
+          "id": "e5b48c91-938c-4a81-8637-16e085877067",
+          "number": "18",
+          "artist-credit": [
+            {
+              "artist": {
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person",
+                "aliases": [
+                  {
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null,
+                    "type-id": null,
+                    "name": "Kazuma Jinnouchi",
+                    "locale": "en"
+                  },
+                  {
+                    "name": "陣内 一真",
+                    "type-id": null,
+                    "locale": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "陣内 一真",
+                    "begin": null,
+                    "primary": null,
+                    "ended": false
+                  },
+                  {
+                    "locale": "ja",
+                    "name": "陣内一真",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "end": null,
+                    "type": "Artist name",
+                    "sort-name": "ジンノウチ カズマ"
+                  }
+                ],
+                "disambiguation": "",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+              },
+              "name": "Kazuma Jinnouchi",
+              "joinphrase": ""
+            }
+          ],
+          "recording": {
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "name": "陣内一真",
+                  "disambiguation": "",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "type": "Person",
+                  "country": "JP",
+                  "sort-name": "Jinnouchi, Kazuma"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "length": 84000,
+            "title": "狐憑き",
+            "id": "58580da8-f089-424c-8229-594666b12e7a",
+            "disambiguation": "",
+            "aliases": [],
+            "video": false
+          }
+        },
+        {
+          "number": "19",
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウィンプス"
+                  },
+                  {
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "recording": {
+            "video": false,
+            "aliases": [],
+            "disambiguation": "",
+            "id": "177ff1de-8739-4caa-ada9-830089bab42f",
+            "title": "自転車の二人",
+            "length": 102000,
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "name": "RADWIMPS",
+                "joinphrase": "",
+                "artist": {
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "sort-name": "RADWIMPS",
+                  "country": "JP",
+                  "type": "Group"
+                }
+              }
+            ]
+          },
+          "title": "Double Riding",
+          "length": 102000,
+          "position": 19,
+          "id": "93028f4b-1428-4005-bddd-dd61cbba2a80"
+        },
+        {
+          "length": 111000,
+          "title": "It wasn't a dream",
+          "position": 20,
+          "id": "8e0d66a8-884d-455f-805f-f2e9e2759ee4",
+          "number": "20",
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  },
+                  {
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "recording": {
+            "video": false,
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "type": "Group",
+                  "country": "JP",
+                  "sort-name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": ""
+                },
+                "name": "RADWIMPS",
+                "joinphrase": ""
+              }
+            ],
+            "length": 111000,
+            "title": "夢じゃなかった",
+            "aliases": [],
+            "id": "5c0e5ca9-69aa-4adf-8fde-447a6feb434f",
+            "disambiguation": ""
+          }
+        },
+        {
+          "id": "c9b894e9-b30f-4cc6-a8d3-f8bd952d01b5",
+          "title": "The Other Side of the Door",
+          "length": 68000,
+          "position": 21,
+          "artist-credit": [
+            {
+              "joinphrase": " / ",
+              "name": "Kazuma Jinnouchi",
+              "artist": {
+                "type": "Person",
+                "country": "JP",
+                "sort-name": "Jinnouchi, Kazuma",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "name": "陣内一真",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "locale": "en",
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null
+                  },
+                  {
+                    "locale": null,
+                    "name": "陣内 一真",
+                    "type-id": null,
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "陣内 一真"
+                  },
+                  {
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null,
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja"
+                  }
+                ]
+              }
+            },
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "disambiguation": "",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "aliases": [
+                  {
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "ラッドウィンプス"
+                  },
+                  {
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウインプス",
+                    "locale": null,
+                    "name": "ラッドウインプス",
+                    "type-id": null
+                  }
+                ]
+              }
+            }
+          ],
+          "recording": {
+            "video": false,
+            "title": "常世",
+            "length": 68000,
+            "aliases": [],
+            "id": "0c1f6e76-9b23-4d2c-9929-47cde93fd07f",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "陣内一真",
+                "joinphrase": " & ",
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "name": "陣内一真",
+                  "disambiguation": "",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "type": "Person",
+                  "country": "JP",
+                  "sort-name": "Jinnouchi, Kazuma"
+                }
+              },
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "type": "Group",
+                  "country": "JP",
+                  "sort-name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e"
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10"
+          },
+          "number": "21"
+        },
+        {
+          "length": 103000,
+          "title": "Aftermath",
+          "position": 22,
+          "id": "30c839d8-f8b3-41a7-bb3a-ffb8857699a8",
+          "number": "22",
+          "artist-credit": [
+            {
+              "artist": {
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "begin": null,
+                    "ended": false,
+                    "primary": true,
+                    "type-id": null,
+                    "name": "Kazuma Jinnouchi",
+                    "locale": "en"
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真",
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "陣内 一真",
+                    "end": null,
+                    "type": null
+                  },
+                  {
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja",
+                    "end": null,
+                    "type": "Artist name",
+                    "sort-name": "ジンノウチ カズマ",
+                    "begin": null,
+                    "ended": false,
+                    "primary": true
+                  }
+                ],
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "name": "陣内一真",
+                "sort-name": "Jinnouchi, Kazuma",
+                "type": "Person",
+                "country": "JP"
+              },
+              "joinphrase": "",
+              "name": "Kazuma Jinnouchi"
+            }
+          ],
+          "recording": {
+            "video": false,
+            "id": "469fe44d-702d-474f-8537-c20072835d37",
+            "disambiguation": "",
+            "aliases": [],
+            "title": "丘上の要石",
+            "length": 103000,
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": "",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "country": "JP",
+                  "type": "Person"
+                },
+                "joinphrase": "",
+                "name": "陣内一真"
+              }
+            ]
+          }
+        },
+        {
+          "position": 23,
+          "title": "To be with Sota",
+          "length": 143000,
+          "id": "8023f9c1-91d1-4b97-a781-6d518754d06e",
+          "number": "23",
+          "recording": {
+            "video": false,
+            "artist-credit": [
+              {
+                "name": "RADWIMPS",
+                "joinphrase": " & ",
+                "artist": {
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS"
+                }
+              },
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "type": "Person",
+                  "country": "JP",
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "name": "陣内一真",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "first-release-date": "2022-11-10",
+            "id": "b81e1b42-a2fa-4250-8b2c-55ef57e37570",
+            "disambiguation": "",
+            "aliases": [],
+            "length": 143000,
+            "title": "草太の元へ"
+          },
+          "artist-credit": [
+            {
+              "artist": {
+                "type": "Group",
+                "country": "JP",
+                "sort-name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "disambiguation": "",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "aliases": [
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス"
+                  },
+                  {
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウインプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "locale": null
+                  }
+                ]
+              },
+              "name": "RADWIMPS",
+              "joinphrase": " / "
+            },
+            {
+              "joinphrase": "",
+              "name": "Kazuma Jinnouchi",
+              "artist": {
+                "aliases": [
+                  {
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "locale": "en"
+                  },
+                  {
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "陣内 一真",
+                    "locale": null,
+                    "type-id": null,
+                    "name": "陣内 一真"
+                  },
+                  {
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null,
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja"
+                  }
+                ],
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "disambiguation": "",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person"
+              }
+            }
+          ]
+        },
+        {
+          "artist-credit": [
+            {
+              "artist": {
+                "aliases": [
+                  {
+                    "type-id": null,
+                    "name": "Kazuma Jinnouchi",
+                    "locale": "en",
+                    "type": null,
+                    "end": null,
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "begin": null,
+                    "ended": false,
+                    "primary": true
+                  },
+                  {
+                    "name": "陣内 一真",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "陣内 一真",
+                    "type": null,
+                    "end": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  },
+                  {
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja",
+                    "sort-name": "ジンノウチ カズマ",
+                    "type": "Artist name",
+                    "end": null,
+                    "ended": false,
+                    "primary": true,
+                    "begin": null
+                  }
+                ],
+                "disambiguation": "",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person"
+              },
+              "joinphrase": "",
+              "name": "Kazuma Jinnouchi"
+            }
+          ],
+          "recording": {
+            "video": false,
+            "length": 185000,
+            "title": "祈り",
+            "disambiguation": "",
+            "id": "202c28c5-6366-4d5d-84d8-5d94c65129b6",
+            "aliases": [],
+            "artist-credit": [
+              {
+                "artist": {
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Jinnouchi, Kazuma",
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "disambiguation": ""
+                },
+                "name": "陣内一真",
+                "joinphrase": ""
+              }
+            ],
+            "first-release-date": "2022-11-10"
+          },
+          "number": "24",
+          "id": "9ab5678a-0b1e-4cb9-a8dd-65c4d9424031",
+          "length": 185000,
+          "title": "Prayer",
+          "position": 24
+        },
+        {
+          "number": "25",
+          "recording": {
+            "video": false,
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "artist": {
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "sort-name": "RADWIMPS",
+                  "country": "JP",
+                  "type": "Group"
+                },
+                "joinphrase": " & ",
+                "name": "RADWIMPS"
+              },
+              {
+                "name": "陣内一真",
+                "joinphrase": "",
+                "artist": {
+                  "name": "陣内一真",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Jinnouchi, Kazuma"
+                }
+              }
+            ],
+            "length": 232000,
+            "title": "戸締まり",
+            "aliases": [],
+            "disambiguation": "",
+            "id": "5fa80ade-d78a-498c-b581-8218c4485734"
+          },
+          "artist-credit": [
+            {
+              "joinphrase": " / ",
+              "name": "RADWIMPS",
+              "artist": {
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "locale": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウィンプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null
+                  },
+                  {
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウインプス",
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス"
+                  }
+                ],
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "name": "RADWIMPS",
+                "sort-name": "RADWIMPS",
+                "type": "Group",
+                "country": "JP"
+              }
+            },
+            {
+              "joinphrase": "",
+              "name": "Kazuma Jinnouchi",
+              "artist": {
+                "aliases": [
+                  {
+                    "name": "Kazuma Jinnouchi",
+                    "type-id": null,
+                    "locale": "en",
+                    "sort-name": "Jinnouchi, Kazuma",
+                    "end": null,
+                    "type": null,
+                    "primary": true,
+                    "ended": false,
+                    "begin": null
+                  },
+                  {
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "type": null,
+                    "end": null,
+                    "sort-name": "陣内 一真",
+                    "locale": null,
+                    "name": "陣内 一真",
+                    "type-id": null
+                  },
+                  {
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "陣内一真",
+                    "locale": "ja",
+                    "type": "Artist name",
+                    "end": null,
+                    "sort-name": "ジンノウチ カズマ",
+                    "begin": null,
+                    "ended": false,
+                    "primary": true
+                  }
+                ],
+                "disambiguation": "",
+                "id": "c9c59c75-f51b-4e38-bc15-b3a036f4d0ad",
+                "name": "陣内一真",
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "sort-name": "Jinnouchi, Kazuma",
+                "country": "JP",
+                "type": "Person"
+              }
+            }
+          ],
+          "position": 25,
+          "length": 232000,
+          "title": "Closing the Door",
+          "id": "266f0206-1839-42fb-a5ee-3843b976bdb4"
+        },
+        {
+          "id": "a8cb30c5-2b4a-49c0-9417-a9e139811481",
+          "position": 26,
+          "title": "KANATA HALUKA",
+          "length": 355000,
+          "recording": {
+            "first-release-date": "2022-10-28",
+            "artist-credit": [
+              {
+                "name": "RADWIMPS",
+                "joinphrase": "",
+                "artist": {
+                  "country": "JP",
+                  "type": "Group",
+                  "sort-name": "RADWIMPS",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": ""
+                }
+              }
+            ],
+            "aliases": [],
+            "id": "5daca029-8ea4-46f3-abbe-44013cf8618a",
+            "disambiguation": "",
+            "title": "カナタハルカ",
+            "length": 355000,
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "name": "RADWIMPS",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "primary": null,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "ラッドウィンプス",
+                    "type": null,
+                    "end": null,
+                    "locale": null,
+                    "name": "ラッドウィンプス",
+                    "type-id": null
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "ラッドウインプス",
+                    "type": null,
+                    "end": null
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "number": "26"
+        },
+        {
+          "length": 238000,
+          "title": "Suzume",
+          "position": 27,
+          "id": "34e3155f-ab50-4651-a008-a3121d2691b9",
+          "number": "27",
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": " feat. ",
+              "artist": {
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "aliases": [
+                  {
+                    "sort-name": "ラッドウィンプス",
+                    "end": null,
+                    "type": null,
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス",
+                    "locale": null
+                  },
+                  {
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウインプス",
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウインプス"
+                  }
+                ],
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "disambiguation": "",
+                "country": "JP",
+                "type": "Group",
+                "sort-name": "RADWIMPS"
+              }
+            },
+            {
+              "artist": {
+                "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                "name": "十明",
+                "id": "ddd49f88-6367-4f58-9dd9-a767e976b0b7",
+                "disambiguation": "",
+                "aliases": [
+                  {
+                    "ended": false,
+                    "primary": null,
+                    "begin": null,
+                    "sort-name": "Jumei",
+                    "type": "Search hint",
+                    "end": null,
+                    "locale": null,
+                    "type-id": "1937e404-b981-3cb7-8151-4c86ebfc8d8e",
+                    "name": "Jumei"
+                  },
+                  {
+                    "ended": false,
+                    "primary": true,
+                    "begin": null,
+                    "sort-name": "Toaka",
+                    "end": null,
+                    "type": "Artist name",
+                    "locale": "en",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "name": "Toaka"
+                  },
+                  {
+                    "primary": false,
+                    "ended": false,
+                    "begin": null,
+                    "sort-name": "Desu, Toaka",
+                    "end": null,
+                    "type": "Legal name",
+                    "locale": "ja",
+                    "name": "Toaka Desu",
+                    "type-id": "d4dcd0c0-b341-3612-a332-c0ce797b25cf"
+                  },
+                  {
+                    "name": "十明",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+                    "locale": "ja",
+                    "end": null,
+                    "type": "Artist name",
+                    "sort-name": "とあか",
+                    "begin": "2003-02-05",
+                    "primary": true,
+                    "ended": false
+                  },
+                  {
+                    "begin": null,
+                    "primary": true,
+                    "ended": false,
+                    "type": "Artist name",
+                    "end": null,
+                    "sort-name": "토아카",
+                    "locale": "ko",
+                    "name": "토아카",
+                    "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc"
+                  }
+                ],
+                "type": "Person",
+                "country": "JP",
+                "sort-name": "Toaka"
+              },
+              "joinphrase": "",
+              "name": "Toaka"
+            }
+          ],
+          "recording": {
+            "aliases": [],
+            "id": "4da804f6-98dc-456b-8fb3-5ffd971b18ec",
+            "disambiguation": "",
+            "length": 238000,
+            "title": "すずめ",
+            "first-release-date": "2022-09-30",
+            "artist-credit": [
+              {
+                "joinphrase": " feat. ",
+                "name": "RADWIMPS",
+                "artist": {
+                  "sort-name": "RADWIMPS",
+                  "country": "JP",
+                  "type": "Group",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "name": "RADWIMPS",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+                }
+              },
+              {
+                "joinphrase": "",
+                "name": "十明",
+                "artist": {
+                  "country": "JP",
+                  "type": "Person",
+                  "sort-name": "Toaka",
+                  "name": "十明",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "",
+                  "id": "ddd49f88-6367-4f58-9dd9-a767e976b0b7"
+                }
+              }
+            ],
+            "video": false
+          }
+        },
+        {
+          "position": 28,
+          "title": "Tamaki",
+          "length": 295000,
+          "id": "bfeeec53-4351-4891-bab3-5fd361bcbe74",
+          "number": "28",
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "name": "RADWIMPS",
+                "artist": {
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "type": "Group",
+                  "country": "JP",
+                  "sort-name": "RADWIMPS"
+                }
+              }
+            ],
+            "length": 295000,
+            "title": "Tamaki",
+            "disambiguation": "",
+            "id": "d84b8a35-efe0-4c92-ba9f-f479ac38c2d3",
+            "aliases": [],
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "country": "JP",
+                "type": "Group",
+                "sort-name": "RADWIMPS",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "aliases": [
+                  {
+                    "begin": null,
+                    "ended": false,
+                    "primary": null,
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウィンプス",
+                    "locale": null,
+                    "type-id": null,
+                    "name": "ラッドウィンプス"
+                  },
+                  {
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  }
+                ],
+                "disambiguation": "",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e"
+              }
+            }
+          ]
+        },
+        {
+          "id": "5cbb15ee-1ffa-44f2-b5e6-f585419625ac",
+          "position": 29,
+          "title": "Tears of Suzume",
+          "length": 275000,
+          "recording": {
+            "first-release-date": "2022-11-10",
+            "artist-credit": [
+              {
+                "name": "RADWIMPS",
+                "joinphrase": "",
+                "artist": {
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "name": "RADWIMPS",
+                  "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                  "disambiguation": "",
+                  "type": "Group",
+                  "country": "JP",
+                  "sort-name": "RADWIMPS"
+                }
+              }
+            ],
+            "disambiguation": "",
+            "id": "ba7b68ce-72f0-4f2d-a813-74e4fc857473",
+            "aliases": [],
+            "title": "すずめの涙",
+            "length": 275000,
+            "video": false
+          },
+          "artist-credit": [
+            {
+              "name": "RADWIMPS",
+              "joinphrase": "",
+              "artist": {
+                "sort-name": "RADWIMPS",
+                "country": "JP",
+                "type": "Group",
+                "aliases": [
+                  {
+                    "end": null,
+                    "type": null,
+                    "sort-name": "ラッドウィンプス",
+                    "begin": null,
+                    "primary": null,
+                    "ended": false,
+                    "name": "ラッドウィンプス",
+                    "type-id": null,
+                    "locale": null
+                  },
+                  {
+                    "name": "ラッドウインプス",
+                    "type-id": null,
+                    "locale": null,
+                    "sort-name": "ラッドウインプス",
+                    "end": null,
+                    "type": null,
+                    "primary": null,
+                    "ended": false,
+                    "begin": null
+                  }
+                ],
+                "disambiguation": "",
+                "id": "6f500293-7396-4903-b4fd-118127d06f9e",
+                "name": "RADWIMPS",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+              }
+            }
+          ],
+          "number": "29"
+        }
+      ],
+      "position": 1
+    }
+  ],
+  "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b"
+}

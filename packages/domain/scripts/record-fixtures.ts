@@ -3,6 +3,7 @@
  *
  *     bun run --cwd packages/domain fixtures:record
  *     bun run --cwd packages/domain fixtures:record -- --only-locale
+ *     bun run --cwd packages/domain fixtures:record -- --only-suzume
  *
  * This is the ONLY code in this package that touches the network, and it is never
  * run by the test suite (see ../fixtures/README.md). Tests read the committed JSON.
@@ -225,6 +226,9 @@ async function main(): Promise<void> {
   // 4c. The locale-alias case.
   await recordLocaleAliases();
 
+  // 4d. The credited-as and tracklist case — see `recordSuzume`.
+  await recordSuzume();
+
   // 5. Cover Art Archive index for the release.
   console.log("Cover Art Archive…");
   await write(
@@ -287,6 +291,30 @@ async function recordLocaleAliases(): Promise<void> {
   );
 }
 
+/**
+ * RADWIMPS & 陣内一真 — the credited-as and tracklist case, recorded whole rather than
+ * hand-built because it carries both halves of the bug in one document.
+ *
+ * *Suzume*'s worldwide edition spells its tracklist in Latin ("The First Encounter") while the
+ * recordings underneath keep the Japanese originals (二人の出逢い) — so which patch wins is
+ * visible as a string. And its album-artist credit is a genuine “credited as”: `Kazuma
+ * Jinnouchi`, printed by an editor alongside `RADWIMPS`, for an artist whose canonical name is
+ * 陣内一真 and whose only alias is `{Kazuma Jinnouchi, en, primary}`.
+ *
+ * The `inc` list is deliberately short — the two symptoms of #9 need artist credits and their
+ * aliases, the release's own tracklist, and the recordings it embeds. Nothing else.
+ */
+const SUZUME_RELEASE = "1b3e78eb-88d0-48a5-839b-84fecfb5aeea";
+const SUZUME_INC = "artists+artist-credits+aliases+recordings";
+
+async function recordSuzume(): Promise<void> {
+  console.log("MusicBrainz release Suzume (RADWIMPS, worldwide edition)…");
+  await write(
+    "musicbrainz/release-suzume.json",
+    await getJson(`${MB}/release/${SUZUME_RELEASE}?inc=${SUZUME_INC}&fmt=json`, { throttle: true }),
+  );
+}
+
 /** The two sources keyed by what the first recording says: LRCLIB, then Deezer by ISRC. */
 async function recordTail(firstRecording: Record<string, unknown>): Promise<void> {
   // 6. LRCLIB lyrics search. The response is kept real in shape, count and metadata but the
@@ -317,7 +345,9 @@ async function recordTail(firstRecording: Record<string, unknown>): Promise<void
   console.log("Done. `ytdlp/` and `rsgain/` are hand-written — see fixtures/README.md.");
 }
 
-// `--only-locale` re-records the §2.1 alias fixtures alone. Everything else stays as
-// committed, so the diff is the thing that changed rather than a month of MusicBrainz edits.
+// `--only-locale` re-records the §2.1 alias fixtures alone, `--only-suzume` the §2.1
+// credited-as one. Everything else stays as committed, so the diff is the thing that changed
+// rather than a month of MusicBrainz edits.
 if (Bun.argv.includes("--only-locale")) await recordLocaleAliases();
+else if (Bun.argv.includes("--only-suzume")) await recordSuzume();
 else await main();
