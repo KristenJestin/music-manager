@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 3;
+export const TAG_SCHEMA_VERSION = 4;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,14 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 4,
+    at: "2026-09-21",
+    added: [],
+    changed: [],
+    removed: ["WORK", "MOVEMENT", "MOVEMENTNUMBER", "MOVEMENTTOTAL", "SHOWMOVEMENT"],
+    note: "Issue #4: `WORK` is display metadata, not an identifier, and MusicBrainz links a work to any recording that performs one — so writing it unconditionally put the track's own title in a header on every pop album, which a player that groups by work (Symfonium, from 13.3.0) then shows. The work fields are now written on classical releases only (the release group carries a `classical` genre, or the release has the classical shape), unless the new `writeWorkTags` setting says `always`; `never` writes none of them. MUSICBRAINZ_WORKID is written either way, and the re-tag repairs a library offline from the raw cache.",
+  },
   {
     version: 3,
     at: "2026-09-13",
