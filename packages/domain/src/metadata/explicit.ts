@@ -6,12 +6,15 @@
  * album page. On the owner's 4,000-file library it was on 3,236 files, and no listener asked for
  * it.
  *
- * The flag is *not* what the app knows: matching decides from the release's own comment
- * (`matching/signals.ts`, `explicitPenalty`) and from the `explicitPreference` setting, the Deezer
- * answer stays in the raw cache whatever happens here, and the verify table reads the file rather
- * than the tag. So the switch is about what is *written*, and the document follows it (D5-01):
- * off, `explicit` is `n/a` with the reason “disabled by settings” — the same sentence every other
- * field a setting switched off answers with, which is what the Console prints next to the `n/a`.
+ * The flag is *not* what the app knows. Matching ranks on the release's own comment
+ * (`matching/signals.ts`, `explicitPenalty`) and on the `explicitPreference` setting; it never
+ * reads Deezer and never reads this tag, so nothing here can move a candidate. The verify table
+ * reads the file rather than the document — the other reason the setting only decides what is
+ * *written* (D5-01): off, `explicit` is `n/a` with the reason “disabled by settings”, the same
+ * sentence every other field a setting switched off answers with, which is what the Console
+ * prints next to the `n/a`. `patch.na` records no value, so the fact survives in the raw cache
+ * alone — Deezer's answer is still there for a later re-resolution, and no document source
+ * carries it.
  */
 
 /** What the setting is worth when nobody chose: the behaviour issue #5 asks for. */

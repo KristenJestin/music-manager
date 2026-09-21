@@ -10,6 +10,7 @@
  *
  * The advisory is opt-in since issue #5: the flag is still resolved and still merged like any
  * other field, and the *tag* is written only when `writeExplicitTag` is on (see `../explicit.ts`).
+ * Matching reads none of this: it ranks on the release's own comment and on `explicitPreference`.
  */
 
 import type { DocumentPatch } from "../document.ts";
@@ -56,8 +57,9 @@ export function fromDeezerTrack(track: DeezerTrack, options: DeezerTrackOptions)
    *
    * Issue #5 (D5-01): the flag is written only when the `writeExplicitTag` setting asks for it.
    * Off — the default — the field is `n/a` with “disabled by settings”, and Deezer's answer stays
-   * in the raw cache, which is where a re-resolution and the match ranking read it. A value the
-   * owner set by hand is locked, and a lock beats this `n/a` like it beats any other resolution.
+   * in the raw cache: that is what a later re-resolution reads, and matching never does — it
+   * ranks on the release's own comment and on `explicitPreference`. A value the owner set by hand
+   * is locked, and a lock beats this `n/a` like it beats any other resolution.
    */
   const decision = decideExplicitTag(options.writeExplicit ?? DEFAULT_WRITE_EXPLICIT_TAG);
   const code = track.explicit_content_lyrics;

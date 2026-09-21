@@ -334,7 +334,7 @@ export const SETTING_DEFINITIONS = {
   writeExplicitTag: define(
     z.boolean(),
     DEFAULT_WRITE_EXPLICIT_TAG,
-    "Write `ITUNESADVISORY` (issue #5). It is a store convention — the iTunes Store's `1` explicit / `2` clean — that players now draw in their own UI: Symfonium puts a “C”/“E” badge in front of every title of an album page. The flag is not what the app matches on (`explicitPreference` is, and Deezer's answer stays in the raw cache either way), so turning this off costs the file a tag nothing reads back. Off by default.",
+    "Write `ITUNESADVISORY` (issue #5). It is a store convention — the iTunes Store's `1` explicit / `2` clean — that players now draw in their own UI: Symfonium puts a “C”/“E” badge in front of every title of an album page. Matching never reads this tag, and never Deezer either: it ranks on the release's own comment and on `explicitPreference`. So turning this off costs the file a tag nothing reads back. Off by default.",
   ),
   writeLyricsSidecar: define(z.boolean(), true, "Write `<track>.lrc` next to the file."),
   writeCover: define(z.boolean(), true, "Write `cover.jpg` in the album folder."),

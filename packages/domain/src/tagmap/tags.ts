@@ -964,7 +964,7 @@ const LYRICS_ARTWORK = group("lyrics-artwork", [
     mp4: "rtng",
     level: "C",
     source: "Deezer explicit_lyrics by ISRC · MB disambiguation · you",
-    note: "1 = explicit, 2 = clean. Written only when the `writeExplicitTag` setting is on (issue #5): the value is still resolved and still ranked on, but off by default, because a player draws the tag as a “C”/“E” badge nobody asked for.",
+    note: "1 = explicit, 2 = clean. Written only when the `writeExplicitTag` setting is on (issue #5): the value is still resolved, and matching still ranks with `explicitPreference` — never with this value. Off by default, because a player draws the tag as a “C”/“E” badge nobody asked for.",
   },
   {
     field: "lyrics",
