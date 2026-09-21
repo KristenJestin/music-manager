@@ -26,6 +26,20 @@
  * a row is a bad page even if you own none of them. The first is computed from the library,
  * the second from what has already been emitted above this row — which is why `diversify`
  * re-scores as it walks rather than sorting once.
+ *
+ * ## The lookup budget, and the two halves of the list
+ *
+ * ListenBrainz hands back a hundred recordings ranked by its own score, and a listener whose
+ * scrobbles come from their own library naturally gets that library back at the top of it. A
+ * MusicBrainz lookup costs a request a second against somebody else's server, so the budget is
+ * spent on what is *not* already here: a recording the library holds is skipped before any call
+ * is made, and named from its own row instead — it needs no lookup at all, and "In your library"
+ * becomes a list you can already play.
+ *
+ * The two halves are then ranked and cut together, under one ceiling: `discoverMaxItems` is a
+ * ceiling on the list, not on a tab. An owned row costs no lookup — that is the whole of the fix
+ * — but it takes its place in the same ranking as a new one, and the Console splits the result
+ * into its two tabs afterwards.
  */
 import type { MbRecording, MbReleaseGroup } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
@@ -117,22 +131,67 @@ export interface SimilarArtistItem {
   readonly inLibrary: boolean;
 }
 
-/** What the library already holds, as three membership tests. Built once per sync. */
+/**
+ * What the library already holds: three membership tests, and — for a recording — the row that
+ * names it.
+ *
+ * `recordings` was a `Set` while the only question asked of it was "do I have it?", and the
+ * answer arrived *after* a MusicBrainz call. Now that the question is asked *before* one, the
+ * same read has to answer a second one — "and what is it called?" — because a recording we own
+ * needs no external call at all: its title and artist live in `library_tracks`, which is the
+ * source of truth for metadata anyway. A `Map` costs nothing more and removes the round trip.
+ */
 export interface LibraryIndex {
-  readonly recordings: ReadonlySet<string>;
+  /** `recording_mbid` → the row that names this recording. */
+  readonly recordings: ReadonlyMap<string, LibraryRecording>;
   readonly releaseGroups: ReadonlySet<string>;
   readonly artists: ReadonlySet<string>;
 }
 
+/** One owned recording, as much of it as a card and the playlist search need. */
+export interface LibraryRecording {
+  readonly title: string;
+  readonly artist: string | null;
+  /** The album's year, so an owned row keeps the date its card used to show. */
+  readonly year: number | null;
+}
+
 export async function libraryIndex(db: Database = defaultDb()): Promise<LibraryIndex> {
-  const tracks = await db.select({ recording: libraryTracks.recordingMbid }).from(libraryTracks);
+  const tracks = await db
+    .select({
+      recording: libraryTracks.recordingMbid,
+      title: libraryTracks.title,
+      artist: libraryTracks.artist,
+      album: libraryTracks.albumId,
+    })
+    .from(libraryTracks);
   const albums = await db
-    .select({ rg: libraryAlbums.releaseGroupMbid, artist: libraryAlbums.albumArtist })
+    .select({
+      id: libraryAlbums.id,
+      rg: libraryAlbums.releaseGroupMbid,
+      artist: libraryAlbums.albumArtist,
+      year: libraryAlbums.year,
+    })
     .from(libraryAlbums);
+
+  // The year belongs to the album: `library_tracks` carries no such column, and both reads
+  // already walk their whole table, so joining them is a `Map`, not a second query.
+  const years = new Map(albums.map((row) => [row.id, row.year] as const));
+
+  // One recording can sit on several rows — a track owned in two releases — and the first one
+  // names it. Which album the card links to is `ownedAlbums`' question, not this index's.
+  const recordings = new Map<string, LibraryRecording>();
+  for (const row of tracks) {
+    if (row.recording === null || row.recording === "" || recordings.has(row.recording)) continue;
+    recordings.set(row.recording, {
+      title: row.title,
+      artist: row.artist,
+      year: row.album === null ? null : (years.get(row.album) ?? null),
+    });
+  }
+
   return {
-    recordings: new Set(
-      tracks.map((row) => row.recording).filter((mbid): mbid is string => mbid !== null),
-    ),
+    recordings,
     releaseGroups: new Set(
       albums.map((row) => row.rg).filter((mbid): mbid is string => mbid !== null),
     ),
@@ -274,9 +333,6 @@ export function diversify(
 /* collecting                                                          */
 /* ------------------------------------------------------------------ */
 
-/** How many CF recordings get a MusicBrainz lookup. One per second, so this is a budget. */
-export const CF_LOOKUPS = 15;
-
 /** How many similar artists are kept per anchor artist. */
 const SIMILAR_PER_ARTIST = 4;
 
@@ -296,6 +352,41 @@ export interface CollectResult {
   readonly similar: readonly SimilarArtistItem[];
   /** What each external source actually contributed, for the signals strip. */
   readonly metrics: { listenbrainz: string; lastfm: string };
+}
+
+/** One entry of the ListenBrainz collaborative-filtering answer, as the integration types it. */
+export interface CfEntry {
+  readonly recording_mbid?: string;
+  readonly score?: number;
+}
+
+/** What the walk spent, for the signals strip: `100 received, 61 in your library, 15 examined`. */
+export interface CfCounts {
+  /** What ListenBrainz answered. Not "what we could use": the walk filters further down. */
+  readonly received: number;
+  /** How many of those the library already holds. Costs no lookup. */
+  readonly inLibrary: number;
+  /** How many MusicBrainz lookups the walk actually made. */
+  readonly examined: number;
+}
+
+export interface CfWalkOptions {
+  readonly entries: readonly CfEntry[];
+  readonly index: LibraryIndex;
+  readonly dismissed: ReadonlySet<string>;
+  /** `discoverCfLookups`. One MusicBrainz request each, so this is the thing to protect. */
+  readonly budget: number;
+  readonly signals: ListeningSignals;
+  readonly windowDays: number;
+  /** How many albums the library holds per artist, for the redundancy penalty. */
+  readonly owned: ReadonlyMap<string, number>;
+  /** One MusicBrainz lookup. Never called for a recording the library already holds. */
+  readonly lookup: (mbid: string) => Promise<MbRecording | null>;
+}
+
+export interface CfWalk {
+  readonly items: readonly RecommendedItem[];
+  readonly counts: CfCounts;
 }
 
 /**
@@ -344,70 +435,30 @@ export async function collectRecommendations(options: CollectOptions): Promise<C
 
   const items: RecommendedItem[] = [];
   const similar: SimilarArtistItem[] = [];
-  let cfCount = 0;
+  let counts: CfCounts = { received: 0, inLibrary: 0, examined: 0 };
   let lastfmCount = 0;
 
   /* ---- ListenBrainz collaborative filtering: recordings ---- */
   const user = settings.listenbrainzUser.trim();
   if (user !== "" && settings.sourcesEnabled.listenbrainz) {
-    const mbids = await quiet(
+    const entries = await quiet(
       async () => (await lbRecommendations(ctx, user, 100)).data?.payload?.mbids ?? [],
-      [] as readonly { readonly recording_mbid?: string; readonly score?: number }[],
+      [] as readonly CfEntry[],
     );
-    for (const entry of mbids.slice(0, CF_LOOKUPS)) {
-      const mbid = entry.recording_mbid;
-      if (mbid === undefined || mbid === "") continue;
-      const subject = `recording:${mbid}`;
-      if (dismissed.has(subject)) continue;
-      const recording = await quiet(
-        async () => (await lookupRecording(ctx, mbid)).data,
-        null as MbRecording | null,
-      );
-      if (recording === null) continue;
-      cfCount += 1;
-
-      const credited = artistOf(recording);
-      const genres = (recording.genres ?? [])
-        .map((genre) => genre.name ?? "")
-        .filter((name) => name !== "");
-      const anchorArtist = signals.topArtists.find(
-        (artist) => artist.name.toLowerCase() === credited.name.toLowerCase(),
-      );
-      const factors: ScoreFactors = {
-        external: clamp01(entry.score ?? 0.5),
-        artistAffinity: artistAffinity(credited.name, signals),
-        genreAffinity: genreAffinity(genres, signals),
-        recency: 1,
-        redundancy: redundancyOf(credited.name, owned),
-        diversity: 1,
-      };
-      items.push({
-        subject,
-        kind: "track",
-        title: recording.title ?? "Untitled",
-        artist: credited.name,
-        albumTitle: null,
-        artistMbid: credited.mbid,
-        releaseGroupMbid: null,
-        recordingMbid: mbid,
-        year: yearOfDate(recording["first-release-date"] ?? null),
-        score: scoreOf(factors),
-        factors,
-        reason: reasonFor(
-          {
-            ...(anchorArtist === undefined
-              ? {}
-              : { anchor: { name: anchorArtist.name, plays: anchorArtist.plays } }),
-            ...(factors.genreAffinity > 0 && genres[0] !== undefined
-              ? { genre: genres[0].toLowerCase() }
-              : {}),
-          },
-          windowDays,
-        ),
-        source: "ListenBrainz collaborative filtering",
-        inLibrary: index.recordings.has(mbid),
-      });
-    }
+    const walk = await collectCollaborative({
+      entries,
+      index,
+      dismissed,
+      budget: settings.discoverCfLookups,
+      signals,
+      windowDays,
+      owned,
+      // A dead MusicBrainz call is one missing row, never a failed page.
+      lookup: (mbid) =>
+        quiet(async () => (await lookupRecording(ctx, mbid)).data, null as MbRecording | null),
+    });
+    items.push(...walk.items);
+    counts = walk.counts;
   }
 
   /* ---- similar artists: ListenBrainz first, Last.fm as the fallback ---- */
@@ -503,9 +554,162 @@ export async function collectRecommendations(options: CollectOptions): Promise<C
     }),
     similar,
     metrics: {
-      listenbrainz: user === "" ? "off" : `${String(cfCount)} recommendations`,
+      listenbrainz: user === "" ? "off" : cfStrip(counts),
       lastfm: lastfmCount === 0 ? "not needed" : `${String(lastfmCount)} similar artists`,
     },
+  };
+}
+
+/**
+ * Walk the collaborative-filtering list, and spend the lookup budget on what is new.
+ *
+ * The order of the three tests is the whole of the fix, and each one is cheap: a dismissal is a
+ * set, "in your library" is a map, and only what survives both costs a MusicBrainz request. A
+ * listener whose scrobbles come from their own library gets that library back at the top of
+ * ListenBrainz's ranking, so filtering afterwards meant that the larger the library, the fewer
+ * of the `discoverCfLookups` calls were left for anything actually new — the opposite of what
+ * the budget is for.
+ */
+export async function collectCollaborative(options: CfWalkOptions): Promise<CfWalk> {
+  const { entries, index, dismissed, budget, signals, windowDays, owned, lookup } = options;
+  const items: RecommendedItem[] = [];
+  let inLibrary = 0;
+  let examined = 0;
+
+  for (const entry of entries) {
+    const mbid = entry.recording_mbid;
+    if (mbid === undefined || mbid === "") continue;
+    // Counted before the dismissal test: a recording the library holds is "in your library"
+    // whether or not the page has stopped offering it — the strip answers "what did ListenBrainz
+    // name that I already have", not "what is still on screen".
+    const mine = index.recordings.get(mbid);
+    if (mine !== undefined) inLibrary += 1;
+
+    const subject = `recording:${mbid}`;
+    if (dismissed.has(subject)) continue;
+
+    if (mine === undefined) {
+      if (examined >= budget) continue;
+      examined += 1;
+      const recording = await lookup(mbid);
+      if (recording === null) continue;
+      const credited = artistOf(recording);
+      items.push(
+        recommendation({
+          mbid,
+          subject,
+          title: recording.title ?? "Untitled",
+          artistName: credited.name,
+          artistMbid: credited.mbid,
+          year: yearOfDate(recording["first-release-date"] ?? null),
+          genres: (recording.genres ?? [])
+            .map((genre) => genre.name ?? "")
+            .filter((name) => name !== ""),
+          score: entry.score ?? 0.5,
+          inLibrary: false,
+          signals,
+          windowDays,
+          owned,
+        }),
+      );
+      continue;
+    }
+
+    // Owned, and named by its own row: no MusicBrainz call at all, which is the point of the fix.
+    items.push(
+      recommendation({
+        mbid,
+        subject,
+        title: mine.title,
+        artistName: mine.artist ?? "Unknown artist",
+        artistMbid: null,
+        year: mine.year,
+        genres: [],
+        score: entry.score ?? 0.5,
+        inLibrary: true,
+        signals,
+        windowDays,
+        owned,
+      }),
+    );
+  }
+
+  return { items, counts: { received: entries.length, inLibrary, examined } };
+}
+
+/**
+ * The three numbers the strip shows, in the order the question was asked: what arrived, what it
+ * named that you already own, and what it cost to find out about the rest.
+ */
+export function cfStrip(counts: CfCounts): string {
+  return (
+    `${String(counts.received)} received, ${String(counts.inLibrary)} in your library, ` +
+    `${String(counts.examined)} examined`
+  );
+}
+
+interface RecommendationInput {
+  readonly mbid: string;
+  readonly subject: string;
+  readonly title: string;
+  readonly artistName: string;
+  readonly artistMbid: string | null;
+  readonly year: number | null;
+  readonly genres: readonly string[];
+  readonly score: number;
+  readonly inLibrary: boolean;
+  readonly signals: ListeningSignals;
+  readonly windowDays: number;
+  readonly owned: ReadonlyMap<string, number>;
+}
+
+/**
+ * One row, scored and explained — the same arithmetic whether it came from a lookup or from a
+ * row the library already had.
+ *
+ * An owned row carries no genres of its own: they live in the metadata document, and reading
+ * that per candidate is a query the budget was spent precisely to avoid. Its genre affinity is
+ * therefore 0, and the **redundancy** term — which reads the artist, and the artist *is* known —
+ * is what sinks it below the new suggestions. That term is why one function can score both
+ * halves and still leave them in the right order.
+ */
+function recommendation(input: RecommendationInput): RecommendedItem {
+  const factors: ScoreFactors = {
+    external: clamp01(input.score),
+    artistAffinity: artistAffinity(input.artistName, input.signals),
+    genreAffinity: genreAffinity(input.genres, input.signals),
+    recency: 1,
+    redundancy: redundancyOf(input.artistName, input.owned),
+    diversity: 1,
+  };
+  const anchorArtist = input.signals.topArtists.find(
+    (artist) => artist.name.toLowerCase() === input.artistName.toLowerCase(),
+  );
+  return {
+    subject: input.subject,
+    kind: "track",
+    title: input.title,
+    artist: input.artistName,
+    albumTitle: null,
+    artistMbid: input.artistMbid,
+    releaseGroupMbid: null,
+    recordingMbid: input.mbid,
+    year: input.year,
+    score: scoreOf(factors),
+    factors,
+    reason: reasonFor(
+      {
+        ...(anchorArtist === undefined
+          ? {}
+          : { anchor: { name: anchorArtist.name, plays: anchorArtist.plays } }),
+        ...(factors.genreAffinity > 0 && input.genres[0] !== undefined
+          ? { genre: input.genres[0].toLowerCase() }
+          : {}),
+      },
+      input.windowDays,
+    ),
+    source: "ListenBrainz collaborative filtering",
+    inLibrary: input.inLibrary,
   };
 }
 

@@ -703,7 +703,7 @@ async function runSync(db: Database, options: SyncOptions): Promise<SyncReport> 
     const incomplete = await raiseIncompleteAlbums(db);
 
     // The signals snapshot carries what the two external sources actually contributed, so the
-    // strip can say "62 recommendations" rather than a hopeful "ok".
+    // strip can say "100 received, 61 in your library, 15 examined" rather than a hopeful "ok".
     const snapshot: ListeningSignals = {
       ...signals,
       sources: sourceStrip(

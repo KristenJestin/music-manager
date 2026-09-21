@@ -9,16 +9,25 @@
  *
  * The one exception is `diversify`, which is asserted precisely, because its whole behaviour is
  * an ordering and an ordering is either right or wrong.
+ *
+ * `collectCollaborative` is asserted on its *calls* — which MBIDs were looked up, and how many —
+ * because the bug it fixes was one of spending: none of the arithmetic changed when the budget
+ * was being spent on titles the library already had.
  */
 import { describe, expect, it } from "vitest";
+import type { MbRecording } from "@mm/domain";
 import {
   artistAffinity,
+  cfStrip,
+  collectCollaborative,
   diversify,
   genreAffinity,
   reasonFor,
   redundancyOf,
   SCORE_WEIGHTS,
   scoreOf,
+  type CfEntry,
+  type LibraryIndex,
   type RecommendedItem,
   type ScoreFactors,
 } from "./recommendations.ts";
@@ -228,6 +237,175 @@ describe("reasonFor", () => {
   it("names the window when it is not a month", () => {
     expect(reasonFor({ anchor: { name: "Justice", plays: 43 } }, 7)).toContain(
       "in the last 7 days",
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* the lookup budget                                                   */
+/* ------------------------------------------------------------------ */
+
+describe("collectCollaborative · lookups are spent on what is not owned", () => {
+  const BASE = {
+    signals: SIGNALS,
+    windowDays: 30,
+    owned: new Map<string, number>(),
+    dismissed: new Set<string>(),
+  };
+
+  /** The 100 MBIDs ListenBrainz answers with, best first. */
+  const entries = (count: number): readonly CfEntry[] =>
+    Array.from({ length: count }, (_, index) => ({
+      recording_mbid: `mbid-${String(index)}`,
+      score: 0.9,
+    }));
+
+  /** An index holding exactly these recordings, each naming itself from its own row. */
+  const holding = (mbids: readonly string[]): LibraryIndex => ({
+    recordings: new Map(
+      mbids.map(
+        (mbid) => [mbid, { title: `Owned ${mbid}`, artist: "Justice", year: 1998 }] as const,
+      ),
+    ),
+    releaseGroups: new Set<string>(),
+    artists: new Set<string>(),
+  });
+
+  const recording = (mbid: string): MbRecording => ({
+    id: mbid,
+    title: `New ${mbid}`,
+    "first-release-date": "1998-04-21",
+    genres: [{ name: "french house" }],
+    "artist-credit": [{ name: "Cassius", artist: { id: "cassius", name: "Cassius" } }],
+  });
+
+  /** A fake MusicBrainz. Which MBIDs it was asked about, and how many, *is* the assertion. */
+  function countingLookup(): {
+    readonly calls: string[];
+    readonly lookup: (mbid: string) => Promise<MbRecording | null>;
+  } {
+    const calls: string[] = [];
+    return {
+      calls,
+      lookup: (mbid) => {
+        calls.push(mbid);
+        return Promise.resolve(recording(mbid));
+      },
+    };
+  }
+
+  /** Spec · lookups are spent on what is not owned — "most of the head is owned". */
+  it("most of the head is owned", async () => {
+    const owned = Array.from({ length: 12 }, (_, index) => `mbid-${String(index)}`);
+    const { calls, lookup } = countingLookup();
+    const walk = await collectCollaborative({
+      ...BASE,
+      entries: entries(100),
+      index: holding(owned),
+      budget: 15,
+      lookup,
+    });
+
+    // Twelve of the first fifteen MBIDs are owned: they cost nothing, and are named from the
+    // library's own row rather than from a MusicBrainz answer nobody asked for.
+    expect(walk.counts).toEqual({ received: 100, inLibrary: 12, examined: 15 });
+    expect(calls).toHaveLength(15);
+    expect(calls.filter((mbid) => owned.includes(mbid))).toEqual([]);
+
+    // The fifteen calls land on the MBIDs *after* the owned head, where the old loop stopped.
+    expect(calls.slice(0, 3)).toEqual(["mbid-12", "mbid-13", "mbid-14"]);
+
+    const toImport = walk.items.filter((item) => !item.inLibrary);
+    expect(toImport).toHaveLength(15);
+    expect(walk.items.filter((item) => item.inLibrary)).toHaveLength(12);
+
+    const first = walk.items[0];
+    expect(first?.title).toBe("Owned mbid-0");
+    expect(first?.artist).toBe("Justice");
+    expect(first?.year).toBe(1998);
+    expect(first?.inLibrary).toBe(true);
+    expect(first?.reason).toContain("you played Justice");
+  });
+
+  /** Spec · lookups are spent on what is not owned — "nothing left". */
+  it("nothing left", async () => {
+    const { calls, lookup } = countingLookup();
+    // The whole answer is owned, and forty of those rows are dismissed on top: dismissing hides a
+    // row, it does not un-own it, so the strip still says a hundred.
+    const owned = Array.from({ length: 100 }, (_, index) => `mbid-${String(index)}`);
+    const dismissed = new Set(
+      Array.from({ length: 40 }, (_, index) => `recording:mbid-${String(index)}`),
+    );
+    const walk = await collectCollaborative({
+      ...BASE,
+      entries: entries(100),
+      index: holding(owned),
+      dismissed,
+      budget: 15,
+      lookup,
+    });
+
+    expect(calls).toEqual([]);
+    expect(walk.counts).toEqual({ received: 100, inLibrary: 100, examined: 0 });
+    expect(walk.items).toHaveLength(60);
+    expect(walk.items.every((item) => item.inLibrary)).toBe(true);
+  });
+
+  /** Spec · lookups are spent on what is not owned — "the budget is a setting". */
+  it("the budget is a setting", async () => {
+    const { calls, lookup } = countingLookup();
+    const walk = await collectCollaborative({
+      ...BASE,
+      entries: entries(100),
+      index: holding([]),
+      budget: 30,
+      lookup,
+    });
+
+    expect(calls).toHaveLength(30);
+    expect(walk.counts.examined).toBe(30);
+    expect(walk.items).toHaveLength(30);
+  });
+
+  it("does not count a dismissal it does not own as a lookup or as in your library", async () => {
+    const { calls, lookup } = countingLookup();
+    const walk = await collectCollaborative({
+      ...BASE,
+      entries: entries(3),
+      index: holding([]),
+      dismissed: new Set(["recording:mbid-0"]),
+      budget: 5,
+      lookup,
+    });
+
+    expect(calls).toEqual(["mbid-1", "mbid-2"]);
+    expect(walk.counts).toEqual({ received: 3, inLibrary: 0, examined: 2 });
+  });
+
+  it("counts a lookup that found nothing as examined, not as free", async () => {
+    const walk = await collectCollaborative({
+      ...BASE,
+      entries: entries(3),
+      index: holding([]),
+      budget: 5,
+      lookup: () => Promise.resolve(null),
+    });
+
+    expect(walk.counts).toEqual({ received: 3, inLibrary: 0, examined: 3 });
+    expect(walk.items).toEqual([]);
+  });
+});
+
+describe("cfStrip", () => {
+  it("reads in the order the question was asked", () => {
+    expect(cfStrip({ received: 100, inLibrary: 61, examined: 15 })).toBe(
+      "100 received, 61 in your library, 15 examined",
+    );
+  });
+
+  it("says nothing happened when nothing did", () => {
+    expect(cfStrip({ received: 0, inLibrary: 0, examined: 0 })).toBe(
+      "0 received, 0 in your library, 0 examined",
     );
   });
 });

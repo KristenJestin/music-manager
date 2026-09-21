@@ -662,6 +662,11 @@ export const SETTING_DEFINITIONS = {
     3,
     "How many recommendations one artist may occupy before the redundancy penalty pushes the rest down.",
   ),
+  discoverCfLookups: define(
+    z.number().int().min(1).max(50),
+    15,
+    "How many ListenBrainz collaborative-filtering recordings get a MusicBrainz lookup per sync. One request a second, so it is a budget; recordings the library already holds are skipped before it is spent.",
+  ),
   discoverIncludeTypes: define<("Album" | "EP" | "Single" | "Other")[]>(
     z.array(z.enum(["Album", "EP", "Single", "Other"])),
     ["Album", "EP"],
