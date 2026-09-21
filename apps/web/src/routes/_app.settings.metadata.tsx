@@ -22,7 +22,7 @@ import { useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { Download, Layers, ShieldCheck, Tag } from "lucide-react";
 import { cn } from "cn";
-import { PREFERRED_LOCALES } from "@mm/domain";
+import { DEFAULT_WRITE_WORK_TAGS, PREFERRED_LOCALES, type WriteWorkTags } from "@mm/domain";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Callout } from "#/components/callout.tsx";
@@ -668,6 +668,23 @@ function MetadataSettings() {
         title="Tag map"
         description="What we write, where it comes from, and who reads it back."
       >
+        <FormRow
+          label="Work tags"
+          help="WORK and the movement block (§2.4). Players group an album's tracks by their work: it is what a symphony's movements want, and what repeats every title in a header on a pop album. MUSICBRAINZ_WORKID is written either way."
+        >
+          <ChipGroup
+            testId="setting-writeWorkTags"
+            value={value<WriteWorkTags>("writeWorkTags", DEFAULT_WRITE_WORK_TAGS)}
+            options={[
+              { value: "classical", label: "Classical releases only" },
+              { value: "always", label: "Every release" },
+              { value: "never", label: "Never" },
+            ]}
+            onChange={(next) => {
+              set("writeWorkTags", next);
+            }}
+          />
+        </FormRow>
         <div className="py-3">
           <Callout tone="info" className="mb-3">
             The reference is the <b>Picard tag mapping</b>: the standard superset across all formats

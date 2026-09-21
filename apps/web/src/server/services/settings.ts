@@ -20,10 +20,12 @@ import {
   DEFAULT_PATH_TEMPLATE,
   DEFAULT_THRESHOLDS,
   DEFAULT_WEIGHTS,
+  DEFAULT_WRITE_WORK_TAGS,
   DISC_MODES,
   PATH_TOKENS,
   PREFERRED_LOCALES,
   validatePathTemplate,
+  WRITE_WORK_TAGS,
 } from "@mm/domain";
 import { db as defaultDb, type Database } from "#/server/db/client.ts";
 import { settings as settingsTable } from "#/server/db/schema/index.ts";
@@ -323,6 +325,11 @@ export const SETTING_DEFINITIONS = {
   ),
 
   /* ---- tagging and sidecars (docs/03 §3) ---- */
+  writeWorkTags: define(
+    z.enum(WRITE_WORK_TAGS),
+    DEFAULT_WRITE_WORK_TAGS,
+    "What to do with `WORK` and §2.4's movement block (issue #4). `classical`, the default, writes them on classical releases only: players group an album's tracks by their work, which is what a symphony's movements want and what repeats each title in a header on a pop album. `always` writes them on every release — what v3 did — and `never` writes none of them. `MUSICBRAINZ_WORKID` is written in all three cases.",
+  ),
   writeLyricsSidecar: define(z.boolean(), true, "Write `<track>.lrc` next to the file."),
   writeCover: define(z.boolean(), true, "Write `cover.jpg` in the album folder."),
   writeArtistImage: define(

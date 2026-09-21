@@ -9,7 +9,7 @@
  * used here too: one key, one spelling, on both sides of the bridge.
  */
 import { MMError } from "@mm/contracts";
-import type { ArtistNameSource, LocalePreference } from "@mm/domain";
+import type { ArtistNameSource, LocalePreference, WriteWorkTags } from "@mm/domain";
 import type { Database } from "#/server/db/client.ts";
 import type { CacheStore } from "./cached.ts";
 import { serverEnv } from "#/server/env.ts";
@@ -72,6 +72,8 @@ export interface SourcesConfig {
   readonly artworkSize: number;
   readonly lyricsMaxDurationDelta: number;
   readonly writeAcoustidFingerprint: boolean;
+  /** §2.4's work fields on this release (issue #4): the `writeWorkTags` setting. */
+  readonly writeWorkTags: WriteWorkTags;
 }
 
 /**
@@ -191,6 +193,7 @@ export function sourcesConfig(
     artworkSize: settings.artworkSize,
     lyricsMaxDurationDelta: settings.lyricsMaxDurationDelta,
     writeAcoustidFingerprint: settings.writeAcoustidFingerprint,
+    writeWorkTags: settings.writeWorkTags,
   };
 }
 
