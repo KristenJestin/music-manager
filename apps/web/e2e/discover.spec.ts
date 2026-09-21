@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test, signIn } from "./helpers.ts";
+import { clearSeededInbox, seedInbox, SEED_PREFIX } from "./seed.ts";
 
 /**
  * `/discover`, offline.
@@ -30,6 +31,12 @@ test.describe("discover", () => {
     await signIn(page);
     await page.goto("/discover");
     await expect(page.getByTestId("discover")).toBeVisible({ timeout: 60_000 });
+  });
+
+  /* The seeded rows go as soon as this file is done: the suite is serial and runs in file-name
+   * order, so the specs after this one must see the queue they would have seen (`seed.ts`). */
+  test.afterAll(async () => {
+    await clearSeededInbox();
   });
 
   test("renders the three blocks and the signals behind them", async ({ page }) => {
@@ -179,5 +186,40 @@ test.describe("discover", () => {
     await sync(page);
     await page.reload();
     await expect(page.locator(`[data-subject="${subject ?? ""}"]`)).toHaveCount(1);
+  });
+
+  /**
+   * The scenario of `D7-01`, and the test the issue's Impact expected to find here: an open
+   * `album_incomplete` item must not put a block back on `/discover`, and Review is still where
+   * it is answered.
+   *
+   * The situation is seeded straight into `inbox_items` (`seed.ts` says why on its own header:
+   * no amount of clicking produces an album you own only part of), and both halves of the
+   * assertion go through the Console. Nothing else in this file ever asserted the removed
+   * block, so before this it could have come back without a single test going red.
+   */
+  test("incomplete albums exist: Discover shows no block, and Review lists them", async ({
+    page,
+  }) => {
+    const item = `${SEED_PREFIX}album_incomplete`;
+    await seedInbox([
+      {
+        id: item,
+        type: "album_incomplete",
+        title: "Seeded Record — 3 of 11 tracks",
+        summary: "You own part of this album.",
+      },
+    ]);
+
+    await page.goto("/discover");
+    await expect(page.getByTestId("discover")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("discover-inbox")).toHaveCount(0);
+    await expect(page.getByText("Incomplete albums")).toHaveCount(0);
+
+    // Review keeps it, with the same action it has always offered there.
+    await page.goto("/review?type=album_incomplete");
+    await expect(
+      page.getByTestId("review-list").getByRole("link").filter({ hasText: "Seeded Record" }),
+    ).toBeVisible({ timeout: 60_000 });
   });
 });

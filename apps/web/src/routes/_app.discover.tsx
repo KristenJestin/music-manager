@@ -1,10 +1,12 @@
 /**
  * `/discover` — recommendations that become imports.
  *
- * Three blocks, in the order the prototype fixes and for a reason: what you already half-own
- * (no external dependency, always works), what ListenBrainz thinks (needs an account), and who
- * else sounds like this (the widest net, the weakest signal). A reader who has configured
- * nothing still sees the first block and an honest empty state for the other two.
+ * It holds **only** what to listen to and import next: the listening signals, the discography
+ * gaps, the ListenBrainz recommendations and the artists that sound like them. The "Incomplete
+ * albums" block it used to open with was the library inbox's `album_incomplete` queue —
+ * maintenance, which is Review's business (`D7-01`), and a page that mixes the two is read as
+ * neither. A reader who has configured nothing still sees the discography block and an honest
+ * empty state for the rest.
  *
  * Every card carries **the reason before the score**. The bar is there to sort by; the sentence
  * is there to disagree with, which is decision 002 rendered in a list: the algorithm proposes
@@ -18,7 +20,6 @@ import { z } from "zod";
 import {
   Disc3,
   Download,
-  Inbox as InboxIcon,
   Music4,
   RefreshCw,
   Search,
@@ -445,34 +446,6 @@ function Discover() {
         at step 2 with the release preselected, and the same candidates, mapping and confirmation as
         a pasted URL.
       </Callout>
-
-      {view.inbox.length === 0 ? null : (
-        <section className="mb-5" data-testid="discover-inbox">
-          <SectionHeading
-            icon={<InboxIcon className="size-4" aria-hidden="true" />}
-            title="Incomplete albums"
-            hint="Albums you own only part of. Re-importing fills the holes."
-          />
-          <div className="divide-y divide-line rounded-xl border border-line bg-surface-1">
-            {view.inbox.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 px-4 py-2.5">
-                <div className="min-w-0 grow">
-                  <div className="truncate font-medium">{item.title}</div>
-                  <div className="truncate text-2xs text-fg-3">{item.summary}</div>
-                </div>
-                <Button
-                  size="xs"
-                  variant="outline"
-                  nativeButton={false}
-                  render={<Link to="/review" />}
-                >
-                  Open in Review
-                </Button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ---------------- 1. complete your discography ---------------- */}
       <section className="mb-6" data-testid="discover-discography">
