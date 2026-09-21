@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 4;
+export const TAG_SCHEMA_VERSION = 5;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,14 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 5,
+    at: "2026-09-21",
+    added: [],
+    changed: [],
+    removed: ["ITUNESADVISORY", "SUBTITLE"],
+    note: "Issue #5: two tags leaked editorial metadata into the player's UI. ITUNESADVISORY is a store convention (1 = explicit, 2 = clean) that Symfonium draws as a “C”/“E” badge in front of every title; it is now written only when the new `writeExplicitTag` setting is on, and `explicit` is n/a (“disabled by settings”) otherwise — the value is still resolved and matching still ranks with `explicitPreference`. SUBTITLE received the MusicBrainz recording disambiguation, which tells two recordings apart in the database rather than subtitling a track; it is now n/a (“MusicBrainz disambiguation is an editor note”) and nothing writes it. The re-tag removes both from existing files, offline, from the raw cache.",
+  },
   {
     version: 4,
     at: "2026-09-21",
