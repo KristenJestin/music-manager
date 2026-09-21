@@ -16,7 +16,9 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  projectDocument,
   resolveTrackDocument,
+  TAG_SCHEMA_VERSION,
   tagByField,
   trackCompleteness,
   type CaaIndex,
@@ -30,6 +32,7 @@ import {
   type YtdlpEntry,
 } from "@mm/domain";
 import { thumbnailCoverPatch, youtubeThumbnail } from "#/server/services/documents.ts";
+import { isBehindSchema } from "#/server/services/schema-version.ts";
 import { loadCassette } from "../cassette.ts";
 
 const AT = "2026-09-06T00:00:00.000Z";
@@ -65,6 +68,68 @@ const lastfmTrack = body<LastfmBody>("lastfm", "method=track.gettoptags");
 
 const ytdlp = fixture<YtdlpEntry>("ytdlp/video-one-more-time.json");
 const loudness = fixture<{ tracks: RsgainResult[] }>("rsgain/scan-discovery.json").tracks[0];
+
+/** The other library shape #4 has to keep out: a film score, recorded from the real thing. */
+const tsubasa = fixture<MbRelease>("musicbrainz/release-tsubasa.json");
+
+/** The first track's embedded recording — what a single release lookup really hands over. */
+function embeddedRecording(held: MbRelease): MbRecording {
+  const recording = held.media?.[0]?.tracks?.[0]?.recording;
+  if (recording === undefined) throw new Error("the fixture has no first track");
+  return recording;
+}
+
+/** The same release with every genre and tag off it, so only the work's shape can decide. */
+function withoutGenres(held: MbRelease): MbRelease {
+  return {
+    ...held,
+    genres: [],
+    tags: [],
+    "release-group": { ...(held["release-group"] ?? {}), genres: [], tags: [] },
+  };
+}
+
+/** The same release with one genre on its group — the way the genre half decides. */
+function withGenre(held: MbRelease, genre: string): MbRelease {
+  return {
+    ...held,
+    "release-group": { ...(held["release-group"] ?? {}), genres: [{ name: genre }] },
+  };
+}
+
+/**
+ * The recording as MusicBrainz answers for a work it models as movements: the work's own
+ * relations, `work-level-rels`, carry one `parts` link per movement *plus* the composer credit.
+ */
+function withMovements(held: MbRecording, movements: number): MbRecording {
+  const copy = structuredClone(held) as unknown as {
+    relations?: { "target-type"?: string; work?: { relations?: unknown[] } }[];
+  };
+  const performance = (copy.relations ?? []).find((relation) => relation["target-type"] === "work");
+  if (performance?.work === undefined) throw new Error("the recording performs no work");
+  performance.work.relations = [
+    ...(performance.work.relations ?? []),
+    ...Array.from({ length: movements }, (_, index) => ({
+      type: "parts",
+      "target-type": "work",
+      work: { id: `movement-${index + 1}`, title: `Movement ${index + 1}` },
+    })),
+  ];
+  return copy as unknown as MbRecording;
+}
+
+/** A work the pipeline asked for on its own: `workFull` asks for no `work-rels`, so no shape. */
+const WORK_ID = "4bb47ffc-9006-32cf-8aa9-e213334550dc";
+function standaloneWork(title: string, composer = false) {
+  return {
+    data: {
+      id: WORK_ID,
+      title,
+      ...(composer ? { relations: [{ type: "composer", "target-type": "artist" }] } : {}),
+    },
+    fetchedAt: AT,
+  };
+}
 
 /** Everything a fully resolved track 1 of Discovery is made of. */
 function input(overrides: Partial<TrackResolutionInput> = {}): TrackResolutionInput {
@@ -235,6 +300,91 @@ describe("the work fields", () => {
     const document = resolveTrackDocument({ ...input(), writeWorkTags: "never" });
     expect(document.fields["work"]).toBeUndefined();
     expect(document.na["work"]?.reason).toContain("disabled by settings");
+  });
+
+  // Review of #14, point 3: the owner's library is mostly film scores, every one of them with a
+  // composer credit, and the predicate was only ever tested on pop and on a symphony. Tsubasa is
+  // the recorded one — no genre on its group, `yuki kajiura` on every work, cue titles.
+  it("leaves a film score alone, composer credit and all", () => {
+    const score = resolveTrackDocument({
+      ...input(),
+      release: { data: tsubasa, fetchedAt: AT, trackPosition: 1, mediumPosition: 1 },
+      recording: { data: embeddedRecording(tsubasa), fetchedAt: AT },
+    });
+    expect(score.fields["work"]).toBeUndefined();
+    expect(score.na["work"]?.reason).toContain("not a classical release");
+    // The identifier is written either way: the re-tag can repair the library offline.
+    expect(valueOf(score, "musicbrainz_workid")).toBe("3fd48635-898a-4c76-a95d-5d1f19637832");
+  });
+
+  // Review of #14, point 7: the shape half of the predicate was only ever exercised as a unit.
+  // Here the release group says nothing at all and the shape decides — a composer credit in the
+  // work's relations and `op. 67` in its title.
+  it("falls back on the shape — a catalogue number in the work's title", () => {
+    const document = resolveTrackDocument({
+      ...input(),
+      release: {
+        data: withoutGenres(release),
+        fetchedAt: AT,
+        trackPosition: 1,
+        mediumPosition: 1,
+      },
+      work: standaloneWork("Symphony no. 5 in C minor, op. 67", true),
+    });
+    expect(valueOf(document, "work")).toBe("Symphony no. 5 in C minor, op. 67");
+    expect(document.na["work"]).toBeUndefined();
+  });
+
+  // Review of #14, point 1. The work arrives twice and the copies are not equivalent: the one the
+  // pipeline fetched on its own carries no `work-rels` — no movements, no composer credit here —
+  // while the one the recording nests carries `work-level-rels`. This work has a movement
+  // structure and no catalogue number, so reading the first copy alone lost it its WORK.
+  it("reads the shape from the copy of the work that carries it", () => {
+    const document = resolveTrackDocument({
+      ...input(),
+      release: {
+        data: withoutGenres(release),
+        fetchedAt: AT,
+        trackPosition: 1,
+        mediumPosition: 1,
+      },
+      recording: { data: withMovements(recording, 2), fetchedAt: AT },
+      work: standaloneWork("Le Sacre du printemps"),
+    });
+    expect(valueOf(document, "work")).toBe("Le Sacre du printemps");
+    expect(document.na["work"]).toBeUndefined();
+  });
+});
+
+/**
+ * Spec · tags.write, "a file tagged before the change". The projection run selects on the schema
+ * version, and what it writes back depends on the release: the pop file loses the `WORK` header a
+ * player was grouping by, the classical one keeps it. The file itself is the toolbox's half.
+ */
+describe("a file tagged before the change", () => {
+  it("is picked up by its version, and loses WORK only when it is not classical", () => {
+    expect(TAG_SCHEMA_VERSION).toBe(4);
+    expect(isBehindSchema(3, TAG_SCHEMA_VERSION)).toBe(true);
+    expect(isBehindSchema(TAG_SCHEMA_VERSION, TAG_SCHEMA_VERSION)).toBe(false);
+
+    const pop = projectDocument(resolveTrackDocument(input()), "vorbis");
+    const classical = projectDocument(
+      resolveTrackDocument({
+        ...input(),
+        release: {
+          data: withGenre(release, "classical"),
+          fetchedAt: AT,
+          trackPosition: 1,
+          mediumPosition: 1,
+        },
+      }),
+      "vorbis",
+    );
+
+    expect(pop.some((tag) => tag.key === "WORK")).toBe(false);
+    expect(classical.find((tag) => tag.key === "WORK")?.value).toBe("One More Time");
+    // Either way the identifier survives, which is what makes the re-tag possible.
+    expect(pop.find((tag) => tag.key === "MUSICBRAINZ_WORKID")?.value).toBe(WORK_ID);
   });
 });
 
