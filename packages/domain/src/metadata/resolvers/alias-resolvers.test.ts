@@ -205,3 +205,101 @@ describe("the pseudo-release", () => {
     expect(patch.na ?? {}).toEqual({});
   });
 });
+
+/**
+ * #9, second half (D9-02) — a credited-as under each `artistNameSource`, with a locale asked
+ * for. *Suzume* is the fixture because it has three credited-as at once, and both of the
+ * interesting shapes:
+ *
+ *  - the sleeve prints `Kazuma Jinnouchi` for 陣内一真, and that name **is** the artist's only
+ *    `en` alias — so refusing the alias and dropping the printed name leaves nothing to write;
+ *  - the sleeve prints `Toaka` for 十明, whose alias is `Toaka` as well, typed `Artist name`.
+ *
+ * Before D9-02 the guard ran in both modes, so `canonical` threw the printed name away *and*
+ * refused the alias: the album came out in Japanese whatever the locale was.
+ */
+describe("a credited-as under each artistNameSource (D9-02)", () => {
+  /** Worldwide edition — `Official`, `Latn`, 29 tracks, recorded whole in `fixtures/`. */
+  const suzume = readFixture<MbRelease>("musicbrainz/release-suzume.json");
+  /** Track 2, `Kazuma Jinnouchi / RADWIMPS` on the sleeve; `陣内一真 & RADWIMPS` below it. */
+  const KAZUMA = 2;
+
+  const patchFor = (
+    options: { artistNameSource?: "credited" | "canonical"; locale?: LocalePreference } = {},
+    position = KAZUMA,
+  ) => fromMusicBrainzRelease(suzume, { trackPosition: position, fetchedAt: at, ...options });
+
+  it("writes the printed credit when no locale is asked for — the default, untouched", () => {
+    const patch = patchFor();
+    expect(value(patch, "albumartist")).toBe("RADWIMPS, Kazuma Jinnouchi");
+    expect(value(patch, "artist")).toBe("Kazuma Jinnouchi / RADWIMPS");
+    expect(via(patch, "albumartist")).toBeUndefined();
+  });
+
+  it("`credited`: keeps the sleeve's name, and still refuses to translate it", () => {
+    const patch = patchFor({ artistNameSource: "credited", locale: EN });
+    expect(value(patch, "albumartist")).toBe("RADWIMPS, Kazuma Jinnouchi");
+    expect(value(patch, "artist")).toBe("Kazuma Jinnouchi / RADWIMPS");
+    // 陣内一真 *has* a primary `en` alias, so an empty `via` here is the guard doing its job
+    // rather than an alias that was missing.
+    expect(via(patch, "albumartist")).toBeUndefined();
+    expect(via(patch, "artist")).toBeUndefined();
+  });
+
+  it("`canonical`: translates the artist's own name through that alias", () => {
+    const patch = patchFor({ artistNameSource: "canonical", locale: EN });
+    expect(value(patch, "albumartist")).toBe("RADWIMPS, Kazuma Jinnouchi");
+    expect(via(patch, "albumartist")).toBe("alias en (primary)");
+    expect(value(patch, "artist")).toBe("Kazuma Jinnouchi / RADWIMPS");
+    expect(value(patch, "artists")).toEqual(["Kazuma Jinnouchi", "RADWIMPS"]);
+    expect(via(patch, "artist")).toBe("alias en (primary)");
+    // RADWIMPS is Latin and has no `en` alias, so it is written as it stands; the join phrase
+    // is MusicBrainz's either way.
+    expect(value(patch, "artistsort")).toEqual(["Jinnouchi, Kazuma", "RADWIMPS"]);
+  });
+
+  it("`canonical` with no locale is the plain canonical name", () => {
+    expect(value(patchFor({ artistNameSource: "canonical" }), "albumartist")).toBe(
+      "RADWIMPS, 陣内一真",
+    );
+  });
+
+  it("reaches 十明's alias on the track it is credited for", () => {
+    const patch = patchFor({ artistNameSource: "canonical", locale: EN }, 27);
+    expect(value(patch, "artist")).toBe("RADWIMPS feat. Toaka");
+    expect(via(patch, "artist")).toBe("alias en (primary)");
+  });
+
+  /**
+   * The case that tells the two modes apart, and the reason the guard cannot simply be
+   * dropped: a sleeve that prints a name which is neither the artist's own nor the alias. The
+   * editorial fact still wins wherever printed names are what we write, and the artist's own
+   * name is still translated where that is what we write.
+   */
+  it("still refuses a printed name of its own, and translates the canonical one beside it", () => {
+    const entry = suzume["artist-credit"]?.[1];
+    if (entry === undefined) throw new Error("the Suzume fixture lost its second credit entry");
+    const renamed: MbRelease = {
+      ...suzume,
+      "artist-credit": [{ ...entry, name: "DJ Jinnouchi", joinphrase: "" }],
+    };
+
+    const credited = fromMusicBrainzRelease(renamed, {
+      trackPosition: 1,
+      fetchedAt: at,
+      artistNameSource: "credited",
+      locale: EN,
+    });
+    expect(value(credited, "albumartist")).toBe("DJ Jinnouchi");
+    expect(via(credited, "albumartist")).toBeUndefined();
+
+    const canonical = fromMusicBrainzRelease(renamed, {
+      trackPosition: 1,
+      fetchedAt: at,
+      artistNameSource: "canonical",
+      locale: EN,
+    });
+    expect(value(canonical, "albumartist")).toBe("Kazuma Jinnouchi");
+    expect(via(canonical, "albumartist")).toBe("alias en (primary)");
+  });
+});
