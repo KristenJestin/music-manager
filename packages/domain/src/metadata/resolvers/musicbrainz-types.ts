@@ -202,11 +202,19 @@ function nameOf(entry: MbArtistCreditEntry, source: ArtistNameSource): string {
 /**
  * One credit entry's name, translated to the preferred locale when there is an alias for it.
  *
- * **A deliberate “credited as” is never translated.** The credit carries the name printed on
- * this release next to the artist's canonical one; when an editor has recorded that the two
- * differ, that is a fact about this sleeve, and a library-wide locale preference does not get
- * to overrule it. So the alias is only applied when the printed name *is* the canonical name
- * (NFC-normalised) — see `creditIsCanonical` in `../alias.ts`.
+ * **A deliberate “credited as” is never translated in `credited` mode.** The credit carries
+ * the name printed on this release next to the artist's canonical one; when an editor has
+ * recorded that the two differ, that is a fact about this sleeve, and a library-wide locale
+ * preference does not get to overrule it. So the alias is only applied when the printed name
+ * *is* the canonical name (NFC-normalised) — see `creditIsCanonical` in `../alias.ts`.
+ *
+ * **D9-02: that guard protects a printed name, and only that.** In `canonical` mode the name
+ * written is the artist's own, not the sleeve's, so the credit has already been set aside and
+ * there is nothing left to protect: the alias applies. Without this the two settings combine
+ * into “never translate” — the credit is refused a translation *and* the printed name is
+ * dropped — which is exactly what happened to *Suzume*'s `RADWIMPS, 陣内一真`, whose
+ * album-artist credit is a genuine credited-as (`Kazuma Jinnouchi` for `陣内一真`) and whose
+ * artist has `{Kazuma Jinnouchi, en, primary}`.
  *
  * The alias is looked up on `entry.artist`, never on the credit: only the artist entity has
  * an alias list, and it is the entity the locale preference is about.
@@ -219,7 +227,7 @@ function translate(
   const fallback = nameOf(entry, source);
   const canonical = entry.artist?.name ?? "";
   if (locale === undefined || canonical === "") return { name: fallback, alias: null };
-  if (!creditIsCanonical(entry.name ?? canonical, canonical))
+  if (source === "credited" && !creditIsCanonical(entry.name ?? canonical, canonical))
     return { name: fallback, alias: null };
 
   const alias = pickAlias(entry.artist?.aliases, {
