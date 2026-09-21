@@ -38,6 +38,9 @@ import { loadCassette } from "../cassette.ts";
 
 const AT = "2026-09-06T00:00:00.000Z";
 const RECORDING = "60fa767a-d85d-4991-82bc-4294e0b11ae7";
+/* The MBID MusicBrainz uses for the writer of a folk song, a hymn or a carol — issue #19. */
+const TRADITIONAL = "9be7f096-97ec-4615-8957-8d40b5dcbc41";
+const BANGALTER = "122a2714-24f8-4046-a532-64064b5076d2";
 
 const FIXTURES = resolve(
   fileURLToPath(new URL(".", import.meta.url)),
@@ -364,7 +367,7 @@ describe("the work fields", () => {
  */
 describe("a file tagged before the change", () => {
   it("is picked up by its version, and loses WORK only when it is not classical", () => {
-    expect(TAG_SCHEMA_VERSION).toBe(6);
+    expect(TAG_SCHEMA_VERSION).toBe(7);
     expect(isBehindSchema(3, TAG_SCHEMA_VERSION)).toBe(true);
     expect(isBehindSchema(TAG_SCHEMA_VERSION, TAG_SCHEMA_VERSION)).toBe(false);
 
@@ -408,6 +411,74 @@ describe("a file tagged before the change", () => {
     expect(removed).toContain("ITUNESADVISORY");
     expect(removed).toContain("SUBTITLE");
     expect(diff.added.map((change) => change.key)).not.toContain("ITUNESADVISORY");
+  });
+
+  /*
+   * Issue #19, the same scenario one version on: a v6 file tagged `COMPOSER=[traditional]` —
+   * MusicBrainz's placeholder for “nobody wrote this”, the way a folk song reaches us — loses it,
+   * because a v7 projection writes no credit for a special-purpose artist. The other half of the
+   * scenario is what makes the bump safe to run over a library: the same file with a real composer
+   * comes out of the diff empty, so nothing is rewritten for it.
+   */
+  it("loses COMPOSER=[traditional], and leaves a real composer alone", () => {
+    expect(isBehindSchema(6, TAG_SCHEMA_VERSION)).toBe(true);
+
+    /**
+     * The recording with one relation on it: its nested work is gone, so that relation is the
+     * only credit — and the recorded video's description is gone too, because YouTube lists
+     * composers of its own there and one of them would be written whatever MusicBrainz says.
+     */
+    function withRelation(type: string, id: string, name: string): TrackDocument {
+      return resolveTrackDocument({
+        ...input(),
+        youtube: {
+          data: { ...ytdlp, description: null },
+          fetchedAt: AT,
+          appVersion: "0.0.0",
+          importedOn: "2026-09-06",
+        },
+        recording: {
+          data: {
+            ...recording,
+            relations: [{ type, "target-type": "artist", artist: { id, name, "sort-name": name } }],
+          },
+          fetchedAt: AT,
+        },
+      });
+    }
+
+    /** What a file tagged before the change holds: today's projection plus the old tags. */
+    function asTagged(
+      document: TrackDocument,
+      extra: Record<string, string>,
+    ): Record<string, string> {
+      const embedded: Record<string, string> = { ...extra };
+      for (const tag of projectDocument(document, "vorbis")) embedded[tag.key] = tag.value;
+      return embedded;
+    }
+
+    const traditional = withRelation("writer", TRADITIONAL, "[traditional]");
+    const projected = projectDocument(traditional, "vorbis");
+    expect(projected.some((tag) => tag.key === "COMPOSER")).toBe(false);
+    expect(projected.some((tag) => tag.key === "MUSICBRAINZ_COMPOSERID")).toBe(false);
+
+    const diff = diffProjection(
+      projected,
+      asTagged(traditional, { COMPOSER: "[traditional]", MUSICBRAINZ_COMPOSERID: TRADITIONAL }),
+    );
+    expect(diff.removed.map((change) => change.key)).toContain("COMPOSER");
+    expect(diff.removed.map((change) => change.key)).toContain("MUSICBRAINZ_COMPOSERID");
+    expect(diff.added.map((change) => change.key)).not.toContain("COMPOSER");
+
+    const real = withRelation("composer", BANGALTER, "Thomas Bangalter");
+    const realProjected = projectDocument(real, "vorbis");
+    expect(realProjected.find((tag) => tag.key === "COMPOSER")?.value).toBe("Thomas Bangalter");
+    const untouched = diffProjection(
+      realProjected,
+      asTagged(real, { COMPOSER: "Thomas Bangalter", MUSICBRAINZ_COMPOSERID: BANGALTER }),
+    );
+    expect(untouched.removed).toEqual([]);
+    expect(untouched.added).toEqual([]);
   });
 });
 
