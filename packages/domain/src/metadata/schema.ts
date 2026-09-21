@@ -13,7 +13,7 @@
  *  4. re-generate the golden files and read the diff — it is the review.
  */
 
-export const TAG_SCHEMA_VERSION = 5;
+export const TAG_SCHEMA_VERSION = 6;
 
 export interface TagSchemaChange {
   readonly version: number;
@@ -30,6 +30,25 @@ export interface TagSchemaChange {
 
 /** Newest first. */
 export const TAG_SCHEMA_CHANGELOG: readonly TagSchemaChange[] = Object.freeze([
+  {
+    version: 6,
+    at: "2026-09-21",
+    added: [],
+    changed: [
+      "ARTIST",
+      "ARTISTS",
+      "ARTISTSORT",
+      "MUSICBRAINZ_ARTISTID",
+      "ALBUMARTIST",
+      "ALBUMARTISTS",
+      "ALBUMARTISTSORT",
+      "MUSICBRAINZ_ALBUMARTISTID",
+      "LABEL",
+      "CATALOGNUMBER",
+    ],
+    removed: [],
+    note: "Issue #6: a MusicBrainz special-purpose entity is not a value. A credit that names `[unknown]`, `[no artist]`, `[dialogue]`… names nobody, so the entry is dropped and the four credit fields are n/a (“MusicBrainz special-purpose artist”) instead of carrying a bracketed non-name; `label-info` pointing at `[no label]` leaves LABEL n/a (“MusicBrainz special-purpose label”), and `[none]`, the string the style guide asks an editor to type when a release has no catalogue number, is no longer a catalogue number. The match is by MBID, never by name, so a real bracketed label such as `[PIAS]` still reaches its tag, and `Various Artists` is deliberately kept: it is the row that sets COMPILATION. The `label`/`catalognumber` pair is album-scope, so the union no longer propagates `[no label]` across an album's tracks. The re-tag repairs the library offline from the raw cache: 78 files out of ~4,000 carry LABEL=[no label] today.",
+  },
   {
     version: 5,
     at: "2026-09-21",

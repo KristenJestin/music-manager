@@ -96,6 +96,19 @@ export type { ExplicitTagDecision } from "./metadata/explicit.ts";
 
 export * from "./metadata/resolvers/index.ts";
 
+/* ---- MusicBrainz special-purpose entities (docs §2, issue #6) ---- */
+export {
+  CATALOGUE_NUMBER_PLACEHOLDER,
+  isCatalogueNumberPlaceholder,
+  isSpecialPurposeArtist,
+  isSpecialPurposeLabel,
+  specialPurposeEntity,
+  SPECIAL_PURPOSE_ARTIST_REASON,
+  SPECIAL_PURPOSE_LABEL_REASON,
+  SPECIAL_PURPOSE_MBIDS,
+} from "./metadata/special-purpose.ts";
+export type { SpecialPurposeEntity, SpecialPurposeKind } from "./metadata/special-purpose.ts";
+
 /* ---- album scope: one value per album for the 36 `albumScope` fields (docs §2, §6) ---- */
 export {
   ALBUM_SCOPE_RULES,

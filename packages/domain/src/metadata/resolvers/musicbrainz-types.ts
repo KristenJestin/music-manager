@@ -14,6 +14,7 @@ import {
   type LocalePreference,
   type MbAlias,
 } from "../alias.ts";
+import { isSpecialPurposeArtist } from "../special-purpose.ts";
 
 export type { LocalePreference, MbAlias };
 
@@ -239,17 +240,57 @@ function translate(
   return name === "" ? { name: fallback, alias: null } : { name, alias };
 }
 
+/**
+ * The credit entries that name an artist at all (issue #6).
+ *
+ * MusicBrainz credits `[unknown]`, `[no artist]`, `[dialogue]`… when it has nobody to name:
+ * those are **special-purpose artists**, rows whose name is bracketed so that a human reading
+ * the database knows it is not a name (`../special-purpose.ts`). They are dropped here, in the
+ * one place every credit field goes through, so `ARTIST`, `ARTISTSORT` and
+ * `MUSICBRAINZ_ARTISTID` cannot disagree about who performed the track. **D6-01: by MBID,
+ * never by name** — `[adult swim]` is a real artist whose name is bracketed, and a pattern
+ * rule would eat it. `Various Artists` is not one of them, on purpose: it is the row that makes
+ * a compilation a compilation, and losing it would cost `COMPILATION` itself.
+ */
+function creditedEntries(
+  credit: readonly MbArtistCreditEntry[] | undefined,
+): readonly MbArtistCreditEntry[] {
+  return (credit ?? []).filter((entry) => !isSpecialPurposeArtist(entry.artist?.id));
+}
+
+/**
+ * True when a credit names a special-purpose artist **and nobody else** — the case where the
+ * credit fields are `n/a` ("MusicBrainz special-purpose artist") rather than missing (D6-02).
+ *
+ * A credit of `[unknown] & Daft Punk` keeps Daft Punk and is not n/a: somebody was named.
+ */
+export function creditIsOnlySpecialPurpose(
+  credit: readonly MbArtistCreditEntry[] | undefined,
+): boolean {
+  const entries = credit ?? [];
+  return entries.length > 0 && creditedEntries(entries).length === 0;
+}
+
 /** `ARTIST` is the credit rebuilt with MusicBrainz's own join phrases (§2.1). */
 export function joinArtistCredit(
   credit: readonly MbArtistCreditEntry[] | undefined,
   source: ArtistNameSource = "credited",
   locale?: LocalePreference,
 ): string | null {
-  if (credit === undefined || credit.length === 0) return null;
+  const entries = creditedEntries(credit);
+  if (entries.length === 0) return null;
+  const discarded = (credit?.length ?? 0) - entries.length;
   // The join phrases are MusicBrainz's, untouched: translating names must never turn
-  // "Daft Punk feat. Romanthony" into "Daft Punk Romanthony".
-  const joined = credit
-    .map((entry) => `${translate(entry, source, locale).name}${entry.joinphrase ?? ""}`)
+  // "Daft Punk feat. Romanthony" into "Daft Punk Romanthony". A joinphrase belongs to the
+  // entry *before* it, so dropping the entry after a “&” drops the “&” with it — keeping it
+  // would leave `Daft Punk & ` as the artist.
+  const joined = entries
+    .map((entry, index) => {
+      const name = translate(entry, source, locale).name;
+      const trailing =
+        discarded > 0 && index === entries.length - 1 ? "" : (entry.joinphrase ?? "");
+      return `${name}${trailing}`;
+    })
     .join("");
   return joined === "" ? null : joined;
 }
@@ -260,7 +301,7 @@ export function artistNames(
   source: ArtistNameSource = "credited",
   locale?: LocalePreference,
 ): string[] {
-  return (credit ?? [])
+  return creditedEntries(credit)
     .map((entry) => translate(entry, source, locale).name)
     .filter((name) => name !== "");
 }
@@ -277,7 +318,7 @@ export function artistAliasVia(
   source: ArtistNameSource = "credited",
   locale?: LocalePreference,
 ): string | null {
-  for (const entry of credit ?? []) {
+  for (const entry of creditedEntries(credit)) {
     const alias = translate(entry, source, locale).alias;
     if (alias !== null) return describeAlias(alias);
   }
@@ -286,14 +327,16 @@ export function artistAliasVia(
 
 /** `ARTISTSORT`: the artists' sort-names, same order. */
 export function artistSortNames(credit: readonly MbArtistCreditEntry[] | undefined): string[] {
-  return (credit ?? [])
+  return creditedEntries(credit)
     .map((entry) => entry.artist?.["sort-name"] ?? "")
     .filter((name) => name !== "");
 }
 
 /** `MUSICBRAINZ_ARTISTID`: the artists' MBIDs, same order as `ARTISTS`. */
 export function artistIds(credit: readonly MbArtistCreditEntry[] | undefined): string[] {
-  return (credit ?? []).map((entry) => entry.artist?.id ?? "").filter((id) => id !== "");
+  return creditedEntries(credit)
+    .map((entry) => entry.artist?.id ?? "")
+    .filter((id) => id !== "");
 }
 
 /**

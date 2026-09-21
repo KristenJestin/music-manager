@@ -82,6 +82,7 @@ export {
   ARTIST_NAME_SOURCES,
   artistAliasVia,
   artistNames,
+  creditIsOnlySpecialPurpose,
   joinArtistCredit,
   topGenres,
 } from "./musicbrainz-types.ts";
