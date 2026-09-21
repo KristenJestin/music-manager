@@ -294,3 +294,73 @@ describe("locks", () => {
     expect(document.fields["album"]?.locked).toBe(true);
   });
 });
+
+/**
+ * The acceptance of issue #9, on the edition that reported it: *Suzume*'s worldwide pressing.
+ * Its sleeve is Latin (`Latn`) while the recordings underneath are the Japanese originals, and
+ * two of its artists are credited under names that are not their own — 陣内一真 as
+ * `Kazuma Jinnouchi`, 十明 as `Toaka`. Both symptoms of the issue are visible here as strings.
+ */
+describe("the worldwide edition of Suzume (issue #9)", () => {
+  const suzume = fixture<MbRelease>("musicbrainz/release-suzume.json");
+  const trackAt = (position: number) =>
+    (suzume.media?.[0]?.tracks ?? []).find((track) => track.position === position)?.recording;
+  const suzumeTrack = (position: number): TrackResolutionInput => {
+    const embedded = trackAt(position);
+    if (embedded === undefined) throw new Error(`the fixture lost track ${String(position)}`);
+    return {
+      release: { data: suzume, fetchedAt: AT, trackPosition: position, mediumPosition: 1 },
+      recording: { data: embedded, fetchedAt: AT },
+      app: { importId: "imp_SUZUME", sourceUrl: "", tagSchemaVersion: 1, fetchedAt: AT },
+    };
+  };
+
+  it("writes the tracklist the edition prints, not the recordings' Japanese titles", () => {
+    expect(trackAt(1)?.title).toBe("二人の出逢い");
+    expect(valueOf(resolveTrackDocument(suzumeTrack(1)), "title")).toBe("The First Encounter");
+    expect(valueOf(resolveTrackDocument(suzumeTrack(2)), "title")).toBe("Abandoned Resort");
+  });
+
+  it("keeps the credit the sleeve prints, join phrases included", () => {
+    // Track 2 is `Kazuma Jinnouchi / RADWIMPS` on the sleeve, `陣内一真 & RADWIMPS` below it.
+    expect(valueOf(resolveTrackDocument(suzumeTrack(2)), "artist")).toBe(
+      "Kazuma Jinnouchi / RADWIMPS",
+    );
+  });
+
+  it("reaches the `en` alias of a credited-as under `canonical`, and records it in `via`", () => {
+    const document = resolveTrackDocument({
+      ...suzumeTrack(2),
+      artistNameSource: "canonical",
+      locale: { locale: "en", onlyNonLatin: true },
+    });
+    expect(valueOf(document, "albumartist")).toBe("RADWIMPS, Kazuma Jinnouchi");
+    expect(document.fields["albumartist"]?.via).toBe("alias en (primary)");
+    expect(valueOf(document, "artist")).toBe("Kazuma Jinnouchi / RADWIMPS");
+    expect(document.fields["artist"]?.via).toBe("alias en (primary)");
+    expect(valueOf(document, "artistsort")).toEqual(["Jinnouchi, Kazuma", "RADWIMPS"]);
+  });
+
+  it("translates nothing under `credited` — a printed name is an editorial fact", () => {
+    const document = resolveTrackDocument({
+      ...suzumeTrack(2),
+      artistNameSource: "credited",
+      locale: { locale: "en", onlyNonLatin: true },
+    });
+    expect(valueOf(document, "albumartist")).toBe("RADWIMPS, Kazuma Jinnouchi");
+    expect(document.fields["albumartist"]?.via).toBeUndefined();
+    expect(document.fields["artist"]?.via).toBeUndefined();
+  });
+
+  it("is the same document twice, so the background re-tag has nothing to rewrite", () => {
+    const twice = (): string =>
+      JSON.stringify(
+        resolveTrackDocument({
+          ...suzumeTrack(2),
+          artistNameSource: "canonical",
+          locale: { locale: "en", onlyNonLatin: true },
+        }),
+      );
+    expect(twice()).toBe(twice());
+  });
+});

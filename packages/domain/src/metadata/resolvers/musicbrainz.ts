@@ -327,9 +327,38 @@ export function fromMusicBrainzPseudoRelease(
 }
 
 /**
+ * D9-01 — **the release owns the tracklist; a recording is a fallback for it.**
+ *
+ * A release's track and its recording are two answers to the same question, and MusicBrainz
+ * keeps both: the tracklist of the edition we matched (what the sleeve prints, in the
+ * edition's script — the worldwide *Suzume* titles track 1 "The First Encounter") and the
+ * recording's own title (the canonical Japanese, 二人の出逢い). Picard writes the track's, and
+ * so do we — but both patches are `musicbrainz`, so `merge` settles them on confidence, and
+ * by default the two were equal: whichever patch happened to be pushed last won, and that was
+ * the recording.
+ *
+ * The whole fix is this number: the release's track credit keeps 1, the recording's falls to
+ * 0.9. Three consequences, all of them wanted — with both present the release wins, a
+ * standalone recording (no release, so nothing is held against it) still writes its own
+ * title and credits, and the pseudo-release, which is pushed last at confidence 1, still wins
+ * over both.
+ *
+ * Lowering this patch rather than teaching `wins()` about releases is deliberate: the
+ * pseudo-release path *relies* on "same source, same confidence, the later patch wins", and a
+ * precedence rule between two patches of one source would take that away.
+ */
+const TRACKLIST_FALLBACK_CONFIDENCE = 0.9;
+
+/**
  * What a recording says about itself: its title, its ISRCs, its genres, and the credits its
  * relations carry — including the work it performs, whose own relations bring the composer,
  * the lyricist and the lyrics language.
+ *
+ * The five tracklist fields (`title`, `artist`, `artists`, `artistsort`,
+ * `musicbrainz_artistid`) are written at `TRACKLIST_FALLBACK_CONFIDENCE`, not at 1: the
+ * matched release states them for this very track, and MusicBrainz's own documentation calls
+ * the recording's value the fallback. Everything else here — ISRCs, genres, moods, the work —
+ * exists only on the recording and stays at full confidence.
  */
 export function fromMusicBrainzRecording(
   recording: MbRecording,
@@ -338,8 +367,9 @@ export function fromMusicBrainzRecording(
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
   const locale = translatesArtists(options.locale) ? options.locale : undefined;
+  const fallback = { confidence: TRACKLIST_FALLBACK_CONFIDENCE };
 
-  patch.set("title", recording.title);
+  patch.set("title", recording.title, fallback);
   patch.setOrNa("subtitle", recording.disambiguation, "the recording has no disambiguation");
   patch.set("musicbrainz_recordingid", recording.id);
   patch.setOrNa("isrc", recording.isrcs, "MusicBrainz knows no ISRC for this recording");
@@ -348,10 +378,10 @@ export function fromMusicBrainzRecording(
 
   const credit = recording["artist-credit"];
   const via = artistAliasVia(credit, names, locale);
-  patch.set("artist", joinArtistCredit(credit, names, locale), { via });
-  patch.set("artists", artistNames(credit, names, locale), { via });
-  patch.set("artistsort", artistSortNames(credit));
-  patch.set("musicbrainz_artistid", artistIds(credit));
+  patch.set("artist", joinArtistCredit(credit, names, locale), { ...fallback, via });
+  patch.set("artists", artistNames(credit, names, locale), { ...fallback, via });
+  patch.set("artistsort", artistSortNames(credit), fallback);
+  patch.set("musicbrainz_artistid", artistIds(credit), fallback);
 
   addCredits(patch, recording.relations, "the recording");
 

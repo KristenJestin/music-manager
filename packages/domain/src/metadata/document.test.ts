@@ -66,6 +66,42 @@ describe("merge", () => {
     expect(document.fields["bpm"]?.value).toBe(100);
   });
 
+  /**
+   * D9-01. A release's tracklist and one of its recordings are two patches of the *same*
+   * source, so `merge` can only tell them apart by confidence — and the arrival order is then
+   * no longer part of the answer, which is the whole point: the release wins either way.
+   */
+  it("lets the release's tracklist beat the recording's, in either order", () => {
+    const fromRelease = { fields: { title: field("The First Encounter", "musicbrainz", at) } };
+    const fromRecording = {
+      fields: { title: field("二人の出逢い", "musicbrainz", at, { confidence: 0.9 }) },
+    };
+    for (const patches of [
+      [fromRelease, fromRecording],
+      [fromRecording, fromRelease],
+    ]) {
+      const document = merge(patches, { schemaVersion: 1, precedence: SOURCE_PRECEDENCE });
+      expect(document.fields["title"]?.value).toBe("The First Encounter");
+      expect(document.fields["title"]?.source).toBe("musicbrainz");
+    }
+  });
+
+  /**
+   * The rule D9-01 must not break: the pseudo-release is pushed last on purpose, at the same
+   * confidence as the release, and renames the four fields it owns. Lowering the *recording* is
+   * what keeps this true.
+   */
+  it("still lets the later of two equally confident patches win — the pseudo-release's promise", () => {
+    const document = merge(
+      [
+        { fields: { title: field("The First Encounter", "musicbrainz", at) } },
+        { fields: { title: field("The First Encounter (romaji)", "musicbrainz", at) } },
+      ],
+      { schemaVersion: 1, precedence: SOURCE_PRECEDENCE },
+    );
+    expect(document.fields["title"]?.value).toBe("The First Encounter (romaji)");
+  });
+
   it("lets a value cancel an n/a another resolver declared", () => {
     const document = merge(
       [

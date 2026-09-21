@@ -445,7 +445,7 @@ export const SETTING_DEFINITIONS = {
   artistNameSource: define<"credited" | "canonical">(
     z.enum(ARTIST_NAME_SOURCES),
     "credited",
-    "Which of MusicBrainz's two artist names goes into ARTIST, ARTISTS and ALBUMARTIST. `credited` writes the name printed on this release (`Ye` credited as `Kanye West`), which is what Picard does. `canonical` writes the artist's own name, so one spelling covers the whole library — and it is what v1 wrote, so it is the value that reproduces a v1 library's artist names. The join phrases are MusicBrainz's either way.",
+    "Which of MusicBrainz's two artist names goes into ARTIST, ARTISTS and ALBUMARTIST. `credited` writes the name printed on this release (`Ye` credited as `Kanye West`), which is what Picard does. `canonical` writes the artist's own name, so one spelling covers the whole library — and it is what v1 wrote, so it is the value that reproduces a v1 library's artist names. The join phrases are MusicBrainz's either way. With `canonical`, a “credited as” no longer blocks the preferred locale: the artist's own name is what gets written, so the alias applies to it like any other name.",
   ),
   /* ---- Picard's "translate names to this locale" (docs/03 §2.1) ---- */
   preferredLocale: define<"" | "en" | "fr" | "de" | "es" | "it" | "ja" | "pt" | "ru" | "zh" | "ko">(
@@ -456,7 +456,7 @@ export const SETTING_DEFINITIONS = {
   aliasTranslateArtists: define(
     z.boolean(),
     true,
-    "Apply the preferred locale to ARTIST, ARTISTS, ALBUMARTIST and ALBUMARTISTS. A name credited differently from the artist's own on this particular release is never translated: a “credited as” is an editorial fact about that sleeve.",
+    "Apply the preferred locale to ARTIST, ARTISTS, ALBUMARTIST and ALBUMARTISTS. A name credited differently from the artist's own on this particular release is never translated while `credited` names are written: a “credited as” is an editorial fact about that sleeve. With `canonical` names it is the artist's own that is written, so there is nothing to protect and the alias applies — which is what lets a Japanese album reach its English names.",
   ),
   aliasTranslateAlbums: define(
     z.boolean(),

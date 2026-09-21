@@ -207,12 +207,18 @@ export function describeAlias(alias: MbAlias): string {
 /**
  * True when the credited name is the artist's own name, NFC-normalised.
  *
- * **This is the guard that keeps a “credited as” intact.** An artist credit carries two
- * names: the canonical one and the one printed on this particular release. When an editor has
- * gone to the trouble of recording that 米津玄師 is credited as `Kenshi Yonezu` *on this
- * sleeve*, that is an editorial decision about this release, and a locale preference is a
- * blanket statement about the library — the specific fact wins. So a credit whose printed name
- * differs from the canonical one is never translated, whatever the locale says.
+ * **This is the guard that keeps a “credited as” intact — in `credited` mode.** An artist
+ * credit carries two names: the canonical one and the one printed on this particular release.
+ * When an editor has gone to the trouble of recording that 米津玄師 is credited as
+ * `Kenshi Yonezu` *on this sleeve*, that is an editorial decision about this release, and a
+ * locale preference is a blanket statement about the library — the specific fact wins. So a
+ * credit whose printed name differs from the canonical one is never translated, whatever the
+ * locale says.
+ *
+ * It is asked only when the printed name is what would be written (`artistNameSource:
+ * "credited"`, D9-02). In `canonical` mode the artist's own name is written instead, so the
+ * sleeve's spelling is already set aside and protecting it would only mean refusing the alias
+ * — the two rules would then combine into “never translate”.
  *
  * NFC because MusicBrainz is not consistent about composed forms, and two spellings that
  * differ only by normalisation are the same name to every human being.

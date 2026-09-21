@@ -21,6 +21,7 @@ import {
   work,
 } from "../../testing/discovery.ts";
 import { readFixture } from "../../testing/fixtures.ts";
+import { resolveTrackDocument } from "../resolve.ts";
 import {
   acoustIdRecordingIds,
   chooseLrclibEntry,
@@ -144,6 +145,21 @@ describe("fromMusicBrainzRecording", () => {
     expect(result.na?.["work"]?.reason).toContain("no work is linked");
     expect(result.na?.["language"]).toBeDefined();
     expect(result.na?.["movement"]).toBeDefined();
+  });
+
+  /**
+   * D9-01, at the patch: the five fields a release also states for this very track are written
+   * as a fallback, and nothing else is. The values are asserted through merges below; what is
+   * asserted here is the one thing a merge cannot tell you afterwards — which side was lowered.
+   */
+  it("states the tracklist at less than full confidence, and its own facts at full", () => {
+    for (const name of ["title", "artist", "artists", "artistsort", "musicbrainz_artistid"]) {
+      expect(patch.fields?.[name]?.confidence).toBeLessThan(1);
+    }
+    // Nothing else can produce these, so nothing can outrank them.
+    for (const name of ["musicbrainz_recordingid", "isrc", "genre", "mood"]) {
+      expect(patch.fields?.[name]?.confidence).toBe(1);
+    }
   });
 });
 
@@ -600,6 +616,71 @@ describe("artistNameSource", () => {
       fromMusicBrainzRecording(withCredit, { fetchedAt: at, artistNameSource: "canonical" })
         .fields?.["artist"]?.value,
     ).toBe("Daft Punk & Anthony Moore");
+  });
+});
+
+/**
+ * D9-01 — *Suzume*'s worldwide edition prints a Latin tracklist over Japanese recordings, and
+ * re-credits two of its artists on the sleeve: `Kazuma Jinnouchi` for 陣内一真, `Toaka` for 十明.
+ * Both disagreements are visible as strings, so which patch won is asserted rather than argued.
+ *
+ * Resolved through `resolveTrackDocument`, not by hand-merging two patches: a fixture proves
+ * nothing about the fix if the fix lives somewhere the pipeline does not go.
+ */
+describe("the release's tracklist over the recording's (D9-01)", () => {
+  /** Worldwide edition, `Official`, `Latn`, 29 tracks. */
+  const suzume = readFixture<MbRelease>("musicbrainz/release-suzume.json");
+  const trackAt = (position: number) =>
+    (suzume.media?.[0]?.tracks ?? []).find((track) => track.position === position);
+  const recordingAt = (position: number): MbRecording => {
+    const embedded = trackAt(position)?.recording;
+    if (embedded === undefined) {
+      throw new Error(`the Suzume fixture lost the recording of track ${String(position)}`);
+    }
+    return embedded;
+  };
+  const resolve = (position: number, withRelease = true) =>
+    resolveTrackDocument({
+      ...(withRelease ? { release: { data: suzume, fetchedAt: at, trackPosition: position } } : {}),
+      recording: { data: recordingAt(position), fetchedAt: at },
+      app: { importId: "imp_D9", sourceUrl: "", tagSchemaVersion: 1, fetchedAt: at },
+    });
+  const field = (document: ReturnType<typeof resolve>, name: string) =>
+    document.fields[name]?.value;
+
+  it("is the fixture's whole point: the two sources disagree, track by track", () => {
+    expect(trackAt(1)?.title).toBe("The First Encounter");
+    expect(recordingAt(1).title).toBe("二人の出逢い");
+    // Track 2 is credited to 陣内一真 and RADWIMPS on the sleeve, and to the same two artists
+    // under other names on the recording — a real “credited as”, not a transcription.
+    expect(trackAt(2)?.["artist-credit"]?.[0]?.name).toBe("Kazuma Jinnouchi");
+    expect(recordingAt(2)["artist-credit"]?.[0]?.name).toBe("陣内一真");
+  });
+
+  it("writes the title the edition prints, not the recording's", () => {
+    expect(field(resolve(1), "title")).toBe("The First Encounter");
+    // Track 2 as well: the two titles share no word, so this cannot pass by accident.
+    expect(field(resolve(2), "title")).toBe("Abandoned Resort");
+  });
+
+  it("writes the credit printed on the sleeve, join phrases and all", () => {
+    expect(field(resolve(2), "artist")).toBe("Kazuma Jinnouchi / RADWIMPS");
+    expect(field(resolve(2), "artists")).toEqual(["Kazuma Jinnouchi", "RADWIMPS"]);
+    // Track 25 is the same two artists the other way round, with the other join phrase.
+    expect(field(resolve(25), "artist")).toBe("RADWIMPS / Kazuma Jinnouchi");
+  });
+
+  it("still keeps what only the recording knows", () => {
+    const document = resolve(1);
+    expect(field(document, "musicbrainz_recordingid")).toBe(recordingAt(1).id);
+    expect(document.fields["musicbrainz_recordingid"]?.confidence).toBe(1);
+  });
+
+  it("leaves a standalone recording its own title and credit", () => {
+    // No release: nothing holds the tracklist against it, so the fallback is all there is.
+    const alone = resolve(2, false);
+    expect(field(alone, "title")).toBe("廃墟の温泉街");
+    expect(field(alone, "artist")).toBe("陣内一真 & RADWIMPS");
   });
 });
 
