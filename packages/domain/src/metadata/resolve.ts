@@ -44,7 +44,14 @@ import {
   type YouTubeResolverOptions,
   type YtdlpEntry,
 } from "./resolvers/index.ts";
-import type { MbArtistLike } from "./resolvers/musicbrainz.ts";
+import { DEFAULT_WRITE_WORK_TAGS, isClassicalRelease, type WriteWorkTags } from "./classical.ts";
+import {
+  classicalShapeOf,
+  releaseGenreNames,
+  type MbArtistLike,
+  type WorkTagOptions,
+} from "./resolvers/musicbrainz.ts";
+import { performedWork } from "./resolvers/relations.ts";
 import { TAG_SCHEMA_VERSION } from "./schema.ts";
 
 /** A cached response plus the instant it was fetched — one entry of the raw cache. */
@@ -109,10 +116,28 @@ export interface TrackResolutionInput {
    * default — is the behaviour that existed before the feature, tag for tag.
    */
   readonly locale?: LocalePreference;
+  /**
+   * What happens to the work fields — `WORK` and §2.4's movement block — on this release
+   * (issue #4, D4-03). `classical`, the default, writes them on classical releases only;
+   * `always` restores the old behaviour, `never` writes none of them.
+   */
+  readonly writeWorkTags?: WriteWorkTags;
 }
 
 export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument {
   const patches: DocumentPatch[] = [];
+
+  // Whether the work fields are written is a property of the *release*, not of the entity that
+  // happens to carry the work: the release group's genres and the work's shape decide it once,
+  // here, and both resolvers below are told the answer.
+  const workOfTrack = input.work?.data ?? performedWork(input.recording?.data.relations)?.work;
+  const workTags: WorkTagOptions = {
+    writeWorkTags: input.writeWorkTags ?? DEFAULT_WRITE_WORK_TAGS,
+    classical: isClassicalRelease({
+      genres: releaseGenreNames(input.release?.data),
+      work: classicalShapeOf(workOfTrack),
+    }),
+  };
 
   if (input.youtube !== undefined) {
     const { data, fetchedAt, ...options } = input.youtube;
@@ -140,6 +165,7 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
           ? {}
           : { artistNameSource: input.artistNameSource }),
         ...(input.locale === undefined ? {} : { locale: input.locale }),
+        ...workTags,
       }),
     );
   }
@@ -164,7 +190,9 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
     );
   }
   if (input.work !== undefined) {
-    patches.push(fromMusicBrainzWork(input.work.data, { fetchedAt: input.work.fetchedAt }));
+    patches.push(
+      fromMusicBrainzWork(input.work.data, { fetchedAt: input.work.fetchedAt, ...workTags }),
+    );
   }
   for (const artist of input.artists ?? []) {
     patches.push(fromMusicBrainzArtist(artist.data, { fetchedAt: artist.fetchedAt }));

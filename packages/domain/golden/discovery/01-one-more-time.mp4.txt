@@ -37,7 +37,6 @@ soco=Bangalter, Thomas
 ©gen=electronic
 ©gen=dance
 ----:com.apple.iTunes:MOOD=party
-©wrk=One More Time
 ----:com.apple.iTunes:MusicBrainz Track Id=60fa767a-d85d-4991-82bc-4294e0b11ae7
 ----:com.apple.iTunes:MusicBrainz Release Track Id=25fbe7fe-655e-3624-9be1-0452364d0975
 ----:com.apple.iTunes:MusicBrainz Album Id=d073287b-d1bd-4f11-a933-a4386f8cf701
