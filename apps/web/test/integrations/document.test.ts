@@ -188,6 +188,56 @@ describe("a document built from the recorded sources", () => {
   });
 });
 
+/**
+ * Issue #4. `WORK` is display metadata, not an identifier, and MusicBrainz links a work to every
+ * recording that performs one — `Discovery` is a pop album whose title track has one, so writing
+ * it unconditionally repeated the track's own title in a header, which a player that groups by
+ * work (Symfonium, from 13.3.0) then shows. The setting and the classical predicate decide, and
+ * `MUSICBRAINZ_WORKID` is written either way so the re-tag can repair the library offline.
+ */
+describe("the work fields", () => {
+  const pop = resolveTrackDocument(input());
+
+  it("leaves WORK off a pop release, and says why", () => {
+    expect(pop.fields["work"]).toBeUndefined();
+    expect(pop.na["work"]?.reason).toContain("not a classical release");
+    expect(pop.na["movement"]?.reason).toContain("not a classical release");
+    expect(valueOf(pop, "musicbrainz_workid")).toBe("4bb47ffc-9006-32cf-8aa9-e213334550dc");
+  });
+
+  it("writes them on a classical release — here on the release group's genre", () => {
+    const document = resolveTrackDocument({
+      ...input(),
+      release: {
+        data: {
+          ...release,
+          "release-group": {
+            ...(release["release-group"] ?? {}),
+            genres: [{ name: "classical" }],
+          },
+        },
+        fetchedAt: AT,
+        trackPosition: 1,
+        mediumPosition: 1,
+      },
+    });
+    expect(valueOf(document, "work")).toBe("One More Time");
+    expect(document.na["work"]).toBeUndefined();
+  });
+
+  it("writes them everywhere when the setting says `always` — what v3 did", () => {
+    expect(valueOf(resolveTrackDocument({ ...input(), writeWorkTags: "always" }), "work")).toBe(
+      "One More Time",
+    );
+  });
+
+  it("writes none of them when the setting says `never`, classical or not", () => {
+    const document = resolveTrackDocument({ ...input(), writeWorkTags: "never" });
+    expect(document.fields["work"]).toBeUndefined();
+    expect(document.na["work"]?.reason).toContain("disabled by settings");
+  });
+});
+
 describe("a source that is unavailable", () => {
   it("costs exactly the fields it owns: no Deezer, no BPM and no ITUNESADVISORY", () => {
     const { deezer: _dropped, ...withoutDeezer } = input();
