@@ -364,7 +364,7 @@ describe("the work fields", () => {
  */
 describe("a file tagged before the change", () => {
   it("is picked up by its version, and loses WORK only when it is not classical", () => {
-    expect(TAG_SCHEMA_VERSION).toBe(5);
+    expect(TAG_SCHEMA_VERSION).toBe(6);
     expect(isBehindSchema(3, TAG_SCHEMA_VERSION)).toBe(true);
     expect(isBehindSchema(TAG_SCHEMA_VERSION, TAG_SCHEMA_VERSION)).toBe(false);
 

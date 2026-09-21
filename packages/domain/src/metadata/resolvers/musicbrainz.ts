@@ -26,14 +26,22 @@ import {
   artistIds,
   artistNames,
   artistSortNames,
+  creditIsOnlySpecialPurpose,
   joinArtistCredit,
   topGenres,
   type ArtistNameSource,
+  type MbArtistCreditEntry,
   type MbRecording,
   type MbRelation,
   type MbRelease,
   type MbWork,
 } from "./musicbrainz-types.ts";
+import {
+  isCatalogueNumberPlaceholder,
+  isSpecialPurposeLabel,
+  SPECIAL_PURPOSE_ARTIST_REASON,
+  SPECIAL_PURPOSE_LABEL_REASON,
+} from "../special-purpose.ts";
 import { PatchBuilder } from "./patch.ts";
 import { creditsFromRelations, mbidFieldFor, performedWork, urlOfType } from "./relations.ts";
 import { MOOD_VOCABULARY } from "./vocabulary.ts";
@@ -75,6 +83,50 @@ export interface ReleaseResolverOptions {
    * and every tag below is exactly what it was before the feature existed.
    */
   readonly locale?: LocalePreference;
+}
+
+/**
+ * `ARTIST`, `ARTISTS`, `ARTISTSORT` and `MUSICBRAINZ_ARTISTID` — or the four `albumartist`
+ * twins — from one credit, with issue #6's guard.
+ *
+ * The four field names are derived from `base`, which is how `tagmap/tags.ts` spells them
+ * (`artist` → `artists`, `artistsort`, `musicbrainz_artistid`); a test pins that they are the
+ * tag map's.
+ *
+ * A credit that names nobody is **n/a** (“MusicBrainz special-purpose artist”), not empty: the
+ * same “the source says there is no such thing” as a release with no label-info (§6, D6-02), so
+ * completeness is not punished for a fact nobody has. All four fields go n/a together, because
+ * the sort-name and the MBID come from that same credit and are not knowable either.
+ *
+ * `via` describes a *translated name*, so it goes on the two name fields only: the sort-name is
+ * the canonical one and the MBID is an identifier, neither of which an alias produced.
+ */
+function setArtistCredit(
+  patch: PatchBuilder,
+  base: "artist" | "albumartist",
+  credit: readonly MbArtistCreditEntry[] | undefined,
+  options: {
+    readonly names: ArtistNameSource;
+    readonly locale: LocalePreference | undefined;
+    readonly via: string | null;
+    readonly confidence?: number;
+  },
+): void {
+  const [single, list, sort, ids] = [
+    `${base}`,
+    `${base}s`,
+    `${base}sort`,
+    `musicbrainz_${base}id`,
+  ] as const;
+  if (creditIsOnlySpecialPurpose(credit)) {
+    patch.naAll([single, list, sort, ids], SPECIAL_PURPOSE_ARTIST_REASON);
+    return;
+  }
+  const score = { confidence: options.confidence, via: options.via };
+  patch.set(single, joinArtistCredit(credit, options.names, options.locale), score);
+  patch.set(list, artistNames(credit, options.names, options.locale), score);
+  patch.set(sort, artistSortNames(credit), { confidence: options.confidence });
+  patch.set(ids, artistIds(credit), { confidence: options.confidence });
 }
 
 /**
@@ -125,19 +177,15 @@ export function fromMusicBrainzRelease(
     patch.set("albumsort", release.title, { via: describeAlias(albumAlias) });
   }
 
+  // The locale is kept away from the sort-name on purpose: MusicBrainz's `sort-name` already
+  // holds the original name in sortable form (`梶浦由記` sorts as `Kajiura, Yuki`), which is
+  // exactly where §1 wants the original kept when the displayed name has been translated.
   const albumArtistCredit = release["artist-credit"];
-  const albumArtistVia = artistAliasVia(albumArtistCredit, names, artistLocale);
-  patch.set("albumartist", joinArtistCredit(albumArtistCredit, names, artistLocale), {
-    via: albumArtistVia,
+  setArtistCredit(patch, "albumartist", albumArtistCredit, {
+    names,
+    locale: artistLocale,
+    via: artistAliasVia(albumArtistCredit, names, artistLocale),
   });
-  patch.set("albumartists", artistNames(albumArtistCredit, names, artistLocale), {
-    via: albumArtistVia,
-  });
-  // Untouched by the locale on purpose: MusicBrainz's `sort-name` already holds the original
-  // name in sortable form (`梶浦由記` sorts as `Kajiura, Yuki`), which is exactly where §1
-  // wants the original kept when the displayed name has been translated.
-  patch.set("albumartistsort", artistSortNames(albumArtistCredit));
-  patch.set("musicbrainz_albumartistid", artistIds(albumArtistCredit));
   patch.setOrNa(
     "albumcomment",
     release.disambiguation,
@@ -148,13 +196,11 @@ export function fromMusicBrainzRelease(
     patch.set("title", track.title);
     patch.na("titlesort", "MusicBrainz has no sort title for recordings");
     const trackCredit = track["artist-credit"] ?? track.recording?.["artist-credit"];
-    const trackArtistVia = artistAliasVia(trackCredit, names, artistLocale);
-    patch.set("artist", joinArtistCredit(trackCredit, names, artistLocale), {
-      via: trackArtistVia,
+    setArtistCredit(patch, "artist", trackCredit, {
+      names,
+      locale: artistLocale,
+      via: artistAliasVia(trackCredit, names, artistLocale),
     });
-    patch.set("artists", artistNames(trackCredit, names, artistLocale), { via: trackArtistVia });
-    patch.set("artistsort", artistSortNames(trackCredit));
-    patch.set("musicbrainz_artistid", artistIds(trackCredit));
     patch.set("tracknumber", track.position);
     patch.set("musicbrainz_releasetrackid", track.id);
   }
@@ -186,12 +232,29 @@ export function fromMusicBrainzRelease(
   patch.set("releasecountry", release.country);
   patch.setOrNa("media", medium?.format, "the medium has no declared format");
 
+  /*
+   * §2.2's label block, with issue #6's guard: `label-info` may point at `[no label]`, the
+   * special-purpose label MusicBrainz files white labels and self-releases under. It is a real
+   * row with a documented MBID, and its bracketed name must not reach a tag — but the catalogue
+   * number beside it is kept, because it describes the pressing rather than the label. `[none]`,
+   * the string the style guide asks an editor to type when there is no catalogue number, is not
+   * a catalogue number, and goes the same way.
+   */
   const labelInfo = release["label-info"] ?? [];
-  const labels = labelInfo.map((info) => info.label?.name ?? "").filter((name) => name !== "");
+  const labels = labelInfo
+    .filter((info) => !isSpecialPurposeLabel(info.label?.id))
+    .map((info) => info.label?.name ?? "")
+    .filter((name) => name !== "");
   const catalogNumbers = labelInfo
     .map((info) => info["catalog-number"] ?? "")
-    .filter((value) => value !== "");
-  patch.setOrNa("label", labels, "the release carries no label");
+    .filter((value) => value !== "" && !isCatalogueNumberPlaceholder(value));
+  // “the release carries no label” and “the label is `[no label]`” are two different facts, and
+  // the document says which one it is: the second is D6-02's n/a, with a reason of its own.
+  if (labels.length === 0 && labelInfo.some((info) => isSpecialPurposeLabel(info.label?.id))) {
+    patch.na("label", SPECIAL_PURPOSE_LABEL_REASON);
+  } else {
+    patch.setOrNa("label", labels, "the release carries no label");
+  }
   patch.setOrNa("catalognumber", catalogNumbers, "the release has no catalogue number");
   patch.setOrNa("barcode", release.barcode, "the release has no barcode");
   patch.setOrNa(
@@ -413,11 +476,12 @@ export function fromMusicBrainzRecording(
   patch.setOrNa("mood", moodsFromTags(recording), "no mood among the MusicBrainz tags");
 
   const credit = recording["artist-credit"];
-  const via = artistAliasVia(credit, names, locale);
-  patch.set("artist", joinArtistCredit(credit, names, locale), { ...fallback, via });
-  patch.set("artists", artistNames(credit, names, locale), { ...fallback, via });
-  patch.set("artistsort", artistSortNames(credit), fallback);
-  patch.set("musicbrainz_artistid", artistIds(credit), fallback);
+  setArtistCredit(patch, "artist", credit, {
+    names,
+    locale,
+    via: artistAliasVia(credit, names, locale),
+    confidence: TRACKLIST_FALLBACK_CONFIDENCE,
+  });
 
   addCredits(patch, recording.relations, "the recording");
 
