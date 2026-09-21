@@ -45,6 +45,7 @@ import {
   type YtdlpEntry,
 } from "./resolvers/index.ts";
 import { DEFAULT_WRITE_WORK_TAGS, isClassicalRelease, type WriteWorkTags } from "./classical.ts";
+import { DEFAULT_WRITE_EXPLICIT_TAG } from "./explicit.ts";
 import {
   classicalShapeOf,
   releaseGenreNames,
@@ -122,6 +123,13 @@ export interface TrackResolutionInput {
    * `always` restores the old behaviour, `never` writes none of them.
    */
   readonly writeWorkTags?: WriteWorkTags;
+  /**
+   * Whether `ITUNESADVISORY` is written at all — the `writeExplicitTag` setting (issue #5,
+   * D5-01). Off by default, and absent means off: the advisory is a store convention players
+   * draw as a “C”/“E” badge, and nothing in the pipeline reads it back — matching decides from
+   * the release's comment and from `explicitPreference`, never from the tag.
+   */
+  readonly writeExplicitTag?: boolean;
 }
 
 export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument {
@@ -217,7 +225,12 @@ export function resolveTrackDocument(input: TrackResolutionInput): TrackDocument
     patches.push(fromLrclib(input.lyrics.data, { fetchedAt: input.lyrics.fetchedAt }));
   }
   if (input.deezer !== undefined) {
-    patches.push(fromDeezerTrack(input.deezer.data, { fetchedAt: input.deezer.fetchedAt }));
+    patches.push(
+      fromDeezerTrack(input.deezer.data, {
+        fetchedAt: input.deezer.fetchedAt,
+        writeExplicit: input.writeExplicitTag ?? DEFAULT_WRITE_EXPLICIT_TAG,
+      }),
+    );
   }
   if (input.acoustId !== undefined) {
     const { data, fetchedAt, ...options } = input.acoustId;

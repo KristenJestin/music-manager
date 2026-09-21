@@ -91,6 +91,9 @@ export type {
   WriteWorkTags,
 } from "./metadata/classical.ts";
 
+export { DEFAULT_WRITE_EXPLICIT_TAG, decideExplicitTag } from "./metadata/explicit.ts";
+export type { ExplicitTagDecision } from "./metadata/explicit.ts";
+
 export * from "./metadata/resolvers/index.ts";
 
 /* ---- album scope: one value per album for the 36 `albumScope` fields (docs §2, §6) ---- */

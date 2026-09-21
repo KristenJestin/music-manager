@@ -121,8 +121,8 @@ const IDENTITY = group("identity", [
     id3: "TIT3",
     mp4: `${FF}SUBTITLE`,
     level: "O",
-    source: "recording disambiguation",
-    note: "“radio edit”, “live at Bercy”…",
+    source: "you",
+    note: "“radio edit”, “live at Bercy”… — the MusicBrainz recording disambiguation is an editor's note, not a subtitle, and is never written here (issue #5, D5-02).",
   },
   {
     field: "artist",
@@ -964,7 +964,7 @@ const LYRICS_ARTWORK = group("lyrics-artwork", [
     mp4: "rtng",
     level: "C",
     source: "Deezer explicit_lyrics by ISRC · MB disambiguation · you",
-    note: "1 = explicit, 2 = clean.",
+    note: "1 = explicit, 2 = clean. Written only when the `writeExplicitTag` setting is on (issue #5): the value is still resolved and still ranked on, but off by default, because a player draws the tag as a “C”/“E” badge nobody asked for.",
   },
   {
     field: "lyrics",
