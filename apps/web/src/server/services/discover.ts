@@ -25,8 +25,10 @@
  *
  * The Inbox type has existed since P03 and nothing ever opened one. It belongs to this phase:
  * an album whose `present_count` is below its `track_count` is a discography gap of the most
- * literal kind — a record you own *part* of — and Discover is the page whose job is to turn
- * that into an import. The item is keyed on the album, so a scan that later completes the
+ * literal kind — a record you own *part* of. The sync raises the item because this is where the
+ * library is counted; **Review** is where it is answered. `/discover` used to render those same
+ * items as an "Incomplete albums" block, which ended a recommendations page on a maintenance
+ * to-do list (`D7-01`). The item is keyed on the album, so a scan that later completes the
  * album closes it.
  */
 import { and, desc, eq, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
@@ -109,13 +111,6 @@ export interface DiscoverItemView {
   readonly payload: Record<string, unknown>;
 }
 
-export interface DiscoverLinkedInboxItem {
-  readonly id: string;
-  readonly title: string;
-  readonly summary: string | null;
-  readonly albumId: string | null;
-}
-
 export interface DiscoverView {
   readonly signals: ListeningSignals;
   readonly lastSync: {
@@ -128,7 +123,6 @@ export interface DiscoverView {
   readonly discography: readonly DiscographyCard[];
   readonly recommendations: readonly DiscoverItemView[];
   readonly similarArtists: readonly DiscoverItemView[];
-  readonly inbox: readonly DiscoverLinkedInboxItem[];
   readonly dismissedCount: number;
   readonly enabled: boolean;
 }
@@ -253,7 +247,6 @@ export async function discoverView(
     byArtist.set(key, card);
   }
 
-  const inbox = await openLibraryItems("album_incomplete", db);
   const dismissed = await db.select({ count: sql<number>`count(*)::int` }).from(discoverDismissals);
 
   const signals: ListeningSignals =
@@ -287,12 +280,6 @@ export async function discoverView(
     similarArtists: rows
       .filter((row) => row.kind === "similar_artist")
       .map((row) => toView(row, albums)),
-    inbox: inbox.map((item) => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      albumId: typeof item.payload["albumId"] === "string" ? item.payload["albumId"] : null,
-    })),
     dismissedCount: dismissed[0]?.count ?? 0,
     enabled: settings.discoverEnabled,
   };
