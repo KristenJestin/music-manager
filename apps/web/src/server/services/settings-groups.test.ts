@@ -120,6 +120,26 @@ describe("coverage", () => {
     );
     for (const key of ADDED) expect(page).toContain(`testId="setting-${key}"`);
   });
+
+  /**
+   * Issue #4's switch. The same two facts as `ADDED` above, stated for the key this branch added:
+   * a home on the Metadata tab, and a field on its page. Writing `WORK` on every release is what
+   * `never` and `always` exist to let someone undo, so the knob has to be reachable from the
+   * Console and not only from `mm settings set`.
+   */
+  it("gives the work-tags switch a field on the Metadata page", () => {
+    expect(isSettingKey("writeWorkTags")).toBe(true);
+    expect(METADATA_KEYS).toContain("writeWorkTags");
+    expect(ungroupedKeys()).not.toContain("writeWorkTags");
+    const page = readFileSync(
+      resolve(
+        fileURLToPath(new URL(".", import.meta.url)),
+        "../../routes/_app.settings.metadata.tsx",
+      ),
+      "utf8",
+    );
+    expect(page).toContain('testId="setting-writeWorkTags"');
+  });
 });
 
 describe("Settings › Watched sources", () => {

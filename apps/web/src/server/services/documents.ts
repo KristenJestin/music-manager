@@ -981,6 +981,7 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
     tagOptions: { maxGenres: config.maxGenres, minCount: config.genreMinCount },
     artistNameSource: config.artistNameSource,
     ...(config.locale === undefined ? {} : { locale: config.locale }),
+    writeWorkTags: config.writeWorkTags,
     ...(rsgainRow === null
       ? {}
       : {

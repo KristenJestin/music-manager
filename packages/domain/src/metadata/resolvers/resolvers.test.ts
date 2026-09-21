@@ -132,11 +132,28 @@ describe("fromMusicBrainzRecording", () => {
     ]);
   });
 
-  it("follows the performance relation into the work", () => {
-    expect(value("work")).toBe("One More Time");
+  it("keeps the work id, and leaves WORK to the classical predicate (issue #4)", () => {
+    // `Discovery` is a pop album MusicBrainz links a work to. The work's title is the track's
+    // own, so writing it repeats every title in a player's header (D4-01, D4-02) — the work's
+    // *identity* and its credits are still worth having.
+    expect(value("work")).toBeUndefined();
+    expect(patch.na?.["work"]?.reason).toContain("not a classical release");
     expect(value("musicbrainz_workid")).toBe("4bb47ffc-9006-32cf-8aa9-e213334550dc");
     expect(value("language")).toBe("eng");
     expect(value("composer")).toContain("Thomas Bangalter");
+  });
+
+  it("writes WORK when the release is classical, or when the setting says always", () => {
+    const classical = fromMusicBrainzRecording(recording, { fetchedAt: at, classical: true });
+    expect(classical.fields?.["work"]?.value).toBe("One More Time");
+    const always = fromMusicBrainzRecording(recording, { fetchedAt: at, writeWorkTags: "always" });
+    expect(always.fields?.["work"]?.value).toBe("One More Time");
+    const never = fromMusicBrainzRecording(recording, {
+      fetchedAt: at,
+      classical: true,
+      writeWorkTags: "never",
+    });
+    expect(never.na?.["work"]?.reason).toContain("disabled by settings");
   });
 
   it("marks work fields n/a when no work is linked", () => {
@@ -164,7 +181,7 @@ describe("fromMusicBrainzRecording", () => {
 });
 
 describe("fromMusicBrainzWork", () => {
-  const patch = fromMusicBrainzWork(work, { fetchedAt: at });
+  const patch = fromMusicBrainzWork(work, { fetchedAt: at, classical: true });
 
   it("reads the writers and the lyrics language", () => {
     expect(patch.fields?.["work"]?.value).toBe("One More Time");
@@ -175,6 +192,15 @@ describe("fromMusicBrainzWork", () => {
 
   it("marks the classical block n/a", () => {
     expect(patch.na?.["movementnumber"]?.reason).toContain("classical");
+  });
+
+  it("leaves WORK n/a when the release was not called classical", () => {
+    const pop = fromMusicBrainzWork(work, { fetchedAt: at });
+    expect(pop.fields?.["work"]).toBeUndefined();
+    expect(pop.na?.["work"]?.reason).toContain("not a classical release");
+    expect(pop.fields?.["musicbrainz_workid"]?.value).toBe("4bb47ffc-9006-32cf-8aa9-e213334550dc");
+    // The credits stay: a pop songwriter is still the work's writer (§2.3).
+    expect(pop.fields?.["writer"]?.value).toContain("Anthony Wayne Moore");
   });
 });
 
@@ -544,8 +570,10 @@ describe("the Skinny Love fixtures", () => {
     expect(patch.fields?.["musicbrainz_recordingid"]?.value).toBe(
       "5463ed3a-5fc1-49b6-8260-3b5bb36ee047",
     );
-    // A cover: the work's writer is Bon Iver's Justin Vernon, not the performer.
-    expect(patch.fields?.["work"]?.value).toBe("Skinny Love");
+    // A cover: the work is Bon Iver's, whose writer the separate work lookup brings. The work
+    // *title* stays out — this release was not called classical (issue #4).
+    expect(patch.fields?.["work"]).toBeUndefined();
+    expect(patch.na?.["work"]?.reason).toContain("not a classical release");
   });
 
   it("offers the releases the recording could borrow one from", () => {

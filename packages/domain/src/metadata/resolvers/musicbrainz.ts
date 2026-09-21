@@ -37,9 +37,29 @@ import {
 import { PatchBuilder } from "./patch.ts";
 import { creditsFromRelations, mbidFieldFor, performedWork, urlOfType } from "./relations.ts";
 import { MOOD_VOCABULARY } from "./vocabulary.ts";
+import {
+  decideWorkTags,
+  DEFAULT_WRITE_WORK_TAGS,
+  WORK_TAG_FIELDS,
+  type ClassicalWorkShape,
+  type WriteWorkTags,
+} from "../classical.ts";
 
-/** Fields that only exist for classical repertoire; §2.4's movement block. */
-const CLASSICAL_FIELDS = ["movement", "movementnumber", "movementtotal", "showmovement"] as const;
+/** §2.4's movement block: everything `WORK_TAG_FIELDS` holds beyond `WORK` itself. */
+const CLASSICAL_FIELDS = WORK_TAG_FIELDS.filter((field) => field !== "work");
+
+/**
+ * How the work fields are decided (issue #4): the setting, and what the release is.
+ *
+ * `classical` is computed by the caller — `resolve` sees the release *and* the work, which is
+ * the pair `isClassicalRelease` reads — so the resolvers stay pure functions of their options.
+ */
+export interface WorkTagOptions {
+  /** The `writeWorkTags` setting (D4-03); `classical` when nobody chose. */
+  readonly writeWorkTags?: WriteWorkTags | undefined;
+  /** Whether `isClassicalRelease` holds for this release. Defaults to `false`. */
+  readonly classical?: boolean | undefined;
+}
 
 export interface ReleaseResolverOptions {
   /** 1-based medium position; defaults to the first medium. */
@@ -362,7 +382,11 @@ const TRACKLIST_FALLBACK_CONFIDENCE = 0.9;
  */
 export function fromMusicBrainzRecording(
   recording: MbRecording,
-  options: { fetchedAt: string; artistNameSource?: ArtistNameSource; locale?: LocalePreference },
+  options: {
+    fetchedAt: string;
+    artistNameSource?: ArtistNameSource;
+    locale?: LocalePreference;
+  } & WorkTagOptions,
 ): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
   const names = options.artistNameSource ?? "credited";
@@ -392,7 +416,7 @@ export function fromMusicBrainzRecording(
       "no work is linked to this recording",
     );
   } else {
-    mergeWorkInto(patch, work);
+    mergeWorkInto(patch, work, options);
   }
 
   return patch.build();
@@ -403,9 +427,12 @@ export function fromMusicBrainzRecording(
  * for the case where the work is fetched separately (a recording resolved without
  * `work-level-rels`, or a work refreshed alone).
  */
-export function fromMusicBrainzWork(work: MbWork, options: { fetchedAt: string }): DocumentPatch {
+export function fromMusicBrainzWork(
+  work: MbWork,
+  options: { fetchedAt: string } & WorkTagOptions,
+): DocumentPatch {
   const patch = new PatchBuilder("musicbrainz", options.fetchedAt);
-  mergeWorkInto(patch, work);
+  mergeWorkInto(patch, work, options);
   return patch.build();
 }
 
@@ -452,17 +479,106 @@ export interface MbArtistLike {
   readonly aliases?: readonly MbAlias[];
 }
 
-function mergeWorkInto(patch: PatchBuilder, work: MbWork): void {
-  patch.set("work", work.title);
+/**
+ * What `isClassicalRelease` reads of a release: the genres and the tags of its group, then
+ * the release's own (`releaseFull` asks for `release-groups` + `genres`, so both are in hand).
+ */
+export function releaseGenreNames(release: MbRelease | undefined): string[] {
+  const group = release?.["release-group"];
+  return [
+    ...(group?.genres ?? []),
+    ...(group?.tags ?? []),
+    ...(release?.genres ?? []),
+    ...(release?.tags ?? []),
+  ]
+    .map((name) => name.name ?? "")
+    .filter((name) => name !== "");
+}
+
+/**
+ * What `isClassicalRelease` reads of a work: its title, its composer credit, its movements.
+ *
+ * The **same work reaches `resolveTrackDocument` twice**, and the two copies do not carry the
+ * same relations: a work fetched on its own (`INC_PRESETS.workFull`) has no `work-rels`, so it
+ * carries none of the relations that describe its shape, while the copy nested in a recording
+ * does — `releaseFull` and `recordingFull` both ask for `work-level-rels`, and the recorded
+ * Discovery payload says what that returns: the nested work carries its `composer` and
+ * `writer` credits *and* its work-to-work relations (`medley`, `other version`, `based on`).
+ * `parts` is one of those, so the movement half of the shape is readable there.
+ *
+ * Reading only the copy the caller prefers left `movementCount` at 0 whenever a work had been
+ * fetched separately, and a classical release whose work carries movements but no catalogue
+ * number then silently lost its `WORK` (review of pull request #14, point 1). So the shape
+ * reads **whichever copy carries each half**; passing `nested` changes nothing when the two
+ * are the same object.
+ *
+ * Widening `workFull` was the other way to fix it, and it was not taken: it changes the URL of
+ * the one work lookup recorded in `apps/web/test/cassettes/musicbrainz.json`, and a cassette
+ * key that does not match is an error there, never a pass to the network.
+ */
+export function classicalShapeOf(
+  work: MbWork | undefined,
+  /** The same work as another payload nested it, when that is not the same object. */
+  nested?: MbWork | undefined,
+): ClassicalWorkShape | undefined {
+  const copies = [work, nested].filter((held): held is MbWork => held !== undefined);
+  const first = copies[0];
+  if (first === undefined) return undefined;
+  return {
+    title: first.title,
+    composer: copies.some((held) =>
+      (held.relations ?? []).some((relation) => relation.type === "composer"),
+    ),
+    movements: Math.max(...copies.map((held) => movementCount(held))),
+  };
+}
+
+/**
+ * MusicBrainz models a classical work's movements as works linked by `parts` / `part of`.
+ *
+ * A work looked up on its own carries no `parts` at all — `workFull` asks for no `work-rels`;
+ * the copy nested in a recording does, through `work-level-rels`. See `classicalShapeOf`.
+ */
+function movementCount(work: MbWork): number {
+  return (work.relations ?? []).filter(
+    (relation) =>
+      relation["target-type"] === "work" &&
+      (relation.type === "parts" || relation.type === "part of"),
+  ).length;
+}
+
+/**
+ * Fold a work into the document — or say why its display fields are not written (issue #4).
+ *
+ * `WORK` is not an identifier: a player groups the tracks of an album by it. Writing it on a
+ * pop release duplicates each title in a header, which is why `writeWorkTags` exists; the work
+ * *id* is written either way, so a release whose work fields were switched off can still be
+ * recognised after the fact.
+ */
+function mergeWorkInto(patch: PatchBuilder, work: MbWork, options: WorkTagOptions): void {
+  const decision = decideWorkTags(
+    options.writeWorkTags ?? DEFAULT_WRITE_WORK_TAGS,
+    options.classical ?? false,
+  );
+
   patch.set("musicbrainz_workid", work.id);
+
+  if (decision.write) {
+    patch.set("work", work.title);
+    // Movements only exist on classical works, which MusicBrainz models as work parts.
+    patch.naAll(CLASSICAL_FIELDS, "the work is not a classical multi-movement piece");
+  } else {
+    // D4-02: n/a with the reason, never missing — `verify` and the completeness score read
+    // the difference between "we have no such tag" and "the source does not have it".
+    patch.naAll(WORK_TAG_FIELDS, decision.reason ?? "not a classical release");
+  }
+
   patch.setOrNa(
     "language",
     work.language ?? work.languages?.[0],
     "MusicBrainz declares no lyrics language for the work",
   );
   addCredits(patch, work.relations, "the work");
-  // Movements only exist on classical works, which MusicBrainz models as work parts.
-  patch.naAll(CLASSICAL_FIELDS, "the work is not a classical multi-movement piece");
 }
 
 /** Every credit field of §2.3, with the MBID field that goes with it. */

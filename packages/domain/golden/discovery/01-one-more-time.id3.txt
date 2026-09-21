@@ -40,7 +40,6 @@ TCON=house
 TCON=electronic
 TCON=dance
 TMOO=party
-TXXX:WORK=One More Time
 UFID:http://musicbrainz.org=60fa767a-d85d-4991-82bc-4294e0b11ae7
 TXXX:MusicBrainz Release Track Id=25fbe7fe-655e-3624-9be1-0452364d0975
 TXXX:MusicBrainz Album Id=d073287b-d1bd-4f11-a933-a4386f8cf701
