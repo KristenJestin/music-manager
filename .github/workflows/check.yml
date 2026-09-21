@@ -58,6 +58,13 @@ jobs:
         run: uv sync --frozen
         working-directory: services/toolbox
 
+      # `scripts/check.ts` hands vitest the checkout's environment, read from `.env`; the
+      # runner has none, and without it every server test that touches `env.ts` fails with
+      # "Invalid environment" before asserting anything. The example file is enough: the
+      # integration tests that need a real database or toolbox skip themselves.
+      - name: Environment for the tests
+        run: cp .env.example .env
+
       # tsc, eslint, prettier, vitest, ruff, pyright, pytest.
       - name: Check
         run: bun run check
