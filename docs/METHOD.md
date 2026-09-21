@@ -56,8 +56,8 @@ Branch `feat/<topic>` or `fix/<topic>` from `main`, Angular commits under the ma
 
 ## 7. How the developer agent works
 
-- **One issue, one branch, one worktree.** A Framed issue gets `feature/<n>-<topic>` (or `fix/<n>-<topic>`) from `main`, in a worktree of its own. Nothing else is done in that worktree; nothing of that issue is done elsewhere.
-- **One run at a time per repository.** A second request on the same repository waits until the current run has ended; it is never started beside it. Two runs on one branch is a defect, whatever their titles.
+- **One issue, one branch, one worktree.** A Framed issue gets `feat/<topic>` or `fix/<topic>` from `main` (§5), in a worktree of its own. Nothing else is done in that worktree; nothing of that issue is done elsewhere.
+- **One run at a time per repository.** A second request on the same repository waits until the current run has ended; it is never started beside it. Two runs on one branch is a defect, whatever their titles. When several issues are Framed, the agent takes them in the order the maintainer gave in their comments (the lanes), not in number order.
 - **Sub-agents inherit the identity.** Every worktree, every sub-agent, commits as the maintainer (`kris <kristen.jestin@pm.me>`, author and committer). A commit under any other identity is rewritten before it is pushed.
 - **A branch is rewritten only while the pull request is a draft**, and the rewrite is said in a comment (what changed, that the trees are unchanged). Once the pull request is ready, the branch only grows.
 - **Every push leaves the checks green** (`commit-messages`, `pull-request`, `check`). A push that does not is followed by the push that fixes it, before anything else.
