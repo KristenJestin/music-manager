@@ -43,7 +43,13 @@ import {
   SPECIAL_PURPOSE_LABEL_REASON,
 } from "../special-purpose.ts";
 import { PatchBuilder } from "./patch.ts";
-import { creditsFromRelations, mbidFieldFor, performedWork, urlOfType } from "./relations.ts";
+import {
+  creditsFromRelations,
+  mbidFieldFor,
+  performedWork,
+  relationIsSpecialPurposeArtist,
+  urlOfType,
+} from "./relations.ts";
 import { MOOD_VOCABULARY } from "./vocabulary.ts";
 import {
   decideWorkTags,
@@ -241,16 +247,20 @@ export function fromMusicBrainzRelease(
    * a catalogue number, and goes the same way.
    */
   const labelInfo = release["label-info"] ?? [];
-  const labels = labelInfo
+  // D19-03: a row with no name says nothing either way, so it is ignored on both sides — it
+  // neither names the release's label nor counts as a row that is not `[no label]`.
+  const namedRows = labelInfo.filter((info) => (info.label?.name ?? "") !== "");
+  const labels = namedRows
     .filter((info) => !isSpecialPurposeLabel(info.label?.id))
-    .map((info) => info.label?.name ?? "")
-    .filter((name) => name !== "");
+    .map((info) => info.label?.name ?? "");
   const catalogNumbers = labelInfo
     .map((info) => info["catalog-number"] ?? "")
     .filter((value) => value !== "" && !isCatalogueNumberPlaceholder(value));
   // “the release carries no label” and “the label is `[no label]`” are two different facts, and
-  // the document says which one it is: the second is D6-02's n/a, with a reason of its own.
-  if (labels.length === 0 && labelInfo.some((info) => isSpecialPurposeLabel(info.label?.id))) {
+  // the document says which one it is: the second is D6-02's n/a, with a reason of its own —
+  // and only when *every* named row is special-purpose (D19-03): one real label beside a
+  // `[no label]` row means the release does have a label.
+  if (namedRows.length > 0 && namedRows.every((info) => isSpecialPurposeLabel(info.label?.id))) {
     patch.na("label", SPECIAL_PURPOSE_LABEL_REASON);
   } else {
     patch.setOrNa("label", labels, "the release carries no label");
@@ -692,6 +702,10 @@ const CREDIT_FIELDS = [
  * the entity it belongs to, so "no DJ-mixer relation" means this track has no DJ-mixer, which
  * is §6's "the source says it does not exist". `merge` lifts the n/a again if another entity
  * — the work, the release — does credit that role, so the three calls compose.
+ *
+ * The reason tells the two ways a role can be empty apart (D19-01): a list that named a
+ * special-purpose artist said “nobody”, and says so, where a list that simply had no such
+ * relation says that instead.
  */
 function addCredits(
   patch: PatchBuilder,
@@ -729,8 +743,17 @@ function addCredits(
   for (const [name, values] of mbids) if (patch.set(name, values)) produced.add(name);
   if (performers.length > 0 && patch.set("performer", performers)) produced.add("performer");
 
+  // “The list has no writer” and “the only writer is `[traditional]`” are two different
+  // facts, and the document says which one it is: a list that held a special-purpose artist
+  // named nobody, so every field it left empty is n/a with the special-purpose reason —
+  // `[traditional]` is why there is no COMPOSER either (D19-01).
+  const refused = (relations ?? []).some(relationIsSpecialPurposeArtist);
   for (const name of CREDIT_FIELDS) {
-    if (!produced.has(name)) patch.na(name, `no such credit relation on ${entity}`);
+    if (produced.has(name)) continue;
+    patch.na(
+      name,
+      refused ? SPECIAL_PURPOSE_ARTIST_REASON : `no such credit relation on ${entity}`,
+    );
   }
 }
 
