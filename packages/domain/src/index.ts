@@ -76,6 +76,21 @@ export type { Cached, TrackResolutionInput } from "./metadata/resolve.ts";
 export { needsRetag, TAG_SCHEMA_CHANGELOG, TAG_SCHEMA_VERSION } from "./metadata/schema.ts";
 export type { TagSchemaChange } from "./metadata/schema.ts";
 
+export {
+  decideWorkTags,
+  DEFAULT_WRITE_WORK_TAGS,
+  isClassicalRelease,
+  WORK_TAG_FIELDS,
+  WRITE_WORK_TAGS,
+} from "./metadata/classical.ts";
+export type {
+  ClassicalReleaseInput,
+  ClassicalWorkShape,
+  WorkTagField,
+  WorkTagsDecision,
+  WriteWorkTags,
+} from "./metadata/classical.ts";
+
 export * from "./metadata/resolvers/index.ts";
 
 /* ---- album scope: one value per album for the 36 `albumScope` fields (docs §2, §6) ---- */
