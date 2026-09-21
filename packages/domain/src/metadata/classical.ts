@@ -17,7 +17,8 @@
  *
  *  1. **the release group carries it** — a genre or tag naming `classical` (`classical`,
  *     `contemporary classical`, `cinematic classical`), which is what MusicBrainz's own
- *     community votes are for;
+ *     community votes are for. `classical crossover` is deliberately not one of them; see
+ *     `namesClassical`;
  *  2. **the release has the classical shape** — a composer credit *and* a work that carries a
  *     catalogue number (`Op. 67`, `BWV 1043`, `K. 622`) or movements.
  *
@@ -79,17 +80,24 @@ export function isClassicalRelease(input: ClassicalReleaseInput): boolean {
   return work.title !== undefined && CATALOGUE_NUMBER.test(work.title);
 }
 
-/** True when one of the names says `classical` — as a word, so `neoclassical` is not one. */
+/**
+ * True when one of the names says `classical` — as a word, so `neoclassical` is not one, and
+ * not when it says `crossover` either.
+ *
+ * MusicBrainz's derived genres put four names carrying the word side by side: `contemporary
+ * classical` and `cinematic classical` are classical repertoire, `neoclassical dark wave` and
+ * `classic rock` are not the word at all, and `classical crossover` — Bocelli, Il Divo, an
+ * orchestra playing pop songs — is *named* classical without being the repertoire this
+ * predicate is for: its tracks each carry their own work, which is exactly the per-track
+ * header issue #4 removes. Decided explicitly in review of pull request #14 (point 4) rather
+ * than inherited from the word match; `writeWorkTags = always` remains there for a library
+ * that wants the tags anyway.
+ */
 function namesClassical(names: readonly (string | undefined)[] | undefined): boolean {
   for (const name of names ?? []) {
     if (name === undefined) continue;
-    if (
-      name
-        .toLowerCase()
-        .split(/[^a-z]+/)
-        .includes("classical")
-    )
-      return true;
+    const words = name.toLowerCase().split(/[^a-z]+/);
+    if (words.includes("classical") && !words.includes("crossover")) return true;
   }
   return false;
 }

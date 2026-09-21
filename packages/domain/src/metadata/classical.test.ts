@@ -39,10 +39,11 @@ describe("isClassicalRelease", () => {
 
   it("reads `classical` as a word, not as a fragment", () => {
     // MusicBrainz's derived genres carry `neoclassical dark wave`, `classic rock` and
-    // `classical crossover` side by side; only one of the three is classical repertoire.
+    // `classical crossover` side by side; none of the three is the repertoire this writes for.
     expect(isClassicalRelease({ genres: ["neoclassical dark wave"] })).toBe(false);
     expect(isClassicalRelease({ genres: ["classic rock"] })).toBe(false);
-    expect(isClassicalRelease({ genres: ["classical crossover"] })).toBe(true);
+    expect(isClassicalRelease({ genres: ["classical"] })).toBe(true);
+    expect(isClassicalRelease({ genres: ["classical crossover"] })).toBe(false);
   });
 
   it("falls back on the classical shape: composer and catalogue number", () => {
@@ -72,6 +73,15 @@ describe("isClassicalRelease", () => {
     expect(isClassicalRelease({ work: { title: "Op. 40", composer: false } })).toBe(false);
     expect(isClassicalRelease({ work: { title: "Op. 40" } })).toBe(false);
     expect(isClassicalRelease({})).toBe(false);
+  });
+
+  it("leaves a film score alone, composer credit and all", () => {
+    // The recorded Tsubasa Chronicle soundtrack, which is the owner's library: no genre on the
+    // group, a composer (`yuki kajiura`) on every work, and cue titles. Nothing but the absence
+    // of a catalogue number keeps them out, so it is the case to pin (review of #14, point 3).
+    for (const title of ["Ship of Fools", "BLAZE", "Believe", "Black Sword"]) {
+      expect(isClassicalRelease({ work: { title, composer: true } })).toBe(false);
+    }
   });
 
   it("takes movements as the shape's other half", () => {
