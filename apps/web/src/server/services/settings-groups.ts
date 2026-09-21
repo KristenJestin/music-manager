@@ -80,8 +80,9 @@ export const METADATA_KEYS = [
   "sourcesEnabled",
   "sourceTtlDays",
   "sourcesRefreshEnabled",
-  /* work tags (docs/03 §2.4, issue #4) */
+  /* work tags (docs/03 §2.4, issue #4) and the advisory (§2.6, issue #5) */
   "writeWorkTags",
+  "writeExplicitTag",
   /* tag schema */
   "tagSchemaVersionOverride",
   "retagBatchSize",

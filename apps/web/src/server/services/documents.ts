@@ -982,6 +982,7 @@ async function assemble(collected: Collected, input: AssembleInput): Promise<Tra
     artistNameSource: config.artistNameSource,
     ...(config.locale === undefined ? {} : { locale: config.locale }),
     writeWorkTags: config.writeWorkTags,
+    writeExplicitTag: config.writeExplicitTag,
     ...(rsgainRow === null
       ? {}
       : {

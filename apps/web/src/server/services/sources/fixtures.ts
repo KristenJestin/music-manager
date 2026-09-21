@@ -170,6 +170,11 @@ export interface DocumentInput {
    * fixtures answer from disk, but the setting is not a source of bytes — it is the decision.
    */
   readonly writeWorkTags?: WriteWorkTags;
+  /**
+   * The `writeExplicitTag` setting, when the caller has it — same reasoning as the work tags
+   * above (issue #5): the fixtures answer from disk, but writing the advisory is a decision.
+   */
+  readonly writeExplicitTag?: boolean;
 }
 
 /**
@@ -226,6 +231,7 @@ export function buildDocument(input: DocumentInput): TrackDocument {
         }
       : {}),
     ...(input.writeWorkTags === undefined ? {} : { writeWorkTags: input.writeWorkTags }),
+    ...(input.writeExplicitTag === undefined ? {} : { writeExplicitTag: input.writeExplicitTag }),
     coverArt: {
       data: readFixture<CaaIndex>("coverartarchive/release-discovery.json"),
       fetchedAt: input.fetchedAt,
