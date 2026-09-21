@@ -235,6 +235,20 @@ function DiscoverSettings() {
             }}
           />
         </FormRow>
+        <FormRow
+          label="ListenBrainz lookups"
+          help="One MusicBrainz request a second, so it is a budget. Recordings you already own cost nothing."
+        >
+          <Input
+            data-testid="setting-discoverCfLookups"
+            type="number"
+            className="h-7 w-24 text-xs"
+            value={String(value("discoverCfLookups", 15))}
+            onChange={(event) => {
+              set("discoverCfLookups", Number(event.target.value));
+            }}
+          />
+        </FormRow>
       </Section>
 
       <Section

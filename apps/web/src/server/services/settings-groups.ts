@@ -104,6 +104,7 @@ export const DISCOVER_KEYS = [
   "discoverTopArtists",
   "discoverMaxItems",
   "discoverMaxPerArtist",
+  "discoverCfLookups",
   "discoverIncludeTypes",
   "discoverExcludeLive",
   "discoverExcludeCompilations",
