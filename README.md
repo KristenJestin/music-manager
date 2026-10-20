@@ -159,5 +159,4 @@ Issues and questions are fine; answers may be slow.
 
 ## License
 
-License: TBD. No license file is in the repository yet, so default copyright applies. You can read
-the code; there is no grant to use, modify or redistribute it.
+Free software under the [AGPL-3.0](LICENSE).
